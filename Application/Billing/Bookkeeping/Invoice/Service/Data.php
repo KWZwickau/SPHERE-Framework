@@ -154,19 +154,24 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Year
-     * @param $Month
+     * @param string $Year
+     * @param string $Month
+     * @param string $BasketName
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceByYearAndMonth($Year, $Month)
+    public function getInvoiceByYearAndMonth($Year, $Month, $BasketName = '')
     {
 
+        $FilterArray = array(
+            TblInvoice::ATTR_YEAR  => $Year,
+            TblInvoice::ATTR_MONTH => $Month,
+        );
+        if($BasketName){
+            $FilterArray[TblInvoice::ATTR_BASKET_NAME] = $BasketName;
+        }
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
-            array(
-                TblInvoice::ATTR_YEAR  => $Year,
-                TblInvoice::ATTR_MONTH => $Month,
-            ));
+            $FilterArray);
     }
 
     /**
@@ -240,10 +245,11 @@ class Data extends AbstractData
      * @param string $Month
      * @param string $Year
      * @param string $TargetTime
+     * @param string $BasketName
      *
      * @return bool
      */
-    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime)
+    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime, $BasketName)
     {
         //ToDO $InvoiceNumberLength from Setting?
         $InvoiceNumberLength = 5;
@@ -269,6 +275,7 @@ class Data extends AbstractData
                     $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
                     $Entity->setFirstName($tblPerson->getFirstName());
                     $Entity->setLastName($tblPerson->getLastName());
+                    $Entity->setBasketName($BasketName);
                     $Entity->setServiceTblPersonCauser($tblPerson);
                     $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
 

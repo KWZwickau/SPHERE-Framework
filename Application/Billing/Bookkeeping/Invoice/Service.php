@@ -148,15 +148,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Year
-     * @param $Month
+     * @param string $Year
+     * @param string $Month
+     * @param string $BasketName
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceByYearAndMonth($Year, $Month)
+    public function getInvoiceByYearAndMonth($Year, $Month, $BasketName = '')
     {
 
-        return (new Data($this->getBinding()))->getInvoiceByYearAndMonth($Year, $Month);
+        return (new Data($this->getBinding()))->getInvoiceByYearAndMonth($Year, $Month, $BasketName);
     }
 
     /**
@@ -204,6 +205,7 @@ class Service extends AbstractService
         $Month = $tblBasket->getMonth();
         $Year = $tblBasket->getYear();
         $TargetTime = $tblBasket->getTargetTime();
+        $BasketName = $tblBasket->getName();
         $MaxInvoiceNumber = Invoice::useService()->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
 
         // First Look and remove existing Invoice
@@ -263,7 +265,7 @@ class Service extends AbstractService
         }
         if(!empty($DebtorInvoiceList)){
             // Erstellen aller Rechnungen im Bulk
-            (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime);
+            (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime, $BasketName);
         }
 
         $InvoiceItemDebtorList = array();

@@ -25,6 +25,7 @@ class TblInvoice extends Element
     const ATTR_TARGET_TIME = 'TargetTime';
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';
+    const ATTR_BASKET_NAME = 'BasketName';
     const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
     const ATTR_TBL_INVOICE_CREDITOR = 'tblInvoiceCreditor';
 
@@ -56,6 +57,10 @@ class TblInvoice extends Element
      * @Column(type="string")
      */
     protected $LastName;
+    /**
+     * @Column(type="string")
+     */
+    protected $BasketName;
 //    /**
 //     * @Column(type="decimal", precision=14, scale=4)
 //     */
@@ -206,7 +211,21 @@ class TblInvoice extends Element
         $this->LastName = $LastName;
     }
 
+    /**
+     * @return string
+     */
+    public function getBasketName()
+    {
+        return $this->BasketName;
+    }
 
+    /**
+     * @param string $BasketName
+     */
+    public function setBasketName($BasketName)
+    {
+        $this->BasketName = $BasketName;
+    }
 
 //    /**
 //     * @return (type="decimal", precision=14, scale=4)

@@ -3,9 +3,11 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Title;
@@ -50,15 +52,19 @@ class Frontend extends Extension implements IFrontendInterface
         if(isset($Invoice['Month'])){
             $_POST['Invoice']['Month'] = $Invoice['Month'];
         }
+        if(!isset($Invoice['BasketName'])){
+            $Invoice['BasketName'] = '';
+        }
 
         $Stage = new Stage('Rechnungsliste', 'Sicht Beitragszahler');
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month']);
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'], $Invoice['BasketName']);
         $TableContent = array();
         if($tblInvoiceList){
             array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
                 $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
                 $item['TargetTime'] = $tblInvoice->getTargetTime();
+                $item['BasketName'] = $tblInvoice->getBasketName();
                 $item['CauserPerson'] = '';
                 if($tblPersonCauser = $tblInvoice->getServiceTblPersonCauser()){
                     $item['CauserPerson'] = $tblPersonCauser->getLastFirstName();
@@ -80,7 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
                     // convert to Frontend
                     $item['SumPrice'] = new ToolTip(number_format($ItemPrice, 2).' €', $ItemString);
                 }
-                $item['Option'] = '';
+//                $item['Option'] = '';
 
                 array_push($TableContent, $item);
             });
@@ -101,12 +107,13 @@ class Frontend extends Extension implements IFrontendInterface
                             'DebtorPerson' => 'Beitragszahler',
                             'DebtorNumber' => 'Debit.-Nr.',
                             'SumPrice' => 'Gesamtbetrag',
-                            'Option' => '',
+                            'BasketName' => 'Name der Abrechnung',
+//                            'Option' => '',
                         ), array(
                             'columnDefs' => array(
                                 array('type' => 'natural', 'targets' => array(0)),
                                 array('type' => 'de_date', 'targets' => array(2)),
-                                array("orderable" => false, "targets"   => -1),
+//                                array("orderable" => false, "targets"   => -1),
                             ),
                             'order'      => array(
 //                            array(1, 'desc'),
@@ -139,20 +146,21 @@ class Frontend extends Extension implements IFrontendInterface
         if(isset($Invoice['Month'])){
             $_POST['Invoice']['Month'] = $Invoice['Month'];
         }
+        if(!isset($Invoice['BasketName'])){
+            $Invoice['BasketName'] = '';
+        }
 
         $Stage = new Stage('Rechnungsliste', 'Sicht Beitragsverursacher');
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month']);
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'], $Invoice['BasketName']);
         $TableContent = array();
         if($tblInvoiceList){
             array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
                 $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+                $item['BasketName'] = $tblInvoice->getBasketName();
 //                $item['TargetTime'] = $tblInvoice->getTargetTime();
-                $item['CauserPerson'] = '';
-                //ToDO neue Funktion erstellen!
-//                if(($tblInvoiceCauser = Invoice::useService()->getPersonCauserByInvoice($tblInvoice))){
-//                    $item['CauserPerson'] = $tblInvoiceCauser->getLastFirstName();
-//                }
+                //ToDO Person aus Service oder fester string?
+                $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
 
 
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
@@ -177,7 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox , $tblInvoiceItemDebtor->getId());
-                        $item['Option'] = '';
+//                        $item['Option'] = '';
                         // convert to Frontend
                         $item['ItemPrice'] = number_format($item['ItemPrice'], 2).' €';
                         $item['ItemSumPrice'] = number_format($item['ItemSumPrice'], 2).' €';
@@ -205,8 +213,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Time' => 'Abrechnungszeitraum',
                                 'DebtorPerson' => 'Debitor',
                                 'InvoiceNumber' => 'Abr.-Nr.',
+                                'BasketName' => 'Name der Abrechnung',
                                 'IsPaid' => 'Offene Posten',
-                                'Option' => '',
+//                                'Option' => '',
                             ))
                         )
                     )
@@ -222,16 +231,29 @@ class Frontend extends Extension implements IFrontendInterface
 
         $YearList = $this->getYearList();
         $MonthList = $this->getMonthList();
+
+        $BasketNameList = array();
+        if(($tblBasketList = Basket::useService()->getBasketAll())){
+            foreach($tblBasketList as $tblBasket){
+                $BasketNameList[] = $tblBasket->getName();
+            }
+            $BasketNameList = array_unique($BasketNameList);
+        }
+
         return new Well(new Form(
             new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Title('Rechnungen filtern'))
+                ),
                 new FormRow(array(
-                    new FormColumn(new Title('Rechnungen filtern'), 2),
                     new FormColumn(new SelectBox('Invoice[Year]', 'Jahr', $YearList), 4),
                     new FormColumn(new SelectBox('Invoice[Month]', 'Monat', $MonthList, null, true, null), 4),
+                    new FormColumn(new AutoCompleter('Invoice[BasketName]', 'Name der Abrechnung', '', $BasketNameList), 4),
                 )),
                 new FormRow(array(
-                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))), 2),
-                    new FormColumn(new Primary('Filter', new Filter()), 10),
+//                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))), 2),
+//                    new FormColumn(new Primary('Filter', new Filter()), 10),
+                    new FormColumn(new Primary('Filter', new Filter())),
                 ))
             ))
         ));
