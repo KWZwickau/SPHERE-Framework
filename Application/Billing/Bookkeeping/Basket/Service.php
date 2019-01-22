@@ -332,20 +332,17 @@ class Service extends AbstractService
      * @param TblBasket $tblBasket
      * @param string    $Name
      * @param string    $Description
-     * @param string    $Year
-     * @param string    $Month
      * @param string    $TargetTime
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $Year, $Month, $TargetTime)
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime)
     {
 
         // String to DateTime object
         $TargetTime = new \DateTime($TargetTime);
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $Year, $Month,
-            $TargetTime);
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime);
     }
 
     /**

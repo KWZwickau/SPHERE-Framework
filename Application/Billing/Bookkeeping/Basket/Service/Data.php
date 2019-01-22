@@ -348,8 +348,6 @@ class Data extends AbstractData
      * @param TblBasket $tblBasket
      * @param string    $Name
      * @param string    $Description
-     * @param string    $Year
-     * @param string    $Month
      * @param /DateTime    $TargetTime
      *
      * @return bool
@@ -358,8 +356,6 @@ class Data extends AbstractData
         TblBasket $tblBasket,
         $Name,
         $Description,
-        $Year,
-        $Month,
         $TargetTime
     ) {
 
@@ -371,8 +367,6 @@ class Data extends AbstractData
         if(null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setYear($Year);
-            $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
 
             $Manager->saveEntity($Entity);

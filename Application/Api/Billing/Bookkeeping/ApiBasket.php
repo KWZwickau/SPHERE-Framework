@@ -386,8 +386,21 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             } else {
                 // Filtern doppelter Namen ohne Zeitangabe
-                if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))) {
-                    if($BasketId !== $tblBasket->getId()) {
+                if($BasketId && ($tblBasketEdit = Basket::useService()->getBasketById($BasketId))){
+                    $TargetMonth = $tblBasketEdit->getMonth();
+                    $TargetYear = $tblBasketEdit->getYear();
+                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name'], $TargetMonth, $TargetYear))) {
+                        if($BasketId !== $tblBasket->getId()) {
+                            $form->setError('Basket[Name]',
+                                'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
+                            // ToDO setError don't work
+                            $Warning[] = 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an';
+                            $Error = true;
+                        }
+                    }
+                } else {
+                    // fallback if error
+                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))) {
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
                         // ToDO setError don't work
@@ -518,8 +531,6 @@ class ApiBasket extends Extension implements IApiInterface
             $Global = $this->getGlobal();
             $Global->POST['Basket']['Name'] = $Basket['Name'];
             $Global->POST['Basket']['Description'] = $Basket['Description'];
-            $Global->POST['Basket']['Year'] = $Basket['Year'];
-            $Global->POST['Basket']['Month'] = $Basket['Month'];
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
             $Global->savePost();
             return $form;
@@ -528,7 +539,7 @@ class ApiBasket extends Extension implements IApiInterface
         $IsChange = false;
         if(($tblBasket = Basket::useService()->getBasketById($BasketId))) {
             $IsChange = Basket::useService()->changeBasket($tblBasket, $Basket['Name'], $Basket['Description']
-                , $Basket['Year'], $Basket['Month'], $Basket['TargetTime']);
+                , $Basket['TargetTime']);
         }
 
         return ($IsChange
