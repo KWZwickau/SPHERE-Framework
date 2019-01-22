@@ -241,7 +241,13 @@ class Service extends AbstractService
         return $YearList;
     }
 
-    public function getMonthList()
+    /**
+     * @param null $From
+     * @param null $To
+     *
+     * @return array
+     */
+    public function getMonthList($From = null, $To = null)
     {
 
         $MonthList[1] = 'Januar';
@@ -256,6 +262,15 @@ class Service extends AbstractService
         $MonthList[10] = 'Oktober';
         $MonthList[11] = 'November';
         $MonthList[12] = 'Dezember';
+        // Zeitraum eingrenzen
+        if($From !== null & $To !== null){
+            foreach($MonthList as $Key => &$Month){
+                if($Key < $From || $Key > $To){
+                    $Month = false;
+                }
+            }
+            $MonthList = array_filter($MonthList);
+        }
 
         return $MonthList;
     }

@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Billing\Accounting\ApiBankReference;
 use SPHERE\Application\Api\Billing\Accounting\ApiCreditor;
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtor;
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtorSelection;
+use SPHERE\Application\Api\Billing\Balance\BalanceDownload;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
@@ -35,5 +36,6 @@ class Billing implements IApplicationInterface
         ApiBasket::registerApi();
         ApiBasketVerification::registerApi();
         ApiInvoiceIsPaid::registerApi();
+        BalanceDownload::registerModule();
     }
 }

@@ -700,6 +700,20 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getAddressByPerson($tblPerson, $isForced);
     }
 
+
+    /** get Deliver Address (Type ID 4) else Main Address (Type ID 1)
+     *
+     * @param TblPerson $tblPerson
+     * @param bool $isForced
+     *
+     * @return bool|TblAddress
+     */
+    public function getDeliverAddressByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        return (new Data($this->getBinding()))->getDeliverAddressByPerson($tblPerson, $isForced);
+    }
+
     /** get Main Address (Type ID 1)
      *
      * @param TblPerson $tblPerson

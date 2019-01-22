@@ -422,43 +422,69 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param bool $isForced
+     * @param bool      $isForced
      *
      * @return bool|TblAddress
      */
     public function getAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        // TODO: Persistent Types
-        $Type = $this->getTypeById(1);
-        if ($isForced) {
-
+        $Type = $this->getTypeByName(TblType::META_MAIN_ADDRESS);
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+        );
+        if($isForced) {
             /** @var TblToPerson $Entity */
-            if (( $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-                array(
-                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
-                ))
-            )
-            ) {
+            if(($Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                $Parameter))) {
                 return $Entity->getTblAddress();
             } else {
                 return false;
             }
-
         } else {
-
             /** @var TblToPerson $Entity */
-            if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-                array(
-                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
-                ))
-            )
-            ) {
+            if(($Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblToPerson',
+                $Parameter))) {
                 return $Entity->getTblAddress();
             } else {
                 return false;
+            }
+        }
+    }
+
+    /** get Deliver Address else Main Address
+     *
+     * @param TblPerson $tblPerson
+     * @param bool      $isForced
+     *
+     * @return bool|TblAddress
+     */
+    public function getDeliverAddressByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        $Type = $this->getTypeByName(TblType::META_DELIVER_ADDRESS);
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+        );
+        if($isForced) {
+            /** @var TblToPerson $Entity */
+            if(($Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                $Parameter))) {
+                return $Entity->getTblAddress();
+            } else {
+                return $this->getAddressByPerson($tblPerson);
+            }
+        } else {
+            /** @var TblToPerson $Entity */
+            if(($Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblToPerson',
+                $Parameter))) {
+                return $Entity->getTblAddress();
+            } else {
+                return $this->getAddressByPerson($tblPerson);
             }
         }
     }

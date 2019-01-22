@@ -482,7 +482,7 @@ class TblInvoiceItemDebtor extends Element
     }
 
     /**
-     * @return int
+     * @return string
      */
     public function getSummaryPriceInt()
     {
