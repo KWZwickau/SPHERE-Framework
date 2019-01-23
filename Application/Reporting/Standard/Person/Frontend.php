@@ -1504,20 +1504,24 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     new Panel(
                         'Filter',
-                        new Layout (new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                $datePicker, 4
-                            ),
-                            new LayoutColumn(
-                                $typeSelectBox, 4
-                            ),
-                            new LayoutColumn(
-                                $divisionTextField, 4
-                            ),
-                            new LayoutColumn(
-                                $button, 4
-                            ),
-                        )))),
+                        new Layout (new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    $datePicker, 4
+                                ),
+                                new LayoutColumn(
+                                    $typeSelectBox, 4
+                                ),
+                                new LayoutColumn(
+                                    $divisionTextField, 4
+                                ),
+                            )),
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    $button, 4
+                                ),
+                            ))
+                        ))),
                         Panel::PANEL_TYPE_INFO
                     )
                 )

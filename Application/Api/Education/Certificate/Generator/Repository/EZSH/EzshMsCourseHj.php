@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 07.06.2018
- * Time: 10:27
+ * Date: 22.01.2019
+ * Time: 08:00
  */
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH;
@@ -15,23 +15,12 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class EzshMsJ
+ * Class EzshMsCourseHj
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH
  */
-class EzshMsJ extends EzshStyle
+class EzshMsCourseHj extends EzshStyle
 {
-    /**
-     * @return array
-     */
-    public function selectValuesTransfer()
-    {
-        return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
-        );
-    }
-
     /**
      * @param $personId
      *
@@ -50,7 +39,7 @@ class EzshMsJ extends EzshStyle
                         )
                     )
                     ->addSectionList(
-                        self::getEZSHHeadLine('JAHRESZEUGNIS', 'OBERSCHULE – staatlich genehmigte Ersatzschule')
+                        self::getEZSHHeadLine('HALBJAHRESINFORMATION', 'OBERSCHULE – staatlich genehmigte Ersatzschule')
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
@@ -64,9 +53,7 @@ class EzshMsJ extends EzshStyle
                     ->addSection(
                         self::getEZSHDivisionAndYear($personId)
                     )
-                    ->addElement((new Element())
-                        ->styleMarginTop('40px')
-                    )
+                    ->addSection(self::getEZSHCourse($personId))
                     ->addSection((new Section())
                         ->addSliceColumn(
                             self::getEZSHSubjectLanes($personId)
@@ -119,10 +106,7 @@ class EzshMsJ extends EzshStyle
                         ->stylePaddingTop('75px')
                     )
                     ->addSectionList(
-                        self::getEZSHRating($personId, '510px')
-                    )
-                    ->addSectionList(
-                        self::getEZSHTransfer($personId)
+                        self::getEZSHRating($personId)
                     )
                     ->addSectionList(
                         self::getEZSHRemark($personId)
@@ -131,7 +115,7 @@ class EzshMsJ extends EzshStyle
                         self::getEZSHDateSign($personId)
                     )
                     ->addElement((new Element())
-                        ->styleMarginTop('55px')
+                        ->styleMarginTop('63px')
                     )
                     ->addSectionList(
                         self::getEZSHCustody()
