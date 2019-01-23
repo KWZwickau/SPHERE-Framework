@@ -4835,14 +4835,14 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblCertificate->getCertificate() == 'GymAbgSekI' || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
-                    'gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe
-                                11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben',
+                    'gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 10 nach
+                     Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben.',
                     GymAbgSekI::COURSE_RS
                 ));
                 $radio2 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
-                    'gemäß § 30 Abs. 7 Satz 2 SOGYA, mit der Versetzung von Klassenstufe 9 nach Klassenstufe
-                                10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben',
+                    'gemäß § 7 Absatz 7 Satz 1 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 9 nach
+                     Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.',
                     GymAbgSekI::COURSE_HS
                 ));
                 if ($isApproved) {

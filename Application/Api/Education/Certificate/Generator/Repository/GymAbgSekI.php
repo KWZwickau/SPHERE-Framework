@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
  * Class GymAbgHs
@@ -67,7 +68,7 @@ class GymAbgSekI extends Certificate
                     ->setContent('(Sekundarstufe I)')
                     ->styleTextSize('22px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('5px')
+                    ->styleMarginTop('0px')
                 )
             );
 
@@ -132,10 +133,14 @@ class GymAbgSekI extends Certificate
             ->addSliceArray(MsAbsRs::getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG das Gymnasium.')
+                    ->setContent(
+                        new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
+                        . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes')
+                        . new Container('das Gymnasium.')
+                    )
                     ->styleMarginTop('8px')
-                    ->styleAlignLeft()
-                )->styleMarginTop('20%')
+                    ->styleAlignCenter()
+                )->styleMarginTop('60px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -159,12 +164,13 @@ class GymAbgSekI extends Certificate
                                     Frau/Herr
                                 {% endif %}
                             {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat, 
-                            gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe
-                            11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben.¹')
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe
+                            10 nach Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren
+                            Schulabschluss erworben.¹')
                         ->stylePaddingBottom()
                     )
-                )->styleMarginTop('10px')
+                )->styleMarginTop('45px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -188,12 +194,12 @@ class GymAbgSekI extends Certificate
                                     Frau/Herr
                                 {% endif %}
                             {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat,
-                            gemäß § 30 Abs. 7 Satz 2 SOGYA, mit der Versetzung von Klassenstufe 9 nach Klassenstufe
-                            10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.¹')
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 7 Absatz 7 Satz 1 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 9
+                            nach Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.¹')
                         ->stylePaddingBottom()
                     )
-                )->styleMarginTop('10px')
+                )->styleMarginTop('15px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -205,7 +211,7 @@ class GymAbgSekI extends Certificate
                     ->addElementColumn((new Element())
                     )
                 )
-                ->styleMarginTop('360px')
+                ->styleMarginTop('440px')
             );
 
         $pageList[] = (new Page())
@@ -238,7 +244,7 @@ class GymAbgSekI extends Certificate
                 )
             )
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('300px'))
-            ->addSlice($this->getProfileStandard($personId))
+            ->addSlice($this->getProfileStandardNew($personId))
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '155px', '15px'))
             ->addSlice($this->getDateLine($personId))
@@ -246,14 +252,11 @@ class GymAbgSekI extends Certificate
             ->addSlice($this->getParentSign())
             ->addSlice($this->getInfo('100px',
                 'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend'
-//                '¹ Gilt nicht an Gymnasien mit vertiefter Ausbildung gemäß § 4 SOGYA.',
-//                '² In Klassenstufe 8 ist der Zusatz „mit informatischer Bildung“ zu streichen.
-//                                    Beim sprachlichen Profil ist der Zusatz „mit informatischer Bildung“ zu
-//                                    streichen und die Fremdsprache anzugeben.',
-//                '³ Nur für Schüler mit vertiefter Ausbildung gemäß § 4 SOGYA'
-            )
-            );
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
+                '¹ &nbsp;&nbsp;&nbsp; Die Bezeichnung des besuchten schulspezifischen Profils ist anzugeben. Beim Erlernen einer dritten
+                 Fremdsprache ist anstelle des Profils oder in der vertieften <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                 sprachlichen Ausbildung die Fremdsprache anzugeben.'
+            ));
 
         return $pageList;
     }
