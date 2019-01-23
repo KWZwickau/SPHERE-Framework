@@ -88,7 +88,6 @@ class Service extends AbstractService
     /**
      * @param TblItem $tblItem
      * @param string  $Year
-     *
      * @param string  $MonthFrom
      * @param string  $MonthTo
      *
@@ -96,44 +95,20 @@ class Service extends AbstractService
      */
     public function getPriceListByItemAndYear(TblItem $tblItem, $Year, $MonthFrom = '1', $MonthTo = '12')
     {
-        //ToDO Invoice über Zeitraum ziehen
-//        $From = $Balance['From'];
-//        $To = $Balance['To'];
         $PriceList = array();
         $MonthList = Invoice::useService()->getMonthList((int)$MonthFrom, (int)$MonthTo);
         foreach($MonthList as $Month => $MonthName){
 
             if(($tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month)) && $tblItem){
                 array_walk($tblInvoiceList, function (TblInvoice $tblInvoice) use (&$PriceList, $tblItem){
-                    $tblPersonCauser = $tblInvoice->getServiceTblPersonCauser();
                     if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoiceAndItem($tblInvoice, $tblItem))){
-                        $TimeString = $tblInvoice->getMonth().'.'.$tblInvoice->getYear();
                         if(count($tblInvoiceItemDebtorList)){
                             /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
                             $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
-                            if($tblInvoiceItemDebtor->getIsPaid()){
-                                $tblDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor();
-                                if($tblDebtor && $tblPersonCauser){
-                                    $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()]['Sum'][] =
-                                        $tblInvoiceItemDebtor->getSummaryPriceInt();
-                                    $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()]['Price'][$TimeString] =
-                                        $tblInvoiceItemDebtor->getSummaryPriceInt();
-                                }
-                            } else {
-                                $tblDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor();
-                                if($tblDebtor && $tblPersonCauser) {
-                                    $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()]['PriceMissing'][$TimeString] =
-                                        $tblInvoiceItemDebtor->getSummaryPriceInt();
-                                }
-                            }
+                            $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
                         } else {
                             foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
-                                if($tblInvoiceItemDebtor->getIsPaid()){
-                                    $tblDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor();
-                                    if($tblDebtor && $tblPersonCauser){
-                                        $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()][][] = $tblInvoiceItemDebtor->getQuantity()*$tblInvoiceItemDebtor->getValue();
-                                    }
-                                }
+                                $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
                             }
                         }
                     }
@@ -153,6 +128,34 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array                $PriceList
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param TblInvoice           $tblInvoice
+     *
+     * @return mixed
+     */
+    private function fillPriceListByCauser(&$PriceList, TblInvoiceItemDebtor $tblInvoiceItemDebtor, TblInvoice $tblInvoice)
+    {
+
+        $tblPersonCauser = $tblInvoice->getServiceTblPersonCauser();
+        $tblDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor();
+        $timeString = $tblInvoice->getMonth().'.'.$tblInvoice->getYear();
+
+        if($tblDebtor && $tblPersonCauser) {
+            if($tblInvoiceItemDebtor->getIsPaid()){
+                $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()]['Sum'][] =
+                    $tblInvoiceItemDebtor->getSummaryPriceInt();
+                $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()]['Price'][$timeString] =
+                    $tblInvoiceItemDebtor->getSummaryPriceInt();
+            } else {
+                $PriceList[$tblDebtor->getId()][$tblPersonCauser->getId()]['PriceMissing'][$timeString] =
+                    $tblInvoiceItemDebtor->getSummaryPriceInt();
+            }
+        }
+        return $PriceList;
+    }
+
+    /**
      * @param array $PriceList
      *
      * @return array
@@ -162,6 +165,7 @@ class Service extends AbstractService
 
         $tableContent = array();
         if(!empty($PriceList)) {
+            asort($PriceList);
             foreach ($PriceList as $DebtorId => $CauserList){
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))){
                     foreach($CauserList as $CauserId => $Value){
@@ -272,10 +276,10 @@ class Service extends AbstractService
 
             //Column width
             $column = 0;
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(8);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(22);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(22);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(35);
 
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
