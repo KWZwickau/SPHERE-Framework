@@ -26,7 +26,7 @@ class Balance implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route('/Billing/Balance'), new Link\Name('Beleg-Druck'),
+            new Link(new Link\Route('/Billing/Balance'), new Link\Name('Belegdruck'),
                 new Link\Icon(new Listing()))
         );
 //        Main::getDisplay()->addApplicationNavigation(

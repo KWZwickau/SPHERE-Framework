@@ -169,6 +169,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             'BasketVerificationId' => $BasketVerificationId
         ));
+        $Emitter->setLoadingMessage('Speichern erfolgreich!');
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;

@@ -708,10 +708,10 @@ class Service extends AbstractService
      *
      * @return bool|TblAddress
      */
-    public function getDeliverAddressByPerson(TblPerson $tblPerson, $isForced = false)
+    public function getInvoiceAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getDeliverAddressByPerson($tblPerson, $isForced);
+        return (new Data($this->getBinding()))->getInvoiceAddressByPerson($tblPerson, $isForced);
     }
 
     /** get Main Address (Type ID 1)

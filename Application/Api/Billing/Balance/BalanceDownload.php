@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Billing\Balance;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -57,9 +58,11 @@ class BalanceDownload implements IModuleInterface
             $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Year, $From, $To);
             if (!empty($PriceList)) {
                 $fileLocation = Balance::useService()->createBalanceListExcel($PriceList, $tblItem->getName(), $From, $To);
-
+                $MonthList = Invoice::useService()->getMonthList();
+                $StartMonth = $MonthList[$From];
+                $ToMonth = $MonthList[$To];
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    $tblItem->getName().'-'.$Year.".xlsx")->__toString();
+                    $tblItem->getName().'-'.$Year.'-'.$StartMonth.'-'.$ToMonth.'.xlsx')->__toString();
             }
         }
 

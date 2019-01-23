@@ -461,10 +461,10 @@ class Data extends AbstractData
      *
      * @return bool|TblAddress
      */
-    public function getDeliverAddressByPerson(TblPerson $tblPerson, $isForced = false)
+    public function getInvoiceAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        $Type = $this->getTypeByName(TblType::META_DELIVER_ADDRESS);
+        $Type = $this->getTypeByName(TblType::META_INVOICE_ADDRESS);
         $Parameter = array(
             TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
             TblToPerson::ATT_TBL_TYPE       => $Type->getId()

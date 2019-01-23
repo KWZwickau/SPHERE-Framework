@@ -66,6 +66,7 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             'InvoiceItemDebtorId' => $InvoiceItemDebtorId
         ));
+        $Emitter->setLoadingMessage('Speichern erfolgreich!');
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
@@ -83,6 +84,7 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getColumnContent'
         ));
+
         $Emitter->setPostPayload(array(
             'InvoiceItemDebtorId' => $InvoiceItemDebtorId
         ));

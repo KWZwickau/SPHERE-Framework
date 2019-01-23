@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -37,7 +38,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBalance($Balance = array())
     {
 
-        $Stage = new Stage('Beleg-Druck');
+        $Stage = new Stage('Belegdruck');
 
         if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))) {
             $_POST['Balance']['Item'] = $tblItem->getId();
@@ -59,8 +60,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             if(($tblItem = Item::useService()->getItemById($Balance['Item']))) {
                 $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Balance['Year'],
-                    $Balance['From'], $Balance['To']);
-                $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
+                    $Balance['From'], $Balance['To'], false); //ToDO GroupByCauser Bool
+                $tableContent = Balance::useService()->getTableContentByPriceList($PriceList, false);//ToDO GroupByCauser Bool
                 $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                     new Download(), array(
                         'ItemId' => $tblItem->getId(),
@@ -83,8 +84,23 @@ class Frontend extends Extension implements IFrontendInterface
                 'Debtor' => 'Beitragszahler',
                 'Causer' => 'Bietragsverursacher',
                 'Value'  => 'Summe',
+            ), array(
+                'columnDefs' => array(
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),
+                    array('type' => 'natural', 'targets' => array(2)),
+//                    array("orderable" => false, "targets"   => array(5, -1)),
+                ),
+                'order'      => array(
+                    array(1, 'desc'),
+                    array(0, 'asc')
+                ),
+                // First column should not be with Tabindex
+                // solve the problem with responsive false
+                "responsive" => false,
             ));
             $Space = '';
+        } else {
+            $Download->setDisabled();
         }
 
         $Stage->setContent(new Layout(

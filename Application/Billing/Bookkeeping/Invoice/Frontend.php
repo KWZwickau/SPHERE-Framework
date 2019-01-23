@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -62,7 +63,7 @@ class Frontend extends Extension implements IFrontendInterface
         if($tblInvoiceList){
             array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
                 $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                 $item['TargetTime'] = $tblInvoice->getTargetTime();
                 $item['BasketName'] = $tblInvoice->getBasketName();
                 $item['CauserPerson'] = '';
@@ -84,7 +85,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $ItemString = implode(', ', $ItemList);
                     // convert to Frontend
-                    $item['SumPrice'] = new ToolTip(number_format($ItemPrice, 2).' €', $ItemString);
+                    $item['SumPrice'] = number_format($ItemPrice, 2).' €&nbsp;&nbsp;&nbsp;'.new ToolTip(new Info(), $ItemString);
                 }
 //                $item['Option'] = '';
 
@@ -111,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            'Option' => '',
                         ), array(
                             'columnDefs' => array(
-                                array('type' => 'natural', 'targets' => array(0)),
+                                array('type' => 'natural', 'targets' => array(0, 6)),
                                 array('type' => 'de_date', 'targets' => array(2)),
 //                                array("orderable" => false, "targets"   => -1),
                             ),
@@ -156,7 +157,7 @@ class Frontend extends Extension implements IFrontendInterface
         if($tblInvoiceList){
             array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
                 $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                 $item['BasketName'] = $tblInvoice->getBasketName();
 //                $item['TargetTime'] = $tblInvoice->getTargetTime();
                 //ToDO Person aus Service oder fester string?
@@ -291,7 +292,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if($tblInvoice = $tblInvoiceItemDebtor->getTblInvoice()){
                     $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                     $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
-                    $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+                    $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                     $item['BasketName'] = $tblInvoice->getBasketName();
                 }
 
