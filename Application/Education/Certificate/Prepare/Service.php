@@ -1310,9 +1310,13 @@ class Service extends AbstractService
                     $Content['P' . $personId]['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
                         = str_replace('Profil', '', $tblSubjectProfile->getName());
 
-                    // bei Herrnhut EZSH steht das Wort "Profil" nicht Extra auf dem Formular
+                    // für Herrnhut EZSH Anpassung des Profilnamens
+                    $profile = $tblSubjectProfile->getName();
+                    $profile = str_replace('gesellschaftswissenschaftliches Profil /', '', $profile);
+                    $profile = str_replace('naturwissenschaftlich-mathematisches Profil /', '', $profile);
+                    $profile = trim(str_replace('"', '', $profile));
                     $Content['P' . $personId]['Student']['ProfileEZSH'][$tblSubjectProfile->getAcronym()]['Name']
-                        = $tblSubjectProfile->getName();
+                        = $profile;
                 }
             }
         }

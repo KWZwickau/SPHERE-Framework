@@ -1305,12 +1305,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
                                         $tblPerson);
 
-                                    /*
-                                     * Fehlzeiten
-                                     */
-                                    // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
                                     if ($Data === null && $tblPrepareStudent) {
                                         $Global = $this->getGlobal();
+                                        /*
+                                         * Fehlzeiten
+                                         */
+                                        // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
                                         if ($Global) {
                                             $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays'] =
                                                 $tblPrepareStudent && $tblPrepareStudent->getExcusedDays() !== null
@@ -1323,6 +1323,18 @@ class Frontend extends Extension implements IFrontendInterface
                                                     : Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
                                                     $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
                                         }
+
+                                        /*
+                                        * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
+                                        */
+                                        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                            && $tblConsumer->getAcronym() == 'EVGSM'
+                                            && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
+                                            && strpos($tblCertificateStudent->getCertificate(), 'EVGSM') !== false
+                                        ) {
+                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName'] = $tblDivisionItem->getDisplayName();
+                                        }
+
                                         $Global->savePost();
                                     }
 

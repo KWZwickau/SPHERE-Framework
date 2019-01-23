@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 07.06.2018
- * Time: 10:27
+ * Date: 22.01.2019
+ * Time: 08:34
  */
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH;
@@ -15,11 +15,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class EzshMsJ
+ * Class EzshMsCourseJ
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH
  */
-class EzshMsJ extends EzshStyle
+class EzshMsCourseJ extends EzshStyle
 {
     /**
      * @return array
@@ -64,9 +64,7 @@ class EzshMsJ extends EzshStyle
                     ->addSection(
                         self::getEZSHDivisionAndYear($personId)
                     )
-                    ->addElement((new Element())
-                        ->styleMarginTop('40px')
-                    )
+                    ->addSection(self::getEZSHCourse($personId))
                     ->addSection((new Section())
                         ->addSliceColumn(
                             self::getEZSHSubjectLanes($personId)
