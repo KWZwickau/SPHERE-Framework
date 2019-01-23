@@ -367,7 +367,7 @@ class MsAbsRs extends Certificate
             ->addElement((new Element())
                 ->setContent('Name und Anschrift der Schule')
                 ->styleTextSize('9px')
-                ->styleTextColor('#999')
+//                ->styleTextColor('#999')
                 ->styleAlignCenter()
                 ->styleMarginTop('5px')
                 ->styleMarginBottom('5px')

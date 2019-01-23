@@ -1343,12 +1343,14 @@ class Service extends AbstractService
                 }
             }
 
-            // Gleichgestellter Schulabschluss - nur GymAbgSekI
+            // Gleichgestellter Schulabschluss - GymAbgSekI, MsAbg
             if (($tblLeaveInformationEqualGraduation = $this->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))) {
                 if ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_RS) {
                     $Content['P' . $personId]['Input']['EqualGraduation']['RS'] = true;
                 } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HS) {
                     $Content['P' . $personId]['Input']['EqualGraduation']['HS'] = true;
+                } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HSQ) {
+                    $Content['P' . $personId]['Input']['EqualGraduation']['HSQ'] = true;
                 }
             }
 

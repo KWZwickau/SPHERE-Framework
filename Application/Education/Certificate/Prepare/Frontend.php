@@ -4854,6 +4854,29 @@ class Frontend extends Extension implements IFrontendInterface
                     array($radio1, $radio2),
                     Panel::PANEL_TYPE_DEFAULT
                 );
+            } elseif ($tblCertificate->getCertificate() == 'MsAbg') {
+                $radio1 = (new RadioBox(
+                    'Data[InformationList][EqualGraduation]',
+                    'gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
+                     des Realschulbildungsganges einen dem Hauptschulabschluss gleichgestellten Abschluss erworben',
+                    GymAbgSekI::COURSE_HS
+                ));
+                $radio2 = (new RadioBox(
+                    'Data[InformationList][EqualGraduation]',
+                    'gemäß § 27 Absatz 9 Satz 3 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in die
+                     Klassenstufe 10 des Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung zum Erwerb des Hauptschulabschlusses
+                     den qualifizierenden Hauptschulabschluss erworben.',
+                    GymAbgSekI::COURSE_HSQ
+                ));
+                if ($isApproved) {
+                    $radio1->setDisabled();
+                    $radio2->setDisabled();
+                }
+                $otherInformationList[] = new Panel(
+                    'Gleichgestellter Schulabschluss',
+                    array($radio1, $radio2),
+                    Panel::PANEL_TYPE_DEFAULT
+                );
             }
 
             $headmasterNameTextField = new TextField('Data[InformationList][HeadmasterName]', '',

@@ -49,6 +49,12 @@ class MsAbg extends Certificate
                     ->styleMarginTop('20%')
                     ->styleTextBold()
                 )
+                ->addElement((new Element())
+                    ->setContent('der Oberschule')
+                    ->styleTextSize('22px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('15px')
+                )
             );
 
         $pageList[] = (new Page())
@@ -114,19 +120,91 @@ class MsAbg extends Certificate
             ->addSliceArray(MsAbsRs::getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG'
-                        . new Container('die Schulart Mittelschule - ')
-                        . new Container('
+                    ->setContent(
+                        new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
+                        . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes')
+                        . new Container('die Oberschule –
                             {% if(Content.P' . $personId . '.Student.Course.Name) %}
-                                {{ Content.P' . $personId . '.Student.Course.Name }}
+                                {{ Content.P' . $personId . '.Student.Course.Name }}.
                             {% else %}
-                                Hauptschulbildungsgang/Realschulbildungsgang
+                                Hauptschulbildungsgang/Realschulbildungsgang.
                             {% endif %}
                         ')
                     )
                     ->styleMarginTop('8px')
                     ->styleAlignCenter()
-                )->styleMarginTop('27%')
+                )->styleMarginTop('60px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                Frau
+                            {% else %}
+                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                    Herr
+                                {% else %}
+                                    Frau/Herr
+                                {% endif %}
+                            {% endif %}
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
+                            des Realschulbildungsganges einen dem Hauptschulabschluss gleichgestellten Abschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                )->styleMarginTop('45px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HSQ is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                Frau
+                            {% else %}
+                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                    Herr
+                                {% else %}
+                                    Frau/Herr
+                                {% endif %}
+                            {% endif %}
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 27 Absatz 9 Satz 3 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in
+                            die Klassenstufe 10 des Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung
+                            zum Erwerb des Hauptschulabschlusses den qualifizierenden Hauptschulabschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                )->styleMarginTop('15px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('¹ Zutreffendes ist anzukreuzen')
+                        ->styleTextSize('9.5px')
+                        ->styleBorderTop()
+                        , '20%')
+                    ->addElementColumn((new Element())
+                    )
+                )
+                ->styleMarginTop('440px')
             );
 
         $pageList[] = (new Page())
@@ -162,13 +240,13 @@ class MsAbg extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
-            ->addSlice($this->getOrientationStandard($personId))
+            ->addSlice($this->getSubjectLanes($personId,true, array(), '14px', false, false, true)->styleHeight('320px'))
+//            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId))
-            ->addSlice($this->getDescriptionContent($personId, '235px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId))
-            ->addSlice($this->getInfo('150px',
+            ->addSlice($this->getSignPart($personId, true, '30px'))
+            ->addSlice($this->getInfo('200px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );

@@ -1041,19 +1041,6 @@ class Data extends AbstractData
         /**
          * Abgangszeugnisse - Leave
          */
-        // Alt-Last löschen - Delete alte Abgangszeugnisse
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgHs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgRs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgHs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgRs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
         // create Abgangzeugnisse
         $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg',
             null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);

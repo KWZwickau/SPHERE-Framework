@@ -26,6 +26,7 @@ class GymAbgSekI extends Certificate
 
     const COURSE_HS = 1;
     const COURSE_RS = 2;
+    const COURSE_HSQ = 3;
 
     /**
      * @param TblPerson|null $tblPerson
