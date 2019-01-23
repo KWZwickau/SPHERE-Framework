@@ -495,6 +495,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $resultList[] = array(
                         'Select' => new RadioBox('To', '&nbsp;', $tblCompany->getId()),
                         'Name' => $tblCompany->getDisplayName(),
+                        'Extended' => $tblCompany->getExtendedName(),
+                        'Description' => $tblCompany->getDescription(),
                         'Address' => ($tblAddress = $tblCompany->fetchMainAddress()) ? $tblAddress->getGuiString() : ''
                     );
                 }
@@ -505,6 +507,8 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         'Select' => '',
                         'Name' => 'Name',
+                        'Extended' => 'Zusatz',
+                        'Description' => 'Beschreibung',
                         'Address' => 'Adresse'
                     ),
                     array(

@@ -371,23 +371,32 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int|string $tblLevelName
      * used LevelName to find same Level range
+     *
+     * @param int|string $tblLevelName
+     * @param TblYear|null $tblYear
      * @param TblType|null $tblType
      *
      * @return bool|TblDivision[]
      */
-    public function getDivisionAllByLevelName($tblLevelName, TblType $tblType = null)
+    public function getDivisionAllByLevelName($tblLevelName, TblYear $tblYear = null, TblType $tblType = null)
     {
 
         $tblDivisionList = array();
         $tblLevelList = Division::useService()->getLevelAllByName($tblLevelName, $tblType);
         if ($tblLevelList) {
-            array_walk($tblLevelList, function ($tblLevel) use (&$tblDivisionList) {
+            array_walk($tblLevelList, function ($tblLevel) use (&$tblDivisionList, $tblYear) {
                 $tblDivisionArray = Division::useService()->getDivisionAllByLevel($tblLevel);
                 if ($tblDivisionArray) {
                     /** @var TblDivision $tblDivision */
                     foreach ($tblDivisionArray as $tblDivision) {
+                        if ($tblYear
+                            && ($tblDivisionYear = $tblDivision->getServiceTblYear())
+                            && $tblYear->getId() != $tblDivisionYear->getId()
+                        ) {
+                            continue;
+                        }
+
                         $tblDivisionList[] = $tblDivision;
                     }
                 }
@@ -2710,7 +2719,7 @@ class Service extends AbstractService
         $divisionName = strtolower($divisionName);
         // bei der Eingabe einer Klassenstufen werden alle Klassen dieser Klassenstufe zurückgegeben
         if (preg_match('/^[1-9][0-9]*$/', $divisionName)
-            && ($tblDivisionList= $this->getDivisionAllByLevelName($divisionName, $tblType))
+            && ($tblDivisionList = $this->getDivisionAllByLevelName($divisionName, $tblYear, $tblType))
         ) {
             return $tblDivisionList;
         } else {

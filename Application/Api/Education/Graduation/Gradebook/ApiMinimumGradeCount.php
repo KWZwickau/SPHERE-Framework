@@ -199,6 +199,8 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
                                     $minimumCount = $tblMinimumGradeCount->getCount();
                                     $countPersons = 0;
                                     $countFulfil = 0;
+                                    $minimumPersonCount = 0;
+                                    $maximumPersonCount = 0;
                                     foreach ($tblPersonList as $tblPerson) {
                                         $countPersons++;
                                         $countMinimumGradeByPerson = Gradebook::useService()->getMinimumGradeCountNumber(
@@ -209,6 +211,16 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
 
                                         if ($countMinimumGradeByPerson >= $minimumCount) {
                                             $countFulfil++;
+                                        }
+
+                                        if ($countMinimumGradeByPerson > $maximumPersonCount) {
+                                            $maximumPersonCount = $countMinimumGradeByPerson;
+                                        }
+
+                                        if ($countPersons == 1) {
+                                            $minimumPersonCount = $countMinimumGradeByPerson;
+                                        } elseif ($countMinimumGradeByPerson < $minimumPersonCount) {
+                                            $minimumPersonCount = $countMinimumGradeByPerson;
                                         }
                                     }
 
@@ -228,11 +240,11 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
                                     );
 
                                     $contentPanel[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                                        new LayoutColumn($subjectName, 3),
+                                        new LayoutColumn($subjectName, 2),
                                         new LayoutColumn($tblMinimumGradeCount->getGradeTypeDisplayName(), 3),
                                         new LayoutColumn($tblMinimumGradeCount->getPeriodDisplayName(), 2),
                                         new LayoutColumn($tblMinimumGradeCount->getCourseDisplayName(), 1),
-                                        new LayoutColumn($minimumCount, 1),
+                                        new LayoutColumn($minimumCount . ' (Min: ' . $minimumPersonCount . ', Max: ' . $maximumPersonCount . ')', 2),
                                         new LayoutColumn($status . new PullRight($external), 2)
                                     ))));
                                 }
@@ -244,11 +256,11 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
                 $tblTypeDivision = $tblLevel ? $tblLevel->getServiceTblType() : false;
                 $panelList[] = new Panel(
                     new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn($tblDivision->getDisplayName() . ($tblTypeDivision ? new Small(' (' . $tblTypeDivision->getName() . ')') : ''), 3),
+                        new LayoutColumn($tblDivision->getDisplayName() . ($tblTypeDivision ? new Small(' (' . $tblTypeDivision->getName() . ')') : ''), 2),
                         new LayoutColumn(new Small('Zensuren-Typ:'), 3),
                         new LayoutColumn(new Small('Zeitraum:'), 2),
                         new LayoutColumn(new Small($isSekII ? 'Kurs:' : '&nbsp;'), 1),
-                        new LayoutColumn(new Small('Anzahl:'), 1),
+                        new LayoutColumn(new Small('Anzahl:'), 2),
                         new LayoutColumn(new Small('Status:'), 2)
                     )))),
                     empty($contentPanel) ? new Ban() .' Keine Mindestnoten vorhanden' : $contentPanel,

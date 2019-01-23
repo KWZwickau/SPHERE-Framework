@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -78,6 +79,9 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadRelationshipsMessage');
 
         $Dispatcher->registerMethod('addAddressToPerson');
+
+        $Dispatcher->registerMethod('openAddAddressToPersonModal');
+        $Dispatcher->registerMethod('saveAddAddressToPersonModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -321,6 +325,51 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             'PersonId' => $PersonId,
             'ToPersonId' => $ToPersonId
         ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $ToPersonId
+     * @return Pipeline
+     */
+    public static function pipelineOpenAddAddressToPersonModal($PersonId, $ToPersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openAddAddressToPersonModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $ToPersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineAddAddressToPersonSave($PersonId, $ToPersonId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveAddAddressToPersonModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -693,6 +742,97 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
               . self::pipelineLoadAddressToPersonContent($PersonId);
         } else {
             return new Danger('Die Adresse konnte nicht gespeichert werden.');
+        }
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $ToPersonId
+     *
+     * @return string
+     */
+    public function openAddAddressToPersonModal($PersonId, $ToPersonId)
+    {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
+            return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblAddress = $tblPerson->fetchMainAddress();
+        $tblNewAddress = $tblToPerson->getTblAddress();
+        $content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Bold('Aktuelle Hauptadresse'), 6
+            ),
+            new LayoutColumn(
+                new Bold('Neue Hauptadresse'), 6
+            ),
+        ))));
+        $content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                $tblAddress->getGuiString(), 6
+            ),
+            new LayoutColumn(
+                $tblNewAddress ? $tblNewAddress->getGuiString() : '', 6
+            ),
+        ))));
+
+        return new Title(new MapMarker() . ' Hauptadresse überschreiben')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(new PersonIcon() . ' Person',
+                                new Bold($tblPerson->getFullName()),
+                                Panel::PANEL_TYPE_SUCCESS
+                            )
+                            . new Panel(
+                                new Question() . ' Wollen sie die akutelle Hauptadresse wirklich überschreiben?',
+                                $content,
+                                Panel::PANEL_TYPE_DANGER)
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineAddAddressToPersonSave($PersonId, $ToPersonId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $ToPersonId
+     *
+     * @return Danger|string
+     */
+    public function saveAddAddressToPersonModal($PersonId, $ToPersonId)
+    {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
+            return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($tblMainToPerson = Address::useService()->getAddressToPersonByPerson($tblPerson))
+            && Address::useService()->removeAddressToPerson($tblMainToPerson)
+            && Address::useService()->addAddressToPerson(
+                $tblPerson, $tblToPerson->getTblAddress(), $tblToPerson->getTblType(), $tblToPerson->getRemark()
+            )
+        ) {
+
+            return new Success('Die Adresse wurde erfolgreich gespeichert.')
+                . self::pipelineLoadAddressToPersonContent($PersonId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 }

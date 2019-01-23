@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -173,6 +174,7 @@ class Setup extends AbstractSetup
 
 
         $this->createIndex($Table, array('serviceTblDivision', 'serviceTblSubject'), false);
+        $this->createIndex($Table, array(TblGrade::ATTR_SERVICE_TBL_TEST, TblGrade::ENTITY_REMOVE), false);
 
         return $Table;
     }

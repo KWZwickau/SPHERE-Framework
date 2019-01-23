@@ -420,7 +420,8 @@ class Service extends AbstractService
             'Content.Input.BellSubject'        => 'TextField',
             'Content.Input.PerformanceGroup'   => 'TextField',
             'Content.Input.Arrangement'        => 'TextArea',
-            'Content.Input.Support'        => 'TextArea'
+            'Content.Input.Support'        => 'TextArea',
+            'Content.Input.DivisionName' => 'TextField'
         );
     }
 
@@ -449,7 +450,8 @@ class Service extends AbstractService
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
             'Content.Input.Arrangement'        => 'Besonderes Engagement',
-            'Content.Input.Support'        => 'Inklusive Unterrichtung'
+            'Content.Input.Support'        => 'Inklusive Unterrichtung',
+            'Content.Input.DivisionName' => 'Klasse'
         );
     }
 

@@ -93,6 +93,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'CallName', self::FIELD_TYPE_STRING);
 
         $this->getConnection()->addForeignKey($Table, $tblSalutation, true);
+
+        $this->createIndex($Table,array(TblPerson::ENTITY_REMOVE),false);
         return $Table;
     }
 }
