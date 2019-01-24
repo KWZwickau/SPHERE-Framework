@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Graduation\Evaluation\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
@@ -144,6 +145,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblTask, true);
 
         $this->createIndex($Table, array('serviceTblGradeType'), false);
+        $this->createIndex($Table, array(TblTest::ATTR_SERVICE_TBL_DIVISION,TblTest::ATTR_SERVICE_TBL_SUBJECT,TblTest::ENTITY_REMOVE), false);
 
         return $Table;
     }
