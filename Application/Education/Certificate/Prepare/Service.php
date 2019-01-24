@@ -1365,6 +1365,13 @@ class Service extends AbstractService
             }
             $Content['P' . $personId]['Input']['Remark'] = $remark;
 
+            // Inklusive Unterrichtung
+            $support = '---';
+            if (($tblLeaveInformationSupport = $this->getLeaveInformationBy($tblLeaveStudent, 'Support'))) {
+                $support = $tblLeaveInformationSupport->getValue() ? $tblLeaveInformationSupport->getValue() : $remark;
+            }
+            $Content['P' . $personId]['Input']['Support'] = $support;
+
             $remarkWithoutTeam = '---';
             if (($tblLeaveInformationRemarkWithoutTeam = $this->getLeaveInformationBy($tblLeaveStudent, 'RemarkWithoutTeam'))) {
                 $remarkWithoutTeam = $tblLeaveInformationRemarkWithoutTeam->getValue() ? $tblLeaveInformationRemarkWithoutTeam->getValue() : $remarkWithoutTeam;
@@ -3042,6 +3049,49 @@ class Service extends AbstractService
                 'PersonId' => $tblPerson->getId(),
                 'DivisionId' => $tblDivision->getId()
             ));
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function createLeaveStudentFromForm(
+        IFormInterface $form = null,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        $Data
+    ) {
+
+        if ($Data === null) {
+            return $form;
+        }
+
+        if (!($tblCertificate = Generator::useService()->getCertificateById($Data['Certificate']))) {
+            $form->setError('Data[Certificate]', new Exclamation() . ' Bitte wählen Sie eine Zeugnisvorlage aus.');
+
+            return $form;
+        }
+
+
+        $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+
+        if ($tblLeaveStudent) {
+            return new Success('Die Daten wurden gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision->getId()
+                ));
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden.', new Exclamation())
+                . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_ERROR, array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision->getId()
+                ));
+        }
     }
 
     /**
