@@ -92,7 +92,6 @@ class Service extends AbstractService
      * @param string  $Year
      * @param string  $MonthFrom
      * @param string  $MonthTo
-     * @param bool    $IsCauserGroup
      *
      * @return array
      */
@@ -100,8 +99,7 @@ class Service extends AbstractService
         TblItem $tblItem,
         $Year,
         $MonthFrom = '1',
-        $MonthTo = '12',
-        $IsCauserGroup = false
+        $MonthTo = '12'
     ) {
         $PriceList = array();
         $MonthList = Invoice::useService()->getMonthList((int)$MonthFrom, (int)$MonthTo);
@@ -109,29 +107,16 @@ class Service extends AbstractService
 
             if(($tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month)) && $tblItem) {
                 array_walk($tblInvoiceList,
-                    function(TblInvoice $tblInvoice) use (&$PriceList, $tblItem, $IsCauserGroup) {
+                    function(TblInvoice $tblInvoice) use (&$PriceList, $tblItem) {
                         if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoiceAndItem($tblInvoice,
                             $tblItem))) {
-                            // Wahl der Zusammensetzung (Gruppierung der Preise)
-                            if(!$IsCauserGroup) {
-                                if(count($tblInvoiceItemDebtorList)) {
-                                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                                    $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
-                                    $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
-                                } else {
-                                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
-                                        $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
-                                    }
-                                }
+                            if(count($tblInvoiceItemDebtorList)) {
+                                /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                                $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
+                                $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
                             } else {
-                                if(count($tblInvoiceItemDebtorList)) {
-                                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                                    $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
-                                    $this->fillPriceListByDebtor($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
-                                } else {
-                                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
-                                        $this->fillPriceListByDebtor($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
-                                    }
+                                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+                                    $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
                                 }
                             }
                         }
@@ -140,21 +125,13 @@ class Service extends AbstractService
         }
 
         if(!empty($PriceList)) {
-            if(!$IsCauserGroup) {
-                foreach($PriceList as &$Debtor) {
-                    foreach($Debtor as &$PriceArray) {
-                        $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
-                    }
-                }
-            } else {
-                foreach($PriceList as &$PriceArray) {
+            foreach($PriceList as &$Debtor) {
+                foreach($Debtor as &$PriceArray) {
                     $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
                 }
             }
         }
 
-//        Debugger::screenDump($PriceList);
-//        exit;
         return $PriceList;
     }
 
@@ -190,66 +167,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array                $PriceList
-     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
-     * @param TblInvoice           $tblInvoice
-     *
-     * @return mixed
-     */
-    private function fillPriceListByDebtor(
-        &$PriceList,
-        TblInvoiceItemDebtor $tblInvoiceItemDebtor,
-        TblInvoice $tblInvoice
-    ) {
-
-        $tblPersonCauser = $tblInvoice->getServiceTblPersonCauser();
-        $tblDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor();
-        $timeString = $tblInvoice->getYear().'/'.$tblInvoice->getMonth();
-
-        if($tblDebtor && $tblPersonCauser) {
-            if($tblInvoiceItemDebtor->getIsPaid()) {
-                $PriceList[$tblPersonCauser->getId()]['Sum'][] =
-                    $tblInvoiceItemDebtor->getSummaryPriceInt();
-                $PriceList[$tblPersonCauser->getId()]['Price'][$timeString] =
-                    $tblInvoiceItemDebtor->getSummaryPriceInt();
-                $PriceList[$tblPersonCauser->getId()]['DebtorId'][$tblDebtor->getId()] = true;
-            } else {
-                $PriceList[$tblPersonCauser->getId()]['PriceMissing'][$timeString] =
-                    $tblInvoiceItemDebtor->getSummaryPriceInt();
-                $PriceList[$tblPersonCauser->getId()]['DebtorId'][$tblDebtor->getId()] = true;
-            }
-        }
-        return $PriceList;
-    }
-
-    /**
      * @param array $PriceList
-     * @param bool  $IsCauserGroup
      *
      * @return array
      */
-    public function getTableContentByPriceList($PriceList = array(), $IsCauserGroup = false)
+    public function getTableContentByPriceList($PriceList = array())
     {
 
         $tableContent = array();
         if(!empty($PriceList)) {
             asort($PriceList);
-            if(!$IsCauserGroup) {
-                foreach($PriceList as $DebtorId => $CauserList) {
-                    if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
-                        foreach($CauserList as $CauserId => $Value) {
-                            $this->fillColumnRowPriceList($tableContent, $tblPersonDebtor, $CauserId, $Value);
-                        }
-                    }
-                }
-            } else {
-                foreach($PriceList as $CauserId => $Value) {
-                    if(($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
-                        foreach($Value['DebtorId'] as $DebtorId => $DebtorTrue) {
-                            if(($tblPersonDebtor = Person::useService()->getPersonById($CauserId))) {
-                                $this->fillColumnRowPriceList($tableContent, $tblPersonDebtor, $CauserId, $Value);
-                            }
-                        }
+            foreach($PriceList as $DebtorId => $CauserList) {
+                if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
+                    foreach($CauserList as $CauserId => $Value) {
+                        $this->fillColumnRowPriceList($tableContent, $tblPersonDebtor, $CauserId, $Value);
                     }
                 }
             }
@@ -293,46 +224,6 @@ class Service extends AbstractService
 
             array_push($tableContent, $item);
         }
-    }
-
-    /**
-     * @param array $PriceList
-     *
-     * @return array
-     */
-    private function createPersonCauserList($PriceList = array())
-    {
-
-        if(!empty($PriceList)) {
-            foreach($PriceList as $DebtorId => $CauserList) {
-                if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
-                    foreach($CauserList as $CauserId => $Value) {
-                        if(($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
-//                            $Item['Debtor'] = '';
-//                            $Item['Causer'] = '';
-                            $Item['Value'] = '';
-                            // Debtor
-                            $Item['DebtorSalutation'] = $tblPersonDebtor->getSalutation();
-                            $Item['DebtorTitle'] = $tblPersonDebtor->getTitle();
-                            $Item['DebtorFirstName'] = $tblPersonDebtor->getFirstName();
-                            $Item['DebtorLastName'] = $tblPersonDebtor->getLastName();
-                            // Causer
-                            $Item['CauserFirstName'] = $tblPersonCauser->getFirstName();
-                            $Item['CauserCallName'] = $tblPersonCauser->getCallName();
-                            $Item['CauserLastName'] = $tblPersonCauser->getLastName();
-
-                            $Item['Value'] = Balance::useService()->getPriceString($Value['Sum']);
-                            $Item['Address'] = '';
-                            if(($tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPersonDebtor))) {
-                                $Item['Address'] = $tblAddress->getGuiString();
-                            }
-                            array_push($PersonList, $Item);
-                        }
-                    }
-                }
-            }
-        }
-        return $PersonList;
     }
 
     /**
@@ -386,22 +277,6 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             $row = 0;
             $column = 0;
-//            // First Row
-//            $export->setValue($export->getCell($column++, $row), 'Beitragsart:');
-//            $export->setValue($export->getCell($column++, $row), $ItemName);
-//            $column++;
-//            $export->setValue($export->getCell($column++, $row), 'Zeitraum:');
-//            $export->setValue($export->getCell($column, $row), $StartMonth.' - '.$ToMonth);
-//            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row++))->setFontBold();
-
-//            $column = 0;
-//            // head
-//            $export->setValue($export->getCell($column, $row), "Beitragszahler");
-//            $column += 4;
-//            $export->setValue($export->getCell($column, $row), "Beitragsverursacher");
-//            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells()->setFontBold();
-//            $export->setStyle($export->getCell(4, $row), $export->getCell(5, $row))->mergeCells()->setFontBold();
-////            $column += 3;
 
             $export->setValue($export->getCell($column++, $row), "Anrede");
             $export->setValue($export->getCell($column++, $row), "Titel");
@@ -412,7 +287,6 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Summe");
             $export->setValue($export->getCell($column++, $row), "Adresse");
             $export->setValue($export->getCell($column, $row), "Beitragsart");
-
 
             foreach($PersonList as $PersonData) {
                 $column = 0;

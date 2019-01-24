@@ -60,8 +60,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             if(($tblItem = Item::useService()->getItemById($Balance['Item']))) {
                 $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Balance['Year'],
-                    $Balance['From'], $Balance['To'], false); //ToDO GroupByCauser Bool
-                $tableContent = Balance::useService()->getTableContentByPriceList($PriceList, false);//ToDO GroupByCauser Bool
+                    $Balance['From'], $Balance['To']);
+                $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
                 $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                     new Download(), array(
                         'ItemId' => $tblItem->getId(),
