@@ -33,7 +33,7 @@ class Service extends AbstractService
     {
 
         $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
-        if(!$doSimulation && $withData) {
+        if(!$doSimulation && $withData){
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
 
@@ -86,13 +86,13 @@ class Service extends AbstractService
         $Month
     ) {
         $isInvoice = false;
-        if(($tblInvoiceList = $this->getInvoiceAllByPerson($tblPerson))) {
+        if(($tblInvoiceList = $this->getInvoiceAllByPerson($tblPerson))){
             foreach($tblInvoiceList as $tblInvoice) {
-                if($tblInvoice->getYear() == $Year && $tblInvoice->getMonth() == $Month) {
-                    if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))) {
+                if($tblInvoice->getYear() == $Year && $tblInvoice->getMonth() == $Month){
+                    if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                         foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
-                            if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())) {
-                                if($tblInvoiceItem->getId() == $tblItem->getId()) {
+                            if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                                if($tblInvoiceItem->getId() == $tblItem->getId()){
                                     $isInvoice = true;
                                 }
                             }
@@ -267,9 +267,9 @@ class Service extends AbstractService
         $MonthList[11] = 'November';
         $MonthList[12] = 'Dezember';
         // Zeitraum eingrenzen
-        if($From !== null & $To !== null) {
+        if($From !== null & $To !== null){
             foreach($MonthList as $Key => &$Month) {
-                if($Key < $From || $Key > $To) {
+                if($Key < $From || $Key > $To){
                     $Month = false;
                 }
             }
@@ -288,7 +288,7 @@ class Service extends AbstractService
     {
         /** Shopping Content */
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
-        if(!$tblBasketVerificationList) {
+        if(!$tblBasketVerificationList){
             return false;
         }
 
@@ -305,9 +305,9 @@ class Service extends AbstractService
             function(TblBasketVerification &$tblBasketVerification) use ($Month, $Year) {
                 $tblPerson = $tblBasketVerification->getServiceTblPersonCauser();
                 $tblItem = $tblBasketVerification->getServiceTblItem();
-                if($tblPerson && $tblItem) {
+                if($tblPerson && $tblItem){
                     if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
-                        $Year, $Month)) {
+                        $Year, $Month)){
                         // Entfernen des Beitrag's aus der Abrechnung
                         Basket::useService()->destroyBasketVerification($tblBasketVerification);
                         // Rechnung vorhanden -> keine neue Rechnung anlegen!
@@ -320,7 +320,7 @@ class Service extends AbstractService
 
         /** fill Invoice/Creditor */
         //ToDO choose Creditor
-        if(($tblCreditorList = Creditor::useService()->getCreditorAll())) {
+        if(($tblCreditorList = Creditor::useService()->getCreditorAll())){
             $tblCreditor = current($tblCreditorList);
             $CreditorId = $tblCreditor->getCreditorId();
             $Owner = $tblCreditor->getOwner();
@@ -355,7 +355,7 @@ class Service extends AbstractService
 
                 $GroupString = $PersonDebtorId.'#'.$PersonCauserId;
                 /** Fill InvoiceList */
-                if(!isset($DebtorInvoiceList[$GroupString])) {
+                if(!isset($DebtorInvoiceList[$GroupString])){
                     $MaxInvoiceNumber++;
                     $DebtorInvoiceList[$GroupString]['Identifier'] = $MaxInvoiceNumber;
                     $DebtorInvoiceList[$GroupString]['servicePersonCauser'] = $tblPersonCauser;
@@ -363,7 +363,7 @@ class Service extends AbstractService
                 }
             });
 
-        if(!empty($DebtorInvoiceList)) {
+        if(!empty($DebtorInvoiceList)){
             // Erstellen aller Rechnungen im Bulk
             (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime,
                 $BasketName);
@@ -371,7 +371,13 @@ class Service extends AbstractService
 
         $InvoiceItemDebtorList = array();
         $i = 0;
-        array_walk($tblBasketVerificationList, function(TblBasketVerification $tblBasketVerification) use (&$i, &$InvoiceItemDebtorList, $Month, $Year, $DebtorInvoiceList){
+        array_walk($tblBasketVerificationList, function(TblBasketVerification $tblBasketVerification) use (
+            &$i,
+            &$InvoiceItemDebtorList,
+            $Month,
+            $Year,
+            $DebtorInvoiceList
+        ) {
             $i++;
             $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
@@ -382,7 +388,7 @@ class Service extends AbstractService
             $tblInvoice = $this->getInvoiceByIntegerAndYearAndMonth($DebtorInvoiceList[$GroupString]['Identifier'],
                 $Year, $Month);
             /** fill Invoice/ItemDebtor */
-            if(($tblItem = $tblBasketVerification->getServiceTblItem())) {
+            if(($tblItem = $tblBasketVerification->getServiceTblItem())){
                 $Name = $tblItem->getName();
                 $Description = $tblItem->getDescription();
             } else {
@@ -391,20 +397,20 @@ class Service extends AbstractService
             }
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
             $DebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
-            if($DebtorNumber && !empty($DebtorNumber)) {
+            if($DebtorNumber && !empty($DebtorNumber)){
                 // ToDO mehrere Debit.-Nr.?
                 // erste Debtitor Nummer wird gezogen
                 $DebtorNumber = current($DebtorNumber);
             } else {
                 $DebtorNumber = '';
             }
-            if(($tblBankReference = $tblBasketVerification->getServiceTblBankReference())) {
+            if(($tblBankReference = $tblBasketVerification->getServiceTblBankReference())){
                 $Reference = $tblBankReference->getReferenceNumber();
             } else {
                 $tblBankReference = null;
                 $Reference = '';
             }
-            if(($tblBankAccount = $tblBasketVerification->getServiceTblBankAccount())) {
+            if(($tblBankAccount = $tblBasketVerification->getServiceTblBankAccount())){
                 $Owner = $tblBankAccount->getOwner();
                 $BankName = $tblBankAccount->getBankName();
                 $IBAN = $tblBankAccount->getIBAN();
@@ -413,7 +419,7 @@ class Service extends AbstractService
                 $tblBankAccount = null;
                 $Owner = $BankName = $IBAN = $BIC = '';
             }
-            if(!($tblPaymentType = $tblBasketVerification->getServiceTblPaymentType())) {
+            if(!($tblPaymentType = $tblBasketVerification->getServiceTblPaymentType())){
                 $tblPaymentType = null;
             }
             $InvoiceItemDebtorList[$GroupString][$i]['Invoice'] = $tblInvoice;
@@ -436,7 +442,7 @@ class Service extends AbstractService
         });
 
         // create
-        if(!empty($InvoiceItemDebtorList)) {
+        if(!empty($InvoiceItemDebtorList)){
             (new Data($this->getBinding()))->createInvoiceItemDebtorList($InvoiceItemDebtorList);
         }
 
