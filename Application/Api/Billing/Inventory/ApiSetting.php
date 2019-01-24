@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -73,7 +74,7 @@ class ApiSetting extends Extension implements IApiInterface
     public static function receiverModalSetting()
     {
 
-        return (new ModalReceiver())->setIdentifier('ModalReceiver');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReceiver');
     }
 
     /**

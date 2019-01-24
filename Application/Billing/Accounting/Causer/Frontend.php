@@ -181,7 +181,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $PaymentType = '';
                             $ItemName = '';
 
-                            if(($tblPersonDebtor = $tblDebtorSelection->getserviceTblPersonDebtor())){
+                            if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
                                 $Debtor = $tblPersonDebtor->getLastFirstName();
                                 if($IsDebtorNumberNeed && !($tblDebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
                                     $Debtor .= ' '.new DangerText(new ToolTip(new Info(), 'Keine Debit.-Nr. hinterlegt'));
@@ -412,7 +412,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                         $Reference .= new Bold($tblBankReference->getReferenceNumber());
                     }
-                    if(($tblPersonDebtor = $tblDebtorSelection->getserviceTblPersonDebtor())){
+                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
                         $Debtor .= new Bold($tblPersonDebtor->getLastFirstName());
                     }
                     $PanelContent[] = $PaymentType;

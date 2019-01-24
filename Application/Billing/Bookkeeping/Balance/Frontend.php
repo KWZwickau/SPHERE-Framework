@@ -72,9 +72,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        // Selectbox soll nach unten aufklappen
+        // Selectbox soll nach unten aufklappen (tritt nur noch bei Anwendungsansicht auf)
         $Space = '<div style="height: 100px;"></div>';
         if(empty($Balance)) {
+
             $Table = new Info('Bitte benutzen sie die Filterung');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
@@ -91,7 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    array("orderable" => false, "targets"   => array(5, -1)),
                 ),
                 'order'      => array(
-                    array(1, 'desc'),
+//                    array(1, 'desc'),
                     array(0, 'asc')
                 ),
                 // First column should not be with Tabindex

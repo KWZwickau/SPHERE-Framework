@@ -108,6 +108,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return false|TblBasketItem[]
+     */
+    public function getBasketItemAllByItem(TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketItem',
+            array(TblBasketItem::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()));
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return false|TblBasketItem[]

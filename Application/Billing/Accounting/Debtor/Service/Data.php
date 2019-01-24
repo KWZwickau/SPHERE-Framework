@@ -394,13 +394,13 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
             TblDebtorSelection::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId(),
             TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId(),
-            TblDebtorSelection::ATTR_SERVICE_TBL_PERSON        => $tblPerson->getId(),
+            TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_DEBTOR => $tblPerson->getId(),
         ));
 
         if ($Entity === null) {
             $Entity = new TblDebtorSelection();
             $Entity->setServiceTblPersonCauser($tblPersonCauser);
-            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPersonDebtor($tblPerson);
             $Entity->setServiceTblPaymentType($tblPaymentType);
             $Entity->setServiceTblItem($tblItem);
             $Entity->setServiceTblItemVariant($tblItemVariant);
@@ -532,7 +532,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblDebtorSelection', $tblDebtorSelection->getId());
         $Protocol = clone $Entity;
         if ($Entity !== null) {
-            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPersonDebtor($tblPerson);
             $Entity->setServiceTblPaymentType($tblPaymentType);
             $Entity->setServiceTblItemVariant($tblItemVariant);
             $Entity->setValue($Value);

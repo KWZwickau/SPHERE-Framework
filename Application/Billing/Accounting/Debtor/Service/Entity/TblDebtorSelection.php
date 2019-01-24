@@ -24,7 +24,7 @@ class TblDebtorSelection extends Element
 {
 
     const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPersonDebtor';
+    const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
     const ATTR_SERVICE_TBL_ITEM_VARIANT = 'serviceTblItemVariant';
@@ -95,7 +95,7 @@ class TblDebtorSelection extends Element
      * @return bool|TblPerson
      * Beitragszahler (Sorgeberechtigte etc.)
      */
-    public function getserviceTblPersonDebtor()
+    public function getServiceTblPersonDebtor()
     {
 
         if(null === $this->serviceTblPersonDebtor) {
@@ -109,7 +109,7 @@ class TblDebtorSelection extends Element
      * @param TblPerson|null $tblPerson
      * Beitragszahler (Sorgeberechtigte etc.)
      */
-    public function setserviceTblPersonDebtor(TblPerson $tblPerson = null)
+    public function setServiceTblPersonDebtor(TblPerson $tblPerson = null)
     {
 
         $this->serviceTblPersonDebtor = (null === $tblPerson ? null : $tblPerson->getId());

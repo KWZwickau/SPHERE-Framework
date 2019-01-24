@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -352,7 +353,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         //get First Variant to Select
         $PostVariantId = '';
+        $ItemName = '';
         if (($tblItem = Item::useService()->getItemById($ItemId))) {
+
+            $ItemName = $tblItem->getName();
             // edit POST
             if($DebtorSelectionId && ($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))){
                 if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
@@ -490,6 +494,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         return (new Form(
             new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Title($ItemName))
+                ),
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',
@@ -777,7 +784,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $ItemPrice = $DebtorSelection['Price'];
         }
 
-        if($DebtorSelection['BankAccount'] == '-1'){
+        if(!isset($DebtorSelection['BankAccount']) || $DebtorSelection['BankAccount'] == '-1'){
             $tblBankAccount = false;
             $tblBankReference = false;
         } else {
@@ -824,7 +831,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId(): '');
             $Value = $tblDebtorSelection->getValue(true);
             ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
-            $tblPerson = $tblDebtorSelection->getserviceTblPersonDebtor();
+            $tblPerson = $tblDebtorSelection->getServiceTblPersonDebtor();
             ($tblPerson ? $Global->POST['DebtorSelection']['Debtor'] = $tblPerson->getId() : '');
             $tblBankAccount = $tblDebtorSelection->getTblBankAccount();
             ($tblBankAccount ? $Global->POST['DebtorSelection']['BankAccount'] = $tblBankAccount->getId()
@@ -853,7 +860,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         if ($tblDebtorSelection) {
             $PersonString = 'Person nicht gefunden!';
-            if (($tblPerson = $tblDebtorSelection->getserviceTblPersonDebtor())) {
+            if (($tblPerson = $tblDebtorSelection->getServiceTblPersonDebtor())) {
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(

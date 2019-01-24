@@ -20,7 +20,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
-use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -67,16 +66,16 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $SepaAccountReceiver = ApiSetting::receiverDisplaySetting( $SepaAccountNeed. ' ', TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED);
 
-        $TestSetting = Setting::useService()->getSettingByIdentifier('Test_anderer_Werte');
-        $TestValue = new WarningText('Keine Einstellung vorhanden');
-        if($TestSetting) {
-            $TestValue = $TestSetting->getValue();
-        }
+//        $TestSetting = Setting::useService()->getSettingByIdentifier('Test_anderer_Werte');
+//        $TestValue = new WarningText('Keine Einstellung vorhanden');
+//        if($TestSetting) {
+//            $TestValue = $TestSetting->getValue();
+//        }
 
         $DebtorCountReceiver = ApiSetting::receiverDisplaySetting($DebtorNumberCount . ' ',
             TblSetting::IDENT_DEBTOR_NUMBER_COUNT);
         $PersonGroupAsString = ApiSetting::receiverDisplaySetting($this->displayPersonGroupLoad(), 'PersonGroup');
-        $TestReceiver = ApiSetting::receiverDisplaySetting($TestValue . ' ', 'Test_anderer_Werte');
+//        $TestReceiver = ApiSetting::receiverDisplaySetting($TestValue . ' ', 'Test_anderer_Werte');
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -102,15 +101,15 @@ class Frontend extends Extension implements IFrontendInterface
                                                 )))
                                             , 6),
                                         )),
-                                    new LayoutRow(array(
-                                        new LayoutColumn(
-                                            new Listing(array('Mögliche weitere Einstellungen: '.$TestReceiver.new PullRight(
-                                                    (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
-                                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('Test_anderer_Werte',
-                                                            'Mögliche weitere Einstellungen'))
-                                                )))
-                                            , 6),
-                                        )),
+//                                    new LayoutRow(array(
+//                                        new LayoutColumn(
+//                                            new Listing(array('Mögliche weitere Einstellungen: '.$TestReceiver.new PullRight(
+//                                                    (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+//                                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('Test_anderer_Werte',
+//                                                            'Mögliche weitere Einstellungen'))
+//                                                )))
+//                                            , 6),
+//                                        )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
                                             new Listing(array('Debit.-Nr. ist eine Pflichtangabe: '.$DebtorNumberReceiver.new PullRight(

@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -489,6 +490,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
         $tblBankReferenceList = array();
+        $ItemName = '';
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))) {
 
             $tblItem = $tblBasketVerification->getServiceTblItem();
@@ -504,6 +506,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
 //                }
 //            }
             if($tblItem) {
+                $ItemName = $tblItem->getName();
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))) {
                     foreach($tblItemVariantList as $tblItemVariant) {
                         $PriceString = new DangerText('Nicht verfügbar');
@@ -619,6 +622,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
 
         return (new Form(
             new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Title($ItemName))
+                ),
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',

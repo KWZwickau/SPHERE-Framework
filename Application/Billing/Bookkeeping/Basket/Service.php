@@ -121,6 +121,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblBasketItem[]
+     */
+    public function getBasketItemAllByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getBasketItemAllByItem($tblItem);
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return bool|TblBasketItem[]
@@ -129,17 +140,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketItemAllByBasket($tblBasket);
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     *
-     * @return false|TblBasketItem[]
-     */
-    public function getBasketItemByBasket(TblBasket $tblBasket)
-    {
-
-        return (new Data($this->getBinding()))->getBasketItemByBasket($tblBasket);
     }
 
     /**
@@ -270,10 +270,10 @@ class Service extends AbstractService
                         } else {
                             $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
                         }
-                        if(!$tblDebtorSelection->getserviceTblPersonDebtor()) {
+                        if(!$tblDebtorSelection->getServiceTblPersonDebtor()) {
                             $Item['Debtor'] = '';
                         } else {
-                            $Item['Debtor'] = $tblDebtorSelection->getserviceTblPersonDebtor()->getId();
+                            $Item['Debtor'] = $tblDebtorSelection->getServiceTblPersonDebtor()->getId();
                         }
                         // insert payment from DebtorSelection
                         if(!$tblDebtorSelection->getTblBankAccount()) {

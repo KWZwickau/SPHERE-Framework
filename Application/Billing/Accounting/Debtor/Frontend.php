@@ -8,7 +8,6 @@ use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
@@ -188,17 +187,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $Item['DebtorNumber'] = implode('<br/>', $NumberList);
                         }
                         // fill Address if exist
-                        $tblAddress = false;
-                        $tblType = Address::useService()->getTypeByName(TblType::META_INVOICE_ADDRESS);
-                        if($tblType) {
-                            $tblAddressList = Address::useService()->getAddressAllByPersonAndType($tblPerson, $tblType);
-                            if($tblAddressList) {
-                                $tblAddress = current($tblAddressList);
-                            }
-                        }
-                        if(!$tblAddress) {
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                        }
+                        $tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPerson);
                         if($tblAddress) {
                             $Item['Address'] = $tblAddress->getGuiLayout();
                         }

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Inventory\Item;
 
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -80,11 +81,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblItem->getName()
                 .(new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Bearbeiten der Beitragsart'))
-                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditItemModal('editItem', $tblItem->getId()))
-                .'|'
-                .(new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Beitragsart'))
+                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditItemModal('editItem', $tblItem->getId()));
+                // darf die Beitragsart gelöscht werden?
+                if(!(Basket::useService()->getBasketItemAllByItem($tblItem))){
+                    $Item['Name'] .= '|'
+                    .(new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Beitragsart'))
                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteItemModal('deleteItem', $tblItem->getId()));
-                ;
+                }
+
                 $Item['PersonGroup'] = '';
 //                $Item['ItemType'] = $tblItem->getTblItemType()->getName();
                 $Item['Variant'] = '';
