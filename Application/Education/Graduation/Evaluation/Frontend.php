@@ -3997,7 +3997,13 @@ class Frontend extends Extension implements IFrontendInterface
                     for ($i = 0; $i < $count; $i++) {
                         /** @var TblGrade $tblGrade */
                         $tblGrade = array_pop($tblGradeList);
-                        if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate()) {
+
+                        $taskDate = new DateTime($tblTask->getDate());
+                        if ($taskDate > $tblGrade->getEntityCreate()
+                            && ($tblTestGrade = $tblGrade->getServiceTblTest())
+                            && ($tblTaskGrade = $tblTestGrade->getTblTask())
+                            && $tblTaskGrade->getId() != $tblTask->getId()
+                        ) {
                             $previewsGrade = $tblGrade->getDisplayGrade();
                             break;
                         }
