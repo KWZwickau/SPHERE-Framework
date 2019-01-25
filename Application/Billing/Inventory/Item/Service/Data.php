@@ -51,7 +51,7 @@ class Data extends AbstractData
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
         $this->createItemGroup($tblItem, $tblGroup);
 
-        $tblVariant = $this->createItemVariant($tblItem, 'Essen', 'Standardpreis pro Malzeit');
+        $tblVariant = $this->createItemVariant($tblItem, 'Essen', 'Standardpreis pro Mahlzeit');
         $this->createItemCalculation($tblVariant, '3.40', '01.01.2018', '31.05.2018');
         $this->createItemCalculation($tblVariant, '3.50', '01.06.2018', '31.12.2018');
         $this->createItemCalculation($tblVariant, '3.55', '01.01.2019', '31.12.2020');

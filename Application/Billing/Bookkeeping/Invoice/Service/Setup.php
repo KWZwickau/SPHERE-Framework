@@ -70,7 +70,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'InvoiceNumber', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IntegerNumber', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'Year', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Month', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'FirstName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'LastName', self::FIELD_TYPE_STRING);

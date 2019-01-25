@@ -42,7 +42,7 @@ class TblInvoice extends Element
      */
     protected $Year;
     /**
-     * @Column(type="string")
+     * @Column(type="integer")
      */
     protected $Month;
     /**
@@ -149,7 +149,7 @@ class TblInvoice extends Element
      */
     public function setMonth($Month)
     {
-        $this->Month = $Month;
+        $this->Month = (int)$Month;
     }
 
     /**

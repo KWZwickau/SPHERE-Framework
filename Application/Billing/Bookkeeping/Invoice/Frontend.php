@@ -120,6 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            array(1, 'desc'),
                                 array(0, 'desc')
                             ),
+                            'responsive' => false,
                         ))
                     )
                 )
@@ -227,6 +228,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            array(1, 'desc'),
                                     array(7, 'desc')
                                 ),
+                                'responsive' => false,
                             ))
                         )
                     )
@@ -324,6 +326,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            array(1, 'desc'),
                                 array(0, 'desc')
                             ),
+                            'responsive' => false,
                         ))
                     )
                 )

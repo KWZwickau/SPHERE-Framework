@@ -10,7 +10,6 @@ use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -102,27 +101,43 @@ class Service extends AbstractService
         $MonthTo = '12'
     ) {
         $PriceList = array();
-        $MonthList = Invoice::useService()->getMonthList((int)$MonthFrom, (int)$MonthTo);
-        foreach($MonthList as $Month => $MonthName) {
+//        $MonthList = Invoice::useService()->getMonthList((int)$MonthFrom, (int)$MonthTo);
+//        foreach($MonthList as $Month => $MonthName) {
+//
+//            if(($tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month)) && $tblItem) {
+//                array_walk($tblInvoiceList,
+//                    function(TblInvoice $tblInvoice) use (&$PriceList, $tblItem) {
+//                        if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoiceAndItem($tblInvoice,
+//                            $tblItem))) {
+//                            if(count($tblInvoiceItemDebtorList)) {
+//                                /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+//                                $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
+//                                $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
+//                            } else {
+//                                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+//                                    $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
+//                                }
+//                            }
+//                        }
+//                    });
+//            }
+//        }
 
-            if(($tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month)) && $tblItem) {
-                array_walk($tblInvoiceList,
-                    function(TblInvoice $tblInvoice) use (&$PriceList, $tblItem) {
-                        if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoiceAndItem($tblInvoice,
-                            $tblItem))) {
-                            if(count($tblInvoiceItemDebtorList)) {
-                                /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                                $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
-                                $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
+
+        $ResultList = $this->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
+        foreach($ResultList as $Key => $RowContent){
+            $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
+            $PeronCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
+            $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+            if($PersonDebtorId && $PeronCauserId && $timeString){
+                if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']) {
+                    $PriceList[$PersonDebtorId][$PeronCauserId]['Sum'][] = $RowContent['Value'];
+                    $PriceList[$PersonDebtorId][$PeronCauserId]['Price'][$timeString] = $RowContent['Value'];
                             } else {
-                                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
-                                    $this->fillPriceListByCauser($PriceList, $tblInvoiceItemDebtor, $tblInvoice);
-                                }
+                    $PriceList[$PersonDebtorId][$PeronCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
                             }
                         }
-                    });
             }
-        }
 
         if(!empty($PriceList)) {
             foreach($PriceList as &$Debtor) {
@@ -132,10 +147,11 @@ class Service extends AbstractService
             }
         }
 
+
         return $PriceList;
     }
 
-    /**
+    /** @deprecated
      * @param array                $PriceList
      * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
      * @param TblInvoice           $tblInvoice
@@ -176,7 +192,6 @@ class Service extends AbstractService
 
         $tableContent = array();
         if(!empty($PriceList)) {
-            asort($PriceList);
             foreach($PriceList as $DebtorId => $CauserList) {
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
                     foreach($CauserList as $CauserId => $Value) {
@@ -227,6 +242,30 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $PersonList
+     *
+     * @return array $PersonList
+     */
+    private function sortPersonListByDebtorName($PersonList = array())
+    {
+
+        $lastName = array();
+        $firstName = array();
+        if(!empty($PersonList)){
+            foreach ($PersonList as $Key => $row) {
+
+                $lastName[$Key] = strtoupper($row['DebtorLastName']);
+                $firstName[$Key] = strtoupper($row['DebtorFirstName']);
+            }
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+        }
+
+//        Consumer::useService()->getGermanSortBySetting();
+
+        return $PersonList;
+    }
+
+    /**
      * @param array  $PriceList
      *
      * @param string $ItemName
@@ -258,9 +297,13 @@ class Service extends AbstractService
                             $Item['CauserLastName'] = $tblPersonCauser->getLastName();
 
                             $Item['Value'] = Balance::useService()->getPriceString($Value['Sum']);
-                            $Item['Address'] = '';
+                            $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                             if(($tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPersonDebtor))) {
-                                $Item['Address'] = $tblAddress->getGuiString();
+                                $Item['StreetName'] = $tblAddress->getStreetName();
+                                $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                                $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                                $Item['City'] = $tblAddress->getTblCity()->getName();
+                                $Item['District'] = $tblAddress->getTblCity()->getDistrict();
                             }
                             array_push($PersonList, $Item);
                         }
@@ -268,7 +311,7 @@ class Service extends AbstractService
                 }
             }
         }
-
+        $PersonList = $this->sortPersonListByDebtorName($PersonList);
 
         if(!empty($PersonList)) {
 
@@ -278,14 +321,18 @@ class Service extends AbstractService
             $row = 0;
             $column = 0;
 
-            $export->setValue($export->getCell($column++, $row), "Anrede");
-            $export->setValue($export->getCell($column++, $row), "Titel");
-            $export->setValue($export->getCell($column++, $row), "Vorname");
-            $export->setValue($export->getCell($column++, $row), "Nachname");
-            $export->setValue($export->getCell($column++, $row), "Vorname");
-            $export->setValue($export->getCell($column++, $row), "Nachname");
+            $export->setValue($export->getCell($column++, $row), "Anrede Beitragszahler");
+            $export->setValue($export->getCell($column++, $row), "Titel Beitragszahler");
+            $export->setValue($export->getCell($column++, $row), "Vorname Beitragszahler");
+            $export->setValue($export->getCell($column++, $row), "Nachname Beitragszahler");
+            $export->setValue($export->getCell($column++, $row), "Vorname Beitragsverursacher");
+            $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Summe");
-            $export->setValue($export->getCell($column++, $row), "Adresse");
+            $export->setValue($export->getCell($column++, $row), "Straße");
+            $export->setValue($export->getCell($column++, $row), "Str.Nr.");
+            $export->setValue($export->getCell($column++, $row), "PLZ");
+            $export->setValue($export->getCell($column++, $row), "Stadt");
+            $export->setValue($export->getCell($column++, $row), "Ortsteil");
             $export->setValue($export->getCell($column, $row), "Beitragsart");
 
             foreach($PersonList as $PersonData) {
@@ -300,12 +347,22 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserLastName']);
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['Value']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['Address']);
+
+                $export->setValue($export->getCell($column++, $row), $PersonData['StreetName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Code']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['City']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['District']);
+
                 $export->setValue($export->getCell($column, $row), $ItemName);
             }
 
             //Column width
             $column = 0;
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12);
@@ -323,5 +380,19 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param         $Year
+     * @param         $MonthFrom
+     * @param         $MonthTo
+     *
+     * @return array|bool
+     */
+    public function getPriceList(TblItem $tblItem, $Year, $MonthFrom, $MonthTo)
+    {
+
+        return (new Data($this->getBinding()))->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
     }
 }

@@ -142,7 +142,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Name'       => 'Name',
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
-                'Item'       => 'Artikel',
+                'Item'       => 'Beitragsart(en)',
                 'Option'     => ''
             ), array(
                 'columnDefs' => array(
@@ -408,7 +408,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'PersonCauser'     => 'Beitragsverursacher',
                                 'PersonDebtorFail' => 'Fehler',
                                 'PersonDebtor'     => 'Beitragszahler',
-                                'Item'             => 'Artikel',
+                                'Item'             => 'Beitragsart',
                                 'Price'            => 'Einzelpreis',
                                 'Quantity'         => 'Anzahl',
                                 'Summary'          => 'Gesamtpreis',
