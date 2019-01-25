@@ -58,7 +58,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Rechnungsliste', 'Sicht Beitragszahler');
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'], $Invoice['BasketName']);
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'],
+            $Invoice['BasketName']);
         $TableContent = array();
         if($tblInvoiceList){
             array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
@@ -79,13 +80,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
                     $ItemList = array();
                     $ItemPrice = 0;
-                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
                         $ItemList[] = $tblInvoiceItemDebtor->getName();
                         $ItemPrice += $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
                     }
                     $ItemString = implode(', ', $ItemList);
                     // convert to Frontend
-                    $item['SumPrice'] = number_format($ItemPrice, 2).' €&nbsp;&nbsp;&nbsp;'.new ToolTip(new Info(), $ItemString);
+                    $item['SumPrice'] = number_format($ItemPrice, 2).' €&nbsp;&nbsp;&nbsp;'.new ToolTip(new Info(),
+                            $ItemString);
                 }
 //                $item['Option'] = '';
 
@@ -102,13 +104,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new TableData($TableContent, null, array(
                             'InvoiceNumber' => 'Abr.-Nr.',
-                            'Time' => 'Abrechnungszeitraum',
-                            'TargetTime' => 'Fälligkeitsdatum',
-                            'CauserPerson' => 'Beitragsverursacher',
-                            'DebtorPerson' => 'Beitragszahler',
-                            'DebtorNumber' => 'Debit.-Nr.',
-                            'SumPrice' => 'Gesamtbetrag',
-                            'BasketName' => 'Name der Abrechnung',
+                            'Time'          => 'Abrechnungszeitraum',
+                            'TargetTime'    => 'Fälligkeitsdatum',
+                            'CauserPerson'  => 'Beitragsverursacher',
+                            'DebtorPerson'  => 'Beitragszahler',
+                            'DebtorNumber'  => 'Debit.-Nr.',
+                            'SumPrice'      => 'Gesamtbetrag',
+                            'BasketName'    => 'Name der Abrechnung',
 //                            'Option' => '',
                         ), array(
                             'columnDefs' => array(
@@ -153,7 +155,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Rechnungsliste', 'Sicht Beitragsverursacher');
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'], $Invoice['BasketName']);
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'],
+            $Invoice['BasketName']);
         $TableContent = array();
         if($tblInvoiceList){
             array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
@@ -167,7 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
                         $item['DebtorPerson'] = '';
                         $item['Item'] = '';
                         $item['ItemQuantity'] = '';
@@ -186,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $CheckBox->setChecked();
                         }
 
-                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox , $tblInvoiceItemDebtor->getId());
+                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox, $tblInvoiceItemDebtor->getId());
 //                        $item['Option'] = '';
                         // convert to Frontend
                         $item['ItemPrice'] = number_format($item['ItemPrice'], 2).' €';
@@ -207,22 +210,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
-                                'Item' => 'Beitragsarten',
-                                'ItemQuantity' => 'Menge',
-                                'ItemPrice' => new ToolTip('EP', 'Einzelpreis'),
-                                'ItemSumPrice' => new ToolTip('GP', 'Gesamtpreis'),
-                                'CauserPerson' => 'Beitragsverursacher',
-                                'Time' => 'Abrechnungszeitraum',
-                                'DebtorPerson' => 'Debitor',
+                                'Item'          => 'Beitragsarten',
+                                'ItemQuantity'  => 'Menge',
+                                'ItemPrice'     => new ToolTip('EP', 'Einzelpreis'),
+                                'ItemSumPrice'  => new ToolTip('GP', 'Gesamtpreis'),
+                                'CauserPerson'  => 'Beitragsverursacher',
+                                'Time'          => 'Abrechnungszeitraum',
+                                'DebtorPerson'  => 'Debitor',
                                 'InvoiceNumber' => 'Abr.-Nr.',
-                                'BasketName' => 'Name der Abrechnung',
-                                'IsPaid' => 'Offene Posten',
+                                'BasketName'    => 'Name der Abrechnung',
+                                'IsPaid'        => 'Offene Posten',
 //                                'Option' => '',
                             ), array(
                                 'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => array(1,2,3,7)),
+                                    array('type' => 'natural', 'targets' => array(1, 2, 3, 7)),
 //                                    array('type' => 'de_date', 'targets' => array(2)),
-                                array("orderable" => false, "targets"   => -1),
+                                    array("orderable" => false, "targets" => -1),
                                 ),
                                 'order'      => array(
 //                            array(1, 'desc'),
@@ -247,7 +250,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $BasketNameList = array();
         if(($tblBasketList = Basket::useService()->getBasketAll())){
-            foreach($tblBasketList as $tblBasket){
+            foreach($tblBasketList as $tblBasket) {
                 $BasketNameList[] = $tblBasket->getName();
             }
             $BasketNameList = array_unique($BasketNameList);
@@ -261,7 +264,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(new SelectBox('Invoice[Year]', 'Jahr', $YearList), 4),
                     new FormColumn(new SelectBox('Invoice[Month]', 'Monat', $MonthList, null, true, null), 4),
-                    new FormColumn(new AutoCompleter('Invoice[BasketName]', 'Name der Abrechnung', '', $BasketNameList), 4),
+                    new FormColumn(new AutoCompleter('Invoice[BasketName]', 'Name der Abrechnung', '', $BasketNameList),
+                        4),
                 )),
                 new FormRow(array(
 //                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))), 2),
@@ -278,28 +282,29 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Offene Posten', 'Übersicht');
         $TableContent = array();
         if($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid()){
-            array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
-                $item['DebtorPerson'] = '';
-                $item['Item'] = $tblInvoiceItemDebtor->getName();
-                $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
-                $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
-                $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
-                $item['InvoiceNumber'] = '';
-                $item['CauserPerson'] = '';
-                $item['Time'] = '';
-                $item['BasketName'] = '';
-                if($tblInvoiceItemDebtor->getDebtorPerson()){
-                    $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
-                }
-                if($tblInvoice = $tblInvoiceItemDebtor->getTblInvoice()){
-                    $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                    $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
-                    $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
-                    $item['BasketName'] = $tblInvoice->getBasketName();
-                }
+            array_walk($tblInvoiceItemDebtorList,
+                function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
+                    $item['DebtorPerson'] = '';
+                    $item['Item'] = $tblInvoiceItemDebtor->getName();
+                    $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
+                    $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
+                    $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                    $item['InvoiceNumber'] = '';
+                    $item['CauserPerson'] = '';
+                    $item['Time'] = '';
+                    $item['BasketName'] = '';
+                    if($tblInvoiceItemDebtor->getDebtorPerson()){
+                        $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                    }
+                    if($tblInvoice = $tblInvoiceItemDebtor->getTblInvoice()){
+                        $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                        $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
+                        $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
+                        $item['BasketName'] = $tblInvoice->getBasketName();
+                    }
 
-                array_push($TableContent, $item);
-            });
+                    array_push($TableContent, $item);
+                });
         }
 
         $Stage->setContent(new Layout(
@@ -308,17 +313,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new TableData($TableContent, null, array(
                             'InvoiceNumber' => 'Rechnungsnummer',
-                            'Time' => 'Abrechnungszeitraum',
-                            'BasketName' => 'Name der Abrechnung',
-                            'CauserPerson' => 'Beitragsverursacher',
-                            'DebtorPerson' => 'Beitragszahler',
-                            'Item' => 'Beitragsart',
-                            'ItemQuantity' => 'Anzahl',
-                            'ItemPrice' => 'Einzelpreis',
-                            'ItemSumPrice' => 'Gesamtpreis'
+                            'Time'          => 'Abrechnungszeitraum',
+                            'BasketName'    => 'Name der Abrechnung',
+                            'CauserPerson'  => 'Beitragsverursacher',
+                            'DebtorPerson'  => 'Beitragszahler',
+                            'Item'          => 'Beitragsart',
+                            'ItemQuantity'  => 'Anzahl',
+                            'ItemPrice'     => 'Einzelpreis',
+                            'ItemSumPrice'  => 'Gesamtpreis'
                         ), array(
                             'columnDefs' => array(
-                                array('type' => 'natural', 'targets' => array(0,6,7,8)),
+                                array('type' => 'natural', 'targets' => array(0, 6, 7, 8)),
 //                                array('type' => 'de_date', 'targets' => array(2)),
 //                                array("orderable" => false, "targets"   => -1),
                             ),

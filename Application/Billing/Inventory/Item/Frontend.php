@@ -60,7 +60,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             ApiItem::receiverItemTable($this->getItemTable())
                         )
-                    ), new Title(new ListingTable().' Übersicht')
+                    ),
+                    new Title(new ListingTable().' Übersicht')
                 ))
             )
         );
@@ -76,17 +77,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblItemAll = Item::useService()->getItemAll();
         $TableContent = array();
-        if (!empty($tblItemAll)) {
-            array_walk($tblItemAll, function (TblItem $tblItem) use (&$TableContent) {
+        if(!empty($tblItemAll)){
+            array_walk($tblItemAll, function(TblItem $tblItem) use (&$TableContent){
 
                 $Item['Name'] = $tblItem->getName()
-                .(new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Bearbeiten der Beitragsart'))
+                    .(new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Bearbeiten der Beitragsart'))
                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditItemModal('editItem', $tblItem->getId()));
                 // darf die Beitragsart gelöscht werden?
                 if(!(Basket::useService()->getBasketItemAllByItem($tblItem))){
                     $Item['Name'] .= '|'
-                    .(new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Beitragsart'))
-                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteItemModal('deleteItem', $tblItem->getId()));
+                        .(new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(),
+                            'Löschen der Beitragsart'))
+                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteItemModal('deleteItem',
+                                $tblItem->getId()));
                 }
 
                 $Item['PersonGroup'] = '';
@@ -94,39 +97,43 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Variant'] = '';
 
                 $GroupList = array();
-                if (($PersonGroupList = Item::useService()->getItemGroupByItem($tblItem))) {
-                    foreach ($PersonGroupList as $PersonGroup) {
-                        if (($tblGroup = $PersonGroup->getServiceTblGroup())) {
+                if(($PersonGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+                    foreach($PersonGroupList as $PersonGroup) {
+                        if(($tblGroup = $PersonGroup->getServiceTblGroup())){
                             $GroupList[] = $tblGroup->getName();
                         }
                     }
                     sort($GroupList);
                 }
-                if (!empty($GroupList)) {
+                if(!empty($GroupList)){
 //                    $Item['PersonGroup'] = new Listing($GroupList);
                     $Item['PersonGroup'] = implode('<br/>', $GroupList);
                 }
 
                 $RowList = array();
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
-                    foreach($tblItemVariantList as $tblItemVariant){
+                    foreach($tblItemVariantList as $tblItemVariant) {
                         $Row = $tblItemVariant->getName().
                             (new Link('', ApiItem::getEndpoint(), new Pencil()))
-                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditVariantModal('editVariant', $tblItem->getId(), $tblItemVariant->getId()))
+                                ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditVariantModal('editVariant',
+                                    $tblItem->getId(), $tblItemVariant->getId()))
                             .'|'.
                             (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
-                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteVariantModal('deleteVariant', $tblItemVariant->getId()))
+                                ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteVariantModal('deleteVariant',
+                                    $tblItemVariant->getId()))
                             .($tblItemVariant->getDescription() ? '<br/>'.$tblItemVariant->getDescription() : '');
 
                         $PriceAddButton = (new Link('Preis hinzufügen', ApiItem::getEndpoint(), new Plus()))
-                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddCalculationModal('addCalculation', $tblItemVariant->getId()));
+                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddCalculationModal('addCalculation',
+                                $tblItemVariant->getId()));
 
                         if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
                             /** @var TblItemCalculation[] $tblItemCalculationList */
-                            $tblItemCalculationList = $this->getSorter($tblItemCalculationList)->sortObjectBy('DateFrom', new DateTimeSorter(), Sorter::ORDER_DESC);
+                            $tblItemCalculationList = $this->getSorter($tblItemCalculationList)->sortObjectBy('DateFrom',
+                                new DateTimeSorter(), Sorter::ORDER_DESC);
 
                             $Row .= '<table>';
-                            foreach($tblItemCalculationList as $tblItemCalculation){
+                            foreach($tblItemCalculationList as $tblItemCalculation) {
 
                                 //ToDO aktuellen Eintrag markieren
                                 $IsNow = false;
@@ -136,16 +143,18 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                                 $Price = 'Preis: '.$tblItemCalculation->getPriceString();
                                 $Span = ($tblItemCalculation->getDateFrom()
-                                    ?$tblItemCalculation->getDateFrom().
+                                    ? $tblItemCalculation->getDateFrom().
                                     ($tblItemCalculation->getDateTo()
                                         ? ' - '.$tblItemCalculation->getDateTo()
                                         : '')
                                     : '');
                                 $Option = (new Link('', ApiItem::getEndpoint(), new Pencil()))
-                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditCalculationModal('editCalculation', $tblItemVariant->getId(), $tblItemCalculation->getId()))
+                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditCalculationModal('editCalculation',
+                                            $tblItemVariant->getId(), $tblItemCalculation->getId()))
                                     .'|'.
                                     (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
-                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation', $tblItemCalculation->getId()));
+                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation',
+                                            $tblItemCalculation->getId()));
 
                                 if($IsNow){
                                     $Price = new Bold($Price);
@@ -153,12 +162,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
 
                                 $RowContent = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;'
-                                    . $Price
+                                    .$Price
                                     .'</td><td>&nbsp;&nbsp;&nbsp;&nbsp;'
-                                    . $Span
-                                    . '</td><td>&nbsp;&nbsp;'
-                                    . $Option
-                                    . '</td></tr>';
+                                    .$Span
+                                    .'</td><td>&nbsp;&nbsp;'
+                                    .$Option
+                                    .'</td></tr>';
                                 if($IsNow){
                                     $Row .= str_replace('<tr>', '<tr style="font-weight:bold">', $RowContent);
                                 } else {
@@ -190,8 +199,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Variant'     => 'Preis-Varianten',
 //                'Option'      => ''
             ), array(
-                'columnDefs' => array(
-                    array("orderable" => false, "targets"   => array(-1, -2)),
+                'columnDefs'     => array(
+                    array("orderable" => false, "targets" => array(-1, -2)),
                 ),
                 "paging"         => false, // Deaktivieren Blättern
                 "iDisplayLength" => -1,    // Alle Einträge zeigen

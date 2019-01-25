@@ -25,7 +25,7 @@ class Service extends AbstractService
     {
 
         $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
-        if (!$doSimulation && $withData) {
+        if(!$doSimulation && $withData){
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
 
@@ -44,7 +44,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $GroupId) {
+        if(null === $GroupId){
             return $Form;
         }
         if('0' === $GroupId){

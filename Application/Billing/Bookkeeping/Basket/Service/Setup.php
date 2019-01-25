@@ -77,7 +77,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblBasketVerification');
-        if(!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);

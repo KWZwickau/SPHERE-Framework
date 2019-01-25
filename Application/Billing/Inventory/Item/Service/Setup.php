@@ -90,7 +90,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblItem
+     * @param Table  $tblItem
      *
      * @return Table
      */
@@ -108,7 +108,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblVariant
+     * @param Table  $tblVariant
      *
      * @return Table
      */
@@ -116,7 +116,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblItemCalculation');
-        if (!$this->getConnection()->hasColumn('tblItemCalculation', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblItemCalculation', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME, true);

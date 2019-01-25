@@ -148,7 +148,7 @@ class ApiBasket extends Extension implements IApiInterface
         $Identifier = '',
         $BasketId = '',
         $Basket = array()
-    ) {
+    ){
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
@@ -275,12 +275,12 @@ class ApiBasket extends Extension implements IApiInterface
     {
 
         // SelectBox content
-        $YearList = Invoice::useService()->getYearList(1,1);
+        $YearList = Invoice::useService()->getYearList(1, 1);
         $MonthList = Invoice::useService()->getMonthList();
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $BasketId) {
+        if('' !== $BasketId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditBasket($Identifier,
                 $BasketId));
             $Content = (new Form(new FormGroup(new FormRow(array(
@@ -304,16 +304,16 @@ class ApiBasket extends Extension implements IApiInterface
             // set Date to now
             $Now = new \DateTime();
             $Month = (int)$Now->format('m');
-            if(!isset($_POST['Basket']['Year'])) {
+            if(!isset($_POST['Basket']['Year'])){
                 $_POST['Basket']['Year'] = $Now->format('Y');
             }
-            if(!isset($_POST['Basket']['Month'])) {
+            if(!isset($_POST['Basket']['Month'])){
                 $_POST['Basket']['Month'] = $Month;
             }
 
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddBasket($Identifier));
             $CheckboxList = array();
-            if(($tblItemList = Item::useService()->getItemAll())) {
+            if(($tblItemList = Item::useService()->getItemAll())){
                 foreach($tblItemList as $tblItem) {
                     $CheckboxList[] = new CheckBox('Basket[Item]['.$tblItem->getId().']', $tblItem->getName(),
                         $tblItem->getId());
@@ -322,7 +322,7 @@ class ApiBasket extends Extension implements IApiInterface
 
             $LayoutColumnList[] = new LayoutColumn(new Bold('Beitragsarten:'));
             $Column = '';
-            if(!empty($CheckboxList)) {
+            if(!empty($CheckboxList)){
                 foreach($CheckboxList as $Checkbox) {
                     $Column .= $Checkbox;
                 }
@@ -362,12 +362,12 @@ class ApiBasket extends Extension implements IApiInterface
         $Identifier = '',
         $BasketId = '',
         $Basket = array()
-    ) {
+    ){
 
         $Error = false;
         $Warning = array();
         $form = $this->formBasket($Identifier, $BasketId);
-        if(isset($Basket['Name']) && empty($Basket['Name'])) {
+        if(isset($Basket['Name']) && empty($Basket['Name'])){
             $form->setError('Basket[Name]', 'Bitte geben Sie einen Namen der Abrechnung an');
             // ToDO setError don't work
             $Warning[] = 'Bitte geben Sie einen Namen der Abrechnung an';
@@ -375,8 +375,9 @@ class ApiBasket extends Extension implements IApiInterface
         } else {
             if(isset($Basket['Month']) && isset($Basket['Year'])){
                 // Filtern doppelter Namen Mit Zeitangabe (Namen sind mit anderem Datum wiederverwendbar)
-                if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name'], $Basket['Month'], $Basket['Year']))) {
-                    if($BasketId !== $tblBasket->getId()) {
+                if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name'], $Basket['Month'],
+                    $Basket['Year']))){
+                    if($BasketId !== $tblBasket->getId()){
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung '.$Basket['Month'].'.'.$Basket['Year'].' an');
                         // ToDO setError don't work
@@ -389,8 +390,9 @@ class ApiBasket extends Extension implements IApiInterface
                 if($BasketId && ($tblBasketEdit = Basket::useService()->getBasketById($BasketId))){
                     $TargetMonth = $tblBasketEdit->getMonth();
                     $TargetYear = $tblBasketEdit->getYear();
-                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name'], $TargetMonth, $TargetYear))) {
-                        if($BasketId !== $tblBasket->getId()) {
+                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name'], $TargetMonth,
+                        $TargetYear))){
+                        if($BasketId !== $tblBasket->getId()){
                             $form->setError('Basket[Name]',
                                 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
                             // ToDO setError don't work
@@ -400,7 +402,7 @@ class ApiBasket extends Extension implements IApiInterface
                     }
                 } else {
                     // fallback if error
-                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))) {
+                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))){
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
                         // ToDO setError don't work
@@ -410,23 +412,23 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             }
         }
-        if(isset($Basket['TargetTime']) && empty($Basket['TargetTime'])) {
+        if(isset($Basket['TargetTime']) && empty($Basket['TargetTime'])){
             $form->setError('Basket[TargetTime]', 'Bitte geben Sie ein Fälligkeitsdatum an');
             // ToDO setError don't work
             $Warning[] = 'Bitte geben Sie ein Fälligkeitsdatum an';
             $Error = true;
         }
-        if($BasketId == '' && !isset($Basket['Item'])) {
+        if($BasketId == '' && !isset($Basket['Item'])){
             $Warning[] = 'Es wird mindestens eine Beitragsart benötigt';
             $Error = true;
         }
 
         $WarningText = '';
-        if(!empty($Warning)) {
+        if(!empty($Warning)){
             $WarningText = new Warning(implode('<br/>', $Warning));
         }
 
-        if($Error) {
+        if($Error){
             return new Well($WarningText.$form);
         }
 
@@ -454,7 +456,7 @@ class ApiBasket extends Extension implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputBasket($Identifier, '', $Basket)) {
+        if($form = $this->checkInputBasket($Identifier, '', $Basket)){
 
             // display Errors on form
             $Global = $this->getGlobal();
@@ -463,7 +465,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Year'] = $Basket['Year'];
             $Global->POST['Basket']['Month'] = $Basket['Month'];
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
-            if(isset($Basket['Description']) && !empty($Basket['Description'])) {
+            if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
                 }
@@ -485,13 +487,13 @@ class ApiBasket extends Extension implements IApiInterface
             , $Basket['Month'], $Basket['TargetTime']);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {
-            if(($tblItem = Item::useService()->getItemById($ItemId))) {
+            if(($tblItem = Item::useService()->getItemById($ItemId))){
                 $tblItemList[] = $tblItem;
                 $tblBasketItemList[] = Basket::useService()->createBasketItem($tblBasket, $tblItem);
             }
         }
         $VerificationResult = array();
-        if(!empty($tblItemList)) {
+        if(!empty($tblItemList)){
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
                 $VerificationResult[] = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem);
@@ -505,7 +507,7 @@ class ApiBasket extends Extension implements IApiInterface
             ausgewählten Beitragsarten für alle zutreffenden Personen eine Rechnung erstellt.');
         }
 
-        if($tblBasket) {
+        if($tblBasket){
             return new Success('Abrechnung erfolgreich angelegt').self::pipelineCloseModal($Identifier);
         } else {
             return new Danger('Abrechnung konnte nicht gengelegt werden');
@@ -523,10 +525,10 @@ class ApiBasket extends Extension implements IApiInterface
         $Identifier = '',
         $BasketId = '',
         $Basket = array()
-    ) {
+    ){
 
         // Handle error's
-        if($form = $this->checkInputBasket($Identifier, $BasketId, $Basket)) {
+        if($form = $this->checkInputBasket($Identifier, $BasketId, $Basket)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Basket']['Name'] = $Basket['Name'];
@@ -537,7 +539,7 @@ class ApiBasket extends Extension implements IApiInterface
         }
 
         $IsChange = false;
-        if(($tblBasket = Basket::useService()->getBasketById($BasketId))) {
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
             $IsChange = Basket::useService()->changeBasket($tblBasket, $Basket['Name'], $Basket['Description']
                 , $Basket['TargetTime']);
         }
@@ -556,7 +558,7 @@ class ApiBasket extends Extension implements IApiInterface
     public function showEditBasket($Identifier = '', $BasketId = '')
     {
 
-        if('' !== $BasketId && ($tblBasket = Basket::useService()->getBasketById($BasketId))) {
+        if('' !== $BasketId && ($tblBasket = Basket::useService()->getBasketById($BasketId))){
             $Global = $this->getGlobal();
             $Global->POST['Basket']['Name'] = $tblBasket->getName();
             $Global->POST['Basket']['Description'] = $tblBasket->getDescription();
@@ -579,7 +581,7 @@ class ApiBasket extends Extension implements IApiInterface
     {
 
         $tblBasket = Basket::useService()->getBasketById($BasketId);
-        if($tblBasket) {
+        if($tblBasket){
 
             $BasketVericationCount = 0;
             if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
@@ -587,7 +589,7 @@ class ApiBasket extends Extension implements IApiInterface
             }
             $ItemList = array();
             if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))){
-                foreach($tblBasketItemList as $tblBasketItem){
+                foreach($tblBasketItemList as $tblBasketItem) {
                     if(($tblItem = $tblBasketItem->getServiceTblItem())){
                         $ItemList[] = $tblItem->getName();
                     }
@@ -634,7 +636,7 @@ class ApiBasket extends Extension implements IApiInterface
     public function deleteBasket($Identifier = '', $BasketId = '')
     {
 
-        if(($tblBasket = Basket::useService()->getBasketById($BasketId))) {
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
             Basket::useService()->destroyBasket($tblBasket);
 
             return new Success('Abrechnung wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier);

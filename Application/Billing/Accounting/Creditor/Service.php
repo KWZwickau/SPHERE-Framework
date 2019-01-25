@@ -23,7 +23,7 @@ class Service extends AbstractService
     {
 
         $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
-        if (!$doSimulation && $withData) {
+        if(!$doSimulation && $withData){
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
 
@@ -64,32 +64,35 @@ class Service extends AbstractService
      *
      * @return null|object|TblCreditor
      */
-    public function createCreditor($Owner = '',$Street = '', $Number = '', $Code = '', $City = '', $District = ''
-        , $CreditorId = '', $BankName = '', $IBAN = '', $BIC = '')
-    {
-        return (new Data($this->getBinding()))->createCreditor($Owner, $Street, $Number, $Code, $City, $District, $CreditorId
+    public function createCreditor($Owner = '', $Street = '', $Number = '', $Code = '', $City = '', $District = ''
+        , $CreditorId = '', $BankName = '', $IBAN = '', $BIC = ''
+    ){
+        return (new Data($this->getBinding()))->createCreditor($Owner, $Street, $Number, $Code, $City, $District,
+            $CreditorId
             , $BankName, $IBAN, $BIC);
     }
 
     /**
      * @param TblCreditor $tblCreditor
-     * @param string $Owner
-     * @param string $Street
-     * @param string $Number
-     * @param string $Code
-     * @param string $City
-     * @param string $District
-     * @param string $CreditorId
-     * @param string $BankName
-     * @param string $IBAN
-     * @param string $BIC
+     * @param string      $Owner
+     * @param string      $Street
+     * @param string      $Number
+     * @param string      $Code
+     * @param string      $City
+     * @param string      $District
+     * @param string      $CreditorId
+     * @param string      $BankName
+     * @param string      $IBAN
+     * @param string      $BIC
      *
      * @return bool
      */
-    public function changeCreditor(TblCreditor $tblCreditor, $Owner = '',$Street = '', $Number = '', $Code = '', $City = '', $District = ''
-        , $CreditorId = '', $BankName = '', $IBAN = '', $BIC = '')
-    {
-        return (new Data($this->getBinding()))->updateCreditor($tblCreditor, $Owner, $Street, $Number, $Code, $City, $District, $CreditorId
+    public function changeCreditor(TblCreditor $tblCreditor, $Owner = '', $Street = '', $Number = '', $Code = '',
+        $City = '', $District = ''
+        , $CreditorId = '', $BankName = '', $IBAN = '', $BIC = ''
+    ){
+        return (new Data($this->getBinding()))->updateCreditor($tblCreditor, $Owner, $Street, $Number, $Code, $City,
+            $District, $CreditorId
             , $BankName, $IBAN, $BIC);
     }
 

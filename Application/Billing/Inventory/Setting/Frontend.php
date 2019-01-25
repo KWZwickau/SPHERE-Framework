@@ -37,17 +37,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         $DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT);
         $DebtorNumberCount = '';
-        if($DebtorCountSetting) {
+        if($DebtorCountSetting){
             $DebtorNumberCount = $DebtorCountSetting->getValue();
         }
         $PersonGroupStringList = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_PERSON_GROUP_ACTIVE_LIST);
         $PersonGroup = array();
-        if($PersonGroupStringList) {
+        if($PersonGroupStringList){
             $PersonGroupIdList = explode(';', $PersonGroupStringList->getValue());
 
-            foreach ($PersonGroupIdList as $PersonGroupId) {
+            foreach($PersonGroupIdList as $PersonGroupId) {
                 $tblGroup = Group::useService()->getGroupById($PersonGroupId);
-                if($tblGroup) {
+                if($tblGroup){
                     $PersonGroup[] = $tblGroup->getName();
                 }
             }
@@ -58,13 +58,15 @@ class Frontend extends Extension implements IFrontendInterface
         if($IsDebtorNumberNeed->getValue() == '1'){
             $DebtorNumberNeed = new SuccessText(new Check());
         }
-        $DebtorNumberReceiver = ApiSetting::receiverDisplaySetting($DebtorNumberNeed . ' ', TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED);
+        $DebtorNumberReceiver = ApiSetting::receiverDisplaySetting($DebtorNumberNeed.' ',
+            TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED);
         $IsSepaAccountNeed = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED);
         $SepaAccountNeed = new DangerText(new Disable());
         if($IsSepaAccountNeed->getValue() == '1'){
             $SepaAccountNeed = new SuccessText(new Check());
         }
-        $SepaAccountReceiver = ApiSetting::receiverDisplaySetting( $SepaAccountNeed. ' ', TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED);
+        $SepaAccountReceiver = ApiSetting::receiverDisplaySetting($SepaAccountNeed.' ',
+            TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED);
 
 //        $TestSetting = Setting::useService()->getSettingByIdentifier('Test_anderer_Werte');
 //        $TestValue = new WarningText('Keine Einstellung vorhanden');
@@ -72,7 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
 //            $TestValue = $TestSetting->getValue();
 //        }
 
-        $DebtorCountReceiver = ApiSetting::receiverDisplaySetting($DebtorNumberCount . ' ',
+        $DebtorCountReceiver = ApiSetting::receiverDisplaySetting($DebtorNumberCount.' ',
             TblSetting::IDENT_DEBTOR_NUMBER_COUNT);
         $PersonGroupAsString = ApiSetting::receiverDisplaySetting($this->displayPersonGroupLoad(), 'PersonGroup');
 //        $TestReceiver = ApiSetting::receiverDisplaySetting($TestValue . ' ', 'Test_anderer_Werte');
@@ -82,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Title('Personengruppen, die für Beitragsarten zur Auswahl stehen: '
-                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                .(new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                     ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('PersonGroup',
                                         'PersonGroup')))
                             .new Well($PersonGroupAsString)
@@ -91,16 +93,18 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title('Allgemeine Einstellungen:')
                             .new Well(
                                 ApiSetting::receiverModalSetting()
-                                . new Layout(new LayoutGroup(array(
+                                .new Layout(new LayoutGroup(array(
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Länge der Debit.-Nr.: '.$DebtorCountReceiver.new PullRight(
+                                            new Listing(array(
+                                                'Länge der Debit.-Nr.: '.$DebtorCountReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT,
                                                             'Länge der Debit.-Nr.'))
-                                                )))
+                                                )
+                                            ))
                                             , 6),
-                                        )),
+                                    )),
 //                                    new LayoutRow(array(
 //                                        new LayoutColumn(
 //                                            new Listing(array('Mögliche weitere Einstellungen: '.$TestReceiver.new PullRight(
@@ -112,20 +116,24 @@ class Frontend extends Extension implements IFrontendInterface
 //                                        )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Debit.-Nr. ist eine Pflichtangabe: '.$DebtorNumberReceiver.new PullRight(
+                                            new Listing(array(
+                                                'Debit.-Nr. ist eine Pflichtangabe: '.$DebtorNumberReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED,
                                                             'Debit.-Nr. ist eine Pflichtangabe'))
-                                                )))
+                                                )
+                                            ))
                                             , 6),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Konto für SEPA-Lastschrift ist eine Pflichtangabe: '.$SepaAccountReceiver.new PullRight(
+                                            new Listing(array(
+                                                'Konto für SEPA-Lastschrift ist eine Pflichtangabe: '.$SepaAccountReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED,
                                                             'Konto für SEPA-Lastschrift ist eine Pflichtangabe: '))
-                                                )))
+                                                )
+                                            ))
                                             , 6),
                                     )),
                                 )))
@@ -144,17 +152,17 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function displayPersonGroupLoad()
     {
-        if(($tblSettingGroupPersonList = Setting::useService()->getSettingGroupPersonAll())) {
+        if(($tblSettingGroupPersonList = Setting::useService()->getSettingGroupPersonAll())){
             $tblGroupList = array();
-            foreach ($tblSettingGroupPersonList as $tblSettingGroupPerson) {
+            foreach($tblSettingGroupPersonList as $tblSettingGroupPerson) {
                 $tblGroupList[] = $tblSettingGroupPerson->getServiceTblGroupPerson();
             }
             $NameListLeft = array();
             $NameListRight = array();
             /** @var TblGroup $tblGroup */
             $tblGroupList = $this->getSorter($tblGroupList)->sortObjectBy('Name');
-            foreach ($tblGroupList as $tblGroup) {
-                if($tblGroup->getMetaTable()) {
+            foreach($tblGroupList as $tblGroup) {
+                if($tblGroup->getMetaTable()){
                     $NameListLeft[] = $tblGroup->getName();
                 } else {
                     $NameListRight[] = $tblGroup->getName();

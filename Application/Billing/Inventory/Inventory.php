@@ -33,7 +33,7 @@ class Inventory implements IApplicationInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__ . '::frontendInventory'
+            __NAMESPACE__, __CLASS__.'::frontendInventory'
         ));
 
     }

@@ -93,7 +93,7 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblInvoiceItemDebtor');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
-        if (!$this->getConnection()->hasColumn('tblInvoiceItemDebtor', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblInvoiceItemDebtor', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);

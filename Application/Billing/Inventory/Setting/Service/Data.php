@@ -44,7 +44,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblSetting', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -55,8 +55,9 @@ class Data extends AbstractData
     public function getSettingGroupPersonById($Id)
     {
 
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblSettingGroupPerson', $Id);
-        return ( null === $Entity ? false : $Entity );
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(),
+            'TblSettingGroupPerson', $Id);
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -71,7 +72,7 @@ class Data extends AbstractData
             array(
                 TblSetting::ATTR_IDENTIFIER => $Identifier
             ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -82,11 +83,12 @@ class Data extends AbstractData
     public function getSettingGroupPersonByGroup(TblGroup $tblGroup)
     {
 
-        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblSettingGroupPerson',
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblSettingGroupPerson',
             array(
                 TblSettingGroupPerson::ATTR_SERVICE_TBL_GROUP_PERSON => $tblGroup->getId()
             ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -96,7 +98,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblSetting');
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -105,8 +107,9 @@ class Data extends AbstractData
     public function getSettingGroupPersonAll()
     {
 
-        $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblSettingGroupPerson');
-        return ( null === $Entity ? false : $Entity );
+        $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(),
+            'TblSettingGroupPerson');
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -125,7 +128,7 @@ class Data extends AbstractData
             TblSetting::ATTR_IDENTIFIER => $Identifier,
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
 
             // create if new
             $Entity = new TblSetting();
@@ -155,7 +158,7 @@ class Data extends AbstractData
             TblSettingGroupPerson::ATTR_SERVICE_TBL_GROUP_PERSON => $tblGroup->getId(),
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
 
             // create if new
             $Entity = new TblSettingGroupPerson();
@@ -211,7 +214,7 @@ class Data extends AbstractData
         /** @var TblSettingGroupPerson $Entity */
         $Entity = $Manager->getEntityById('TblSettingGroupPerson', $tblSettingGroupPerson->getId());
 
-        if ($Entity !== null) {
+        if($Entity !== null){
 
             $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
@@ -233,9 +236,9 @@ class Data extends AbstractData
         /** @var TblSettingGroupPerson $Entity */
         $Entity = $Manager->getEntity('TblSettingGroupPerson')->findOneBy(array(
             TblSettingGroupPerson::ATTR_SERVICE_TBL_GROUP_PERSON => $tblGroup->getId()
-            ));
+        ));
 
-        if ($Entity !== null) {
+        if($Entity !== null){
 
             $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),

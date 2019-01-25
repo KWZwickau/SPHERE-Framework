@@ -52,17 +52,17 @@ class Data extends AbstractData
      *
      * @return null|object|TblCreditor
      */
-    public function createCreditor($Owner = '', $Street = '', $Number = '', $Code = '', $City = '', $District = '', $CreditorId = ''
+    public function createCreditor($Owner = '', $Street = '', $Number = '', $Code = '', $City = '', $District = '',
+        $CreditorId = ''
         , $BankName = '', $IBAN = '', $BIC = ''
-    )
-    {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCreditor')->findOneBy(array(
             TblCreditor::ATTR_OWNER => $Owner
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblCreditor();
             $Entity->setOwner($Owner);
             $Entity->setStreet($Street);
@@ -86,29 +86,29 @@ class Data extends AbstractData
 
     /**
      * @param TblCreditor $tblCreditor
-     * @param string $Owner
-     * @param string $Street
-     * @param string $Number
-     * @param string $Code
-     * @param string $City
-     * @param string $District
-     * @param string $CreditorId
-     * @param string $BankName
-     * @param string $IBAN
-     * @param string $BIC
+     * @param string      $Owner
+     * @param string      $Street
+     * @param string      $Number
+     * @param string      $Code
+     * @param string      $City
+     * @param string      $District
+     * @param string      $CreditorId
+     * @param string      $BankName
+     * @param string      $IBAN
+     * @param string      $BIC
      *
      * @return bool
      */
     public function updateCreditor(TblCreditor $tblCreditor, $Owner = '', $Street = '', $Number = '', $Code = ''
         , $City = '', $District = '', $CreditorId = '', $BankName = '', $IBAN = '', $BIC = ''
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblCreditor $Entity */
         $Entity = $Manager->getEntityById('TblCreditor', $tblCreditor->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setOwner($Owner);
             $Entity->setStreet($Street);
             $Entity->setNumber($Number);
@@ -138,7 +138,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblCreditor', $tblCreditor->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);

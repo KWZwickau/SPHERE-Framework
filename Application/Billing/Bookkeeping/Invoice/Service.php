@@ -84,7 +84,7 @@ class Service extends AbstractService
         TblItem $tblItem,
         $Year,
         $Month
-    ) {
+    ){
         $isInvoice = false;
         if(($tblInvoiceList = $this->getInvoiceAllByPerson($tblPerson))){
             foreach($tblInvoiceList as $tblInvoice) {
@@ -302,10 +302,14 @@ class Service extends AbstractService
         // First Look and remove existing Invoice
         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
         array_walk($tblBasketVerificationList,
-            function(TblBasketVerification &$tblBasketVerification) use ($Month, $Year) {
+            function(TblBasketVerification &$tblBasketVerification) use ($Month, $Year){
                 $tblPerson = $tblBasketVerification->getServiceTblPersonCauser();
                 $tblItem = $tblBasketVerification->getServiceTblItem();
-                if($tblPerson && $tblItem){
+
+                // entfernen der Beiträge mit 0€
+                if($tblBasketVerification->getValue() === '0.0000'){
+                    $tblBasketVerification = false;
+                } elseif($tblPerson && $tblItem) { // Entfernen aller Beiträge
                     if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
                         $Year, $Month)){
                         // Entfernen des Beitrag's aus der Abrechnung
@@ -346,7 +350,7 @@ class Service extends AbstractService
                 &$MaxInvoiceNumber,
                 &$DebtorInvoiceList,
                 $tblInvoiceCreditor
-            ) {
+            ){
                 $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
                 $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
                 /** fill Invoice (groupByDebtorAndCauser) */
@@ -377,7 +381,7 @@ class Service extends AbstractService
             $Month,
             $Year,
             $DebtorInvoiceList
-        ) {
+        ){
             $i++;
             $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();

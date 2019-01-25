@@ -105,7 +105,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItemVariant', self::FIELD_TYPE_BIGINT, true);
-        if(!$this->getConnection()->hasColumn('tblDebtorSelection', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblDebtorSelection', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);

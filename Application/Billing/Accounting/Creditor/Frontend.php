@@ -35,7 +35,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Übersicht', ' Gläubiger');
 
         $Stage->addButton((new Primary('Gläubiger hinzufügen', ApiCreditor::getEndpoint(), new Plus()))
-        ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenAddCreditorModal('addCreditor')));
+            ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenAddCreditorModal('addCreditor')));
 
         $Stage->setContent(
             ApiCreditor::receiverModal('Gläubiger hinzufügen', 'addCreditor')
@@ -72,26 +72,28 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['IBAN'] = $tblCreditor->getIBAN();
                 $Item['BIC'] = $tblCreditor->getBIC();
                 $Item['Option'] = (new Link('', ApiCreditor::getEndpoint(), new Pencil(), array(), 'bearbeiten'))
-                    ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenEditCreditorModal('editCreditor', $tblCreditor->getId()))
-                .'|'
-                .(new Link(new DangerText(new Disable()), ApiCreditor::getEndpoint(), null, array(), 'entfernen'))
-                    ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenDeleteCreditorModal('editCreditor', $tblCreditor->getId()));
+                        ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenEditCreditorModal('editCreditor',
+                            $tblCreditor->getId()))
+                    .'|'
+                    .(new Link(new DangerText(new Disable()), ApiCreditor::getEndpoint(), null, array(), 'entfernen'))
+                        ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenDeleteCreditorModal('editCreditor',
+                            $tblCreditor->getId()));
                 array_push($tableContent, $Item);
             });
         }
 
         return new TableData($tableContent, null, array(
-            'Owner' => 'Besitzer',
-            'Address' => 'Adresse',
+            'Owner'      => 'Besitzer',
+            'Address'    => 'Adresse',
             'CreditorId' => 'Gläubiger',
-            'BankName' => 'Name der Bank',
-            'IBAN' => 'IBAN',
-            'BIC' => 'BIC',
-            'Option' => '',
+            'BankName'   => 'Name der Bank',
+            'IBAN'       => 'IBAN',
+            'BIC'        => 'BIC',
+            'Option'     => '',
         ), array(
             'columnDefs' => array(
                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                array("orderable" => false, "targets"   => -1),
+                array("orderable" => false, "targets" => -1),
             ),
         ));
     }

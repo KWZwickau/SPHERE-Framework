@@ -38,10 +38,12 @@ class Data extends AbstractData
         $tblVariant = $this->createItemVariant($tblItem, 'Voll', 'Keine ermäßigung des Schulgeldes');
         $this->createItemCalculation($tblVariant, '70.00', '01.01.2018', '31.12.2020');
 
-        $tblVariant = $this->createItemVariant($tblItem, 'Teilermäßigung', 'Ermäßigung für Geschwisterkind oder Einkommensgruppe');
+        $tblVariant = $this->createItemVariant($tblItem, 'Teilermäßigung',
+            'Ermäßigung für Geschwisterkind oder Einkommensgruppe');
         $this->createItemCalculation($tblVariant, '60.55', '01.01.2018', '31.12.2020');
 
-        $tblVariant = $this->createItemVariant($tblItem, 'Vollermäßigung', 'Ermäßigung für Geschwisterkind und Einkommensgruppe');
+        $tblVariant = $this->createItemVariant($tblItem, 'Vollermäßigung',
+            'Ermäßigung für Geschwisterkind und Einkommensgruppe');
         $this->createItemCalculation($tblVariant, '53.95', '01.01.2018', '31.12.2019');
         $this->createItemCalculation($tblVariant, '54.00', '01.01.2020', '31.12.2020');
 
@@ -67,7 +69,7 @@ class Data extends AbstractData
 
 //        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItem', $Id);
         $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItem', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -78,8 +80,9 @@ class Data extends AbstractData
     public function getItemGroupById($Id)
     {
 
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup', $Id);
-        return ( null === $Entity ? false : $Entity );
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
+            $Id);
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -94,7 +97,7 @@ class Data extends AbstractData
             array(
                 TblItemGroup::ATTR_TBL_ITEM => $tblItem->getId()
             ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -105,8 +108,9 @@ class Data extends AbstractData
     public function getItemVariantById($Id)
     {
 
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant', $Id);
-        return ( null === $Entity ? false : $Entity );
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
+            $Id);
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -120,8 +124,8 @@ class Data extends AbstractData
         $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
             array(
                 TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId()
-            ), array('EntityCreate' => self::ORDER_ASC ));
-        return ( null === $Entity ? false : $Entity );
+            ), array('EntityCreate' => self::ORDER_ASC));
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -136,9 +140,9 @@ class Data extends AbstractData
         $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
             array(
                 TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId(),
-                TblItemVariant::ATTR_NAME => $Name
+                TblItemVariant::ATTR_NAME     => $Name
             ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -153,7 +157,7 @@ class Data extends AbstractData
             array(
                 TblItemGroup::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
             ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -173,8 +177,9 @@ class Data extends AbstractData
     {
 
 //        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemType', $Id);
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemType', $Id);
-        return ( null === $Entity ? false : $Entity );
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemType',
+            $Id);
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -206,7 +211,8 @@ class Data extends AbstractData
     public function getItemCalculationById($Id)
     {
 
-        return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation', $Id);
+        return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
+            $Id);
     }
 
     /**
@@ -217,9 +223,10 @@ class Data extends AbstractData
     public function getItemCalculationByItemVariant(TblItemVariant $tblItemVariant)
     {
 
-        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblItemCalculation',
             array(TblItemCalculation::ATTR_TBL_ITEM_VARIANT => $tblItemVariant));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -234,7 +241,7 @@ class Data extends AbstractData
 //            ->findOneBy(array(TblItem::ATTR_NAME => $Name));
         $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItem',
             array(TblItem::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -257,8 +264,9 @@ class Data extends AbstractData
     {
 
 //        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemAccount', $Id);
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemAccount', $Id);
-        return ( null === $Entity ? false : $Entity );
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemAccount',
+            $Id);
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -271,10 +279,11 @@ class Data extends AbstractData
 
 //        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemAccount')
 //            ->findBy(array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
-        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemAccount',
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblItemAccount',
             array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
 
-        return ( null === $EntityList ? false : $EntityList );
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
@@ -300,7 +309,7 @@ class Data extends AbstractData
         TblItemType $tblItemType,
         $Name,
         $Description = ''
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -308,7 +317,7 @@ class Data extends AbstractData
             TblItem::ATTR_NAME => $Name,
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblItem();
             $Entity->setName($Name);
             $Entity->setTblItemType($tblItemType);
@@ -331,16 +340,16 @@ class Data extends AbstractData
     public function createItemGroup(
         TblItem $tblItem,
         TblGroup $tblGroup
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblItemGroup')->findOneBy(array(
-            TblItemGroup::ATTR_TBL_ITEM => $tblItem->getId(),
+            TblItemGroup::ATTR_TBL_ITEM          => $tblItem->getId(),
             TblItemGroup::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblItemGroup();
             $Entity->setTblItem($tblItem);
             $Entity->setServiceTblGroup($tblGroup);
@@ -367,10 +376,10 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblItemVariant')->findOneBy(array(
             TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId(),
-            TblItemVariant::ATTR_NAME => $Name,
+            TblItemVariant::ATTR_NAME     => $Name,
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblItemVariant();
             $Entity->setTblItem($tblItem);
             $Entity->setName($Name);
@@ -398,8 +407,8 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblItemCalculation')->findOneBy(array(
             TblItemCalculation::ATTR_TBL_ITEM_VARIANT => $tblItemVariant->getId(),
-            TblItemCalculation::ATTR_VALUE => $Value,
-            TblItemCalculation::ATTR_DATE_FROM => (new \DateTime($DateFrom))
+            TblItemCalculation::ATTR_VALUE            => $Value,
+            TblItemCalculation::ATTR_DATE_FROM        => (new \DateTime($DateFrom))
         ));
 
         if(null === $Entity){
@@ -431,7 +440,7 @@ class Data extends AbstractData
             TblItemType::ATTR_NAME => $Name,
         ));
 
-        if (null === $Entity) {
+        if(null === $Entity){
             $Entity = new TblItemType();
             $Entity->setName($Name);
             $Manager->saveEntity($Entity);
@@ -453,14 +462,14 @@ class Data extends AbstractData
         TblItem $tblItem,
         $Name,
         $Description
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblItem $Entity */
         $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setName($Name);
             $Entity->setDescription($Description);
 
@@ -480,14 +489,15 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updateItemVariant(TblItemVariant $tblItemVariant, $Name, $Description) {
+    public function updateItemVariant(TblItemVariant $tblItemVariant, $Name, $Description)
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblItemVariant $Entity */
         $Entity = $Manager->getEntityById('TblItemVariant', $tblItemVariant->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setName($Name);
             $Entity->setDescription($Description);
 
@@ -502,9 +512,9 @@ class Data extends AbstractData
 
     /**
      * @param TblItemCalculation $tblCalculation
-     * @param string $Value
-     * @param string $DateFrom
-     * @param string $DateTo
+     * @param string             $Value
+     * @param string             $DateFrom
+     * @param string             $DateTo
      *
      * @return bool
      */
@@ -516,7 +526,7 @@ class Data extends AbstractData
         /** @var TblItemCalculation $Entity */
         $Entity = $Manager->getEntityById('TblItemCalculation', $tblCalculation->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setValue((float)$Value);
             $Entity->setDateFrom(new \DateTime($DateFrom));
             $Entity->setDateTo(($DateTo ? new \DateTime($DateTo) : null));
@@ -538,7 +548,7 @@ class Data extends AbstractData
     public function addItemAccount(
         TblItem $tblItem,
         TblAccount $tblAccount
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -547,7 +557,7 @@ class Data extends AbstractData
                 TblItemAccount::ATTR_TBL_ITEM            => $tblItem->getId(),
                 TblItemAccount::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
             ));
-        if (null === $Entity) {
+        if(null === $Entity){
             $Entity = new TblItemAccount();
             $Entity->setTblItem($tblItem);
             $Entity->setTblAccount($tblAccount);
@@ -568,11 +578,11 @@ class Data extends AbstractData
      */
     public function removeItem(
         TblItem $tblItem
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -592,7 +602,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblItemGroup', $tblItemGroup->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -612,7 +622,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblItemVariant', $tblItemVariant->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -632,7 +642,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblItemCalculation', $tblItemCalculation->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -649,7 +659,7 @@ class Data extends AbstractData
      */
     public function removeItemAccount(
         TblItemAccount $tblItemAccount
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -657,7 +667,7 @@ class Data extends AbstractData
             array(
                 'Id' => $tblItemAccount->getId()
             ));
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);

@@ -81,7 +81,7 @@ class TblItemVariant extends Element
     public function getTblItem()
     {
 
-        if (null === $this->tblItem) {
+        if(null === $this->tblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->tblItem);
@@ -94,7 +94,7 @@ class TblItemVariant extends Element
     public function setTblItem(TblItem $tblItem = null)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 
 }

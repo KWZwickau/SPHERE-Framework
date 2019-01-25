@@ -35,7 +35,8 @@ class Data extends AbstractData
     public function getAccountKeyTypeById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountKeyType', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountKeyType',
+            $Id);
     }
 
     /**
@@ -46,7 +47,8 @@ class Data extends AbstractData
     public function getAccountTypeById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountType', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountType',
+            $Id);
     }
 
     /**
@@ -142,7 +144,7 @@ class Data extends AbstractData
             'Name'        => $Name,
             'Description' => $Description
         ));
-        if (null === $Entity) {
+        if(null === $Entity){
             $Entity = new TblAccountKeyType();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
@@ -176,7 +178,7 @@ class Data extends AbstractData
             'tblAccountKeyType' => $tblAccountKeyType->getId()
         ));
 
-        if (null === $Entity) {
+        if(null === $Entity){
             $Entity = new TblAccountKey();
             $Entity->setValidFrom(new \DateTime($ValidFrom));
             $Entity->setValue($Value);
@@ -236,7 +238,7 @@ class Data extends AbstractData
             'Name'        => $Name,
             'Description' => $Description
         ));
-        if (null === $Entity) {
+        if(null === $Entity){
             $Entity = new TblAccountType();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
@@ -264,14 +266,14 @@ class Data extends AbstractData
         $IsActive,
         TblAccountKey $tblAccountKey,
         TblAccountType $tblAccountType
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setDescription($Description);
             $Entity->setNumber($Number);
             $Entity->setActive($IsActive);
@@ -300,7 +302,7 @@ class Data extends AbstractData
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setActive('1');
 
             $Manager->saveEntity($Entity);
@@ -325,7 +327,7 @@ class Data extends AbstractData
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setActive('0');
 
             $Manager->saveEntity($Entity);

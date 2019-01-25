@@ -37,7 +37,7 @@ class Setting implements IModuleInterface
 
         return new Service(new Identifier('Billing', 'Invoice', null, null,
             Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
 

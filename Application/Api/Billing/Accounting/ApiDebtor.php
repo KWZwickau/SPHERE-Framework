@@ -76,7 +76,7 @@ class ApiDebtor extends Extension implements IApiInterface
     public static function receiverModal($Header = '', $Identifier = '')
     {
 
-        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal' . $Identifier);
+        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal'.$Identifier);
     }
 
     /**
@@ -150,7 +150,7 @@ class ApiDebtor extends Extension implements IApiInterface
      */
     public static function pipelineOpenEditDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumberId = '',
         $DebtorNumber = array()
-    ) {
+    ){
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
@@ -292,7 +292,7 @@ class ApiDebtor extends Extension implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $DebtorNumberId) {
+        if('' !== $DebtorNumberId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorNumber($Identifier, $PersonId,
                 $DebtorNumberId));
         } else {
@@ -303,29 +303,32 @@ class ApiDebtor extends Extension implements IApiInterface
         $StudentList = array();
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             // Person is Student
-            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                $StudentList[] = 'Schülernummer: ' . $tblStudent->getIdentifierComplete() . ' (' . $tblPerson->getLastFirstName() . ')';
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                $StudentList[] = 'Schülernummer: '.$tblStudent->getIdentifierComplete().' ('.$tblPerson->getLastFirstName().')';
             }
             // find Student by Person how is Guardian for Student
-            $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
-            $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
-            if($tblToPersonList) {
-                /* @var TblToPerson $tblToPerson */
-                foreach($tblToPersonList as $tblToPerson){
-                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))) {
-                        $StudentList[] = 'Schülernummer: ' . $tblStudent->getIdentifierComplete() . ' (' . $tblPersonStudent->getLastFirstName() . ')';
-                    }
-                }
-            }
-            // find Student by Person how is Authorized for Student
-            $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_AUTHORIZED );$tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+            $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+            $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                $tblRelationshipType);
             if($tblToPersonList){
                 /* @var TblToPerson $tblToPerson */
                 foreach($tblToPersonList as $tblToPerson) {
                     $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))) {
-                        $StudentList[] = 'Schülernummer: ' . new Bold($tblStudent->getIdentifierComplete()) . ' (' . $tblPersonStudent->getLastFirstName() . ')';
+                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+                        $StudentList[] = 'Schülernummer: '.$tblStudent->getIdentifierComplete().' ('.$tblPersonStudent->getLastFirstName().')';
+                    }
+                }
+            }
+            // find Student by Person how is Authorized for Student
+            $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
+            $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                $tblRelationshipType);
+            if($tblToPersonList){
+                /* @var TblToPerson $tblToPerson */
+                foreach($tblToPersonList as $tblToPerson) {
+                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+                        $StudentList[] = 'Schülernummer: '.new Bold($tblStudent->getIdentifierComplete()).' ('.$tblPersonStudent->getLastFirstName().')';
                     }
                 }
             }
@@ -369,24 +372,24 @@ class ApiDebtor extends Extension implements IApiInterface
      */
     private function checkInputDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '',
         $DebtorNumber = array()
-    ) {
+    ){
 
         $Error = false;
         $form = $this->formDebtorNumber($Identifier, $PersonId, $DebtorNumberId);
-        if(isset($DebtorNumber['Number']) && empty($DebtorNumber['Number'])) {
+        if(isset($DebtorNumber['Number']) && empty($DebtorNumber['Number'])){
             $form->setError('DebtorNumber[Number]', 'Bitte geben Sie eine Debitorennummer an');
             $Error = true;
         } else {
-            if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))) {
+            if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))){
                 $tblPerson = Person::useService()->getPersonById($PersonId);
                 if($tblPerson && ($tblPersonCompare = $tblDebtorNumber->getServiceTblPerson())
-                    && $tblPerson->getId() !== $tblPersonCompare->getId()) {
+                    && $tblPerson->getId() !== $tblPersonCompare->getId()){
                     $form->setError('DebtorNumber[Number]',
                         'Bitte geben sie eine noch nicht vergebene Debitorennummer an');
                     $Error = true;
                 }
             }
-            if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)) {
+            if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
                 $count = $DebtorCountSetting->getValue();
                 if(strlen($DebtorNumber['Number']) > $count){
                     $form->setError('DebtorNumber[Number]',
@@ -396,7 +399,7 @@ class ApiDebtor extends Extension implements IApiInterface
             }
         }
 
-        if($Error) {
+        if($Error){
             return new Well($form);
         }
 
@@ -419,8 +422,9 @@ class ApiDebtor extends Extension implements IApiInterface
                 $PostIdentifier = $tblStudent->getIdentifierComplete();
             } else {
 
-                $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
-                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+                $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $tblRelationshipType);
                 if($tblToPersonList){
                     /* @var TblToPerson $tblToPerson */
                     $tblToPerson = current($tblToPersonList);
@@ -430,7 +434,9 @@ class ApiDebtor extends Extension implements IApiInterface
                     }
                 } else {
                     // Person how is Authorized for Student
-                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_AUTHORIZED );$tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+                    $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
+                    $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                        $tblRelationshipType);
                     if($tblToPersonList){
                         /* @var TblToPerson $tblToPerson */
                         $tblToPerson = current($tblToPersonList);
@@ -445,7 +451,7 @@ class ApiDebtor extends Extension implements IApiInterface
 
         if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
             $count = $DebtorCountSetting->getValue();
-            $PostIdentifier = str_pad($PostIdentifier, $count ,'0', STR_PAD_LEFT);
+            $PostIdentifier = str_pad($PostIdentifier, $count, '0', STR_PAD_LEFT);
         }
         if($PostIdentifier){
             $Global = $this->getGlobal();
@@ -454,7 +460,7 @@ class ApiDebtor extends Extension implements IApiInterface
         }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId)
-            . new Well($this->formDebtorNumber($Identifier,
+            .new Well($this->formDebtorNumber($Identifier,
                 $PersonId));
     }
 
@@ -469,19 +475,19 @@ class ApiDebtor extends Extension implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, '', $DebtorNumber)) {
+        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, '', $DebtorNumber)){
 
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
         }
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $tblDebtorNumber = Debtor::useService()->createDebtorNumber($tblPerson, $DebtorNumber['Number']);
-            if($tblDebtorNumber) {
-                return new Success('Debitorennummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
+            if($tblDebtorNumber){
+                return new Success('Debitorennummer erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
             } else {
                 return new Danger('Debitorennummer konnte nicht gengelegt werden');
@@ -500,24 +506,24 @@ class ApiDebtor extends Extension implements IApiInterface
      * @return string
      */
     public function saveEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '', $DebtorNumber = array()
-    ) {
+    ){
 
         // Handle error's
-        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, $DebtorNumberId, $DebtorNumber)) {
+        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, $DebtorNumberId, $DebtorNumber)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
         }
 
         $IsChange = false;
-        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
+        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))){
             $IsChange = Debtor::useService()->changeDebtorNumber($tblDebtorNumber, $DebtorNumber['Number']);
         }
 
         return ($IsChange
-            ? new Success('Debitorennummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
+            ? new Success('Debitorennummer erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId)
             : new Danger('Debitorennummer konnte nicht geändert werden'));
     }
 
@@ -531,14 +537,14 @@ class ApiDebtor extends Extension implements IApiInterface
     public function showEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
-        if('' !== $DebtorNumberId && ($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
+        if('' !== $DebtorNumberId && ($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))){
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $tblDebtorNumber->getDebtorNumber();
             $Global->savePost();
         }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId)
-            . new Well(self::formDebtorNumber($Identifier, $PersonId, $DebtorNumberId));
+            .new Well(self::formDebtorNumber($Identifier, $PersonId, $DebtorNumberId));
     }
 
     /**
@@ -554,9 +560,9 @@ class ApiDebtor extends Extension implements IApiInterface
         $tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId);
 
 
-        if($tblDebtorNumber) {
+        if($tblDebtorNumber){
             $PersonString = 'Person nicht gefunden!';
-            if(($tblPerson = $tblDebtorNumber->getServiceTblPerson())) {
+            if(($tblPerson = $tblDebtorNumber->getServiceTblPerson())){
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -579,7 +585,7 @@ class ApiDebtor extends Extension implements IApiInterface
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteDebtorNumber($Identifier, $PersonId,
                                     $DebtorNumberId))
-                            . new Close('Nein', new Disable())
+                            .new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -600,10 +606,10 @@ class ApiDebtor extends Extension implements IApiInterface
     public function deleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
-        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
+        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))){
             Debtor::useService()->removeDebtorNumber($tblDebtorNumber);
 
-            return new Success('Debitorennummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
+            return new Success('Debitorennummer wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier,
                     $PersonId);
         }
         return new Danger('Debitorennummer konnte nicht entfernt werden');

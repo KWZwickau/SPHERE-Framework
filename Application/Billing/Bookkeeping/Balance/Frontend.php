@@ -40,25 +40,25 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Belegdruck');
 
-        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))) {
+        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
             $_POST['Balance']['Item'] = $tblItem->getId();
         }
-        if(!isset($Balance['Year'])) {
+        if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
         }
-        if(!isset($Balance['From'])) {
+        if(!isset($Balance['From'])){
             $_POST['Balance']['From'] = '1';
         }
-        if(!isset($Balance['To'])) {
+        if(!isset($Balance['To'])){
             $_POST['Balance']['To'] = '12';
         }
         // Standard Download
         $Download = (new PrimaryLink('Herunterladen', '', new Download()))->setDisabled();
         $tableContent = array();
-        if(!empty($Balance)) {
+        if(!empty($Balance)){
 
-            if(($tblItem = Item::useService()->getItemById($Balance['Item']))) {
+            if(($tblItem = Item::useService()->getItemById($Balance['Item']))){
                 $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Balance['Year'],
                     $Balance['From'], $Balance['To']);
                 $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
@@ -74,13 +74,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Selectbox soll nach unten aufklappen (tritt nur noch bei Anwendungsansicht auf)
         $Space = '<div style="height: 100px;"></div>';
-        if(empty($Balance)) {
+        if(empty($Balance)){
 
             $Table = new Info('Bitte benutzen sie die Filterung');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
         }
-        if(!empty($tableContent)) {
+        if(!empty($tableContent)){
             $Table = new TableData($tableContent, null, array(
                 'Debtor' => 'Beitragszahler',
                 'Causer' => 'Bietragsverursacher',

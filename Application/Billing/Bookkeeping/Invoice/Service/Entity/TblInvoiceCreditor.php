@@ -143,7 +143,7 @@ class TblInvoiceCreditor extends Element
     public function getServiceTblCreditor()
     {
 
-        if (null === $this->serviceTblCreditor) {
+        if(null === $this->serviceTblCreditor){
             return false;
         } else {
             return Creditor::useService()->getCreditorById($this->serviceTblCreditor);
@@ -156,6 +156,6 @@ class TblInvoiceCreditor extends Element
     public function setServiceTblCreditor(TblCreditor $tblCreditor = null)
     {
 
-        $this->serviceTblCreditor = ( null === $tblCreditor ? null : $tblCreditor->getId() );
+        $this->serviceTblCreditor = (null === $tblCreditor ? null : $tblCreditor->getId());
     }
 }

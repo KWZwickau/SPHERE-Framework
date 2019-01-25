@@ -54,9 +54,9 @@ class BalanceDownload implements IModuleInterface
     public function downloadBalanceList($ItemId = '', $Year = '', $From = '', $To = '')
     {
 
-        if (($tblItem = Item::useService()->getItemById($ItemId))) {
+        if(($tblItem = Item::useService()->getItemById($ItemId))){
             $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Year, $From, $To);
-            if (!empty($PriceList)) {
+            if(!empty($PriceList)){
                 $fileLocation = Balance::useService()->createBalanceListExcel($PriceList, $tblItem->getName());
                 $MonthList = Invoice::useService()->getMonthList();
                 $StartMonth = $MonthList[$From];

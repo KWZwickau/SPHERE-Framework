@@ -122,7 +122,8 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
 
         $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($InvoiceItemDebtorId);
         if($tblInvoiceItemDebtor){
-            Invoice::useService()->changeInvoiceItemDebtorIsPaid($tblInvoiceItemDebtor, !$tblInvoiceItemDebtor->getIsPaid());
+            Invoice::useService()->changeInvoiceItemDebtorIsPaid($tblInvoiceItemDebtor,
+                !$tblInvoiceItemDebtor->getIsPaid());
         }
         return self::pipelineReloadIsPaid($InvoiceItemDebtorId);
     }

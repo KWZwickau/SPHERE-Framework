@@ -47,7 +47,8 @@ class Invoice implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/View', __NAMESPACE__.'\Frontend::frontendInvoiceView')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/CauserView', __NAMESPACE__.'\Frontend::frontendInvoiceCauserView')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/CauserView',
+                __NAMESPACE__.'\Frontend::frontendInvoiceCauserView')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/UnPaid', __NAMESPACE__.'\Frontend::frontendUnPaid')

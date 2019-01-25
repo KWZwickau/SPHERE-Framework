@@ -51,7 +51,7 @@ class TblBankAccount extends Element
     public function getServiceTblPerson()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if(null === $this->serviceTblPerson){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPerson);
@@ -139,7 +139,7 @@ class TblBankAccount extends Element
 
         $IBAN = $this->IBAN;
         $tmp = array();
-        for ($i = 0, $j = strlen($IBAN); $i < $j; $i += 4) {
+        for($i = 0, $j = strlen($IBAN); $i < $j; $i += 4) {
             array_push($tmp, substr($IBAN, $i, 4));
         }
         $result = implode(' ', $tmp);

@@ -219,7 +219,7 @@ class TblCreditor extends Element
         if($IsFormat){
             $countLetter = strlen($this->IBAN);
             $IBANParts = array();
-            for($i = 0; $i < $countLetter; $i+=4){
+            for($i = 0; $i < $countLetter; $i += 4) {
                 $IBANParts[] = substr($this->IBAN, $i, 4);
             }
             return implode(' ', $IBANParts);

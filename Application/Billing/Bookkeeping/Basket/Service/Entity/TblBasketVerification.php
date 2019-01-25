@@ -79,7 +79,7 @@ class TblBasketVerification extends Element
     {
 
         if($IsFormInput){
-            return str_replace('.', ',',number_format($this->Value, 2));
+            return str_replace('.', ',', number_format($this->Value, 2));
         }
         return $this->Value;
     }
@@ -117,7 +117,7 @@ class TblBasketVerification extends Element
     public function getTblBasket()
     {
 
-        if (null === $this->tblBasket) {
+        if(null === $this->tblBasket){
             return false;
         } else {
             return Basket::useService()->getBasketById($this->tblBasket);
@@ -130,7 +130,7 @@ class TblBasketVerification extends Element
     public function setTblBasket($tblBasket = null)
     {
 
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
+        $this->tblBasket = (null === $tblBasket ? null : $tblBasket->getId());
     }
 
     /**
@@ -139,7 +139,7 @@ class TblBasketVerification extends Element
     public function getServiceTblPersonCauser()
     {
 
-        if (null === $this->serviceTblPersonCauser) {
+        if(null === $this->serviceTblPersonCauser){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPersonCauser);
@@ -152,7 +152,7 @@ class TblBasketVerification extends Element
     public function setServiceTblPersonCauser(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPersonCauser = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPersonCauser = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**
@@ -161,7 +161,7 @@ class TblBasketVerification extends Element
     public function getServiceTblPersonDebtor()
     {
 
-        if (null === $this->serviceTblPersonDebtor) {
+        if(null === $this->serviceTblPersonDebtor){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPersonDebtor);
@@ -174,7 +174,7 @@ class TblBasketVerification extends Element
     public function setServiceTblPersonDebtor(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPersonDebtor = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPersonDebtor = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**
@@ -183,7 +183,7 @@ class TblBasketVerification extends Element
     public function getServiceTblBankAccount()
     {
 
-        if (null === $this->serviceTblBankAccount) {
+        if(null === $this->serviceTblBankAccount){
             return false;
         } else {
             return Debtor::useService()->getBankAccountById($this->serviceTblBankAccount);
@@ -196,7 +196,7 @@ class TblBasketVerification extends Element
     public function setServiceTblBankAccount(TblBankAccount $tblBankAccount = null)
     {
 
-        $this->serviceTblBankAccount = ( null === $tblBankAccount ? null : $tblBankAccount->getId() );
+        $this->serviceTblBankAccount = (null === $tblBankAccount ? null : $tblBankAccount->getId());
     }
 
     /**
@@ -205,7 +205,7 @@ class TblBasketVerification extends Element
     public function getServiceTblBankReference()
     {
 
-        if (null === $this->serviceTblBankReference) {
+        if(null === $this->serviceTblBankReference){
             return false;
         } else {
             return Debtor::useService()->getBankReferenceById($this->serviceTblBankReference);
@@ -218,7 +218,7 @@ class TblBasketVerification extends Element
     public function setServiceTblBankReference(TblBankReference $tblBankReference = null)
     {
 
-        $this->serviceTblBankReference = ( null === $tblBankReference ? null : $tblBankReference->getId() );
+        $this->serviceTblBankReference = (null === $tblBankReference ? null : $tblBankReference->getId());
     }
 
     /**
@@ -227,7 +227,7 @@ class TblBasketVerification extends Element
     public function getServiceTblPaymentType()
     {
 
-        if (null === $this->serviceTblPaymentType) {
+        if(null === $this->serviceTblPaymentType){
             return false;
         } else {
             return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
@@ -240,7 +240,7 @@ class TblBasketVerification extends Element
     public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
     {
 
-        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+        $this->serviceTblPaymentType = (null === $tblPaymentType ? null : $tblPaymentType->getId());
     }
 
     /**
@@ -249,7 +249,7 @@ class TblBasketVerification extends Element
     public function getServiceTblItem()
     {
 
-        if (null === $this->serviceTblItem) {
+        if(null === $this->serviceTblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->serviceTblItem);
@@ -262,7 +262,7 @@ class TblBasketVerification extends Element
     public function setServiceTblItem(TblItem $tblItem = null)
     {
 
-        $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->serviceTblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 
     /**
@@ -272,7 +272,7 @@ class TblBasketVerification extends Element
     public function getPrice()
     {
 
-        return str_replace('.', ',',number_format($this->Value, 2).' €');
+        return str_replace('.', ',', number_format($this->Value, 2).' €');
     }
 
     /**
@@ -280,7 +280,7 @@ class TblBasketVerification extends Element
      */
     public function getSummaryPrice()
     {
-        if ($this->Quantity !== 0) {
+        if($this->Quantity !== 0){
             $result = $this->Value * $this->Quantity;
         } else {
             $result = $this->Value;

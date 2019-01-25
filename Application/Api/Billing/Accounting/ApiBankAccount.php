@@ -71,7 +71,7 @@ class ApiBankAccount extends Extension implements IApiInterface
     public static function receiverModal($Header = '', $Identifier = '')
     {
 
-        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal' . $Identifier);
+        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal'.$Identifier);
     }
 
     /**
@@ -145,7 +145,7 @@ class ApiBankAccount extends Extension implements IApiInterface
      */
     public static function pipelineOpenEditBankAccountModal($Identifier = '', $PersonId = '', $BankAccountId = '',
         $BankAccount = array()
-    ) {
+    ){
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
@@ -173,7 +173,7 @@ class ApiBankAccount extends Extension implements IApiInterface
      */
     public static function pipelineSaveEditBankAccount($Identifier = '', $PersonId = '',
         $BankAccountId = ''
-    ) {
+    ){
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
@@ -287,17 +287,17 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
 
         $Global = $this->getGlobal();
-        if(!isset($Global->POST['BankAccount']['Owner'])) {
+        if(!isset($Global->POST['BankAccount']['Owner'])){
             $tblPerson = Person::useService()->getPersonById($PersonId);
-            if($tblPerson) {
-                $Global->POST['BankAccount']['Owner'] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+            if($tblPerson){
+                $Global->POST['BankAccount']['Owner'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
                 $Global->savePost();
             }
         }
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $BankAccountId) {
+        if('' !== $BankAccountId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditBankAccount($Identifier, $PersonId,
                 $BankAccountId));
         } else {
@@ -340,16 +340,16 @@ class ApiBankAccount extends Extension implements IApiInterface
      * @return false|string|Form
      */
     private function checkInputBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '', $BankAccount = array()
-    ) {
+    ){
 
         $Error = false;
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
-        if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])) {
+        if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])){
             $form->setError('BankAccount[IBAN]', 'Bitte geben Sie die IBAN an');
             $Error = true;
         }
 
-        if($Error) {
+        if($Error){
             // Debtor::useFrontend()->getPersonPanel($PersonId).
             return $form;
         }
@@ -366,7 +366,7 @@ class ApiBankAccount extends Extension implements IApiInterface
     public function showAddBankAccount($Identifier = '', $PersonId = '')
     {
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formBankAccount($Identifier,
+        return Debtor::useFrontend()->getPersonPanel($PersonId).new Well($this->formBankAccount($Identifier,
                 $PersonId));
     }
 
@@ -381,7 +381,7 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputBankAccount($Identifier, $PersonId, '', $BankAccount)) {
+        if($form = $this->checkInputBankAccount($Identifier, $PersonId, '', $BankAccount)){
 
             // display Errors on form
             $Global = $this->getGlobal();
@@ -390,14 +390,14 @@ class ApiBankAccount extends Extension implements IApiInterface
             $Global->POST['BankAccount']['IBAN'] = $BankAccount['IBAN'];
             $Global->POST['BankAccount']['BIC'] = $BankAccount['BIC'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
         }
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $tblBankAccount = Debtor::useService()->createBankAccount($tblPerson, $BankAccount['Owner'],
                 $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
-            if($tblBankAccount) {
-                return new Success('Konto erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
+            if($tblBankAccount){
+                return new Success('Konto erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
             } else {
                 return new Danger('Konto konnte nicht gengelegt werden');
@@ -419,7 +419,7 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputBankAccount($Identifier, $PersonId, $BankAccountId, $BankAccount)) {
+        if($form = $this->checkInputBankAccount($Identifier, $PersonId, $BankAccountId, $BankAccount)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['BankAccount']['Number'] = $BankAccount['Number'];
@@ -428,13 +428,13 @@ class ApiBankAccount extends Extension implements IApiInterface
         }
 
         $IsChange = false;
-        if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))) {
+        if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))){
             $IsChange = Debtor::useService()->changeBankAccount($tblBankAccount, $BankAccount['Owner'],
                 $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
         }
 
         return ($IsChange
-            ? new Success('Konto erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
+            ? new Success('Konto erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId)
             : new Danger('Konto konnte nicht geändert werden'));
     }
 
@@ -448,7 +448,7 @@ class ApiBankAccount extends Extension implements IApiInterface
     public function showEditBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '')
     {
 
-        if('' !== $BankAccountId && ($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))) {
+        if('' !== $BankAccountId && ($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))){
             $Global = $this->getGlobal();
             $Global->POST['BankAccount']['Owner'] = $tblBankAccount->getOwner();
             $Global->POST['BankAccount']['BankName'] = $tblBankAccount->getBankName();
@@ -458,7 +458,7 @@ class ApiBankAccount extends Extension implements IApiInterface
         }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId)
-            . new Well(self::formBankAccount($Identifier, $PersonId, $BankAccountId));
+            .new Well(self::formBankAccount($Identifier, $PersonId, $BankAccountId));
     }
 
     /**
@@ -474,7 +474,7 @@ class ApiBankAccount extends Extension implements IApiInterface
         $tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId);
 
 
-        if($tblBankAccount) {
+        if($tblBankAccount){
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Owner: ', 2),
                 new LayoutColumn(new Bold($tblBankAccount->getOwner()), 10),
@@ -503,7 +503,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteBankAccount($Identifier, $PersonId,
                                     $BankAccountId))
-                            . new Close('Nein', new Disable())
+                            .new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -524,10 +524,10 @@ class ApiBankAccount extends Extension implements IApiInterface
     public function deleteBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '')
     {
 
-        if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))) {
+        if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))){
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionAllByBankAccount($tblBankAccount))){
                 $RowContent = array();
-                foreach($tblDebtorSelectionList as $tblDebtorSelection){
+                foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                     $ItemString = '';
                     if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
                         $ItemString = $tblItem->getName();
@@ -548,12 +548,11 @@ class ApiBankAccount extends Extension implements IApiInterface
                     );
                 }
                 return new Danger('Das Konto ist in einer Zahlungszuweisung hinterlegt, löschen nicht möglich!'
-                .new Container(implode('<br/>', $RowContent)));
+                    .new Container(implode('<br/>', $RowContent)));
             }
             Debtor::useService()->removeBankAccount($tblBankAccount);
 
-            return new Success('Konto wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
-                    $PersonId);
+            return new Success('Konto wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier, $PersonId);
         }
         return new Danger('Konto konnte nicht entfernt werden');
     }

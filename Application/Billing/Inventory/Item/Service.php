@@ -32,7 +32,7 @@ class Service extends AbstractService
     {
 
         $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
-        if (!$doSimulation && $withData) {
+        if(!$doSimulation && $withData){
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
 
@@ -85,6 +85,7 @@ class Service extends AbstractService
 
     /**
      * @param int $Id
+     *
      * @return bool|TblItemVariant
      */
     public function getItemVariantById($Id)
@@ -200,20 +201,20 @@ class Service extends AbstractService
         $tblItemCalculationActive = false;
         $tblItemCalculationList = (new Data($this->getBinding()))->getItemCalculationByItemVariant($tblItemVariant);
         if($tblItemCalculationList){
-           foreach($tblItemCalculationList as $tblItemCalculation){
-               $now = new \DateTime();
-               $from = new \DateTime($tblItemCalculation->getDateFrom());
-               if(($tblItemCalculation->getDateTo())){
-                   $to = new \DateTime($tblItemCalculation->getDateTo());
-               } else {
-                   $to = false;
-               }
-               if($from <= $now && $to && $to >= $now){
-                   $tblItemCalculationActive = $tblItemCalculation;
-               } elseif($from <= $now && !$to && false === $tblItemCalculationActive){
-                   $tblItemCalculationActive = $tblItemCalculation;
-               }
-           }
+            foreach($tblItemCalculationList as $tblItemCalculation) {
+                $now = new \DateTime();
+                $from = new \DateTime($tblItemCalculation->getDateFrom());
+                if(($tblItemCalculation->getDateTo())){
+                    $to = new \DateTime($tblItemCalculation->getDateTo());
+                } else {
+                    $to = false;
+                }
+                if($from <= $now && $to && $to >= $now){
+                    $tblItemCalculationActive = $tblItemCalculation;
+                } elseif($from <= $now && !$to && false === $tblItemCalculationActive) {
+                    $tblItemCalculationActive = $tblItemCalculation;
+                }
+            }
         }
         return $tblItemCalculationActive;
     }
@@ -259,9 +260,9 @@ class Service extends AbstractService
 
         $ItemList = array();
         if(($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))){
-            foreach($tblGroupList as $tblGroup){
+            foreach($tblGroupList as $tblGroup) {
                 if(($tblItemGroupList = $this->getItemGroupByGroup($tblGroup))){
-                    foreach($tblItemGroupList as $tblItemGroup){
+                    foreach($tblItemGroupList as $tblItemGroup) {
                         if(($tblItem = $tblItemGroup->getTblItem())){
                             $ItemList[$tblItem->getId()] = $tblItem;
                         }
@@ -342,8 +343,8 @@ class Service extends AbstractService
 
     /**
      * @param TblItemVariant $tblItemVariant
-     * @param $Name
-     * @param $Description
+     * @param                $Name
+     * @param                $Description
      *
      * @return bool
      */
@@ -356,9 +357,9 @@ class Service extends AbstractService
 
     /**
      * @param TblItemCalculation $tblItemCalculation
-     * @param string $Value
-     * @param string $DateFrom
-     * @param string $DateTo
+     * @param string             $Value
+     * @param string             $DateFrom
+     * @param string             $DateTo
      *
      * @return bool
      */
@@ -378,13 +379,13 @@ class Service extends AbstractService
 
         // remove tblItemGroup
         if(($tblItemGroupPersonList = $this->getItemGroupByItem($tblItem))){
-            foreach($tblItemGroupPersonList as $tblItemGroupPerson){
+            foreach($tblItemGroupPersonList as $tblItemGroupPerson) {
                 $this->removeItemGroup($tblItemGroupPerson);
             }
         }
         // remove tblItemVariant
         if(($tblItemVariantList = $this->getItemVariantByItem($tblItem))){
-            foreach($tblItemVariantList as $tblItemVariant){
+            foreach($tblItemVariantList as $tblItemVariant) {
                 $this->removeItemVariant($tblItemVariant);
             }
         }
@@ -412,7 +413,7 @@ class Service extends AbstractService
     {
         // remove tblItemCalculation
         if(($tblItemCalculationList = $this->getItemCalculationByItemVariant($tblItemVariant))){
-            foreach($tblItemCalculationList as $tblItemCalculation){
+            foreach($tblItemCalculationList as $tblItemCalculation) {
                 $this->removeItemCalculation($tblItemCalculation);
             }
         }

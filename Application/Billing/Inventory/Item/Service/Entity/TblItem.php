@@ -73,7 +73,7 @@ class TblItem extends Element
     public function getTblItemType()
     {
 
-        if (null === $this->tblItemType) {
+        if(null === $this->tblItemType){
             return false;
         } else {
             return Item::useService()->getItemTypeById($this->tblItemType);
@@ -86,7 +86,7 @@ class TblItem extends Element
     public function setTblItemType(TblItemType $tblItemType)
     {
 
-        $this->tblItemType = ( null === $tblItemType ? null : $tblItemType->getId() );
+        $this->tblItemType = (null === $tblItemType ? null : $tblItemType->getId());
     }
 
     /**

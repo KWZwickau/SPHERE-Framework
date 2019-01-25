@@ -59,7 +59,7 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblInvoiceItemDebtor',array(
+            'TblInvoiceItemDebtor', array(
                 TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid
             ));
     }
@@ -91,7 +91,7 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblInvoiceItemDebtor',
             array(
-                TblInvoiceItemDebtor::ATTR_TBL_INVOICE => $tblInvoice->getId(),
+                TblInvoiceItemDebtor::ATTR_TBL_INVOICE      => $tblInvoice->getId(),
                 TblInvoiceItemDebtor::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
             ));
     }
@@ -191,8 +191,8 @@ class Data extends AbstractData
         $resultList = $Query->getResult();
         $result = false;
         //get Result
-        if(!empty($resultList)) {
-            if(isset($resultList[0][1])) {
+        if(!empty($resultList)){
+            if(isset($resultList[0][1])){
                 $result = (int)$resultList[0][1];
             }
         }
@@ -234,8 +234,8 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
             array(
                 TblInvoice::ATTR_INTEGER_NUMBER => $IntegerNumber,
-                TblInvoice::ATTR_YEAR => $Year,
-                TblInvoice::ATTR_MONTH => $Month,
+                TblInvoice::ATTR_YEAR           => $Year,
+                TblInvoice::ATTR_MONTH          => $Month,
             ));
     }
 
@@ -256,7 +256,7 @@ class Data extends AbstractData
         $TargetTime,
         TblPerson $tblPerson,
         TblInvoiceCreditor $tblInvoiceCreditor
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
         //ToDO $InvoiceNumberLength from Setting?
@@ -267,7 +267,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
             array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
 
-        if($Entity === null) {
+        if($Entity === null){
             $Entity = new TblInvoice();
             $Entity->setInvoiceNumber($InvoiceNumber);
             $Entity->setIntegerNumber($IntegerNumber);
@@ -300,7 +300,7 @@ class Data extends AbstractData
     {
         //ToDO $InvoiceNumberLength from Setting?
         $InvoiceNumberLength = 5;
-        if(!empty($InvoiceList)) {
+        if(!empty($InvoiceList)){
             $Manager = $this->getConnection()->getEntityManager();
             foreach($InvoiceList as $Content) {
                 $IntegerNumber = $Content['Identifier'];
@@ -313,7 +313,7 @@ class Data extends AbstractData
                 $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
                     array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
 
-                if($Entity === null) {
+                if($Entity === null){
                     $Entity = new TblInvoice();
                     $Entity->setInvoiceNumber($InvoiceNumber);
                     $Entity->setIntegerNumber($IntegerNumber);
@@ -346,7 +346,7 @@ class Data extends AbstractData
     public function createInvoiceItemDebtorList($InvoiceCauserList)
     {
 
-        if(!empty($InvoiceCauserList)) {
+        if(!empty($InvoiceCauserList)){
             $Manager = $this->getConnection()->getEntityManager();
             foreach($InvoiceCauserList as $ItemList) {
                 foreach($ItemList as $Item) {
@@ -385,7 +385,7 @@ class Data extends AbstractData
                             TblInvoiceItemDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => ($tblBankReference ? $tblBankReference->getId() : null),
                         ));
 
-                    if($Entity === null) {
+                    if($Entity === null){
                         $Entity = new TblInvoiceItemDebtor();
                         $Entity->setName($Name);
                         $Entity->setDescription($Description);
@@ -444,7 +444,7 @@ class Data extends AbstractData
                 TblInvoiceCreditor::ATTR_BIC         => $BIC,
             ));
 
-        if($Entity === null) {
+        if($Entity === null){
             $Entity = new TblInvoiceCreditor();
             $Entity->setCreditorId($CreditorId);
             $Entity->setOwner($Owner);
@@ -473,7 +473,7 @@ class Data extends AbstractData
         /** @var TblInvoiceItemDebtor $Entity */
         $Entity = $Manager->getEntityById('TblInvoiceItemDebtor', $tblInvoiceItemDebtor->getId());
         $Protocol = clone $Entity;
-        if(null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setIsPaid($isPaid);
 
             $Manager->saveEntity($Entity);

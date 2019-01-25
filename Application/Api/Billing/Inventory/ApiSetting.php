@@ -65,7 +65,7 @@ class ApiSetting extends Extension implements IApiInterface
     public static function receiverDisplaySetting($Content = '', $Identifier = '')
     {
 
-        return (new InlineReceiver($Content))->setIdentifier('ServiceReceiver' . $Identifier);
+        return (new InlineReceiver($Content))->setIdentifier('ServiceReceiver'.$Identifier);
     }
 
     /**
@@ -176,20 +176,20 @@ class ApiSetting extends Extension implements IApiInterface
     {
 
         // available PersonGroups
-        if('PersonGroup' === $FieldLabel) {
-            if(($tblSettingGroupList = Setting::useService()->getSettingGroupPersonAll())) {
+        if('PersonGroup' === $FieldLabel){
+            if(($tblSettingGroupList = Setting::useService()->getSettingGroupPersonAll())){
                 $Global = $this->getGlobal();
-                foreach ($tblSettingGroupList as $tblSettingGroup) {
-                    if(($tblGroup = $tblSettingGroup->getServiceTblGroupPerson())) {
+                foreach($tblSettingGroupList as $tblSettingGroup) {
+                    if(($tblGroup = $tblSettingGroup->getServiceTblGroupPerson())){
                         $Global->POST['PersonGroup'][$tblGroup->getId()] = $tblGroup->getId();
                     }
                 }
                 $Global->savePost();
             }
             $LeftList = $RightList = array();
-            if(($tblGroupAll = Group::useService()->getGroupAll())) {
-                foreach ($tblGroupAll as &$tblGroup) {
-                    if($tblGroup->getMetaTable() === 'COMMON') {
+            if(($tblGroupAll = Group::useService()->getGroupAll())){
+                foreach($tblGroupAll as &$tblGroup) {
+                    if($tblGroup->getMetaTable() === 'COMMON'){
                         $tblGroup = false;
                     }
                 }
@@ -197,12 +197,12 @@ class ApiSetting extends Extension implements IApiInterface
 
                 $tblGroupAll = $this->getSorter($tblGroupAll)->sortObjectBy('Name');
                 // sort left Standard, right Individual
-                array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$LeftList, &$RightList) {
-                    if($tblGroup->getMetaTable()) {
-                        $LeftList[] = new CheckBox('PersonGroup[' . $tblGroup->getId() . ']', $tblGroup->getName(),
+                array_walk($tblGroupAll, function(TblGroup $tblGroup) use (&$LeftList, &$RightList){
+                    if($tblGroup->getMetaTable()){
+                        $LeftList[] = new CheckBox('PersonGroup['.$tblGroup->getId().']', $tblGroup->getName(),
                             $tblGroup->getId());
                     } else {
-                        $RightList[] = new CheckBox('PersonGroup[' . $tblGroup->getId() . ']', $tblGroup->getName(),
+                        $RightList[] = new CheckBox('PersonGroup['.$tblGroup->getId().']', $tblGroup->getName(),
                             $tblGroup->getId());
                     }
                 });
@@ -226,17 +226,17 @@ class ApiSetting extends Extension implements IApiInterface
 
         // other Setting's
         $tblSetting = Setting::useService()->getSettingByIdentifier($Identifier);
-        if($tblSetting) {
+        if($tblSetting){
             $Global = $this->getGlobal();
             $Global->POST[$Identifier] = $tblSetting->getValue();
             $Global->savePost();
         }
 
-        if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+        if($tblSetting->getType() == TblSetting::TYPE_BOOLEAN){
             $field = new CheckBox($Identifier, $FieldLabel, 1);
-        } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
+        } elseif($tblSetting->getType() == TblSetting::TYPE_STRING) {
             $field = new TextField($Identifier, '', $FieldLabel, new Comment());
-        } elseif ($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
+        } elseif($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
             $field = new NumberField($Identifier, '', $FieldLabel, new Quantity());
         } else {
             // fallback for missing Type
@@ -268,12 +268,12 @@ class ApiSetting extends Extension implements IApiInterface
     {
 
         $Global = $this->getGlobal();
-        if(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier])) {
+        if(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier])){
             Setting::useService()->createSetting($Identifier, $Value);
             return new Success('Erfolgreich');
-        } elseif(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier]) == '0' ) { // POST problem (get Zero by Value)
-            if (($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))) {
-                if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+        } elseif(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier]) == '0') { // POST problem (get Zero by Value)
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))){
+                if($tblSetting->getType() == TblSetting::TYPE_BOOLEAN){
                     $Value = '1';
                     Setting::useService()->createSetting($Identifier, $Value);
                     return new Success('Erfolgreich');
@@ -299,16 +299,16 @@ class ApiSetting extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         if(isset($Global->POST['PersonGroup'])
-            && ($GroupIdList = $Global->POST['PersonGroup'])) {
+            && ($GroupIdList = $Global->POST['PersonGroup'])){
             // clear all PersonGroup that exists but not be selected
             $tblSettingGroupPersonExist = Setting::useService()->getSettingGroupPersonAll();
-            foreach ($tblSettingGroupPersonExist as $tblSettingGroupPerson) {
+            foreach($tblSettingGroupPersonExist as $tblSettingGroupPerson) {
                 $tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson();
-                if(!in_array($tblGroup->getId(), $GroupIdList)) {
+                if(!in_array($tblGroup->getId(), $GroupIdList)){
                     Setting::useService()->removeSettingGroupPerson($tblSettingGroupPerson);
                 }
             }
-            foreach ($GroupIdList as $GroupId) {
+            foreach($GroupIdList as $GroupId) {
                 $tblGroup = Group::useService()->getGroupById($GroupId);
                 Setting::useService()->createSettingGroupPerson($tblGroup);
             }
@@ -330,8 +330,8 @@ class ApiSetting extends Extension implements IApiInterface
         // wait to make sure to get the correct answer
         $this->refreshWait(400);
 
-        if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))) {
-            if($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))){
+            if($tblSetting->getType() == TblSetting::TYPE_BOOLEAN){
                 $Check = new DangerText(new Disable());
                 if($tblSetting->getValue() == '1'){
                     $Check = new SuccessText(new Check());

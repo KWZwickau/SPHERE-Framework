@@ -59,12 +59,12 @@ class TblBankReference extends Element
     public function getReferenceDate()
     {
 
-        if (null === $this->ReferenceDate) {
+        if(null === $this->ReferenceDate){
             return false;
         }
         /** @var \DateTime $ReferenceDate */
         $ReferenceDate = $this->ReferenceDate;
-        if ($ReferenceDate instanceof \DateTime) {
+        if($ReferenceDate instanceof \DateTime){
             return $ReferenceDate->format('d.m.Y');
         } else {
             return (string)$ReferenceDate;
@@ -86,7 +86,7 @@ class TblBankReference extends Element
     public function getServiceTblPerson()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if(null === $this->serviceTblPerson){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPerson);

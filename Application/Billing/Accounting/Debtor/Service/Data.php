@@ -160,14 +160,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      *
      * @return false|TblDebtorSelection[]
      */
     public function getDebtorSelectionByItem(TblItem $tblItem)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDebtorSelection',
             array(
                 TblDebtorSelection::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
             ));
@@ -182,7 +183,8 @@ class Data extends AbstractData
     public function getDebtorSelectionByPersonCauserAndItem(TblPerson $tblPerson, TblItem $tblItem)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDebtorSelection',
             array(
                 TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPerson->getId(),
                 TblDebtorSelection::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId()
@@ -290,7 +292,7 @@ class Data extends AbstractData
             TblDebtorNumber::ATTR_DEBTOR_NUMBER => $DebtorNumber
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblDebtorNumber();
             $Entity->setDebtorNumber($DebtorNumber);
             $Entity->setServiceTblPerson($tblPerson);
@@ -321,7 +323,7 @@ class Data extends AbstractData
             TblBankAccount::ATTR_IBAN               => $IBAN,
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblBankAccount();
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setBankName($BankName);
@@ -353,7 +355,7 @@ class Data extends AbstractData
             TblBankReference::ATTR_REFERENCE_NUMBER   => $ReferenceNumber,
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblBankReference();
             $Entity->setReference($ReferenceNumber);
             $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
@@ -373,7 +375,7 @@ class Data extends AbstractData
      * @param TblPaymentType        $tblPaymentType
      * @param TblItem               $tblItem
      * @param TblItemVariant|null   $tblItemVariant
-     * @param null                  $Value
+     * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
      * @param TblBankReference|null $tblBankReference
      *
@@ -385,10 +387,10 @@ class Data extends AbstractData
         TblPaymentType $tblPaymentType,
         TblItem $tblItem,
         TblItemVariant $tblItemVariant = null,
-        $Value = null,
+        $Value = '0',
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
@@ -397,7 +399,7 @@ class Data extends AbstractData
             TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_DEBTOR => $tblPerson->getId(),
         ));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblDebtorSelection();
             $Entity->setServiceTblPersonCauser($tblPersonCauser);
             $Entity->setServiceTblPersonDebtor($tblPerson);
@@ -431,14 +433,14 @@ class Data extends AbstractData
         $IBAN = '',
         $BIC = '',
         $Owner = ''
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblBankAccount $Entity */
         $Entity = $Manager->getEntityById('TblBankAccount', $tblBankAccount->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setBankName($BankName);
             $Entity->setIBAN($IBAN);
             $Entity->setBIC($BIC);
@@ -467,7 +469,7 @@ class Data extends AbstractData
         /** @var TblDebtorNumber $Entity */
         $Entity = $Manager->getEntityById('TblDebtorNumber', $tblDebtorNumber->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setDebtorNumber($Number);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
@@ -493,7 +495,7 @@ class Data extends AbstractData
         /** @var TblBankReference $Entity */
         $Entity = $Manager->getEntityById('TblBankReference', $tblBankReference->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setReference($ReferenceNumber);
             $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
             $Manager->saveEntity($Entity);
@@ -511,7 +513,7 @@ class Data extends AbstractData
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblItemVariant|null   $tblItemVariant
-     * @param null                  $Value
+     * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
      * @param TblBankReference|null $tblBankReference
      *
@@ -522,16 +524,16 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         TblPaymentType $tblPaymentType,
         TblItemVariant $tblItemVariant = null,
-        $Value = null,
+        $Value = '0',
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
-    ) {
+    ){
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDebtorSelection $Entity */
         $Entity = $Manager->getEntityById('TblDebtorSelection', $tblDebtorSelection->getId());
         $Protocol = clone $Entity;
-        if ($Entity !== null) {
+        if($Entity !== null){
             $Entity->setServiceTblPersonDebtor($tblPerson);
             $Entity->setServiceTblPaymentType($tblPaymentType);
             $Entity->setServiceTblItemVariant($tblItemVariant);
@@ -559,7 +561,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblDebtorNumber', $tblDebtorNumber->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -579,7 +581,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblBankAccount', $tblBankAccount->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -599,7 +601,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblBankReference', $tblBankReference->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -619,7 +621,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblDebtorSelection', $tblDebtorSelection->getId());
-        if (null !== $Entity) {
+        if(null !== $Entity){
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);

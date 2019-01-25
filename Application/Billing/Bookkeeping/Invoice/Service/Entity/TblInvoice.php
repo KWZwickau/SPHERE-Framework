@@ -109,7 +109,6 @@ class TblInvoice extends Element
     }
 
 
-
     /**
      * @return string
      */
@@ -134,7 +133,7 @@ class TblInvoice extends Element
     public function getMonth($IsFrontend = false)
     {
         if($IsFrontend){
-            if(strlen($this->Month) == 1) {
+            if(strlen($this->Month) == 1){
                 $Month = '0'.$this->Month;
             } else {
                 $Month = $this->Month;
@@ -158,12 +157,12 @@ class TblInvoice extends Element
     public function getTargetTime()
     {
 
-        if (null === $this->TargetTime) {
+        if(null === $this->TargetTime){
             return false;
         }
         /** @var \DateTime $InvoiceDate */
         $TargetDate = $this->TargetTime;
-        if ($TargetDate instanceof \DateTime) {
+        if($TargetDate instanceof \DateTime){
             return $TargetDate->format('d.m.Y');
         } else {
             return (string)$TargetDate;
@@ -246,14 +245,13 @@ class TblInvoice extends Element
 //    }
 
 
-
     /**
      * @return bool|TblPerson
      */
     public function getServiceTblPersonCauser()
     {
 
-        if (null === $this->serviceTblPersonCauser) {
+        if(null === $this->serviceTblPersonCauser){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPersonCauser);
@@ -266,7 +264,7 @@ class TblInvoice extends Element
     public function setServiceTblPersonCauser(TblPerson $tblPersonCauser = null)
     {
 
-        $this->serviceTblPersonCauser = ( null === $tblPersonCauser ? null : $tblPersonCauser->getId() );
+        $this->serviceTblPersonCauser = (null === $tblPersonCauser ? null : $tblPersonCauser->getId());
     }
 
     /**
@@ -274,7 +272,7 @@ class TblInvoice extends Element
      */
     public function getTblInvoiceCreditor()
     {
-        if (null === $this->tblInvoiceCreditor) {
+        if(null === $this->tblInvoiceCreditor){
             return false;
         } else {
             return Invoice::useService()->getInvoiceCreditorById($this->tblInvoiceCreditor);

@@ -73,7 +73,7 @@ class ApiBankReference extends Extension implements IApiInterface
     public static function receiverModal($Header = '', $Identifier = '')
     {
 
-        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal' . $Identifier);
+        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal'.$Identifier);
     }
 
     /**
@@ -104,9 +104,9 @@ class ApiBankReference extends Extension implements IApiInterface
             self::API_TARGET => 'showAddReference'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier'   => $Identifier,
-            'PersonId'     => $PersonId,
-            'Reference' => $Reference
+            'Identifier' => $Identifier,
+            'PersonId'   => $PersonId,
+            'Reference'  => $Reference
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -147,7 +147,7 @@ class ApiBankReference extends Extension implements IApiInterface
      */
     public static function pipelineOpenEditReferenceModal($Identifier = '', $PersonId = '', $ReferenceId = '',
         $Reference = array()
-    ) {
+    ){
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
@@ -156,8 +156,8 @@ class ApiBankReference extends Extension implements IApiInterface
             self::API_TARGET => 'showEditReference'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier'     => $Identifier,
-            'PersonId'       => $PersonId,
+            'Identifier'  => $Identifier,
+            'PersonId'    => $PersonId,
             'ReferenceId' => $ReferenceId,
             'Reference'   => $Reference
         ));
@@ -183,8 +183,8 @@ class ApiBankReference extends Extension implements IApiInterface
             self::API_TARGET => 'saveEditReference'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier'     => $Identifier,
-            'PersonId'       => $PersonId,
+            'Identifier'  => $Identifier,
+            'PersonId'    => $PersonId,
             'ReferenceId' => $ReferenceId
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -209,8 +209,8 @@ class ApiBankReference extends Extension implements IApiInterface
             self::API_TARGET => 'showDeleteReference'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier'     => $Identifier,
-            'PersonId'       => $PersonId,
+            'Identifier'  => $Identifier,
+            'PersonId'    => $PersonId,
             'ReferenceId' => $ReferenceId,
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -235,8 +235,8 @@ class ApiBankReference extends Extension implements IApiInterface
             self::API_TARGET => 'deleteReference'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier'     => $Identifier,
-            'PersonId'       => $PersonId,
+            'Identifier'  => $Identifier,
+            'PersonId'    => $PersonId,
             'ReferenceId' => $ReferenceId,
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -289,7 +289,7 @@ class ApiBankReference extends Extension implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $ReferenceId) {
+        if('' !== $ReferenceId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditReference($Identifier, $PersonId,
                 $ReferenceId));
         } else {
@@ -325,30 +325,30 @@ class ApiBankReference extends Extension implements IApiInterface
      */
     private function checkInputReference($Identifier = '', $PersonId = '', $ReferenceId = '',
         $Reference = array()
-    ) {
+    ){
 
         $Error = false;
         $form = $this->formReference($Identifier, $PersonId, $ReferenceId);
-        if(isset($Reference['Number']) && empty($Reference['Number'])) {
+        if(isset($Reference['Number']) && empty($Reference['Number'])){
             $form->setError('Reference[Number]', 'Bitte geben Sie eine Referenznummer an');
             $Error = true;
         } else {
-            if(($tblReference = Debtor::useService()->getBankReferenceByReference($Reference['Number']))) {
+            if(($tblReference = Debtor::useService()->getBankReferenceByReference($Reference['Number']))){
                 $tblPerson = Person::useService()->getPersonById($PersonId);
                 if($tblPerson && ($tblPersonCompare = $tblReference->getServiceTblPerson())
-                    && $tblPerson->getId() !== $tblPersonCompare->getId()) {
+                    && $tblPerson->getId() !== $tblPersonCompare->getId()){
                     $form->setError('Reference[Number]',
                         'Bitte geben sie eine noch nicht vergebene Referenznummer an');
                     $Error = true;
                 }
             }
         }
-        if(isset($Reference['Date']) && empty($Reference['Date'])) {
+        if(isset($Reference['Date']) && empty($Reference['Date'])){
             $form->setError('Reference[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
 
-        if($Error) {
+        if($Error){
             // Debtor::useFrontend()->getPersonPanel($PersonId).
             return new Well($form);
         }
@@ -365,7 +365,7 @@ class ApiBankReference extends Extension implements IApiInterface
     public function showAddReference($Identifier = '', $PersonId = '')
     {
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formReference($Identifier,
+        return Debtor::useFrontend()->getPersonPanel($PersonId).new Well($this->formReference($Identifier,
                 $PersonId));
     }
 
@@ -380,19 +380,20 @@ class ApiBankReference extends Extension implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputReference($Identifier, $PersonId, '', $Reference)) {
+        if($form = $this->checkInputReference($Identifier, $PersonId, '', $Reference)){
 
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Reference']['Number'] = $Reference['Number'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
         }
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $tblReference = Debtor::useService()->createBankReference($tblPerson, $Reference['Number'], $Reference['Date']);
-            if($tblReference) {
-                return new Success('Referenznummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $tblReference = Debtor::useService()->createBankReference($tblPerson, $Reference['Number'],
+                $Reference['Date']);
+            if($tblReference){
+                return new Success('Referenznummer erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
             } else {
                 return new Danger('Referenznummer konnte nicht gengelegt werden');
@@ -411,10 +412,10 @@ class ApiBankReference extends Extension implements IApiInterface
      * @return string
      */
     public function saveEditReference($Identifier = '', $PersonId = '', $ReferenceId = '', $Reference = array()
-    ) {
+    ){
 
         // Handle error's
-        if($form = $this->checkInputReference($Identifier, $PersonId, $ReferenceId, $Reference)) {
+        if($form = $this->checkInputReference($Identifier, $PersonId, $ReferenceId, $Reference)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Reference']['Number'] = $Reference['Number'];
@@ -423,12 +424,13 @@ class ApiBankReference extends Extension implements IApiInterface
         }
 
         $IsChange = false;
-        if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
-            $IsChange = Debtor::useService()->changeBankReference($tblReference, $Reference['Number'], $Reference['Date']);
+        if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))){
+            $IsChange = Debtor::useService()->changeBankReference($tblReference, $Reference['Number'],
+                $Reference['Date']);
         }
 
         return ($IsChange
-            ? new Success('Referenznummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
+            ? new Success('Referenznummer erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId)
             : new Danger('Referenznummer konnte nicht geändert werden'));
     }
 
@@ -442,7 +444,7 @@ class ApiBankReference extends Extension implements IApiInterface
     public function showEditReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
-        if('' !== $ReferenceId && ($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
+        if('' !== $ReferenceId && ($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))){
             $Global = $this->getGlobal();
             $Global->POST['Reference']['Number'] = $tblReference->getReferenceNumber();
             $Global->POST['Reference']['Date'] = $tblReference->getReferenceDate();
@@ -450,7 +452,7 @@ class ApiBankReference extends Extension implements IApiInterface
         }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId)
-            . new Well(self::formReference($Identifier, $PersonId, $ReferenceId));
+            .new Well(self::formReference($Identifier, $PersonId, $ReferenceId));
     }
 
     /**
@@ -466,9 +468,9 @@ class ApiBankReference extends Extension implements IApiInterface
         $tblReference = Debtor::useService()->getBankReferenceById($ReferenceId);
 
 
-        if($tblReference) {
+        if($tblReference){
             $PersonString = 'Person nicht gefunden!';
-            if(($tblPerson = $tblReference->getServiceTblPerson())) {
+            if(($tblPerson = $tblReference->getServiceTblPerson())){
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -495,7 +497,7 @@ class ApiBankReference extends Extension implements IApiInterface
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteReference($Identifier, $PersonId,
                                     $ReferenceId))
-                            . new Close('Nein', new Disable())
+                            .new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -516,10 +518,10 @@ class ApiBankReference extends Extension implements IApiInterface
     public function deleteReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
-        if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
+        if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))){
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionAllByBankReference($tblReference))){
                 $RowContent = array();
-                foreach($tblDebtorSelectionList as $tblDebtorSelection){
+                foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                     $ItemString = '';
                     if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
                         $ItemString = $tblItem->getName();
@@ -544,7 +546,7 @@ class ApiBankReference extends Extension implements IApiInterface
             }
             Debtor::useService()->removeBankReference($tblReference);
 
-            return new Success('Referenznummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
+            return new Success('Referenznummer wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier,
                     $PersonId);
         }
         return new Danger('Referenznummer konnte nicht entfernt werden');

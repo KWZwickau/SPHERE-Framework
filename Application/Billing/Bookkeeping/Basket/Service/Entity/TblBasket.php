@@ -105,7 +105,7 @@ class TblBasket extends Element
     public function getMonth($IsFrontend = false)
     {
         if($IsFrontend){
-            if(strlen($this->Month) == 1) {
+            if(strlen($this->Month) == 1){
                 $Month = '0'.$this->Month;
             } else {
                 $Month = $this->Month;
@@ -129,12 +129,12 @@ class TblBasket extends Element
     public function getTargetTime()
     {
 
-        if(null === $this->TargetTime) {
+        if(null === $this->TargetTime){
             return false;
         }
         /** @var \DateTime $TargetTime */
         $TargetTime = $this->TargetTime;
-        if($TargetTime instanceof \DateTime) {
+        if($TargetTime instanceof \DateTime){
             return $TargetTime->format('d.m.Y');
         } else {
             return (string)$TargetTime;

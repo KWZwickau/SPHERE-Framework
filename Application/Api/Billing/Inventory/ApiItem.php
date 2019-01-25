@@ -88,7 +88,7 @@ class ApiItem extends ItemVariant implements IApiInterface
     public static function receiverModal($Header = '', $Identifier = '')
     {
 
-        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal' . $Identifier);
+        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal'.$Identifier);
     }
 
     /**
@@ -288,22 +288,22 @@ class ApiItem extends ItemVariant implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', ApiItem::getEndpoint(), new Save());
-        if('' !== $ItemId /* && ($tblItem = Item::useService()->getItemById($ItemId)) */) {
+        if('' !== $ItemId /* && ($tblItem = Item::useService()->getItemById($ItemId)) */){
             $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveEditItem($Identifier, $ItemId));
         } else {
             $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveAddItem($Identifier));
         }
 
         // get all possible Person Groups
-        if(($tblSettingGroupPersonAll = Setting::useService()->getSettingGroupPersonAll())) {
-            foreach ($tblSettingGroupPersonAll as $tblSettingGroupPerson) {
-                if(($tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson())) {
+        if(($tblSettingGroupPersonAll = Setting::useService()->getSettingGroupPersonAll())){
+            foreach($tblSettingGroupPersonAll as $tblSettingGroupPerson) {
+                if(($tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson())){
                     $tblGroupList[] = $tblGroup;
                 }
             }
         }
-        foreach ($tblGroupList as &$tblGroup) {
-            if($tblGroup->getMetaTable() === 'COMMON') {
+        foreach($tblGroupList as &$tblGroup) {
+            if($tblGroup->getMetaTable() === 'COMMON'){
                 $tblGroup = false;
             }
         }
@@ -313,8 +313,8 @@ class ApiItem extends ItemVariant implements IApiInterface
 
         /** @var TblGroup $tblGroupSingle */
         // strange effect if variable exact "$tblGroup"
-        foreach ($tblGroupList as $tblGroupSingle) {
-            $CheckboxList[] = new CheckBox('Group[' . $tblGroupSingle->getId() . ']', $tblGroupSingle->getName(),
+        foreach($tblGroupList as $tblGroupSingle) {
+            $CheckboxList[] = new CheckBox('Group['.$tblGroupSingle->getId().']', $tblGroupSingle->getName(),
                 $tblGroupSingle->getId());
         }
 //        }
@@ -350,25 +350,25 @@ class ApiItem extends ItemVariant implements IApiInterface
         $Error = false;
         $form = $this->formItem($Identifier, $ItemId);
         $Warning = '';
-        if(isset($Item['Name']) && empty($Item['Name'])) {
+        if(isset($Item['Name']) && empty($Item['Name'])){
             $form->setError('Item[Name]', 'Bitte geben Sie den Namen der Beitragsart an');
             $Error = true;
             // disable save for duplicated names
         } elseif(isset($Item['Name']) && ($tblItem = Item::useService()->getItemByName($Item['Name']))) {
             // ignore own Name
-            if($tblItem->getId() != $ItemId) {
+            if($tblItem->getId() != $ItemId){
                 $form->setError('Item[Name]', 'Beitragsart exisitiert bereits, sie darf nicht doppelt angelegt werden');
                 $Error = true;
             }
         }
-        if(empty($Group)) {
+        if(empty($Group)){
             $Warning = 'Bitte geben Sie mindestens eine Personengruppe an';
             $Error = true;
         }
 
-        if($Error) {
-            if($Warning) {
-                return new Danger($Warning) . new Well($form);
+        if($Error){
+            if($Warning){
+                return new Danger($Warning).new Well($form);
             } else {
                 return new Well($form);
             }
@@ -399,7 +399,7 @@ class ApiItem extends ItemVariant implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputItem($Identifier, '', $Item, $Group)) {
+        if($form = $this->checkInputItem($Identifier, '', $Item, $Group)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $Item['Name'];
@@ -408,16 +408,16 @@ class ApiItem extends ItemVariant implements IApiInterface
             return $form;
         }
 
-        if(($tblItem = Item::useService()->createItem($Item['Name']))) {
-            foreach ($Group as $GroupId) {
-                if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
+        if(($tblItem = Item::useService()->createItem($Item['Name']))){
+            foreach($Group as $GroupId) {
+                if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
                 }
             }
         }
 
         return ($tblItem
-            ? new Success('Beitragsart erfolgreich angelegt') . self::pipelineCloseModal($Identifier)
+            ? new Success('Beitragsart erfolgreich angelegt').self::pipelineCloseModal($Identifier)
             : new Danger('Beitragsart konnte nicht gengelegt werden'));
     }
 
@@ -433,7 +433,7 @@ class ApiItem extends ItemVariant implements IApiInterface
     {
 
         // Handle error's
-        if($form = $this->checkInputItem($Identifier, $ItemId, $Item, $Group)) {
+        if($form = $this->checkInputItem($Identifier, $ItemId, $Item, $Group)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $Item['Name'];
@@ -442,26 +442,26 @@ class ApiItem extends ItemVariant implements IApiInterface
             return $form;
         }
 
-        if(($tblItem = Item::useService()->getItemById($ItemId))) {
+        if(($tblItem = Item::useService()->getItemById($ItemId))){
             Item::useService()->changeItem($tblItem, $Item['Name']);
 
             // Delete existing PersonGroup
             //ToDO only remove not necessary Entry's
-            if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))) {
-                foreach ($tblItemGroupList as $tblItemGroup) {
+            if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+                foreach($tblItemGroupList as $tblItemGroup) {
                     Item::useService()->removeItemGroup($tblItemGroup);
                 }
             }
 
-            foreach ($Group as $GroupId) {
-                if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            foreach($Group as $GroupId) {
+                if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
                 }
             }
         }
 
         return ($Item
-            ? new Success('Beitragsart erfolgreich angelegt') . self::pipelineCloseModal($Identifier)
+            ? new Success('Beitragsart erfolgreich angelegt').self::pipelineCloseModal($Identifier)
             : new Danger('Beitragsart konnte nicht gengelegt werden'));
     }
 
@@ -474,12 +474,12 @@ class ApiItem extends ItemVariant implements IApiInterface
     public function showEditItem($Identifier = '', $ItemId = '')
     {
 
-        if('' !== $ItemId && ($tblItem = Item::useService()->getItemById($ItemId))) {
+        if('' !== $ItemId && ($tblItem = Item::useService()->getItemById($ItemId))){
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $tblItem->getName();
-            if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))) {
-                foreach ($tblItemGroupList as $tblItemGroup) {
-                    if(($tblGroup = $tblItemGroup->getServiceTblGroup())) {
+            if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+                foreach($tblItemGroupList as $tblItemGroup) {
+                    if(($tblGroup = $tblItemGroup->getServiceTblGroup())){
                         $Global->POST['Group'][$tblGroup->getId()] = $tblGroup->getId();
                     }
                 }
@@ -501,28 +501,28 @@ class ApiItem extends ItemVariant implements IApiInterface
 
         $tblItem = Item::useService()->getItemById($ItemId);
         $GroupArray = array();
-        if($tblItem) {
-            if(($tblGroupPersonList = Item::useService()->getItemGroupByItem($tblItem))) {
-                foreach ($tblGroupPersonList as $tblGroupPerson) {
-                    if(($tblGroup = $tblGroupPerson->getServiceTblGroup())) {
+        if($tblItem){
+            if(($tblGroupPersonList = Item::useService()->getItemGroupByItem($tblItem))){
+                foreach($tblGroupPersonList as $tblGroupPerson) {
+                    if(($tblGroup = $tblGroupPerson->getServiceTblGroup())){
                         $GroupArray[] = $tblGroup->getName();
                     }
                 }
             }
 
-            $Content[] = 'hinterlegte Personengruppen: ' . new Bold(implode(', ', $GroupArray));
+            $Content[] = 'hinterlegte Personengruppen: '.new Bold(implode(', ', $GroupArray));
 
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Beitragsart ' . new Bold($tblItem->getName()) . ' wirklich entfernt werden?'
+                            new Panel('Soll die Beitragsart '.new Bold($tblItem->getName()).' wirklich entfernt werden?'
                                 , new Listing($Content), Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteItem($Identifier, $ItemId))
-                            . new Close('Nein', new Disable())
+                            .new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -542,10 +542,10 @@ class ApiItem extends ItemVariant implements IApiInterface
     public function deleteItem($Identifier = '', $ItemId = '')
     {
 
-        if(($tblItem = Item::useService()->getItemById($ItemId))) {
+        if(($tblItem = Item::useService()->getItemById($ItemId))){
             Item::useService()->removeItem($tblItem);
 
-            return new Success('Beitragsart wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier);
+            return new Success('Beitragsart wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier);
         }
         return new Danger('Beitragsart konnte nicht entfernt werden');
     }

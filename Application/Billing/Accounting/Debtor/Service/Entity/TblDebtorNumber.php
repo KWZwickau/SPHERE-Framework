@@ -53,7 +53,7 @@ class TblDebtorNumber extends Element
     public function getServiceTblPerson()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if(null === $this->serviceTblPerson){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPerson);
@@ -66,6 +66,6 @@ class TblDebtorNumber extends Element
     public function setServiceTblPerson($serviceTblPerson)
     {
 
-        $this->serviceTblPerson = ( null === $serviceTblPerson ? null : $serviceTblPerson->getId() );
+        $this->serviceTblPerson = (null === $serviceTblPerson ? null : $serviceTblPerson->getId());
     }
 }

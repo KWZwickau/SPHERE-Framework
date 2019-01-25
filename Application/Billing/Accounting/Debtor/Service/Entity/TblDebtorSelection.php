@@ -74,7 +74,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblPersonCauser()
     {
 
-        if(null === $this->serviceTblPersonCauser) {
+        if(null === $this->serviceTblPersonCauser){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPersonCauser);
@@ -98,7 +98,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblPersonDebtor()
     {
 
-        if(null === $this->serviceTblPersonDebtor) {
+        if(null === $this->serviceTblPersonDebtor){
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPersonDebtor);
@@ -121,7 +121,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblPaymentType()
     {
 
-        if(null === $this->serviceTblPaymentType) {
+        if(null === $this->serviceTblPaymentType){
             return false;
         } else {
             return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
@@ -143,7 +143,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblItem()
     {
 
-        if(null === $this->serviceTblItem) {
+        if(null === $this->serviceTblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->serviceTblItem);
@@ -165,7 +165,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblItemVariant()
     {
 
-        if(null === $this->serviceTblItemVariant) {
+        if(null === $this->serviceTblItemVariant){
             return false;
         } else {
             return Item::useService()->getItemVariantById($this->serviceTblItemVariant);
@@ -189,7 +189,7 @@ class TblDebtorSelection extends Element
     public function getValue($IsShort = false)
     {
 
-        if($IsShort) {
+        if($IsShort){
             return str_replace('.', ',', number_format($this->Value, 2));
         }
         return $this->Value;
@@ -220,7 +220,7 @@ class TblDebtorSelection extends Element
     public function getTblBankAccount()
     {
 
-        if(null === $this->tblBankAccount) {
+        if(null === $this->tblBankAccount){
             return false;
         } else {
             return Debtor::useService()->getBankAccountById($this->tblBankAccount);
@@ -242,7 +242,7 @@ class TblDebtorSelection extends Element
     public function getTblBankReference()
     {
 
-        if(null === $this->tblBankReference) {
+        if(null === $this->tblBankReference){
             return false;
         } else {
             return Debtor::useService()->getBankReferenceById($this->tblBankReference);

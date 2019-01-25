@@ -68,29 +68,29 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Content = array();
 
-        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))) {
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
             $Content[] = new Center('Auswahl für '.$tblGroup->getName()
                 .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(),
                     array('GroupId' => $tblGroup->getId()))));
         }
-        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY))) {
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY))){
             $Content[] = new Center('Auswahl für '.$tblGroup->getName()
                 .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(),
                     array('GroupId' => $tblGroup->getId()))));
         }
 
-        if(($tblGroupList = Group::useService()->getGroupAll())) {
+        if(($tblGroupList = Group::useService()->getGroupAll())){
             foreach($tblGroupList as &$tblGroup) {
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_CUSTODY
                     || $tblGroup->getMetaTable() === TblGroup::META_TABLE_DEBTOR
-                ) {
+                ){
                     $tblGroup = false;
                 }
             }
             $tblGroupList = array_filter($tblGroupList);
         }
         if(false === $tblGroupList
-            || empty($tblGroupList)) {
+            || empty($tblGroupList)){
             $tblGroupList = array();
         }
 
@@ -129,7 +129,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $GroupName = '';
-        if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             $GroupName = $tblGroup->getName();
         }
         $Stage = new Stage('Beitragszahler ', 'Gruppe: '.$GroupName);
@@ -153,19 +153,19 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $TableContent = array();
-        if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))){
+            if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
                 $i = 0;
 
                 $IsDebtorNumberNeed = false;
-                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)) {
-                    if($tblSetting->getValue() == 1) {
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+                    if($tblSetting->getValue() == 1){
                         $IsDebtorNumberNeed = true;
                     }
                 }
 
                 array_walk($tblPersonList,
-                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed) {
+                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed){
                         $Item['Name'] = $tblPerson->getLastFirstName();
                         $Item['DebtorNumber'] = ($IsDebtorNumberNeed
                             ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(),
@@ -179,7 +179,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'PersonId' => $tblPerson->getId(),
                         ));
                         // get Debtor edit / delete options
-                        if($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson)) {
+                        if($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson)){
                             $NumberList = array();
                             foreach($tblDebtorNumberList as $tblDebtorNumber) {
                                 $NumberList[] = $tblDebtorNumber->getDebtorNumber();
@@ -188,11 +188,11 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                         // fill Address if exist
                         $tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPerson);
-                        if($tblAddress) {
+                        if($tblAddress){
                             $Item['Address'] = $tblAddress->getGuiLayout();
                         }
 
-                        if(Debtor::useService()->getBankAccountAllByPerson($tblPerson)) {
+                        if(Debtor::useService()->getBankAccountAllByPerson($tblPerson)){
                             $Item['BankAccount'] = '<div class="alert alert-success" style="margin-bottom: 0; padding: 10px 15px">'
                                 .new Check().' Konto vorhanden</div>';
                         }
@@ -212,7 +212,7 @@ class Frontend extends Extension implements IFrontendInterface
         ), array(
             'columnDefs' => array(
                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                array("orderable" => false, "targets"   => -1),
+                array("orderable" => false, "targets" => -1),
             ),
         ));
     }
@@ -220,7 +220,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function getPersonPanel($PersonId)
     {
         $tblPerson = Person::useService()->getPersonById($PersonId);
-        if($tblPerson) {
+        if($tblPerson){
             return new Panel(new Bold($tblPerson->getFullName()), '', Panel::PANEL_TYPE_SUCCESS);
         } else {
             return new Panel('Person nicht gefunden', '', Panel::PANEL_TYPE_DANGER);
@@ -267,16 +267,16 @@ class Frontend extends Extension implements IFrontendInterface
     public function getDebtorNumberContent($PersonId = '')
     {
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $IsDebtorNumberNeed = false;
-            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)) {
-                if($tblSetting->getValue() == 1) {
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+                if($tblSetting->getValue() == 1){
                     $IsDebtorNumberNeed = true;
                 }
             }
 
             // new DebtorNumber
-            if($IsDebtorNumberNeed) {
+            if($IsDebtorNumberNeed){
                 $DebtorNumber = new DangerText(new ToolTip(new WarningIcon(),
                         'Debotornummer muss angegeben werden')).(new Link('Debitorennummer hinzufügen',
                         ApiDebtor::getEndpoint(), new Plus()))
@@ -289,7 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // DebtorNumber
-            if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))) {
+            if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))){
                 $DebtorNumber = array();
                 foreach($tblDebtorNumberList as $tblDebtorNumber) {
                     $DebtorNumber[] = $tblDebtorNumber->getDebtorNumber().' '
@@ -302,7 +302,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenDeleteDebtorNumberModal('deleteDebtorNumber'
                                 , $tblPerson->getId(), $tblDebtorNumber->getId()));
                 }
-                if(!empty($DebtorNumber)) {
+                if(!empty($DebtorNumber)){
                     $DebtorNumber = implode(', ', $DebtorNumber);
                 }
             }
@@ -322,9 +322,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $FirstColumn = 3;
         $SecondColumn = 9;
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $ColumnBankAccountList = '';
-            if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPerson))) {
+            if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPerson))){
                 array_walk($tblBankAccountList,
                     function(TblBankAccount $tblBankAccount) use (
                         &$tableContent,
@@ -332,7 +332,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $PersonId,
                         $FirstColumn,
                         $SecondColumn
-                    ) {
+                    ){
 
                         $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn('Name der Bank:', $FirstColumn),

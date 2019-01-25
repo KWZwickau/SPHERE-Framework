@@ -199,7 +199,7 @@ class ItemCalculation extends Extension
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', ApiItem::getEndpoint(), new Save());
-        if('' !== $CalculationId) {
+        if('' !== $CalculationId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditCalculation($Identifier, $VariantId,
                 $CalculationId));
         } else {
@@ -241,23 +241,23 @@ class ItemCalculation extends Extension
         $form = $this->formCalculation($Identifier, $VariantId, $CalculationId);
 
         $Warning = '';
-        if(!($tblItemVariant = Item::useService()->getItemVariantById($VariantId))) {
+        if(!($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
             $Warning = new Danger('Beitrags-Variante ist nicht mehr vorhanden!');
             $Error = true;
         } else {
-            if(isset($Calculation['Value']) && empty($Calculation['Value'])) {
+            if(isset($Calculation['Value']) && empty($Calculation['Value'])){
                 $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis an');
                 $Error = true;
             }
-            if(isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])) {
+            if(isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])){
                 $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Beginn der Gültigkeit an');
                 $Error = true;
             }
         }
 
-        if($Error) {
-            if($Warning) {
-                return $Warning . new Well($form);
+        if($Error){
+            if($Warning){
+                return $Warning.new Well($form);
             }
             return new Well($form);
         }
@@ -288,7 +288,7 @@ class ItemCalculation extends Extension
     {
 
         // Handle error's
-        if($form = $this->checkInputCalculation($Identifier, $VariantId, '', $Calculation)) {
+        if($form = $this->checkInputCalculation($Identifier, $VariantId, '', $Calculation)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Calculation']['Value'] = $Calculation['Value'];
@@ -299,13 +299,13 @@ class ItemCalculation extends Extension
         }
 
         $tblCalculation = false;
-        if(($tblItemVariant = Item::useService()->getItemVariantById($VariantId))) {
+        if(($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
             $tblCalculation = Item::useService()->createItemCalculation($tblItemVariant, $Calculation['Value'],
                 $Calculation['DateFrom'], $Calculation['DateTo']);
         }
 
         return ($tblCalculation
-            ? new Success('Preis erfolgreich angelegt') . ApiItem::pipelineCloseModal($Identifier)
+            ? new Success('Preis erfolgreich angelegt').ApiItem::pipelineCloseModal($Identifier)
             : new Danger('Preis konnte nicht gengelegt werden'));
     }
 
@@ -319,7 +319,7 @@ class ItemCalculation extends Extension
     public function showEditCalculation($Identifier, $VariantId, $CalculationId)
     {
 
-        if('' !== $CalculationId && ($tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId))) {
+        if('' !== $CalculationId && ($tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId))){
             $Global = $this->getGlobal();
             $Global->POST['Calculation']['Value'] = $tblItemCalculation->getValue(true);
             $Global->POST['Calculation']['DateFrom'] = $tblItemCalculation->getDateFrom();
@@ -342,7 +342,7 @@ class ItemCalculation extends Extension
     {
 
         // Handle error's
-        if($form = $this->checkInputCalculation($Identifier, $VariantId, $CalculationId, $Calculation)) {
+        if($form = $this->checkInputCalculation($Identifier, $VariantId, $CalculationId, $Calculation)){
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Calculation']['Value'] = $Calculation['Value'];
@@ -353,15 +353,15 @@ class ItemCalculation extends Extension
         }
 
         $Success = false;
-        if(($tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId))) {
+        if(($tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId))){
             if((Item::useService()->changeItemCalculation($tblItemCalculation, $Calculation['Value']
-                , $Calculation['DateFrom'], $Calculation['DateTo']))) {
+                , $Calculation['DateFrom'], $Calculation['DateTo']))){
                 $Success = true;
             }
         }
 
         return ($Success
-            ? new Success('Preis erfolgreich angelegt') . ApiItem::pipelineCloseModal($Identifier)
+            ? new Success('Preis erfolgreich angelegt').ApiItem::pipelineCloseModal($Identifier)
             : new Danger('Preis konnte nicht gengelegt werden'));
     }
 
@@ -375,29 +375,29 @@ class ItemCalculation extends Extension
     {
 
         $tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId);
-        if($tblItemCalculation) {
+        if($tblItemCalculation){
             $VariantName = '';
             $ItemName = '';
-            if(($tblItemVariant = $tblItemCalculation->getTblItemVariant())) {
+            if(($tblItemVariant = $tblItemCalculation->getTblItemVariant())){
                 $VariantName = $tblItemVariant->getName();
-                if(($tblItem = $tblItemVariant->getTblItem())) {
+                if(($tblItem = $tblItemVariant->getTblItem())){
                     $ItemName = new Bold($tblItem->getName());
                 }
             }
-            $Content[] = 'Preis: ' . $tblItemCalculation->getPriceString();
-            $Content[] = 'Zeitraum: ' . $tblItemCalculation->getDateFrom() . ' - ' . $tblItemCalculation->getDateTo();
+            $Content[] = 'Preis: '.$tblItemCalculation->getPriceString();
+            $Content[] = 'Zeitraum: '.$tblItemCalculation->getDateFrom().' - '.$tblItemCalculation->getDateTo();
 
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Preis von Beitrags-Variante ' . new Bold($VariantName) . ' der Beitragsart ' . $ItemName . ' wirklich entfernen?'
+                            new Panel('Preis von Beitrags-Variante '.new Bold($VariantName).' der Beitragsart '.$ItemName.' wirklich entfernen?'
                                 , new Listing($Content), Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', ApiItem::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteCalculation($Identifier, $CalculationId))
-                            . new Close('Nein', new Disable())
+                            .new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -417,9 +417,9 @@ class ItemCalculation extends Extension
     public function deleteCalculation($Identifier = '', $CalculationId = '')
     {
 
-        if(($tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId))) {
+        if(($tblItemCalculation = Item::useService()->getItemCalculationById($CalculationId))){
             Item::useService()->removeItemCalculation($tblItemCalculation);
-            return new Success('Preis wurde erfolgreich entfernt') . ApiItem::pipelineCloseModal($Identifier);
+            return new Success('Preis wurde erfolgreich entfernt').ApiItem::pipelineCloseModal($Identifier);
         }
         return new Danger('Preis konnte nicht entfernt werden');
     }
