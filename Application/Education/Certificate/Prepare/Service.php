@@ -2260,6 +2260,90 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblCurrentDivision
+     *
+     * @return string[]|false
+     */
+    public function getAutoDroppedSubjects(TblPerson $tblPerson, TblDivision $tblCurrentDivision)
+    {
+
+        $subjectList = array();
+        $tblLastDivision = false;
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && (!$tblLevel->getIsChecked())
+                    && ($tblLevel->getName() == '9' || $tblLevel->getName() == '09')
+                ) {
+                    $tblLastDivision = $tblDivision;
+                    break;
+                }
+            }
+        }
+
+        if ($tblLastDivision
+            && ($tblLastYear = $tblLastDivision->getServiceTblYear())
+            && ($tblCurrentYear = $tblCurrentDivision->getServiceTblYear())
+            && ($tblLastDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblLastYear))
+            && ($tblCurrentDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblCurrentYear))
+        ) {
+            $tblLastSubjectList = array();
+            foreach ($tblLastDivisionSubjectList as $tblLastDivisionSubject) {
+                if (($tblSubject = $tblLastDivisionSubject->getServiceTblSubject())) {
+                    $tblLastSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $tblCurrentSubjectList = array();
+            foreach ($tblCurrentDivisionSubjectList as $tblCurrentDivisionSubject) {
+                if (($tblSubject = $tblCurrentDivisionSubject->getServiceTblSubject())) {
+                    $tblCurrentSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $diffList = array();
+            foreach ($tblLastSubjectList as $tblLastSubject) {
+                if (!isset($tblCurrentSubjectList[$tblLastSubject->getId()])) {
+                    $diffList[$tblLastSubject->getAcronym()] = $tblLastSubject;
+                }
+            }
+
+            $tblLastPrepare = false;
+            if (($tblLastPrepareList = Prepare::useService()->getPrepareAllByDivision($tblLastDivision))) {
+                foreach ($tblLastPrepareList as $tblPrepareCertificate) {
+                    if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
+                        && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        && $tblCertificateType->getIdentifier() == 'YEAR'
+                    ) {
+                        $tblLastPrepare = $tblPrepareCertificate;
+                    }
+                }
+            }
+
+            if (empty($diffList)) {
+                return false;
+            } else {
+                /** @var TblSubject $item */
+                $count = 1;
+                ksort($diffList);
+                if ($tblLastPrepare) {
+                    foreach ($diffList as $item) {
+                        if (!Subject::useService()->isOrientation($item) && $item->getName() != 'Neigungskurs') {
+                            $subjectList[$item->getId()] = $item->getName();
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($subjectList) ? false : $subjectList;
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      *

@@ -1607,6 +1607,35 @@ class Frontend extends Extension implements IFrontendInterface
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['Transfer'] = 1;
                         }
 
+                        // SSW-340 Halbjahreszeugnis Klasse 10 OS -> abgewählte Fächer in die Bemerkung vorsetzen
+                        if (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'MsHjRs')
+                        ) {
+                            if (($tblDroppedSubjectList = Prepare::useService()->getAutoDroppedSubjects($tblPerson, $tblDivision))) {
+                                $countDroppedSubjects = count($tblDroppedSubjectList);
+                                if ($countDroppedSubjects == 1) {
+                                    $text = current($tblDroppedSubjectList) . ' wurde in der Klassenstufe 9 abgeschlossen.';
+                                } else {
+                                    $countItem = 0;
+                                    $text = '';
+                                    foreach ($tblDroppedSubjectList as $name) {
+                                        $countItem++;
+                                        if ($countItem == 1) {
+                                            $text .= $name;
+                                        } elseif ($countItem == $countDroppedSubjects) {
+                                            $text .= ' und ' . $name;
+                                        } else {
+                                            $text .= ', ' . $name;
+                                        }
+                                    }
+
+                                    $text .=  ' wurden in der Klassenstufe 9 abgeschlossen.';
+                                }
+
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $text;
+                            }
+                        }
+
                         $Global->savePost();
                     }
 
