@@ -295,34 +295,41 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        if(empty($TableContent)){
+            $Table = new Warning('Zur Person '.$tblPerson->getFirstName().' '.$tblPerson->getLastName().'
+            sind keine Rechnungen hinterlegt');
+
+        } else {
+            $Table = new TableData($TableContent, null, array(
+                'InvoiceNumber' => 'Abr.-Nr.',
+                'Item'          => 'Beitragsart',
+                'Quantity'  => 'Menge',
+                'Price'     => new ToolTip('EP', 'Einzelpreis'),
+                'Summary'  => new ToolTip('GP', 'Gesamtpreis'),
+                'Time'          => 'Abrechnungszeitraum',
+                'IsPaid'    => 'Offene Posten'
+            ), array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => array(0, 2, 3, 4)),
+//                                    array('type' => 'de_date', 'targets' => array(2)),
+                    array("orderable" => false, "targets" => -1),
+                ),
+                'order'      => array(
+                    array(0, 'desc')
+                ),
+            ));
+        }
 
 
         return ApiInvoiceIsPaid::receiverService()
             .new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(
-                        new LayoutColumn(new Title('Historie'))
+                        new LayoutColumn(new Title('Historie', new Bold($tblPerson->getFullName())))
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($TableContent, null, array(
-                                'InvoiceNumber' => 'Abr.-Nr.',
-                                'Item'          => 'Beitragsart',
-                                'Quantity'  => 'Menge',
-                                'Price'     => new ToolTip('EP', 'Einzelpreis'),
-                                'Summary'  => new ToolTip('GP', 'Gesamtpreis'),
-                                'Time'          => 'Abrechnungszeitraum',
-                                'IsPaid'    => 'Offene Posten'
-                            ), array(
-                                'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => array(0, 2, 3, 4)),
-//                                    array('type' => 'de_date', 'targets' => array(2)),
-                                    array("orderable" => false, "targets" => -1),
-                                ),
-                                'order'      => array(
-                                    array(0, 'desc')
-                                ),
-                            ))
+                            $Table
                         )
                     )
                 ))
