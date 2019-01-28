@@ -2,12 +2,11 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 23.02.2018
- * Time: 14:12
+ * Date: 24.01.2019
+ * Time: 10:20
  */
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
-
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
@@ -18,16 +17,12 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class GymAbgHs
+ * Class MsAbgLernenHs
  *
  * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository
  */
-class GymAbgSekI extends Certificate
+class MsAbgLernenHs extends Certificate
 {
-
-    const COURSE_HS = 1;
-    const COURSE_RS = 2;
-    const COURSE_HSQ = 3;
 
     /**
      * @param TblPerson|null $tblPerson
@@ -36,6 +31,7 @@ class GymAbgSekI extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
+
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
@@ -44,9 +40,7 @@ class GymAbgSekI extends Certificate
         $pageList[] = new Page();
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ABGANGSZEUGNIS')
@@ -55,20 +49,11 @@ class GymAbgSekI extends Certificate
                     ->styleMarginTop('20%')
                     ->styleTextBold()
                 )
-            )
-            ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('des Gymnasiums')
+                    ->setContent('der Oberschule')
                     ->styleTextSize('22px')
                     ->styleAlignCenter()
                     ->styleMarginTop('15px')
-                )
-            )->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('(Sekundarstufe I)')
-                    ->styleTextSize('22px')
-                    ->styleAlignCenter()
-                    ->styleMarginTop('0px')
                 )
             );
 
@@ -79,11 +64,13 @@ class GymAbgSekI extends Certificate
                         ->setContent('Vorname und Name:')
                         , '22%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                            ')
                         ->styleBorderBottom()
                     )
-                )->styleMarginTop('60px')
+                )->styleMarginTop('50px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -136,24 +123,14 @@ class GymAbgSekI extends Certificate
                     ->setContent(
                         new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
                         . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes')
-                        . new Container('das Gymnasium.')
+                        . new Container('die Oberschule – Hauptschulbildungsgang.')
                     )
                     ->styleMarginTop('8px')
                     ->styleAlignCenter()
                 )->styleMarginTop('60px')
             )
             ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.RS is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
+                ->addElement((new Element())
                     ->setContent('
                             {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
                                 Frau
@@ -164,54 +141,12 @@ class GymAbgSekI extends Certificate
                                     Frau/Herr
                                 {% endif %}
                             {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
-                            gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe
-                            10 nach Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren
-                            Schulabschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('45px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr
-                                {% endif %}
-                            {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
-                            gemäß § 7 Absatz 7 Satz 1 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 9
-                            nach Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('15px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('¹ Zutreffendes ist anzukreuzen')
-                        ->styleTextSize('9.5px')
-                        ->styleBorderTop()
-                        , '20%')
-                    ->addElementColumn((new Element())
-                    )
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u>
+                            hat gemäß § 63 Absatz 3 Nummer 3 der Schulordnung Ober- und Abendoberschulen einen dem Abschluss
+                            im Förderschwerpunkt Lernen gemäß § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.')
+                    ->stylePaddingBottom()
                 )
-                ->styleMarginTop('440px')
+                ->styleMarginTop('45px')
             );
 
         $pageList[] = (new Page())
@@ -219,22 +154,26 @@ class GymAbgSekI extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('Vorname und Name:')
-                        , '21%')
+                        , '25%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                            ')
                         ->styleBorderBottom()
-                        , '59%')
+                        , '45%')
                     ->addElementColumn((new Element())
                         ->setContent('Klasse')
                         ->styleAlignCenter()
                         , '10%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}
+                            ')
                         ->styleBorderBottom()
                         ->styleAlignCenter()
-                        , '10%')
-                )->styleMarginTop('60px')
+                    )
+                )->styleMarginTop('50px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -243,20 +182,32 @@ class GymAbgSekI extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('300px'))
-            ->addSlice($this->getProfileStandardNew($personId))
-            ->addSlice($this->getDescriptionHead($personId))
-            ->addSlice($this->getDescriptionContent($personId, '155px', '15px'))
+            ->addSlice($this->getSubjectLanes($personId,true, array(), '14px', false, false, true)->styleHeight('320px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('
+                        Bemerkungen: <u> {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                        {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u>
+                        wurde gemäß § 63 Absatz 2 der Schulordnung Ober- und Abendoberschulen inklusiv nach den Lehrplänen
+                        für den Hauptschulbildungsgang der Oberschule unterrichtet. 
+                    ')
+                )
+                ->addElement((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+                )
+                ->styleHeight('200px')
+                ->styleMarginTop('15px')
+            )
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId))
-            ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('100px',
+            ->addSlice($this->getSignPart($personId, true, '30px'))
+            ->addSlice($this->getInfo('220px',
                 'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
-                '¹ &nbsp;&nbsp;&nbsp; Die Bezeichnung des besuchten schulspezifischen Profils ist anzugeben. Beim Erlernen einer dritten
-                 Fremdsprache ist anstelle des Profils oder in der vertieften <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                 sprachlichen Ausbildung die Fremdsprache anzugeben.'
-            ));
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
+            );
 
         return $pageList;
     }

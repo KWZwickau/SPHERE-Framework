@@ -1261,7 +1261,11 @@ class Service extends ServiceScoreRule
             foreach ($tblScoreTypeDivisionSubjectList as $tblScoreTypeDivisionSubject) {
                 $tblDivision = $tblScoreTypeDivisionSubject->getServiceTblDivision();
                 $tblSubject = $tblScoreTypeDivisionSubject->getServiceTblSubject();
-                if ($tblDivision && $tblSubject) {
+                if ($tblDivision
+                    && $tblSubject
+                    && $tblDivision->getServiceTblYear()
+                    && $tblYear
+                ) {
                     if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()
                         && !Gradebook::useService()->existsGrades($tblDivision, $tblSubject, $tblTestType)
                     ) {

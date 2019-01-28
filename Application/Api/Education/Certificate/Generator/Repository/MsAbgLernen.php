@@ -1,4 +1,11 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 23.01.2019
+ * Time: 13:51
+ */
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
@@ -10,11 +17,11 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class MsAbgHs
+ * Class MsAbgLernen
  *
  * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository
  */
-class MsAbgHs extends Certificate
+class MsAbgLernen extends Certificate
 {
 
     /**
@@ -29,6 +36,9 @@ class MsAbgHs extends Certificate
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
+        // leere Seite
+        $pageList[] = new Page();
+
         $pageList[] = (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
@@ -36,17 +46,15 @@ class MsAbgHs extends Certificate
                     ->setContent('ABGANGSZEUGNIS')
                     ->styleTextSize('27px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('32%')
+                    ->styleMarginTop('20%')
                     ->styleTextBold()
                 )
-//                ->addSlice((new Slice())
-//                    ->addElement((new Element())
-//                        ->setContent('der Mittelschule')
-//                        ->styleTextSize('22px')
-//                        ->styleAlignCenter()
-//                        ->styleMarginTop('15px')
-//                    )
-//                )
+                ->addElement((new Element())
+                    ->setContent('der Oberschule')
+                    ->styleTextSize('22px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('15px')
+                )
             );
 
         $pageList[] = (new Page())
@@ -109,88 +117,17 @@ class MsAbgHs extends Certificate
                     )
                 )->styleMarginTop('10px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('hat')
-                        , '5%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                        ->styleBorderBottom('1px')
-                        ->styleAlignCenter()
-                    )
-                    ->addElementColumn((new Element())
-                        ->styleBorderBottom('1px')
-                        ->setContent('&nbsp;')
-                        , '5%')
-                )
-                ->styleMarginTop('20px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addElement(
-                        (new Element())
-                            ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }},
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px')
-                            ->styleAlignCenter()
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addSection(
-                        (new Section())
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleBorderBottom('1px')
-                                , '10%')
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('{% if(Content.P' . $personId . '.Company.Address.City.Name) %}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Code }}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
-                                        {% else %}
-                                              &nbsp;
-                                        {% endif %}')
-                                    ->styleBorderBottom('1px')
-                                    ->styleAlignCenter()
-                            )
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('besucht')
-                                    ->styleAlignRight()
-                                , '10%')
-                    )
-                    ->styleMarginTop('10px')
-            )
+            ->addSliceArray(MsAbsRs::getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Name und Anschrift der Schule')
-                    ->styleTextSize('9px')
-                    ->styleTextColor('#999')
-                    ->styleAlignCenter()
-                    ->styleMarginTop('5px')
-                    ->styleMarginBottom('5px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG'
-                        . new Container('die Schulart Mittelschule - Hauptschulbildungsgang.')
+                    ->setContent(
+                        new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
+                        . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes')
+                        . new Container('die Oberschule.')
                     )
                     ->styleMarginTop('8px')
                     ->styleAlignCenter()
-                )->styleMarginTop('27%')
+                )->styleMarginTop('60px')
             );
 
         $pageList[] = (new Page())
@@ -201,7 +138,6 @@ class MsAbgHs extends Certificate
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {{ Content.P' . $personId . '.Person.Data.Name.Salutation }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.First }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                             ')
@@ -227,19 +163,25 @@ class MsAbgHs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
-            ->addSlice($this->getOrientationStandard($personId))
-            ->addSlice($this->getDescriptionHead($personId))
-            ->addSlice($this->getDescriptionContent($personId, '235px', '15px'))
+            ->addSlice($this->getSubjectLanes($personId,true, array(), '14px', false, false, true)->styleHeight('320px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                ->setContent('Bemerkungen: Inklusive Unterrichtung¹:
+                    {% if(Content.P' . $personId . '.Input.Support is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Support|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+                ->styleHeight('200px')
+                ->styleMarginTop('15px')
+            ))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId))
-            ->addSlice($this->getInfo('150px',
+            ->addSlice($this->getSignPart($personId, true, '30px'))
+            ->addSlice($this->getInfo('220px',
                 'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
-            );
-
-        // leere Seite
-        $pageList[] = new Page();
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+            ));
 
         return $pageList;
     }

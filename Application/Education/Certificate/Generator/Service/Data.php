@@ -1041,19 +1041,6 @@ class Data extends AbstractData
         /**
          * Abgangszeugnisse - Leave
          */
-        // Alt-Last löschen - Delete alte Abgangszeugnisse
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgHs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgRs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgHs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
-        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgRs'))) {
-            $this->destroyCertificate($tblCertificate);
-        }
         // create Abgangzeugnisse
         $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg',
             null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
@@ -1083,6 +1070,94 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
             }
         }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen', 'MsAbgLernen',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GK', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'WTH', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulabschluss', 'MsAbgLernenHs',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GK', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'WTH', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsAbgGeistigeEntwicklung',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GK', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'WTH', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+
         $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe I', 'GymAbgSekI',
             null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeGym);
         if ($tblCertificate) {
