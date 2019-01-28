@@ -2,8 +2,11 @@
 namespace SPHERE\Application\Billing\Accounting\Causer;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiBankReference;
+use SPHERE\Application\Api\Billing\Accounting\ApiCauser;
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtorSelection;
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
@@ -12,6 +15,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Standard as StandardForm;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -26,6 +30,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Statistic;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
@@ -33,6 +38,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -136,15 +142,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Beitragsverursacher', 'Gruppe: '.$GroupName);
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
-        $Stage->setContent(new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        $this->getCauserTable($GroupId)
-                    )
-                ))
+        $Stage->setContent(ApiCauser::receiverModal()
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $this->getCauserTable($GroupId)
+                        )
+                    ))
+                )
             )
-        ));
+        );
 
         return $Stage;
     }
@@ -236,6 +244,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'GroupId'  => $tblGroup->getId(),
                             'PersonId' => $tblPerson->getId()
                         ));
+                        $Item['Option'] .= (new Standard('', ApiCauser::getEndpoint(), new Statistic(), array(), 'Historie'))
+                        ->ajaxPipelineOnClick(ApiCauser::pipelineOpenCauserModal($tblPerson->getId()));
                         $i++;
                         // Display Problem
 //                    if($i <= 2000){
@@ -255,6 +265,68 @@ class Frontend extends Extension implements IFrontendInterface
                 array("orderable" => false, "targets" => -1),
             ),
         ));
+    }
+
+    public function getHistoryByPerson($PersonId = '')
+    {
+
+        if(!$tblPerson = Person::useService()->getPersonById($PersonId)){
+            return new Warning('Person nicht gefunden');
+        }
+        $TableContent = array();
+        if(($tblInvoiceList = Invoice::useService()->getInvoiceAllByPersonCauser($tblPerson))){
+            foreach($tblInvoiceList as $tblInvoice){
+                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                        $item['Item'] = $tblInvoiceItemDebtor->getName();
+                        $item['Price'] = $tblInvoiceItemDebtor->getPriceString();
+                        $item['Quantity'] = $tblInvoiceItemDebtor->getQuantity();
+                        $item['Summary'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                        $CheckBox = (new CheckBox('IsPaid', ' ', $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
+                            ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
+                        if(!$tblInvoiceItemDebtor->getIsPaid()){
+                            $CheckBox->setChecked();
+                        }
+                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox, $tblInvoiceItemDebtor->getId());
+                        array_push($TableContent, $item);
+                    }
+                }
+            }
+        }
+
+
+        return ApiInvoiceIsPaid::receiverService()
+            .new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(new Title('Historie'))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null, array(
+                                'InvoiceNumber' => 'Abr.-Nr.',
+                                'Item'          => 'Beitragsart',
+                                'Quantity'  => 'Menge',
+                                'Price'     => new ToolTip('EP', 'Einzelpreis'),
+                                'Summary'  => new ToolTip('GP', 'Gesamtpreis'),
+                                'Time'          => 'Abrechnungszeitraum',
+                                'IsPaid'    => 'Offene Posten'
+                            ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => array(0, 2, 3, 4)),
+//                                    array('type' => 'de_date', 'targets' => array(2)),
+                                    array("orderable" => false, "targets" => -1),
+                                ),
+                                'order'      => array(
+                                    array(0, 'desc')
+                                ),
+                            ))
+                        )
+                    )
+                ))
+            );
     }
 
     /**

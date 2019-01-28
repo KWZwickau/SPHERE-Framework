@@ -54,7 +54,7 @@ class Service extends AbstractService
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByPerson(TblPerson $tblPerson)
+    public function getInvoiceAllByPersonCauser(TblPerson $tblPerson)
     {
 
         return (new Data($this->getBinding()))->getInvoiceByPersonCauser($tblPerson);
@@ -86,7 +86,7 @@ class Service extends AbstractService
         $Month
     ){
         $isInvoice = false;
-        if(($tblInvoiceList = $this->getInvoiceAllByPerson($tblPerson))){
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauser($tblPerson))){
             foreach($tblInvoiceList as $tblInvoice) {
                 if($tblInvoice->getYear() == $Year && $tblInvoice->getMonth() == $Month){
                     if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
