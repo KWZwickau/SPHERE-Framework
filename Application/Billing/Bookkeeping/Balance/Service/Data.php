@@ -79,7 +79,6 @@ class Data extends AbstractData
             array(TblPaymentType::ATTR_NAME => $Name));
     }
 
-
     /**
      * @param TblItem $tblItem
      * @param         $Year
@@ -115,5 +114,54 @@ class Data extends AbstractData
         $PriceList = $query->getResult();
 
         return !empty($PriceList) ? $PriceList : false;
+    }
+
+    /**
+     * @param         $Year
+     * @param         $Month
+     *
+     * @return array|bool
+     */
+    public function getPriceSummaryByMonth($Year, $Month)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('iid.Name,i.Year, i.Month, iid.serviceTblItem as ItemId, sum(iid.Value * iid.Quantity) as Summary')
+            ->from('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice', 'i')
+            ->leftJoin('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor', 'iid',
+                'WITH', 'i.Id = iid.tblInvoice')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->andWhere($queryBuilder->expr()->eq('i.Month', '?2'))
+            ->groupBy('i.Year, i.Month, iid.serviceTblItem')
+            ->setParameter(1, $Year)
+            ->setParameter(2, $Month)
+            ->getQuery();
+
+        $MonthOverViewList = $query->getResult();
+        return !empty($MonthOverViewList) ? $MonthOverViewList : false;
+    }
+
+    /**
+     * @param string $Year
+     *
+     * @return array|bool
+     */
+    public function getPriceSummaryByYear($Year)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('iid.Name,i.Year, i.Month, iid.serviceTblItem as ItemId, sum(iid.Value * iid.Quantity) as Summary')
+            ->from('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice', 'i')
+            ->leftJoin('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor', 'iid',
+                'WITH', 'i.Id = iid.tblInvoice')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->groupBy('i.Year, i.Month, iid.serviceTblItem')
+            ->setParameter(1, $Year)
+            ->getQuery();
+
+        $YearOverViewList = $query->getResult();
+        return !empty($YearOverViewList) ? $YearOverViewList : false;
     }
 }
