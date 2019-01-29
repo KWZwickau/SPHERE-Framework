@@ -150,6 +150,10 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        // Fügt ein leeres Element hinzu (sonst Fehlermeldung)
+        if(count($YearList) <= 1){
+            $YearList[] = '';
+        }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Year']) && $tblYear) {
