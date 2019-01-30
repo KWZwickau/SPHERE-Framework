@@ -7,7 +7,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
@@ -225,28 +224,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        // Identification
-        $tblIdentificationAll = Account::useService()->getIdentificationAll();
-        if ($tblIdentificationAll) {
-            array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification) {
-                if ($tblIdentification->getName() == 'System') {
-                    $tblIdentification = false;
-                } elseif ($tblIdentification->getName() == 'Credential') {
-                    $tblIdentification = false;
-                } elseif ($tblIdentification->getName() == 'UserCredential') {
-                    $tblIdentification = false;
-                } else {
-                    $Label = $tblIdentification->getDescription().' ('.new Key().')';
-                    $tblIdentification = new RadioBox(
-                        'Account[Identification]', $Label, $tblIdentification->getId()
-                    );
-                }
-            });
-            $tblIdentificationAll = array_filter($tblIdentificationAll);
-        } else {
-            $tblIdentificationAll = array();
-        }
-
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
         $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
@@ -463,8 +440,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         $UsernamePanel,
-                        new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
-                            Panel::PANEL_TYPE_INFO),
                         $PanelToken
                     ), 4),
                     new FormColumn(array(
