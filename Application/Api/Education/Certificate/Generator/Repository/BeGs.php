@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
@@ -41,9 +42,8 @@ class BeGs extends Certificate
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
-     * @internal param bool $IsSample
      *
+     * @return Page[]
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
@@ -51,7 +51,15 @@ class BeGs extends Certificate
         $PaddingTopInfo = '5px';
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        return (new Page())
+        if (!$this->getTblPrepareCertificate()
+            || ($tblSurveyInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Survey'))
+        ) {
+            $hasSecondPage = true;
+        } else {
+            $hasSecondPage = false;
+        }
+
+        $pageList[] = (new Page())
             ->addSlice($this->getSchoolName($personId, '10px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -477,5 +485,52 @@ class BeGs extends Certificate
                     )
                 )
             );
+
+        if ($hasSecondPage) {
+            $pageList[] = (new Page())
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Beiblatt zum Gutachten der Bildungsempfehlung für:')
+                        , '50%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                            ->styleAlignCenter()
+                            ->styleBorderBottom()
+                        , '50%')
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Input.Survey is not empty) %}
+                                {{ Content.P' . $personId . '.Input.Survey|nl2br }}
+                            {% else %}
+                                ---
+                            {% endif %}
+                        ')
+                        ->styleMarginTop('50px')
+                        ->styleHeight('920px')
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Ort, Datum:')
+                            , '12%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
+                            ')
+                            ->styleBorderBottom()
+                            , '45%')
+                        ->addElementColumn((new Element()))
+                    )
+                )
+            ;
+        }
+
+        return $pageList;
     }
 }

@@ -103,7 +103,7 @@ class GymAbitur extends Certificate
         } else {
             $certificates .= '<s>Hebraicums</s>';
         }
-        $certificates .= '</b>² ein.';
+        $certificates .= '</b>³ ein.';
 
         // Seite 4 zuerst für Multi-Pdf-Druck
         $pageList[] = (new Page())
@@ -172,7 +172,7 @@ class GymAbitur extends Certificate
                                 {% endif %}
                             {% endif %}
                             <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u> 
-                            hat die <b>Abiturprüfung bestanden</b></br> und die Berechtigung zum Studium an einer Hochschule in der
+                            hat die <b>Abiturprüfung bestanden</b> und die Berechtigung zum Studium an einer Hochschule in der
                             Bundesrepublik Deutschland erworben.
                         ')
                         ->stylePaddingBottom()
@@ -219,10 +219,10 @@ class GymAbitur extends Certificate
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('der allgemeinen Hochschulreife')
-                    ->styleTextSize('27px')
+                    ->styleTextSize('22px')
                     ->styleAlignCenter()
                     ->styleMarginTop('25px')
-                    ->styleMarginBottom('5px')
+                    ->styleMarginBottom('10px')
                 )
             )
             ->addSliceArray($this->getSchoolPartAbitur($personId))
@@ -305,8 +305,8 @@ class GymAbitur extends Certificate
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07.07.1972, in der jeweils geltenden Fassung) </br>
                         – &nbsp;&nbsp; Vereinbarung über die Abiturprüfung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkon- </br>
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ferenz vom 13.12.1973, in der jeweils geltenden Fassung) </br>
-                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 3 der Verordnung </br>
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vom 3. August 2017 (SächsGVBl. S. 348) geändert worden ist, in der jeweils geltenden Fassung
+                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 1 der Verordnung </br>
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vom 7. Mai 2018 (SächsGVBl. S. 240) geändert worden ist, in der jeweils geltenden Fassung
                         ')
                         ->styleTextSize('11px')
                     )
@@ -1570,7 +1570,7 @@ class GymAbitur extends Certificate
             }
         }
 
-        for ($i; $i < 8; $i++) {
+        for (; $i < 8; $i++) {
             $subject = '&ndash;';
             $grade = '&ndash;';
             $gradeText = '&ndash;';
@@ -1630,15 +1630,22 @@ class GymAbitur extends Certificate
                     ->styleBorderLeft()
                     ->styleBorderTop()
                     ->styleMarginTop('15px')
-                    , '50%')
+                    , '30%')
                 ->addElementColumn((new Element())
                     ->setContent('Klassen-/Jahrgangsstufe')
                     ->styleAlignCenter()
                     ->styleBorderLeft()
                     ->styleBorderTop()
+                    ->styleMarginTop('15px')
+                    , '40%')
+                ->addElementColumn((new Element())
+                    ->setContent('Niveau gemäß GER²')
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
                     ->styleBorderRight()
                     ->styleMarginTop('15px')
-                    , '50%')
+                    , '30%')
             );
 
         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
@@ -1683,7 +1690,7 @@ class GymAbitur extends Certificate
                         ->styleBorderLeft()
                         ->styleBorderTop()
                         ->styleBorderBottom($i == 4 ? '1px' : '0px')
-                        , '50%')
+                        , '30%')
                     ->addSliceColumn((new Slice())
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
@@ -1705,9 +1712,17 @@ class GymAbitur extends Certificate
                         )
                         ->styleBorderLeft()
                         ->styleBorderTop()
-                        ->styleBorderRight()
                         ->styleBorderBottom($i == 4 ? '1px' : '0px')
-                    )
+                    , '40%')
+                    ->addElementColumn((new Element())
+                        // todo content nach dem klar ist wie und wo es gepflegt wird
+                        ->setContent('&ndash;')
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft()
+                        ->styleBorderRight()
+                        ->styleBorderTop()
+                        ->styleBorderBottom($i == 4 ? '1px' : '0px')
+                    , '30%')
                 );
         }
 
@@ -1931,7 +1946,7 @@ class GymAbitur extends Certificate
      *
      * @return Slice
      */
-    private function  getInfoForPageFour($marginTop = '20px')
+    private function  getInfoForPageFour($marginTop = '10px')
     {
         $slice = new Slice();
         $slice
@@ -1944,7 +1959,8 @@ class GymAbitur extends Certificate
             )
             ->styleMarginTop($marginTop)
             ->addSection($this->setInfoRow(1, 'Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).'))
-            ->addSection($this->setInfoRow(2, 'Nichtzutreffendes ist zu streichen.'))
+            ->addSection($this->setInfoRow(2, 'Gemeinsamer Europäischer Referenzrahmen für Sprachen'))
+            ->addSection($this->setInfoRow(3, 'Nichtzutreffendes ist zu streichen.'))
         ;
 
         return $slice;

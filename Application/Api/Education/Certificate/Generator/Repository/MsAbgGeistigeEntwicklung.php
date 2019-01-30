@@ -1,4 +1,11 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 24.01.2019
+ * Time: 11:18
+ */
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
@@ -7,13 +14,14 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class MsAbsHsQ
+ * Class MsAbgGeistigeEntwicklung
  *
  * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository
  */
-class MsAbsHsQ extends Certificate
+class MsAbgGeistigeEntwicklung extends Certificate
 {
 
     /**
@@ -26,32 +34,20 @@ class MsAbsHsQ extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $showPictureOnSecondPage = true;
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
-            'Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate'))
-        ) {
-            $showPictureOnSecondPage = $tblSetting->getValue();
-        }
-
-        $Header = MsAbsRs::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
-
-        // leere Seite
-        $pageList[] = new Page();
+        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('ABSCHLUSSZEUGNIS')
+                    ->setContent('ZEUGNIS')
                     ->styleTextSize('27px')
                     ->styleAlignCenter()
                     ->styleMarginTop('20%')
                     ->styleTextBold()
                 )
                 ->addElement((new Element())
-                    ->setContent('der Oberschule')
+                    ->setContent('der Oberschule' . new Container('zur Schulentlassung'))
                     ->styleTextSize('22px')
                     ->styleAlignCenter()
                     ->styleMarginTop('15px')
@@ -65,11 +61,13 @@ class MsAbsHsQ extends Certificate
                         ->setContent('Vorname und Name:')
                         , '22%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                            ')
                         ->styleBorderBottom()
                     )
-                )->styleMarginTop('60px')
+                )->styleMarginTop('50px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -77,7 +75,11 @@ class MsAbsHsQ extends Certificate
                         ->setContent('geboren am')
                         , '22%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}')
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                         ->styleBorderBottom()
                         , '20%')
                     ->addElementColumn((new Element())
@@ -98,7 +100,7 @@ class MsAbsHsQ extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('wohnhaft in')
-                    )
+                        , '22%')
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
                                     {{ Content.P' . $personId . '.Person.Address.Street.Name }}
@@ -109,76 +111,38 @@ class MsAbsHsQ extends Certificate
                                       &nbsp;
                                 {% endif %}')
                         ->styleBorderBottom()
-                        , '78%')
-//                        )
+                    )
                 )->styleMarginTop('10px')
             )
             ->addSliceArray(MsAbsRs::getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('und hat nach Bestehen der Abschlussprüfung in der Klassenstufe 9 den')
-                    ->styleMarginTop('8px')
-                    ->styleAlignLeft()
-                )
-                ->addElement((new Element())
-                    ->setContent('qualifizierenden HAUPTSCHULABSCHLUSS')
-                    ->styleMarginTop('18px')
-                    ->styleTextSize('20px')
-                    ->styleTextBold()
-                )
-                ->addElement((new Element())
-                    ->setContent('erworben.')
-                    ->styleMarginTop('20px')
-                    ->styleAlignLeft()
-                )
-                ->styleAlignCenter()
-                ->styleMarginTop('22%')
-            )
-            ->addSlice(MsAbsRs::getPictureForDiploma($showPictureOnSecondPage))
-        ;
-
-        $pageList[] = (new Page())
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Vorname und Name:')
-                        , '25%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                        ->styleBorderBottom()
-                        , '45%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Klasse:')
-                        ->styleAlignCenter()
-                        , '10%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
-                        ->styleBorderBottom()
-                        ->styleAlignCenter()
+                    ->setContent(
+                        new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
+                        . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes und')
+                        . new Container('§ 63 der Schulordnung Ober- und Abendoberschulen')
+                        . new Container('die Oberschule.')
                     )
+                    ->styleMarginTop('8px')
+                    ->styleAlignCenter()
                 )->styleMarginTop('60px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Leistungen in den einzelnen Fächern:')
-                    ->styleMarginTop('15px')
-                    ->styleTextBold()
-                )
-            )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
-//            ->addSlice($this->getOrientationStandard($personId))
-            ->addSlice($this->getDescriptionHead($personId))
-            ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
+                    ->setContent('Inklusive Unterrichtung¹:
+                    {% if(Content.P' . $personId . '.Input.Support is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Support|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+                    ->styleHeight('200px')
+                    ->styleMarginTop('55px')
+                ))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice((new MsAbsRs(
-                $this->getTblDivision() ? $this->getTblDivision() : null,
-                $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null
-            ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('170px',
-                'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
-        );
+            ->addSlice($this->getSignPart($personId, true, '30px'))
+            ->addSlice($this->getInfo('220px',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+            ));
 
         return $pageList;
     }

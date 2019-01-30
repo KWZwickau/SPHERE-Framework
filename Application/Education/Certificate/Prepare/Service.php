@@ -1347,12 +1347,14 @@ class Service extends AbstractService
                 }
             }
 
-            // Gleichgestellter Schulabschluss - nur GymAbgSekI
+            // Gleichgestellter Schulabschluss - GymAbgSekI, MsAbg
             if (($tblLeaveInformationEqualGraduation = $this->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))) {
                 if ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_RS) {
                     $Content['P' . $personId]['Input']['EqualGraduation']['RS'] = true;
                 } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HS) {
                     $Content['P' . $personId]['Input']['EqualGraduation']['HS'] = true;
+                } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HSQ) {
+                    $Content['P' . $personId]['Input']['EqualGraduation']['HSQ'] = true;
                 }
             }
 
@@ -1362,6 +1364,13 @@ class Service extends AbstractService
                 $remark = $tblLeaveInformationRemark->getValue() ? $tblLeaveInformationRemark->getValue() : $remark;
             }
             $Content['P' . $personId]['Input']['Remark'] = $remark;
+
+            // Inklusive Unterrichtung
+            $support = '---';
+            if (($tblLeaveInformationSupport = $this->getLeaveInformationBy($tblLeaveStudent, 'Support'))) {
+                $support = $tblLeaveInformationSupport->getValue() ? $tblLeaveInformationSupport->getValue() : $remark;
+            }
+            $Content['P' . $personId]['Input']['Support'] = $support;
 
             $remarkWithoutTeam = '---';
             if (($tblLeaveInformationRemarkWithoutTeam = $this->getLeaveInformationBy($tblLeaveStudent, 'RemarkWithoutTeam'))) {
@@ -2251,6 +2260,90 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblCurrentDivision
+     *
+     * @return string[]|false
+     */
+    public function getAutoDroppedSubjects(TblPerson $tblPerson, TblDivision $tblCurrentDivision)
+    {
+
+        $subjectList = array();
+        $tblLastDivision = false;
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && (!$tblLevel->getIsChecked())
+                    && ($tblLevel->getName() == '9' || $tblLevel->getName() == '09')
+                ) {
+                    $tblLastDivision = $tblDivision;
+                    break;
+                }
+            }
+        }
+
+        if ($tblLastDivision
+            && ($tblLastYear = $tblLastDivision->getServiceTblYear())
+            && ($tblCurrentYear = $tblCurrentDivision->getServiceTblYear())
+            && ($tblLastDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblLastYear))
+            && ($tblCurrentDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblCurrentYear))
+        ) {
+            $tblLastSubjectList = array();
+            foreach ($tblLastDivisionSubjectList as $tblLastDivisionSubject) {
+                if (($tblSubject = $tblLastDivisionSubject->getServiceTblSubject())) {
+                    $tblLastSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $tblCurrentSubjectList = array();
+            foreach ($tblCurrentDivisionSubjectList as $tblCurrentDivisionSubject) {
+                if (($tblSubject = $tblCurrentDivisionSubject->getServiceTblSubject())) {
+                    $tblCurrentSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $diffList = array();
+            foreach ($tblLastSubjectList as $tblLastSubject) {
+                if (!isset($tblCurrentSubjectList[$tblLastSubject->getId()])) {
+                    $diffList[$tblLastSubject->getAcronym()] = $tblLastSubject;
+                }
+            }
+
+            $tblLastPrepare = false;
+            if (($tblLastPrepareList = Prepare::useService()->getPrepareAllByDivision($tblLastDivision))) {
+                foreach ($tblLastPrepareList as $tblPrepareCertificate) {
+                    if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
+                        && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        && $tblCertificateType->getIdentifier() == 'YEAR'
+                    ) {
+                        $tblLastPrepare = $tblPrepareCertificate;
+                    }
+                }
+            }
+
+            if (empty($diffList)) {
+                return false;
+            } else {
+                /** @var TblSubject $item */
+                $count = 1;
+                ksort($diffList);
+                if ($tblLastPrepare) {
+                    foreach ($diffList as $item) {
+                        if (!Subject::useService()->isOrientation($item) && $item->getName() != 'Neigungskurs') {
+                            $subjectList[$item->getId()] = $item->getName();
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($subjectList) ? false : $subjectList;
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      *
@@ -3040,6 +3133,49 @@ class Service extends AbstractService
                 'PersonId' => $tblPerson->getId(),
                 'DivisionId' => $tblDivision->getId()
             ));
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function createLeaveStudentFromForm(
+        IFormInterface $form = null,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        $Data
+    ) {
+
+        if ($Data === null) {
+            return $form;
+        }
+
+        if (!($tblCertificate = Generator::useService()->getCertificateById($Data['Certificate']))) {
+            $form->setError('Data[Certificate]', new Exclamation() . ' Bitte wählen Sie eine Zeugnisvorlage aus.');
+
+            return $form;
+        }
+
+
+        $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+
+        if ($tblLeaveStudent) {
+            return new Success('Die Daten wurden gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision->getId()
+                ));
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden.', new Exclamation())
+                . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_ERROR, array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision->getId()
+                ));
+        }
     }
 
     /**
