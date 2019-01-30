@@ -126,7 +126,7 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.3cm !important; }';
         // für Kinderbrief von Radebeul 2,5cm Rand
         } elseif (strpos(get_class($this), 'RadebeulKinderbrief') !== false) {
-            $InjectStyle = 'body { margin-left: 1.3cm !important; margin-right: 1.4cm !important; }';
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; margin-top: 0.9cm !important; margin-bottom: 0.9cm !important; }';
         } elseif (strpos(get_class($this), 'RadebeulOs') !== false) {
             $InjectStyle = 'body { margin-left: 0.7cm !important; margin-right: 0.8cm !important; }';
         } elseif (strpos(get_class($this), 'EzshKurshalbjahreszeugnis') !== false) {

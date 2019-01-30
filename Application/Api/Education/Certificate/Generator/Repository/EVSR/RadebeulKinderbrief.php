@@ -98,6 +98,7 @@ class RadebeulKinderbrief extends Certificate
                                 {% endif %}
                             ')
                     ->styleFontFamily($fontFamily)
+                    ->styleAlignJustify()
                     ->styleTextSize($fontSize)
                     ->styleLineHeight($lineHeight)
                     ->styleMarginTop('30px')
