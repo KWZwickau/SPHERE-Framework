@@ -30,6 +30,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
 
         $fontFamily = 'MetaPro';
         $textSize = '12pt';
+        $lineHeight = '100%';
 
         return (new Page())
             ->addSlice((new Slice())
@@ -63,7 +64,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                                     {% endif %}')
                             .new Container('- Grundschule -')
                         )
-                        ->styleLineHeight('80%')
+                        ->styleLineHeight($lineHeight)
                         ->styleTextSize('20pt')
                         ->styleFontFamily($fontFamily)
                         ->styleAlignCenter()
@@ -73,6 +74,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('- Staatlich anerkannte Ersatzschule in freier Trägerschaft -')
                         ->styleFontFamily($fontFamily)
+                        ->styleLineHeight($lineHeight)
                         ->styleTextSize($textSize)
                         ->styleLineHeight('90%')
                         ->styleAlignCenter()
@@ -85,7 +87,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                             new Container('1. Schulhalbjahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         )
                         ->styleFontFamily($fontFamily)
-                        ->styleLineHeight('80%')
+                        ->styleLineHeight($lineHeight)
                         ->styleMarginTop('20px')
                         ->styleTextSize('20pt')
                         ->styleAlignCenter()
@@ -165,7 +167,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                     ->styleAlignJustify()
                     ->styleFontFamily($fontFamily)
                     ->styleTextSize($textSize)
-                    ->styleLineHeight('80%')
+                    ->styleLineHeight($lineHeight)
                     ->styleMarginTop('30px')
                 )
             )
@@ -194,7 +196,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                         ->styleFontFamily($fontFamily)
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
-                        , '25%')
+                        , '26%')
                     ->addElementColumn((new Element())
                         ->setContent('
                                         {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
@@ -207,7 +209,7 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
                         ->styleAlignRight()
-                        , '8%')
+                        , '5%')
                     ->addElementColumn((new Element()))
                 )
                 ->addSection((new Section())
