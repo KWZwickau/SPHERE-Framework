@@ -292,9 +292,9 @@ class Database extends Extension implements IModuleInterface
 
             ksort($ConsumerRequestList);
 
-            $Api = $ConsumerRequestList['DEMO'];
-            unset( $ConsumerRequestList['DEMO'] );
-            $ConsumerRequestList['DEMO'] = $Api;
+            $Api = $ConsumerRequestList['REF'];
+            unset( $ConsumerRequestList['REF'] );
+            $ConsumerRequestList['REF'] = $Api;
         }
 
         // prepare: change to first Consumer
@@ -506,7 +506,6 @@ class Database extends Extension implements IModuleInterface
             self::$SetupRegister = array();
             $DataList = self::$ServiceRegister;
             array_walk($DataList, function (&$Class) {
-
                 $Inspection = new \ReflectionClass($Class);
                 if ($Inspection->isInternal()) {
                     $Class = false;

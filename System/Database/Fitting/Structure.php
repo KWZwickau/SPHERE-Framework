@@ -124,27 +124,32 @@ class Structure
     public function setMigration(DBALSchema &$Schema, $Simulate = true)
     {
 
+        if($Schema->getName() == 'SettingConsumer_REF'){
+            $beginn = microtime(true);
+        }
+
         $Statement = $this->Database->getSchema()->getMigrateToSql($Schema,
             $this->Database->getPlatform()
         );
 
+
         if( $this->Database->getPlatform()->getName() == "mysql" ) {
 
             $DatabaseName = $this->Database->getDatabase();
+
             $TableStatus = $this->Database->getStatement("show table status from ".$DatabaseName.";");
-
-            foreach( $TableStatus as $Status ) {
-
-                if( $Status['Collation'] != 'utf8_german2_ci'
-                    && (
-                        $Schema->hasTable( $Status['Name'] )
-                        || $this->Database->getSchema()->hasTable( $Status['Name'] )
-                    )
-                ) {
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_german2_ci;" );
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_german2_ci;" );
-                }
-            }
+//            foreach( $TableStatus as $Status ) {
+//
+//                if( $Status['Collation'] != 'utf8_german2_ci'
+//                    && (
+//                        $Schema->hasTable( $Status['Name'] )
+//                        || $this->Database->getSchema()->hasTable( $Status['Name'] )
+//                    )
+//                ) {
+//                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_german2_ci;" );
+//                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_german2_ci;" );
+//                }
+//            }
 
         }
 
@@ -155,6 +160,10 @@ class Structure
                     $this->Database->setStatement($Query);
                 }
             }
+        }
+        if($Schema->getName() == 'SettingConsumer_REF'){
+            $dauer = microtime(true) - $beginn;
+            echo "Verarbeitung des Skripts: $dauer Sek.<br/>";
         }
     }
 

@@ -27,7 +27,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->viewPeopleMetaCommon();
     }
-    
+
     /**
      * @param bool $doSimulation
      * @param bool $withData
@@ -37,7 +37,10 @@ class Service extends AbstractService
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
