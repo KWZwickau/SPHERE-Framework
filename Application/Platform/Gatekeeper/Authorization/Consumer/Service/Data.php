@@ -18,7 +18,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createConsumer('DEMO', 'Mandant');
+        //deactivate DEMO (now REF)
+//        $this->createConsumer('DEMO', 'Mandant');
+        $this->createConsumer('REF', 'Referenz-Mandant');
     }
 
     /**
@@ -50,6 +52,7 @@ class Data extends AbstractData
     public function getConsumerByName($Name)
     {
 
+        /** @var TblConsumer $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblConsumer')
             ->findOneBy(array(TblConsumer::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
@@ -63,6 +66,7 @@ class Data extends AbstractData
     public function getConsumerByAcronym($Acronym)
     {
 
+        /** @var TblConsumer $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblConsumer')
             ->findOneBy(array(TblConsumer::ATTR_ACRONYM => $Acronym));
         return ( null === $Entity ? false : $Entity );
