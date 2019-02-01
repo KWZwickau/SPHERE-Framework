@@ -128,32 +128,41 @@ class Structure
             $this->Database->getPlatform()
         );
 
-        if( $this->Database->getPlatform()->getName() == "mysql" ) {
-
-            $DatabaseName = $this->Database->getDatabase();
-            $TableStatus = $this->Database->getStatement("show table status from ".$DatabaseName.";");
-
-            foreach( $TableStatus as $Status ) {
-
-                if( $Status['Collation'] != 'utf8_german2_ci'
-                    && (
-                        $Schema->hasTable( $Status['Name'] )
-                        || $this->Database->getSchema()->hasTable( $Status['Name'] )
-                    )
-                ) {
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_german2_ci;" );
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_german2_ci;" );
-                }
-            }
-
-        }
-
         if (!empty( $Statement )) {
             foreach ((array)$Statement as $Query) {
                 $this->Database->addProtocol($Query);
                 if (!$Simulate) {
                     $this->Database->setStatement($Query);
                 }
+            }
+        }
+    }
+
+    public function setUTF8()
+    {
+
+        $Statement = array();
+        if( $this->Database->getPlatform()->getName() == "mysql" ) {
+
+            $DatabaseName = $this->Database->getDatabase();
+
+            $TableStatus = $this->Database->getStatement("show table status from ".$DatabaseName.";");
+            foreach( $TableStatus as $Status ) {
+
+                // correct Collation && ignore view's
+                if( $Status['Collation'] != 'utf8_german2_ci'
+                    && !preg_match('!view!', $Status['Name'])
+                ) {
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_german2_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_german2_ci;" );
+                }
+            }
+        }
+
+        if (!empty( $Statement )) {
+            foreach ((array)$Statement as $Query) {
+                $this->Database->addProtocol($Query);
+                $this->Database->setStatement($Query);
             }
         }
     }

@@ -34,17 +34,20 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
-        if(!$doSimulation && $withData){
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
+        if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
-
         return $Protocol;
     }
 

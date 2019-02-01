@@ -5,7 +5,6 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\Application\Reporting\Custom\Custom;
 use SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis;
-use SPHERE\Application\Reporting\Dynamic\Dynamic;
 use SPHERE\Application\Reporting\KamenzReport\KamenzReport;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\SerialLetter\SerialLetter;
@@ -29,7 +28,7 @@ class Reporting implements IClusterInterface
         Custom::registerApplication();
         CheckList::registerApplication();
         SerialLetter::registerApplication();
-        Dynamic::registerApplication();
+//        Dynamic::registerApplication();
         KamenzReport::registerApplication();
         Individual::registerApplication();
         DeclarationBasis::registerApplication();
