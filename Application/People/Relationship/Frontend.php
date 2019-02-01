@@ -43,6 +43,8 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Fitting\Element;
@@ -205,6 +207,16 @@ class Frontend extends Extension implements IFrontendInterface
         return  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
+                    new Bold('Merkmal') . new Danger(' *')
+                ),
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
+                    '&nbsp;'
+                ),
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
                     (new RadioBox('Type[Ranking]', 'S1', 1))
                     , 1),
                 new LayoutColumn(
@@ -220,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
             $message
                 ?  new LayoutRow(array(
                     new LayoutColumn(
-                        $message
+                        '<br>' . $message
                     )
                 )) : null
         )));
@@ -664,6 +676,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if ($tblToPerson->getRemark()) {
                         $content[] = new Muted(new Small($tblToPerson->getRemark()));
+                    }
+
+                    $contentExtra = '';
+                    $ranking = $tblToPerson->getRanking();
+                    if ($ranking > 0) {
+                        $contentExtra = 'S' . $ranking;
+                    }
+                    if ($tblToPerson->isSingleParent()) {
+                        $contentExtra .= ($contentExtra == '' ? '' : ', ') . 'alleinerziehend';
+                    }
+                    if ($contentExtra != '') {
+                        $content[] = new Muted($contentExtra);
                     }
 
                     $tblToPerson = new LayoutColumn(
