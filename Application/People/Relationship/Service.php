@@ -192,9 +192,14 @@ class Service extends AbstractService
         }
 
         if ($tblType) {
-            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-                $Type['Remark'])
-            ) {
+            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson(
+                $tblPersonFrom,
+                $tblPersonTo,
+                $tblType,
+                $Type['Remark'],
+                isset($Type['Ranking']) ? $Type['Ranking'] : null,
+                isset($Type['IsSingleParent'])
+            )) {
                 return true;
             } else {
                 return false;
@@ -236,9 +241,14 @@ class Service extends AbstractService
         // Remove current
         (new Data($this->getBinding()))->removePersonRelationshipToPerson($tblToPerson);
         // Add new
-        if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-            $Type['Remark'])
-        ) {
+        if ((new Data($this->getBinding()))->addPersonRelationshipToPerson(
+            $tblPersonFrom,
+            $tblPersonTo,
+            $tblType,
+            $Type['Remark'],
+            isset($Type['Ranking']) ? $Type['Ranking'] : null,
+            isset($Type['IsSingleParent'])
+        )) {
             return true;
         } else {
             return false;
@@ -265,12 +275,12 @@ class Service extends AbstractService
         $error = false;
         $message = null;
         if (empty($To)) {
-            $message = new Danger('Bitte wählen Sie eine Person');
+            $message = new Danger('Bitte wählen Sie eine Person', new Exclamation());
             $error = true;
         } else {
             $tblPersonTo = Person::useService()->getPersonById($To);
             if (!$tblPersonTo){
-                $message = new Danger('Bitte wählen Sie eine Person');
+                $message = new Danger('Bitte wählen Sie eine Person', new Exclamation());
                 $error = true;
             }
             elseif ($tblPerson->getId() == $tblPersonTo->getId()) {
@@ -278,20 +288,51 @@ class Service extends AbstractService
                 $error = true;
             }
         }
+
+        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
+        if ($Type['Type'] == TblType::CHILD_ID) {
+            $tblType = $this->getTypeByName('Sorgeberechtigt');
+            $tblPersonChild = $tblPerson;
+            $tblPersonGuardian = Person::useService()->getPersonById($To);
+        } else {
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblPersonChild = Person::useService()->getPersonById($To);
+            $tblPersonGuardian = $tblPerson;
+        }
+
+        $messageOptions = null;
+        $isGuardianOfTheGalaxy = $tblType && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN;
+        if ($isGuardianOfTheGalaxy) {
+            $Ranking = null;
+            if (!isset($Type['Ranking'])) {
+                $messageOptions = new Danger('Bitte geben Sie an um welchen Sorgeberechtigten (S1, S2, S3) es sich handelt',
+                    new Exclamation());
+                $error = true;
+            } else {
+                $Ranking = $Type['Ranking'];
+            }
+
+            if ($tblPersonGuardian && $tblPersonChild) {
+                $isSingleParent = isset($Type['IsSingleParent']);
+                if ($Ranking || $isSingleParent) {
+                    if (($warnings = $this->checkGuardianRelationshipsForPerson($tblPersonChild, $tblPersonGuardian,
+                        $Ranking, $isSingleParent))) {
+                        $error = true;
+                        $messageOptions = new Danger(implode('<br>', $warnings));
+                    }
+                }
+            }
+        }
+
         $form = Relationship::useFrontend()->formRelationshipToPerson(
             $tblPerson->getId(),
             $tblToPerson ? $tblToPerson->getId() : null,
             false,
             $Search,
-            $message
+            $message,
+            $isGuardianOfTheGalaxy,
+            $messageOptions
         );
-
-        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
-        if ($Type['Type'] == TblType::CHILD_ID) {
-            $tblType = $this->getTypeByName('Sorgeberechtigt');
-        } else {
-            $tblType = $this->getTypeById($Type['Type']);
-        }
 
         if (!$tblType) {
             $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
@@ -301,6 +342,44 @@ class Service extends AbstractService
         }
 
         return $error ? $form : false;
+    }
+
+    /**
+     * @param TblPerson $tblPersonChild
+     * @param TblPerson $tblPersonGuardian
+     * @param $Ranking
+     * @param $IsSingleParent
+     *
+     * @return array|bool
+     */
+    private function checkGuardianRelationshipsForPerson(TblPerson $tblPersonChild, TblPerson $tblPersonGuardian, $Ranking, $IsSingleParent)
+    {
+
+        $result = array();
+        if (($tblType = $this->getTypeByName(TblType::IDENTIFIER_GUARDIAN))
+            && ($tblToPersonList = $this->getPersonRelationshipAllByPerson($tblPersonChild, $tblType))
+        ) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                    && ($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())
+                    && $tblPersonTo->getId() == $tblPersonChild->getId()
+                ) {
+                    if ($tblPersonGuardian->getId() != $tblPersonFrom->getId()) {
+                        if ($Ranking
+                            && $tblToPerson->getRanking() == $Ranking
+                        ) {
+                            $result[] = 'S' . $Ranking . ' wurde bereits für ' . $tblPersonFrom->getFullName() . ' gewählt';
+                        }
+
+                        if ($IsSingleParent && $tblToPerson->isSingleParent()) {
+                            $result[] = 'alleinerziehend wurde bereits für ' . $tblPersonFrom->getFullName() . ' gewählt';
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
     }
 
     /**

@@ -135,6 +135,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasIndex($Table, array('serviceTblPersonTo', Element::ENTITY_REMOVE))) {
             $Table->addIndex(array('serviceTblPersonTo', Element::ENTITY_REMOVE));
         }
+
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($Table, 'IsSingleParent', self::FIELD_TYPE_BOOLEAN, false, false);
+
         $this->getConnection()->addForeignKey($Table, $tblType, true);
         return $Table;
     }

@@ -13,7 +13,9 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Frontend;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -74,6 +76,8 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveDeleteRelationshipToPersonModal');
 
         $Dispatcher->registerMethod('searchPerson');
+
+        $Dispatcher->registerMethod('loadExtraOptions');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -288,6 +292,21 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
             'ToPersonId' => $ToPersonId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadExtraOptions()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ExtraOptions'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadExtraOptions',
+        ));
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -519,5 +538,22 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
         } else {
             return new Danger('Die Personenbeziehung konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $Type
+     *
+     * @return Layout|null
+     */
+    public function loadExtraOptions($Type)
+    {
+        if ($Type['Type'] == TblType::CHILD_ID
+            || (($tblType = Relationship::useService()->getTypeById($Type['Type']))
+                && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN)
+        ) {
+            return (new Frontend())->loadExtraOptions();
+        }
+
+        return null;
     }
 }

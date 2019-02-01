@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -62,24 +63,46 @@ class Frontend extends Extension implements IFrontendInterface
      * @param bool $setPost
      * @param string $Search
      * @param IMessageInterface|null $message
+     * @param bool $IsGuardianRelationship
+     * @param IMessageInterface|null $messageOptions
      *
      * @return Form|bool
      */
-    public function formRelationshipToPerson($PersonId, $ToPersonId = null, $setPost = false, $Search = '', IMessageInterface $message = null)
-    {
+    public function formRelationshipToPerson(
+        $PersonId,
+        $ToPersonId = null,
+        $setPost = false,
+        $Search = '',
+        IMessageInterface $message = null,
+        $IsGuardianRelationship = false,
+        IMessageInterface $messageOptions = null
+    ) {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return false;
+        }
+
+        if ($IsGuardianRelationship) {
+            $contentExtraOptions = $this->loadExtraOptions($messageOptions);
+        } else {
+            $contentExtraOptions = null;
         }
 
         if ($ToPersonId && ($tblToPerson = Relationship::useService()->getRelationshipToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
-                $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
+                $Global->POST['Type']['Type'] = ($tblType = $tblToPerson->getTblType()) ? $tblType->getId() : 0;
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+                $Global->POST['Type']['Ranking'] = $tblToPerson->getRanking();
+                $Global->POST['Type']['IsSingleParent'] = $tblToPerson->isSingleParent();
+
                 $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()
                     ? $tblToPerson->getServiceTblPersonTo()->getId() : 0;
                 $Global->savePost();
+
+                if ($tblType && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN) {
+                    $contentExtraOptions = $this->loadExtraOptions();
+                }
             }
 
             $currentPerson = $tblToPerson->getServiceTblPersonTo();
@@ -110,6 +133,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
         }
 
+        $receiverExtraOptions = ApiRelationshipToPerson::receiverBlock($contentExtraOptions, 'ExtraOptions');
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -123,10 +148,14 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 (new SelectBox('Type[Type]', 'Beziehungstyp',
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ))->setRequired(),
+                                ))
+                                    ->setRequired()
+                                    ->ajaxPipelineOnChange(ApiRelationshipToPerson::pipelineLoadExtraOptions())
+                                ,
                                 new TextField('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
                                     new Pencil()
-                                )
+                                ),
+                                $receiverExtraOptions
                             )
                             , Panel::PANEL_TYPE_INFO
                         ),
@@ -163,6 +192,38 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         ))
         )->disableSubmitAction();
+    }
+
+    /**
+     * @param IMessageInterface|null $message
+     *
+     * @return Layout
+     */
+    public function loadExtraOptions(IMessageInterface $message = null)
+    {
+
+        return  new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    (new RadioBox('Type[Ranking]', 'S1', 1))
+                    , 1),
+                new LayoutColumn(
+                    (new RadioBox('Type[Ranking]', 'S2', 2))
+                    , 1),
+                new LayoutColumn(
+                    (new RadioBox('Type[Ranking]', 'S3', 3))
+                    , 1),
+                new LayoutColumn(
+                    (new CheckBox('Type[IsSingleParent]', 'alleinerziehend', 1))
+                    , 6),
+            )),
+            $message
+                ?  new LayoutRow(array(
+                    new LayoutColumn(
+                        $message
+                    )
+                )) : null
+        )));
     }
 
     /**

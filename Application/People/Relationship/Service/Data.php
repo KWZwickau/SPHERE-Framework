@@ -467,8 +467,10 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPersonFrom
      * @param TblPerson $tblPersonTo
-     * @param TblType   $tblType
-     * @param string    $Remark
+     * @param TblType $tblType
+     * @param string $Remark
+     * @param null $Ranking
+     * @param bool $IsSingleParent
      *
      * @return TblToPerson
      */
@@ -476,7 +478,9 @@ class Data extends AbstractData
         TblPerson $tblPersonFrom,
         TblPerson $tblPersonTo,
         TblType $tblType,
-        $Remark
+        $Remark,
+        $Ranking = null,
+        $IsSingleParent = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -485,6 +489,9 @@ class Data extends AbstractData
         $Entity->setServiceTblPersonTo($tblPersonTo);
         $Entity->setTblType($tblType);
         $Entity->setRemark($Remark);
+        $Entity->setRanking($Ranking);
+        $Entity->setSingleParent($IsSingleParent);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
