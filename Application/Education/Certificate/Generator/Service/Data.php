@@ -3259,7 +3259,7 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypeGym) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
-                                $tblSchoolTypeGym);
+                                $tblSchoolTypeGym, null, true);
                             if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
                                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
                                     $this->createCertificateLevel($tblCertificate, $tblLevel);
