@@ -151,9 +151,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             });
 
-            return new Title('Personengruppen, die für Beitragsarten zur Auswahl stehen: '
-                    ,(new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
-                        ->ajaxPipelineOnClick(ApiSetting::pipelineShowFormPersonGroup()))
+            return new Title('Personengruppen, die für Beitragsarten zur Auswahl stehen:')
                 .new Well((new Form(
                     new FormGroup(
                         new FormRow(array(
