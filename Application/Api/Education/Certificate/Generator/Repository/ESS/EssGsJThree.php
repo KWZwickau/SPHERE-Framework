@@ -67,7 +67,7 @@ class EssGsJThree extends EssStyle
                         ->setContent('&nbsp;')
                         ->styleHeight('110px')
                     )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px')))
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
             ->addSlice((new Slice())
