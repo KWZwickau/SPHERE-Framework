@@ -22,7 +22,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 class RadebeulOsJahreszeugnis extends Certificate
 {
     const TEXT_COLOR_BLUE = 'rgb(25,59,100)';
-    const TEXT_COLOR_RED = 'rgb(201,19,63)';
+    const TEXT_COLOR_RED = 'rgb(202,23,63)';
     const TEXT_SIZE = '11pt';
     const FONT_FAMILY = 'MetaPro';
     const LINE_HEIGHT = '85%';
@@ -55,47 +55,56 @@ class RadebeulOsJahreszeugnis extends Certificate
 
     /**
      * @param $name
+     * @param string $schoolType
+     * @param string $extra
      *
      * @return Slice
      */
-    public static function getHeader($name)
+    public static function getHeader($name, $schoolType = '- Oberschule -', $extra = 'genehmigte')
     {
         return (new Slice())
             ->addSection((new Section())
-                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-//                    '165px', '50px'))
-                    '132px', '40px'))
-                    ->styleMarginTop('50px')
-                    , '20%')
+                ->addElementColumn((new Element())
+                    , '10%')
                 ->addSliceColumn((new Slice())
                     ->styleMarginTop('15px')
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement('Evangelisches Schulzentrum')
+                            self::getHeaderElement(' Evangelisches Schulzentrum Radebeul', '26px')
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement('Radebeul')
+                            self::getHeaderElement($schoolType, '22px', '10px')
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent(
+                                'Staatlich ' . $extra . ' Ersatzschule in freier Trägerschaft'
+                            )
+                            ->styleMarginTop('-4px')
+                            ->styleTextColor(self::TEXT_COLOR_BLUE)
+                            ->styleTextSize('15px')
+                            ->styleAlignCenter()
+                            ->styleFontFamily(self::FONT_FAMILY)
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent(
+                                'im Freistaat Sachsen'
+                            )
+                            ->styleMarginTop('-10px')
+                            ->styleTextColor(self::TEXT_COLOR_BLUE)
+                            ->styleTextSize('15px')
+                            ->styleAlignCenter()
+                            ->styleFontFamily(self::FONT_FAMILY)
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement('- Oberschule -', '16pt', '10px')
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn(
-                            (new Element())
-                                ->setContent('(Staatlich genehmigte Ersatzschule in freier Trägerschaft)')
-                                ->styleAlignCenter()
-                                ->styleTextSize('11pt')
-                                ->styleFontFamily(self::FONT_FAMILY)
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn(
-                            self::getHeaderElement($name, '28pt', '20px')
+                            self::getHeaderElement($name, '32px', '20px')
                         )
                     )
                 )
@@ -103,7 +112,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     '80px', '80px'))
                     ->styleMarginTop('30px')
                     ->styleAlignCenter()
-                    , '15%')
+                    , '10%')
             );
     }
 
@@ -162,13 +171,13 @@ class RadebeulOsJahreszeugnis extends Certificate
                     'Klasse:'
                 ), $width4)
                 ->addElementColumn(self::getBodyElement(
-                    '{{ Content.P' . $personId . '.Division.Data.Name }} {{ Content.P' . $personId . '.Division.Data.Level.Name }}'
+                    '{{ Content.P' . $personId . '.Division.Data.Level.Name }} {{ Content.P' . $personId . '.Division.Data.Name }}'
                     , true
                 ), $width5)
             )
             ->addSection((new Section())
                 ->addElementColumn(self::getBodyElement(
-                    'Geboren am:'
+                    'geboren am:'
                 ), $width1)
                 ->addElementColumn(self::getBodyElement(
                     '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
@@ -209,26 +218,21 @@ class RadebeulOsJahreszeugnis extends Certificate
 
         $sliceArray[] = $this->getGradeLanesForRadebeul(
             $personId,
-            'black',
-            self::TEXT_SIZE,
-            'rgb(224,226,231)',
-            false,
-            '10px',
-            18,
-            self::FONT_FAMILY
+            self::TEXT_COLOR_BLUE,
+            '10pt'
         );
 
         $sliceArray[] = (new Slice())
-            ->addElement(self::getBodyElement('Leistungen in den einzelnen Fächern:', true, '10px'));
+            ->addElement(self::getBodyElement('Leistung in den einzelnen Fächern:', true, '10px'));
 
         $sliceArray[] = $this->getSubjectLanesForRadebeul(
             $personId,
-            'black',
-            self::TEXT_SIZE,
+            self::TEXT_COLOR_BLUE,
+            '10pt',
             'rgb(224,226,231)',
             false,
             '8px',
-            18,
+            28,
             self::FONT_FAMILY,
             '280px'
         );
@@ -324,6 +328,7 @@ class RadebeulOsJahreszeugnis extends Certificate
             ->styleTextSize(self::TEXT_SIZE)
             ->styleTextBold($isBold ? 'bold' : 'normal')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleTextColor(self::TEXT_COLOR_BLUE)
             ->styleMarginTop($marginTop);
     }
 
@@ -345,8 +350,8 @@ class RadebeulOsJahreszeugnis extends Certificate
         $elementForeignLanguageName = false;
         $elementForeignLanguageGrade = false;
 
-        $subjectWidth = 90;
-        $gradeWidth = 20;
+        $subjectWidth = 72;
+        $gradeWidth = 28;
         $gradeColor = 'rgb(224,226,231)';
 
         if (($tblPerson = Person::useService()->getPersonById($personId))
@@ -380,6 +385,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                                  &nbsp;
                             {% endif %}')
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleTextColor(self::TEXT_COLOR_BLUE)
                         ->stylePaddingTop('-3px')
                         ->stylePaddingBottom('2px')
                         ->styleTextSize($TextSize);
@@ -393,9 +399,10 @@ class RadebeulOsJahreszeugnis extends Certificate
                                 &ndash;
                             {% endif %}')
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleTextColor(self::TEXT_COLOR_BLUE)
                         ->styleAlignCenter()
                         ->styleBackgroundColor($gradeColor)
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', self::TEXT_COLOR_BLUE)
                         ->stylePaddingTop('-4px')
                         ->stylePaddingBottom('2px')
                         ->styleTextSize($TextSize);
@@ -422,6 +429,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                                  &nbsp;
                             {% endif %}')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleTextColor(self::TEXT_COLOR_BLUE)
                             ->stylePaddingTop('-3px')
                             ->stylePaddingBottom('2px')
                             ->styleTextSize($TextSize);
@@ -435,9 +443,10 @@ class RadebeulOsJahreszeugnis extends Certificate
                                 &ndash;
                             {% endif %}')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleTextColor(self::TEXT_COLOR_BLUE)
                             ->styleAlignCenter()
                             ->styleBackgroundColor($gradeColor)
-                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', self::TEXT_COLOR_BLUE)
                             ->stylePaddingTop('-4px')
                             ->stylePaddingBottom('2px')
                             ->styleTextSize($TextSize);
@@ -467,12 +476,14 @@ class RadebeulOsJahreszeugnis extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('Wahlpflichtbereich:')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleTextColor(self::TEXT_COLOR_BLUE)
                 ->styleTextBold()
                 ->styleTextSize($TextSize)
                 , '21%')
             ->addElementColumn((new Element())
                 ->setContent($textCategory)
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleTextColor(self::TEXT_COLOR_BLUE)
                 ->stylePaddingTop('3px')
                 ->styleTextSize('9pt')
             );
@@ -492,16 +503,18 @@ class RadebeulOsJahreszeugnis extends Certificate
             $sectionList[] = $section;
         } else {
             $elementName = (new Element())
-                ->setContent('---')
+                ->setContent('&nbsp;')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleTextColor(self::TEXT_COLOR_BLUE)
                 ->styleTextSize($TextSize);
 
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleTextColor(self::TEXT_COLOR_BLUE)
                 ->styleAlignCenter()
                 ->styleBackgroundColor($gradeColor)
-                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', self::TEXT_COLOR_BLUE)
                 ->stylePaddingTop('-4px')
                 ->stylePaddingBottom('2px')
                 ->styleTextSize($TextSize);
@@ -533,9 +546,10 @@ class RadebeulOsJahreszeugnis extends Certificate
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    ->styleBorderBottom('1px')
+                    ->styleBorderBottom('1px', self::TEXT_COLOR_BLUE)
                     ->styleTextSize($textSize)
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('10px')
                     , '30%')
                 ->addElementColumn((new Element())
@@ -543,13 +557,15 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleAlignCenter()
                     ->styleTextSize('10px')
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('20px')
                     , '40%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    ->styleBorderBottom('1px')
+                    ->styleBorderBottom('1px', self::TEXT_COLOR_BLUE)
                     ->styleTextSize($textSize)
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('10px')
                     , '30%')
             )
@@ -564,6 +580,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     )
                     ->styleAlignCenter()
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleTextSize('10px')
                     , '30%')
                 ->addElementColumn((new Element())
@@ -578,6 +595,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     )
                     ->styleAlignCenter()
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleTextSize('10px')
                     , '30%')
             )
@@ -594,6 +612,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleMarginTop('-3px')
                     ->styleTextSize('10px')
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     , '30%')
                 ->addElementColumn((new Element())
                     , '40%')
@@ -609,6 +628,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleMarginTop('-3px')
                     ->styleTextSize('10px')
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     , '30%')
             )
             ->addSection((new Section())
@@ -616,13 +636,15 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->setContent('Zur Kenntnis genommen:')
                     ->styleTextSize($textSize)
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('15px')
                     , '30%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     ->styleTextSize($textSize)
-                    ->styleBorderBottom('1px')
+                    ->styleBorderBottom('1px', self::TEXT_COLOR_BLUE)
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('15px')
                     , '70%')
             )
@@ -635,6 +657,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleMarginTop('-3px')
                     ->styleTextSize('10px')
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     , '40%')
                 ->addElementColumn((new Element())
                     , '30%')
@@ -645,6 +668,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                                 5 = mangelhaft, 6 = ungenügend')
                     ->styleTextSize('9px')
                     ->styleFontFamily($fontFamily)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('0px')
                 )
             );

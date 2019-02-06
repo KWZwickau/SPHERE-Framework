@@ -836,6 +836,15 @@ class Service extends AbstractService
                 }
             }
 
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if ($tblConsumer->getAcronym() == 'EVSR'
+                || $tblConsumer->getAcronym() == 'EVGSM'
+            ) {
+                $hasRemarkBlocking = false;
+            } else {
+                $hasRemarkBlocking = true;
+            }
+
             if ($tblPrepareInformationList) {
                 // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
                 $team = '';
@@ -871,16 +880,13 @@ class Service extends AbstractService
                         . " \n " . ($remark ? 'Bemerkung: ' . $remark : '');
                 } else {
                     // Streichung leeres Bemerkungsfeld
-                    if ($remark == '') {
+                    if ($hasRemarkBlocking && $remark == '') {
                         $remark = '---';
                     }
 
                     if ($team || $remark) {
                         if ($team) {
-
-                            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                && $tblConsumer->getAcronym() == 'EVSR'
-                            ) {
+                            if ($tblConsumer->getAcronym() == 'EVSR') {
                                 // Arbeitsgemeinschaften am Ende der Bemerkungnen
                                 $remark = $remark . " \n\n " . $team;
                             } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
@@ -899,8 +905,10 @@ class Service extends AbstractService
             } else {
                 if ($isSupportLearningCertificate) {
                     $Content['P' . $personId]['Input']['Remark'] = 'Inklusive Unterrichtung¹: ---';
-                } else {
+                } elseif ($hasRemarkBlocking) {
                     $Content['P' . $personId]['Input']['Remark'] = '---';
+                } else {
+                    $Content['P' . $personId]['Input']['Remark'] = '';
                 }
             }
         }
