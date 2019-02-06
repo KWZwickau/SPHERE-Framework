@@ -1037,11 +1037,11 @@ abstract class EzshStyle extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('2. Fremdsprache ab Klasse'
                                 . '{% if ' . $Level . ' == false %}
-                            6
-                        {% else %}
-                            ' . $Level . '
-                        {% endif %}'
-                                . '/ Neigungskurs ab Klasse 7')
+                                    6
+                                {% else %}
+                                    ' . $Level . '
+                                {% endif %}'
+                            )
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
@@ -1121,7 +1121,7 @@ abstract class EzshStyle extends Certificate
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('2. Fremdsprache ab Klasse 6 / Neigungskurs ab Klasse 7')
+                        ->setContent('2. Fremdsprache ab Klasse 6')
                         ->styleBorderTop('1px', '#BBB')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
