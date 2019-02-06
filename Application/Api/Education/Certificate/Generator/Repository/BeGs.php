@@ -193,11 +193,8 @@ class BeGs extends Certificate
                     ->styleMarginBottom('8px')
                 )
                 ->addElement((new Element())
-                    ->setContent('{% if(Content.P' . $personId . '.Person.Parent) %}
-                            {{ Content.P'.$personId.'.Person.Parent.Mother.Name.First }}
-                            {{ Content.P'.$personId.'.Person.Parent.Mother.Name.Last }},
-                            {{ Content.P'.$personId.'.Person.Parent.Father.Name.First }}
-                            {{ Content.P'.$personId.'.Person.Parent.Father.Name.Last }}
+                    ->setContent('{% if(Content.P' . $personId . '.Person.Parent.CommaSeparated) %}
+                            {{ Content.P' . $personId . '.Person.Parent.CommaSeparated }}
                         {% else %}
                               &nbsp;
                         {% endif %}')

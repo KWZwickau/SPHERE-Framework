@@ -681,6 +681,8 @@ class Service extends AbstractService
 
         // Person Parents
         if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            $mother = false;
+            $father = false;
             foreach ($tblRelationshipList as $tblToPerson) {
                 if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
                     && $tblToPerson->getServiceTblPersonTo()
@@ -690,11 +692,21 @@ class Service extends AbstractService
                     if (!isset($Content['P' . $personId]['Person']['Parent']['Mother']['Name'])) {
                         $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                         $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
+                        $mother = $tblFromPerson->getFirstSecondName().' '.$tblFromPerson->getLastName();
                     } elseif (!isset($Content['P' . $personId]['Person']['Parent']['Father']['Name'])) {
                         $Content['P' . $personId]['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                         $Content['P' . $personId]['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
+                        $father = $tblFromPerson->getFirstSecondName().' '.$tblFromPerson->getLastName();
                     }
                 }
+            }
+            // comma decision
+            if($mother && $father){
+                $Content['P' . $personId]['Person']['Parent']['CommaSeparated'] = $mother.', '.$father;
+            } elseif($mother){
+                $Content['P' . $personId]['Person']['Parent']['CommaSeparated'] = $mother;
+            } elseif($father) {
+                $Content['P' . $personId]['Person']['Parent']['CommaSeparated'] = $father;
             }
         }
 
