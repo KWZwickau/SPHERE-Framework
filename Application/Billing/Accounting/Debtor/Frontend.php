@@ -177,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
                             'GroupId'  => $tblGroup->getId(),
                             'PersonId' => $tblPerson->getId(),
-                        ));
+                        ), 'Bearbeiten');
                         // get Debtor edit / delete options
                         if($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson)){
                             $NumberList = array();

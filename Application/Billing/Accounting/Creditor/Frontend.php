@@ -71,11 +71,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['BankName'] = $tblCreditor->getBankName();
                 $Item['IBAN'] = $tblCreditor->getIBAN();
                 $Item['BIC'] = $tblCreditor->getBIC();
-                $Item['Option'] = (new Link('', ApiCreditor::getEndpoint(), new Pencil(), array(), 'bearbeiten'))
+                $Item['Option'] = (new Link('', ApiCreditor::getEndpoint(), new Pencil(), array(), 'Bearbeiten'))
                         ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenEditCreditorModal('editCreditor',
                             $tblCreditor->getId()))
                     .'|'
-                    .(new Link(new DangerText(new Disable()), ApiCreditor::getEndpoint(), null, array(), 'entfernen'))
+                    .(new Link(new DangerText(new Disable()), ApiCreditor::getEndpoint(), null, array(), 'Entfernen'))
                         ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenDeleteCreditorModal('editCreditor',
                             $tblCreditor->getId()));
                 array_push($tableContent, $Item);

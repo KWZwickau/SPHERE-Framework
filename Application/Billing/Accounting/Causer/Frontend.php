@@ -243,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
                             'GroupId'  => $tblGroup->getId(),
                             'PersonId' => $tblPerson->getId()
-                        ));
+                        ), 'Bearbeiten');
                         $Item['Option'] .= (new Standard('', ApiCauser::getEndpoint(), new Statistic(), array(), 'Historie'))
                         ->ajaxPipelineOnClick(ApiCauser::pipelineOpenCauserModal($tblPerson->getId()));
                         $i++;

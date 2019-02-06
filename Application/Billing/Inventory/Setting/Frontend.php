@@ -119,6 +119,9 @@ class Frontend extends Extension implements IFrontendInterface
         return 'Personengruppen konnten nicht geladen werden.';
     }
 
+    /**
+     * @return Danger|string
+     */
     public function formPersonGroup()
     {
         if(($tblSettingGroupList = Setting::useService()->getSettingGroupPersonAll())){
@@ -179,52 +182,31 @@ class Frontend extends Extension implements IFrontendInterface
     public function displaySetting()
     {
 
-        $LayoutColumnList = array();
         $tblSettingList = Setting::useService()->getSettingAll();
 
-        //ToDO Display Test entfernen
-
-        $Table = '<table>';
+        $Listing = array();
         foreach($tblSettingList as &$tblSetting){
             switch($tblSetting->getIdentifier()){
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
-                    $LayoutColumnList[] = new LayoutColumn(new Bold(($tblSetting->getValue()
-                            ? new SuccessText($tblSetting->getValue())
-                            : new DangerText('Nicht hinterlegt!')))
-                        .' Länge der Debit.-Nr. '
-                        , 12);
-                    $Table .= '<tr><td>&nbsp;'.
-                        new Bold(($tblSetting->getValue()
-                            ? new SuccessText($tblSetting->getValue())
-                            : new DangerText('Nicht hinterlegt!')))
-                        .'&nbsp;</td><td>&nbsp;Länge der Debit.-Nr.</td></tr>';
+                    $Listing[] = '&nbsp;Länge der Debit.-Nr.: &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                        ? new SuccessText($tblSetting->getValue())
+                        : new DangerText('Nicht hinterlegt!')));
                 break;
                 case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
-                    $LayoutColumnList[] = new LayoutColumn(new Bold(
-                        ($tblSetting->getValue() ? new SuccessText(new Check()) : new DangerText(new Unchecked())))
-                        .' Debit.-Nr. ist eine Pflichtangabe'
-                        , 12);
-                    $Table .= '<tr><td>&nbsp;'.
-                        new Bold(($tblSetting->getValue()
-                            ? new SuccessText(new Check())
-                            : new DangerText(new Unchecked())))
-                        .'&nbsp;</td><td>&nbsp;Debit.-Nr. ist eine Pflichtangabe</td></tr>';
+                    $Listing[] = '&nbsp;Debit.-Nr. ist eine Pflichtangabe: &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                        ? new SuccessText(new Check())
+                        : new DangerText(new Unchecked())));
                 break;
                 case TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED:
-                    $LayoutColumnList[] = new LayoutColumn(new Bold(
-                        ($tblSetting->getValue() ? new SuccessText(new Check()) : new DangerText(new Unchecked())))
-                        .' Konto für SEPA-Lastschrift ist eine Pflichtangabe'
-                        , 12);
-                    $Table .= '<tr><td>&nbsp;'.
-                        new Bold(($tblSetting->getValue()
-                            ? new SuccessText(new Check())
-                            : new DangerText(new Unchecked())))
-                        .'&nbsp;</td><td>&nbsp;Konto für SEPA-Lastschrift ist eine Pflichtangabe</td></tr>';
+                    $Listing[] ='&nbsp;Konto für SEPA-Lastschrift ist eine Pflichtangabe: &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                        ? new SuccessText(new Check())
+                        : new DangerText(new Unchecked())));
                 break;
             }
         }
-        $Table .= '</table>';
-        $SettingList = new Layout(new LayoutGroup(new LayoutRow($LayoutColumnList)));
         return new Layout(new LayoutGroup(array(
             new LayoutRow(
                 new LayoutColumn(
@@ -233,8 +215,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ->ajaxPipelineOnClick(ApiSetting::pipelineShowFormSetting()))
                 )
             ),
-            new LayoutRow(new LayoutColumn(new Well($SettingList))),
-            new LayoutRow(new LayoutColumn(new Well($Table)))
+            new LayoutRow(new LayoutColumn(new Well(new Listing($Listing)), 6))
         )));
     }
 
@@ -244,27 +225,21 @@ class Frontend extends Extension implements IFrontendInterface
     public function formSetting()
     {
 
-        $inputList = array();
+        $elementList = array();
         $tblSettingList = Setting::useService()->getSettingAll();
         foreach($tblSettingList as &$tblSetting){
             switch($tblSetting->getIdentifier()){
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
-                    $inputList[] = new FormColumn(
-                        new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debit.-Nr.')
-                    );
+                    $elementList[] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debit.-Nr.');
                     break;
                 case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
                     $_POST['Setting'][TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED] = $tblSetting->getValue();
-                    $inputList[] = new FormColumn(
-                        new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debit.-Nr. ist eine Pflichtangabe', true)
-                    );
+                    $elementList[] = new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debit.-Nr. ist eine Pflichtangabe', true);
                     break;
                 case TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED:
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED] = $tblSetting->getValue();
-                    $inputList[] = new FormColumn(
-                        new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED.']', 'Konto für SEPA-Lastschrift ist eine Pflichtangabe', true)
-                    );
+                    $elementList[] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED.']', 'Konto für SEPA-Lastschrift ist eine Pflichtangabe', true);
                     break;
             }
         }
@@ -277,7 +252,7 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutRow(
                 new LayoutColumn(new Well(
                     (new Form(new FormGroup(array(
-                        new FormRow($inputList),
+                        new FormRow(new FormColumn($elementList, 12)),
                         new FormRow(new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             (new Primary('Speichern', ApiSetting::getEndpoint(), new Save()))
                                 ->ajaxPipelineOnClick(ApiSetting::pipelineSaveSetting())
@@ -285,7 +260,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ->ajaxPipelineOnClick(ApiSetting::pipelineShowSetting())
                         ))))))
                     ))))->disableSubmitAction()
-                ))
+                ), 6)
             )
         )));
     }

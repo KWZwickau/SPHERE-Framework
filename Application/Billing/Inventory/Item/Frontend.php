@@ -81,7 +81,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblItemAll, function(TblItem $tblItem) use (&$TableContent){
 
                 $Item['Name'] = $tblItem->getName()
-                    .(new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Bearbeiten der Beitragsart'))
+                    .(new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Beitragsart bearbeiten'))
                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditItemModal('editItem', $tblItem->getId()));
                 // darf die Beitragsart gelöscht werden?
                 if(!(Basket::useService()->getBasketItemAllByItem($tblItem))){
