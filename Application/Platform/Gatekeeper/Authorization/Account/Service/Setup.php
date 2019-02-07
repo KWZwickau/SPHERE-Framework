@@ -27,6 +27,7 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblAccount = $this->setTableAccount($Schema);
+        $this->setTableAccountInitial($Schema, $tblAccount);
         $tblIdentification = $this->setTableIdentification($Schema);
         $this->setTableSession($Schema, $tblAccount);
         $this->setTableAuthorization($Schema, $tblAccount);
@@ -134,6 +135,22 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblIdentification', 'IsActive')) {
             $Table->addColumn('IsActive', 'boolean', array('default' => 1));
         }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblAccount
+     *
+     * @return Table
+     */
+    private function setTableAccountInitial(Schema &$Schema, Table $tblAccount)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccountInitial');
+        $this->getConnection()->addForeignKey($Table, $tblAccount);
+        $this->createColumn($Table, 'Password', self::FIELD_TYPE_STRING);
+
         return $Table;
     }
 

@@ -5,6 +5,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccountInitial;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblGroup;
@@ -269,6 +270,21 @@ class Data extends AbstractData
         return $Entity;
     }
 
+    public function createAccountInitial(TblAccount $tblAccount)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblAccountInitial')->findOneBy(array(TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
+        if (null === $Entity) {
+            $Entity = new TblAccountInitial();
+            $Entity->setPassword($tblAccount->getPassword());
+            $Entity->setTblAccount($tblAccount);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
     /**
      * @param TblAccount        $tblAccount
      * @param TblIdentification $tblIdentification
@@ -481,6 +497,19 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccount', $Id);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblAccountInitial
+     */
+    public function getAccountInitialByAccount(TblAccount $tblAccount)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountInitial', array(
+            TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()
+        ));
     }
 
     /**
