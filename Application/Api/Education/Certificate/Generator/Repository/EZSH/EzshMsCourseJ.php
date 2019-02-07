@@ -91,7 +91,7 @@ class EzshMsCourseJ extends EzshStyle
                         self::getEZSHGradeInfo()
                     )
                     ->addSectionList(
-                        self::getEZSHArrangement($personId, '90px')
+                        self::getEZSHArrangement($personId, '80px')
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)
