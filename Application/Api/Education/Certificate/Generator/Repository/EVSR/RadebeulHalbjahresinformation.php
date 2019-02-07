@@ -243,10 +243,10 @@ class RadebeulHalbjahresinformation extends Certificate
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
-                                ->setContent('Leistung in den einzelnen Fächern')
+                                ->setContent('Leistung in den einzelnen Fächern:')
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextBold()
-                                ->styleTextSize('16px')
+                                ->styleTextSize($textSize)
                                 ->styleFontFamily($fontFamily)
                                 ->styleMarginTop('15px')
                             )
@@ -382,6 +382,7 @@ class RadebeulHalbjahresinformation extends Certificate
                                     Schulleiter(in)
                                 {% endif %}'
                                 )
+                                ->styleAlignCenter()
                                 ->styleFontFamily($fontFamily)
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextSize('10px')
@@ -396,6 +397,7 @@ class RadebeulHalbjahresinformation extends Certificate
                                     Klassenlehrer(in)
                                 {% endif %}'
                                 )
+                                ->styleAlignCenter()
                                 ->styleFontFamily($fontFamily)
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextSize('10px')
@@ -410,6 +412,7 @@ class RadebeulHalbjahresinformation extends Certificate
                                             &nbsp;
                                         {% endif %}'
                                 )
+                                ->styleAlignCenter()
                                 ->styleMarginTop('-3px')
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextSize('10px')
@@ -425,6 +428,7 @@ class RadebeulHalbjahresinformation extends Certificate
                                             &nbsp;
                                         {% endif %}'
                                 )
+                                ->styleAlignCenter()
                                 ->styleMarginTop('-3px')
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextSize('10px')
@@ -453,6 +457,7 @@ class RadebeulHalbjahresinformation extends Certificate
                                 , '30%')
                             ->addElementColumn((new Element())
                                 ->setContent('Personensorgeberechtigte/r')
+                                ->styleAlignCenter()
                                 ->styleMarginTop('-3px')
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextSize('10px')
@@ -472,7 +477,7 @@ class RadebeulHalbjahresinformation extends Certificate
                         ->styleTextColor($textColorBlue)
                         ->styleTextSize('10px')
                         ->styleFontFamily($fontFamily)
-                        ->styleMarginTop('0px')
+                        ->styleMarginTop('15px')
                     )
                 )
             );
