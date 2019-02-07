@@ -95,7 +95,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                             ->setContent(
                                 'im Freistaat Sachsen'
                             )
-                            ->styleMarginTop('-10px')
+                            ->styleMarginTop('-4px')
                             ->styleTextColor(self::TEXT_COLOR_BLUE)
                             ->styleTextSize('15px')
                             ->styleAlignCenter()
@@ -234,7 +234,7 @@ class RadebeulOsJahreszeugnis extends Certificate
             '8px',
             28,
             self::FONT_FAMILY,
-            '280px'
+            '265px'
         );
 
         $sliceArray[] = self::getOrientation($personId);
@@ -257,6 +257,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleTextSize(self::TEXT_SIZE)
                     ->styleFontFamily(self::FONT_FAMILY)
                     ->styleLineHeight(self::LINE_HEIGHT)
+                    ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('0px')
                     ->styleHeight($hasTransfer ? '25px' : '55px'))
             );
@@ -666,10 +667,10 @@ class RadebeulOsJahreszeugnis extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('Notenstufen: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend,
                                 5 = mangelhaft, 6 = ungenügend')
-                    ->styleTextSize('9px')
+                    ->styleTextSize('10px')
                     ->styleFontFamily($fontFamily)
                     ->styleTextColor(self::TEXT_COLOR_BLUE)
-                    ->styleMarginTop('0px')
+                    ->styleMarginTop('15px')
                 )
             );
     }
