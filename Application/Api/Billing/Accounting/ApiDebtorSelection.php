@@ -396,15 +396,17 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))
-            && $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt')){
+        $PersonTitle = '';
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $PersonTitle = ' für '.new Bold($tblPerson->getFirstName().' '.$tblPerson->getLastName());
+        }
+        if($tblPerson && $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt')){
             $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
-            // is Causer Person in Group "Bezahler"
-            if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
-                $DeborNumber = $this->getDebtorNumberByPerson($tblPerson);
-                $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
+            // SSW-466 Person darf immer zum Bezahler werden
+//            // is Causer Person in Group "Bezahler"
+//            if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
                 $PersonDebtorList[] = $tblPerson;
-            }
+//            }
             if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType))){
                 foreach($tblRelationshipList as $tblRelationship) {
@@ -447,6 +449,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     }
                 }
             }
+            // Beitragsverursacher steht immer am Schluss
+            $DeborNumber = $this->getDebtorNumberByPerson($tblPerson);
+            $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
         }
 
         $PostBankAccountId = false;
@@ -497,7 +502,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         return (new Form(
             new FormGroup(array(
                 new FormRow(
-                    new FormColumn(new Title($ItemName))
+                    new FormColumn(new Title($ItemName, $PersonTitle))
                 ),
                 new FormRow(array(
                     new FormColumn(
@@ -508,7 +513,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         , 6),
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
-                            $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))
+                            $SelectBoxDebtorList, null, true, null))
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
