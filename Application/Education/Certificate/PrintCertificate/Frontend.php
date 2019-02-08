@@ -423,7 +423,7 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_INFO
                         ),
                         new Panel(
-                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                            new Question() . ' Diese Zeugnisse wirklich drucken und revisionssicher abspeichern?',
                             $data,
                             Panel::PANEL_TYPE_DANGER,
                             (new External(
@@ -686,8 +686,8 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
 
             return $Stage
-            . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/Education/Certificate/PrintCertificate/History', Redirect::TIMEOUT_ERROR);
+                . new Danger('Person nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/PrintCertificate/History', Redirect::TIMEOUT_ERROR);
         }
     }
 
