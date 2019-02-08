@@ -131,6 +131,16 @@ class Frontend extends Extension implements IFrontendInterface
         $MonthList = Invoice::useService()->getMonthList();
         $tblItemAll = Item::useService()->getItemAll();
 
+//        $tblYear = false;
+//        $tblDivisionList = array();
+//        if(($tblYearList = Term::useService()->getYearByNow())){
+//            $tblYear = current($tblYearList);
+//        }
+//        if($tblYear){
+//            if(!($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))){
+//                $tblDivisionList = array();
+//            }
+//        }
         return new Well(
             new Title('Filterung für Belegdruck', '').
             new Form(
@@ -139,6 +149,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),
                         new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true, null), 4),
                         new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true, null), 4),
+//                        new FormColumn(new SelectBox('Balance[Division]', 'Klasse', array( '{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true, null), 4),
                     )),
                     new FormRow(array(
                         new FormColumn((new SelectBox('Balance[Item]', 'Beitragsart',
@@ -178,12 +189,12 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 //            $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
-            $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/MonthOverView/Download',
+            $Download = new PrimaryLink('Monatsansicht herunterladen', '/Api/Billing/Balance/Balance/MonthOverView/Download',
                 new Download(), array(
                     'Year'   => $Balance['Year'],
                     'Month'   => $Balance['Month']
                 ));
-            $DownloadYear = new PrimaryLink('Jahr Herunterladen', '/Api/Billing/Balance/Balance/YearOverView/Download',
+            $DownloadYear = new PrimaryLink('Jahr herunterladen', '/Api/Billing/Balance/Balance/YearOverView/Download',
                 new Download(), array(
                     'Year'   => $Balance['Year']
                 ));

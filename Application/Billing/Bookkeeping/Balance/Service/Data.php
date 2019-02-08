@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -81,9 +83,9 @@ class Data extends AbstractData
 
     /**
      * @param TblItem $tblItem
-     * @param         $Year
-     * @param         $MonthFrom
-     * @param         $MonthTo
+     * @param string  $Year
+     * @param string  $MonthFrom
+     * @param string  $MonthTo
      *
      * @return array|bool
      */
@@ -91,17 +93,14 @@ class Data extends AbstractData
     {
         $Manager = $this->getConnection()->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
+        $tblInvoice = new TblInvoice();
+        $tblInvoiceItemDebtor = new TblInvoiceItemDebtor();
 
-        // Test mit vielen Daten:
-//        $query = $queryBuilder->select('i.InvoiceNumber, i.IntegerNumber, i.Year, i.Month, i.TargetTime, i.FirstName,
-//         i.LastName, i.tblInvoiceCreditor as InvoiceCreditorId, i.serviceTblPersonCauser as PeronCauserId, iid.Id as tblInvoiceItemDebtorId
-//        ,iid.Name, iid.Value, iid.Quantity, iid.DebtorNumber, iid.DebtorPerson, iid.IsPaid, iid.serviceTblItem as ItemId,
-//         iid.serviceTblPersonDebtor as PersonDebtorId, iid.serviceTblPaymentType as PaymentTypeId, iid.tblInvoice as InvoiceId')
         $query = $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
              iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId')
-            ->from('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice', 'i')
-            ->leftJoin('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor', 'iid',
-                'WITH', 'i.Id = iid.tblInvoice')
+            ->from($tblInvoice->getEntityFullName(), 'i')
+            ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',
+                'WITH', 'iid.tblInvoice = i.Id')
             ->where($queryBuilder->expr()->eq('i.Year', '?1'))
             ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
             ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))

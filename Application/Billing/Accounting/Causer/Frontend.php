@@ -245,7 +245,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'PersonId' => $tblPerson->getId()
                         ), 'Bearbeiten');
                         $Item['Option'] .= (new Standard('', ApiCauser::getEndpoint(), new Statistic(), array(), 'Historie'))
-                        ->ajaxPipelineOnClick(ApiCauser::pipelineOpenCauserModal($tblPerson->getId()));
+                            ->ajaxPipelineOnClick(ApiCauser::pipelineOpenCauserModal($tblPerson->getId()));
                         $i++;
                         // Display Problem
 //                    if($i <= 2000){
@@ -275,11 +275,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $TableContent = array();
         if(($tblInvoiceList = Invoice::useService()->getInvoiceAllByPersonCauser($tblPerson))){
-            foreach($tblInvoiceList as $tblInvoice){
+            foreach($tblInvoiceList as $tblInvoice) {
                 $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
-                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
                         $item['Item'] = $tblInvoiceItemDebtor->getName();
                         $item['Price'] = $tblInvoiceItemDebtor->getPriceString();
                         $item['Quantity'] = $tblInvoiceItemDebtor->getQuantity();
@@ -303,11 +303,11 @@ class Frontend extends Extension implements IFrontendInterface
             $Table = new TableData($TableContent, null, array(
                 'InvoiceNumber' => 'Abr.-Nr.',
                 'Item'          => 'Beitragsart',
-                'Quantity'  => 'Menge',
-                'Price'     => new ToolTip('EP', 'Einzelpreis'),
-                'Summary'  => new ToolTip('GP', 'Gesamtpreis'),
+                'Quantity'      => 'Menge',
+                'Price'         => new ToolTip('EP', 'Einzelpreis'),
+                'Summary'       => new ToolTip('GP', 'Gesamtpreis'),
                 'Time'          => 'Abrechnungszeitraum',
-                'IsPaid'    => 'Offene Posten'
+                'IsPaid'        => 'Offene Posten'
             ), array(
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => array(0, 2, 3, 4)),
@@ -317,6 +317,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(
                     array(0, 'desc')
                 ),
+                'lengthMenu' => [[10, 12, 25, 50, 100, -1], [10, 12, 25, 50, 100, "All"]],
+                'pageLength' => 12
             ));
         }
 
