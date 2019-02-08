@@ -8,7 +8,7 @@
             link: '/Document/DataProtectionOrdinance', /* Link zu den eigenen Datenschutzbestimmungen */
             theme: 'hell-unten-rechts' /* weitere Theme-Optionen sind dunkel-unten oder dunkel-oben */
         };
-        if (!(document.cookie.indexOf("CookieHinweis_options") > -1)) {
+        if (!(document.cookie.indexOf("CookieHinweis_agree") > -1)) {
             window.update_CookieHinweis_options(window.CookieHinweis_options);
         }
 
