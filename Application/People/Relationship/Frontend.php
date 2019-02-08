@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Contact\ApiRelationshipToPerson;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -198,16 +199,38 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param IMessageInterface|null $message
+     * @param null $Post
      *
      * @return Layout
      */
-    public function loadExtraOptions(IMessageInterface $message = null)
+    public function loadExtraOptions(IMessageInterface $message = null, $Post = null)
     {
+
+        // todo post bei neuer Personenbeziehung vom Sorgeberechtigten
+
+        if ($Post) {
+            $global = $this->getGlobal();
+            $global->POST['Type']['Ranking'] = $Post;
+            $global->savePost();
+        }
+
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'People', 'Person', 'Relationship', 'GenderOfS1'
+            ))
+            && ($value = $tblSetting->getValue())
+        ) {
+            if (($genderSetting = Common::useService()->getCommonGenderById($value))) {
+                $genderSetting = $genderSetting->getName();
+            }
+        } else {
+            $genderSetting = '';
+        }
 
         return  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
                     new Bold('Merkmal') . new Danger(' *')
+                        . ($genderSetting ? new Muted('&nbsp;&nbsp;&nbsp; Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).') : '')
                 ),
             )),
             new LayoutRow(array(
@@ -251,8 +274,13 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
                 $resultList = array();
                 foreach ($tblPersonList as $tblPerson) {
+                    // todo onchange only by student, prospect
+                    // todo onchange wieder aktivieren
                     $resultList[] = array(
                         'Select' => new RadioBox('To', '&nbsp;', $tblPerson->getId()),
+//                        'Select' => (new RadioBox('To', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnChange(
+//                            ApiRelationshipToPerson::pipelineLoadExtraOptions()
+//                        ),
                         'FirstName' => $tblPerson->getFirstSecondName(),
                         'LastName' => $tblPerson->getLastName(),
                         'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : ''

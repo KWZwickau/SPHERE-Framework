@@ -320,4 +320,26 @@ class TblPerson extends Element
     {
         $this->CallName = $CallName;
     }
+
+    /**
+     * @return bool|string
+     */
+    public function getGenderNameFromGenderOrSalutation()
+    {
+        $genderString = $this->getGenderString();
+        if ($genderString == '') {
+            // Anrede prüfen
+            if (($salutation = $this->getSalutation())) {
+                if ($salutation == 'Herr') {
+                    return 'Männlich';
+                } elseif ($salutation == 'Frau') {
+                    return 'Weiblich';
+                }
+            }
+        } else {
+            return $genderString;
+        }
+
+        return false;
+    }
 }

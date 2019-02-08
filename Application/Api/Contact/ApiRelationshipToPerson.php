@@ -542,16 +542,30 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
 
     /**
      * @param $Type
+     * @param $To
      *
      * @return Layout|null
      */
-    public function loadExtraOptions($Type)
+    public function loadExtraOptions($Type, $To)
     {
         if ($Type['Type'] == TblType::CHILD_ID
             || (($tblType = Relationship::useService()->getTypeById($Type['Type']))
                 && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN)
         ) {
-            return (new Frontend())->loadExtraOptions();
+            // todo Mandanteneinstellung was ist S1, Standard weiblich
+            $post = null;
+            if ($To
+                && ($tblPersonTo = Person::useService()->getPersonById($To))
+                && ($genderName = $tblPersonTo->getGenderNameFromGenderOrSalutation())
+            ) {
+                if ($genderName == 'Weiblich') {
+                    $post = 1;
+                } elseif ($genderName == 'Männlich') {
+                    $post = 2;
+                }
+            }
+
+            return (new Frontend())->loadExtraOptions(null, $post);
         }
 
         return null;

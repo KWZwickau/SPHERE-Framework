@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\Consumer\Setting;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
@@ -104,6 +105,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $field = false;
                 if ($tblSetting->getIdentifier() == 'Format_GuiString') {
                     $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxContent));
+                } elseif ($tblSetting->getIdentifier() == 'GenderOfS1') {
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' =>
+                        Common::useService()->getCommonGenderAll()
+                    ));
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $field = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
@@ -199,6 +204,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $value = 'PLZ_ORT_OT_STR_NR';
                             } elseif ($value == TblAddress::VALUE_OT_STR_NR_PLZ_ORT) {
                                 $value = 'OT_STR_NR_PLZ_ORT';
+                            }
+                        } elseif ($tblSetting->getIdentifier() == 'GenderOfS1') {
+                            if ($value && ($tblCommonGender = Common::useService()->getCommonGenderById($value))) {
+                                $value = $tblCommonGender->getName();
                             }
                         } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                             if ($value === '0') {

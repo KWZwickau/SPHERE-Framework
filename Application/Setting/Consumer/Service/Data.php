@@ -31,6 +31,9 @@ class Data extends AbstractData
                 In diesem Fall können die Schülernummern nicht per Hand vergeben werden. [Standard: Nein]');
         }
 
+        $this->createSetting('People', 'Person', 'Relationship', 'GenderOfS1', TblSetting::TYPE_INTEGER, 2, 'Allgemein',
+            'Für Personbeziehungen vom Typ: Sorgeberechtigt wird das folgende Geschlecht für S1 vorausgewählt. [Standard: Weiblich]', true);
+
         if (($tblSetting = $this->createSetting('Transfer', 'Indiware', 'Import',
             'Lectureship_ConvertDivisionLatinToGreek', TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Indiware',

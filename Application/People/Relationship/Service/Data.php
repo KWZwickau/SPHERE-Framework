@@ -394,12 +394,14 @@ class Data extends AbstractData
             $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
         }
 
+        $orderBy = array('Ranking' => self::ORDER_ASC);
+
         if ($isForced) {
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         }
     }
 
@@ -419,12 +421,14 @@ class Data extends AbstractData
             $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
         }
 
+        $orderBy = array('Ranking' => self::ORDER_ASC);
+
         if ($isForced) {
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         }
     }
 
