@@ -106,14 +106,14 @@ class Service extends AbstractService
         $ResultList = $this->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
         foreach($ResultList as $Key => $RowContent) {
             $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
-            $PeronCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
+            $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
             $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
-            if($PersonDebtorId && $PeronCauserId && $timeString){
+            if($PersonDebtorId && $PersonCauserId && $timeString){
                 if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']){
-                    $PriceList[$PersonDebtorId][$PeronCauserId]['Sum'][] = $RowContent['Value'];
-                    $PriceList[$PersonDebtorId][$PeronCauserId]['Price'][$timeString] = $RowContent['Value'];
+                    $PriceList[$PersonDebtorId][$PersonCauserId]['Sum'][] = $RowContent['Value'];
+                    $PriceList[$PersonDebtorId][$PersonCauserId]['Price'][$timeString] = $RowContent['Value'];
                 } else {
-                    $PriceList[$PersonDebtorId][$PeronCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    $PriceList[$PersonDebtorId][$PersonCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
                 }
             }
         }
@@ -246,6 +246,7 @@ class Service extends AbstractService
                             if(($tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPersonDebtor))){
                                 $Item['StreetName'] = $tblAddress->getStreetName();
                                 $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                                $Item['Street'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
                                 $Item['Code'] = $tblAddress->getTblCity()->getCode();
                                 $Item['City'] = $tblAddress->getTblCity()->getName();
                                 $Item['District'] = $tblAddress->getTblCity()->getDistrict();
@@ -274,7 +275,6 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Summe");
             $export->setValue($export->getCell($column++, $row), "Straße");
-            $export->setValue($export->getCell($column++, $row), "Str.Nr.");
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Stadt");
             $export->setValue($export->getCell($column++, $row), "Ortsteil");
@@ -293,8 +293,7 @@ class Service extends AbstractService
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['Value']);
 
-                $export->setValue($export->getCell($column++, $row), $PersonData['StreetName']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['Code']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['City']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['District']);
@@ -451,10 +450,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblItem $tblItem
-     * @param         $Year
-     * @param         $MonthFrom
-     * @param         $MonthTo
+     * @param TblItem      $tblItem
+     * @param string       $Year
+     * @param string       $MonthFrom
+     * @param string       $MonthTo
      *
      * @return array|bool
      */

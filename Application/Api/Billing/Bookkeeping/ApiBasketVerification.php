@@ -491,6 +491,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $SelectBoxDebtorList = array();
         $tblBankReferenceList = array();
         $ItemName = '';
+        $PersonTitle = '';
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
 
             $tblItem = $tblBasketVerification->getServiceTblItem();
@@ -521,15 +522,16 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
                 }
             }
+            if($tblPersonCauser){
+                $PersonTitle = ' für '.new Bold($tblPersonCauser->getFirstName().' '.$tblPersonCauser->getLastName());
+            }
             if($tblPersonCauser
                 && $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt')){
                 $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
                 // is Causer Person in Group "Bezahler"
-                if(Group::useService()->getMemberByPersonAndGroup($tblPersonCauser, $tblGroup)){
-                    $DeborNumber = $this->getDebtorNumberByPerson($tblPersonCauser);
-                    $SelectBoxDebtorList[$tblPersonCauser->getId()] = $tblPersonCauser->getLastFirstName().' '.$DeborNumber;
-                    $PersonDebtorList[] = $tblPersonCauser;
-                }
+//                if(Group::useService()->getMemberByPersonAndGroup($tblPersonCauser, $tblGroup)){
+                $PersonDebtorList[] = $tblPersonCauser;
+//                }
                 if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonCauser,
                     $tblRelationshipType))){
                     foreach($tblRelationshipList as $tblRelationship) {
@@ -571,6 +573,10 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         }
                     }
                 }
+
+                // Beitragsverursacher steht immer am Schluss
+                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonCauser);
+                $SelectBoxDebtorList[$tblPersonCauser->getId()] = $tblPersonCauser->getLastFirstName().' '.$DeborNumber;
             }
 
             if($tblPersonCauser){
@@ -623,7 +629,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         return (new Form(
             new FormGroup(array(
                 new FormRow(
-                    new FormColumn(new Title($ItemName))
+                    new FormColumn(new Title($ItemName, $PersonTitle))
                 ),
                 new FormRow(array(
                     new FormColumn(
