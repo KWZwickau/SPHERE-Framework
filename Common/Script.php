@@ -266,7 +266,7 @@ class Script extends Extension
             "'undefined' !== typeof bootbox"
         );
         $this->setSource('CookieScript', '/Library/CookieScript/CookieScript.js',
-            "'undefined' !== typeof window.hasCookieConsent"
+            "'undefined' !== typeof window.hasCookieHinweis"
         );
 
         /**
