@@ -15,10 +15,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -27,7 +28,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblItemType = $this->setTableItemType($Schema);
         $tblItem = $this->setTableItem($Schema, $tblItemType);
-        $this->setTableItemGroup($Schema, $tblItemType);
+        $this->setTableItemGroup($Schema, $tblItem);
         $tblVariant = $this->setTableItemVariant($Schema, $tblItem);
         $this->setTableItemCalculation($Schema, $tblVariant);
         $this->setTableItemAccount($Schema, $tblItem);
@@ -36,7 +37,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -90,7 +95,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblItem
+     * @param Table  $tblItem
      *
      * @return Table
      */
@@ -99,7 +104,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->createTable($Schema, 'tblItemVariant');
 
-        $this->createColumn($Table, 'Name', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
         $this->createForeignKey($Table, $tblItem, true);
 
         return $Table;
@@ -107,7 +113,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblVariant
+     * @param Table  $tblVariant
      *
      * @return Table
      */
@@ -115,12 +121,12 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblItemCalculation');
-        if (!$this->getConnection()->hasColumn('tblItemCalculation', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblItemCalculation', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'DateTo', self::FIELD_TYPE_DATETIME, true);
-        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
         $this->createForeignKey($Table, $tblVariant, true);
 
         return $Table;

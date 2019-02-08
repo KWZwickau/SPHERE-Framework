@@ -2,22 +2,17 @@
 
 namespace SPHERE\Application\Billing\Inventory\Item;
 
-use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Data;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Item\Service\Setup;
-use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Window\Redirect;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -30,17 +25,20 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
-
         return $Protocol;
     }
 
@@ -53,6 +51,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getItemById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return bool|TblItem
+     */
+    public function getItemByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getItemByName($Name);
     }
 
     /**
@@ -69,7 +78,7 @@ class Service extends AbstractService
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblItemGroup
+     * @return bool|TblItemGroup[]
      */
     public function getItemGroupByItem(TblItem $tblItem)
     {
@@ -78,14 +87,57 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblItemVariant
+     */
+    public function getItemVariantById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getItemVariantById($Id);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblItemVariant[]
+     */
+    public function getItemVariantByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getItemVariantByItem($tblItem);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string  $Name
+     *
+     * @return bool|TblItemVariant
+     */
+    public function getItemVariantByItemAndName(TblItem $tblItem, $Name)
+    {
+
+        return (new Data($this->getBinding()))->getItemVariantByItemAndName($tblItem, $Name);
+    }
+
+    /**
      * @param TblGroup $tblGroup
      *
-     * @return bool|TblItemGroup
+     * @return bool|TblItemGroup[]
      */
     public function getItemGroupByGroup(TblGroup $tblGroup)
     {
 
         return (new Data($this->getBinding()))->getItemGroupByGroup($tblGroup);
+    }
+
+    /**
+     * @return bool|TblItemGroup[]
+     */
+    public function getItemGroupAll()
+    {
+
+        return (new Data($this->getBinding()))->getItemGroupAll();
     }
 
     /**
@@ -124,10 +176,50 @@ class Service extends AbstractService
      *
      * @return bool|TblItemCalculation
      */
-    public function getCalculationById($Id)
+    public function getItemCalculationById($Id)
     {
 
-        return (new Data($this->getBinding()))->getCalculationById($Id);
+        return (new Data($this->getBinding()))->getItemCalculationById($Id);
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return bool|TblItemCalculation[]
+     */
+    public function getItemCalculationByItemVariant(TblItemVariant $tblItemVariant)
+    {
+
+        return (new Data($this->getBinding()))->getItemCalculationByItemVariant($tblItemVariant);
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return bool|TblItemCalculation
+     */
+    public function getItemCalculationNowByItemVariant(TblItemVariant $tblItemVariant)
+    {
+
+        $tblItemCalculationActive = false;
+        $tblItemCalculationList = (new Data($this->getBinding()))->getItemCalculationByItemVariant($tblItemVariant);
+        if($tblItemCalculationList){
+            foreach($tblItemCalculationList as $tblItemCalculation) {
+                $now = new \DateTime();
+                $from = new \DateTime($tblItemCalculation->getDateFrom());
+                if(($tblItemCalculation->getDateTo())){
+                    $to = new \DateTime($tblItemCalculation->getDateTo());
+                } else {
+                    $to = false;
+                }
+                if($from <= $now && $to && $to >= $now){
+                    $tblItemCalculationActive = $tblItemCalculation;
+                } elseif($from <= $now && !$to && false === $tblItemCalculationActive) {
+                    $tblItemCalculationActive = $tblItemCalculation;
+                }
+            }
+        }
+        return $tblItemCalculationActive;
     }
 
     /**
@@ -151,42 +243,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblItemCalculation[]
-     */
-    public function getCalculationAllByItem(TblItem $tblItem)
-    {
-
-        return false;
-        return (new Data($this->getBinding()))->getCalculationAllByItem($tblItem);
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblItemCalculation
-     */
-    public function getCalculationStandardValueAllByItem(TblItem $tblItem)
-    {
-
-        return false;
-        return (new Data($this->getBinding()))->getCalculationStandardValueAllByItem($tblItem);
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return int
-     */
-    public function countCalculationByItem(TblItem $tblItem)
-    {
-
-        return false;
-        return (new Data($this->getBinding()))->countCalculationByItem($tblItem);
-    }
-
-    /**
      * @param $Id
      *
      * @return bool|TblItemAccount
@@ -198,316 +254,221 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Stage
-     * @param array          $Item
+     * @param TblPerson $tblPerson
      *
-     * @return IFormInterface|string
+     * @return TblItem[]|bool
      */
-    public function createItem(IFormInterface &$Stage = null, $Item)
+    public function getItemAllByPerson(TblPerson $tblPerson)
     {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Item
-        ) {
-            return $Stage;
-        }
-
-        $Error = false;
-
-        if (isset( $Item['Name'] ) && empty( $Item['Name'] )) {
-            $Stage->setError('Item[Name]', 'Bitte geben Sie einen Artikel-Namen an');
-            $Error = true;
-        }
-        if ($this->existsItem($Item['Name'])) {
-            $Stage->setError('Item[Name]', 'Bitte geben Sie einen nicht vergebenen Artikel-Namen an');
-            $Error = true;
-        }
-        if (isset( $Item['Value'] ) && empty( $Item['Value'] )) {
-            $Stage->setError('Item[Value]', 'Bitte geben Sie einen Standard-Preis an');
-            $Error = true;
-        } else {
-            $Item['Value'] = str_replace(',', '.', $Item['Value']);
-            if (!is_numeric($Item['Value']) || $Item['Value'] < 0) {
-                $Stage->setError('Item[Value]', 'Bitte geben Sie eine Natürliche Zahl an');
-                $Error = true;
-            }
-        }
-        if (!$Error) {
-
-            $tblItemType = Item::useService()->getItemTypeByName($Item['ItemType']);
-            $tblItem = (new Data($this->getBinding()))->createItem(
-                $tblItemType,
-                $Item['Name'],
-                $Item['Description']);
-            $tblCalculation = (new Data($this->getBinding()))->createCalculation($Item['Value']);
-            (new Data($this->getBinding()))->createItemCalculation($tblItem, $tblCalculation);
-            return new Success('Der Artikel wurde erfolgreich angelegt')
-            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
-        }
-        return $Stage;
-    }
-
-    /**
-     * @param TblItemCalculation $tblCalculation
-     * @param TblItem        $tblItem
-     *
-     * @return bool
-     */
-    public function destroyCalculation(TblItemCalculation $tblCalculation, TblItem $tblItem)
-    {
-
-        if (null === $tblCalculation) {
-            return false;
-        }
-
-        if ((new Data($this->getBinding()))->destroyCalculation($tblCalculation, $tblItem)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param IFormInterface $Stage
-     * @param TblItem        $tblItem
-     * @param                $Item
-     *
-     * @return IFormInterface|string
-     */
-    public function changeItem(IFormInterface &$Stage = null, TblItem $tblItem, $Item)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Item
-        ) {
-            return $Stage;
-        }
-
-        $Error = false;
-
-        if (isset( $Item['Name'] ) && empty( $Item['Name'] )) {
-            $Stage->setError('Item[Name]', 'Bitte geben Sie einen Artikel-Namen an');
-            $Error = true;
-        }
-//        if (isset( $Item['ItemType'] ) && empty( $Item['ItemType'] )) {
-//            $Stage->setError('Item[ItemType]', 'Art des Artikels wird benötigt');
-//            $Error = true;
-//        }
-        if ($this->existsItem($Item['Name'])) {
-            $Ref = $this->existsItem($Item['Name']);
-            if ($Ref) {
-                if ($Ref->getId() === $tblItem->getId()) {
-
-                } else {
-                    $Stage->setError('Item[Name]', 'Bitte geben Sie einen nicht vergebenen Artikel-Namen an');
-                    $Error = true;
+        $ItemList = array();
+        if(($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))){
+            foreach($tblGroupList as $tblGroup) {
+                if(($tblItemGroupList = $this->getItemGroupByGroup($tblGroup))){
+                    foreach($tblItemGroupList as $tblItemGroup) {
+                        if(($tblItem = $tblItemGroup->getTblItem())){
+                            $ItemList[$tblItem->getId()] = $tblItem;
+                        }
+                    }
                 }
             }
         }
 
-        if (!$Error) {
-            if ((new Data($this->getBinding()))->updateItem(
-                $tblItem,
-                $Item['Name'],
-                $Item['Description']
-            )
-            ) {
-                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
-            };
-        }
-        return $Stage;
+        return (empty($ItemList) ? false : $ItemList);
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param TblItem             $tblItem
-     * @param TblItemCalculation      $tblCalculation
-     * @param array               $Calculation
+     * @param string $ItemName
+     * @param string $Description
      *
-     * @return IFormInterface|string
+     * @return TblItem
      */
-    public function changeCalculation(
-        IFormInterface &$Stage = null,
-        TblItem $tblItem,
-        TblItemCalculation $tblCalculation,
-        $Calculation
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Calculation
-        ) {
-            return $Stage;
-        }
-
-        $Error = false;
-
-        if (isset( $Calculation['Value'] ) && empty( $Calculation['Value'] )) {
-            $Stage->setError('Calculation[Value]', 'Bitte geben Sie einen Artikel-Preis an');
-            $Error = true;
-        } else {
-            $Calculation['Value'] = str_replace(',', '.', $Calculation['Value']);
-            if (!is_numeric($Calculation['Value']) || $Calculation['Value'] < 0) {
-                $Stage->setError('Calculation[Value]', 'Bitte geben Sie eine Natürliche Zahl an');
-                $Error = true;
-            }
-        }
-
-        if (!$Error) {
-            if ((new Data($this->getBinding()))->updateCalculation(
-                $tblCalculation,
-                $Calculation['Value']
-            )
-            ) {
-                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblItem->getId()));
-            } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblItem->getId()));
-            };
-        }
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblItem             $tblItem
-     * @param array               $Calculation
-     *
-     * @return IFormInterface|string
-     */
-    public function createCalculation(IFormInterface &$Stage = null, TblItem $tblItem, $Calculation)
+    public function createItem($ItemName, $Description = '')
     {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Calculation
-        ) {
-            return $Stage;
-        }
-        $Error = false;
+        // ToDO Standard Einzelleistung (later choosable)
+        $tblItemType = Item::useService()->getItemTypeByName(TblItemType::TYPE_SINGLE);
+        return (new Data($this->getBinding()))->createItem($tblItemType, $ItemName, $Description);
+    }
 
-        if (isset( $Calculation['Value'] ) && empty( $Calculation['Value'] )) {
-            $Stage->setError('Calculation[Value]', 'Bitte geben Sie einen Artikel-Preis an');
-            $Error = true;
-        } else {
-            $Calculation['Value'] = str_replace(',', '.', $Calculation['Value']);
-            if (!is_numeric($Calculation['Value']) || $Calculation['Value'] < 0) {
-                $Stage->setError('Calculation[Value]', 'Bitte geben Sie eine Natürliche Zahl an');
-                $Error = true;
-            }
-        }
+    /**
+     * @param TblItem  $tblItem
+     * @param TblGroup $tblGroup
+     *
+     * @return TblItemGroup
+     */
+    public function createItemGroup(TblItem $tblItem, TblGroup $tblGroup)
+    {
 
-//        if (!isset( $Calculation['SchoolType'] ) && !isset( $Calculation['SiblingRank'] )) {
-//            $Calculation['SchoolType'] = '0';
-//            $Calculation['SiblingRank'] = '0';
-//        }
-
-        if ($this->existsCalculation($tblItem, $Calculation['SchoolType'], $Calculation['SiblingRank'])) {
-            $Stage->setError('Calculation[SchoolType]', 'Bedingungskombination vorhanden');
-            $Stage->setError('Calculation[SiblingRank]', 'Bedingungskombination vorhanden');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            $tblType = Type::useService()->getTypeById($Calculation['SchoolType']);
-            if (!$tblType) {
-                $tblType = null;
-            }
-            $tblSiblingRank = Relationship::useService()->getSiblingRankById($Calculation['SiblingRank']);
-            if (!$tblSiblingRank) {
-                $tblSiblingRank = null;
-            }
-            $tblCalculation = (new Data($this->getBinding()))->createCalculation(
-                $Calculation['Value'],
-                $tblType,
-                $tblSiblingRank);
-            if ($tblCalculation) {
-                (new Data($this->getBinding()))->createItemCalculation($tblItem, $tblCalculation);
-                $Stage .= new Success('Gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblItem->getId()));
-
-            } else {
-                $Stage .= new Danger('Es konnten nicht gespeichert werden.
-                                        Möglicherweise gibt es die Bedingungskombination schon')
-                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblItem->getId()));
-            };
-        }
-        return $Stage;
+        return (new Data($this->getBinding()))->createItemGroup($tblItem, $tblGroup);
     }
 
     /**
      * @param TblItem $tblItem
-     * @param         $SchoolType
-     * @param         $SiblingRank
+     * @param string  $Name
+     * @param string  $Description
      *
-     * @return bool|TblItemCalculation
+     * @return TblItemVariant
      */
-    public function existsCalculation(TblItem $tblItem, $SchoolType, $SiblingRank)
+    public function createItemVariant(TblItem $tblItem, $Name, $Description = '')
     {
 
-        return false;
-        return (new Data($this->getBinding()))->existsCalculation($tblItem, $SchoolType, $SiblingRank);
+        return (new Data($this->getBinding()))->createItemVariant($tblItem, $Name, $Description);
     }
 
     /**
-     * @param $Name
+     * @param TblItemVariant $tblItemVariant
+     * @param string         $Value
+     * @param string         $DateFrom
+     * @param string         $DateTo
      *
-     * @return bool|TblItem
+     * @return TblItemCalculation
      */
-    public function existsItem($Name)
+    public function createItemCalculation(TblItemVariant $tblItemVariant, $Value, $DateFrom, $DateTo = '')
     {
 
-        return (new Data($this->getBinding()))->existsItem($Name);
+        // set Komma as Possible Input
+        $Value = str_replace(',', '.', $Value);
+        return (new Data($this->getBinding()))->createItemCalculation($tblItemVariant, $Value, $DateFrom, $DateTo);
     }
 
     /**
-     * @param TblItemAccount $tblItemAccount
+     * @param TblItem $tblItem
+     * @param         $ItemName
      *
      * @return string
      */
-    public function removeItemAccount(TblItemAccount $tblItemAccount)
+    public function changeItem(TblItem $tblItem, $ItemName)
     {
 
-        if ((new Data($this->getBinding()))->removeItemAccount($tblItemAccount)) {
-            return new Success('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblItemAccount->getTblItem()->getId()));
-        } else {
-            return new Warning('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblItemAccount->getTblItem()->getId()));
-        }
+        return (new Data($this->getBinding()))->updateItem($tblItem, $ItemName, '');
     }
 
     /**
-     * @param TblItem    $tblItem
-     * @param TblAccount $tblAccount
+     * @param TblItemVariant $tblItemVariant
+     * @param                $Name
+     * @param                $Description
      *
-     * @return string
+     * @return bool
      */
-    public function addItemToAccount(TblItem $tblItem, TblAccount $tblAccount)
+    public function changeItemVariant(TblItemVariant $tblItemVariant, $Name, $Description)
     {
 
-        if ((new Data($this->getBinding()))->addItemAccount($tblItem, $tblAccount)) {
-            return new Success('Das FIBU-Konto '.$tblAccount->getDescription().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblItem->getId()));
-        } else {
-            return new Warning('Das FIBU-Konto '.$tblAccount->getDescription().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblItem->getId()));
-        }
+        return (new Data($this->getBinding()))->updateItemVariant($tblItemVariant, $Name, $Description);
     }
+
+
+    /**
+     * @param TblItemCalculation $tblItemCalculation
+     * @param string             $Value
+     * @param string             $DateFrom
+     * @param string             $DateTo
+     *
+     * @return bool
+     */
+    public function changeItemCalculation(TblItemCalculation $tblItemCalculation, $Value, $DateFrom, $DateTo = '')
+    {
+
+        return (new Data($this->getBinding()))->updateItemCalculation($tblItemCalculation, $Value, $DateFrom, $DateTo);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool
+     */
+    public function removeItem(TblItem $tblItem)
+    {
+
+        // remove tblItemGroup
+        if(($tblItemGroupPersonList = $this->getItemGroupByItem($tblItem))){
+            foreach($tblItemGroupPersonList as $tblItemGroupPerson) {
+                $this->removeItemGroup($tblItemGroupPerson);
+            }
+        }
+        // remove tblItemVariant
+        if(($tblItemVariantList = $this->getItemVariantByItem($tblItem))){
+            foreach($tblItemVariantList as $tblItemVariant) {
+                $this->removeItemVariant($tblItemVariant);
+            }
+        }
+        // remove tblItem
+        return (new Data($this->getBinding()))->removeItem($tblItem);
+    }
+
+    /**
+     * @param TblItemGroup $tblItemGroup
+     *
+     * @return bool
+     */
+    public function removeItemGroup(TblItemGroup $tblItemGroup)
+    {
+
+        return (new Data($this->getBinding()))->removeItemGroup($tblItemGroup);
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return bool
+     */
+    public function removeItemVariant(TblItemVariant $tblItemVariant)
+    {
+        // remove tblItemCalculation
+        if(($tblItemCalculationList = $this->getItemCalculationByItemVariant($tblItemVariant))){
+            foreach($tblItemCalculationList as $tblItemCalculation) {
+                $this->removeItemCalculation($tblItemCalculation);
+            }
+        }
+
+        return (new Data($this->getBinding()))->removeItemVariant($tblItemVariant);
+    }
+
+    /**
+     * @param TblItemCalculation $tblItemCalculation
+     *
+     * @return bool
+     */
+    public function removeItemCalculation(TblItemCalculation $tblItemCalculation)
+    {
+
+        return (new Data($this->getBinding()))->removeItemCalculation($tblItemCalculation);
+    }
+
+//    /**
+//     * @param TblItemAccount $tblItemAccount
+//     *
+//     * @return string
+//     */
+//    public function removeItemAccount(TblItemAccount $tblItemAccount)
+//    {
+//
+//        if ((new Data($this->getBinding()))->removeItemAccount($tblItemAccount)) {
+//            return new Success('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' wurde erfolgreich entfernt')
+//            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_SUCCESS,
+//                array('Id' => $tblItemAccount->getTblItem()->getId()));
+//        } else {
+//            return new Warning('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' konnte nicht entfernt werden')
+//            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR,
+//                array('Id' => $tblItemAccount->getTblItem()->getId()));
+//        }
+//    }
+
+//    /**
+//     * @param TblItem    $tblItem
+//     * @param TblAccount $tblAccount
+//     *
+//     * @return string
+//     */
+//    public function addItemToAccount(TblItem $tblItem, TblAccount $tblAccount)
+//    {
+//
+//        if ((new Data($this->getBinding()))->addItemAccount($tblItem, $tblAccount)) {
+//            return new Success('Das FIBU-Konto '.$tblAccount->getDescription().' wurde erfolgreich hinzugefügt')
+//            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblItem->getId()));
+//        } else {
+//            return new Warning('Das FIBU-Konto '.$tblAccount->getDescription().' konnte nicht entfernt werden')
+//            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblItem->getId()));
+//        }
+//    }
 }

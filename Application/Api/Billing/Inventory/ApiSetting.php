@@ -3,22 +3,14 @@ namespace SPHERE\Application\Api\Billing\Inventory;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
-use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -33,9 +25,14 @@ class ApiSetting extends Extension implements IApiInterface
     public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
-        $Dispatcher->registerMethod('showEdit');
-        $Dispatcher->registerMethod('changeEdit');
-        $Dispatcher->registerMethod('changeDisplay');
+        // PersonGroup
+        $Dispatcher->registerMethod('showPersonGroup');
+        $Dispatcher->registerMethod('showFormPersonGroup');
+        $Dispatcher->registerMethod('changePersonGroup');
+        //Other Setting's
+        $Dispatcher->registerMethod('showSetting');
+        $Dispatcher->registerMethod('showFormSetting');
+        $Dispatcher->registerMethod('changeSetting');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -43,139 +40,199 @@ class ApiSetting extends Extension implements IApiInterface
     /**
      * @param string $Content
      *
-     * @return InlineReceiver
+     * @return BlockReceiver
      */
-    public static function receiverDisplaySetting($Content = '', $Identifier = '')
+    public static function receiverPersonGroup($Content = '')
     {
 
-        return (new InlineReceiver($Content))->setIdentifier('ServiceReceiver'.$Identifier);
+        return (new BlockReceiver($Content))->setIdentifier('PersonGroupReceiver');
     }
 
     /**
-     * @return ModalReceiver
-     */
-    public static function receiverModalSetting()
-    {
-
-        return (new ModalReceiver())->setIdentifier('ModalReceiver');
-    }
-
-    /**
-     * @param string $Identifier
-     * @param string $FieldLabel
+     * @param string $Content
      *
+     * @return BlockReceiver
+     */
+    public static function receiverSetting($Content = '')
+    {
+
+        return (new BlockReceiver($Content))->setIdentifier('SettingReceiver');
+    }
+
+    /**
      * @return Pipeline
      */
-    public static function pipelineOpenSetting($Identifier, $FieldLabel = '')
+    public static function pipelineShowPersonGroup()
     {
-        $Receiver = self::receiverModalSetting();
-        $ComparePasswordPipeline = new Pipeline();
-        $ComparePasswordEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $ComparePasswordEmitter->setGetPayload(array(
-            ApiSetting::API_TARGET => 'showEdit'
+        $Receiver = self::receiverPersonGroup();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'showPersonGroup'
         ));
-//        $ComparePasswordEmitter->setLoadingMessage('Information gespeichert.');
-        $ComparePasswordEmitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'FieldLabel' => $FieldLabel
-        ));
-        $ComparePasswordPipeline->appendEmitter($ComparePasswordEmitter);
+        $Pipeline->appendEmitter($Emitter);
 
-        return $ComparePasswordPipeline;
+        return $Pipeline;
     }
 
     /**
-     * @param string $Identifier
-     *
      * @return Pipeline
      */
-    public static function pipelineSaveSetting($Identifier)
+    public static function pipelineShowFormPersonGroup()
     {
-        $Receiver = self::receiverModalSetting();
-        $SettingPipeline = new Pipeline();
-        $SettingEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $SettingEmitter->setGetPayload(array(
-            ApiSetting::API_TARGET => 'changeEdit'
+        $Receiver = self::receiverPersonGroup();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'showFormPersonGroup'
         ));
-        $SettingEmitter->setPostPayload(array(
-            'Identifier' => $Identifier
-        ));
-        $SettingPipeline->appendEmitter($SettingEmitter);
-        $SettingPipeline->appendEmitter((new CloseModal(self::receiverModalSetting()))->getEmitter());
-        $Receiver = self::receiverDisplaySetting('', $Identifier);
-        $SettingEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $SettingEmitter->setGetPayload(array(
-            ApiSetting::API_TARGET => 'changeDisplay'
-        ));
-        $SettingEmitter->setPostPayload(array(
-            'Identifier' => $Identifier
-        ));
-        $SettingPipeline->appendEmitter($SettingEmitter);
+        $Pipeline->appendEmitter($Emitter);
 
-        return $SettingPipeline;
+        return $Pipeline;
     }
 
     /**
-     * @param $Identifier
-     * @param $FieldLabel
-     *
-     * @return string
+     * @return Pipeline
      */
-    public function showEdit($Identifier, $FieldLabel)
+    public static function pipelineSavePersonGroup()
+    {
+        $Receiver = self::receiverPersonGroup();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'changePersonGroup'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineShowSetting()
+    {
+        $Receiver = self::receiverSetting();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'showSetting'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineShowFormSetting()
+    {
+        $Receiver = self::receiverSetting();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'showFormSetting'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSaveSetting()
+    {
+        $Receiver = self::receiverSetting();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'changeSetting'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Layout
+     */
+    public function showPersonGroup()
     {
 
-        $tblSetting = Setting::useService()->getSettingByIdentifier($Identifier);
-        if($tblSetting){
-            $Global = $this->getGlobal();
-            $Global->POST[$Identifier] = $tblSetting->getValue();
-            $Global->savePost();
+        return Setting::useFrontend()->displayPersonGroup();
+    }
+
+    /**
+     * @return Layout
+     */
+    public function showFormPersonGroup()
+    {
+
+        return Setting::useFrontend()->formPersonGroup();
+    }
+
+    /**
+     * @param array $PersonGroup
+     *
+     * @return Layout|string
+     */
+    public function changePersonGroup($PersonGroup)
+    {
+
+        if(isset($PersonGroup)
+            && !empty($PersonGroup)
+            && ($GroupIdList = $PersonGroup)){
+            // clear all PersonGroup that exists but not be selected
+            $tblSettingGroupPersonExist = Setting::useService()->getSettingGroupPersonAll();
+            foreach($tblSettingGroupPersonExist as $tblSettingGroupPerson) {
+                $tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson();
+                if(!in_array($tblGroup->getId(), $GroupIdList)){
+                    Setting::useService()->removeSettingGroupPerson($tblSettingGroupPerson);
+                }
+            }
+            foreach($GroupIdList as $GroupId) {
+                $tblGroup = Group::useService()->getGroupById($GroupId);
+                Setting::useService()->createSettingGroupPerson($tblGroup);
+            }
         }
-        return (new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField($Identifier, '', $FieldLabel)
-                    ),
-                    new FormColumn(
-                        (new Primary('Speichern', self::getEndpoint(), new Save()))
-                        ->ajaxPipelineOnClick(ApiSetting::pipelineSaveSetting($Identifier))
-                    )
-                ))
-            )
-        ))->disableSubmitAction();
+        return Setting::useFrontend()->displayPersonGroup();
     }
 
     /**
-     * @param $Identifier
-     *
-     * @return string
+     * @return Layout
      */
-    public function changeEdit($Identifier)
+    public function showSetting()
     {
 
-        $Global = $this->getGlobal();
-         if(($Value = $Global->POST[$Identifier])){
-             Setting::useService()->createSetting($Identifier, $Value);
-
-             return new Success('Erfolgreich');
-         }
-        return new Danger('Durch einen Fehler konnte die Einstellung nicht gespeichert werden.');
+        return Setting::useFrontend()->displaySetting();
     }
 
     /**
-     * @param $Identifier
-     *
-     * @return string
+     * @return Layout
      */
-    public function changeDisplay($Identifier)
+    public function showFormSetting()
     {
 
-        // wait to make sure to get the correct answer
-        sleep(1);
-        if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))){
-            return $tblSetting->getValue();
-        } else {
-            return '';
-        }
+        return Setting::useFrontend()->formSetting();
+    }
+
+    /**
+     * @param $Setting
+     *
+     * @return Layout
+     */
+    public function changeSetting($Setting)
+    {
+
+        $DebtorNumberCount = (isset($Setting['DebtorNumberCount']) ? $Setting['DebtorNumberCount'] : 7);
+        Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
+        $IsDebtorNumberNeed = (isset($Setting['IsDebtorNumberNeed']) ? true : false);
+        Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
+        $IsSepaAccountNeed = (isset($Setting['IsSepaAccountNeed']) ? true : false);
+        Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED, $IsSepaAccountNeed);
+
+        return Setting::useFrontend()->displaySetting();
     }
 }

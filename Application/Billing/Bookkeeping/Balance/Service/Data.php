@@ -2,13 +2,10 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service;
 
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblInvoicePayment;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -38,7 +35,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPaymentType')->findOneBy(array(TblPaymentType::ATTR_NAME => $PaymentType));
-        if (null === $Entity) {
+        if(null === $Entity){
             $Entity = new TblPaymentType();
             $Entity->setName($PaymentType);
             $Manager->saveEntity($Entity);
@@ -52,32 +49,13 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return false|TblPayment
-     */
-    public function getPaymentById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPayment', $Id);
-    }
-
-    /**
-     * @return bool|TblPayment[]
-     */
-    public function getPaymentAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPayment');
-    }
-
-    /**
-     * @param $Id
-     *
      * @return false|TblPaymentType
      */
     public function getPaymentTypeById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPaymentType', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPaymentType',
+            $Id);
     }
 
     /**
@@ -102,117 +80,88 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoice $tblInvoice
+     * @param TblItem $tblItem
+     * @param         $Year
+     * @param         $MonthFrom
+     * @param         $MonthTo
      *
-     * @return false|TblPayment[]
+     * @return array|bool
      */
-    public function getPaymentAllByInvoice(TblInvoice $tblInvoice)
+    public function getPriceList(TblItem $tblItem, $Year, $MonthFrom, $MonthTo)
     {
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoicePayment',
-            array(TblInvoicePayment::ATTR_SERVICE_TBL_INVOICE => $tblInvoice));
-        if ($EntityList) {
-            /** @var TblInvoicePayment $Entity */
-            foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getTblPayment();
-            }
-        }
-        return ( $EntityList );
+        // Test mit vielen Daten:
+//        $query = $queryBuilder->select('i.InvoiceNumber, i.IntegerNumber, i.Year, i.Month, i.TargetTime, i.FirstName,
+//         i.LastName, i.tblInvoiceCreditor as InvoiceCreditorId, i.serviceTblPersonCauser as PeronCauserId, iid.Id as tblInvoiceItemDebtorId
+//        ,iid.Name, iid.Value, iid.Quantity, iid.DebtorNumber, iid.DebtorPerson, iid.IsPaid, iid.serviceTblItem as ItemId,
+//         iid.serviceTblPersonDebtor as PersonDebtorId, iid.serviceTblPaymentType as PaymentTypeId, iid.tblInvoice as InvoiceId')
+        $query = $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
+             iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId')
+            ->from('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice', 'i')
+            ->leftJoin('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor', 'iid',
+                'WITH', 'i.Id = iid.tblInvoice')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
+            ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))
+            ->setParameter(1, $Year)
+            ->setParameter(2, $MonthFrom)
+            ->setParameter(3, $MonthTo)
+            ->setParameter(4, $tblItem->getId())
+            ->getQuery();
+
+        $PriceList = $query->getResult();
+
+        return !empty($PriceList) ? $PriceList : false;
     }
 
     /**
-     * @param TblPaymentType $tblPaymentType
-     * @param                $Value
-     * @param                $Purpose
+     * @param         $Year
+     * @param         $Month
      *
-     * @return null|object|TblPayment
+     * @return array|bool
      */
-    public function createPayment(TblPaymentType $tblPaymentType, $Value, $Purpose)
+    public function getPriceSummaryByMonth($Year, $Month)
     {
-
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblPayment();
-        $Entity->setTblPaymentType($tblPaymentType);
-        $Entity->setValue(str_replace(',', '.', $Value));
-        $Entity->setPurpose($Purpose);
+        $queryBuilder = $Manager->getQueryBuilder();
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-            $Entity);
-        return $Entity;
+        $query = $queryBuilder->select('iid.Name,i.Year, i.Month, iid.serviceTblItem as ItemId, sum(iid.Value * iid.Quantity) as Summary')
+            ->from('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice', 'i')
+            ->leftJoin('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor', 'iid',
+                'WITH', 'i.Id = iid.tblInvoice')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->andWhere($queryBuilder->expr()->eq('i.Month', '?2'))
+            ->groupBy('i.Year, i.Month, iid.serviceTblItem')
+            ->setParameter(1, $Year)
+            ->setParameter(2, $Month)
+            ->getQuery();
+
+        $MonthOverViewList = $query->getResult();
+        return !empty($MonthOverViewList) ? $MonthOverViewList : false;
     }
 
     /**
-     * @param TblPayment     $tblPayment
-     * @param TblPaymentType $tblPaymentType
-     * @param                $Value
-     * @param                $Purpose
+     * @param string $Year
      *
-     * @return false|TblPayment
+     * @return array|bool
      */
-    public function changePayment(TblPayment $tblPayment, TblPaymentType $tblPaymentType, $Value, $Purpose)
+    public function getPriceSummaryByYear($Year)
     {
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $this->getCachedEntityById(__METHOD__, $Manager, 'TblPayment', $tblPayment->getId());
-        $Protocol = clone $Entity;
-        /** @var TblPayment $Entity */
-        if ($Entity) {
-            $Entity->setTblPaymentType($tblPaymentType);
-            $Entity->setValue(str_replace(',', '.', $Value));
-            $Entity->setPurpose($Purpose);
+        $queryBuilder = $Manager->getQueryBuilder();
 
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol,
-                $Entity);
-            return $Entity;
-        }
-        return $Entity;
-    }
+        $query = $queryBuilder->select('iid.Name,i.Year, i.Month, iid.serviceTblItem as ItemId, sum(iid.Value * iid.Quantity) as Summary')
+            ->from('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice', 'i')
+            ->leftJoin('SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor', 'iid',
+                'WITH', 'i.Id = iid.tblInvoice')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->groupBy('i.Year, i.Month, iid.serviceTblItem')
+            ->setParameter(1, $Year)
+            ->getQuery();
 
-    /**
-     * @param TblInvoice $tblInvoice
-     * @param TblPayment $tblPayment
-     *
-     * @return TblInvoicePayment
-     */
-    public function createInvoicePayment(TblInvoice $tblInvoice, TblPayment $tblPayment)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblInvoicePayment();
-        $Entity->setServiceTblInvoice($tblInvoice);
-        $Entity->setTblPayment($tblPayment);
-
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-            $Entity);
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblPayment $tblPayment
-     *
-     * @return bool
-     */
-    public function removePayment(TblPayment $tblPayment)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblPayment')->findOneBy(
-            array('Id' => $tblPayment->getId())
-        );
-
-        if (null !== $Entity) {
-            /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                $Entity);
-            $Manager->killEntity($Entity);
-
-            return true;
-        }
-
-        return false;
+        $YearOverViewList = $query->getResult();
+        return !empty($YearOverViewList) ? $YearOverViewList : false;
     }
 }

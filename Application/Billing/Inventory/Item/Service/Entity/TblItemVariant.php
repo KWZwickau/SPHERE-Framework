@@ -17,12 +17,17 @@ class TblItemVariant extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_DESCRIPTION = 'Description';
     const ATTR_TBL_ITEM = 'tblItem';
 
     /**
-     * @Column(type="text")
+     * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="text")
+     */
+    protected $Description;
     /**
      * @Column(type="bigint")
      */
@@ -47,12 +52,36 @@ class TblItemVariant extends Element
     }
 
     /**
+     * @param bool $IsFrontend
+     *
+     * @return string
+     */
+    public function getDescription($IsFrontend = true)
+    {
+
+        if($IsFrontend){
+            return nl2br($this->Description);
+        } else {
+            return $this->Description;
+        }
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
+    }
+
+    /**
      * @return bool|TblItem
      */
     public function getTblItem()
     {
 
-        if (null === $this->tblItem) {
+        if(null === $this->tblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->tblItem);
@@ -65,7 +94,7 @@ class TblItemVariant extends Element
     public function setTblItem(TblItem $tblItem = null)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 
 }

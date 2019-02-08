@@ -5,12 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
-use SPHERE\Application\Contact\Mail\Mail;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
-use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -24,14 +19,32 @@ class TblInvoice extends Element
 {
 
     const ATTR_INVOICE_NUMBER = 'InvoiceNumber';
-    const ATTR_IS_PAID = 'IsPaid';
-    const ATTR_IS_REVERSAL = 'IsReversal';
+    const ATTR_INTEGER_NUMBER = 'IntegerNumber';
+    const ATTR_YEAR = 'Year';
+    const ATTR_MONTH = 'Month';
     const ATTR_TARGET_TIME = 'TargetTime';
+    const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_LAST_NAME = 'LastName';
+    const ATTR_BASKET_NAME = 'BasketName';
+    const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
+    const ATTR_TBL_INVOICE_CREDITOR = 'tblInvoiceCreditor';
 
     /**
      * @Column(type="string")
      */
     protected $InvoiceNumber;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $IntegerNumber;
+    /**
+     * @Column(type="string")
+     */
+    protected $Year;
+    /**
+     * @Column(type="integer")
+     */
+    protected $Month;
     /**
      * @Column(type="datetime")
      */
@@ -39,51 +52,27 @@ class TblInvoice extends Element
     /**
      * @Column(type="string")
      */
-    protected $SchoolName;
+    protected $FirstName;
     /**
      * @Column(type="string")
      */
-    protected $SchoolOwner;
+    protected $LastName;
     /**
      * @Column(type="string")
      */
-    protected $SchoolBankName;
-    /**
-     * @Column(type="string")
-     */
-    protected $SchoolIBAN;
-    /**
-     * @Column(type="string")
-     */
-    protected $SchoolBIC;
+    protected $BasketName;
 //    /**
 //     * @Column(type="decimal", precision=14, scale=4)
 //     */
 //    protected $Discount;
     /**
-     * @Column(type="boolean")
+     * @Column(type="bigint")
      */
-    protected $IsPaid;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsReversal;
+    protected $serviceTblPersonCauser;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblAddress;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPerson;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblMail;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPhone;
+    protected $tblInvoiceCreditor;
 
     /**
      * @return string
@@ -104,17 +93,76 @@ class TblInvoice extends Element
     }
 
     /**
+     * @return int
+     */
+    public function getIntegerNumber()
+    {
+        return $this->IntegerNumber;
+    }
+
+    /**
+     * @param int $IntegerNumber
+     */
+    public function setIntegerNumber($IntegerNumber)
+    {
+        $this->IntegerNumber = $IntegerNumber;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getYear()
+    {
+        return $this->Year;
+    }
+
+    /**
+     * @param string $Year
+     */
+    public function setYear($Year)
+    {
+        $this->Year = $Year;
+    }
+
+    /**
+     * @param bool $IsFrontend
+     *
+     * @return string
+     */
+    public function getMonth($IsFrontend = false)
+    {
+        if($IsFrontend){
+            if(strlen($this->Month) == 1){
+                $Month = '0'.$this->Month;
+            } else {
+                $Month = $this->Month;
+            }
+            return $Month;
+        }
+        return $this->Month;
+    }
+
+    /**
+     * @param string $Month
+     */
+    public function setMonth($Month)
+    {
+        $this->Month = (int)$Month;
+    }
+
+    /**
      * @return bool|string
      */
     public function getTargetTime()
     {
 
-        if (null === $this->TargetTime) {
+        if(null === $this->TargetTime){
             return false;
         }
         /** @var \DateTime $InvoiceDate */
         $TargetDate = $this->TargetTime;
-        if ($TargetDate instanceof \DateTime) {
+        if($TargetDate instanceof \DateTime){
             return $TargetDate->format('d.m.Y');
         } else {
             return (string)$TargetDate;
@@ -133,91 +181,49 @@ class TblInvoice extends Element
     /**
      * @return string
      */
-    public function getSchoolName()
+    public function getFirstName()
     {
-
-        return $this->SchoolName;
+        return $this->FirstName;
     }
 
     /**
-     * @param string $SchoolName
+     * @param string $FirstName
      */
-    public function setSchoolName($SchoolName)
+    public function setFirstName($FirstName)
     {
-
-        $this->SchoolName = $SchoolName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSchoolOwner()
-    {
-
-        return $this->SchoolOwner;
-    }
-
-    /**
-     * @param string $SchoolOwner
-     */
-    public function setSchoolOwner($SchoolOwner)
-    {
-
-        $this->SchoolOwner = $SchoolOwner;
+        $this->FirstName = $FirstName;
     }
 
     /**
      * @return string
      */
-    public function getSchoolBankName()
+    public function getLastName()
     {
-
-        return $this->SchoolBankName;
+        return $this->LastName;
     }
 
     /**
-     * @param string $SchoolBankName
+     * @param string $LastName
      */
-    public function setSchoolBankName($SchoolBankName)
+    public function setLastName($LastName)
     {
-
-        $this->SchoolBankName = $SchoolBankName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSchoolIBAN()
-    {
-
-        return $this->SchoolIBAN;
-    }
-
-    /**
-     * @param string $SchoolIBAN
-     */
-    public function setSchoolIBAN($SchoolIBAN)
-    {
-
-        $this->SchoolIBAN = $SchoolIBAN;
+        $this->LastName = $LastName;
     }
 
     /**
      * @return string
      */
-    public function getSchoolBIC()
+    public function getBasketName()
     {
-
-        return $this->SchoolBIC;
+        return $this->BasketName;
     }
 
     /**
-     * @param string $SchoolBIC
+     * @param string $BasketName
      */
-    public function setSchoolBIC($SchoolBIC)
+    public function setBasketName($BasketName)
     {
-
-        $this->SchoolBIC = $SchoolBIC;
+        $this->BasketName = $BasketName;
     }
 
 //    /**
@@ -238,127 +244,46 @@ class TblInvoice extends Element
 //        $this->Discount = $Discount;
 //    }
 
-    /**
-     * @return boolean
-     */
-    public function getIsPaid()
-    {
-
-        return $this->IsPaid;
-    }
-
-    /**
-     * @param boolean $isPaid
-     */
-    public function setIsPaid($isPaid)
-    {
-
-        $this->IsPaid = $isPaid;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getIsReversal()
-    {
-
-        return $this->IsReversal;
-    }
-
-    /**
-     * @param boolean $IsReversal
-     */
-    public function setIsReversal($IsReversal)
-    {
-
-        $this->IsReversal = $IsReversal;
-    }
-
-    /**
-     * @return bool|TblAddress
-     */
-    public function getServiceTblAddress()
-    {
-
-        if (null === $this->serviceTblAddress) {
-            return false;
-        } else {
-            return Address::useService()->getAddressById($this->serviceTblAddress);
-        }
-    }
-
-    /**
-     * @param TblAddress $tblAddress
-     */
-    public function setServiceTblAddress(TblAddress $tblAddress = null)
-    {
-
-        $this->serviceTblAddress = ( null === $tblAddress ? null : $tblAddress->getId() );
-    }
 
     /**
      * @return bool|TblPerson
      */
-    public function getServiceTblPerson()
+    public function getServiceTblPersonCauser()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if(null === $this->serviceTblPersonCauser){
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Person::useService()->getPersonById($this->serviceTblPersonCauser);
         }
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblPerson|null $tblPersonCauser
      */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    public function setServiceTblPersonCauser(TblPerson $tblPersonCauser = null)
     {
 
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPersonCauser = (null === $tblPersonCauser ? null : $tblPersonCauser->getId());
     }
 
     /**
-     * @return bool|TblMail
+     * @return TblInvoiceCreditor|false
      */
-    public function getServiceTblMail()
+    public function getTblInvoiceCreditor()
     {
-
-        if (null === $this->serviceTblMail) {
+        if(null === $this->tblInvoiceCreditor){
             return false;
         } else {
-            return Mail::useService()->getMailById($this->serviceTblMail);
+            return Invoice::useService()->getInvoiceCreditorById($this->tblInvoiceCreditor);
         }
     }
 
     /**
-     * @param TblMail $tblMail
+     * @param TblInvoiceCreditor $tblInvoiceCreditor
      */
-    public function setServiceTblMail(TblMail $tblMail = null)
+    public function setTblInvoiceCreditor(TblInvoiceCreditor $tblInvoiceCreditor)
     {
-
-        $this->serviceTblMail = ( null === $tblMail ? null : $tblMail->getId() );
-    }
-
-    /**
-     * @return bool|TblPhone
-     */
-    public function getServiceTblPhone()
-    {
-
-        if (null === $this->serviceTblPhone) {
-            return false;
-        } else {
-            return Phone::useService()->getPhoneById($this->serviceTblPhone);
-        }
-    }
-
-    /**
-     * @param TblPhone $tblPhone
-     */
-    public function setServiceTblPhone(TblPhone $tblPhone = null)
-    {
-
-        $this->serviceTblPhone = ( null === $tblPhone ? null : $tblPhone->getId() );
+        $this->tblInvoiceCreditor = $tblInvoiceCreditor->getId();
     }
 }

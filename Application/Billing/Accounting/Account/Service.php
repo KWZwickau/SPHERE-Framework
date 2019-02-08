@@ -22,17 +22,20 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
-
         return $Protocol;
     }
 
@@ -152,17 +155,17 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $Account) {
+        if(null === $Account){
             return $Form;
         }
         $Error = false;
-        if (isset( $Account['Number'] ) && empty( $Account['Number'] )) {
+        if(isset($Account['Number']) && empty($Account['Number'])){
             $Form->setError('Account[Number]', 'Bitte geben sie die Nummer an');
             $Error = true;
         }
         $Account['IsActive'] = 1;
 
-        if (!$Error) {
+        if(!$Error){
             (new Data($this->getBinding()))->createAccount(
                 $Account['Number'],
                 $Account['Description'],
@@ -170,7 +173,7 @@ class Service extends AbstractService
                 (new Data($this->getBinding()))->getAccountKeyById($Account['Key']),
                 (new Data($this->getBinding()))->getAccountTypeById($Account['Type']));
             return new Success('Das Konto ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS);
+                .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS);
         }
         return $Form;
     }

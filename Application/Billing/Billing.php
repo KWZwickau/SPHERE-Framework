@@ -23,9 +23,9 @@ class Billing implements IClusterInterface
         /**
          * Register Application
          */
-//        Inventory::registerApplication();
-//        Accounting::registerApplication();
-//        Bookkeeping::registerApplication();
+        Inventory::registerApplication();
+        Accounting::registerApplication();
+        Bookkeeping::registerApplication();
 
         /**
          * Register Navigation
@@ -41,13 +41,7 @@ class Billing implements IClusterInterface
             __NAMESPACE__, __CLASS__.'::frontendBilling'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Inventory', __CLASS__.'::frontendInventory'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Bookkeeping', __CLASS__.'::frontendBookkeeping'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Accounting', __CLASS__.'::frontendAccounting'
         ));
     }
 
@@ -64,30 +58,10 @@ class Billing implements IClusterInterface
     /**
      * @return Stage
      */
-    public function frontendInventory()
-    {
-
-        $Stage = new Stage('Dashboard', ' Inventar');
-        return $Stage;
-    }
-
-    /**
-     * @return Stage
-     */
     public function frontendBookkeeping()
     {
 
         $Stage = new Stage('Dashboard', ' Buchungen');
-        return $Stage;
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendAccounting()
-    {
-
-        $Stage = new Stage('Dashboard', ' Buchhaltung');
         return $Stage;
     }
 

@@ -40,13 +40,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -72,6 +76,19 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getMemberAllByGroup($tblGroup, ( $IsForced ? $IsForced : null ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblGroup  $tblGroup
+     * @param bool      $IsForced
+     *
+     * @return false|TblMember
+     */
+    public function getMemberByPersonAndGroup(TblPerson $tblPerson, TblGroup $tblGroup, $IsForced = false)
+    {
+
+        return ( new Data($this->getBinding()) )->getMemberByPersonAndGroup($tblPerson, $tblGroup, ( $IsForced ? $IsForced : null ));
     }
 
     /**

@@ -20,6 +20,12 @@ class TblSetting extends Element
 
     const IDENT_DEBTOR_NUMBER_COUNT = 'DebtorNumberCount';
     const IDENT_PERSON_GROUP_ACTIVE_LIST = 'PersonGroupActiveList';
+    const IDENT_IS_DEBTOR_NUMBER_NEED = 'IsDebtorNumberNeed';
+    const IDENT_IS_SEPA_ACCOUNT_NEED = 'IsSepaAccountNeed';
+
+    const TYPE_BOOLEAN = 'boolean';
+    const TYPE_STRING = 'string';
+    const TYPE_INTEGER = 'integer';
 
     /**
      * @Column(type="string")
@@ -29,6 +35,10 @@ class TblSetting extends Element
      * @Column(type="string")
      */
     protected $Value;
+    /**
+     * @Column(type="string")
+     */
+    protected $Type;
 
     /**
      * @return string
@@ -60,5 +70,21 @@ class TblSetting extends Element
     public function setValue($Value)
     {
         $this->Value = $Value;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->Type;
+    }
+
+    /**
+     * @param string $Type
+     */
+    public function setType($Type)
+    {
+        $this->Type = $Type;
     }
 }

@@ -936,7 +936,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivisionItem, $tblPerson))) {
                                                 foreach ($tblDivisionList as $item) {
                                                     if (($tblGradeList = Gradebook::useService()->getGradesByStudentAndGradeType(
-                                                        $tblPerson, $item, $tblGradeType
+                                                        $tblPerson, $item, $tblCurrentGradeType
                                                     ))
                                                     ) {
                                                         foreach ($tblGradeList as $tblGrade) {

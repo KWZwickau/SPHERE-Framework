@@ -21,34 +21,15 @@ class TblItem extends Element
     /**
      * @Column(type="string")
      */
-    protected $Description;
+    protected $Name;
     /**
      * @Column(type="text")
      */
-    protected $Name;
+    protected $Description;
     /**
      * @Column(type="bigint")
      */
     protected $tblItemType;
-
-
-    /**
-     * @return string
-     */
-    public function getDescription()
-    {
-
-        return $this->Description;
-    }
-
-    /**
-     * @param string $Description
-     */
-    public function setDescription($Description)
-    {
-
-        $this->Description = $Description;
-    }
 
     /**
      * @return string
@@ -69,12 +50,30 @@ class TblItem extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
+    }
+
+    /**
      * @return bool|TblItem
      */
     public function getTblItemType()
     {
 
-        if (null === $this->tblItemType) {
+        if(null === $this->tblItemType){
             return false;
         } else {
             return Item::useService()->getItemTypeById($this->tblItemType);
@@ -87,7 +86,7 @@ class TblItem extends Element
     public function setTblItemType(TblItemType $tblItemType)
     {
 
-        $this->tblItemType = ( null === $tblItemType ? null : $tblItemType->getId() );
+        $this->tblItemType = (null === $tblItemType ? null : $tblItemType->getId());
     }
 
     /**

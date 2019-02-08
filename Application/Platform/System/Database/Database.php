@@ -29,6 +29,7 @@ use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
+use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
@@ -44,6 +45,8 @@ class Database extends Extension implements IModuleInterface
     private static $ServiceRegister = array();
     /** @var array $SetupRegister */
     private static $SetupRegister = array();
+    /** @var array $SetupRegister */
+    private static $SetupUTF8 = array();
 
     public static function registerModule()
     {
@@ -292,9 +295,11 @@ class Database extends Extension implements IModuleInterface
 
             ksort($ConsumerRequestList);
 
-            $Api = $ConsumerRequestList['DEMO'];
-            unset( $ConsumerRequestList['DEMO'] );
-            $ConsumerRequestList['DEMO'] = $Api;
+            if(isset($ConsumerRequestList['REF'])){
+                $Api = $ConsumerRequestList['REF'];
+                unset($ConsumerRequestList['REF']);
+                $ConsumerRequestList['REF'] = $Api;
+            }
         }
 
         // prepare: change to first Consumer
@@ -453,7 +458,7 @@ class Database extends Extension implements IModuleInterface
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
                             if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
-                                $Result = $Class->setupService(true, false);
+                                $Result = $Class->setupService(true, false, false);
                                 self::$SetupRegister[get_class($Class)] = $Result;
                                 $Class = $Result;
                             } else {
@@ -487,7 +492,7 @@ class Database extends Extension implements IModuleInterface
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
                             if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
-                                $Result = $Class->setupService(false, false);
+                                $Result = $Class->setupService(false, false, false);
                                 self::$SetupRegister[get_class($Class)] = $Result;
                                 $Class = $Result;
                             } else {
@@ -506,7 +511,6 @@ class Database extends Extension implements IModuleInterface
             self::$SetupRegister = array();
             $DataList = self::$ServiceRegister;
             array_walk($DataList, function (&$Class) {
-
                 $Inspection = new \ReflectionClass($Class);
                 if ($Inspection->isInternal()) {
                     $Class = false;
@@ -518,9 +522,19 @@ class Database extends Extension implements IModuleInterface
                             $Class = $Class->useService();
                         }
                         /** @var IServiceInterface $Class */
-                        if ($Class instanceof IServiceInterface) {
+                        if ($Class instanceof IServiceInterface){
+                            // prepare DB list for UTF8 Correction
+                            /**@var AbstractService $Class */
+                            $Binding = $Class->getBinding();
+                            if(($Database = $Binding->getDatabase())){
+                                // one Class in DB is enough
+                                if(!isset(self::$SetupUTF8[$Database])){
+                                    self::$SetupUTF8[$Database] = $Class;
+                                }
+                            }
+                            // insert Data
                             if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
-                                $Result = $Class->setupService(false, true);
+                                $Result = $Class->setupService(false, true, false);
                                 self::$SetupRegister[get_class($Class)] = $Result;
                                 $Class = $Result;
                             } else {
@@ -534,6 +548,13 @@ class Database extends Extension implements IModuleInterface
                     }
                 }
             });
+
+            // set UTF8 correction
+            if(!empty(self::$SetupUTF8)){
+                foreach(self::$SetupUTF8 as $DatabaseName => $Class) {
+                    $Class->setupService(false, false, true);
+                }
+            }
         }
 
         $Stage->setContent(new Listing($ClassList));

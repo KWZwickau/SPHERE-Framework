@@ -82,6 +82,9 @@ class Data extends AbstractData
         $tblType = $this->createType('Lebenspartner', '', $tblGroupPerson);
         $this->updateType($tblType, true);
 
+        $tblType = $this->createType('Beitragszahler', 'z.B. Großeltern / Amt', $tblGroupPerson);
+        $this->updateType($tblType, true);
+
         $this->createType('Notfallkontakt', 'z.B. Elternteil ohne Sorgerecht', $tblGroupPerson, false, false);
 
         $this->createType('Geschäftsführer', '', $tblGroupCompany);

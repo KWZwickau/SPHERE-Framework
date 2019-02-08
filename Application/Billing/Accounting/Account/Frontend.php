@@ -59,11 +59,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblAccountAll = Account::useService()->getAccountAll();
         $TableContent = array();
-        if (!empty( $tblAccountAll )) {
+        if(!empty($tblAccountAll)){
             /** @var TblAccount $tblAccount */
-            array_walk($tblAccountAll, function (TblAccount $tblAccount) use (&$TableContent) {
+            array_walk($tblAccountAll, function(TblAccount $tblAccount) use (&$TableContent){
 
-                if ($tblAccount->isActive() === true) {
+                if($tblAccount->isActive() === true){
                     $Item['Option'] = (new Standard('', '/Billing/Accounting/Account/Deactivate',
                         new Remove(), array('Id' => $tblAccount->getId()),
                         'Deaktivieren'))->__toString();
@@ -133,9 +133,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('FiBu Konto',
-                            array(new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()),
+                            array(
+                                new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()),
                                 new SelectBox('Account[Type]', 'Typ', array('Name' => $tblAccountType)),
-                                new SelectBox('Account[Key]', 'Mehrwertsteuer', array('Value' => $tblAccountKey))),
+                                new SelectBox('Account[Key]', 'Mehrwertsteuer', array('Value' => $tblAccountKey))
+                            ),
                             Panel::PANEL_TYPE_INFO
                         )
                         , 6),
@@ -160,7 +162,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Aktivierung');
         $tblAccount = $Id === null ? false : Account::useService()->getAccountById($Id);
-        if ($tblAccount) {
+        if($tblAccount){
             Account::useService()->changeFibuActivate($tblAccount);
             $Stage->setContent(new Success('Aktivierung erfolgreich')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS));
@@ -183,7 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Deaktivierung');
         $tblAccount = $Id === null ? false : Account::useService()->getAccountById($Id);
-        if ($tblAccount) {
+        if($tblAccount){
             Account::useService()->changeFibuDeactivate($tblAccount);
             $Stage->setContent(new Success('Deaktivierung erfolgreich')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS));

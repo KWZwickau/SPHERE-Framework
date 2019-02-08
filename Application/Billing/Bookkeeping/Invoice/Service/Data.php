@@ -2,18 +2,14 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as TblDebtorAccounting;
-use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
+use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
-use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceDebtor;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceCreditor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItemValue;
-use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -44,23 +40,72 @@ class Data extends AbstractData
     /**
      * @param int $Id
      *
-     * @return false|TblItemValue
+     * @return false|TblInvoiceItemDebtor
      */
-    public function getItemById($Id)
+    public function getInvoiceItemDebtorById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblItem', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblInvoiceItemDebtor',
+            $Id);
+    }
+
+    /**
+     * @param bool $IsPaid
+     *
+     * @return false|TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblInvoiceItemDebtor', array(
+                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid
+            ));
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return false|TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByInvoice(TblInvoice $tblInvoice)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblInvoiceItemDebtor',
+            array(
+                TblInvoiceItemDebtor::ATTR_TBL_INVOICE => $tblInvoice->getId()
+            ));
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return false|TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblInvoiceItemDebtor',
+            array(
+                TblInvoiceItemDebtor::ATTR_TBL_INVOICE      => $tblInvoice->getId(),
+                TblInvoiceItemDebtor::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+            ));
     }
 
     /**
      * @param int $Id
      *
-     * @return false|TblInvoiceDebtor
+     * @return false|TblInvoiceCreditor
      */
-    public function getInvoiceDebtorById($Id)
+    public function getInvoiceCreditorById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceDebtor', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceCreditor',
+            $Id);
     }
 
     /**
@@ -70,37 +115,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')->findAll();
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * IsReversal = false
-     *
-     * @param bool $Check
-     *
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceByIsPaid($Check = true)
-    {
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
-            array(TblInvoice::ATTR_IS_PAID     => $Check,
-                  TblInvoice::ATTR_IS_REVERSAL => false));
-        return $EntityList;
-    }
-
-    /**
-     * IsReversal = false
-     *
-     * @param bool $Check
-     *
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceByIsReversal($Check = true)
-    {
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
-            array(TblInvoice::ATTR_IS_PAID     => false,
-                  TblInvoice::ATTR_IS_REVERSAL => $Check));
-        return $EntityList;
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -110,293 +125,159 @@ class Data extends AbstractData
      */
     public function getInvoiceByNumber($InvoiceNumber)
     {
+
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblInvoice|null $Entity */
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')
-            ->findOneBy(array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return TblInvoiceItemValue[]|bool
-     */
-    public function getInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
-    {
-
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblInvoiceItem')
-            ->findBy(array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
-        return ( null === $EntityList ? false : $EntityList );
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param bool      $IsPaid
-     * @param bool      $IsReversal
-     *
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceAllByPerson(TblPerson $tblPerson, $IsPaid = false, $IsReversal = false)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItemValue::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
-        if ($EntityList) {
-            /** @var TblInvoiceItemValue $Entity */
-            foreach ($EntityList as &$Entity) {
-                $tblInvoice = $Entity->getTblInvoice();
-                if ($tblInvoice) {
-                    if ($tblInvoice->getIsPaid() == $IsPaid && !$tblInvoice->getIsReversal() == $IsReversal) {
-                        $Entity = $tblInvoice;
-                    } else {
-                        $Entity = false;
-                    }
-                }
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return false|TblItemValue[]
-     */
-    public function getItemAllByInvoice(TblInvoice $tblInvoice)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
-        if ($EntityList) {
-            /** @var TblInvoiceItemValue $Entity */
-            foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getTblItem();
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return false|TblPerson[]
-     */
-    public function getPersonAllByInvoice(TblInvoice $tblInvoice)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
-        if ($EntityList) {
-            /** @var TblInvoiceItemValue $Entity */
-            foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getServiceTblPerson();
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return false|TblInvoiceDebtor[]
-     */
-    public function getDebtorAllByInvoice(TblInvoice $tblInvoice)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
-        if ($EntityList) {
-            /** @var TblInvoiceItemValue $Entity */
-            foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getInvoiceDebtor();
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     * @param TblItemValue    $tblItem
-     *
-     * @return bool|TblPerson
-     */
-    public function getPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
-    {
-        /** @param TblInvoiceItemValue $Entity */
-        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId(),
-                  TblInvoiceItemValue::ATTR_TBL_ITEM_VALUE    => $tblItem->getId()));
-        if ($Entity) {
-            /** @var TblInvoiceItemValue $Entity */
-            $Entity = $Entity->getServiceTblPerson();
-        }
-        return ( $Entity == false ? false : $Entity );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     * @param TblPerson  $tblPerson
-     *
-     * @return bool|TblInvoiceItemValue
-     */
-    public function getItemAllInvoiceAndPerson(TblInvoice $tblInvoice, TblPerson $tblPerson)
-    {
-        /** @param TblInvoiceItemValue $Entity */
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItemValue::ATTR_TBL_INVOICE        => $tblInvoice->getId(),
-                  TblInvoiceItemValue::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
-        if ($EntityList) {
-            /** @var TblInvoiceItemValue $Entity */
-            foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getTblItem();
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     * @param TblItemValue    $tblItem
-     *
-     * @return bool|TblInvoiceDebtor
-     */
-    public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
-    {
-        /** @param TblInvoiceItemValue $Entity */
-        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
+        return $this->getCachedEntityBy(__METHOD__, $Manager, 'TblInvoice',
             array(
-                TblInvoiceItemValue::ATTR_TBL_INVOICE    => $tblInvoice->getId(),
-                TblInvoiceItemValue::ATTR_TBL_ITEM_VALUE => $tblItem->getId()
+                TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber
             ));
-        if ($Entity) {
-            /** @var TblInvoiceItemValue $Entity */
-            $Entity = $Entity->getInvoiceDebtor();
-        }
-        return ( $Entity == false ? false : $Entity );
     }
 
     /**
-     * @param \DateTime      $From
-     * @param \DateTime|null $To
-     * @param int            $Status "Invoice" 1 = open, 2 = paid, 3 = storno
+     * @param TblPerson $tblPersonCauser
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null, $Status = 1)
-    {
-
-        if ($To == null) {
-            $To = new \DateTime('now');
-        }
-        $IsPaid = false;
-        $IsStorno = false;
-        if ($Status == 2) {
-            $IsPaid = true;
-        }
-        if ($Status == 3) {
-            $IsStorno = true;
-        }
-
-        $EntityList = $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice');
-        if ($EntityList) {
-            /** @var TblInvoice $Entity */
-            foreach ($EntityList as &$Entity) {
-                if (new \DateTime($Entity->getTargetTime()) < $From || new \DateTime($Entity->getTargetTime()) > $To) {
-                    $Entity = false;
-                } else {
-                    if ($Entity->getIsPaid() != $IsPaid || $Entity->getIsReversal() != $IsStorno) {
-                        $Entity = false;
-                    }
-                }
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param \DateTime $Date
-     *
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceAllByYearAndMonth(\DateTime $Date)
-    {
-
-        $EntityList = $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice');
-        if ($EntityList) {
-            /** @var TblInvoice $Entity */
-            foreach ($EntityList as &$Entity) {
-                if ((new \DateTime($Entity->getTargetTime()))->format('ym') != $Date->format('ym')) {
-                    $Entity = false;
-                }
-            }
-            $EntityList = array_filter($EntityList);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblPerson             $tblPerson
-     * @param TblSchoolAccount|null $tblSchoolAccount
-     * @param                       $InvoiceNumber
-     * @param                       $Date
-     * @param TblAddress|null       $tblAddress
-     * @param TblMail|null          $tblMail
-     * @param TblPhone|null         $tblPhone
-     *
-     * @return null|object|TblInvoice
-     */
-    public function createInvoice(
-        TblPerson $tblPerson,
-        TblSchoolAccount $tblSchoolAccount = null,
-        $InvoiceNumber,
-        $Date,
-        TblAddress $tblAddress = null,
-        TblMail $tblMail = null,
-        TblPhone $tblPhone = null
-    ) // Todo Tabelle erweitern
+    public function getInvoiceByPersonCauser(TblPerson $tblPersonCauser)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblInvoice|null $Entity */
+        return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
+            array(
+                TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId()
+            ));
+    }
 
-        $Entity = null;
+    /**
+     * @param $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByYear($Year = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblInvoice|null $Entity */
+        return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
+            array(
+                TblInvoice::ATTR_YEAR => $Year
+            ));
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     *
+     * @return int
+     */
+    public function getMaxInvoiceNumberByYearAndMonth($Year, $Month)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+
+        $Query = $Manager->getQueryBuilder()
+            ->select('MAX(I.IntegerNumber)')
+            ->from(__NAMESPACE__.'\Entity\TblInvoice', 'I')
+            ->where($Builder->expr()->andX(
+                $Builder->expr()->eq('I.Year', '?1'),
+                $Builder->expr()->eq('I.Month', '?2')
+            ))
+            ->setParameter(1, $Year)
+            ->setParameter(2, $Month)
+            ->getQuery();
+
+        $resultList = $Query->getResult();
+        $result = false;
+        //get Result
+        if(!empty($resultList)){
+            if(isset($resultList[0][1])){
+                $result = (int)$resultList[0][1];
+            }
+        }
+
+        return ($result ? $result : 0);
+    }
+
+    /**
+     * @param string $Year
+     * @param string $Month
+     * @param string $BasketName
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceByYearAndMonth($Year, $Month, $BasketName = '')
+    {
+
+        $FilterArray = array(
+            TblInvoice::ATTR_YEAR  => $Year,
+            TblInvoice::ATTR_MONTH => $Month,
+        );
+        if($BasketName){
+            $FilterArray[TblInvoice::ATTR_BASKET_NAME] = $BasketName;
+        }
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
+            $FilterArray);
+    }
+
+    /**
+     * @param $IntegerNumber
+     * @param $Year
+     * @param $Month
+     *
+     * @return bool|TblInvoice
+     */
+    public function getInvoiceByIntegerAndYearAndMonth($IntegerNumber, $Year, $Month)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
+            array(
+                TblInvoice::ATTR_INTEGER_NUMBER => $IntegerNumber,
+                TblInvoice::ATTR_YEAR           => $Year,
+                TblInvoice::ATTR_MONTH          => $Month,
+            ));
+    }
+
+    /**
+     * @param string             $IntegerNumber
+     * @param string             $Month
+     * @param string             $Year
+     * @param string             $TargetTime
+     * @param TblPerson          $tblPerson
+     * @param TblInvoiceCreditor $tblInvoiceCreditor
+     *
+     * @return object|TblInvoice|null
+     */
+    public function createInvoice(
+        $IntegerNumber,
+        $Month,
+        $Year,
+        $TargetTime,
+        TblPerson $tblPerson,
+        TblInvoiceCreditor $tblInvoiceCreditor
+    ){
+
+        $Manager = $this->getConnection()->getEntityManager();
+        //ToDO $InvoiceNumberLength from Setting?
+        $InvoiceNumberLength = 5;
+        $InvoiceNumber = $Year.str_pad($Month, 2, '0', STR_PAD_LEFT).str_pad($IntegerNumber,
+                $InvoiceNumberLength, '0', STR_PAD_LEFT);
+
         $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
             array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
 
-        if ($Entity === null) {
+        if($Entity === null){
             $Entity = new TblInvoice();
             $Entity->setInvoiceNumber($InvoiceNumber);
-            $Entity->setTargetTime(( $Date ? new \DateTime($Date) : null ));
-            if ($tblSchoolAccount != null) {
-                $Entity->setSchoolName($tblSchoolAccount->getServiceTblCompany()->getDisplayName());
-                $Entity->setSchoolOwner($tblSchoolAccount->getOwner());
-                $Entity->setSchoolBankName($tblSchoolAccount->getBankName());
-                $Entity->setSchoolIBAN($tblSchoolAccount->getIBAN());
-                $Entity->setSchoolBIC($tblSchoolAccount->getBIC());
-            } else {
-                $Entity->setSchoolName('');
-                $Entity->setSchoolOwner('');
-                $Entity->setSchoolBankName('');
-                $Entity->setSchoolIBAN('');
-                $Entity->setSchoolBIC('');
-            }
-            $Entity->setIsPaid(false);
-            $Entity->setIsReversal(false);
-            if (null !== $tblAddress) {
-                $Entity->setServiceTblAddress($tblAddress);
-            }
-            if (null !== $tblMail) {
-                $Entity->setServiceTblMail($tblMail);
-            }
-            if (null !== $tblPhone) {
-                $Entity->setServiceTblPhone($tblPhone);
-            }
-            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setIntegerNumber($IntegerNumber);
+            $Entity->setMonth($Month);
+            $Entity->setYear($Year);
+            $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
+            $Entity->setFirstName($tblPerson->getFirstName());
+            $Entity->setLastName($tblPerson->getLastName());
+            $Entity->setServiceTblPersonCauser($tblPerson);
+            $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -407,44 +288,192 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param bool       $isReversal
+     * @param array  $InvoiceList
+     * @param string $Month
+     * @param string $Year
+     * @param string $TargetTime
+     * @param string $BasketName
      *
      * @return bool
      */
-    public function changeInvoiceIsReversal(TblInvoice $tblInvoice, $isReversal = true)
+    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime, $BasketName)
     {
-        $Manager = $this->getConnection()->getEntityManager();
+        //ToDO $InvoiceNumberLength from Setting?
+        $InvoiceNumberLength = 5;
+        if(!empty($InvoiceList)){
+            $Manager = $this->getConnection()->getEntityManager();
+            foreach($InvoiceList as $Content) {
+                $IntegerNumber = $Content['Identifier'];
+                $InvoiceNumber = $Year.str_pad($Month, 2, '0', STR_PAD_LEFT).str_pad($IntegerNumber,
+                        $InvoiceNumberLength, '0', STR_PAD_LEFT);
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $Content['servicePersonCauser'];
+                /** @var TblInvoiceCreditor $tblInvoiceCreditor */
+                $tblInvoiceCreditor = $Content['InvoiceCreditor'];
+                $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
+                    array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
 
-        /** @var TblInvoice $Entity */
-        $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setIsReversal($isReversal);
+                if($Entity === null){
+                    $Entity = new TblInvoice();
+                    $Entity->setInvoiceNumber($InvoiceNumber);
+                    $Entity->setIntegerNumber($IntegerNumber);
+                    $Entity->setMonth($Month);
+                    $Entity->setYear($Year);
+                    $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
+                    $Entity->setFirstName($tblPerson->getFirstName());
+                    $Entity->setLastName($tblPerson->getLastName());
+                    $Entity->setBasketName($BasketName);
+                    $Entity->setServiceTblPersonCauser($tblPerson);
+                    $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
 
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol,
-                $Entity);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                        $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param bool       $isPaid
+     * @param $InvoiceCauserList
      *
      * @return bool
      */
-    public function changeInvoiceIsPaid(TblInvoice $tblInvoice, $isPaid = true)
+    public function createInvoiceItemDebtorList($InvoiceCauserList)
+    {
+
+        if(!empty($InvoiceCauserList)){
+            $Manager = $this->getConnection()->getEntityManager();
+            foreach($InvoiceCauserList as $ItemList) {
+                foreach($ItemList as $Item) {
+                    /** @var TblInvoice $tblInvoice */
+                    $tblInvoice = $Item['Invoice'];
+                    /** @var TblPerson $tblPerson */
+                    $tblPerson = $Item['serviceTblPersonDebtor'];
+                    /** @var TblBankAccount $tblBankAccount */
+                    $tblBankAccount = $Item['serviceTblBankAccount'];
+                    /** @var TblBankReference $tblBankReference */
+                    $tblBankReference = $Item['serviceTblBankReference'];
+                    /** @var TblPaymentType $tblPaymentType */
+                    $tblPaymentType = $Item['serviceTblPaymentType'];
+                    /** @var TblItem $tblItem */
+                    $tblItem = $Item['TblItem'];
+                    $DebtorNumber = $Item['DebtorNumber'];
+                    $PersonDebtor = $tblPerson;
+                    $BankReference = $Item['BankReference'];
+                    $Owner = $Item['Owner'];
+                    $BankName = $Item['BankName'];
+                    $IBAN = $Item['IBAN'];
+                    $BIC = $Item['BIC'];
+                    $Name = $Item['Name'];
+                    $Description = $Item['Description'];
+                    $Value = $Item['Value'];
+                    $Quantity = $Item['Quantity'];
+
+                    $Entity = $Manager->getEntity('TblInvoiceItemDebtor')->findOneBy(
+                        array(
+                            TblInvoiceItemDebtor::ATTR_TBL_INVOICE                   => $tblInvoice->getId(),
+                            TblInvoiceItemDebtor::ATTR_NAME                          => $Name,
+                            TblInvoiceItemDebtor::ATTR_QUANTITY                      => $Quantity,
+                            TblInvoiceItemDebtor::ATTR_VALUE                         => $Value,
+                            TblInvoiceItemDebtor::ATTR_SERVICE_TBL_PERSON_DEBTOR     => $tblPerson->getId(),
+                            TblInvoiceItemDebtor::ATTR_SERVICE_TBL_PAYMENT_TYPE      => $tblPaymentType->getId(),
+                            TblInvoiceItemDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => ($tblBankReference ? $tblBankReference->getId() : null),
+                        ));
+
+                    if($Entity === null){
+                        $Entity = new TblInvoiceItemDebtor();
+                        $Entity->setName($Name);
+                        $Entity->setDescription($Description);
+                        $Entity->setQuantity($Quantity);
+                        $Entity->setValue($Value);
+                        $Entity->setDebtorNumber($DebtorNumber);
+                        $Entity->setDebtorPerson($PersonDebtor);
+                        $Entity->setBankReference($BankReference);
+                        $Entity->setOwner($Owner);
+                        $Entity->setBankName($BankName);
+                        $Entity->setIBAN($IBAN);
+                        $Entity->setBIC($BIC);
+                        $Entity->setIsPaid(true);
+                        $Entity->setServiceTblItem($tblItem);
+                        $Entity->setServiceTblPersonDebtor($tblPerson);
+                        $Entity->setServiceTblBankAccount($tblBankAccount);
+                        $Entity->setServiceTblBankReference($tblBankReference);
+                        $Entity->setServiceTblPaymentType($tblPaymentType);
+                        $Entity->setTblInvoice($tblInvoice);
+
+                        $Manager->bulkSaveEntity($Entity);
+                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                            $Entity, true);
+                    }
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $InvoiceCreditor
+     *
+     * @return TblInvoiceCreditor|null
+     */
+    public function createInvoiceCreditorList($InvoiceCreditor = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCreditor $tblCreditor */
+        $tblCreditor = $InvoiceCreditor['serviceTblCreditor'];
+        $CreditorId = $InvoiceCreditor['CreditorId'];
+        $Owner = $InvoiceCreditor['Owner'];
+        $BankName = $InvoiceCreditor['BankName'];
+        $IBAN = $InvoiceCreditor['IBAN'];
+        $BIC = $InvoiceCreditor['BIC'];
+        $Entity = $Manager->getEntity('TblInvoiceCreditor')->findOneBy(
+            array(
+                TblInvoiceCreditor::ATTR_CREDITOR_ID => $CreditorId,
+                TblInvoiceCreditor::ATTR_OWNER       => $Owner,
+                TblInvoiceCreditor::ATTR_BANK_NAME   => $BankName,
+                TblInvoiceCreditor::ATTR_IBAN        => $IBAN,
+                TblInvoiceCreditor::ATTR_BIC         => $BIC,
+            ));
+
+        if($Entity === null){
+            $Entity = new TblInvoiceCreditor();
+            $Entity->setCreditorId($CreditorId);
+            $Entity->setOwner($Owner);
+            $Entity->setBankName($BankName);
+            $Entity->setIBAN($IBAN);
+            $Entity->setBIC($BIC);
+            $Entity->setServiceTblCreditor($tblCreditor);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $isPaid
+     *
+     * @return bool
+     */
+    public function changeInvoiceItemDebtorIsPaid(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $isPaid = true)
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblInvoice $Entity */
-        $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
+        /** @var TblInvoiceItemDebtor $Entity */
+        $Entity = $Manager->getEntityById('TblInvoiceItemDebtor', $tblInvoiceItemDebtor->getId());
         $Protocol = clone $Entity;
-        if (null !== $Entity) {
+        if(null !== $Entity){
             $Entity->setIsPaid($isPaid);
 
             $Manager->saveEntity($Entity);
@@ -454,132 +483,5 @@ class Data extends AbstractData
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param TblDebtorAccounting   $tblDebtor
-     * @param TblPaymentType        $tblPaymentType
-     * @param TblBankReference|null $tblBankReference
-     *
-     * @return null|object|TblInvoiceDebtor
-     */
-    public function createDebtor(
-        TblDebtorAccounting $tblDebtor,
-        TblPaymentType $tblPaymentType,
-        TblBankReference $tblBankReference = null
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = null;
-
-        if ($tblBankReference) {
-
-            $Entity = $Manager->getEntity('TblInvoiceDebtor')->findOneBy(
-                array(TblInvoiceDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
-                      TblInvoiceDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => $tblBankReference->getId(),
-                      TblInvoiceDebtor::ATTR_SERVICE_TBL_PAYMENT_TYPE      => $tblPaymentType->getId()));
-
-            if ($Entity === null) {
-                $Entity = new TblInvoiceDebtor();
-                $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
-                $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
-                $Entity->setBankReference($tblBankReference->getReference());
-                $Entity->setOwner($tblBankReference->getOwner());
-                $Entity->setBankName($tblBankReference->getBankName());
-                $Entity->setIBAN($tblBankReference->getIBAN());
-                $Entity->setBIC($tblBankReference->getBIC());
-                $Entity->setServiceTblDebtor($tblDebtor);
-                $Entity->setServiceTblBankReference($tblBankReference);
-                $Entity->setServiceTblPaymentType($tblPaymentType);
-
-                $Manager->saveEntity($Entity);
-                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                    $Entity);
-            }
-        } else {
-            $Entity = $Manager->getEntity('TblInvoiceDebtor')->findOneBy(
-                array(TblInvoiceDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
-                      TblInvoiceDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => null));
-
-            if ($Entity === null) {
-                $Entity = new TblInvoiceDebtor();
-                $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
-                $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
-                $Entity->setBankReference('');
-                $Entity->setOwner('');
-                $Entity->setBankName('');
-                $Entity->setIBAN('');
-                $Entity->setBIC('');
-                $Entity->setServiceTblDebtor($tblDebtor);
-                $Entity->setServiceTblBankReference(null);
-                $Entity->setServiceTblPaymentType($tblPaymentType);
-
-                $Manager->saveEntity($Entity);
-                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                    $Entity);
-            }
-        }
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblBasketVerification $tblBasketVerification
-     *
-     * @return TblItemValue
-     */
-    public function createItem(TblBasketVerification $tblBasketVerification)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = null;
-        if ($tblBasketVerification->getServiceTblItem()) {
-            $Entity = $Manager->getEntity('TblItem')->findOneBy(
-                array(TblItemValue::ATTR_NAME             => $tblBasketVerification->getServiceTblItem()->getName(),
-                      TblItemValue::ATTR_DESCRIPTION      => $tblBasketVerification->getServiceTblItem()->getDescription(),
-                      TblItemValue::ATTR_VALUE            => $tblBasketVerification->getValue(),
-                      TblItemValue::ATTR_QUANTITY         => $tblBasketVerification->getQuantity(),
-                      TblItemValue::ATTR_SERVICE_TBL_ITEM => $tblBasketVerification->getServiceTblItem()->getId()));
-        }
-
-        if ($Entity === null) {
-            $Entity = new TblItemValue();
-            $Entity->setName($tblBasketVerification->getServiceTblItem()->getName());
-            $Entity->setDescription($tblBasketVerification->getServiceTblItem()->getDescription());
-            $Entity->setValue($tblBasketVerification->getValue());
-            $Entity->setQuantity($tblBasketVerification->getQuantity());
-            $Entity->setServiceTblItem($tblBasketVerification->getServiceTblItem());
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
-        }
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblInvoice   $tblInvoice
-     * @param TblItemValue $tblItem
-     * @param TblPerson    $tblPerson
-     * @param TblInvoiceDebtor    $tblDebtor
-     *
-     * @return TblInvoiceItemValue
-     */
-    public function createInvoiceItem(TblInvoice $tblInvoice, TblItemValue $tblItem, TblPerson $tblPerson, TblInvoiceDebtor $tblDebtor)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblInvoiceItemValue();
-        $Entity->setTblInvoice($tblInvoice);
-        $Entity->setTblItem($tblItem);
-        $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setTblInvoiceDebtor($tblDebtor);
-
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-            $Entity);
-
-        return $Entity;
     }
 }

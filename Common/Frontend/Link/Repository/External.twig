@@ -27,6 +27,10 @@
                 $("a#{{ Hash }}").html(
                     '<span class="loading-indicator-animate"></span> Bitte warten'
                 );
+                // disable leftclick
+                $("a#{{ Hash }}").click(function () {return false;});
+                // look like disabled
+                $("a#{{ Hash }}").attr("disabled","disabled");
                 setTimeout("location.href='{{ UrlBase }}{{ RedirectRoute }}'", {{ RedirectTimeout }}000);
             });
             {% endif %}

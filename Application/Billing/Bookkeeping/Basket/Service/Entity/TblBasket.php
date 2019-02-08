@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -15,6 +16,10 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBasket extends Element
 {
 
+    const ATTR_NAME = 'Name';
+    const ATTR_MONTH = 'Month';
+    const ATTR_YEAR = 'Year';
+
     /**
      * @Column(type="string")
      */
@@ -23,6 +28,22 @@ class TblBasket extends Element
      * @Column(type="text")
      */
     protected $Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $Year;
+    /**
+     * @Column(type="string")
+     */
+    protected $Month;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $TargetTime;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsDone;
 
     /**
      * @return string
@@ -63,18 +84,84 @@ class TblBasket extends Element
     /**
      * @return string
      */
-    public function getCreateDate()
+    public function getYear()
+    {
+        return $this->Year;
+    }
+
+    /**
+     * @param string $Year
+     */
+    public function setYear($Year)
+    {
+        $this->Year = $Year;
+    }
+
+    /**
+     * @param bool $IsFrontend
+     *
+     * @return string
+     */
+    public function getMonth($IsFrontend = false)
+    {
+        if($IsFrontend){
+            if(strlen($this->Month) == 1){
+                $Month = '0'.$this->Month;
+            } else {
+                $Month = $this->Month;
+            }
+            return $Month;
+        }
+        return $this->Month;
+    }
+
+    /**
+     * @param string $Month
+     */
+    public function setMonth($Month)
+    {
+        $this->Month = $Month;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetTime()
     {
 
-        if (null === $this->EntityCreate) {
+        if(null === $this->TargetTime){
             return false;
         }
-        /** @var \DateTime $CreateDate */
-        $CreateDate = $this->EntityCreate;
-        if ($CreateDate instanceof \DateTime) {
-            return $CreateDate->format('d.m.Y H:i:s');
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            return $TargetTime->format('d.m.Y');
         } else {
-            return (string)$CreateDate;
+            return (string)$TargetTime;
         }
+    }
+
+    /**
+     * @param null|\DateTime $TargetTime
+     */
+    public function setTargetTime(\DateTime $TargetTime = null)
+    {
+        $this->TargetTime = $TargetTime;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsDone()
+    {
+        return $this->IsDone;
+    }
+
+    /**
+     * @param boolean $IsDone
+     */
+    public function setIsDone($IsDone)
+    {
+        $this->IsDone = $IsDone;
     }
 }

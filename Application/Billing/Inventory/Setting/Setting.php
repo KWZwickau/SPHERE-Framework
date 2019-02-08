@@ -17,7 +17,7 @@ class Setting implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'),
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Allgemein'),
                 new Link\Icon(new CogWheels()))
         );
 

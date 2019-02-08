@@ -45,13 +45,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -698,6 +702,20 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getAddressByPerson($tblPerson, $isForced);
+    }
+
+
+    /** get Deliver Address (Type ID 4) else Main Address (Type ID 1)
+     *
+     * @param TblPerson $tblPerson
+     * @param bool $isForced
+     *
+     * @return bool|TblAddress
+     */
+    public function getInvoiceAddressByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceAddressByPerson($tblPerson, $isForced);
     }
 
     /** get Main Address (Type ID 1)
