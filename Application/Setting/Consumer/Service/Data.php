@@ -152,7 +152,7 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowParentTitle',
             TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
-                'Anzeige der Personentitel der Eltern (z.B. Dr.): [Standard: Nein]', true);
+                'Anzeige der Personentitel der Eltern (Wird in Bildungsempfehlungen verwendet): [Standard: Nein]', true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, ''))) {
