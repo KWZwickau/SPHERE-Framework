@@ -974,7 +974,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                             }
                                                         }
                                                     }
-                                                    if (!empty($subString)) {
+                                                    if (!empty($subString) && isset($gradeList[$taskId])) {
                                                         $count = count($gradeList[$taskId]);
                                                         $average = $count > 0 ? round(array_sum($gradeList[$taskId]) / $count, 2) : '';
                                                         if ($average) {
