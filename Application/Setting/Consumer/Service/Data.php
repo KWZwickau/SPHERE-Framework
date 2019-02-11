@@ -149,6 +149,11 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
                 'Anzeige der Zensuren im Wortlaut auf Abgangszeugnissen [Standard: Nein]', true);
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowParentTitle',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige der Personentitel der Eltern (z.B. Dr.): [Standard: Nein]', true);
+        }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
