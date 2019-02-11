@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -132,61 +134,115 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTypeChild->setId(TblType::CHILD_ID);
             $tblTypeChild->setName('Kind');
             $tblTypeAll[] = $tblTypeChild;
+            $isChild = true;
         } else {
             $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
+            $isChild = false;
         }
 
         $receiverExtraOptions = ApiRelationshipToPerson::receiverBlock($contentExtraOptions, 'ExtraOptions');
+
+        if ($isChild) {
+            $formRowRelationship = new FormRow(array(
+                new FormColumn(array(
+                    new Panel('hat folgende Beziehung ' . new Link(),
+                        array(
+                            (new SelectBox('Type[Type]', 'Beziehungstyp',
+                                array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
+                            ))
+                                ->setRequired()
+                                ->ajaxPipelineOnChange(ApiRelationshipToPerson::pipelineLoadExtraOptions($PersonId))
+                        )
+                        , Panel::PANEL_TYPE_INFO
+                    ),
+                )),
+            ));
+
+            $formRowToPerson = new FormRow(array(
+                new FormColumn(array(
+                    new Panel(
+                        'zur folgenden Person ' . new PersonIcon(),
+                        array(
+                            $currentPerson
+                                ? new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId())
+                                : null,
+                            (new TextField(
+                                'Search',
+                                '',
+                                'Suche',
+                                new Search()
+                            ))->ajaxPipelineOnKeyUp(ApiRelationshipToPerson::pipelineSearchPerson($isChild)),
+                            ApiRelationshipToPerson::receiverBlock($this->loadPersonSearch($Search, $message, $isChild), 'SearchPerson'),
+                            new Standard('Neue Person anlegen', '/People/Person/Create', new PersonIcon()
+                                , array(), 'Die aktuell gewählte Person verlassen'
+                            ),
+                            new TextField('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
+                                new Pencil()
+                            ),
+                            $receiverExtraOptions
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                ))
+            ));
+        } else {
+            $formRowRelationship = new FormRow(array(
+                new FormColumn(array(
+                    new Panel('hat folgende Beziehung ' . new Link(),
+                        array(
+                            (new SelectBox('Type[Type]', 'Beziehungstyp',
+                                array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
+                            ))
+                                ->setRequired()
+                                ->ajaxPipelineOnChange(ApiRelationshipToPerson::pipelineLoadExtraOptions($PersonId))
+                            ,
+                            new TextField('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
+                                new Pencil()
+                            ),
+                            $receiverExtraOptions
+                        )
+                        , Panel::PANEL_TYPE_INFO
+                    ),
+                )),
+            ));
+
+            $formRowToPerson = new FormRow(array(
+                new FormColumn(array(
+                    new Panel(
+                        'zur folgenden Person ' . new PersonIcon(),
+                        array(
+                            $currentPerson
+                                ? new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId())
+                                : null,
+                            (new TextField(
+                                'Search',
+                                '',
+                                'Suche',
+                                new Search()
+                            ))->ajaxPipelineOnKeyUp(ApiRelationshipToPerson::pipelineSearchPerson($isChild)),
+                            ApiRelationshipToPerson::receiverBlock($this->loadPersonSearch($Search, $message, $isChild), 'SearchPerson'),
+                            new Standard('Neue Person anlegen', '/People/Person/Create', new PersonIcon()
+                                , array(), 'Die aktuell gewählte Person verlassen'
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                ))
+            ));
+        }
 
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        FrontendReadOnly::getDataProtectionMessage()
-                    ))
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel('hat folgende Beziehung ' . new Link(),
-                            array(
-                                (new SelectBox('Type[Type]', 'Beziehungstyp',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ))
-                                    ->setRequired()
-                                    ->ajaxPipelineOnChange(ApiRelationshipToPerson::pipelineLoadExtraOptions())
-                                ,
-                                new TextField('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
-                                    new Pencil()
-                                ),
-                                $receiverExtraOptions
-                            )
-                            , Panel::PANEL_TYPE_INFO
+                        new Danger(
+                            new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
                         ),
-                    )),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel(
-                            'zur folgenden Person ' . new PersonIcon(),
-                            array(
-                                $currentPerson
-                                    ? new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId())
-                                    : null,
-                                (new TextField(
-                                    'Search',
-                                    '',
-                                    'Suche',
-                                    new Search()
-                                ))->ajaxPipelineOnKeyUp(ApiRelationshipToPerson::pipelineSearchPerson()),
-                                ApiRelationshipToPerson::receiverBlock($this->loadPersonSearch($Search, $message), 'SearchPerson'),
-                                new Standard('Neue Person anlegen', '/People/Person/Create', new PersonIcon()
-                                    , array(), 'Die aktuell gewählte Person verlassen'
-                                )
-                            ),
-                            Panel::PANEL_TYPE_INFO
-                        )
+                        new Container('&nbsp;')
                     ))
                 )),
+                $formRowRelationship,
+                $formRowToPerson,
                 new FormRow(array(
                     new FormColumn(array(
                         $saveButton
@@ -205,9 +261,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadExtraOptions(IMessageInterface $message = null, $Post = null)
     {
-
-        // todo post bei neuer Personenbeziehung vom Sorgeberechtigten
-
         if ($Post) {
             $global = $this->getGlobal();
             $global->POST['Type']['Ranking'] = $Post;
@@ -264,23 +317,26 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $Search
      * @param IMessageInterface|null $message
+     * @param bool $IsChild
      *
      * @return string
      */
-    public function loadPersonSearch($Search, IMessageInterface $message = null)
+    public function loadPersonSearch($Search, IMessageInterface $message = null, $IsChild = false)
     {
 
         if ($Search != '' && strlen($Search) > 2) {
             if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
                 $resultList = array();
                 foreach ($tblPersonList as $tblPerson) {
-                    // todo onchange only by student, prospect
-                    // todo onchange wieder aktivieren
+                    // onchange only by student, prospect
+                    $radio = new RadioBox('To', '&nbsp;', $tblPerson->getId());
+                    if ($IsChild) {
+                        $radio->ajaxPipelineOnChange(
+                            ApiRelationshipToPerson::pipelineLoadExtraOptions(null)
+                        );
+                    }
                     $resultList[] = array(
-                        'Select' => new RadioBox('To', '&nbsp;', $tblPerson->getId()),
-//                        'Select' => (new RadioBox('To', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnChange(
-//                            ApiRelationshipToPerson::pipelineLoadExtraOptions()
-//                        ),
+                        'Select' => $radio,
                         'FirstName' => $tblPerson->getFirstSecondName(),
                         'LastName' => $tblPerson->getLastName(),
                         'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : ''
