@@ -136,6 +136,11 @@ abstract class Certificate extends Extension
 
         } elseif (strpos(get_class($this), 'EzshKurshalbjahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
+
+        } elseif (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+            && $tblConsumer->getAcronym() == 'CSW'
+        ) {
+            $InjectStyle = 'body { margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
         } else {
             $InjectStyle = '';
         }
