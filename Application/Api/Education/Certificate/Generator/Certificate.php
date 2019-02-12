@@ -620,7 +620,34 @@ abstract class Certificate extends Extension
 
                                 // Mittelschulzeugnisse
                                 if ($hasSecondLanguageSecondarySchool)  {
-                                    $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                    // SSW-484
+                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
+                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                                    if (($tblDivision = $this->getTblDivision())
+                                        && ($tblLevel = $tblDivision->getTblLevel())
+                                    ) {
+                                        $levelName = $tblLevel->getName();
+                                    } else {
+                                        $levelName = false;
+                                    }
+
+                                    if ($tillLevel && $fromLevel) {
+                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
+                                            && floatval($tillLevel->getName()) >= floatval($levelName)
+                                        ) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } elseif ($tillLevel) {
+                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } elseif ($fromLevel) {
+                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } else {
+                                        $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                    }
                                 }
                             }
                         }
