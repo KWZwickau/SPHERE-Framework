@@ -2005,7 +2005,7 @@ abstract class Certificate extends Extension
             }
         }
 
-        if ($tblSubjectProfile && !$tblSubjectForeign) {
+        if ($tblSubjectProfile) {
             if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
                 && ($value = $tblSetting->getValue())
             ) {
@@ -2013,7 +2013,11 @@ abstract class Certificate extends Extension
             } else {
                 $subjectAcronymForGrade = $tblSubjectProfile->getAcronym();
             }
+        } else {
+            $subjectAcronymForGrade = 'SubjectAcronymForGrade';
+        }
 
+        if ($tblSubjectProfile && !$tblSubjectForeign) {
             $elementName = (new Element())
                 // Profilname aus der Schülerakte
                 // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
@@ -2074,14 +2078,31 @@ abstract class Certificate extends Extension
                 ->stylePaddingBottom('2px')
                 ->styleTextSize($TextSize);
 
-            $elementForeignGrade = (new Element())
-                ->setContent('
+            if ($tblSubjectProfile) {
+                // SSW-493 Profil vs. 3.FS
+                $contentForeignGrade = '
+                    {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] }}
+                    {% else %}
+                        {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}
+                    {% endif %}
+                ';
+            } else {
+                $contentForeignGrade = '
                     {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
                         {{ Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] }}
                     {% else %}
                         &ndash;
                     {% endif %}
-                ')
+                ';
+            }
+
+            $elementForeignGrade = (new Element())
+                ->setContent($contentForeignGrade)
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#BBB')
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
