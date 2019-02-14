@@ -86,7 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Owner'      => 'Besitzer',
             'Address'    => 'Adresse',
             'CreditorId' => 'Gläubiger',
-            'BankName'   => 'Name der Bank',
+            'BankName'   => 'Bankname',
             'IBAN'       => 'IBAN',
             'BIC'        => 'BIC',
             'Option'     => '',

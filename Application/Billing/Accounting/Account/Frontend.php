@@ -95,7 +95,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Number'      => 'Kennziffer',
                                     'Description' => 'Beschreibung',
-                                    'Typ'         => 'Konto',
+                                    'Typ'         => 'Bankverbindung',
                                     'Taxes'       => 'MwSt.',
                                     'Code'        => 'Code',
                                     'Option'      => ''
@@ -132,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('FiBu Konto',
+                        new Panel('FiBu Bankverbindung',
                             array(
                                 new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()),
                                 new SelectBox('Account[Type]', 'Typ', array('Name' => $tblAccountType)),

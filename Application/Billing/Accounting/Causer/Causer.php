@@ -28,9 +28,6 @@ class Causer implements IModuleInterface
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragsverursacher'))
         );
-//                Main::getDisplay()->addApplicationNavigation(
-//                    new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Konto Einstellungen' ), new Link\Icon( new Money() ) )
-//                );
         /**
          * Register Route
          */

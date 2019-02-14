@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -320,7 +321,7 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             }
 
-            $LayoutColumnList[] = new LayoutColumn(new Bold('Beitragsarten:'));
+            $LayoutColumnList[] = new LayoutColumn(new Bold('Beitragsarten: '.new DangerText('*')));
             $Column = '';
             if(!empty($CheckboxList)){
                 foreach($CheckboxList as $Checkbox) {
