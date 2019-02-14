@@ -341,20 +341,22 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
 
         $PaymentTypeList = array();
+        $PaymentTypeList[] = new Balance();
         // post Type if not Exist
 
         $tblPaymentTypeAll = Balance::useService()->getPaymentTypeAll();
         foreach($tblPaymentTypeAll as $tblPaymentType) {
             $PaymentTypeList[$tblPaymentType->getId()] = $tblPaymentType->getName();
-            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
-                if(!isset($_POST['DebtorSelection']['PaymentType'])){
-                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
-                }
-            }
+            // nicht mehr vorbefüllt
+//            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
+//                if(!isset($_POST['DebtorSelection']['PaymentType'])){
+//                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
+//                }
+//            }
         }
 
         //get First Variant to Select
-        $PostVariantId = '';
+        $PostVariantId = '-1';
         $ItemName = '';
         if(($tblItem = Item::useService()->getItemById($ItemId))){
 
@@ -370,8 +372,6 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 $PostVariantId = $tblItemVariantList[0]->getId();
             }
         }
-
-
         if(!isset($_POST['DebtorSelection']['Variant'])){
             $_POST['DebtorSelection']['Variant'] = $PostVariantId;
         }
@@ -388,14 +388,16 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                         $tblItemVariant->getName().': '.$PriceString, $tblItemVariant->getId());
                 }
-                $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
-                    'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
             }
         }
+        // gibt es immer (auch ohne Varianten)
+        $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
+            'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
+
 
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
-//        $SelectBoxDebtorList[] = '';
+        $SelectBoxDebtorList[] = new Person();
 
         $PersonTitle = '';
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
@@ -507,13 +509,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',
-                            $PaymentTypeList))
+                            $PaymentTypeList))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
-                            $SelectBoxDebtorList, null, true, null))
+                            $SelectBoxDebtorList, null, true, null))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
@@ -521,7 +523,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         array(
-                            new Bold('Varianten '),
+                            new Bold('Varianten '.new DangerText('*')),
                             new Listing($RadioBoxListVariant)
                         )
                         , 6),

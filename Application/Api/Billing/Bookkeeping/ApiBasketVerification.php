@@ -469,16 +469,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorSelection($BasketVerificationId));
 
         $PaymentTypeList = array();
+        $PaymentTypeList[] = new Balance();
         // post Type if not Exist
 
         $tblPaymentTypeAll = Balance::useService()->getPaymentTypeAll();
         foreach($tblPaymentTypeAll as $tblPaymentType) {
             $PaymentTypeList[$tblPaymentType->getId()] = $tblPaymentType->getName();
-            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
-                if(!isset($_POST['DebtorSelection']['PaymentType'])){
-                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
-                }
-            }
+            // nicht mehr vorbefüllt
+//            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
+//                if(!isset($_POST['DebtorSelection']['PaymentType'])){
+//                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
+//                }
+//            }
         }
 
         //get First Variant to Select
@@ -489,6 +491,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $RadioBoxListVariant = array();
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
+        $SelectBoxDebtorList[] = new Person();
         $tblBankReferenceList = array();
         $ItemName = '';
         $PersonTitle = '';
@@ -518,10 +521,11 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                             $tblItemVariant->getName().': '.$PriceString, $tblItemVariant->getId());
                     }
-                    $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
-                        'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
                 }
             }
+            // gibt es immer (auch ohne Varianten)
+            $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
+                'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
             if($tblPersonCauser){
                 $PersonTitle = ' für '.new Bold($tblPersonCauser->getFirstName().' '.$tblPersonCauser->getLastName());
             }
@@ -634,13 +638,13 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',
-                            $PaymentTypeList))
+                            $PaymentTypeList))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
-                            $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))
+                            $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
@@ -648,7 +652,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         array(
-                            new Bold('Varianten '),
+                            new Bold('Varianten '.new DangerText('*')),
                             new Listing($RadioBoxListVariant)
                         )
                         , 6),
