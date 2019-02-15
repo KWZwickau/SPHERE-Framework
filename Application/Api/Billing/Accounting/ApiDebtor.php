@@ -570,7 +570,7 @@ class ApiDebtor extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($PersonString), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Debit.-Nr.: ', 2),
+                new LayoutColumn('Debitoren-Nr.: ', 2),
                 new LayoutColumn(new Bold($tblDebtorNumber->getDebtorNumber()), 10),
             ))));
 

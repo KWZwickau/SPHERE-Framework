@@ -172,7 +172,7 @@ class Service extends AbstractService
                 $Account['IsActive'],
                 (new Data($this->getBinding()))->getAccountKeyById($Account['Key']),
                 (new Data($this->getBinding()))->getAccountTypeById($Account['Type']));
-            return new Success('Das Konto ist erfasst worden')
+            return new Success('Die Bankverbindung ist erfasst worden')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS);
         }
         return $Form;

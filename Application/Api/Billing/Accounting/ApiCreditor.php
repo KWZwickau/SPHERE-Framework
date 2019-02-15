@@ -271,7 +271,7 @@ class ApiCreditor extends Extension implements IApiInterface
             new FormGroup(array(
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[Owner]', 'Kontoinhaber', 'Kontoinhaber'))->setRequired()
+                        (new TextField('Creditor[Owner]', 'Inhaber der Bankverbindung', 'Inhaber der Bankverbindung'))->setRequired()
                         , 6)
                 ),
                 new FormRow(array(
@@ -295,7 +295,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 )),
                 new FormRow(
                     new FormColumn(
-                        new TextField('Creditor[BankName]', 'Name der Bank', 'Name der Bank')
+                        new TextField('Creditor[BankName]', 'Bankname', 'Bankname')
                         , 6)
                 ),
                 new FormRow(
@@ -334,7 +334,7 @@ class ApiCreditor extends Extension implements IApiInterface
         $Error = false;
         $form = $this->formCreditor($Identifier, $CreditorId);
         if(isset($Creditor['Owner']) && empty($Creditor['Owner'])){
-            $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Kontoinhaber an');
+            $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Inhaber der Bankverbindung an');
             $Error = true;
         }
         if(isset($Creditor['Street']) && empty($Creditor['Street'])){
@@ -496,7 +496,7 @@ class ApiCreditor extends Extension implements IApiInterface
 
         if($tblCreditor){
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Kontoinhaber: ', 2),
+                new LayoutColumn('Inhaber der Bankverbindung: ', 2),
                 new LayoutColumn(new Bold($tblCreditor->getOwner()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -509,7 +509,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($tblCreditor->getCreditorId()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Name der Bank: ', 2),
+                new LayoutColumn('Bankname: ', 2),
                 new LayoutColumn(new Bold($tblCreditor->getBankName()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(

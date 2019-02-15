@@ -188,19 +188,19 @@ class Frontend extends Extension implements IFrontendInterface
         foreach($tblSettingList as &$tblSetting){
             switch($tblSetting->getIdentifier()){
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
-                    $Listing[] = '&nbsp;Länge der Debit.-Nr.: &nbsp;'
+                    $Listing[] = '&nbsp;Länge der Debitoren-Nr.: &nbsp;'
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText($tblSetting->getValue())
                         : new DangerText('Nicht hinterlegt!')));
                 break;
                 case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
-                    $Listing[] = '&nbsp;Debit.-Nr. ist eine Pflichtangabe: &nbsp;'
+                    $Listing[] = '&nbsp;Debitoren-Nr. ist eine Pflichtangabe: &nbsp;'
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())));
                 break;
                 case TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED:
-                    $Listing[] ='&nbsp;Konto für SEPA-Lastschrift ist eine Pflichtangabe: &nbsp;'
+                    $Listing[] ='&nbsp;Bankverbindung für SEPA-Lastschrift ist eine Pflichtangabe: &nbsp;'
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())));
@@ -231,15 +231,15 @@ class Frontend extends Extension implements IFrontendInterface
             switch($tblSetting->getIdentifier()){
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
-                    $elementList[] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debit.-Nr.');
+                    $elementList[] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debitoren-Nr.');
                     break;
                 case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
                     $_POST['Setting'][TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED] = $tblSetting->getValue();
-                    $elementList[] = new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debit.-Nr. ist eine Pflichtangabe', true);
+                    $elementList[] = new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debitoren-Nr. ist eine Pflichtangabe', true);
                     break;
                 case TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED:
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED] = $tblSetting->getValue();
-                    $elementList[] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED.']', 'Konto für SEPA-Lastschrift ist eine Pflichtangabe', true);
+                    $elementList[] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED.']', 'Bankverbindung für SEPA-Lastschrift ist eine Pflichtangabe', true);
                     break;
             }
         }

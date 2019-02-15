@@ -15,6 +15,7 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -93,6 +94,7 @@ class Service extends AbstractService
      * @param string  $Year
      * @param string  $MonthFrom
      * @param string  $MonthTo
+     * @param string  $DivisionId
      *
      * @return array
      */
@@ -100,20 +102,23 @@ class Service extends AbstractService
         TblItem $tblItem,
         $Year,
         $MonthFrom = '1',
-        $MonthTo = '12'
+        $MonthTo = '12',
+        $DivisionId = '0'
     ){
         $PriceList = array();
         $ResultList = $this->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
-        foreach($ResultList as $Key => $RowContent) {
-            $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
-            $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
-            $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
-            if($PersonDebtorId && $PersonCauserId && $timeString){
-                if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']){
-                    $PriceList[$PersonDebtorId][$PersonCauserId]['Sum'][] = $RowContent['Value'];
-                    $PriceList[$PersonDebtorId][$PersonCauserId]['Price'][$timeString] = $RowContent['Value'];
-                } else {
-                    $PriceList[$PersonDebtorId][$PersonCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
+        if($ResultList){
+            foreach($ResultList as $Key => $RowContent) {
+                $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
+                $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
+                $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+                if($PersonDebtorId && $PersonCauserId && $timeString){
+                    if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']){
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Sum'][] = $RowContent['Value'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Price'][$timeString] = $RowContent['Value'];
+                    } else {
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
                 }
             }
         }
@@ -126,6 +131,22 @@ class Service extends AbstractService
             }
         }
 
+        // use only division matched Person's
+        if(!empty($PriceList) && $DivisionId !== '0' && ($tblDivision = Division::useService()->getDivisionById($DivisionId))){
+            $tblPersonList = Division::useService()->getPersonAllByDivisionList(array($tblDivision));
+            foreach($PriceList as &$DebtorList){
+                foreach($DebtorList as $CauserId => &$Content){
+                    $tblPersonCauser = Person::useService()->getPersonById($CauserId);
+                    if(!in_array($tblPersonCauser, $tblPersonList)){
+                        $Content = false;
+                    }
+                }
+                // remove mismatched Student
+                $DebtorList = array_filter($DebtorList);
+            }
+            // remove empty DebtorList
+            $PriceList = array_filter($PriceList);
+        }
 
         return $PriceList;
     }

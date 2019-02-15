@@ -108,7 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'TargetTime'    => 'Fälligkeitsdatum',
                             'CauserPerson'  => 'Beitragsverursacher',
                             'DebtorPerson'  => 'Beitragszahler',
-                            'DebtorNumber'  => 'Debit.-Nr.',
+                            'DebtorNumber'  => 'Debitoren-Nr.',
                             'SumPrice'      => 'Gesamtbetrag',
                             'BasketName'    => 'Name der Abrechnung',
 //                            'Option' => '',

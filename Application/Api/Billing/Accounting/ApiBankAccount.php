@@ -308,10 +308,10 @@ class ApiBankAccount extends Extension implements IApiInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('BankAccount[Owner]', 'Kontoinhaber', 'Kontoinhaber')
+                        new TextField('BankAccount[Owner]', 'Inhaber der Bankverbindung', 'Inhaber der Bankverbindung')
                         , 6),
                     new FormColumn(
-                        new TextField('BankAccount[BankName]', 'Name der Bank', 'Name der Bank')
+                        new TextField('BankAccount[BankName]', 'Bankname', 'Bankname')
                         , 6)
                 )),
                 new FormRow(array(
@@ -397,13 +397,13 @@ class ApiBankAccount extends Extension implements IApiInterface
             $tblBankAccount = Debtor::useService()->createBankAccount($tblPerson, $BankAccount['Owner'],
                 $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
             if($tblBankAccount){
-                return new Success('Konto erfolgreich angelegt').self::pipelineCloseModal($Identifier,
+                return new Success('Bankverbindung erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
             } else {
-                return new Danger('Konto konnte nicht gengelegt werden');
+                return new Danger('Bankverbindung konnte nicht gengelegt werden');
             }
         } else {
-            return new Danger('Konto konnte nicht gengelegt werden (Person nicht vorhanden)');
+            return new Danger('Bankverbindung konnte nicht gengelegt werden (Person nicht vorhanden)');
         }
     }
 
@@ -434,8 +434,8 @@ class ApiBankAccount extends Extension implements IApiInterface
         }
 
         return ($IsChange
-            ? new Success('Konto erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId)
-            : new Danger('Konto konnte nicht geändert werden'));
+            ? new Success('Bankverbindung erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId)
+            : new Danger('Bankverbindung konnte nicht geändert werden'));
     }
 
     /**
@@ -480,7 +480,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($tblBankAccount->getOwner()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Name der Bank: ', 2),
+                new LayoutColumn('Bankname: ', 2),
                 new LayoutColumn(new Bold($tblBankAccount->getBankName()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -496,7 +496,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll das Konto wirklich entfernt werden?'
+                            new Panel('Soll die Bankverbindung wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
@@ -510,7 +510,7 @@ class ApiBankAccount extends Extension implements IApiInterface
             );
 
         } else {
-            return new Warning('Konto wurde nicht gefunden');
+            return new Warning('Bankverbindung wurde nicht gefunden');
         }
     }
 
@@ -547,14 +547,14 @@ class ApiBankAccount extends Extension implements IApiInterface
                         )
                     );
                 }
-                return new Danger('Das Konto ist in einer Zahlungszuweisung hinterlegt, löschen nicht möglich!'
+                return new Danger('Die Bankverbindung ist in einer Zahlungszuweisung hinterlegt, löschen nicht möglich!'
                     .new Container(implode('<br/>', $RowContent)));
             }
             Debtor::useService()->removeBankAccount($tblBankAccount);
 
-            return new Success('Konto wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier, $PersonId);
+            return new Success('Bankverbindung wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier, $PersonId);
         }
-        return new Danger('Konto konnte nicht entfernt werden');
+        return new Danger('Bankverbindung konnte nicht entfernt werden');
     }
 
 }

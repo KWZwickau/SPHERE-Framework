@@ -4,6 +4,8 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -13,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -25,6 +28,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -35,10 +39,17 @@ use SPHERE\System\Extension\Extension;
 class Frontend extends Extension implements IFrontendInterface
 {
 
-    public function frontendBalance($Balance = array())
+    public function frontendBalance()
     {
 
-        $Stage = new Stage('Belegdruck');
+        $Stage = new Stage('Dashboard', 'Belegdruck');
+        return $Stage;
+    }
+
+    public function frontendBalanceExcel($Balance = array())
+    {
+
+        $Stage = new Stage('Belegdruck', 'Serienbrief');
 
         if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
             $_POST['Balance']['Item'] = $tblItem->getId();
@@ -60,14 +71,15 @@ class Frontend extends Extension implements IFrontendInterface
 
             if(($tblItem = Item::useService()->getItemById($Balance['Item']))){
                 $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Balance['Year'],
-                    $Balance['From'], $Balance['To']);
+                    $Balance['From'], $Balance['To'], $Balance['Division']);
                 $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
                 $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                     new Download(), array(
-                        'ItemId' => $tblItem->getId(),
-                        'Year'   => $Balance['Year'],
-                        'From'   => $Balance['From'],
-                        'To'     => $Balance['To']
+                        'ItemId'   => $tblItem->getId(),
+                        'Year'     => $Balance['Year'],
+                        'From'     => $Balance['From'],
+                        'To'       => $Balance['To'],
+                        'Division' => $Balance['Division'],
                     ));
             }
         }
@@ -131,29 +143,31 @@ class Frontend extends Extension implements IFrontendInterface
         $MonthList = Invoice::useService()->getMonthList();
         $tblItemAll = Item::useService()->getItemAll();
 
-//        $tblYear = false;
-//        $tblDivisionList = array();
-//        if(($tblYearList = Term::useService()->getYearByNow())){
-//            $tblYear = current($tblYearList);
-//        }
-//        if($tblYear){
-//            if(!($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))){
-//                $tblDivisionList = array();
-//            }
-//        }
+        $tblYear = false;
+        $tblDivisionList = array();
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            $tblYear = current($tblYearList);
+        }
+        if($tblYear){
+            if(!($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))){
+                $tblDivisionList = array();
+            }
+        }
         return new Well(
             new Title('Filterung für Belegdruck', '').
             new Form(
                 new FormGroup(array(
                     new FormRow(array(
-                        new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),
-                        new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true, null), 4),
-                        new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true, null), 4),
-//                        new FormColumn(new SelectBox('Balance[Division]', 'Klasse', array( '{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true, null), 4),
+                        new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 3),
+                        new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true, null), 3),
+                        new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true, null), 3),
+                        new FormColumn(new SelectBox('Balance[Division]', 'Klasse '.new ToolTip(new InfoIcon(),
+                                'Klassen aus dem aktuellem Schuljahr (Datum '.(new \DateTime())->format('d.m.Y').')')
+                            , array( '{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true, null), 3),
                     )),
                     new FormRow(array(
                         new FormColumn((new SelectBox('Balance[Item]', 'Beitragsart',
-                            array('{{ Name }}' => $tblItemAll)))->setRequired(), 4),
+                            array('{{ Name }}' => $tblItemAll)))->setRequired(), 3),
                     )),
                     new FormRow(
                         new FormColumn(new Primary('Filtern', new Filter()))

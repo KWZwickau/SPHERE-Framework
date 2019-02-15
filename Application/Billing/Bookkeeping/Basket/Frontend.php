@@ -265,7 +265,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $InfoDebtorNumber = '';
                     // new DebtorNumber
                     if($IsDebtorNumberNeed){
-                        $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debit.-Nr. wird benötigt!');
+                        $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debitoren-Nr. wird benötigt!');
                     }
 
                     if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
@@ -351,7 +351,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Title = 'Anzahl der Zahlungszuordnungen:';
                         break;
                     case 'DebtorNumberMiss':
-                        $Title = 'Anzahl fehlernder Debit.-Nr.:';
+                        $Title = 'Anzahl fehlernder Debitoren-Nr.:';
                         if($Count > 0 && $IsDebtorNumberNeed){
                             $Title = new DangerText($Title);
                             $DebtorNumberMissCount = $Count;
