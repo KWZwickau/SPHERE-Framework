@@ -7,7 +7,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
@@ -588,52 +587,6 @@ class Frontend extends Extension implements IFrontendInterface
                     )))))
                 );
             } else {
-
-                // Remove Session
-                $tblSessionAll = Account::useService()->getSessionAllByAccount($tblAccount);
-                if (!empty( $tblSessionAll )) {
-                    /** @var TblSession $tblSession */
-                    foreach ($tblSessionAll as $tblSession) {
-                        Account::useService()->destroySession(null, $tblSession->getSession());
-                    }
-                }
-
-                // Remove User
-                $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
-                if (!empty( $tblPersonAll )) {
-                    /** @var TblPerson $tblPerson */
-                    foreach ($tblPersonAll as $tblPerson) {
-                        Account::useService()->removeAccountPerson($tblAccount, $tblPerson);
-                    }
-                }
-
-                // Remove Authentication
-                $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
-                if (!empty( $tblAuthentication )) {
-                    Account::useService()->removeAccountAuthentication($tblAccount,
-                        $tblAuthentication->getTblIdentification());
-                }
-
-                // Remove Authorization
-                $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
-                if (!empty( $tblAuthorizationAll )) {
-                    /** @var TblAuthorization $tblAuthorization */
-                    foreach ($tblAuthorizationAll as $tblAuthorization) {
-                        if ($tblAuthorization->getServiceTblRole()) {
-                            Account::useService()->removeAccountAuthorization($tblAccount,
-                                $tblAuthorization->getServiceTblRole());
-                        }
-                    }
-                }
-
-                // Remove Setting
-                $tblSettingAll = Account::useService()->getSettingAllByAccount($tblAccount);
-                if (!empty( $tblSettingAll )) {
-                    /** @var TblAuthorization $tblAuthorization */
-                    foreach ($tblSettingAll as $tblSetting) {
-                        Account::useService()->destroySetting($tblSetting);
-                    }
-                }
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
