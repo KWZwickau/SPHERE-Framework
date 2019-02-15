@@ -240,6 +240,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Space = '';
         } else {
             $Download->setDisabled();
+            $DownloadYear->setDisabled();
         }
 
         $Stage->setContent(new Layout(
