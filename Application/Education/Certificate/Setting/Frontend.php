@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Star;
@@ -33,9 +35,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -43,80 +47,132 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int   $Certificate
+     * @param int $Certificate
      * @param array $Grade
      * @param array $Subject
+     * @param array $Data
      *
-     * @return Stage
+     * @return Stage|string
      */
-    public function frontendCertificateSetting($Certificate = 0, $Grade = array(), $Subject = array())
+    public function frontendCertificateSetting($Certificate = 0, $Grade = array(), $Subject = array(), $Data = null)
     {
 
         $Stage = new Stage('Einstellungen', 'Vorlage bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Setting/Template', new ChevronLeft()));
 
         if (( $tblCertificate = Generator::useService()->getCertificateById($Certificate) )) {
-
-            // Kopf-Noten-Definition
-            $tblTestTypeBehavior = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-            $tblGradeTypeBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestTypeBehavior);
-
-            // Fach-Noten-Definition
-            $tblSubjectAll = Subject::useService()->getSubjectAll();
-
-            if ($tblCertificate->isGradeInformation()){
-                // bei Noteninformationen stehen alle Fächer auf der linken Seite
-                $LaneLength = 25;
-            } else {
-                if ($tblSubjectAll) {
-                    $LaneLength = ceil(count($tblSubjectAll) / 2);
-                } else {
-                    $LaneLength = 2;
+            // Spezial Fall Abiturzeugnis
+            if ($tblCertificate->getCertificate() == 'GymAbitur') {
+                if (($tblCertificateReferenceForLanguagesList = Generator::useService()->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate))) {
+                    $global = $this->getGlobal();
+                    foreach ($tblCertificateReferenceForLanguagesList as $tblCertificateReferenceForLanguages) {
+                        $global->POST['Data'][$tblCertificateReferenceForLanguages->getLanguageRanking()]['ToLevel10'] = $tblCertificateReferenceForLanguages->getToLevel10();
+                        $global->POST['Data'][$tblCertificateReferenceForLanguages->getLanguageRanking()]['AfterBasicCourse'] = $tblCertificateReferenceForLanguages->getAfterBasicCourse();
+                        $global->POST['Data'][$tblCertificateReferenceForLanguages->getLanguageRanking()]['AfterAdvancedCourse'] = $tblCertificateReferenceForLanguages->getAfterAdvancedCourse();
+                    }
+                    $global->savePost();
                 }
-            }
 
-            $SubjectLaneLeft = array();
-            $SubjectLaneRight = array();
-            for ($Run = 1; $Run <= $LaneLength; $Run++) {
-                array_push($SubjectLaneLeft,
-                    $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run,
-                        ( $Run == 1 ? 'Linke Zeugnis-Spalte' : '' ))
+                $formRows = array();
+                for ($i = 1; $i < 4; $i++) {
+                    $formRows[] = new FormRow(new FormColumn(
+                        new Panel(
+                            $i . '. Fremdsprache',
+                            array(
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(
+                                        new TextField('Data[' . $i . '][ToLevel10]', '', 'Bis Klasse 10')
+                                    , 4),
+                                    new LayoutColumn(
+                                        new TextField('Data[' . $i . '][AfterBasicCourse]', '', 'Nach Grundkurs')
+                                    , 4),
+                                    new LayoutColumn(
+                                        new TextField('Data[' . $i . '][AfterAdvancedCourse]', '', 'Nach Leistungskurs')
+                                    , 4),
+                                ))))
+                            ),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    ));
+                }
+
+                $form = new Form(
+                    new FormGroup($formRows, new FormTitle('Gemeinsamer Europäischer Referenzrahmen für Sprachen')),
+                    new Primary('Speichern')
                 );
-                array_push($SubjectLaneRight,
-                    $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run,
-                        ( $Run == 1 ? 'Rechte Zeugnis-Spalte' : '' ))
+
+                $Stage->setContent(
+                    new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()),
+                        Panel::PANEL_TYPE_INFO)
+                    . new Well(Generator::useService()->updateCertificateReferenceForLanguages($form, $tblCertificate, $Data))
+                );
+
+            } else {
+
+                // Kopf-Noten-Definition
+                $tblTestTypeBehavior = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+                $tblGradeTypeBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestTypeBehavior);
+
+                // Fach-Noten-Definition
+                $tblSubjectAll = Subject::useService()->getSubjectAll();
+
+                if ($tblCertificate->isGradeInformation()) {
+                    // bei Noteninformationen stehen alle Fächer auf der linken Seite
+                    $LaneLength = 25;
+                } else {
+                    if ($tblSubjectAll) {
+                        $LaneLength = ceil(count($tblSubjectAll) / 2);
+                    } else {
+                        $LaneLength = 2;
+                    }
+                }
+
+                $SubjectLaneLeft = array();
+                $SubjectLaneRight = array();
+                for ($Run = 1; $Run <= $LaneLength; $Run++) {
+                    array_push($SubjectLaneLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run,
+                            ($Run == 1 ? 'Linke Zeugnis-Spalte' : ''))
+                    );
+                    array_push($SubjectLaneRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run,
+                            ($Run == 1 ? 'Rechte Zeugnis-Spalte' : ''))
+                    );
+                }
+
+                $Stage->setContent(
+                    new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()),
+                        Panel::PANEL_TYPE_INFO)
+                    . Generator::useService()->createCertificateSetting(
+                        new Form(array(
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn(array(
+                                        $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 1, 1, 'Kopfnote',
+                                            'Linke Zeugnis-Spalte'),
+                                        $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 1, 2, 'Kopfnote')
+                                    ), 6),
+                                    new FormColumn(array(
+                                        $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 2, 1, 'Kopfnote',
+                                            'Rechte Zeugnis-Spalte'),
+                                        $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 2, 2, 'Kopfnote')
+                                    ), 6),
+                                ))
+                            ), new FormTitle('Kopfnoten')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneLeft, 6),
+                                    new FormColumn($SubjectLaneRight, 6),
+                                )),
+                            ), new FormTitle('Fachnoten')),
+                        ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject)
                 );
             }
-
-            $Stage->setContent(
-                new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()), Panel::PANEL_TYPE_INFO)
-                . Generator::useService()->createCertificateSetting(
-                    new Form(array(
-                        new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(array(
-                                    $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 1, 1, 'Kopfnote',
-                                        'Linke Zeugnis-Spalte'),
-                                    $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 1, 2, 'Kopfnote')
-                                ), 6),
-                                new FormColumn(array(
-                                    $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 2, 1, 'Kopfnote',
-                                        'Rechte Zeugnis-Spalte'),
-                                    $this->getGrade($tblCertificate, $tblGradeTypeBehavior, 2, 2, 'Kopfnote')
-                                ), 6),
-                            ))
-                        ), new FormTitle('Kopfnoten')),
-                        new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn($SubjectLaneLeft, 6),
-                                new FormColumn($SubjectLaneRight, 6),
-                            )),
-                        ), new FormTitle('Fachnoten')),
-                    ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject)
-            );
 
         } else {
-            // TODO Error
+            return $Stage
+                . new Danger('Die Zeugnisvorlage wurde nicht gefunden', new Exclamation())
+                . new Redirect('/Education/Certificate/Setting/Template', Redirect::TIMEOUT_ERROR);
         }
 
         return $Stage;

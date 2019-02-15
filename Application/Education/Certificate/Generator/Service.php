@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Data;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateReferenceForLanguages;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
@@ -502,5 +503,71 @@ class Service extends AbstractService
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Certificate/Setting/Approval', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|TblCertificateReferenceForLanguages[]
+     */
+    public function getCertificateReferenceForLanguagesAllByCertificate(TblCertificate $tblCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param int $languageRanking
+     *
+     * @return false|TblCertificateReferenceForLanguages
+     */
+    public function getCertificateReferenceForLanguagesByCertificateAndRanking(TblCertificate $tblCertificate, $languageRanking)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateReferenceForLanguagesByCertificateAndRanking($tblCertificate, $languageRanking);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblCertificate $tblCertificate
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateCertificateReferenceForLanguages(
+        IFormInterface $Form,
+        TblCertificate $tblCertificate,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $Form;
+        }
+
+        foreach ($Data as $ranking => $array) {
+            if (($tblCertificateReferenceForLanguages = $this->getCertificateReferenceForLanguagesByCertificateAndRanking($tblCertificate, $ranking))) {
+                (new Data($this->getBinding()))->updateCertificateReferenceForLanguages(
+                    $tblCertificateReferenceForLanguages,
+                    $array['ToLevel10'],
+                    $array['AfterBasicCourse'],
+                    $array['AfterAdvancedCourse']
+                );
+            } else {
+                (new Data($this->getBinding()))->createCertificateReferenceForLanguages(
+                    $tblCertificate,
+                    $ranking,
+                    $array['ToLevel10'],
+                    $array['AfterBasicCourse'],
+                    $array['AfterAdvancedCourse']
+                );
+            }
+        }
+
+        return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Setting/Configuration', Redirect::TIMEOUT_SUCCESS, array('Certificate' => $tblCertificate->getId()));
     }
 }
