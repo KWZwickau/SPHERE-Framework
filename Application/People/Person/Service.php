@@ -302,6 +302,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $ProcessList
+     */
+    public function updatePersonAnonymousBulk($ProcessList = array())
+    {
+        (new Data($this->getBinding()))->updatePersonAnonymousBulk($ProcessList);
+    }
+
+    /**
      * @param TblPerson     $tblPerson
      * @param TblSalutation $tblSalutation
      *

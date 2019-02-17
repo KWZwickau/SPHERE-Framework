@@ -592,6 +592,79 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array   $ProcessList
+     *
+     * @return bool
+     */
+    public function updateCityAnonymousBulk($ProcessList, $CityName = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($ProcessList)){
+            foreach($ProcessList as $Address){
+                /** @var TblCity $tblCity */
+                $tblCity = $Address['tblCity'];
+                if($CityName){
+                    $City = $CityName;
+                } else {
+                    $City = $Address['City'];
+                }
+                /** @var TblCity $Entity */
+                $Entity = $Manager->getEntityById('TblCity', $tblCity->getId());
+//                $Protocol = clone $Entity;
+                if (null !== $Entity) {
+                    $Entity->setName($City);
+                    $Entity->setCode(str_pad(rand(00000, 99999), 5, '0', STR_PAD_LEFT));
+                    $Entity->setDistrict('');
+                    $Manager->bulkSaveEntity($Entity);
+                    // no Protocol necessary
+//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+//                    $Protocol,
+//                    $Entity);
+                }
+            }
+            $Manager->flushCache();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array   $ProcessList
+     *
+     * @return bool
+     */
+    public function updateAddressAnonymousBulk($ProcessList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($ProcessList)){
+            foreach($ProcessList as $Address){
+                /** @var TblAddress $tblAddress */
+                $tblAddress = $Address['tblAddress'];
+                /** @var TblAddress $Entity */
+                $Entity = $Manager->getEntityById('TblAddress', $tblAddress->getId());
+//                $Protocol = clone $Entity;
+                if (null !== $Entity) {
+                    $Entity->setCounty('');
+                    $Entity->setNation('');
+                    $Entity->setPostOfficeBox('');
+                    $Entity->setStreetNumber(rand(1,99));
+                    $Entity->setTblState(null);
+                    $Manager->bulkSaveEntity($Entity);
+                    // no Protocol necessary
+//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+//                    $Protocol,
+//                    $Entity);
+                }
+            }
+            $Manager->flushCache();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblToPerson $tblToPerson
      * @param             $tblAddress
      * @param             $tblType
