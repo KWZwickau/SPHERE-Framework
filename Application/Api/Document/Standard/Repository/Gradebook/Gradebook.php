@@ -656,7 +656,7 @@ class Gradebook
                                     $grade = '&nbsp;';
                                     if (($tblGrade = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
                                             ->getGradeByTestAndStudent($tblTest, $tblPerson))
-                                        && $tblGrade->getGrade()
+                                        && $tblGrade->getGrade() !== false && $tblGrade->getGrade() !== null
                                     ) {
                                         $grade = $tblGrade->getDisplayGrade();
                                     }

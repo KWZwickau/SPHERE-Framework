@@ -701,8 +701,7 @@ class Data extends AbstractData
             }
         }
 
-        if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
 
@@ -792,7 +791,9 @@ class Data extends AbstractData
                         }
                     }
                 } else {
-                    if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
+                    if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
+                        && ($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))
+                    ) {
                         foreach ($tblTestAllByTask as $tblTest) {
                             if (($tblSubject = $tblTest->getServiceTblSubject())
                                 && ($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem))
@@ -901,7 +902,6 @@ class Data extends AbstractData
         }
 
         if ($tblTestType
-            && ($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblYear = $tblDivision->getServiceTblYear())
         ) {
@@ -972,7 +972,9 @@ class Data extends AbstractData
                         }
                     }
                 } else {
-                    if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
+                    if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
+                        && ($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))
+                    ) {
                         foreach ($tblTestAllByTask as $tblTest) {
                             if (($tblSubject = $tblTest->getServiceTblSubject())) {
                                 if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,

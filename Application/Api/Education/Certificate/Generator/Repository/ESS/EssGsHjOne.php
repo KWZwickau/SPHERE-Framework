@@ -56,7 +56,7 @@ class EssGsHjOne extends Certificate
                         ->setContent('&nbsp;')
                         ->styleHeight('110px')
                     )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px')))
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
             ->addSlice((new Slice())
@@ -250,7 +250,7 @@ class EssGsHjOne extends Certificate
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.png', '700px'))
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.jpg', '700px'))
                     ->stylePaddingTop('20px')
                 )
             );

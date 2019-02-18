@@ -2,7 +2,13 @@
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -79,6 +85,107 @@ abstract class Student extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $Prefix
+     * @param string $Identifier
+     * @param string $SchoolAttendanceStartDate
+     * @param bool $HasMigrationBackground
+     * @param bool $IsInPreparationDivisionForMigrants
+     *
+     * @return bool|TblStudent
+     */
+    public function createStudentBasic(
+        TblPerson $tblPerson,
+        $Prefix = '',
+        $Identifier = '',
+        $SchoolAttendanceStartDate = '',
+        $HasMigrationBackground = false,
+        $IsInPreparationDivisionForMigrants = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
+        $Entity = $this->getStudentByPerson($tblPerson, true);
+
+        if (!$Entity) {
+            $Entity = new TblStudent();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setPrefix($Prefix);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param string $Prefix
+     * @param string $Identifier
+     * @param string $SchoolAttendanceStartDate
+     * @param bool $HasMigrationBackground
+     * @param bool $IsInPreparationDivisionForMigrants
+     *
+     * @return bool
+     */
+    public function updateStudentBasic(
+        TblStudent $tblStudent,
+        $Prefix = '',
+        $Identifier = '',
+        $SchoolAttendanceStartDate = '',
+        $HasMigrationBackground = false,
+        $IsInPreparationDivisionForMigrants = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
+        /** @var null|TblStudent $Entity */
+        $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setPrefix($Prefix);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -188,6 +295,48 @@ abstract class Student extends AbstractData
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
+     * @param TblStudentTransport|null $tblStudentTransport
+     * @param TblStudentBilling|null $tblStudentBilling
+     * @param TblStudentLocker|null $tblStudentLocker
+     * @param TblStudentBaptism|null $tblStudentBaptism
+     * @param TblStudentIntegration|null $tblStudentIntegration
+     *
+     * @return bool
+     */
+    public function updateStudentField(
+        TblStudent $tblStudent,
+        TblStudentMedicalRecord $tblStudentMedicalRecord = null,
+        TblStudentTransport $tblStudentTransport = null,
+        TblStudentBilling $tblStudentBilling = null,
+        TblStudentLocker $tblStudentLocker = null,
+        TblStudentBaptism $tblStudentBaptism = null,
+        TblStudentIntegration $tblStudentIntegration = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var null|TblStudent $Entity */
+        $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+
+            $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
+            $Entity->setTblStudentTransport($tblStudentTransport);
+            $Entity->setTblStudentBilling($tblStudentBilling);
+            $Entity->setTblStudentLocker($tblStudentLocker);
+            $Entity->setTblStudentBaptism($tblStudentBaptism);
+            $Entity->setTblStudentIntegration($tblStudentIntegration);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

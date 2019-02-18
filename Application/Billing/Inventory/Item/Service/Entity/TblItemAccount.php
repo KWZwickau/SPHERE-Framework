@@ -36,7 +36,7 @@ class TblItemAccount extends Element
     public function getTblItem()
     {
 
-        if (null === $this->tblItem) {
+        if(null === $this->tblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->tblItem);
@@ -49,7 +49,7 @@ class TblItemAccount extends Element
     public function setTblItem(TblItem $tblItem = null)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 
     /**
@@ -58,7 +58,7 @@ class TblItemAccount extends Element
     public function getServiceBillingAccount()
     {
 
-        if (null === $this->serviceTblAccount) {
+        if(null === $this->serviceTblAccount){
             return false;
         } else {
             return Account::useService()->getAccountById($this->serviceTblAccount);
@@ -71,6 +71,6 @@ class TblItemAccount extends Element
     public function setTblAccount(TblAccount $tblAccount = null)
     {
 
-        $this->serviceTblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
+        $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
     }
 }

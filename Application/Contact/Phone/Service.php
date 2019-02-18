@@ -10,11 +10,6 @@ use SPHERE\Application\Contact\Phone\Service\Entity\ViewPhoneToPerson;
 use SPHERE\Application\Contact\Phone\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -28,13 +23,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -126,57 +125,100 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblPerson $tblPerson
-     * @param string $Number
-     * @param array $Type
-     * @param $Group
+     * @param $Number
+     * @param $Type
      *
-     * @return IFormInterface|string
+     * @return bool
      */
     public function createPhoneToPerson(
-        IFormInterface $Form,
+        TblPerson $tblPerson,
+        $Number,
+        $Type
+    ) {
+
+        $tblType = $this->getTypeById($Type['Type']);
+        $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
+
+        if (!$tblType) {
+            return false;
+        }
+        if (!$tblPhone) {
+            return false;
+        }
+
+        if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param $Number
+     * @param $Type
+     *
+     * @return bool
+     */
+    public function updatePhoneToPerson(
+        TblToPerson $tblToPerson,
+        $Number,
+        $Type
+    ) {
+
+        $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
+        // Remove current
+        (new Data($this->getBinding()))->removePhoneToPerson($tblToPerson);
+
+        if ($tblToPerson->getServiceTblPerson()
+            && ($tblType = $this->getTypeById($Type['Type']))
+        ) {
+            // Add new
+            if ((new Data($this->getBinding()))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
+                $tblType, $Type['Remark'])
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Number
+     * @param $Type
+     * @param TblToPerson|null $tblToPerson
+     *
+     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
+     */
+    public function checkFormPhoneToPerson(
         TblPerson $tblPerson,
         $Number,
         $Type,
-        $Group
+        TblToPerson $tblToPerson = null
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Number) {
-            return $Form;
-        }
-
-        $Error = false;
-
+        $error = false;
+        $form = Phone::useFrontend()->formNumberToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
         if (isset( $Number ) && empty( $Number )) {
-            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
-            $Error = true;
+            $form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
+            $error = true;
         } else {
-            $Form->setSuccess('Number');
+            $form->setSuccess('Number');
         }
         if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
+            $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $error = true;
         } else {
-            $Form->setSuccess('Type[Type]');
+            $form->setSuccess('Type[Type]');
         }
 
-        if (!$Error) {
-            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-
-            if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Telefonnummer konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId(), 'Group' => $Group));
-            }
-        }
-        return $Form;
+        return $error ? $form : false;
     }
 
     /**
@@ -192,10 +234,11 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param           $Number
-     * @param TblType   $tblType
+     * @param $Number
+     * @param TblType $tblType
+     * @param $Remark
      *
-     * @param           $Remark
+     * @return TblToPerson
      */
     public function insertPhoneToPerson(
         TblPerson $tblPerson,
@@ -205,7 +248,7 @@ class Service extends AbstractService
     ) {
 
         $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-        (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark);
+        return (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark);
     }
 
     /**
@@ -213,6 +256,8 @@ class Service extends AbstractService
      * @param $Number
      * @param TblType $tblType
      * @param $Remark
+     *
+     * @return TblToCompany
      */
     public function insertPhoneToCompany(
         TblCompany $tblCompany,
@@ -222,189 +267,104 @@ class Service extends AbstractService
     ) {
 
         $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-        (new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Remark);
+        return (new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Remark);
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblCompany $tblCompany
-     * @param string $Number
-     * @param array $Type
-     * @param $Group
+     * @param $Number
+     * @param $Type
      *
-     * @return IFormInterface|string
+     * @return bool
      */
     public function createPhoneToCompany(
-        IFormInterface $Form,
+        TblCompany $tblCompany,
+        $Number,
+        $Type
+    ) {
+
+        $tblType = $this->getTypeById($Type['Type']);
+        $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
+
+        if (!$tblType) {
+            return false;
+        }
+        if (!$tblPhone) {
+            return false;
+        }
+
+        if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     * @param $Number
+     * @param $Type
+     *
+     * @return bool
+     */
+    public function updatePhoneToCompany(
+        TblToCompany $tblToCompany,
+        $Number,
+        $Type
+    ) {
+
+        $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
+        // Remove current
+        (new Data($this->getBinding()))->removePhoneToCompany($tblToCompany);
+
+        if ($tblToCompany->getServiceTblCompany()
+            && ($tblType = $this->getTypeById($Type['Type']))
+        ) {
+            // Add new
+            if ((new Data($this->getBinding()))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
+                $tblType, $Type['Remark'])
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param $Number
+     * @param $Type
+     * @param TblToCompany|null $tblToCompany
+     *
+     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
+     */
+    public function checkFormPhoneToCompany(
         TblCompany $tblCompany,
         $Number,
         $Type,
-        $Group
+        TblToCompany $tblToCompany = null
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Number) {
-            return $Form;
-        }
-
-        $Error = false;
-
+        $error = false;
+        $form = Phone::useFrontend()->formNumberToCompany($tblCompany->getId(), $tblToCompany ? $tblToCompany->getId() : null);
         if (isset( $Number ) && empty( $Number )) {
-            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
-            $Error = true;
+            $form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
+            $error = true;
         } else {
-            $Form->setSuccess('Number');
+            $form->setSuccess('Number');
         }
         if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
+            $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $error = true;
         } else {
-            $Form->setSuccess('Type[Type]');
+            $form->setSuccess('Type[Type]');
         }
 
-        if (!$Error) {
-            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-
-            if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich hinzugefügt')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Telefonnummer konnte nicht hinzugefügt werden')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId(), 'Group' => $Group));
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblToPerson $tblToPerson
-     * @param string $Number
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePhoneToPerson(
-        IFormInterface $Form,
-        TblToPerson $tblToPerson,
-        $Number,
-        $Type,
-        $Group
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Number) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (isset( $Number ) && empty( $Number )) {
-            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Number');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-            // Remove current
-            (new Data($this->getBinding()))->removePhoneToPerson($tblToPerson);
-
-            if ($tblToPerson->getServiceTblPerson()) {
-                // Add new
-                if ((new Data($this->getBinding()))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
-                    $tblType, $Type['Remark'])
-                ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich geändert')
-                    . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
-                } else {
-                    return new Danger(new Ban() . ' Die Telefonnummer konnte nicht geändert werden')
-                    . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(),'Group' => $Group));
-                }
-            } else {
-                return new Danger('Person nicht gefunden', new Ban());
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblToCompany $tblToCompany
-     * @param string $Number
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePhoneToCompany(
-        IFormInterface $Form,
-        TblToCompany $tblToCompany,
-        $Number,
-        $Type,
-        $Group
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Number) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (isset( $Number ) && empty( $Number )) {
-            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Number');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-            // Remove current
-            (new Data($this->getBinding()))->removePhoneToCompany($tblToCompany);
-
-            if ($tblToCompany->getServiceTblCompany()) {
-                // Add new
-                if ((new Data($this->getBinding()))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
-                    $tblType, $Type['Remark'])
-                ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich geändert')
-                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
-                } else {
-                    return new Danger(new Ban() . ' Die Telefonnummer konnte nicht geändert werden')
-                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
-                }
-            } else {
-                return new Danger('Institution nicht gefunden', new Ban());
-            }
-        }
-        return $Form;
+        return $error ? $form : false;
     }
 
     /**

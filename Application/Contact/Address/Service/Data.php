@@ -203,6 +203,24 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|ViewAddressToPerson[]
+     */
+    public function getViewAddressToPersonAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'ViewAddressToPerson');
+    }
+
+    /**
+     * @return false|ViewAddressToCompany[]
+     */
+    public function getViewAddressToCompanyAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'ViewAddressToCompany');
+    }
+
+    /**
      * @param string $Code
      * @param string $Name
      * @param string $District
@@ -371,12 +389,18 @@ class Data extends AbstractData
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
                 array(
                     TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-                ));
+                ),
+                // Hauptadressen zu erst
+                array(TblToPerson::ATT_TBL_TYPE => self::ORDER_ASC)
+            );
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
                 array(
                     TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-                ));
+                ),
+                // Hauptadressen zu erst
+                array(TblToPerson::ATT_TBL_TYPE => self::ORDER_ASC)
+            );
         }
     }
 
@@ -398,43 +422,69 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param bool $isForced
+     * @param bool      $isForced
      *
      * @return bool|TblAddress
      */
     public function getAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        // TODO: Persistent Types
-        $Type = $this->getTypeById(1);
-        if ($isForced) {
-
+        $Type = $this->getTypeByName(TblType::META_MAIN_ADDRESS);
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+        );
+        if($isForced) {
             /** @var TblToPerson $Entity */
-            if (( $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-                array(
-                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
-                ))
-            )
-            ) {
+            if(($Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                $Parameter))) {
                 return $Entity->getTblAddress();
             } else {
                 return false;
             }
-
         } else {
-
             /** @var TblToPerson $Entity */
-            if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-                array(
-                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
-                ))
-            )
-            ) {
+            if(($Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblToPerson',
+                $Parameter))) {
                 return $Entity->getTblAddress();
             } else {
                 return false;
+            }
+        }
+    }
+
+    /** get Deliver Address else Main Address
+     *
+     * @param TblPerson $tblPerson
+     * @param bool      $isForced
+     *
+     * @return bool|TblAddress
+     */
+    public function getInvoiceAddressByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        $Type = $this->getTypeByName(TblType::META_INVOICE_ADDRESS);
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+        );
+        if($isForced) {
+            /** @var TblToPerson $Entity */
+            if(($Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                $Parameter))) {
+                return $Entity->getTblAddress();
+            } else {
+                return $this->getAddressByPerson($tblPerson);
+            }
+        } else {
+            /** @var TblToPerson $Entity */
+            if(($Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblToPerson',
+                $Parameter))) {
+                return $Entity->getTblAddress();
+            } else {
+                return $this->getAddressByPerson($tblPerson);
             }
         }
     }
@@ -519,7 +569,10 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
             array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-            ));
+            ),
+            // Hauptadressen zu erst
+            array(TblToCompany::ATT_TBL_TYPE => self::ORDER_ASC)
+        );
     }
 
     /**
@@ -591,6 +644,40 @@ class Data extends AbstractData
             }
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     * @param             $tblAddress
+     * @param             $tblType
+     * @param             $Remark
+     *
+     * @return bool
+     */
+    public function updateAddressToCompany(
+        TblToCompany $tblToCompany,
+        TblAddress $tblAddress,
+        TblType $tblType,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToCompany $Entity */
+        $Entity = $Manager->getEntityById('TblToCompany', $tblToCompany->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblAddress($tblAddress);
+            $Entity->setTblType($tblType);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+
+            return true;
+        }
+
         return false;
     }
 

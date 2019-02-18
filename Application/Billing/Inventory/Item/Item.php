@@ -25,37 +25,21 @@ class Item implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragsarten'),
                 new Link\Icon(new CommodityItem()))
         );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Price'), new Link\Name('Beitragspreise'),
-                new Link\Icon(new CommodityItem()))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Merkmale'),
-                new Link\Icon(new CommodityItem()))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'/Price'), new Link\Name('Beitragspreise'),
+//                new Link\Icon(new CommodityItem()))
+//        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Merkmale'),
+//                new Link\Icon(new CommodityItem()))
+//        );
 
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __NAMESPACE__.'\Frontend::frontendItemStatus'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
-                __NAMESPACE__.'\Frontend::frontendChangeItem'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation',
-                __NAMESPACE__.'\Frontend::frontendItemCalculation'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation/Change',
-                __NAMESPACE__.'\Frontend::frontendChangeCalculation'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation/Destroy',
-                __NAMESPACE__.'\Frontend::frontendDestroyCalculation'
+                __NAMESPACE__.'\Frontend::frontendItem'
             ));
     }
 

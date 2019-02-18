@@ -18,17 +18,20 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
-
         return $Protocol;
     }
 
@@ -86,7 +89,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @return bool|Service\Entity\TblSettingGroupPerson[]
+     * @return bool|TblSettingGroupPerson[]
      */
     public function getSettingGroupPersonAll()
     {
@@ -97,6 +100,7 @@ class Service extends AbstractService
     /**
      * @param string $Identifier
      * @param string $Value
+     * @param string $Type
      *
      * @return TblSetting
      */

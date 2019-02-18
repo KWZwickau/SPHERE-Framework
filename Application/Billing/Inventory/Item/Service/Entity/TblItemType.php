@@ -15,6 +15,9 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItemType extends Element
 {
 
+    const TYPE_SINGLE = 'Einzelleistung';
+    const TYPE_CROWD = 'Sammelleistung';
+
     const ATTR_NAME = 'Name';
 
     /**

@@ -74,13 +74,14 @@ class Data extends AbstractData
      * @param string $Title
      * @param string $FirstName
      * @param string $SecondName
+     * @param string $CallName
      * @param string $LastName
      * @param string $BirthName
      * @param string $ImportId
      *
      * @return TblPerson
      */
-    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '', $ImportId = '')
+    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName = '', $ImportId = '')
     {
 
         if ($Salutation === false) {
@@ -93,6 +94,7 @@ class Data extends AbstractData
         $Entity->setTitle($Title);
         $Entity->setFirstName($FirstName);
         $Entity->setSecondName($SecondName);
+        $Entity->setCallName($CallName);
         $Entity->setLastName($LastName);
         $Entity->setBirthName($BirthName);
         $Entity->setImportId($ImportId);
@@ -115,11 +117,12 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param           $Salutation
-     * @param string    $Title
-     * @param string    $FirstName
-     * @param string    $SecondName
-     * @param string    $LastName
-     * @param string    $BirthName
+     * @param string $Title
+     * @param string $FirstName
+     * @param string $SecondName
+     * @param string $CallName
+     * @param string $LastName
+     * @param string $BirthName
      *
      * @return bool
      */
@@ -129,6 +132,7 @@ class Data extends AbstractData
         $Title,
         $FirstName,
         $SecondName,
+        $CallName,
         $LastName,
         $BirthName = ''
     ) {
@@ -146,6 +150,7 @@ class Data extends AbstractData
             $Entity->setTitle($Title);
             $Entity->setFirstName($FirstName);
             $Entity->setSecondName($SecondName);
+            $Entity->setCallName($CallName);
             $Entity->setLastName($LastName);
             $Entity->setBirthName($BirthName);
             $Manager->saveEntity($Entity);
@@ -249,6 +254,42 @@ class Data extends AbstractData
             TblPerson::ATTR_FIRST_NAME => $FirstName,
             TblPerson::ATTR_LAST_NAME  => $LastName
         ));
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonListLike($Name)
+    {
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $split = explode(' ', $Name);
+
+        $and = $queryBuilder->expr()->andX();
+        $count = 0;
+        foreach ($split as $item) {
+            $count++;
+            $or = $queryBuilder->expr()->orX();
+            $or->add($queryBuilder->expr()->like('t.LastName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.FirstName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.SecondName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.CallName', '?' . $count));
+
+            $and->add($or);
+
+            $queryBuilder->setParameter($count, '%' . $item . '%');
+        }
+
+        $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblPerson', 't')
+            ->where($and);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+
+        return $result;
     }
 
     /**

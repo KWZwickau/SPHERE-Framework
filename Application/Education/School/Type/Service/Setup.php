@@ -18,10 +18,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -33,7 +34,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
 
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewSchoolType') )

@@ -23,19 +23,8 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
 
         self::registerModule();
 
-        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
-            $Parameter = self::getRequest()->getParameterArray();
-            if (isset( $Parameter['Id'] )) {
-                $Name = 'Institution bearbeiten';
-            } else {
-                $Name = 'Institution anlegen';
-            }
-        } else {
-            $Name = 'Institution anlegen';
-        }
-
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name($Name),
+            new Link(new Link\Route(__NAMESPACE__ . '/Create'), new Link\Name('Institution anlegen'),
                 new Link\Icon(new Building())
             )
         );
@@ -45,95 +34,13 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Frontend::frontendCompany'
+            __NAMESPACE__, 'FrontendReadOnly::frontendCompanyReadOnly'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Create', __NAMESPACE__. '\FrontendReadOnly::frontendCompanyCreate'
         ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyCompany')
-        );
-
-        // Contact: Address
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Address/Create', 'SPHERE\Application\Contact\Address\Frontend::frontendCreateToCompany'
-        )
-            ->setParameterDefault('Street', null)
-            ->setParameterDefault('City', null)
-            ->setParameterDefault('State', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Address/Edit', 'SPHERE\Application\Contact\Address\Frontend::frontendUpdateToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Street', null)
-            ->setParameterDefault('City', null)
-            ->setParameterDefault('State', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Address/Destroy', 'SPHERE\Application\Contact\Address\Frontend::frontendDestroyToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // Contact: Mail
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Mail/Create', 'SPHERE\Application\Contact\Mail\Frontend::frontendCreateToCompany'
-        )
-            ->setParameterDefault('Address', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Mail/Edit', 'SPHERE\Application\Contact\Mail\Frontend::frontendUpdateToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Address', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Mail/Destroy', 'SPHERE\Application\Contact\Mail\Frontend::frontendDestroyToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // Contact: Web
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Web/Create', 'SPHERE\Application\Contact\Web\Frontend::frontendCreateToCompany'
-        )
-            ->setParameterDefault('Address', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Web/Edit', 'SPHERE\Application\Contact\Web\Frontend::frontendUpdateToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Address', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Web/Destroy', 'SPHERE\Application\Contact\Web\Frontend::frontendDestroyToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // Contact: Phone
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Phone/Create', 'SPHERE\Application\Contact\Phone\Frontend::frontendCreateToCompany'
-        )
-            ->setParameterDefault('Number', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Phone/Edit', 'SPHERE\Application\Contact\Phone\Frontend::frontendUpdateToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Number', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Phone/Destroy', 'SPHERE\Application\Contact\Phone\Frontend::frontendDestroyToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -161,6 +68,4 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
 
         return new Frontend();
     }
-
-
 }

@@ -34,7 +34,8 @@ class RadebeulKinderbrief extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $fontFamily = 'MetaPro';
-        $fontSize = '12pt';
+        $fontSize = '13pt';
+        $lineHeight = '100%';
 
         return (new Page())
             ->addSlice((new Slice())
@@ -65,7 +66,7 @@ class RadebeulKinderbrief extends Certificate
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                             ')
                         ->styleFontFamily($fontFamily)
-                        ->styleLineHeight('80%')
+                        ->styleLineHeight($lineHeight)
                         ->styleTextSize('20px')
                         ->styleAlignCenter()
                         ->stylePaddingTop('40px')
@@ -79,7 +80,7 @@ class RadebeulKinderbrief extends Certificate
                                 nach dem ersten Halbjahr des Schuljahres {{ Content.P' . $personId . '.Division.Data.Year }} 
                             ')
                         ->styleFontFamily($fontFamily)
-                        ->styleLineHeight('80%')
+                        ->styleLineHeight($lineHeight)
                         ->styleMarginTop('30px')
                         ->styleTextSize('20px')
                         ->styleAlignCenter()
@@ -97,11 +98,10 @@ class RadebeulKinderbrief extends Certificate
                                 {% endif %}
                             ')
                     ->styleFontFamily($fontFamily)
+                    ->styleAlignJustify()
                     ->styleTextSize($fontSize)
-                    ->styleLineHeight('80%')
+                    ->styleLineHeight($lineHeight)
                     ->styleMarginTop('30px')
-                    ->stylePaddingLeft('30px')
-                    ->stylePaddingRight('30px')
                 )
             );
     }

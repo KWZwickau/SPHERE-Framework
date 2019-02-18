@@ -15,10 +15,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -36,7 +37,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -67,6 +72,7 @@ class Setup extends AbstractSetup
         }
         $this->createColumn($Table, 'IsInformation', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsChosenDefault', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsIgnoredForAutoSelect', self::FIELD_TYPE_BOOLEAN, false, false);
 
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);

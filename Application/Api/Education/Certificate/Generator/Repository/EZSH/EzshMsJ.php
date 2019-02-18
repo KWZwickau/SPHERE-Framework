@@ -15,7 +15,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class EzshMsHj
+ * Class EzshMsJ
+ *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH
  */
 class EzshMsJ extends EzshStyle
@@ -92,7 +93,7 @@ class EzshMsJ extends EzshStyle
                         self::getEZSHGradeInfo()
                     )
                     ->addSectionList(
-                        self::getEZSHArrangement($personId, '90px')
+                        self::getEZSHArrangement($personId, '80px')
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)

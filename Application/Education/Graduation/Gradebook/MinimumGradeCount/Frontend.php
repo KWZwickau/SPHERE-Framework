@@ -8,15 +8,19 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -26,6 +30,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
@@ -481,5 +486,103 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage . new Danger('Mindestnotenanzahl nicht gefunden.', new Ban())
             . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_ERROR);
+    }
+
+    /**
+     * @param null $Data
+     * @param null $PersonId
+     *
+     * @return Stage
+     */
+    public function frontendTeacherMinimumGradeCountReporting($Data = null, $PersonId = null)
+    {
+
+        return $this->setMinimumGradeCountReporting($Data, true, $PersonId);
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterMinimumGradeCountReporting($Data = null)
+    {
+
+        return $this->setMinimumGradeCountReporting($Data, false);
+    }
+
+    /**
+     * @param $Data
+     * @param bool $IsDivisionTeacher
+     * @param null $PersonId
+     *
+     * @return Stage
+     */
+    private function setMinimumGradeCountReporting($Data, $IsDivisionTeacher, $PersonId = null)
+    {
+        $stage = new Stage('Mindestnotenanzahl', 'Auswertung');
+        $stage->addButton(new Standard(
+            'Zurück',
+            $IsDivisionTeacher ? '/Education/Graduation/Gradebook/Gradebook/Teacher' : '/Education/Graduation/Gradebook/Gradebook/Headmaster',
+            new ChevronLeft()
+        ));
+
+        if ($Data == null && ($tblYearList = Term::useService()->getYearByNow())) {
+            $global = $this->getGlobal();
+
+            $tblYear = reset($tblYearList);
+            $global->POST['Data']['Year'] = $tblYear->getId();
+
+            $global->savePost();
+        }
+
+        $receiverContent = ApiMinimumGradeCount::receiverContent(
+            (new ApiMinimumGradeCount())->loadMinimumGradeCountReporting($Data, $IsDivisionTeacher, $PersonId)
+        );
+
+        $yearSelectBox = (new SelectBox('Data[Year]', 'Schuljahr',
+            array('DisplayName' => Term::useService()->getYearAll())))->setRequired();
+        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
+        if (!$IsDivisionTeacher) {
+            $typeSelectBox->setRequired();
+        }
+        $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
+
+        $button = (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filtern', '', new Filter()))
+            ->ajaxPipelineOnClick(ApiMinimumGradeCount::pipelineCreateMinimumGradeCountReportingContent($receiverContent, $Data, $IsDivisionTeacher, $PersonId));
+
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Filter',
+                    new Layout (new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                $yearSelectBox, 4
+                            ),
+                            new LayoutColumn(
+                                $typeSelectBox, 4
+                            ),
+                            new LayoutColumn(
+                                $divisionTextField, 4
+                            ),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                $button
+                            ),
+                        )),
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                )
+            )
+        )))))->disableSubmitAction();
+
+        $stage->setContent(
+           $form
+            . $receiverContent
+        );
+
+        return $stage;
     }
 }

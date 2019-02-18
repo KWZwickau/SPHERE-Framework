@@ -9,9 +9,6 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
 use SPHERE\Application\People\Meta\Common\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -30,17 +27,21 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->viewPeopleMetaCommon();
     }
-    
+
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -58,23 +59,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Meta
-     * @param null           $Group
+     * @param TblPerson $tblPerson
+     * @param $Meta
      *
-     * @return IFormInterface|string
+     * @return bool|TblCommon
      */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
     {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
         $tblCommon = $this->getCommonByPerson($tblPerson, true);
         if ($tblCommon) {
             (new Data($this->getBinding()))->updateCommonBirthDates(
@@ -90,7 +81,8 @@ class Service extends AbstractService
                 $Meta['Information']['IsAssistance'],
                 $Meta['Information']['AssistanceActivity']
             );
-            (new Data($this->getBinding()))->updateCommon(
+
+            return (new Data($this->getBinding()))->updateCommon(
                 $tblCommon,
                 $Meta['Remark']
             );
@@ -106,15 +98,14 @@ class Service extends AbstractService
                 $Meta['Information']['IsAssistance'],
                 $Meta['Information']['AssistanceActivity']
             );
-            (new Data($this->getBinding()))->createCommon(
+
+            return (new Data($this->getBinding()))->createCommon(
                 $tblPerson,
                 $tblCommonBirthDates,
                 $tblCommonInformation,
                 $Meta['Remark']
             );
         }
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
     /**

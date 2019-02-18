@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -17,10 +18,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -49,7 +51,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -138,6 +144,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Date', 'datetime', array('notnull' => false));
         }
         $this->createColumn($Table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'PublicComment', self::FIELD_TYPE_STRING);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->createForeignKey($Table, $tblGradeText, true);
@@ -172,6 +179,7 @@ class Setup extends AbstractSetup
 
 
         $this->createIndex($Table, array('serviceTblDivision', 'serviceTblSubject'), false);
+        $this->createIndex($Table, array(TblGrade::ATTR_SERVICE_TBL_TEST, TblGrade::ENTITY_REMOVE), false);
 
         return $Table;
     }

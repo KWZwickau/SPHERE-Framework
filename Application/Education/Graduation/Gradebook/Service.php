@@ -59,16 +59,20 @@ class Service extends ServiceScoreRule
 {
 
     /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($Simulate, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($Simulate);
-        if (!$Simulate && $withData) {
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
+        if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
@@ -544,7 +548,8 @@ class Service extends ServiceScoreRule
                                 0,
                                 null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null
+                                    ? $tblGradeText : null,
+                                isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                             );
                         } elseif ($grade !== '' && $grade != -1) {
                             $hasCreatedGrade = true;
@@ -563,7 +568,8 @@ class Service extends ServiceScoreRule
                                 $trend,
                                 isset($value['Date']) ? $value['Date'] : null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null
+                                    ? $tblGradeText : null,
+                                isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                             );
                         } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))) {
                             $hasCreatedGrade = true;
@@ -581,7 +587,8 @@ class Service extends ServiceScoreRule
                                 trim($value['Comment']),
                                 $trend,
                                 isset($value['Date']) ? $value['Date'] : null,
-                                $tblGradeText
+                                $tblGradeText,
+                                isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                             );
                         }
 
@@ -601,6 +608,7 @@ class Service extends ServiceScoreRule
                                     $tblGrade,
                                     null,
                                     trim($value['Comment']),
+                                    isset($value['PublicComment']) ? trim($value['PublicComment']) : '',
                                     0,
                                     null,
                                     isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
@@ -612,6 +620,7 @@ class Service extends ServiceScoreRule
                                     $tblGrade,
                                     $grade == -1 ? '': $grade,
                                     trim($value['Comment']),
+                                    isset($value['PublicComment']) ? trim($value['PublicComment']) : '',
                                     $trend,
                                     isset($value['Date']) ? $value['Date'] : null,
                                     isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
@@ -1256,7 +1265,11 @@ class Service extends ServiceScoreRule
             foreach ($tblScoreTypeDivisionSubjectList as $tblScoreTypeDivisionSubject) {
                 $tblDivision = $tblScoreTypeDivisionSubject->getServiceTblDivision();
                 $tblSubject = $tblScoreTypeDivisionSubject->getServiceTblSubject();
-                if ($tblDivision && $tblSubject) {
+                if ($tblDivision
+                    && $tblSubject
+                    && $tblDivision->getServiceTblYear()
+                    && $tblYear
+                ) {
                     if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()
                         && !Gradebook::useService()->existsGrades($tblDivision, $tblSubject, $tblTestType)
                     ) {

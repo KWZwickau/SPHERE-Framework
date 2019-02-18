@@ -347,7 +347,7 @@ class Main extends Extension
         People::registerCluster();
         Corporation::registerCluster();
         Education::registerCluster();
-//        Billing::registerCluster();
+        Billing::registerCluster();
         Transfer::registerCluster();
         Contact::registerCluster();
         Setting::registerCluster();

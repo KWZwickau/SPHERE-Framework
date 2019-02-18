@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Graduation\Evaluation\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
@@ -15,10 +16,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -34,7 +36,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -144,6 +150,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblTask, true);
 
         $this->createIndex($Table, array('serviceTblGradeType'), false);
+        $this->createIndex($Table, array(TblTest::ATTR_SERVICE_TBL_DIVISION,TblTest::ATTR_SERVICE_TBL_SUBJECT,TblTest::ENTITY_REMOVE), false);
 
         return $Table;
     }

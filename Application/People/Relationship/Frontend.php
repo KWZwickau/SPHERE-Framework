@@ -1,18 +1,22 @@
 <?php
 namespace SPHERE\Application\People\Relationship;
 
+use SPHERE\Application\Api\Contact\ApiRelationshipToCompany;
+use SPHERE\Application\Api\Contact\ApiRelationshipToPerson;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
-use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -21,38 +25,32 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
-use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
-use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Window\Redirect;
-use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 
 /**
  * Class Frontend
@@ -63,78 +61,51 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int $Id
-     * @param null $Group
-     * @param int $To
-     * @param array $Type
+     * @param $PersonId
+     * @param null $ToPersonId
+     * @param bool $setPost
+     * @param string $Search
+     * @param IMessageInterface|null $message
+     * @param bool $IsGuardianRelationship
+     * @param IMessageInterface|null $messageOptions
      *
-     * @return Stage|string
+     * @return Form|bool
      */
-    public function frontendCreateToPerson($Id, $Group = null, $To, $Type)
-    {
-
-        $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id, 'Group' => $Group)));
-        $Stage->setMessage(
-            'Eine Beziehungen zur gewählten Person hinzufügen'
-            . '<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
-        );
-
-        $tblPerson = Person::useService()->getPersonById($Id);
-        if (!$tblPerson) {
-            return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
+    public function formRelationshipToPerson(
+        $PersonId,
+        $ToPersonId = null,
+        $setPost = false,
+        $Search = '',
+        IMessageInterface $message = null,
+        $IsGuardianRelationship = false,
+        IMessageInterface $messageOptions = null
+    ) {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return false;
         }
 
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Die Person',
-                                $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                    ),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Relationship::useService()->createRelationshipToPerson(
-                                    $this->formRelationshipToPerson($tblPerson)
-                                        ->appendFormButton(new Primary('Speichern', new Save()))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $To, $Type, $Group
-                                )
-                            )
-                        )
-                    )
-                )),
-            ))
-        );
+        if ($IsGuardianRelationship) {
+            $contentExtraOptions = $this->loadExtraOptions($messageOptions);
+        } else {
+            $contentExtraOptions = null;
+        }
 
-        return $Stage;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblToPerson $tblToPerson
-     *
-     * @return Form
-     */
-    private function formRelationshipToPerson(TblPerson $tblPerson, TblToPerson $tblToPerson = null)
-    {
-
-        if ($tblToPerson) {
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['To'])) {
-                $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
+        if ($ToPersonId && ($tblToPerson = Relationship::useService()->getRelationshipToPersonById($ToPersonId))) {
+            // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                $Global->POST['Type']['Type'] = ($tblType = $tblToPerson->getTblType()) ? $tblType->getId() : 0;
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+                $Global->POST['Type']['Ranking'] = $tblToPerson->getRanking();
+                $Global->POST['Type']['IsSingleParent'] = $tblToPerson->isSingleParent();
+
                 $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()
                     ? $tblToPerson->getServiceTblPersonTo()->getId() : 0;
                 $Global->savePost();
+
+                if ($tblType && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN) {
+                    $contentExtraOptions = $this->loadExtraOptions();
+                }
             }
 
             $currentPerson = $tblToPerson->getServiceTblPersonTo();
@@ -142,9 +113,17 @@ class Frontend extends Extension implements IFrontendInterface
             $currentPerson = false;
         }
 
+        if ($ToPersonId) {
+            $saveButton = (new PrimaryLink('Speichern', ApiRelationshipToPerson::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineEditRelationshipToPersonSave($PersonId, $ToPersonId));
+        } else {
+            $saveButton = (new PrimaryLink('Speichern', ApiRelationshipToPerson::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineCreateRelationshipToPersonSave($PersonId));
+        }
+
         $tblGroup = Relationship::useService()->getGroupByIdentifier('PERSON');
         if ((($tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT'))
-            && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
+                && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
             || (($tblGroupProspect = Group::useService()->getGroupByMetaTable('PROSPECT'))
                 && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
         ) {
@@ -157,431 +136,510 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
         }
 
-        $tblPersonAll = Person::useService()->getPersonAll();
+        $receiverExtraOptions = ApiRelationshipToPerson::receiverBlock($contentExtraOptions, 'ExtraOptions');
 
-        if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($currentPerson) {
-
-                $tblAddress = $tblPerson->fetchMainAddress();
-
-                if ($currentPerson && $currentPerson->getId() == $tblPerson->getId()) {
-                    $tblPerson = array(
-                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastFirstName()) . ' (Aktuell hinterlegt)',
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
-                    );
-                } else {
-                    $tblPerson = array(
-                        'Select' => new RadioBox('To', '&nbsp;', $tblPerson->getId()),
-                        'Person' => $tblPerson->getLastFirstName()
-                            . new PullRight(new Standard('', '/People/Person',
-                                new PersonIcon(),
-                                array('Id' => $tblPerson->getId()),
-                                'zu ' . $tblPerson->getLastFirstName() . ' wechseln')),
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
-                    );
-                }
-            });
-            $tblPersonAll = array_filter($tblPersonAll);
-        } else {
-            $tblPersonAll = array();
-        }
-
-        $columns = array(
-            'Select' => '',
-            'Person' => 'Name',
-            'Address' => 'Adresse'
-        );
-
-        $interactive =  array(
-            'order' => array(
-                array(1, 'asc'),
-            ),
-            'responsive' => false
-        );
-
-        // Person Panel
-        if ($currentPerson) {
-            $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
-                array(
-                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Person, '),
-                    new PullLeft(new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId()))
-                    . new PullRight(new Standard('', '/People/Person',
-                        new PersonIcon(),
-                        array('Id' => $currentPerson->getId()),
-                        'zu ' . $currentPerson->getLastFirstName() . ' wechseln')),
-                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Person wählen: '),
-                    new TableData(
-                        $tblPersonAll,
-                        null,
-                        $columns,
-                        $interactive
-                    ),
-                ), Panel::PANEL_TYPE_INFO,
-                new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
-                    , array(), 'Die aktuell gewählte Person verlassen'
-                )
-            );
-        } else {
-            $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
-                array(
-                    new TableData(
-                        $tblPersonAll,
-                        null,
-                        $columns,
-                        $interactive
-                    ),
-                ), Panel::PANEL_TYPE_INFO,
-                new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
-                    , array(), 'Die aktuell gewählte Person verlassen'
-                )
-            );
-        }
-
-        return new Form(
+        return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel('hat folgende Beziehung',
+                        FrontendReadOnly::getDataProtectionMessage()
+                    ))
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel('hat folgende Beziehung ' . new Link(),
                             array(
-                                new SelectBox('Type[Type]', 'Beziehungstyp',
+                                (new SelectBox('Type[Type]', 'Beziehungstyp',
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ),
-                                new TextArea('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
+                                ))
+                                    ->setRequired()
+                                    ->ajaxPipelineOnChange(ApiRelationshipToPerson::pipelineLoadExtraOptions())
+                                ,
+                                new TextField('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
                                     new Pencil()
                                 ),
-                                new \SPHERE\Common\Frontend\Text\Repository\Danger(
-                                    new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
-                                ),
-                            ), Panel::PANEL_TYPE_INFO
+                                $receiverExtraOptions
+                            )
+                            , Panel::PANEL_TYPE_INFO
                         ),
-                    ), 6),
-                    new FormColumn(array(
-                        $PanelPerson
-                    ), 6),
+                    )),
                 )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel(
+                            'zur folgenden Person ' . new PersonIcon(),
+                            array(
+                                $currentPerson
+                                    ? new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId())
+                                    : null,
+                                (new TextField(
+                                    'Search',
+                                    '',
+                                    'Suche',
+                                    new Search()
+                                ))->ajaxPipelineOnKeyUp(ApiRelationshipToPerson::pipelineSearchPerson()),
+                                ApiRelationshipToPerson::receiverBlock($this->loadPersonSearch($Search, $message), 'SearchPerson'),
+                                new Standard('Neue Person anlegen', '/People/Person/Create', new PersonIcon()
+                                    , array(), 'Die aktuell gewählte Person verlassen'
+                                )
+                            ),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    ))
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        $saveButton
+                    ))
+                ))
             ))
-        );
+        ))
+        )->disableSubmitAction();
     }
 
     /**
-     * @param int $Id
-     * @param null $Group
-     * @param int $To
-     * @param array $Type
+     * @param IMessageInterface|null $message
+     * @param null $Post
      *
-     * @return Stage|string
+     * @return Layout
      */
-    public function frontendCreateToCompany($Id, $Group = null, $To, $Type)
+    public function loadExtraOptions(IMessageInterface $message = null, $Post = null)
     {
 
-        $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id, 'Group' => $Group)));
-        $Stage->setMessage(
-            'Eine Beziehungen zur gewählten Person hinzufügen'
-        );
+        // todo post bei neuer Personenbeziehung vom Sorgeberechtigten
 
-        $tblPerson = Person::useService()->getPersonById($Id);
-        if (!$tblPerson) {
-            return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        if ($Post) {
+            $global = $this->getGlobal();
+            $global->POST['Type']['Ranking'] = $Post;
+            $global->savePost();
         }
 
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Die Person',
-                                $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                    ),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Relationship::useService()->createRelationshipToCompany(
-                                    $this->formRelationshipToCompany()
-                                        ->appendFormButton(new Primary('Speichern', new Save()))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $To, $Type, $Group
-                                )
-                            )
-                        )
-                    )
-                )),
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'People', 'Person', 'Relationship', 'GenderOfS1'
             ))
-        );
+            && ($value = $tblSetting->getValue())
+        ) {
+            if (($genderSetting = Common::useService()->getCommonGenderById($value))) {
+                $genderSetting = $genderSetting->getName();
+            }
+        } else {
+            $genderSetting = '';
+        }
 
-        return $Stage;
+        return  new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Bold('Merkmal') . new Danger(' *')
+                        . ($genderSetting ? new Muted('&nbsp;&nbsp;&nbsp; Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).') : '')
+                ),
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
+                    '&nbsp;'
+                ),
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
+                    (new RadioBox('Type[Ranking]', 'S1', 1))
+                    , 1),
+                new LayoutColumn(
+                    (new RadioBox('Type[Ranking]', 'S2', 2))
+                    , 1),
+                new LayoutColumn(
+                    (new RadioBox('Type[Ranking]', 'S3', 3))
+                    , 1),
+                new LayoutColumn(
+                    (new CheckBox('Type[IsSingleParent]', 'alleinerziehend', 1))
+                    , 6),
+            )),
+            $message
+                ?  new LayoutRow(array(
+                    new LayoutColumn(
+                        '<br>' . $message
+                    )
+                )) : null
+        )));
     }
 
     /**
-     * @param TblToCompany $tblToCompany
+     * @param $Search
+     * @param IMessageInterface|null $message
      *
-     * @return Form
+     * @return string
      */
-    private function formRelationshipToCompany(TblToCompany $tblToCompany = null)
+    public function loadPersonSearch($Search, IMessageInterface $message = null)
     {
 
-        if ($tblToCompany) {
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['To'])) {
+        if ($Search != '' && strlen($Search) > 2) {
+            if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
+                $resultList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    // todo onchange only by student, prospect
+                    // todo onchange wieder aktivieren
+                    $resultList[] = array(
+                        'Select' => new RadioBox('To', '&nbsp;', $tblPerson->getId()),
+//                        'Select' => (new RadioBox('To', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnChange(
+//                            ApiRelationshipToPerson::pipelineLoadExtraOptions()
+//                        ),
+                        'FirstName' => $tblPerson->getFirstSecondName(),
+                        'LastName' => $tblPerson->getLastName(),
+                        'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : ''
+                    );
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Select' => '',
+                        'LastName' => 'Nachname',
+                        'FirstName' => 'Vorname',
+                        'Address' => 'Adresse'
+                    ),
+                    array(
+                        'order' => array(
+                            array(1, 'asc'),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            } else {
+                $result = new Warning('Es wurden keine entsprechenden Personen gefunden.', new Ban());
+            }
+        } else {
+            $result =  new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return $result . ($message ? $message : '');
+    }
+
+//    /**
+//     * @param $PersonId
+//     * @param null $ToPersonId
+//     * @param bool $setPost
+//     *
+//     * @return Form|bool
+//     */
+//    public function formRelationshipToPerson($PersonId, $ToPersonId = null, $setPost = false)
+//    {
+//
+//        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+//            return false;
+//        }
+//
+//        if ($ToPersonId && ($tblToPerson = Relationship::useService()->getRelationshipToPersonById($ToPersonId))) {
+//            // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
+//            if ($setPost) {
+//                $Global = $this->getGlobal();
+//                $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
+//                $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+//                $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()
+//                    ? $tblToPerson->getServiceTblPersonTo()->getId() : 0;
+//                $Global->savePost();
+//            }
+//
+//            $currentPerson = $tblToPerson->getServiceTblPersonTo();
+//        } else {
+//            $currentPerson = false;
+//        }
+//
+//        if ($ToPersonId) {
+//            $saveButton = (new PrimaryLink('Speichern', ApiRelationshipToPerson::getEndpoint(), new Save()))
+//                ->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineEditRelationshipToPersonSave($PersonId, $ToPersonId));
+//        } else {
+//            $saveButton = (new PrimaryLink('Speichern', ApiRelationshipToPerson::getEndpoint(), new Save()))
+//                ->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineCreateRelationshipToPersonSave($PersonId));
+//        }
+//
+//        $tblGroup = Relationship::useService()->getGroupByIdentifier('PERSON');
+//        if ((($tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT'))
+//            && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
+//            || (($tblGroupProspect = Group::useService()->getGroupByMetaTable('PROSPECT'))
+//                && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
+//        ) {
+//            $tblTypeAll[] = Relationship::useService()->getTypeByName('Geschwisterkind');
+//            $tblTypeChild = new TblType();
+//            $tblTypeChild->setId(TblType::CHILD_ID);
+//            $tblTypeChild->setName('Kind');
+//            $tblTypeAll[] = $tblTypeChild;
+//        } else {
+//            $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
+//        }
+//
+//        $tblPersonAll = Person::useService()->getPersonAll();
+//
+//        if ($tblPersonAll) {
+//            array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($currentPerson) {
+//
+//                $tblAddress = $tblPerson->fetchMainAddress();
+//
+//                if ($currentPerson && $currentPerson->getId() == $tblPerson->getId()) {
+//                    $tblPerson = array(
+//                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastFirstName()) . ' (Aktuell hinterlegt)',
+//                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
+//                    );
+//                } else {
+//                    $tblPerson = array(
+//                        'Select' => new RadioBox('To', '&nbsp;', $tblPerson->getId()),
+//                        'Person' => $tblPerson->getLastFirstName() . ' '
+//                            . new \SPHERE\Common\Frontend\Link\Repository\Link(
+//                            new PersonIcon(),
+//                            '/People/Person',
+//                            null,
+//                            array('Id' => $tblPerson->getId()),
+//                            'zu ' . $tblPerson->getLastFirstName() . ' wechseln'
+//                        ),
+//                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
+//                    );
+//                }
+//            });
+//            $tblPersonAll = array_filter($tblPersonAll);
+//        } else {
+//            $tblPersonAll = array();
+//        }
+//
+//        $columns = array(
+//            'Select' => '',
+//            'Person' => 'Name',
+//            'Address' => 'Adresse'
+//        );
+//
+//        $interactive =  array(
+//            'order' => array(
+//                array(1, 'asc'),
+//            ),
+//            'pageLength' => 0,
+//            'responsive' => false
+//        );
+//
+//        // Person Panel
+//        if ($currentPerson) {
+//            $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
+//                array(
+//                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Person, '),
+//                    new PullLeft(new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId()))
+//                    . new PullRight(new Standard('', '/People/Person',
+//                        new PersonIcon(),
+//                        array('Id' => $currentPerson->getId()),
+//                        'zu ' . $currentPerson->getLastFirstName() . ' wechseln')),
+//                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Person wählen: '),
+//                    new TableData(
+//                        $tblPersonAll,
+//                        null,
+//                        $columns,
+//                        $interactive
+//                    ),
+//                ), Panel::PANEL_TYPE_INFO,
+//                new Standard('Neue Person anlegen', '/People/Person/Create', new PersonIcon()
+//                    , array(), 'Die aktuell gewählte Person verlassen'
+//                )
+//            );
+//        } else {
+//            $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
+//                array(
+//                    new TableData(
+//                        $tblPersonAll,
+//                        null,
+//                        $columns,
+//                        $interactive
+//                    ),
+//                ), Panel::PANEL_TYPE_INFO,
+//                new Standard('Neue Person anlegen', '/People/Person/Create', new PersonIcon()
+//                    , array(), 'Die aktuell gewählte Person verlassen'
+//                )
+//            );
+//        }
+//
+//        return (new Form(
+//            new FormGroup(array(
+//                new FormRow(array(
+//                    new FormColumn(array(
+//                        new Panel('hat folgende Beziehung',
+//                            array(
+//                                new SelectBox('Type[Type]', 'Beziehungstyp',
+//                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
+//                                ),
+//                                new TextArea('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
+//                                    new Pencil()
+//                                ),
+//                                new \SPHERE\Common\Frontend\Text\Repository\Danger(
+//                                    new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+//                                ),
+//                            ), Panel::PANEL_TYPE_INFO
+//                        ),
+//                    ), 4),
+//                    new FormColumn(array(
+//                        $PanelPerson
+//                    ), 8),
+//                    new FormColumn(
+//                        $saveButton
+//                    )
+//                )),
+//            ))
+//        ))->disableSubmitAction();
+//    }
+
+    /**
+     * @param $PersonId
+     * @param null $ToCompanyId
+     * @param bool $setPost
+     * @param string $Search
+     * @param IMessageInterface|null $message
+     *
+     * @return Form|bool
+     */
+    public function formRelationshipToCompany($PersonId, $ToCompanyId = null, $setPost = false, $Search = '', IMessageInterface $message = null)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return false;
+        }
+
+        if ($ToCompanyId && ($tblToCompany = Relationship::useService()->getRelationshipToCompanyById($ToCompanyId))) {
+            // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
+            if ($setPost) {
+                $Global = $this->getGlobal();
                 $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
                 $Global->POST['To'] = $tblToCompany->getServiceTblCompany()
                     ? $tblToCompany->getServiceTblCompany()->getId() : 0;
                 $Global->savePost();
             }
+
             $currentCompany = $tblToCompany->getServiceTblCompany();
         } else {
             $currentCompany = false;
         }
 
+        if ($ToCompanyId) {
+            $saveButton = (new PrimaryLink('Speichern', ApiRelationshipToCompany::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineEditRelationshipToCompanySave($PersonId, $ToCompanyId));
+        } else {
+            $saveButton = (new PrimaryLink('Speichern', ApiRelationshipToCompany::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineCreateRelationshipToCompanySave($PersonId));
+        }
+
         $tblGroup = Relationship::useService()->getGroupByIdentifier('COMPANY');
         $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
-        $tblCompanyAll = Company::useService()->getCompanyAll();
 
-        if ($tblCompanyAll) {
-            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($currentCompany) {
-
-                $tblAddress = $tblCompany->fetchMainAddress();
-
-                if ($currentCompany && $currentCompany->getId() == $tblCompany->getId()) {
-                    $tblCompany = array(
-                        'Company' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblCompany->getName()) . ' (Aktuell hinterlegt)',
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
-                    );
-                } else {
-                    $tblCompany = array(
-                        'Select' => new RadioBox('To', '&nbsp;', $tblCompany->getId()),
-                        'Company' => $tblCompany->getName()
-                            . new PullRight(new Standard('', '/Corporation/Company',
-                                    new Building(),
-                                    array('Id' => $tblCompany->getId()),
-                                    'zu ' . $tblCompany->getName() . ' wechseln')
-                            )
-                            . ($tblCompany->getExtendedName()
-                                ? new Container(new Container($tblCompany->getExtendedName()))
-                                : '')
-                            . ($tblCompany->getDescription()
-                                ? new Container(new Container(new Muted($tblCompany->getDescription())))
-                                : ''),
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
-                    );
-                }
-            });
-            $tblCompanyAll = array_filter($tblCompanyAll);
-        } else {
-            $tblCompanyAll = array();
-        }
-
-        $columns = array(
-            'Select' => '',
-            'Company' => 'Name',
-            'Address' => 'Adresse'
-        );
-
-        $interactive =  array(
-            'order' => array(
-                array(1, 'asc'),
-            ),
-            'responsive' => false
-        );
-
-        // Company Panel
-        if ($currentCompany) {
-            $PanelCompany = new Panel('zu folgender Institution ' . new Building(),
-                array(
-                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Institution, '),
-                    new PullLeft(new RadioBox('To', $currentCompany->getName()
-                        . ($currentCompany->getExtendedName()
-                            ? ' ' . $currentCompany->getExtendedName()
-                            : '')
-                        . ($currentCompany->getDescription()
-                            ? ' ' . new Muted($currentCompany->getDescription())
-                            : ''), $currentCompany->getId()))
-                    . new PullRight(new Standard('', '/Corporation/Company',
-                            new Building(),
-                            array('Id' => $currentCompany->getId()),
-                            'zu ' . $currentCompany->getName() . ' wechseln')
-                    ),
-                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Institution wählen: '),
-                    new TableData(
-                        $tblCompanyAll,
-                        null,
-                        $columns,
-                        $interactive
-                    )
-                ), Panel::PANEL_TYPE_INFO,
-                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
-                    , array(), 'Die aktuell gewählte Person verlassen'
-                )
-            );
-        } else {
-            $PanelCompany = new Panel('zu folgender Institution '.new Building(),
-                array(
-                    new TableData(
-                        $tblCompanyAll,
-                        null,
-                        $columns,
-                        $interactive
-                    )
-                ), Panel::PANEL_TYPE_INFO,
-                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
-                    , array(), 'Die aktuell gewählte Person verlassen'
-                )
-            );
-        }
-
-        return new Form(
+        return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel('hat folgende Beziehung',
-                            array(
-                                new SelectBox('Type[Type]', 'Beziehungstyp',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ),
-                                new TextArea('Type[Remark]', 'Bemerkungen - z.B: Schulleiter / Geschäftsführer / ..',
-                                    'Bemerkungen',
-                                    new Pencil()
-                                ),
-                                new \SPHERE\Common\Frontend\Text\Repository\Danger(
-                                    new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
-                                ),
-                            ), Panel::PANEL_TYPE_INFO
-                        ),
-                    ), 6),
+                        FrontendReadOnly::getDataProtectionMessage()
+                    ))
+                )),
+                new FormRow(array(
                     new FormColumn(array(
-                        $PanelCompany
-                    ), 6),
+                        new Panel('hat folgende Beziehung ' . new Link(),
+                            array(
+                                (new SelectBox('Type[Type]', 'Beziehungstyp',
+                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
+                                ))->setRequired(),
+                                new TextField('Type[Remark]', 'Bemerkungen - z.B: Schulleiter / Geschäftsführer / ..', 'Bemerkungen',
+                                    new Pencil()
+                                )
+                            )
+                            , Panel::PANEL_TYPE_INFO
+                        ),
+                    )),
                 )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel(
+                            'zur folgenden Institution ' . new Building(),
+                            array(
+                                $currentCompany
+                                    ? new RadioBox('To', $currentCompany->getDisplayName(), $currentCompany->getId())
+                                    : null,
+                                (new TextField(
+                                    'Search',
+                                    '',
+                                    'Suche',
+                                    new Search()
+                                ))->ajaxPipelineOnKeyUp(ApiRelationshipToCompany::pipelineSearchCompany()),
+                                ApiRelationshipToCompany::receiverBlock($this->loadCompanySearch($Search, $message), 'SearchCompany'),
+                                new Standard('Neue Institution anlegen', '/Corporation/Company/Create', new Building()
+                                    , array(), 'Die aktuell gewählte Person verlassen'
+                                )
+                            ),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    ))
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        $saveButton
+                    ))
+                ))
             ))
-        );
+        ))
+        )->disableSubmitAction();
     }
 
     /**
-     * @param int $Id
-     * @param null $Group
-     * @param int $To
-     * @param array $Type
+     * @param $Search
+     * @param IMessageInterface|null $message
      *
-     * @return Stage|string
+     * @return string
      */
-    public function frontendUpdateToPerson($Id, $Group = null, $To, $Type)
+    public function loadCompanySearch($Search, IMessageInterface $message = null)
     {
 
-        $Stage = new Stage('Beziehungen', 'Bearbeiten');
-        $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
+        if ($Search != '' && strlen($Search) > 2) {
+            if (($tblCompanyList = Company::useService()->getCompanyListLike($Search))) {
+                $resultList = array();
+                foreach ($tblCompanyList as $tblCompany) {
+                    $resultList[] = array(
+                        'Select' => new RadioBox('To', '&nbsp;', $tblCompany->getId()),
+                        'Name' => $tblCompany->getDisplayName(),
+                        'Extended' => $tblCompany->getExtendedName(),
+                        'Description' => $tblCompany->getDescription(),
+                        'Address' => ($tblAddress = $tblCompany->fetchMainAddress()) ? $tblAddress->getGuiString() : ''
+                    );
+                }
 
-        /** @Var TblToPerson $tblToPerson */
-        $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
-
-        if (!$tblToPerson->getServiceTblPersonFrom()) {
-            return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Select' => '',
+                        'Name' => 'Name',
+                        'Extended' => 'Zusatz',
+                        'Description' => 'Beschreibung',
+                        'Address' => 'Adresse'
+                    ),
+                    array(
+                        'order' => array(
+                            array(1, 'asc'),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            } else {
+                $result = new Warning('Es wurden keine entsprechenden Institutionen gefunden.', new Ban());
+            }
+        } else {
+            $result =  new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
         }
 
-        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId(), 'Group' => $Group)) );
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Person',
-                                $tblToPerson->getServiceTblPersonFrom()->getFullName(),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                    ),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Relationship::useService()->updateRelationshipToPerson(
-                                    $this->formRelationshipToPerson($tblToPerson->getServiceTblPersonFrom(), $tblToPerson)
-                                        ->appendFormButton(new Primary('Speichern', new Save()))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToPerson, $tblToPerson->getServiceTblPersonFrom(), $To, $Type, $Group
-                                )
-                            )
-                        )
-                    )
-                )),
-            ))
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @param int $Id
-     * @param null $Group
-     * @param int $To
-     * @param array $Type
-     *
-     * @return Stage|string
-     */
-    public function frontendUpdateToCompany($Id, $Group = null, $To, $Type)
-    {
-
-        $Stage = new Stage('Beziehungen', 'Bearbeiten');
-        $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
-
-        /** @Var TblToPerson $tblToPerson */
-        $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
-
-        if (!$tblToCompany->getServiceTblPerson()) {
-            return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
-        }
-
-        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblToCompany->getServiceTblPerson()->getId(), 'Group' => $Group)) );
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Person',
-                                $tblToCompany->getServiceTblPerson()->getFullName(),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                    ),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Relationship::useService()->updateRelationshipToCompany(
-                                    $this->formRelationshipToCompany($tblToCompany)
-                                        ->appendFormButton(new Primary('Speichern', new Save()))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToCompany, $tblToCompany->getServiceTblPerson(), $To, $Type, $Group
-                                )
-                            )
-                        )
-                    )
-                )),
-            ))
-        );
-
-        return $Stage;
+        return $result . ($message ? $message : '');
     }
 
     /**
      * @param TblPerson $tblPerson
      * @param null $Group
      *
-     * @return Layout
+     * @return string
      */
-    public function frontendLayoutPerson(TblPerson $tblPerson, $Group = null)
+    public function frontendLayoutPersonNew(TblPerson $tblPerson, $Group = null)
     {
 
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
@@ -596,46 +654,76 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $sign = ' ' . new ChevronRight() . ' ';
                     }
-                    $Panel = array(
-                        ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                            ? $tblPerson->getLastFirstName() . $sign . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
-                            : $tblToPerson->getServiceTblPersonFrom()->getLastFirstName() . $sign . $tblPerson->getLastFirstName()
-                        )
-                    );
+
+                    if (($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId())) {
+                        $content[] = $tblPerson->getLastFirstName()
+                            . $sign
+                            . new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new PersonIcon() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName(),
+                                '/People/Person',
+                                null,
+                                array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()),
+                                'zur Person'
+                            );
+                        $panelType = Panel::PANEL_TYPE_SUCCESS;
+                        $options =
+                            (new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Edit(),
+                                ApiRelationshipToPerson::getEndpoint(),
+                                null,
+                                array(),
+                                'Bearbeiten'
+                            ))->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineOpenEditRelationshipToPersonModal(
+                                $tblPerson->getId(),
+                                $tblToPerson->getId()
+                            ))
+                            . ' | '
+                            . (new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
+                                ApiRelationshipToPerson::getEndpoint(),
+                                null,
+                                array(),
+                                'Löschen'
+                            ))->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineOpenDeleteRelationshipToPersonModal(
+                                $tblPerson->getId(),
+                                $tblToPerson->getId()
+                            ));
+                    } else {
+                        $content[] = new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new PersonIcon() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName(),
+                                '/People/Person',
+                                null,
+                                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()),
+                                'zur Person'
+                            )
+                            . $sign
+                            . $tblPerson->getLastFirstName();
+                        $panelType = Panel::PANEL_TYPE_DEFAULT;
+                        $options = '';
+                    }
+
                     if ($tblToPerson->getRemark()) {
-                        array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
+                        $content[] = new Muted(new Small($tblToPerson->getRemark()));
+                    }
+
+                    $contentExtra = '';
+                    $ranking = $tblToPerson->getRanking();
+                    if ($ranking > 0) {
+                        $contentExtra = 'S' . $ranking;
+                    }
+                    if ($tblToPerson->isSingleParent()) {
+                        $contentExtra .= ($contentExtra == '' ? '' : ', ') . 'alleinerziehend';
+                    }
+                    if ($contentExtra != '') {
+                        $content[] = new Muted($contentExtra);
                     }
 
                     $tblToPerson = new LayoutColumn(
-                        new Panel(
+                        FrontendReadOnly::getContactPanel(
                             new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
-                            $Panel,
-                            ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                            || $tblToPerson->getTblType()->isBidirectional()
-                                ? Panel::PANEL_TYPE_SUCCESS
-                                : Panel::PANEL_TYPE_DEFAULT
-                            ),
-                            ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                                ? new Standard(
-                                    '', '/People/Person/Relationship/Edit', new Edit(),
-                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group),
-                                    'Bearbeiten'
-                                )
-                                . new Standard(
-                                    '', '/People/Person/Relationship/Destroy', new Remove(),
-                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
-                                )
-                                . new Standard(
-                                    '', '/People/Person', new PersonIcon(),
-                                    array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
-                                )
-                                :
-                                new Standard(
-                                    '', '/People/Person', new PersonIcon(),
-                                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
-                                )
-
-                            )
+                            $content,
+                            $options,
+                            $panelType
                         )
                         , 3);
                 } else {
@@ -666,16 +754,15 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount++;
         }
 
-        return new Layout(new LayoutGroup($LayoutRowList));
+        return (string) new Layout(new LayoutGroup($LayoutRowList));
     }
 
     /**
-     * @param TblCompany|TblPerson|Element $tblEntity
-     * @param null $Group
+     * @param Element $tblEntity
      *
-     * @return Layout
+     * @return string
      */
-    public function frontendLayoutCompany(Element $tblEntity, $Group = null)
+    public function frontendLayoutCompanyNew(Element $tblEntity)
     {
 
         if ($tblEntity instanceof TblPerson) {
@@ -690,44 +777,65 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity, $Group) {
+            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity) {
 
                 if ($tblToCompany->getServiceTblPerson() && $tblToCompany->getServiceTblCompany()) {
-                    $Panel = array(
-                        $tblToCompany->getServiceTblPerson()->getFullName(),
-                        $tblToCompany->getServiceTblCompany()->getName()
-                    );
+                    if ($tblEntity instanceof TblPerson) {
+                        $content[] = $tblToCompany->getServiceTblPerson()->getFullName();
+                        $content[] =
+                            new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Building() . ' ' . $tblToCompany->getServiceTblCompany()->getName(),
+                                '/Corporation/Company',
+                                null,
+                                array('Id' => $tblToCompany->getServiceTblCompany()->getId()),
+                                'zur Institution'
+                            );
+                        $options =
+                            (new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Edit(),
+                                ApiRelationshipToCompany::getEndpoint(),
+                                null,
+                                array(),
+                                'Bearbeiten'
+                            ))->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineOpenEditRelationshipToCompanyModal(
+                                $tblEntity->getId(),
+                                $tblToCompany->getId()
+                            ))
+                            . ' | '
+                            . (new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
+                                ApiRelationshipToCompany::getEndpoint(),
+                                null,
+                                array(),
+                                'Löschen'
+                            ))->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineOpenDeleteRelationshipToCompanyModal(
+                                $tblEntity->getId(),
+                                $tblToCompany->getId()
+                            ));
+                        $panelType = Panel::PANEL_TYPE_SUCCESS;
+                    } else {
+                        $content[] =
+                            new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new PersonIcon() . ' ' . $tblToCompany->getServiceTblPerson()->getFullName(),
+                                '/People/Person',
+                                null,
+                                array('Id' => $tblToCompany->getServiceTblPerson()->getId()), 'zur Person'
+                            );
+//                        $content[] = $tblToCompany->getServiceTblCompany()->getName();
+                        $options = '';
+                        $panelType = Panel::PANEL_TYPE_DEFAULT;
+                    }
+
                     if ($tblToCompany->getRemark()) {
-                        array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
+                        $content[] = new Muted(new Small($tblToCompany->getRemark()));
                     }
 
                     $tblToCompany = new LayoutColumn(
-                        new Panel(
-                            new Building() . ' ' . new Link() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
-                            ($tblEntity instanceof TblPerson
-                                ? Panel::PANEL_TYPE_INFO
-                                : Panel::PANEL_TYPE_DEFAULT
-                            ),
-                            ($tblEntity instanceof TblPerson
-                                ? new Standard(
-                                    '', '/Corporation/Company/Relationship/Edit', new Edit(),
-                                    array('Id' => $tblToCompany->getId(), 'Group' => $Group),
-                                    'Bearbeiten'
-                                )
-                                . new Standard(
-                                    '', '/Corporation/Company/Relationship/Destroy', new Remove(),
-                                    array('Id' => $tblToCompany->getId(), 'Group' => $Group), 'Löschen'
-                                )
-                                . new Standard(
-                                    '', '/Corporation/Company', new Building(),
-                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()), 'zur Institution'
-                                )
-                                :
-                                new Standard(
-                                    '', '/People/Person', new PersonIcon(),
-                                    array('Id' => $tblToCompany->getServiceTblPerson()->getId()), 'zur Person'
-                                )
-                            )
+                        FrontendReadOnly::getContactPanel(
+                            new Building() . ' ' . new Link() . ' ' . $tblToCompany->getTblType()->getName(),
+                            $content,
+                            $options,
+                            $panelType
                         )
                         , 3);
                 } else {
@@ -758,152 +866,6 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount++;
         }
 
-        return new Layout(new LayoutGroup($LayoutRowList));
-    }
-
-    /**
-     * @param int $Id
-     * @param null $Group
-     * @param bool $Confirm
-     *
-     * @return Stage|string
-     */
-    public function frontendDestroyToPerson($Id, $Group = null, $Confirm = false)
-    {
-
-        $Stage = new Stage('Beziehung', 'Löschen');
-        if ($Id) {
-            $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
-            $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
-            if (!$tblToPerson || !$tblPersonFrom) {
-                return $Stage . new Danger('Person nicht gefunden', new Ban())
-                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
-            }
-
-            if (!$Confirm) {
-                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPersonFrom->getId(), 'Group' => $Group)));
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon() . ' Person',
-                            $tblPersonFrom->getFullName(),
-                            Panel::PANEL_TYPE_INFO
-                        ),
-                        new Panel(new Question() . ' Diese Beziehung wirklich löschen?', array(
-                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
-                            $tblToPerson->getServiceTblPersonTo() ? $tblToPerson->getServiceTblPersonTo()->getFullName() : '',
-                            new Muted(new Small($tblToPerson->getRemark()))
-                        ),
-                            Panel::PANEL_TYPE_DANGER,
-                            new Standard(
-                                'Ja', '/People/Person/Relationship/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
-                            )
-                            . new Standard(
-                                'Nein', '/People/Person', new Disable(),
-                                array('Id' => $tblPersonFrom->getId(), 'Group' => $Group)
-                            )
-                        )
-                    )))))
-                );
-            } else {
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
-                            (Relationship::useService()->removePersonRelationshipToPerson($tblToPerson)
-                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde gelöscht')
-                                : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
-                            ),
-                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                                array('Id' => $tblPersonFrom->getId(), 'Group' => $Group))
-                        )))
-                    )))
-                );
-            }
-        } else {
-            $Stage->setContent(
-                new Layout(new LayoutGroup(array(
-                    new LayoutRow(new LayoutColumn(array(
-                        new Danger(new Ban() . ' Die Beziehung konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group))
-                    )))
-                )))
-            );
-        }
-        return $Stage;
-    }
-
-    /**
-     * @param int $Id
-     * @param null $Group
-     * @param bool $Confirm
-     *
-     * @return Stage|string
-     */
-    public function frontendDestroyToCompany($Id, $Group = null, $Confirm = false)
-    {
-
-        $Stage = new Stage('Beziehung', 'Löschen');
-        if ($Id) {
-            $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
-            if (!$tblToCompany) {
-                return $Stage.new Danger('Institution nicht gefunden', new Ban())
-                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
-            }
-            $tblPerson = $tblToCompany->getServiceTblPerson();
-            if (!$tblPerson) {
-                return $Stage . new Danger('Person nicht gefunden', new Ban())
-                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
-            }
-
-            if (!$Confirm) {
-                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId(), 'Group' => $Group)));
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon() . ' Person',
-                            $tblPerson->getFullName(),
-                            Panel::PANEL_TYPE_INFO
-                        ),
-                        new Panel(new Question() . ' Diese Beziehung wirklich löschen?', array(
-                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
-                            $tblToCompany->getServiceTblCompany() ? $tblToCompany->getServiceTblCompany()->getName() : '',
-                            new Muted(new Small($tblToCompany->getRemark()))
-                        ),
-                            Panel::PANEL_TYPE_DANGER,
-                            new Standard(
-                                'Ja', '/Corporation/Company/Relationship/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
-                            )
-                            . new Standard(
-                                'Nein', '/People/Person', new Disable(),
-                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                            )
-                        )
-                    )))))
-                );
-            } else {
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
-                            (Relationship::useService()->removeCompanyRelationshipToPerson($tblToCompany)
-                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde gelöscht')
-                                : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
-                            ),
-                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                                array('Id' => $tblPerson->getId(), 'Group' => $Group))
-                        )))
-                    )))
-                );
-            }
-        } else {
-            $Stage->setContent(
-                new Layout(new LayoutGroup(array(
-                    new LayoutRow(new LayoutColumn(array(
-                        new Danger(new Ban() . ' Die Beziehung konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group))
-                    )))
-                )))
-            );
-        }
-        return $Stage;
+        return (string) new Layout(new LayoutGroup($LayoutRowList));
     }
 }

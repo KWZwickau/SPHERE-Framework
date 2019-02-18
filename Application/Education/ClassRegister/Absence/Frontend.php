@@ -50,6 +50,8 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -848,6 +850,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 /** @var TblPerson $tblPerson */
                 foreach ($tblStudentList as $tblPerson) {
+                    $messageTimeSpan = false;
+
                     $studentTable[$tblPerson->getId()]['Number'] = count($studentTable) + 1;
                     $studentTable[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                     $countExcused = 0;
@@ -863,7 +867,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     while ($date <= $toDate) {
 
                                         if ($date == $SelectedDate) {
-                                            $Global->POST['Data'][$tblPerson->getId()] = $tblAbsence->getStatus();
+//                                            $Global->POST['Data'][$tblPerson->getId()] = $tblAbsence->getStatus();
+                                            // SSW-403
+                                            $messageTimeSpan = new Warning(new ToolTip($tblAbsence->getStatusDisplayName()
+                                                . ' ' . new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+                                                    'Ein Fehlzeiten-Zeitraum kann nicht über die Monatsansicht bearbeitet werden.'));
                                         } else {
                                             $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable,
                                                 $date,
@@ -902,8 +910,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                     for ($i = 1; $i <= $maxDays; $i++) {
                         if ($SelectedDate && $SelectedDate->format('d') == str_pad($i, 2, '0', STR_PAD_LEFT)) {
-                            $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
-                                STR_PAD_LEFT)] = new SelectBox('Data[' . $tblPerson->getId() . ']', '', $statusList);
+                            if ($messageTimeSpan) {
+                                $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
+                                    STR_PAD_LEFT)] = $messageTimeSpan;
+                            } else {
+                                $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
+                                    STR_PAD_LEFT)] = new SelectBox('Data[' . $tblPerson->getId() . ']', '',
+                                    $statusList);
+                            }
                         } elseif (!isset($studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
                                 STR_PAD_LEFT)])
                         ) {

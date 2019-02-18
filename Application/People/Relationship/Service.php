@@ -16,14 +16,9 @@ use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPe
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\Application\People\Relationship\Service\Setup;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -60,17 +55,21 @@ class Service extends AbstractService
 
         return ( new Data($this->getBinding()) )->viewRelationshipToCompany();
     }
-    
+
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -174,46 +173,60 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblPerson $tblPersonFrom
-     * @param int $tblPersonTo
-     * @param array $Type
-     * @param $Group
+     * @param TblPerson $tblPersonTo
+     * @param $Type
      *
-     * @return IFormInterface|string
+     * @return bool
      */
     public function createRelationshipToPerson(
-        IFormInterface $Form,
         TblPerson $tblPersonFrom,
-        $tblPersonTo,
-        $Type,
-        $Group
+        TblPerson $tblPersonTo,
+        $Type
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Type) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (empty($tblPersonTo)) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
-            $Error = true;
+        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
+        $tempPerson = $tblPersonFrom;
+        if ($Type['Type'] == TblType::CHILD_ID) {
+            $tblType = $this->getTypeByName('Sorgeberechtigt');
+            $tblPersonFrom = $tblPersonTo;
+            $tblPersonTo = $tempPerson;
         } else {
-            $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
-            if (!$tblPersonTo){
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
-                $Error = true;
-            }
-            elseif ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(
-                    'Eine Person kann nur mit einer anderen Person verknüpft werden')))));
-                $Error = true;
+            $tblType = $this->getTypeById($Type['Type']);
+        }
+
+        if ($tblType) {
+            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson(
+                $tblPersonFrom,
+                $tblPersonTo,
+                $tblType,
+                $Type['Remark'],
+                isset($Type['Ranking']) ? $Type['Ranking'] : null,
+                isset($Type['IsSingleParent'])
+            )) {
+                return true;
+            } else {
+                return false;
             }
         }
+
+        return false;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param TblPerson $tblPersonFrom
+     * @param $tblPersonTo
+     * @param $Type
+     *
+     * @return bool
+     */
+    public function updateRelationshipToPerson(
+        TblToPerson $tblToPerson,
+        TblPerson $tblPersonFrom,
+        TblPerson $tblPersonTo,
+        $Type
+    ) {
 
         // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
         $tempPerson = $tblPersonFrom;
@@ -226,25 +239,255 @@ class Service extends AbstractService
         }
 
         if (!$tblType) {
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
+            return false;
         }
 
-        if (!$Error) {
+        // Remove current
+        (new Data($this->getBinding()))->removePersonRelationshipToPerson($tblToPerson);
+        // Add new
+        if ((new Data($this->getBinding()))->addPersonRelationshipToPerson(
+            $tblPersonFrom,
+            $tblPersonTo,
+            $tblType,
+            $Type['Remark'],
+            isset($Type['Ranking']) ? $Type['Ranking'] : null,
+            isset($Type['IsSingleParent'])
+        )) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tempPerson->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tempPerson->getId(), 'Group' => $Group));
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Type
+     * @param $To
+     * @param TblToPerson|null $tblToPerson
+     * @param string $Search
+     *
+     * @return bool|Form
+     */
+    public function checkFormRelationshipToPerson(
+        TblPerson $tblPerson,
+        $Type,
+        $To,
+        TblToPerson $tblToPerson = null,
+        $Search = ''
+    ) {
+
+        $error = false;
+        $message = null;
+        if (empty($To)) {
+            $message = new Danger('Bitte wählen Sie eine Person', new Exclamation());
+            $error = true;
+        } else {
+            $tblPersonTo = Person::useService()->getPersonById($To);
+            if (!$tblPersonTo){
+                $message = new Danger('Bitte wählen Sie eine Person', new Exclamation());
+                $error = true;
+            }
+            elseif ($tblPerson->getId() == $tblPersonTo->getId()) {
+                $message = new Danger('Eine Person kann nur mit einer anderen Person verknüpft werden', new Exclamation());
+                $error = true;
             }
         }
-        return $Form;
+
+        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
+        if ($Type['Type'] == TblType::CHILD_ID) {
+            $tblType = $this->getTypeByName('Sorgeberechtigt');
+            $tblPersonChild = $tblPerson;
+            $tblPersonGuardian = Person::useService()->getPersonById($To);
+        } else {
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblPersonChild = Person::useService()->getPersonById($To);
+            $tblPersonGuardian = $tblPerson;
+        }
+
+        $messageOptions = null;
+        $isGuardianOfTheGalaxy = $tblType && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN;
+        if ($isGuardianOfTheGalaxy) {
+            $Ranking = null;
+            if (!isset($Type['Ranking'])) {
+                $messageOptions = new Danger('Bitte geben Sie an um welchen Sorgeberechtigten (S1, S2, S3) es sich handelt',
+                    new Exclamation());
+                $error = true;
+            } else {
+                $Ranking = $Type['Ranking'];
+            }
+
+            if ($tblPersonGuardian && $tblPersonChild) {
+                $isSingleParent = isset($Type['IsSingleParent']);
+                if ($Ranking || $isSingleParent) {
+                    if (($warnings = $this->checkGuardianRelationshipsForPerson($tblPersonChild, $tblPersonGuardian,
+                        $Ranking, $isSingleParent))) {
+                        $error = true;
+                        $messageOptions = new Danger(implode('<br>', $warnings));
+                    }
+                }
+            }
+        }
+
+        $form = Relationship::useFrontend()->formRelationshipToPerson(
+            $tblPerson->getId(),
+            $tblToPerson ? $tblToPerson->getId() : null,
+            false,
+            $Search,
+            $message,
+            $isGuardianOfTheGalaxy,
+            $messageOptions
+        );
+
+        if (!$tblType) {
+            $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $error = true;
+        } else {
+            $form->setSuccess('Type[Type]');
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblPerson $tblPersonChild
+     * @param TblPerson $tblPersonGuardian
+     * @param $Ranking
+     * @param $IsSingleParent
+     *
+     * @return array|bool
+     */
+    private function checkGuardianRelationshipsForPerson(TblPerson $tblPersonChild, TblPerson $tblPersonGuardian, $Ranking, $IsSingleParent)
+    {
+
+        $result = array();
+        if (($tblType = $this->getTypeByName(TblType::IDENTIFIER_GUARDIAN))
+            && ($tblToPersonList = $this->getPersonRelationshipAllByPerson($tblPersonChild, $tblType))
+        ) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                    && ($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())
+                    && $tblPersonTo->getId() == $tblPersonChild->getId()
+                ) {
+                    if ($tblPersonGuardian->getId() != $tblPersonFrom->getId()) {
+                        if ($Ranking
+                            && $tblToPerson->getRanking() == $Ranking
+                        ) {
+                            $result[] = 'S' . $Ranking . ' wurde bereits für ' . $tblPersonFrom->getFullName() . ' gewählt';
+                        }
+
+                        if ($IsSingleParent && $tblToPerson->isSingleParent()) {
+                            $result[] = 'alleinerziehend wurde bereits für ' . $tblPersonFrom->getFullName() . ' gewählt';
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Type
+     * @param $To
+     * @param TblToCompany|null $tblToCompany
+     * @param string $Search
+     *
+     * @return bool|Form
+     */
+    public function checkFormRelationshipToCompany(
+        TblPerson $tblPerson,
+        $Type,
+        $To,
+        TblToCompany $tblToCompany = null,
+        $Search = ''
+    ) {
+
+        $error = false;
+        $message = null;
+        if (empty($To)) {
+            $message = new Danger('Bitte wählen Sie eine Institution');
+            $error = true;
+        } else {
+            $tblCompanyTo = Company::useService()->getCompanyById($To);
+            if (!$tblCompanyTo){
+                $message = new Danger('Bitte wählen Sie eine Institution');
+                $error = true;
+            }
+        }
+        $form = Relationship::useFrontend()->formRelationshipToCompany(
+            $tblPerson->getId(),
+            $tblToCompany ? $tblToCompany->getId() : null,
+            false,
+            $Search,
+            $message
+        );
+
+        if (!($tblType = $this->getTypeById($Type['Type']))) {
+            $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $error = true;
+        } else {
+            $form->setSuccess('Type[Type]');
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblCompany $tblCompany
+     * @param $Type
+     *
+     * @return bool
+     */
+    public function createRelationshipToCompany(
+        TblPerson $tblPerson,
+        TblCompany $tblCompany,
+        $Type
+    ) {
+
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            return false;
+        }
+
+        if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompany, $tblPerson, $tblType,
+            $Type['Remark'])
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     * @param TblPerson $tblPerson
+     * @param TblCompany $tblCompany
+     * @param $Type
+     *
+     * @return bool
+     */
+    public function updateRelationshipToCompany(
+        TblToCompany $tblToCompany,
+        TblPerson $tblPerson,
+        TblCompany $tblCompany,
+        $Type
+    ) {
+
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            return false;
+        }
+
+        // Remove current
+        (new Data($this->getBinding()))->removeCompanyRelationshipToPerson($tblToCompany);
+        // Add new
+        if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompany, $tblPerson, $tblType,
+            $Type['Remark'])
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -289,207 +532,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getGroupByIdentifier($Identifier);
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson $tblPersonFrom
-     * @param int $tblCompanyTo
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function createRelationshipToCompany(
-        IFormInterface $Form,
-        TblPerson $tblPersonFrom,
-        $tblCompanyTo,
-        $Type,
-        $Group
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Type) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (empty($tblCompanyTo)) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
-            $Error = true;
-        } else {
-            $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
-            if (!$tblCompanyTo){
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
-                $Error = true;
-            }
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-
-            if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblToPerson $tblToPerson
-     * @param TblPerson $tblPersonFrom
-     * @param int $tblPersonTo
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function updateRelationshipToPerson(
-        IFormInterface $Form,
-        TblToPerson $tblToPerson,
-        TblPerson $tblPersonFrom,
-        $tblPersonTo,
-        $Type,
-        $Group
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Type) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (empty($tblPersonTo)) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(new Ban() . ' Bitte wählen Sie eine Person')))));
-            $Error = true;
-        } else {
-            $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
-            if (!$tblPersonTo){
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
-                $Error = true;
-            }
-            elseif ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(new Ban() . ' Eine Person kann nur mit einer anderen Person verknüpft werden')))));
-                $Error = true;
-            }
-        }
-
-        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
-        $tempPerson = $tblPersonFrom;
-        if ($Type['Type'] == TblType::CHILD_ID) {
-            $tblType = $this->getTypeByName('Sorgeberechtigt');
-            $tblPersonFrom = $tblPersonTo;
-            $tblPersonTo = $tempPerson;
-        } else {
-            $tblType = $this->getTypeById($Type['Type']);
-        }
-
-        if (!$tblType) {
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            // Remove current
-            (new Data($this->getBinding()))->removePersonRelationshipToPerson($tblToPerson);
-            // Add new
-            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tempPerson->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tempPerson->getId(), 'Group' => $Group));
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblToCompany $tblToCompany
-     * @param TblPerson $tblPersonFrom
-     * @param int $tblCompanyTo
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function updateRelationshipToCompany(
-        IFormInterface $Form,
-        TblToCompany $tblToCompany,
-        TblPerson $tblPersonFrom,
-        $tblCompanyTo,
-        $Type,
-        $Group
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Type) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (empty($tblCompanyTo)) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
-            $Error = true;
-        } else {
-            $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
-            if (!$tblCompanyTo){
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
-                $Error = true;
-            }
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            // Remove current
-            (new Data($this->getBinding()))->removeCompanyRelationshipToPerson($tblToCompany);
-            // Add new
-            if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0, 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0, 'Group' => $Group));
-            }
-        }
-        return $Form;
     }
 
     /**

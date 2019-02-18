@@ -29,7 +29,7 @@ class TblSettingGroupPerson extends Element
      */
     public function getServiceTblGroupPerson()
     {
-        if (null === $this->serviceTblGroupPerson) {
+        if(null === $this->serviceTblGroupPerson){
             return false;
         } else {
             return Group::useService()->getGroupById($this->serviceTblGroupPerson);

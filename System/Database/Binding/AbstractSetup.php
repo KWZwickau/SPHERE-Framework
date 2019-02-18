@@ -38,10 +38,11 @@ abstract class AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $IsCollation
      *
      * @return string
      */
-    abstract public function setupDatabaseSchema($Simulate = true);
+    abstract public function setupDatabaseSchema($Simulate = true, $IsCollation = false);
 
     /**
      * @return Schema

@@ -191,16 +191,25 @@ class Data extends AbstractData
 
     /**
      * @param $Name
+     * @param TblType|null $tblType
      *
      * @return false|TblLevel[]
      */
-    public function getLevelAllByName($Name)
+    public function getLevelAllByName($Name, TblType $tblType = null)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
-            array(
-                TblLevel::ATTR_NAME => $Name
-            ));
+        if ($tblType) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
+                array(
+                    TblLevel::ATTR_NAME => $Name,
+                    TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
+                ));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
+                array(
+                    TblLevel::ATTR_NAME => $Name
+                ));
+        }
     }
 
     /**

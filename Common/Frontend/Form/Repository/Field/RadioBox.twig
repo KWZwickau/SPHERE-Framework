@@ -14,3 +14,19 @@
     {{ ElementFeedbackMessage }}
 </div>
 {% endif %}
+
+{% if( AjaxEventChange is not empty ) %}
+    <script type="text/javascript">
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
+        {
+            Client.Use('ModAjax', function()
+            {
+                jQuery('input#{{ ElementHash }}').on('change',function(Event){
+                    {{ AjaxEventChange }}
+                });
+            });
+        });
+    </script>
+{% endif %}
+

@@ -45,6 +45,10 @@ class TblPerson extends Element
     /**
      * @Column(type="string")
      */
+    protected $CallName;
+    /**
+     * @Column(type="string")
+     */
     protected $LastName;
     /**
      * @Column(type="string")
@@ -296,6 +300,44 @@ class TblPerson extends Element
             if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
                 return $tblCommonBirthDates->getTblCommonGender();
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCallName()
+    {
+        return $this->CallName;
+    }
+
+    /**
+     * @param string $CallName
+     */
+    public function setCallName($CallName)
+    {
+        $this->CallName = $CallName;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getGenderNameFromGenderOrSalutation()
+    {
+        $genderString = $this->getGenderString();
+        if ($genderString == '') {
+            // Anrede prüfen
+            if (($salutation = $this->getSalutation())) {
+                if ($salutation == 'Herr') {
+                    return 'Männlich';
+                } elseif ($salutation == 'Frau') {
+                    return 'Weiblich';
+                }
+            }
+        } else {
+            return $genderString;
         }
 
         return false;

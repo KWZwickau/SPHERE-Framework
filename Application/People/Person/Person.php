@@ -22,19 +22,8 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
 
         self::registerModule();
 
-        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
-            $Parameter = self::getRequest()->getParameterArray();
-            if (isset( $Parameter['Id'] )) {
-                $Name = 'Person bearbeiten';
-            } else {
-                $Name = 'Person anlegen';
-            }
-        } else {
-            $Name = 'Person anlegen';
-        }
-
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name($Name),
+            new Link(new Link\Route(__NAMESPACE__ . '/Create'), new Link\Name('Person anlegen'),
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Person())
             )
         );
@@ -44,121 +33,14 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Frontend::frontendPerson'
+            __NAMESPACE__, 'FrontendReadOnly::frontendPersonReadOnly'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Create', __NAMESPACE__. '\FrontendReadOnly::frontendPersonCreate'
+        ));
+
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyPerson')
-        );
-
-        // Contact: Address
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Address/Create', 'SPHERE\Application\Contact\Address\Frontend::frontendCreateToPerson'
-        )
-            ->setParameterDefault('Street', null)
-            ->setParameterDefault('City', null)
-            ->setParameterDefault('State', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Address/Edit', 'SPHERE\Application\Contact\Address\Frontend::frontendUpdateToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Street', null)
-            ->setParameterDefault('City', null)
-            ->setParameterDefault('State', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Address/Destroy', 'SPHERE\Application\Contact\Address\Frontend::frontendDestroyToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // Contact: Mail
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Mail/Create', 'SPHERE\Application\Contact\Mail\Frontend::frontendCreateToPerson'
-        )
-            ->setParameterDefault('Address', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Mail/Edit', 'SPHERE\Application\Contact\Mail\Frontend::frontendUpdateToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Address', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Mail/Destroy', 'SPHERE\Application\Contact\Mail\Frontend::frontendDestroyToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // Contact: Phone
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Phone/Create', 'SPHERE\Application\Contact\Phone\Frontend::frontendCreateToPerson'
-        )
-            ->setParameterDefault('Number', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Phone/Edit', 'SPHERE\Application\Contact\Phone\Frontend::frontendUpdateToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Number', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Phone/Destroy', 'SPHERE\Application\Contact\Phone\Frontend::frontendDestroyToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // People: Relationship
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Relationship/Create',
-            'SPHERE\Application\People\Relationship\Frontend::frontendCreateToPerson'
-        )
-            ->setParameterDefault('To', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Relationship/Edit',
-            'SPHERE\Application\People\Relationship\Frontend::frontendUpdateToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('To', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Relationship/Destroy',
-            'SPHERE\Application\People\Relationship\Frontend::frontendDestroyToPerson'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
-        );
-        // Corporation: Relationship
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            'SPHERE\Application\Corporation\Company'.'/Relationship/Create',
-            'SPHERE\Application\People\Relationship\Frontend::frontendCreateToCompany'
-        )
-            ->setParameterDefault('To', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            'SPHERE\Application\Corporation\Company'.'/Relationship/Edit',
-            'SPHERE\Application\People\Relationship\Frontend::frontendUpdateToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('To', null)
-            ->setParameterDefault('Type', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            'SPHERE\Application\Corporation\Company'.'/Relationship/Destroy',
-            'SPHERE\Application\People\Relationship\Frontend::frontendDestroyToCompany'
-        )
-            ->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', false)
         );
     }
 

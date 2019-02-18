@@ -33,8 +33,10 @@ class RadebeulLernentwicklungsbericht extends Certificate
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+
         $fontFamily = 'MetaPro';
         $textSize = '12pt';
+        $lineHeight = '100%';
 
         return (new Page())
             ->addSlice((new Slice())
@@ -68,7 +70,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                                     {% endif %}')
                             .new Container('- Grundschule -')
                         )
-                        ->styleLineHeight('80%')
+                        ->styleLineHeight($lineHeight)
                         ->styleTextSize('20pt')
                         ->styleFontFamily($fontFamily)
                         ->styleAlignCenter()
@@ -78,6 +80,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('- Staatlich anerkannte Ersatzschule in freier Trägerschaft -')
                         ->styleFontFamily($fontFamily)
+                        ->styleLineHeight($lineHeight)
                         ->styleTextSize($textSize)
                         ->styleLineHeight('90%')
                         ->styleAlignCenter()
@@ -171,7 +174,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                     ->styleAlignJustify()
                     ->styleFontFamily($fontFamily)
                     ->styleTextSize($textSize)
-                    ->styleLineHeight('80%')
+                    ->styleLineHeight($lineHeight)
                     ->styleMarginTop('30px')
                 )
             )

@@ -108,7 +108,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         if (!$Error) {
             $tblAccount = GatekeeperAccount::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
             if ($tblAccount) {
-                $tblIdentification = GatekeeperAccount::useService()->getIdentificationById($Account['Identification']);
+                $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName('Token');
                 GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
@@ -200,11 +200,13 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 // Edit Token
                 GatekeeperAccount::useService()->changeToken($tblToken, $tblAccount);
 
-                // Edit Identification (Authentication)
-                GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount,
-                    $tblAccount->getServiceTblIdentification());
-                $tblIdentification = GatekeeperAccount::useService()->getIdentificationById($Account['Identification']);
-                GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
+                $tblIdentification = $tblAccount->getServiceTblIdentification();
+                // there is no reason to delete/change the Identification (Support Account without Identification Error)
+//                // Edit Identification (Authentication)
+//                GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount,
+//                    $tblAccount->getServiceTblIdentification());
+//                $tblIdentification = GatekeeperAccount::useService()->getIdentificationById($Account['Identification']);
+//                GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
 
                 // Edit User
                 $tblPersonList = GatekeeperAccount::useService()->getPersonAllByAccount($tblAccount);

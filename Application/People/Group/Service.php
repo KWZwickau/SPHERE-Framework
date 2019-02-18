@@ -40,13 +40,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -75,6 +79,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblGroup  $tblGroup
+     * @param bool      $IsForced
+     *
+     * @return false|TblMember
+     */
+    public function getMemberByPersonAndGroup(TblPerson $tblPerson, TblGroup $tblGroup, $IsForced = false)
+    {
+
+        return ( new Data($this->getBinding()) )->getMemberByPersonAndGroup($tblPerson, $tblGroup, ( $IsForced ? $IsForced : null ));
+    }
+
+    /**
      * Sortierung erst feste Gruppen, dann individuelle Gruppen
      *
      * @return bool|TblGroup[]
@@ -85,6 +102,32 @@ class Service extends AbstractService
         $lockedList = array();
         $customList = array();
         $tblGroupAll = $this->getGroupAll();
+        if ($tblGroupAll) {
+            foreach ($tblGroupAll as $tblGroup) {
+                if ($tblGroup->isLocked()) {
+                    $lockedList[$tblGroup->getId()] = $tblGroup;
+                } else {
+                    $customList[$tblGroup->getId()] = $tblGroup;
+                }
+            }
+        }
+
+        $lockedList = $this->getSorter($lockedList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+        $customList = $this->getSorter($customList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+
+        return array_merge($lockedList, $customList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAllSortedByPerson(TblPerson $tblPerson)
+    {
+        $lockedList = array();
+        $customList = array();
+        $tblGroupAll = $this->getGroupAllByPerson($tblPerson);
         if ($tblGroupAll) {
             foreach ($tblGroupAll as $tblGroup) {
                 if ($tblGroup->isLocked()) {

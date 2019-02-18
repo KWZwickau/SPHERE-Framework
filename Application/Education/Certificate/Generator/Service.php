@@ -28,13 +28,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -342,6 +346,22 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getCertificateAllBy($tblConsumer, $tblCertificateType, $tblSchoolType);
     }
 
+    /**
+     * @param null|TblConsumer $tblConsumer
+     * @param TblCertificateType $tblCertificateType
+     * @param TblType $tblSchoolType
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAllForAutoSelect(
+        TblConsumer $tblConsumer = null,
+        TblCertificateType $tblCertificateType = null,
+        TblType $tblSchoolType = null
+    ) {
+
+        return (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+    }
+
 
     /**
      * @param TblCertificate $tblCertificate
@@ -403,7 +423,9 @@ class Service extends AbstractService
             'Content.Input.TeamExtra'          => 'TextField',
             'Content.Input.BellSubject'        => 'TextField',
             'Content.Input.PerformanceGroup'   => 'TextField',
-            'Content.Input.Arrangement'        => 'TextArea'
+            'Content.Input.Arrangement'        => 'TextArea',
+            'Content.Input.Support'        => 'TextArea',
+            'Content.Input.DivisionName' => 'TextField'
         );
     }
 
@@ -431,7 +453,9 @@ class Service extends AbstractService
             'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
-            'Content.Input.Arrangement'        => 'Besonderes Engagement'
+            'Content.Input.Arrangement'        => 'Besonderes Engagement',
+            'Content.Input.Support'        => 'Inklusive Unterrichtung',
+            'Content.Input.DivisionName' => 'Klasse'
         );
     }
 

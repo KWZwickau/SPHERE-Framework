@@ -1,16 +1,15 @@
 (function ($) {
     'use strict';
     $.fn.ModCookie = function () {
-        window.cookieconsent_options = {
+        window.CookieHinweis_options = {
             message: 'Diese Website nutzt Cookies, um bestmögliche Funktionalität bieten zu können.',
-            dismiss: 'Ok, verstanden',
+            agree: 'Ok, verstanden',
             learnMore: 'Mehr Infos',
-            link: '/Document/DataProtectionOrdinance',
-            theme: 'dark-top'
+            link: '/Document/DataProtectionOrdinance', /* Link zu den eigenen Datenschutzbestimmungen */
+            theme: 'hell-unten-rechts' /* weitere Theme-Optionen sind dunkel-unten oder dunkel-oben */
         };
-
-        if(!(document.cookie.indexOf("cookieconsent_dismissed")>-1)){
-            window.update_cookieconsent_options(window.cookieconsent_options);
+        if (!(document.cookie.indexOf("CookieHinweis_agree") > -1)) {
+            window.update_CookieHinweis_options(window.CookieHinweis_options);
         }
 
         return this;

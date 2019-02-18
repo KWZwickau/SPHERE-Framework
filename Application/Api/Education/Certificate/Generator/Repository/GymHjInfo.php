@@ -36,7 +36,7 @@ class GymHjInfo extends Certificate
             ->addSlice($this->getCertificateHead('Halbjahresinformation des Gymnasiums'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getGradeLanes($personId, '14px', false, '5px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -45,21 +45,18 @@ class GymHjInfo extends Certificate
                 )
             )
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('270px'))
-            ->addSlice($this->getProfileStandard($personId))
+            ->addSlice($this->getProfileStandardNew($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '80px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '110px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('20px',
+            ->addSlice($this->getInfo('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)' //,
-//                    '¹ Zutreffendes ist zu unterstreichen.',
-//                    '² In Klassenstufe 8 ist der Zusatz „mit informatischer Bildung“ zu streichen. Beim sprachlichen
-//                    Profil ist der Zusatz „mit informatischer Bildung“ zu streichen und die Fremdsprache anzugeben.'
-
-            )
-            );
+                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',
+                    '¹ &nbsp;&nbsp;&nbsp; Die Bezeichnung des besuchten schulspezifischen Profils ist anzugeben. Beim Erlernen einer 
+                    dritten Fremdsprache ist anstelle des Profils die Fremdsprache anzugeben.'
+                ));
     }
 }

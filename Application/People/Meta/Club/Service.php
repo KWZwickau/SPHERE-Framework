@@ -6,9 +6,6 @@ use SPHERE\Application\People\Meta\Club\Service\Entity\TblClub;
 use SPHERE\Application\People\Meta\Club\Service\Entity\ViewPeopleMetaClub;
 use SPHERE\Application\People\Meta\Club\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
@@ -26,13 +23,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -40,26 +41,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param null $Group
+     * @param $Meta
      *
-     * @return IFormInterface|string
+     * @return bool|TblClub
      */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
     {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
-        $tblClub = $this->getClubByPerson($tblPerson);
-        if ($tblClub) {
-            (new Data($this->getBinding()))->updateClub(
+        if ($tblClub = $this->getClubByPerson($tblPerson)) {
+            return (new Data($this->getBinding()))->updateClub(
                 $tblClub,
                 $Meta['Identifier'],
                 $Meta['EntryDate'],
@@ -67,7 +57,7 @@ class Service extends AbstractService
                 $Meta['Remark']
             );
         } else {
-            (new Data($this->getBinding()))->createClub(
+            return (new Data($this->getBinding()))->createClub(
                 $tblPerson,
                 $Meta['Identifier'],
                 $Meta['EntryDate'],
@@ -75,8 +65,6 @@ class Service extends AbstractService
                 $Meta['Remark']
             );
         }
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
     /**

@@ -19,7 +19,7 @@ class TblItemGroup extends Element
 {
 
     const ATTR_TBL_ITEM = 'tblItem';
-    const ATTR_SERVICE_TBL_GROUP = 'tblGroup';
+    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
 
     /**
      * @Column(type="bigint")
@@ -36,7 +36,7 @@ class TblItemGroup extends Element
     public function getTblItem()
     {
 
-        if (null === $this->tblItem) {
+        if(null === $this->tblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->tblItem);
@@ -49,16 +49,16 @@ class TblItemGroup extends Element
     public function setTblItem(TblItem $tblItem = null)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 
     /**
      * @return bool|TblGroup
      */
-    public function getTblGroup()
+    public function getServiceTblGroup()
     {
 
-        if (null === $this->serviceTblGroup) {
+        if(null === $this->serviceTblGroup){
             return false;
         } else {
             return Group::useService()->getGroupById($this->serviceTblGroup);
@@ -71,7 +71,7 @@ class TblItemGroup extends Element
     public function setServiceTblGroup(TblGroup $serviceTblGroup)
     {
 
-        $this->serviceTblGroup = ( null === $serviceTblGroup ? null : $serviceTblGroup->getId() );
+        $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());
     }
 
 }

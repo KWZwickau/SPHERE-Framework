@@ -82,6 +82,9 @@ class Data extends AbstractData
         $tblType = $this->createType('Lebenspartner', '', $tblGroupPerson);
         $this->updateType($tblType, true);
 
+        $tblType = $this->createType('Beitragszahler', 'z.B. Großeltern / Amt', $tblGroupPerson);
+        $this->updateType($tblType, true);
+
         $this->createType('Notfallkontakt', 'z.B. Elternteil ohne Sorgerecht', $tblGroupPerson, false, false);
 
         $this->createType('Geschäftsführer', '', $tblGroupCompany);
@@ -394,12 +397,14 @@ class Data extends AbstractData
             $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
         }
 
+        $orderBy = array('Ranking' => self::ORDER_ASC);
+
         if ($isForced) {
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         }
     }
 
@@ -419,12 +424,14 @@ class Data extends AbstractData
             $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
         }
 
+        $orderBy = array('Ranking' => self::ORDER_ASC);
+
         if ($isForced) {
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblToPerson', $Parameter);
+                'TblToPerson', $Parameter, $orderBy);
         }
     }
 
@@ -467,8 +474,10 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPersonFrom
      * @param TblPerson $tblPersonTo
-     * @param TblType   $tblType
-     * @param string    $Remark
+     * @param TblType $tblType
+     * @param string $Remark
+     * @param null $Ranking
+     * @param bool $IsSingleParent
      *
      * @return TblToPerson
      */
@@ -476,7 +485,9 @@ class Data extends AbstractData
         TblPerson $tblPersonFrom,
         TblPerson $tblPersonTo,
         TblType $tblType,
-        $Remark
+        $Remark,
+        $Ranking = null,
+        $IsSingleParent = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -485,6 +496,9 @@ class Data extends AbstractData
         $Entity->setServiceTblPersonTo($tblPersonTo);
         $Entity->setTblType($tblType);
         $Entity->setRemark($Remark);
+        $Entity->setRanking($Ranking);
+        $Entity->setSingleParent($IsSingleParent);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;

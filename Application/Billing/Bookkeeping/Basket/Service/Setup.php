@@ -16,10 +16,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -27,7 +28,6 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblBasket = $this->setTableBasket($Schema);
-        $this->setTableBasketPerson($Schema, $tblBasket);
         $this->setTableBasketItem($Schema, $tblBasket);
         $this->setTblBasketVerification($Schema, $tblBasket);
 
@@ -35,7 +35,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -50,22 +54,10 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblBasket');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblBasket
-     *
-     * @return Table
-     */
-    private function setTableBasketPerson(Schema &$Schema, Table $tblBasket)
-    {
-
-        $Table = $this->createTable($Schema, 'tblBasketPerson');
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblBasket);
+        $this->createColumn($Table, 'Year', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'IsDone', self::FIELD_TYPE_BOOLEAN);
 
         return $Table;
     }
@@ -90,11 +82,15 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblBasketVerification');
-        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblBankAccount', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 

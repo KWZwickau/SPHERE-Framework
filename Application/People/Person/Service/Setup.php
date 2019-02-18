@@ -18,10 +18,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -34,7 +35,11 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
 
         $this->getConnection()->createView(
             (new View($this->getConnection(), 'viewPerson'))
@@ -90,7 +95,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPerson', 'ImportId')) {
             $Table->addColumn('ImportId', 'string');
         }
+        $this->createColumn($Table, 'CallName', self::FIELD_TYPE_STRING);
+
         $this->getConnection()->addForeignKey($Table, $tblSalutation, true);
+
+        $this->createIndex($Table,array(TblPerson::ENTITY_REMOVE),false);
         return $Table;
     }
 }

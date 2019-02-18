@@ -101,7 +101,7 @@ class TblAccount extends Element
     public function getTblAccountType()
     {
 
-        if (null === $this->tblAccountType) {
+        if(null === $this->tblAccountType){
             return false;
         } else {
             return Account::useService()->getAccountTypeById($this->tblAccountType);
@@ -114,7 +114,7 @@ class TblAccount extends Element
     public function setTblAccountType(TblAccountType $tblAccountType = null)
     {
 
-        $this->tblAccountType = ( null === $tblAccountType ? null : $tblAccountType->getId() );
+        $this->tblAccountType = (null === $tblAccountType ? null : $tblAccountType->getId());
     }
 
     /**
@@ -123,7 +123,7 @@ class TblAccount extends Element
     public function getTblAccountKey()
     {
 
-        if (null === $this->tblAccountKey) {
+        if(null === $this->tblAccountKey){
             return false;
         } else {
             return Account::useService()->getAccountKeyById($this->tblAccountKey);
@@ -136,7 +136,7 @@ class TblAccount extends Element
     public function setTblAccountKey(TblAccountKey $tblAccountKey = null)
     {
 
-        $this->tblAccountKey = ( null === $tblAccountKey ? null : $tblAccountKey->getId() );
+        $this->tblAccountKey = (null === $tblAccountKey ? null : $tblAccountKey->getId());
     }
 
 }

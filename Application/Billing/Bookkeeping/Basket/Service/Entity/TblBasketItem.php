@@ -46,7 +46,7 @@ class TblBasketItem extends Element
     public function getTblBasket()
     {
 
-        if (null === $this->tblBasket) {
+        if(null === $this->tblBasket){
             return false;
         } else {
             return Basket::useService()->getBasketById($this->tblBasket);
@@ -59,7 +59,7 @@ class TblBasketItem extends Element
     public function setTblBasket($tblBasket = null)
     {
 
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
+        $this->tblBasket = (null === $tblBasket ? null : $tblBasket->getId());
     }
 
     /**
@@ -68,7 +68,7 @@ class TblBasketItem extends Element
     public function getServiceTblItem()
     {
 
-        if (null === $this->serviceTblItem) {
+        if(null === $this->serviceTblItem){
             return false;
         } else {
             return Item::useService()->getItemById($this->serviceTblItem);
@@ -81,6 +81,6 @@ class TblBasketItem extends Element
     public function setServiceTblItem($tblItem = null)
     {
 
-        $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->serviceTblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 }

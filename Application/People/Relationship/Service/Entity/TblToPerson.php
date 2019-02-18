@@ -40,6 +40,16 @@ class TblToPerson extends Element
     protected $tblType;
 
     /**
+     * @Column(type="integer")
+     */
+    protected $Ranking;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsSingleParent;
+
+    /**
      * @return bool|TblPerson
      */
     public function getServiceTblPersonFrom()
@@ -121,5 +131,37 @@ class TblToPerson extends Element
     {
 
         $this->tblType = ( null === $tblType ? null : $tblType->getId() );
+    }
+
+    /**
+     * @return integer
+     */
+    public function getRanking()
+    {
+        return $this->Ranking;
+    }
+
+    /**
+     * @param integer|null $Ranking
+     */
+    public function setRanking($Ranking)
+    {
+        $this->Ranking = $Ranking;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isSingleParent()
+    {
+        return $this->IsSingleParent;
+    }
+
+    /**
+     * @param boolean $IsSingleParent
+     */
+    public function setSingleParent($IsSingleParent)
+    {
+        $this->IsSingleParent = (boolean) $IsSingleParent;
     }
 }

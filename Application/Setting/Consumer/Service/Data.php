@@ -31,6 +31,17 @@ class Data extends AbstractData
                 In diesem Fall können die Schülernummern nicht per Hand vergeben werden. [Standard: Nein]');
         }
 
+        if (($tblSetting = $this->createSetting('People', 'Person', 'Relationship', 'GenderOfS1', TblSetting::TYPE_INTEGER, 2, 'Allgemein',
+            'Für Personenbeziehungen vom Typ: Sorgeberechtigt wird das folgende Geschlecht für S1 vorausgewählt. [Standard: Weiblich]', true))
+        ) {
+            $this->updateSettingDescription(
+                $tblSetting,
+                $tblSetting->getCategory(),
+                'Für Personenbeziehungen vom Typ: Sorgeberechtigt wird das folgende Geschlecht für S1 vorausgewählt. [Standard: Weiblich]',
+                $tblSetting->isPublic()
+            );
+        }
+
         if (($tblSetting = $this->createSetting('Transfer', 'Indiware', 'Import',
             'Lectureship_ConvertDivisionLatinToGreek', TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Indiware',
@@ -148,6 +159,11 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
                 'Anzeige der Zensuren im Wortlaut auf Abgangszeugnissen [Standard: Nein]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowParentTitle',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige der Personentitel der Eltern (Wird in Bildungsempfehlungen verwendet): [Standard: Nein]', true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, ''))) {

@@ -9,11 +9,6 @@ use SPHERE\Application\Contact\Web\Service\Entity\TblType;
 use SPHERE\Application\Contact\Web\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -27,13 +22,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -92,94 +91,38 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param                $Address
-     * @param                $Type
+     * @param TblCompany $tblCompany
+     * @param $Address
+     * @param $Type
+     * @param TblToCompany|null $tblToCompany
      *
-     * @return bool
+     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
      */
-    public function checkFormWebToPerson(
-        IFormInterface &$Form,
-        $Address,
-        $Type
-    ) {
-
-        $Error = false;
-
-        if (isset($Address) && empty($Address)) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Address');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))) {
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-        return $Error;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson $tblPerson
-     * @param string $Address
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function createWebToPerson(
-        IFormInterface $Form,
-        TblPerson $tblPerson,
+    public function checkFormWebToCompany(
+        TblCompany $tblCompany,
         $Address,
         $Type,
-        $Group
+        TblToCompany $tblToCompany = null
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Address) {
-            return $Form;
+        $error = false;
+
+        $form = Web::useFrontend()->formAddressToCompany($tblCompany->getId(), $tblToCompany ? $tblToCompany->getId() : null);
+        $Address = $this->validateMailAddress($Address);
+        if (isset($Address) && empty($Address)) {
+            $form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
+            $error = true;
+        } else {
+            $form->setSuccess('Address');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))) {
+            $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $error = true;
+        } else {
+            $form->setSuccess('Type[Type]');
         }
 
-        $Error = $this->checkFormWebToPerson($Form, $Address, $Type);
-        $tblType = $this->getTypeById($Type['Type']);
-
-        if (!$Error && $tblType) {
-            $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
-
-            if ((new Data($this->getBinding()))->addWebToPerson($tblPerson, $tblWeb, $tblType, $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Internet Adresse wurde erfolgreich hinzugefügt')
-                    .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban().' Die Internet Adresse konnte nicht hinzugefügt werden')
-                    .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId(), 'Group' => $Group));
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param           $Address
-     * @param TblType   $tblType
-     * @param           $Remark
-     *
-     * @return TblToPerson
-     */
-    public function insertWebToPerson(
-        TblPerson $tblPerson,
-        $Address,
-        TblType $tblType,
-        $Remark
-    ) {
-
-        $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
-        return (new Data($this->getBinding()))->addWebToPerson($tblPerson, $tblWeb, $tblType, $Remark);
+        return $error ? $form : false;
     }
 
     /**
@@ -213,185 +156,67 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblCompany $tblCompany
-     * @param string $Address
-     * @param array $Type
-     * @param $Group
+     * @param $Address
+     * @param $Type
      *
-     * @return IFormInterface|string
+     * @return bool
      */
     public function createWebToCompany(
-        IFormInterface $Form,
         TblCompany $tblCompany,
         $Address,
-        $Type,
-        $Group
+        $Type
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Address) {
-            return $Form;
+        $tblType = $this->getTypeById($Type['Type']);
+        $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
+
+        if (!$tblType) {
+            return false;
+        }
+        if (!$tblWeb) {
+            return false;
         }
 
-        $Error = false;
-
-        if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
-            $Error = true;
+        if ((new Data($this->getBinding()))->addWebToCompany($tblCompany, $tblWeb, $tblType, $Type['Remark'])
+        ) {
+            return true;
         } else {
-            $Form->setSuccess('Number');
+            return false;
         }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
-
-            if ((new Data($this->getBinding()))->addWebToCompany($tblCompany, $tblWeb, $tblType, $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die Internet Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId(), 'Group' => $Group));
-            } else {
-                return new Danger(new Ban() . ' Die Internet Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId(), 'Group' => $Group));
-            }
-        }
-        return $Form;
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param TblToPerson $tblToPerson
-     * @param string $Address
-     * @param array $Type
-     * @param $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function updateWebToPerson(
-        IFormInterface $Form,
-        TblToPerson $tblToPerson,
-        $Address,
-        $Type,
-        $Group
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Address) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Number');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
-            // Remove current
-            (new Data($this->getBinding()))->removeWebToPerson($tblToPerson);
-
-            if ($tblToPerson->getServiceTblPerson()) {
-                // Add new
-                if ((new Data($this->getBinding()))->addWebToPerson($tblToPerson->getServiceTblPerson(), $tblWeb,
-                    $tblType, $Type['Remark'])
-                ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Internet Adresse wurde erfolgreich geändert')
-                    . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
-                } else {
-                    return new Danger(new Ban() . ' Die Internet Adresse konnte nicht geändert werden')
-                    . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
-                }
-            } else {
-                return new Danger('Person nicht gefunden', new Ban());
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
      * @param TblToCompany $tblToCompany
-     * @param string $Address
-     * @param array $Type
-     * @param $Group
+     * @param $Address
+     * @param $Type
      *
-     * @return IFormInterface|string
+     * @return bool
      */
     public function updateWebToCompany(
-        IFormInterface $Form,
         TblToCompany $tblToCompany,
         $Address,
-        $Type,
-        $Group
+        $Type
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Address) {
-            return $Form;
-        }
+        $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
+        // Remove current
+        (new Data($this->getBinding()))->removeWebToCompany($tblToCompany);
 
-        $Error = false;
-
-        if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Number');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
-            $tblWeb = (new Data($this->getBinding()))->createWeb($Address);
-            // Remove current
-            (new Data($this->getBinding()))->removeWebToCompany($tblToCompany);
-
-            if ($tblToCompany->getServiceTblCompany()) {
-                // Add new
-                if ((new Data($this->getBinding()))->addWebToCompany($tblToCompany->getServiceTblCompany(), $tblWeb,
-                    $tblType, $Type['Remark'])
-                ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Internet Adresse wurde erfolgreich geändert')
-                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
-                } else {
-                    return new Danger(new Ban() . ' Die Internet Adresse konnte nicht geändert werden')
-                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
-                }
+        if ($tblToCompany->getServiceTblCompany()
+            && ($tblType = $this->getTypeById($Type['Type']))
+        ) {
+            // Add new
+            if ((new Data($this->getBinding()))->addWebToCompany($tblToCompany->getServiceTblCompany(), $tblWeb,
+                $tblType, $Type['Remark'])
+            ) {
+                return true;
             } else {
-                return new Danger('Institution nicht gefunden', new Ban());
+                return false;
             }
+        } else {
+            return false;
         }
-        return $Form;
     }
 
     /**

@@ -18,6 +18,11 @@ class TblType extends Element
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
 
+    const META_MAIN_ADDRESS = 'Hauptadresse';
+    const META_SIDE_ADDRESS = 'Zweit-/Nebenadresse';
+    const META_INVOICE_ADDRESS = 'Rechnungsadresse';
+    const META_DELIVER_ADDRESS = 'Lieferadresse';
+
     /**
      * @Column(type="string")
      */

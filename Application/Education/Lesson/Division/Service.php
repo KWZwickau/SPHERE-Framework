@@ -93,13 +93,17 @@ class Service extends AbstractService
     /**
      * @param bool $doSimulation
      * @param bool $withData
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService($doSimulation, $withData, $UTF8)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        $Protocol= '';
+        if(!$withData){
+            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+        }
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
@@ -332,13 +336,14 @@ class Service extends AbstractService
 
     /**
      * @param string $Name
+     * @param TblType|null $tblType
      *
      * @return bool|TblLevel[]
      */
-    public function getLevelAllByName($Name)
+    public function getLevelAllByName($Name, TblType $tblType = null)
     {
 
-        return ( new Data($this->getBinding()) )->getLevelAllByName($Name);
+        return (new Data($this->getBinding()))->getLevelAllByName($Name, $tblType);
     }
 
     /**
@@ -370,22 +375,32 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int|string $tblLevelName
      * used LevelName to find same Level range
+     *
+     * @param int|string $tblLevelName
+     * @param TblYear|null $tblYear
+     * @param TblType|null $tblType
      *
      * @return bool|TblDivision[]
      */
-    public function getDivisionAllByLevelName($tblLevelName)
+    public function getDivisionAllByLevelName($tblLevelName, TblYear $tblYear = null, TblType $tblType = null)
     {
 
         $tblDivisionList = array();
-        $tblLevelList = Division::useService()->getLevelAllByName($tblLevelName);
+        $tblLevelList = Division::useService()->getLevelAllByName($tblLevelName, $tblType);
         if ($tblLevelList) {
-            array_walk($tblLevelList, function ($tblLevel) use (&$tblDivisionList) {
+            array_walk($tblLevelList, function ($tblLevel) use (&$tblDivisionList, $tblYear) {
                 $tblDivisionArray = Division::useService()->getDivisionAllByLevel($tblLevel);
                 if ($tblDivisionArray) {
                     /** @var TblDivision $tblDivision */
                     foreach ($tblDivisionArray as $tblDivision) {
+                        if ($tblYear
+                            && ($tblDivisionYear = $tblDivision->getServiceTblYear())
+                            && $tblYear->getId() != $tblDivisionYear->getId()
+                        ) {
+                            continue;
+                        }
+
                         $tblDivisionList[] = $tblDivision;
                     }
                 }
@@ -2484,6 +2499,31 @@ class Service extends AbstractService
 
     /**
      * @param TblYear $tblYear
+     * @param TblType $tblType
+     *
+     * @return TblDivision[]|bool
+     */
+    public function getDivisionAllByYearAndType(TblYear $tblYear, TblType $tblType)
+    {
+
+        $result = array();
+
+        if (($tblDivisionList = $this->getDivisionAllByYear($tblYear))) {
+            foreach ($tblDivisionList as $tblDivision) {
+                if (($tblLevel = $tblDivision->getTblLevel())
+                    && ($tblTypeDivision = $tblLevel->getServiceTblType())
+                    && $tblType->getId() == $tblTypeDivision->getId()
+                )  {
+                    $result[] = $tblDivision;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblYear $tblYear
      *
      * @return int
      */
@@ -2670,10 +2710,12 @@ class Service extends AbstractService
 
     /**
      * @param $divisionName
+     * @param TblYear|null $tblYear
+     * @param TblType $tblType
      *
      * @return TblDivision[]
      */
-    public function getDivisionAllByName($divisionName)
+    public function getDivisionAllByName($divisionName, TblYear $tblYear = null, TblType $tblType = null)
     {
 
         $divisionList = array();
@@ -2681,12 +2723,29 @@ class Service extends AbstractService
         $divisionName = strtolower($divisionName);
         // bei der Eingabe einer Klassenstufen werden alle Klassen dieser Klassenstufe zurückgegeben
         if (preg_match('/^[1-9][0-9]*$/', $divisionName)
-            && ($tblDivisionList= $this->getDivisionAllByLevelName($divisionName))
+            && ($tblDivisionList = $this->getDivisionAllByLevelName($divisionName, $tblYear, $tblType))
         ) {
             return $tblDivisionList;
         } else {
             if (($tblDivisionAll = $this->getDivisionAll())) {
                 foreach ($tblDivisionAll as $tblDivision) {
+                    // filter $tblYear
+                    if ($tblYear
+                        && ($tblYearDivision = $tblDivision->getServiceTblYear())
+                        && $tblYear->getId() != $tblYearDivision->getId()
+                    ) {
+                        continue;
+                    }
+
+                    // filter $tblDivision
+                    if ($tblType
+                        && ($tblLevel = $tblDivision->getTblLevel())
+                        && ($tblTypeDivision = $tblLevel->getServiceTblType())
+                        && $tblType->getId() != $tblTypeDivision->getId()
+                    ) {
+                        continue;
+                    }
+
                     if ($divisionName == str_replace(' ', '', strtolower($tblDivision->getDisplayName()))) {
                         $divisionList[] = $tblDivision;
                     }

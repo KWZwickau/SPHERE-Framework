@@ -31,11 +31,9 @@ class Custody implements IModuleInterface
     }
 
     /**
-     * @return Frontend
      */
     public static function useFrontend()
     {
 
-        return new Frontend();
     }
 }

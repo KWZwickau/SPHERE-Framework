@@ -64,7 +64,7 @@ class Account implements IModuleInterface
     public function frontendAccountFibu()
     {
 
-        $Stage =new Stage('Fibo', 'ToDO');
+        $Stage = new Stage('Fibo', 'ToDO');
         return $Stage;
     }
 }

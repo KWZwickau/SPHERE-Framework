@@ -16,10 +16,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param bool $Simulate
+     * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
 
         /**
@@ -27,16 +28,17 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
 
-        $tblPaymentType = $this->setTablePaymentType($Schema);
-        $tblPayment = $this->setTablePayment($Schema, $tblPaymentType);
-        $this->setTableInvoicePayment($Schema, $tblPayment);
-
+        $this->setTablePaymentType($Schema);
 
         /**
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
-        $this->getConnection()->setMigration($Schema, $Simulate);
+        if(!$UTF8){
+            $this->getConnection()->setMigration($Schema, $Simulate);
+        } else {
+            $this->getConnection()->setUTF8();
+        }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -50,41 +52,6 @@ class Setup extends AbstractSetup
 
         $Table = $this->createTable($Schema, 'tblPaymentType');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblPaymentType
-     *
-     * @return Table
-     */
-    private function setTablePayment(Schema &$Schema, Table $tblPaymentType)
-    {
-
-        $Table = $this->createTable($Schema, 'tblPayment');
-        if (!$this->getConnection()->hasColumn('tblPayment', 'Value')) {
-            $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-        $this->createColumn($Table, 'Purpose', self::FIELD_TYPE_STRING);
-        $this->getConnection()->addForeignKey($Table, $tblPaymentType);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblPayment
-     *
-     * @return Table
-     */
-    private function setTableInvoicePayment(Schema &$Schema, Table $tblPayment)
-    {
-
-        $Table = $this->createTable($Schema, 'tblInvoicePayment');
-        $this->createColumn($Table, 'serviceTblInvoice', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblPayment);
 
         return $Table;
     }
