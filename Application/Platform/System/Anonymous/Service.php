@@ -2,6 +2,9 @@
 namespace SPHERE\Application\Platform\System\Anonymous;
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -38,6 +41,9 @@ class Service extends AbstractService
         return $Protocol;
     }
 
+    /**
+     * @return string
+     */
     public function UpdatePerson()
     {
 
@@ -94,8 +100,20 @@ class Service extends AbstractService
                 Person::useService()->updatePersonAnonymousBulk($ProcessList);
             }
         }
-        return new Success('Personen wurden erfolgreich Anonymisiert')
-            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
+        if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
+            $TeacherList = array();
+            array_walk($tblPersonList, function(TblPerson $tblPerson) use (&$TeacherList){
+                $Acronym = substr($tblPerson->getLastName(),0,1).substr($tblPerson->getFirstName(), 0, 1);
+                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                    $TeacherList[$tblTeacher->getId()] = $Acronym;
+                }
+            });
+            Teacher::useService()->updateTeacherAcronymBulk($TeacherList);
+        }
+
+        return new Success('Personen wurden erfolgreich Anonymisiert');
+//            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
     }
 
     /**
@@ -125,6 +143,9 @@ class Service extends AbstractService
         return $Gender;
     }
 
+    /**
+     * @return string
+     */
     public function UpdateAddress()
     {
 
@@ -138,8 +159,8 @@ class Service extends AbstractService
                 $ProcessList[$tblAddress->getId()]['City'] = $Random->getCityName();
             }
             if(!empty($ProcessList)){
-
-                Address::useService()->updateAddressAnonymousBulk($ProcessList, 'Musterhausen');
+                // second val override random City
+                Address::useService()->updateAddressAnonymousBulk($ProcessList, '');
             }
         }
         return new Success('Adressen wurden erfolgreich Anonymisiert')

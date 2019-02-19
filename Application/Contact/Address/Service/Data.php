@@ -592,7 +592,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array   $ProcessList
+     * @param array  $ProcessList
+     * @param string $CityName
      *
      * @return bool
      */

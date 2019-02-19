@@ -68,6 +68,20 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $TeacherList
+     *
+     * @return bool
+     */
+    public function updateTeacherAcronymBulk($TeacherList)
+    {
+
+        if(!empty($TeacherList)){
+            return (new Data($this->getBinding()))->updateTeacherBulk($TeacherList);
+        }
+        return false;
+    }
+
+    /**
      * @return false|TblTeacher[]
      */
     public function getTeacherAll()
