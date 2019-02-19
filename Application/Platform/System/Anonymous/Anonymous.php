@@ -37,6 +37,11 @@ class Anonymous extends Extension implements IModuleInterface
                 __NAMESPACE__.'/Frontend::frontendMySQLScript'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Yearly',
+                __NAMESPACE__.'/Frontend::frontendYearly'
+            )
+        );
     }
 
     public static function useService()

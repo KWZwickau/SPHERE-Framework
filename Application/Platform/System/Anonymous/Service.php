@@ -112,8 +112,8 @@ class Service extends AbstractService
             Teacher::useService()->updateTeacherAcronymBulk($TeacherList);
         }
 
-        return new Success('Personen wurden erfolgreich Anonymisiert');
-//            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
+        return new Success('Personen wurden erfolgreich Anonymisiert')
+            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
     }
 
     /**

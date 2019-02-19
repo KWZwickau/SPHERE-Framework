@@ -2,12 +2,26 @@
 namespace SPHERE\Application\Platform\System\Anonymous;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Server;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\Warning as WarningLink;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Code;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -26,9 +40,30 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Daten Anonymisieren');
-        $Stage->addButton(new Standard('Personen Anonymisieren', __NAMESPACE__.'/UpdatePerson'));
-        $Stage->addButton(new Standard('Adressen Anonymisieren', __NAMESPACE__.'/UpdateAddress'));
-        $Stage->addButton(new Standard('MySQL Script für DB', __NAMESPACE__.'/MySQLScript'));
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Info(
+                            new Container(new Bold('Jährliches Update (Datum)'))
+                            .new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
+                        )
+                    , 8),
+                    new LayoutColumn(
+                        new Danger(new Container(new Bold('Mandanten Anonymisieren:'))
+                            .new Container(new DangerLink('1. Personen Anonymisieren', __NAMESPACE__.'/UpdatePerson', null, array(), 'Passiert sofort!')
+                                .(new ToolTip(new InfoIcon(), htmlspecialchars('random Vorname (laut Geschlecht)<br/>random Nachname<br/>'
+                                    .'Lehrer Acronym (Initialien Nachname, Vorname)')))->enableHtml())
+                            .new Container(new DangerLink('2. Adressen Anonymisieren', __NAMESPACE__.'/UpdateAddress', null, array(), 'Passiert sofort!')
+                                .(new ToolTip(new InfoIcon(), htmlspecialchars('random Städte<br/>random PLZ<br/>leert Ortsteil<br/>'
+                                    .'leert Bundesland<br/>leert Land<br/>leert Postfach<br/>random Straßennummer (1-99)')))->enableHtml())
+                            .new Container(new WarningLink('3. Zusatzdaten Anonymisieren', __NAMESPACE__.'/MySQLScript', null, array(), 'Anzeige eines SQL Script\'s')
+                                .new Warning(new ToolTip(new InfoIcon(), 'Bemerkungsfelder sowie andere Personenbezogene Daten entfernen'))))
+                        , 4),
+                )
+            ))
+        ));
 
         return $Stage;
     }
@@ -57,16 +92,36 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendMySQLScript()
     {
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         $Acronym = $tblConsumer->getAcronym();
         $Stage = new Stage('SQL Anweisung');
+        $Stage->addButton(new Standard('Zurück', '/Platform/System/Anonymous', new ChevronLeft()));
 
-        $Stage->setContent(
-            new Info('Ausführen der SQL funktionen in der Datenbank ('.new Bold('SQL für aktuellen Mandanten erzeugt!').')')
-            .new Code("TRUNCATE PeopleMeta_".$Acronym.".tblHandyCap;
+        $Stage->setContent(new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Info('Ausführen des SQL Script\'s in der Datenbank ('.new Bold('aktueller Mandant!').')'
+                            .new Container('Diesen bitte in der Datenbank ausführen.'))
+                        , 6),
+                    new LayoutColumn(
+                        new Info(
+                            new Container(new Bold('Nach SQL Script notwendig!'))
+                            .new External('DatenbankUpdate für aktuellen Mandanten', '/Platform/System/Database/Setup/Execution',
+                                new CogWheels(), array(), false)
+                            .new External('Cache löschen', '/Platform/System/Cache', new Server(), array('Clear' => 1), false)
+                        )
+                        , 6)
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Code("TRUNCATE PeopleMeta_".$Acronym.".tblHandyCap;
 TRUNCATE SettingConsumer_".$Acronym.".tblStudentCustody;
 TRUNCATE SettingConsumer_".$Acronym.".tblUntisImportLectureship;
 TRUNCATE SettingConsumer_".$Acronym.".tblUserAccount;
@@ -77,43 +132,88 @@ DROP DATABASE ContactPhone_".$Acronym.";
 DROP DATABASE ContactWeb_".$Acronym.";
 DROP DATABASE ReportingCheckList_".$Acronym.";
 UPDATE PeopleMeta_".$Acronym.".tblClub SET Remark = '' , Identifier = FLOOR(RAND()*100000);
-UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthday = date_add(Birthday, interval 1 year) , Birthplace = '';
+UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthplace = '';
 UPDATE PeopleMeta_".$Acronym.".tblCustody SET Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblSpecial SET Date = date_add(Date, interval 1 year) , PersonEditor = 'DatenÃ¼bernahme', Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 year);
-UPDATE PeopleMeta_".$Acronym.".tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 year);
-UPDATE PeopleMeta_".$Acronym.".tblStudentIntegration SET CoachingRequestDate = date_add(CoachingRequestDate, interval 1 year),CoachingCounselDate = date_add(CoachingCounselDate, interval 1 year),CoachingDecisionDate = date_add(CoachingDecisionDate, interval 1 year),CoachingRemark = '';
-UPDATE PeopleMeta_".$Acronym.".tblStudentTransfer SET TransferDate = date_add(TransferDate, interval 1 year), Remark = '';
+UPDATE PeopleMeta_".$Acronym.".tblSpecial SET PersonEditor = 'DatenÃ¼bernahme', Remark = '';
+UPDATE PeopleMeta_".$Acronym.".tblStudentIntegration SET CoachingRemark = '';
+UPDATE PeopleMeta_".$Acronym.".tblStudentTransfer SET Remark = '';
 UPDATE PeopleMeta_".$Acronym.".tblStudentTransport SET Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblSupport SET Date = date_add(Date, interval 1 year) ,PersonSupport = '', PersonEditor = 'DatenÃ¼bernahme', Remark = '';
+UPDATE PeopleMeta_".$Acronym.".tblSupport SET PersonSupport = '', PersonEditor = 'DatenÃ¼bernahme', Remark = '';
 UPDATE PeopleRelationship_".$Acronym.".tblToCompany SET Remark = '';
 UPDATE PeopleRelationship_".$Acronym.".tblToPerson SET Remark = '';
 UPDATE ContactAddress_".$Acronym.".tblToCompany SET Remark = '';
 UPDATE ContactAddress_".$Acronym.".tblToPerson SET Remark = '';
-UPDATE EducationClassRegister_".$Acronym.".tblAbsence SET FromDate = date_add(FromDate, interval 1 year), ToDate = date_add(ToDate, interval 1 year), Remark = '';
-UPDATE EducationGraduationEvaluation_".$Acronym.".tblTask SET Date = date_add(Date, interval 1 year), FromDate = date_add(FromDate, interval 1 year), ToDate = date_add(ToDate, interval 1 year), IsLocked = 0;
-UPDATE EducationGraduationEvaluation_".$Acronym.".tblTest SET Date = date_add(Date, interval 1 year), CorrectionDate = date_add(CorrectionDate, interval 1 year), ReturnDate = date_add(ReturnDate, interval 1 year);
-UPDATE EducationGraduationGradebook_".$Acronym.".tblGrade SET Date = date_add(Date, interval 1 year), Comment = '', PublicComment = '';
-UPDATE EducationLessonDivision_".$Acronym.".tblDivisionStudent SET LeaveDate = date_add(LeaveDate, interval 1 year);
+UPDATE EducationClassRegister_".$Acronym.".tblAbsence SET Remark = '';
+UPDATE EducationGraduationEvaluation_".$Acronym.".tblTask SET IsLocked = 0;
+UPDATE EducationGraduationGradebook_".$Acronym.".tblGrade SET Comment = '', PublicComment = '';
 UPDATE EducationLessonDivision_".$Acronym.".tblDivisionTeacher SET Description = '';
-UPDATE EducationLessonTerm_".$Acronym.".tblHoliday SET FromDate = date_add(FromDate, interval 1 year), ToDate = date_add(ToDate, interval 1 year);
-UPDATE EducationLessonTerm_".$Acronym.".tblPeriod SET FromDate = date_add(FromDate, interval 1 year), ToDate = date_add(ToDate, interval 1 year);
-Update EducationLessonTerm_".$Acronym.".tblYear SET Name = CONCAT(SUBSTRING_INDEX(Name, '/', 1)+1,'/',SUBSTRING_INDEX(Name, '/', -1)+1), Year = CONCAT(SUBSTRING_INDEX(Year, '/', 1)+1,'/',SUBSTRING_INDEX(Year, '/', -1)+1);
 UPDATE SettingConsumer_".$Acronym.".tblGenerateCertificate SET HeadmasterName = '', IsLocked = 0;
-UPDATE SettingConsumer_".$Acronym.".tblLeaveInformation SET Value = ''WHERE Field like 'HeadmasterName' or Field = 'Remark';
-UPDATE SettingConsumer_".$Acronym.".tblLeaveInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field like 'CertificateDate';
-UPDATE SettingConsumer_".$Acronym.".tblPrepareCertificate SET Date = date_add(Date, interval 1 year);
-UPDATE SettingConsumer_".$Acronym.".tblPrepareInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field LIKE 'DateConference' OR Field LIKE 'DateConsulting'OR Field LIKE 'DateCertifcate';
+UPDATE SettingConsumer_".$Acronym.".tblLeaveInformation SET Value = '' WHERE Field like 'HeadmasterName' or Field = 'Remark';
 UPDATE SettingConsumer_".$Acronym.".tblPrepareInformation SET Value = '' where Field like 'Remark';
 UPDATE SettingConsumer_".$Acronym.".tblPrepareStudent SET IsApproved = 0, IsPrinted = 0;
 UPDATE SettingConsumer_".$Acronym.".tblPreset SET PersonCreator = '', IsPublic = 1;
 UPDATE SettingConsumer_".$Acronym.".tblSchool SET CompanyNumber = '';
 UPDATE SettingConsumer_".$Acronym.".tblSetting SET Value = '' WHERE Identifier like '%Picture%';
 UPDATE SettingConsumer_".$Acronym.".tblSetting SET Value = 0 WHERE Identifier like 'PictureDisplayLocationForDiplomaCertificate';"
-            )
-            .new Info(new Standard('DatenbankUpdate für aktuellen Mandanten', '/Platform/System/Database/Setup/Execution',
-                new CogWheels()). new Bold(' Nach SQL Script notwendig!'))
-        );
+                        )
+                    )
+                )
+            ))
+        ));
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendYearly()
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        $Acronym = $tblConsumer->getAcronym();
+        $Stage = new Stage('SQL Anweisung');
+        $Stage->addButton(new Standard('Zurück', '/Platform/System/Anonymous', new ChevronLeft()));
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Info('Ausführen des SQL Script\'s in der Datenbank ('.new Bold('aktueller Mandant!').')'
+                            .new Container('Diesen bitte in der Datenbank ausführen.'))
+                    , 6),
+                    new LayoutColumn(
+                        new Info(
+                            new Container(new Bold('Nach SQL Script notwendig!&nbsp;&nbsp;&nbsp;')
+                                .new External('Cache löschen', '/Platform/System/Cache', new Server(), array('Clear' => 1)))
+                        )
+                    , 6)
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Code("UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthday = date_add(Birthday, interval 1 YEAR);
+UPDATE PeopleMeta_".$Acronym.".tblSpecial SET Date = date_add(Date, interval 1 YEAR);
+UPDATE PeopleMeta_".$Acronym.".tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 YEAR);
+UPDATE PeopleMeta_".$Acronym.".tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 YEAR);
+UPDATE PeopleMeta_".$Acronym.".tblStudentIntegration SET CoachingRequestDate = date_add(CoachingRequestDate, interval 1 YEAR),CoachingCounselDate = date_add(CoachingCounselDate, interval 1 YEAR),CoachingDecisionDate = date_add(CoachingDecisionDate, interval 1 YEAR);
+UPDATE PeopleMeta_".$Acronym.".tblStudentTransfer SET TransferDate = date_add(TransferDate, interval 1 YEAR);
+UPDATE PeopleMeta_".$Acronym.".tblSupport SET Date = date_add(Date, interval 1 YEAR);
+UPDATE EducationClassRegister_".$Acronym.".tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
+UPDATE EducationGraduationEvaluation_".$Acronym.".tblTask SET Date = date_add(Date, interval 1 YEAR), FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
+UPDATE EducationGraduationEvaluation_".$Acronym.".tblTest SET Date = date_add(Date, interval 1 YEAR), CorrectionDate = date_add(CorrectionDate, interval 1 YEAR), ReturnDate = date_add(ReturnDate, interval 1 YEAR);
+UPDATE EducationGraduationGradebook_".$Acronym.".tblGrade SET Date = date_add(Date, interval 1 YEAR);
+UPDATE EducationLessonDivision_".$Acronym.".tblDivisionStudent SET LeaveDate = date_add(LeaveDate, interval 1 YEAR);
+UPDATE EducationLessonTerm_".$Acronym.".tblHoliday SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
+UPDATE EducationLessonTerm_".$Acronym.".tblPeriod SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
+Update EducationLessonTerm_".$Acronym.".tblYear SET Name = CONCAT(SUBSTRING_INDEX(Name, '/', 1)+1,'/',SUBSTRING_INDEX(Name, '/', -1)+1), YEAR = CONCAT(SUBSTRING_INDEX(YEAR, '/', 1)+1,'/',SUBSTRING_INDEX(YEAR, '/', -1)+1);
+UPDATE SettingConsumer_".$Acronym.".tblLeaveInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field like 'CertificateDate';
+UPDATE SettingConsumer_".$Acronym.".tblPrepareCertificate SET Date = date_add(Date, interval 1 YEAR);
+UPDATE SettingConsumer_".$Acronym.".tblPrepareInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field LIKE 'DateConference' OR Field LIKE 'DateConsulting'OR Field LIKE 'DateCertifcate';"
+                        )
+                    )
+                )
+            ))
+        ));
 
         return $Stage;
     }
