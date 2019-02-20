@@ -3841,7 +3841,15 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSubjectGroup) {
             $tblSubjectStudentAll = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if ($tblSubjectStudentAll) {
-                $countStudents += count($tblSubjectStudentAll);
+                $count = 0;
+                foreach ($tblSubjectStudentAll as $tblSubjectStudent) {
+                    if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
+                        && Division::useService()->existsDivisionStudent($tblDivision, $tblPerson)
+                    ) {
+                        $count++;
+                    }
+                }
+                $countStudents += $count;
             }
         } else {
             $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true);
