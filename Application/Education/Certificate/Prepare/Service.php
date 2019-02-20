@@ -4052,6 +4052,21 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'Hebraicums', isset($Data['Hebraicums']));
         }
 
+        if (isset($Data['ForeignLanguages'])) {
+            foreach ($Data['ForeignLanguages'] as $ranking => $value) {
+                $identifier = 'ForeignLanguages' . $ranking;
+                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $identifier))) {
+                    (new Data($this->getBinding()))->updatePrepareInformation(
+                        $tblPrepareInformation,
+                        $identifier,
+                        $value
+                    );
+                } else {
+                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, $identifier, $value);
+                }
+            }
+        }
+
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', Redirect::TIMEOUT_SUCCESS, array(
                 'PrepareId' => $tblPrepare->getId(),
