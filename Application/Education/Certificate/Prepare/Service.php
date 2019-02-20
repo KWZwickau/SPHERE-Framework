@@ -849,15 +849,15 @@ class Service extends AbstractService
                 }
             }
 
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if ($tblConsumer->getAcronym() == 'EVSR'
-                || $tblConsumer->getAcronym() == 'EVGSM'
-            ) {
-                $hasRemarkBlocking = false;
+            if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'HasRemarkBlocking'
+            ))) {
+                $hasRemarkBlocking = (boolean) $tblSetting->getValue();
             } else {
                 $hasRemarkBlocking = true;
             }
 
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
             if ($tblPrepareInformationList) {
                 // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
                 $team = '';
