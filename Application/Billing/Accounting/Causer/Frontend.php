@@ -180,7 +180,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauser($tblPerson))){
                             $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn('Beitragszahler', 3),
-                                new LayoutColumn('Zahlart', 2),
+                                new LayoutColumn('Zahlungsart', 2),
                                 new LayoutColumn('Bank Info', 2),
                                 new LayoutColumn('Beitragsart', 3),
                                 new LayoutColumn('Preis', 2),
@@ -194,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Debtor = $tblPersonDebtor->getLastFirstName();
                                     if($IsDebtorNumberNeed && !($tblDebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
                                         $Debtor .= ' '.new DangerText(new ToolTip(new Info(),
-                                                'Keine Debit.-Nr. hinterlegt'));
+                                                'Keine Debitoren-Nr. hinterlegt'));
                                     }
                                 }
                                 if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
@@ -464,7 +464,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItem))){
                 $i = 0;
                 foreach($tblDebtorSelectionList as $tblDebtorSelection) {
-                    $PaymentType = 'Zahlart: ';
+                    $PaymentType = 'Zahlungsart: ';
                     $BankAccount = 'Bank: ';
                     $Reference = 'REF: ';
                     $Debtor = 'Bezahler: ';

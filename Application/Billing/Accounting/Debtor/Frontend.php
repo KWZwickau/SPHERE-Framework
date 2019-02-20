@@ -169,11 +169,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Name'] = $tblPerson->getLastFirstName();
                         $Item['DebtorNumber'] = ($IsDebtorNumberNeed
                             ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(),
-                                'Debit.-Nr. wird benötigt'))
+                                'Debitoren-Nr. wird benötigt'))
                             : '');
                         $Item['Address'] = '';
                         $Item['BankAccount'] = '<div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px">'
-                            .new Disable().' kein Konto</div>';
+                            .new Disable().' keine Bankverbindung</div>';
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
                             'GroupId'  => $tblGroup->getId(),
                             'PersonId' => $tblPerson->getId(),
@@ -194,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                         if(Debtor::useService()->getBankAccountAllByPerson($tblPerson)){
                             $Item['BankAccount'] = '<div class="alert alert-success" style="margin-bottom: 0; padding: 10px 15px">'
-                                .new Check().' Konto vorhanden</div>';
+                                .new Check().' Bankverbindung vorhanden</div>';
                         }
 
 
@@ -205,7 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new TableData($TableContent, null, array(
             'Name'         => 'Person',
-            'DebtorNumber' => 'Debit.-Nr.',
+            'DebtorNumber' => 'Debitoren-Nr.',
             'Address'      => 'Adresse',
             'BankAccount'  => 'Bankdaten',
             'Option'       => '',
@@ -236,15 +236,15 @@ class Frontend extends Extension implements IFrontendInterface
             array('GroupId' => $GroupId)));
         $DebtorNumber = ApiDebtor::receiverPanelContent($this->getDebtorNumberContent($PersonId));
         $BankAccount = ApiBankAccount::receiverBankAccountPanel($this->getBankAccountPanel($PersonId));
-        $PanelDebtorNumber = new Panel('Debit.-Nr.', $DebtorNumber);
+        $PanelDebtorNumber = new Panel('Debitoren-Nr.', $DebtorNumber);
 
 
         $Stage->setContent(ApiDebtor::receiverModal('Hinzufügen einer Debitorennummer', 'addDebtorNumber')
             .ApiDebtor::receiverModal('Bearbeiten einer Debitorennummer', 'editDebtorNumber')
             .ApiDebtor::receiverModal('Entfernen einer Debitorennummer', 'deleteDebtorNumber')
-            .ApiBankAccount::receiverModal('Hinzufügen eines Konto\'s', 'addBankAccount')
-            .ApiBankAccount::receiverModal('Bearbeiten eines Konto\'s', 'editBankAccount')
-            .ApiBankAccount::receiverModal('Entfernen eines Konto\'s', 'deleteBankAccount')
+            .ApiBankAccount::receiverModal('Hinzufügen einer Bankverbindung', 'addBankAccount')
+            .ApiBankAccount::receiverModal('Bearbeiten einer Bankverbindung', 'editBankAccount')
+            .ApiBankAccount::receiverModal('Entfernen einer Bankverbindung', 'deleteBankAccount')
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
@@ -335,7 +335,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ){
 
                         $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn('Name der Bank:', $FirstColumn),
+                            new LayoutColumn('Bankname:', $FirstColumn),
                             new LayoutColumn($tblBankAccount->getBankName(), $SecondColumn),
                         ))));
                         $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -348,12 +348,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ))));
                         $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(
                             new LayoutColumn((new Link('', ApiDebtor::getEndpoint(), new Pencil(), array(),
-                                    'Konto bearbeiten'))
+                                    'Bankverbindung bearbeiten'))
                                     ->ajaxPipelineOnClick(ApiBankAccount::pipelineOpenEditBankAccountModal('editBankAccount'
                                         , $PersonId, $tblBankAccount->getId()))
                                 .' | '
                                 .(new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(),
-                                    'Konto entfernen'))
+                                    'Bankverbindung entfernen'))
                                     ->ajaxPipelineOnClick(ApiBankAccount::pipelineOpenDeleteBankAccountModal('deleteBankAccount'
                                         , $PersonId, $tblBankAccount->getId())))
                         )));
@@ -366,8 +366,8 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                     });
             }
-            $ColumnBankAccountList .= new Panel('Konto Informationen',
-                (new Link('Konto hinzufügen', ApiBankAccount::getEndpoint(), new Plus()))
+            $ColumnBankAccountList .= new Panel('Informationen der Bankverbindung',
+                (new Link('Bankverbindung hinzufügen', ApiBankAccount::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiBankAccount::pipelineOpenAddBankAccountModal('addBankAccount', $PersonId)),
                 Panel::PANEL_TYPE_INFO);
             return $ColumnBankAccountList;

@@ -28,35 +28,36 @@ class Data extends AbstractData
         /**
          * ItemType
          */
-        $tblItemType = $this->createItemType(TblItemType::TYPE_SINGLE);
+//        $tblItemType = $this->createItemType(TblItemType::TYPE_SINGLE);
+        $this->createItemType(TblItemType::TYPE_SINGLE);
         $this->createItemType(TblItemType::TYPE_CROWD);
 
-        $tblItem = $this->createItem($tblItemType, 'Schulgeld');
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-        $this->createItemGroup($tblItem, $tblGroup);
-
-        $tblVariant = $this->createItemVariant($tblItem, 'Voll', 'Keine ermäßigung des Schulgeldes');
-        $this->createItemCalculation($tblVariant, '70.00', '01.01.2018', '31.12.2020');
-
-        $tblVariant = $this->createItemVariant($tblItem, 'Teilermäßigung',
-            'Ermäßigung für Geschwisterkind oder Einkommensgruppe');
-        $this->createItemCalculation($tblVariant, '60.55', '01.01.2018', '31.12.2020');
-
-        $tblVariant = $this->createItemVariant($tblItem, 'Vollermäßigung',
-            'Ermäßigung für Geschwisterkind und Einkommensgruppe');
-        $this->createItemCalculation($tblVariant, '53.95', '01.01.2018', '31.12.2019');
-        $this->createItemCalculation($tblVariant, '54.00', '01.01.2020', '31.12.2020');
-
-        $tblItem = $this->createItem($tblItemType, 'Essensgeld');
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-        $this->createItemGroup($tblItem, $tblGroup);
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
-        $this->createItemGroup($tblItem, $tblGroup);
-
-        $tblVariant = $this->createItemVariant($tblItem, 'Essen', 'Standardpreis pro Mahlzeit');
-        $this->createItemCalculation($tblVariant, '3.40', '01.01.2018', '31.05.2018');
-        $this->createItemCalculation($tblVariant, '3.50', '01.06.2018', '31.12.2018');
-        $this->createItemCalculation($tblVariant, '3.55', '01.01.2019', '31.12.2020');
+//        $tblItem = $this->createItem($tblItemType, 'Schulgeld');
+//        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+//        $this->createItemGroup($tblItem, $tblGroup);
+//
+//        $tblVariant = $this->createItemVariant($tblItem, 'Voll', 'Keine ermäßigung des Schulgeldes');
+//        $this->createItemCalculation($tblVariant, '70.00', '01.01.2018', '31.12.2020');
+//
+//        $tblVariant = $this->createItemVariant($tblItem, 'Teilermäßigung',
+//            'Ermäßigung für Geschwisterkind oder Einkommensgruppe');
+//        $this->createItemCalculation($tblVariant, '60.55', '01.01.2018', '31.12.2020');
+//
+//        $tblVariant = $this->createItemVariant($tblItem, 'Vollermäßigung',
+//            'Ermäßigung für Geschwisterkind und Einkommensgruppe');
+//        $this->createItemCalculation($tblVariant, '53.95', '01.01.2018', '31.12.2019');
+//        $this->createItemCalculation($tblVariant, '54.00', '01.01.2020', '31.12.2020');
+//
+//        $tblItem = $this->createItem($tblItemType, 'Essensgeld');
+//        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+//        $this->createItemGroup($tblItem, $tblGroup);
+//        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+//        $this->createItemGroup($tblItem, $tblGroup);
+//
+//        $tblVariant = $this->createItemVariant($tblItem, 'Essen', 'Standardpreis pro Mahlzeit');
+//        $this->createItemCalculation($tblVariant, '3.40', '01.01.2018', '31.05.2018');
+//        $this->createItemCalculation($tblVariant, '3.50', '01.06.2018', '31.12.2018');
+//        $this->createItemCalculation($tblVariant, '3.55', '01.01.2019', '31.12.2020');
     }
 
     /**

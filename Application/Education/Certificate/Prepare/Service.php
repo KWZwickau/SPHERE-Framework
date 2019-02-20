@@ -52,6 +52,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -687,6 +688,11 @@ class Service extends AbstractService
         if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
             $mother = false;
             $father = false;
+            // Standard false
+            $IsTitle = false;
+            if(($tblConsumerSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Prepare', 'ShowParentTitle'))){
+                $IsTitle = $tblConsumerSetting->getValue();
+            }
             foreach ($tblRelationshipList as $tblToPerson) {
                 if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
                     && $tblToPerson->getServiceTblPersonTo()
@@ -696,15 +702,18 @@ class Service extends AbstractService
                     if (!isset($Content['P' . $personId]['Person']['Parent']['Mother']['Name'])) {
                         $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                         $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
-                        $mother = $tblFromPerson->getFirstSecondName().' '.$tblFromPerson->getLastName();
+                        $mother = ($IsTitle ? $tblFromPerson->getTitle().' ' : '').
+                            $tblFromPerson->getFirstSecondName().' '.$tblFromPerson->getLastName();
                     } elseif (!isset($Content['P' . $personId]['Person']['Parent']['Father']['Name'])) {
                         $Content['P' . $personId]['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                         $Content['P' . $personId]['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
-                        $father = $tblFromPerson->getFirstSecondName().' '.$tblFromPerson->getLastName();
+                        $father = ($IsTitle ? $tblFromPerson->getTitle().' ' : '').
+                            $tblFromPerson->getFirstSecondName().' '.$tblFromPerson->getLastName();
                     }
                 }
             }
             // comma decision
+            // usage only for "Bildungsempfehlung" (Titel Option for Parent!)
             if($mother && $father){
                 $Content['P' . $personId]['Person']['Parent']['CommaSeparated'] = $mother.', '.$father;
             } elseif($mother){
@@ -1052,7 +1061,7 @@ class Service extends AbstractService
                             && $tblGenerateCertificate
                             && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                             && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
-                            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                            && ($tblSetting = ConsumerSetting::useService()->getSetting(
                                 'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
                             && $tblSetting->getValue()
                         ) {
@@ -1096,7 +1105,7 @@ class Service extends AbstractService
                     ) {
                         foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                             if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                                if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                if (($tblSetting = ConsumerSetting::useService()->getSetting(
                                         'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
                                     && $tblSetting->getValue()
                                 ) {
@@ -1139,7 +1148,7 @@ class Service extends AbstractService
                                     && $tblConsumer->getAcronym() == 'EVSR'
                                     && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                                     && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
-                                    && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                    && ($tblSetting = ConsumerSetting::useService()->getSetting(
                                         'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
                                     && $tblSetting->getValue()
                                 ) {
@@ -1177,7 +1186,7 @@ class Service extends AbstractService
                         if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
                             if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                                 && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                && ($tblSetting = ConsumerSetting::useService()->getSetting(
                                     'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
                                 && $tblSetting->getValue()
                             ) {
@@ -1187,7 +1196,7 @@ class Service extends AbstractService
                                 && $tblConsumer->getAcronym() == 'EVSR'
                                 && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                                 && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
-                                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                && ($tblSetting = ConsumerSetting::useService()->getSetting(
                                     'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
                                 && $tblSetting->getValue()
                             ) {
@@ -1216,7 +1225,7 @@ class Service extends AbstractService
             ) {
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                     if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                        if (($tblSetting = ConsumerSetting::useService()->getSetting(
                                 'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
                             && $tblSetting->getValue()
                         ) {
@@ -1350,7 +1359,7 @@ class Service extends AbstractService
             if (($tblLeaveGradeList = $this->getLeaveGradeAllByLeaveStudent($tblLeaveStudent))) {
                 foreach ($tblLeaveGradeList as $tblLeaveGrade) {
                     if (($tblSubject = $tblLeaveGrade->getServiceTblSubject())) {
-                        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                        if (($tblSetting = ConsumerSetting::useService()->getSetting(
                                 'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave'))
                             && $tblSetting->getValue()
                         ) {
@@ -2697,14 +2706,14 @@ class Service extends AbstractService
     public function checkCertificateSubjectsForDivision(TblPrepareCertificate $tblPrepare, $certificateNameList, &$hasMissingLanguage)
     {
 
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
             && ($value = $tblSetting->getValue())
         ) {
             $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
         } else {
             $tblProfileSubject  = false;
         }
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
             && ($value = $tblSetting->getValue())
         ) {
             $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
@@ -2817,14 +2826,14 @@ class Service extends AbstractService
             }
         }
 
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
             && ($value = $tblSetting->getValue())
         ) {
             $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
         } else {
             $tblProfileSubject  = false;
         }
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
             && ($value = $tblSetting->getValue())
         ) {
             $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);

@@ -296,7 +296,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             }
             // new DebtorNumber
             if($IsDebtorNumberNeed){
-                $InfoDebtorNumber = new ToolTip(new DangerText(new Disable()), 'Debit.-Nr. wird benötigt!');
+                $InfoDebtorNumber = new ToolTip(new DangerText(new Disable()), 'Debitoren-Nr. wird benötigt!');
             }
 
             if(($tblPerson = $tblBasketVerification->getServiceTblPersonDebtor())){
@@ -469,16 +469,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorSelection($BasketVerificationId));
 
         $PaymentTypeList = array();
+        $PaymentTypeList[] = new Balance();
         // post Type if not Exist
 
         $tblPaymentTypeAll = Balance::useService()->getPaymentTypeAll();
         foreach($tblPaymentTypeAll as $tblPaymentType) {
             $PaymentTypeList[$tblPaymentType->getId()] = $tblPaymentType->getName();
-            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
-                if(!isset($_POST['DebtorSelection']['PaymentType'])){
-                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
-                }
-            }
+            // nicht mehr vorbefüllt
+//            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
+//                if(!isset($_POST['DebtorSelection']['PaymentType'])){
+//                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
+//                }
+//            }
         }
 
         //get First Variant to Select
@@ -489,6 +491,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $RadioBoxListVariant = array();
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
+        $SelectBoxDebtorList[] = new Person();
         $tblBankReferenceList = array();
         $ItemName = '';
         $PersonTitle = '';
@@ -518,10 +521,11 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                             $tblItemVariant->getName().': '.$PriceString, $tblItemVariant->getId());
                     }
-                    $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
-                        'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
                 }
             }
+            // gibt es immer (auch ohne Varianten)
+            $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
+                'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
             if($tblPersonCauser){
                 $PersonTitle = ' für '.new Bold($tblPersonCauser->getFirstName().' '.$tblPersonCauser->getLastName());
             }
@@ -544,7 +548,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                             }
                         }
                     }
-                    // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezahlen (Bar/Überweisung))
+                    // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Bankverbindung bezahlen (Bar/Überweisung))
 //                    if(empty($SelectBoxDebtorList)) {
                     $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
                     foreach($tblRelationshipList as $tblRelationship) {
@@ -601,7 +605,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             $_POST['DebtorSelection']['BankAccount'] = '-1';
         }
         $RadioBoxListBankAccount['-1'] = new RadioBox('DebtorSelection[BankAccount]'
-            , 'kein Konto', -1);
+            , 'keine Bankverbindung', -1);
         if(!empty($PersonDebtorList)){
             /** @var TblPerson $PersonDebtor */
             foreach($PersonDebtorList as $PersonDebtor) {
@@ -634,13 +638,13 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',
-                            $PaymentTypeList))
+                            $PaymentTypeList))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
-                            $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))
+                            $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
@@ -648,7 +652,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         array(
-                            new Bold('Varianten '),
+                            new Bold('Varianten '.new DangerText('*')),
                             new Listing($RadioBoxListVariant)
                         )
                         , 6),
@@ -695,7 +699,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         }
         $DeborNumber = '';
         if($IsDebtorNumberNeed){
-            $DeborNumber = '(keine Debit.-Nr.)';
+            $DeborNumber = '(keine Debitoren-Nr.)';
         }
         // change warning if necessary to "not in PaymentGroup"
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
@@ -764,18 +768,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
             if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
                 if($IsSepaAccountNeed){
                     if(isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])){
-                        $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
-                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
-                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                         um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     } elseif(isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1') {
-                        $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
-                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
-                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                         um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     }
                 }
-                //Referenznummern ohne Konto nicht mehr benötigt
+                //Referenznummern ohne Bankverbindung nicht mehr benötigt
 //                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
 //                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
 //                    $Error = true;

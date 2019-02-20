@@ -677,27 +677,6 @@ class Data extends AbstractData
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         if (null !== $Entity) {
-            // Remove Identification
-            $tblAuthentication = $this->getAuthenticationByAccount( $Entity );
-            if( $tblAuthentication ) {
-                if( $tblAuthentication->getTblAccount() && $tblAuthentication->getTblIdentification() ) {
-                    $this->removeAccountAuthentication(
-                        $tblAuthentication->getTblAccount(), $tblAuthentication->getTblIdentification()
-                    );
-                }
-            }
-            // Remove Role
-            $tblAuthorizationList = $this->getAuthorizationAllByAccount( $Entity );
-            if( $tblAuthorizationList ) {
-                /** @var TblAuthorization $tblAuthorization */
-                foreach( $tblAuthorizationList as $tblAuthorization ) {
-                    if( $tblAuthorization->getTblAccount() && $tblAuthorization->getServiceTblRole() ) {
-                        $this->removeAccountAuthorization(
-                            $tblAuthorization->getTblAccount(), $tblAuthorization->getServiceTblRole()
-                        );
-                    }
-                }
-            }
             // Remove Person
             $tblUserList = $this->getUserAllByAccount( $Entity );
             if( $tblUserList ) {
@@ -724,6 +703,27 @@ class Data extends AbstractData
                 /** @var TblSession $tblSession */
                 foreach( $tblSessionList as $tblSession ) {
                     $this->destroySession( $tblSession->getSession() );
+                }
+            }
+            // Remove Role
+            $tblAuthorizationList = $this->getAuthorizationAllByAccount( $Entity );
+            if( $tblAuthorizationList ) {
+                /** @var TblAuthorization $tblAuthorization */
+                foreach( $tblAuthorizationList as $tblAuthorization ) {
+                    if( $tblAuthorization->getTblAccount() && $tblAuthorization->getServiceTblRole() ) {
+                        $this->removeAccountAuthorization(
+                            $tblAuthorization->getTblAccount(), $tblAuthorization->getServiceTblRole()
+                        );
+                    }
+                }
+            }
+            // Remove Identification
+            $tblAuthentication = $this->getAuthenticationByAccount( $Entity );
+            if( $tblAuthentication ) {
+                if( $tblAuthentication->getTblAccount() && $tblAuthentication->getTblIdentification() ) {
+                    $this->removeAccountAuthentication(
+                        $tblAuthentication->getTblAccount(), $tblAuthentication->getTblIdentification()
+                    );
                 }
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);

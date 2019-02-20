@@ -136,6 +136,11 @@ abstract class Certificate extends Extension
 
         } elseif (strpos(get_class($this), 'EzshKurshalbjahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
+
+        } elseif (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+            && $tblConsumer->getAcronym() == 'CSW'
+        ) {
+            $InjectStyle = 'body { margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
         } else {
             $InjectStyle = '';
         }
@@ -620,7 +625,34 @@ abstract class Certificate extends Extension
 
                                 // Mittelschulzeugnisse
                                 if ($hasSecondLanguageSecondarySchool)  {
-                                    $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                    // SSW-484
+                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
+                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                                    if (($tblDivision = $this->getTblDivision())
+                                        && ($tblLevel = $tblDivision->getTblLevel())
+                                    ) {
+                                        $levelName = $tblLevel->getName();
+                                    } else {
+                                        $levelName = false;
+                                    }
+
+                                    if ($tillLevel && $fromLevel) {
+                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
+                                            && floatval($tillLevel->getName()) >= floatval($levelName)
+                                        ) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } elseif ($tillLevel) {
+                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } elseif ($fromLevel) {
+                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } else {
+                                        $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                    }
                                 }
                             }
                         }
@@ -1973,7 +2005,7 @@ abstract class Certificate extends Extension
             }
         }
 
-        if ($tblSubjectProfile && !$tblSubjectForeign) {
+        if ($tblSubjectProfile) {
             if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
                 && ($value = $tblSetting->getValue())
             ) {
@@ -1981,7 +2013,11 @@ abstract class Certificate extends Extension
             } else {
                 $subjectAcronymForGrade = $tblSubjectProfile->getAcronym();
             }
+        } else {
+            $subjectAcronymForGrade = 'SubjectAcronymForGrade';
+        }
 
+        if ($tblSubjectProfile && !$tblSubjectForeign) {
             $elementName = (new Element())
                 // Profilname aus der Schülerakte
                 // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
@@ -2042,14 +2078,31 @@ abstract class Certificate extends Extension
                 ->stylePaddingBottom('2px')
                 ->styleTextSize($TextSize);
 
-            $elementForeignGrade = (new Element())
-                ->setContent('
+            if ($tblSubjectProfile) {
+                // SSW-493 Profil vs. 3.FS
+                $contentForeignGrade = '
+                    {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] }}
+                    {% else %}
+                        {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}
+                    {% endif %}
+                ';
+            } else {
+                $contentForeignGrade = '
                     {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
                         {{ Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] }}
                     {% else %}
                         &ndash;
                     {% endif %}
-                ')
+                ';
+            }
+
+            $elementForeignGrade = (new Element())
+                ->setContent($contentForeignGrade)
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#BBB')
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')

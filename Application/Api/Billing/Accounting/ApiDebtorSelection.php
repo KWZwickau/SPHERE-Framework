@@ -341,20 +341,22 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
 
         $PaymentTypeList = array();
+        $PaymentTypeList[] = new Balance();
         // post Type if not Exist
 
         $tblPaymentTypeAll = Balance::useService()->getPaymentTypeAll();
         foreach($tblPaymentTypeAll as $tblPaymentType) {
             $PaymentTypeList[$tblPaymentType->getId()] = $tblPaymentType->getName();
-            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
-                if(!isset($_POST['DebtorSelection']['PaymentType'])){
-                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
-                }
-            }
+            // nicht mehr vorbefüllt
+//            if($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/){
+//                if(!isset($_POST['DebtorSelection']['PaymentType'])){
+//                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
+//                }
+//            }
         }
 
         //get First Variant to Select
-        $PostVariantId = '';
+        $PostVariantId = '-1';
         $ItemName = '';
         if(($tblItem = Item::useService()->getItemById($ItemId))){
 
@@ -370,8 +372,6 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 $PostVariantId = $tblItemVariantList[0]->getId();
             }
         }
-
-
         if(!isset($_POST['DebtorSelection']['Variant'])){
             $_POST['DebtorSelection']['Variant'] = $PostVariantId;
         }
@@ -388,13 +388,16 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                         $tblItemVariant->getName().': '.$PriceString, $tblItemVariant->getId());
                 }
-                $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
-                    'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
             }
         }
+        // gibt es immer (auch ohne Varianten)
+        $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
+            'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
+
 
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
+        $SelectBoxDebtorList[] = new Person();
 
         $PersonTitle = '';
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
@@ -461,7 +464,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $_POST['DebtorSelection']['BankAccount'] = '-1';
         }
         $RadioBoxListBankAccount['-1'] = new RadioBox('DebtorSelection[BankAccount]'
-            , 'kein Konto', -1);
+            , 'keine Bankverbindung', -1);
         if(!empty($PersonDebtorList)){
             /** @var TblPerson $PersonDebtor */
             foreach($PersonDebtorList as $PersonDebtor) {
@@ -486,7 +489,6 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             }
         }
 
-
         $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPerson);
         if($tblBankReferenceList){
             // Post first entry if PaymentType = SEPA-Lastschrift
@@ -507,13 +509,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',
-                            $PaymentTypeList))
+                            $PaymentTypeList))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
-                            $SelectBoxDebtorList, null, true, null))
+                            $SelectBoxDebtorList, null, true, null))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
@@ -521,7 +523,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         array(
-                            new Bold('Varianten '),
+                            new Bold('Varianten '.new DangerText('*')),
                             new Listing($RadioBoxListVariant)
                         )
                         , 6),
@@ -568,7 +570,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
         $DeborNumber = '';
         if($IsDebtorNumberNeed){
-            $DeborNumber = '(keine Debit.-Nr.)';
+            $DeborNumber = '(keine Debitoren-Nr.)';
         }
         // change warning if necessary to "not in PaymentGroup"
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
@@ -643,18 +645,18 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
                 if($IsSepaAccountNeed){
                     if(isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])){
-                        $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
-                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
-                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                         um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     } elseif(isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1') {
-                        $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
-                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
-                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                         um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     }
                 }
-                //Referenznummern ohne Konto nicht mehr benötigt
+                //Referenznummern ohne Bankverbindung nicht mehr benötigt
 //                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
 //                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
 //                    $Error = true;
@@ -907,17 +909,17 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new LayoutColumn('Konditionen: ', 2),
                 new LayoutColumn(new Bold($PriceString), 10),
             ))));
-            $BankAccountString = 'Kontodaten nicht gefunden!';
+            $BankAccountString = 'Bankverbindung nicht gefunden!';
             $BankAccountLeftHeadString = '';
             if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
-                $BankAccountLeftHeadString = 'Inhaber: <br/> Name der Bank: <br/>IBAN: <br/>BIC: ';
+                $BankAccountLeftHeadString = 'Inhaber: <br/> Bankname: <br/>IBAN: <br/>BIC: ';
                 $BankAccountString = $tblBankAccount->getOwner()
                     .'<br/>'.$tblBankAccount->getBankName()
                     .'<br/>'.$tblBankAccount->getIBANFrontend()
                     .'<br/>'.$tblBankAccount->getBICFrontend();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Konto: ', 2),
+                new LayoutColumn('Bankverbindung: ', 2),
                 new LayoutColumn($BankAccountLeftHeadString, 2),
                 new LayoutColumn(new Bold($BankAccountString), 8),
             ))));
