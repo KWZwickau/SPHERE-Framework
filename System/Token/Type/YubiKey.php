@@ -148,16 +148,16 @@ class YubiKey implements ITypeInterface
         }
 
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.json_encode($Decision).' Decision');
-        $Decision = array_sum($Decision) / ( count($Decision) > 0 ? count($Decision) : 1 );
+        $isDecision = in_array(1, $Decision);
 
-        if ($Decision > 0) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' OK');
+        if ($isDecision) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$isDecision.' OK');
             return true;
-        } elseif ($Decision == 0) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' Failed');
-            throw new ReplayedOTPException();
+//        } elseif ($Decision == 0) {
+//            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' Failed');
+//            throw new ReplayedOTPException();
         } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' Corrupt');
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$isDecision.' Corrupt');
             return false;
         }
     }
