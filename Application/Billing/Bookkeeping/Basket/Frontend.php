@@ -295,6 +295,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $SortPrice = substr(str_replace(',', '', $Price), 0, $StringCount);
                         $Item['Price'] = '<span hidden>'.$SortPrice.'</span>'.ApiBasketVerification::receiverItemPrice($Price,
                                 $tblBasketVerification->getId());
+                        // Add ChangeButton to PersonDebtor
+                        if(!$tblBasket->getIsDone()){
+                            $Item['Price'] .= '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
+                                    ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
+                                    , 'Preis ändern');
+                        }
                     }
                     if(($Quantity = $tblBasketVerification->getQuantity())){
                         if($tblBasket->getIsDone()){
@@ -320,8 +326,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Add ChangeButton to PersonDebtor
                     if(!$tblBasket->getIsDone()){
-                        $Item['PersonDebtor'] = $Item['PersonDebtor'].
-                            '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
+                        $Item['PersonDebtor'] .= '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
                                 ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
                                 , 'Beitragszahler ändern');
                     }
