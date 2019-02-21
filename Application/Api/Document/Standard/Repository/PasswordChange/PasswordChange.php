@@ -183,14 +183,17 @@ class PasswordChange extends AbstractDocument
             ->setContent($this->FieldValue['CompanyName'])
             ->styleTextSize('8pt')
         );
-        if($this->FieldValue['CompanyExtendedName']){
+        if($this->FieldValue['CompanyExtendedName'] != '&nbsp;'){
             $Slice->addElement((new Element())
                 ->setContent($this->FieldValue['CompanyExtendedName'])
                 ->styleTextSize('8pt')
             );
         }
         $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['CompanyDistrict'].' '
+            ->setContent(
+                ($this->FieldValue['CompanyDistrict'] != '&nbsp;'
+                    ? $this->FieldValue['CompanyDistrict'].' '
+                    : '')
                 .$this->FieldValue['CompanyStreet'].' '
                 .$this->FieldValue['CompanyCity'])
             ->styleTextSize('8pt')
@@ -293,6 +296,30 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
+                    ->setContent('Ihre neuen Zugangsdaten zur Notenübersicht
+                    {% if '.$this->FieldValue['ChildCount'].' == 1 %}
+                        Ihres Kindes
+                    {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
+                        Ihrer Kinder
+                    {% else %}
+                        Ihres Kindes / Ihrer Kinder
+                    {% endif %}')
+                    ->styleTextBold()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                ))
+                ->addElement((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('40px')
+                )
+                ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
                     ->setContent('
                     {% if '.$this->FieldValue['Gender'].' == 1 %}
                         Lieber 
@@ -301,7 +328,11 @@ class PasswordChange extends AbstractDocument
                     {% else %}
                         Liebe(r) 
                     {% endif %}'
-                        . $this->FieldValue['PersonSalutation'].' '
+                    .'{% if '.$this->FieldValue['PersonSalutation'].' == "" %}
+                        Herr/Frau
+                    {% else %}
+                        '.$this->FieldValue["PersonSalutation"].' '.'
+                    {% endif %}'
                         . $this->FieldValue['PersonTitle'].' '
                         . $this->FieldValue['PersonLastName'].',')
                 )
@@ -316,7 +347,7 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Sollten Sie das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
+                    ->setContent('sollten Sie das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
                     ->stylePaddingTop('12px')
                     ->styleAlignJustify()
                 )
@@ -510,6 +541,23 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
+                    ->setContent('Deine neuen Zugangsdaten zur Notenübersicht')
+                    ->styleTextBold()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                ))
+                ->addElement((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('40px')
+                )
+                ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
                     ->setContent('
                     {% if '.$this->FieldValue['Gender'].' == 1 %}
                         Lieber 
@@ -531,7 +579,7 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Solltest Du das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
+                    ->setContent('solltest Du das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
                     ->stylePaddingTop('12px')
                     ->styleAlignJustify()
                 )
@@ -754,35 +802,6 @@ class PasswordChange extends AbstractDocument
                 )
                 ->styleHeight('160px')
 //                ->styleBorderAll()
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Ihre neuen Zugangsdaten zur Notenübersicht
-                        {% if '.$this->FieldValue['ChildCount'].' == 1 %}
-                            Ihres Kindes
-                        {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
-                            Ihrer Kinder
-                        {% else %}
-                            Ihres Kindes / Ihrer Kinder
-                        {% endif %}')
-                        ->styleTextBold()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleHeight('40px')
-                )
             )
             ->addSlice($this->getFirstLetterContent());
     }

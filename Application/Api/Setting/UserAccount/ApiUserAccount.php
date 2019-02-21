@@ -464,7 +464,7 @@ class ApiUserAccount extends Extension implements IApiInterface
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),
-            )), new Primary('Überprüfen & Weiter', null, true) , '\Api\Document\Standard\MultiPassword\Create'
+            )), new Primary('Download', null, true) , '\Api\Document\Standard\MultiPassword\Create'
         );
     }
 

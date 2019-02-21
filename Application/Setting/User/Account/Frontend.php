@@ -187,7 +187,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn($Table),
-                        new FormColumn((new PrimaryLink('Speichern', ApiContactAddress::getEndpoint(), new Save()))
+                        new FormColumn((new PrimaryLink('Benutzerkonten anlegen', ApiContactAddress::getEndpoint(), new Save()))
                             ->ajaxPipelineOnClick(ApiUserAccount::pipelineSaveAccount('S'))
                         )
                     ))
@@ -549,7 +549,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn($Table),
-                        new FormColumn((new PrimaryLink('Speichern', ApiContactAddress::getEndpoint(), new Save()))
+                        new FormColumn((new PrimaryLink('Benutzerkonten anlegen', ApiContactAddress::getEndpoint(), new Save()))
                             ->ajaxPipelineOnClick(ApiUserAccount::pipelineSaveAccount('C'))
                         )
                     ))
@@ -1099,7 +1099,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                    new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
                         new Well(
                             Account::useService()->generatePdfControl(
-                                $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $tblUserAccount, $Data, $Path)
+                                $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $tblUserAccount, $Data,
+                                '\Api\Document\Standard\MultiPassword\Create')
                         ),
 //                        Panel::PANEL_TYPE_DANGER)
                     )
@@ -1271,7 +1272,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
-                        new Panel('Kontaktinformation der Schule',array(
+                        new Panel('Adressinformation der Schule',array(
                             new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
                             new TextField('Data[CompanyStreet]', '', 'Straße'),
                             new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
@@ -1302,12 +1303,8 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),
-                new FormRow(
-                    new FormColumn(
-                        new Primary('Überprüfen & Weiter')
-                    )
-                ),
-            )) // , null, '\Api\Document\Standard\PasswordChange\Create'
+            )),
+            new Primary('Download', null, true), '\Api\Document\Standard\PasswordChange\Create'
         );
     }
 

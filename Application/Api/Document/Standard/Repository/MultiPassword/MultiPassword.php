@@ -178,7 +178,7 @@ class MultiPassword extends AbstractDocument
                 ->styleTextSize('8pt')
             );
         }
-        if($this->FieldValue['CompanyExtendedName']){
+        if($this->FieldValue['CompanyExtendedName'] != '&nbsp;'){
             $Slice->addElement((new Element())
                 ->setContent($this->FieldValue['CompanyExtendedName'])
                 ->styleTextSize('8pt')
@@ -195,7 +195,10 @@ class MultiPassword extends AbstractDocument
             );
         } else {
             $Slice->addElement((new Element())
-                ->setContent($this->FieldValue['CompanyDistrict'].' '
+                ->setContent(
+                    ($this->FieldValue['CompanyDistrict'] != '&nbsp;'
+                        ? $this->FieldValue['CompanyDistrict'].' '
+                        : '')
                     .$this->FieldValue['CompanyStreet'].' '
                     .$this->FieldValue['CompanyCity'])
                 ->styleTextSize('8pt')
@@ -317,6 +320,7 @@ class MultiPassword extends AbstractDocument
             ->addElementColumn((new Element())
                 ->setContent('Internet:')
                 ->styleTextSize('8pt')
+                ->stylePaddingTop('10px')
                 , '20%')
             ->addElementColumn((new Element())
                 ->setContent($this->FieldValue['Web'])
@@ -367,8 +371,8 @@ class MultiPassword extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. 
-                    Dadurch erhalten Sie die Möglichkeit, sämtliche Noten Ihres Kindes einzusehen und über seine 
-                    schulische Leistungsentwicklung mit unseren Lehrkräften gezielter zu kommunizieren.')
+                    Dadurch erhalten Sie die Möglichkeit, sämtliche Noten Ihres Kindes einsehen und über seine 
+                    schulische Leistungsentwicklung mit unseren Lehrkräften gezielter kommunizieren zu können.')
                     ->stylePaddingTop('12px')
                     ->styleAlignJustify()
                 )
@@ -442,7 +446,7 @@ class MultiPassword extends AbstractDocument
                         ->setContent('Die Entwicklung der neuen Softwarelösung erfolgte in enger Abstimmung mit dem 
                         Datenschutzbeauftragten der Ev.-Luth. Landeskirche. Er hat die elektronische Notenübersicht 
                         datenschutzrechtlich überprüft und zur Nutzung freigegeben. Die Kommunikation zwischen Ihrem 
-                        Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung ')
+                        Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -458,14 +462,32 @@ class MultiPassword extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Der Betrieb der Softwarelösung erfolgt in einem zertifizierten deutschen 
-                        Rechenzentrum und wird durch die dortigen Mitarbeiter sowie durch die mit der Entwicklung 
-                        beauftragte Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. 
+                        Rechenzentrum und wird durch die dortigen Mitarbeiter, sowie durch die mit der Entwicklung 
+                        beauftragte, Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. 
                         Da hier personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe 
-                        Sicherheitsanforderungen wie beim Onlinebanking. Beispielsweise sind Änderungen an Stammdaten 
+                        Sicherheitsanforderungen, wie beim Onlinebanking. Beispielsweise sind Änderungen an Stammdaten 
                         oder die Eintragung von Benotungen nur für Mitarbeiter der Schule möglich, die über die 
                         entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung 
                         (Name, Passwort und Security-Token) anmelden müssen. Für die elektronische Notenübersicht 
-                        reicht hingegen die Anmeldung mit Name und Passwort aus')
+                        reicht hingegen die Anmeldung mit Name und Passwort aus.')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        ->styleAlignJustify()
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Für die Sicherheit Ihrer Daten ist es allerdings wichtig, ein möglichst gutes Passwort 
+                    mit einer Mindestlänge von 8 Zeichen und einer Mischung aus Großbuchstaben, Kleinbuchstaben, Ziffern 
+                    und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte geben Sie Ihre Zugangsdaten nicht weiter, denn es 
+                    erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen personengebundenen Nutzerzugang.</u>')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -495,7 +517,7 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. Damit 
+                        ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. Damit 
                         können Eltern und Schüler per Internetzugang Benotungen einsehen und sich über den aktuellen 
                         Leistungsstand informieren.')
                         ->stylePaddingTop('12px')
@@ -533,7 +555,7 @@ class MultiPassword extends AbstractDocument
                         Datenschutzbeauftragten der Ev.-Luth. Landeskirche Sachsens. Er hat die elektronische 
                         Notenübersicht datenschutzrechtlich überprüft und zur Nutzung freigegeben. Der Betrieb der 
                         Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die 
-                        dortigen Mitarbeiter sowie durch die mit der Entwicklung beauftragte Firma permanent überwacht 
+                        dortigen Mitarbeiter, sowie durch die mit der Entwicklung beauftragten Firma permanent überwacht 
                         und gewartet, um sie vor Cyberangriffen zu schützen.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
@@ -550,7 +572,7 @@ class MultiPassword extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Die Kommunikation zwischen Eurem Internetbrowser und der Schulsoftware erfolgt 
-                        ausschließlich über eine verschlüsselte HTTPs-Verbindung.')
+                        ausschließlich über eine verschlüsselte HTTPS-Verbindung.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -681,23 +703,7 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Für die Sicherheit Ihrer Daten ist es allerdings wichtig, ein möglichst gutes Passwort 
-                    mit einer Mindestlänge von 8 Zeichen und einer Mischung aus Großbuchstaben, Kleinbuchstaben, Ziffern 
-                    und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte geben Sie Ihre Zugangsdaten nicht weiter, es 
-                    erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen personengebundenen Nutzerzugang.</u>')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Verwendet bitte für den Zugriff auf die elektronische Notenübersicht folgende Zugangsdaten:')
+                    ->setContent('Verwenden Sie bitte für den Zugriff auf die elektronische Notenübersicht folgende Zugangsdaten:')
                     ->stylePaddingTop('12px')
                     ->styleAlignJustify()
                 )
@@ -774,7 +780,7 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Notieren Sie sich bitte sofort Ihr vergebenes Passwort:')
+                    ->setContent('Notieren Sie sich bitte sofort Ihr vergebenes Passwort')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     , '49%'
                 )
@@ -816,7 +822,7 @@ class MultiPassword extends AbstractDocument
                     ->setContent('Nach Ihrer Bestätigung sollte Ihnen die Notenübersicht für alle Ihre Kinder an unserer 
                     Schule angezeigt werden. Sofern Sie sich gegen die Nutzung der elektronischen Notenübersicht 
                     entscheiden, bleibt Ihr Zugang deaktiviert. Falls Sie noch Rückfragen oder Probleme mit der 
-                    Anwendung haben, so können Sie uns gerne kontaktieren.')
+                    Anwendung haben, können Sie uns gerne kontaktieren.')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
@@ -891,7 +897,7 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort: '
+                        ->setContent('Für das erstmalige Login verwendet bitte folgendes Passwort: '
                         .$this->FieldValue['Password'][$AccountId])
                         ->stylePaddingTop()
                         , '92%'
@@ -924,7 +930,7 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Notieren Dir bitte sofort das vergebene Passwort:')
+                        ->setContent('Notiere Dir bitte sofort das vergebene Passwort')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         , '49%'
                     )
@@ -965,7 +971,7 @@ class MultiPassword extends AbstractDocument
                         ->setContent('Nach Deiner Bestätigung wird eine Startseite mit dem Verweis auf die Notenübersicht 
                         angezeigt. Alternativ kann man auch die Menüleiste nutzen. Falls Du Dich gegen die Nutzung der 
                         elektronischen Notenübersicht entscheidest, bleibt Dein Zugang deaktiviert. Falls Du Rückfragen 
-                        oder Probleme mit der Anwendung hast, so wende Dich bitte an unser Sekretariat.')
+                        oder Probleme mit der Anwendung hast, wende Dich bitte an unser Sekretariat.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
