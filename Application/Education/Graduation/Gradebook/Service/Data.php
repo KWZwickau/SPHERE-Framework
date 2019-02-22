@@ -798,4 +798,23 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Manager->flushCache();
         Protocol::useService()->flushBulkEntries();
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPersonTeacher
+     * @param TblPerson $tblPersonStudent
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getGradesByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPersonTeacher, TblPerson $tblPersonStudent, TblGradeType $tblGradeType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGrade', array(
+            TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblGrade::ATTR_SERVICE_TBL_PERSON_TEACHER => $tblPersonTeacher->getId(),
+            TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPersonStudent->getId(),
+            TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
+        ));
+    }
 }

@@ -1817,4 +1817,18 @@ class Service extends ServiceScoreRule
 
         return empty($grades) ? false : $grades;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPersonTeacher
+     * @param TblPerson $tblPersonStudent
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getGradesByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPersonTeacher, TblPerson $tblPersonStudent, TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->getGradesByDivisionAndTeacher($tblDivision, $tblPersonTeacher, $tblPersonStudent, $tblGradeType);
+    }
 }

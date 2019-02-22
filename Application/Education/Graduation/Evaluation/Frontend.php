@@ -1543,7 +1543,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 6
                             ),
                             new LayoutColumn(
-                                new Panel('Zeitraum:',
+                                new Panel($tblTest->getTblTask() ? 'Bearbeitungszeitraum:' : 'Zeitraum:',
                                     $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '',
                                     Panel::PANEL_TYPE_INFO), 3
                             ),
@@ -2432,12 +2432,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 3
                         ),
                         new LayoutColumn(
-                            new Panel('Zeitraum:',
+                            new Panel($tblTest->getTblTask() ? 'Bearbeitungszeitraum' : 'Zeitraum',
                                 $period,
                                 Panel::PANEL_TYPE_INFO), 3
                         ),
                         new LayoutColumn(
-                            new Panel('Zensuren-Typ:',
+                            new Panel('Zensuren-Typ',
                                 $gradeType,
                                 Panel::PANEL_TYPE_INFO), 3
                         ),
@@ -3933,6 +3933,14 @@ class Frontend extends Extension implements IFrontendInterface
                 ? new Small(new Muted(' ' . $tblTaskPeriod->getDisplayName()))
                 : new Small(new Muted(' Gesamtes Schuljahr')));
 
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
+            'ShowProposalBehaviorGrade'))
+        ) {
+            $showProposalBehaviorGrade = $tblSetting->getValue();
+        } else {
+            $showProposalBehaviorGrade = false;
+        }
+
         // Navigation zwischen den Kopfnotentypen
         if ($tblTask
             && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask,
@@ -4011,10 +4019,40 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
+
+                // Kopfnotenvorschlag des Klassenlehrers
+                $proposalGrades = array();
+                if ($showProposalBehaviorGrade
+                    && ($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))
+                ) {
+                    foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
+                        if (($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())
+                            && ($tblGradeTeacherList = Gradebook::useService()->getGradesByDivisionAndTeacher(
+                                $tblDivision, $tblPersonTeacher, $tblPerson, $tblTest->getServiceTblGradeType()
+                            ))
+                        ) {
+                            foreach ($tblGradeTeacherList as $item) {
+                                if (($displayGrade = $item->getDisplayGrade())
+                                    && ($tblSubjectItem = $item->getServiceTblSubject())
+                                ) {
+                                    $proposalGrades[$item->getId()] = new ToolTip(
+                                        $tblSubjectItem->getAcronym() . ': ' . $displayGrade,
+                                        $tblPersonTeacher->getFullName()
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $studentList[$tblPerson->getId()]['ProposalGrade'] = implode(', ', $proposalGrades);
             }
         }
 
         $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
+        if ($showProposalBehaviorGrade) {
+            $tableColumns['ProposalGrade'] = 'Kopfnotenvorschlag KL';
+        }
         $tableColumns['Grade'] = 'Zensur';
         $tableColumns['Comment'] = 'Vermerk Notenänderung';
 

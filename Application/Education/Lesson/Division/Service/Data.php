@@ -2533,4 +2533,17 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionTeacher[]
+     */
+    public function getDivisionTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionTeacher', array(
+            TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+    }
 }

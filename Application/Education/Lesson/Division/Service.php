@@ -2814,4 +2814,15 @@ class Service extends AbstractService
 
         return empty($list) ? false : $list;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionTeacher[]
+     */
+    public function getDivisionTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionTeacherAllByDivision($tblDivision);
+    }
 }
