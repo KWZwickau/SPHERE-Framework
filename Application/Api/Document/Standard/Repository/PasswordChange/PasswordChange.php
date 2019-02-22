@@ -795,9 +795,9 @@ class PasswordChange extends AbstractDocument
     protected function getPicturePasswordChange($with = 'auto')
     {
 
-        $picturePath = $this->getPasswordChangeUsedPicture();
+        $picturePath = $this->getPasswordUsedPicture();
         if ($picturePath != '') {
-            $height = $this->getPasswordChangePictureHeight();
+            $height = $this->getPasswordPictureHeight();
             $column = (new Element\Image($picturePath, $with, $height));
         } else {
             $column = (new Element())
@@ -809,7 +809,7 @@ class PasswordChange extends AbstractDocument
     /**
      * @return string
      */
-    private function getPasswordChangeUsedPicture()
+    private function getPasswordUsedPicture()
     {
         if (($tblSetting = Consumer::useService()->getSetting(
             'Api', 'Document', 'Standard', 'PasswordChange_PictureAddress'))
@@ -822,7 +822,7 @@ class PasswordChange extends AbstractDocument
     /**
      * @return string
      */
-    private function getPasswordChangePictureHeight()
+    private function getPasswordPictureHeight()
     {
 
         $value = '';

@@ -57,13 +57,13 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden.
+                'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo) hinterlegt werden.
                 Adresse des Bildes: [Standard: ]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden.
+                'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo) hinterlegt werden.
                 Höhe des Bildes (Maximal 140px): [Standard: 120px]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
