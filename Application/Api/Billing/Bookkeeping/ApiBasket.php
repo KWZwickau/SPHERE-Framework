@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Billing\Bookkeeping;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -278,6 +279,7 @@ class ApiBasket extends Extension implements IApiInterface
         // SelectBox content
         $YearList = Invoice::useService()->getYearList(1, 1);
         $MonthList = Invoice::useService()->getMonthList();
+        $CreditorList = Creditor::useService()->getCreditorAll();
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
@@ -289,6 +291,7 @@ class ApiBasket extends Extension implements IApiInterface
                     new Form(new FormGroup(new FormRow(array(
                         new FormColumn((new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired()),
                         new FormColumn(new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung')),
+                        new FormColumn((new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired()),
 //                        new FormColumn(new SelectBox('Basket[Year]', 'Jahr', $YearList)),
 //                        new FormColumn(new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null)),
                         new FormColumn((new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired()),
@@ -335,6 +338,7 @@ class ApiBasket extends Extension implements IApiInterface
                     new Form(new FormGroup(new FormRow(array(
                         new FormColumn((new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired()),
                         new FormColumn(new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung')),
+                        new FormColumn((new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired()),
                         new FormColumn(new SelectBox('Basket[Year]', 'Jahr', $YearList)),
                         new FormColumn(new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null)),
                         new FormColumn((new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired()),
@@ -419,6 +423,12 @@ class ApiBasket extends Extension implements IApiInterface
             $Warning[] = 'Bitte geben Sie ein Fälligkeitsdatum an';
             $Error = true;
         }
+        if(isset($Basket['Creditor']) && empty($Basket['Creditor'])){
+            $form->setError('Basket[Creditor]', 'Bitte geben Sie einen Gläubiger an');
+            // ToDO setError don't work
+            $Warning[] = 'Bitte geben Sie einen Gläubiger an';
+            $Error = true;
+        }
         if($BasketId == '' && !isset($Basket['Item'])){
             $Warning[] = 'Es wird mindestens eine Beitragsart benötigt';
             $Error = true;
@@ -466,6 +476,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Year'] = $Basket['Year'];
             $Global->POST['Basket']['Month'] = $Basket['Month'];
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
+            $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
             if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
@@ -483,9 +494,8 @@ class ApiBasket extends Extension implements IApiInterface
 //            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
 //            $Error = true;
 //        }
-
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime']);
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor']);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){
@@ -535,6 +545,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Name'] = $Basket['Name'];
             $Global->POST['Basket']['Description'] = $Basket['Description'];
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
+            $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
             $Global->savePost();
             return $form;
         }
@@ -542,7 +553,7 @@ class ApiBasket extends Extension implements IApiInterface
         $IsChange = false;
         if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
             $IsChange = Basket::useService()->changeBasket($tblBasket, $Basket['Name'], $Basket['Description']
-                , $Basket['TargetTime']);
+                , $Basket['TargetTime'], $Basket['Creditor']);
         }
 
         return ($IsChange
@@ -566,6 +577,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Year'] = $tblBasket->getYear();
             $Global->POST['Basket']['Month'] = $tblBasket->getMonth();
             $Global->POST['Basket']['TargetTime'] = $tblBasket->getTargetTime();
+            $Global->POST['Basket']['Creditor'] = ($tblBasket->getServiceTblCreditor() ? $tblBasket->getServiceTblCreditor()->getId() : '');
             $Global->savePost();
         }
 

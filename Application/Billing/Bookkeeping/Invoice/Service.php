@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
-use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
@@ -326,9 +325,7 @@ class Service extends AbstractService
         $tblBasketVerificationList = array_filter($tblBasketVerificationList);
 
         /** fill Invoice/Creditor */
-        //ToDO choose Creditor
-        if(($tblCreditorList = Creditor::useService()->getCreditorAll())){
-            $tblCreditor = current($tblCreditorList);
+        if(($tblCreditor = $tblBasket->getServiceTblCreditor())){
             $CreditorId = $tblCreditor->getCreditorId();
             $Owner = $tblCreditor->getOwner();
             $BankName = $tblCreditor->getBankName();

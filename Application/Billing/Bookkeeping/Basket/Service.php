@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
@@ -173,10 +174,11 @@ class Service extends AbstractService
      * @param string $Year
      * @param string $Month
      * @param string $TargetTime
+     * @param string $CreditorId
      *
      * @return TblBasket
      */
-    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '')
+    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $CreditorId = '')
     {
 
         if($TargetTime){
@@ -185,7 +187,15 @@ class Service extends AbstractService
             // now if no input (fallback)
             $TargetTime = new \DateTime();
         }
-        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime);
+        // 0 (nicht Ausgewählt) or false to null
+        $tblCreditor = false;
+        if($CreditorId !== '0'){
+            $tblCreditor = Creditor::useService()->getCreditorById($CreditorId);
+        }
+        if(!$tblCreditor){
+            $tblCreditor = null;
+        }
+        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $tblCreditor);
     }
 
     /**
@@ -336,16 +346,25 @@ class Service extends AbstractService
      * @param string    $Name
      * @param string    $Description
      * @param string    $TargetTime
+     * @param string    $CreditorId
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime)
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $CreditorId = '')
     {
 
         // String to DateTime object
         $TargetTime = new \DateTime($TargetTime);
+        // 0 (nicht Ausgewählt) or false to null
+        $tblCreditor = false;
+        if($CreditorId !== '0'){
+            $tblCreditor = Creditor::useService()->getCreditorById($CreditorId);
+        }
+        if(!$tblCreditor){
+            $tblCreditor = null;
+        }
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime);
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $tblCreditor);
     }
 
     /**
