@@ -281,21 +281,20 @@ class ApiBasket extends Extension implements IApiInterface
         $MonthList = Invoice::useService()->getMonthList();
         $CreditorList = Creditor::useService()->getCreditorAll();
 
+        $FormContent[] = (new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired();
+        $FormContent[] = new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung');
+        $FormContent[] = (new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired();
+
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
         if('' !== $BasketId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditBasket($Identifier,
                 $BasketId));
+            $FormContent[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
+
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
-                    new Form(new FormGroup(new FormRow(array(
-                        new FormColumn((new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired()),
-                        new FormColumn(new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung')),
-                        new FormColumn((new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired()),
-//                        new FormColumn(new SelectBox('Basket[Year]', 'Jahr', $YearList)),
-//                        new FormColumn(new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null)),
-                        new FormColumn((new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired()),
-                    ))))
+                    $FormContent
                     , 6),
                 new FormColumn(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))))
@@ -316,36 +315,23 @@ class ApiBasket extends Extension implements IApiInterface
             }
 
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddBasket($Identifier));
-            $CheckboxList = array();
+            $CheckboxList = '';
             if(($tblItemList = Item::useService()->getItemAll())){
                 foreach($tblItemList as $tblItem) {
-                    $CheckboxList[] = new CheckBox('Basket[Item]['.$tblItem->getId().']', $tblItem->getName(),
+                    $CheckboxList .= new CheckBox('Basket[Item]['.$tblItem->getId().']', $tblItem->getName(),
                         $tblItem->getId());
                 }
             }
-
-            $LayoutColumnList[] = new LayoutColumn(new Bold('Beitragsarten: '.new DangerText('*')));
-            $Column = '';
-            if(!empty($CheckboxList)){
-                foreach($CheckboxList as $Checkbox) {
-                    $Column .= $Checkbox;
-                }
-            }
-            $LayoutColumnList[] = new LayoutColumn($Column);
+            $FormContent[] = new SelectBox('Basket[Year]', 'Jahr', $YearList);
+            $FormContent[] = new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null);
+            $FormContent[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
 
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
-                    new Form(new FormGroup(new FormRow(array(
-                        new FormColumn((new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired()),
-                        new FormColumn(new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung')),
-                        new FormColumn((new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired()),
-                        new FormColumn(new SelectBox('Basket[Year]', 'Jahr', $YearList)),
-                        new FormColumn(new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null)),
-                        new FormColumn((new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired()),
-                    ))))
+                    $FormContent
                     , 6),
                 new FormColumn(
-                    new Layout(new LayoutGroup(new LayoutRow($LayoutColumnList)))
+                    new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList)
                     , 6),
                 new FormColumn(
                     $SaveButton
@@ -374,8 +360,6 @@ class ApiBasket extends Extension implements IApiInterface
         $form = $this->formBasket($Identifier, $BasketId);
         if(isset($Basket['Name']) && empty($Basket['Name'])){
             $form->setError('Basket[Name]', 'Bitte geben Sie einen Namen der Abrechnung an');
-            // ToDO setError don't work
-            $Warning[] = 'Bitte geben Sie einen Namen der Abrechnung an';
             $Error = true;
         } else {
             if(isset($Basket['Month']) && isset($Basket['Year'])){
@@ -385,8 +369,6 @@ class ApiBasket extends Extension implements IApiInterface
                     if($BasketId !== $tblBasket->getId()){
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung '.$Basket['Month'].'.'.$Basket['Year'].' an');
-                        // ToDO setError don't work
-                        $Warning[] = 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung '.$Basket['Month'].'.'.$Basket['Year'].' an';
                         $Error = true;
                     }
                 }
@@ -400,8 +382,6 @@ class ApiBasket extends Extension implements IApiInterface
                         if($BasketId !== $tblBasket->getId()){
                             $form->setError('Basket[Name]',
                                 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
-                            // ToDO setError don't work
-                            $Warning[] = 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an';
                             $Error = true;
                         }
                     }
@@ -410,8 +390,6 @@ class ApiBasket extends Extension implements IApiInterface
                     if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))){
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
-                        // ToDO setError don't work
-                        $Warning[] = 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an';
                         $Error = true;
                     }
                 }
@@ -419,17 +397,14 @@ class ApiBasket extends Extension implements IApiInterface
         }
         if(isset($Basket['TargetTime']) && empty($Basket['TargetTime'])){
             $form->setError('Basket[TargetTime]', 'Bitte geben Sie ein Fälligkeitsdatum an');
-            // ToDO setError don't work
-            $Warning[] = 'Bitte geben Sie ein Fälligkeitsdatum an';
             $Error = true;
         }
         if(isset($Basket['Creditor']) && empty($Basket['Creditor'])){
             $form->setError('Basket[Creditor]', 'Bitte geben Sie einen Gläubiger an');
-            // ToDO setError don't work
-            $Warning[] = 'Bitte geben Sie einen Gläubiger an';
             $Error = true;
         }
         if($BasketId == '' && !isset($Basket['Item'])){
+            $form->setError('Basket[Item][2]', 'Test');
             $Warning[] = 'Es wird mindestens eine Beitragsart benötigt';
             $Error = true;
         }
