@@ -33,6 +33,11 @@ class Anonymous extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/UpdateCompany',
+                __NAMESPACE__.'/Frontend::frontendUpdateCompany'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/MySQLScript',
                 __NAMESPACE__.'/Frontend::frontendMySQLScript'
             )

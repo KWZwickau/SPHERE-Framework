@@ -167,5 +167,28 @@ class Service extends AbstractService
             .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
     }
 
+    /**
+     * @return string
+     */
+    public function UpdateCompany()
+    {
 
+//        $tblGroup =
+//        $tblAddressAll = GroupCompany::useService()->getMemberAllByGroup();
+//        if($tblAddressAll){
+//            $Random = new RandomCity();
+//            $ProcessList = array();
+//            foreach($tblAddressAll as $tblAddress) {
+//                $ProcessList[$tblAddress->getId()]['tblAddress'] = $tblAddress;
+//                $ProcessList[$tblAddress->getId()]['tblCity'] = $tblAddress->getTblCity();
+//                $ProcessList[$tblAddress->getId()]['City'] = $Random->getCityName();
+//            }
+//            if(!empty($ProcessList)){
+//                // second val override random City
+//                Address::useService()->updateAddressAnonymousBulk($ProcessList, '');
+//            }
+//        }
+//        return new Success('Adressen wurden erfolgreich Anonymisiert')
+//            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
+    }
 }

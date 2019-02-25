@@ -74,7 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpdatePerson()
     {
 
-        $Stage = new Stage('Daten Anonymisieren');
+        $Stage = new Stage('Daten Anonymisieren', 'Personen');
         $Stage->setContent(Anonymous::useService()->UpdatePerson());
 
         return $Stage;
@@ -86,8 +86,20 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpdateAddress()
     {
 
-        $Stage = new Stage('Daten Anonymisieren');
+        $Stage = new Stage('Daten Anonymisieren', 'Adressen');
         $Stage->setContent(Anonymous::useService()->UpdateAddress());
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendUpdateCompany()
+    {
+
+        $Stage = new Stage('Daten Anonymisieren', 'Institution');
+        $Stage->setContent(Anonymous::useService()->UpdateCompany());
 
         return $Stage;
     }
@@ -127,9 +139,9 @@ TRUNCATE SettingConsumer_".$Acronym.".tblUntisImportLectureship;
 TRUNCATE SettingConsumer_".$Acronym.".tblUserAccount;
 TRUNCATE SettingConsumer_".$Acronym.".tblWorkSpace;
 DROP DATABASE BillingInvoice_".$Acronym.";
-DROP DATABASE ContactMail_".$Acronym.";
-DROP DATABASE ContactPhone_".$Acronym.";
-DROP DATABASE ContactWeb_".$Acronym.";
+UPDATE ContactMail_".$Acronym.".tblMail SET Address = 'Ref@schulsoftware.schule';
+UPDATE ContactPhone_".$Acronym.".tblPhone SET Number = concat('00000/', LPAD(FLOOR(RAND()*1000000), 6, '0'));
+UPDATE ContactWeb_".$Acronym.".tblWeb SET Address = 'www.schulsoftware.schule';
 DROP DATABASE ReportingCheckList_".$Acronym.";
 UPDATE PeopleMeta_".$Acronym.".tblClub SET Remark = '' , Identifier = FLOOR(RAND()*100000);
 UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthplace = '';
