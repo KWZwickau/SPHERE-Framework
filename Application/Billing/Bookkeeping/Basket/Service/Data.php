@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service;
 
+use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
@@ -281,11 +282,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string    $Name
-     * @param string    $Description
-     * @param string    $Year
-     * @param string    $Month
-     * @param \DateTime $TargetTime
+     * @param string           $Name
+     * @param string           $Description
+     * @param string           $Year
+     * @param string           $Month
+     * @param \DateTime        $TargetTime
+     * @param TblCreditor|null $tblCreditor
      *
      * @return TblBasket
      */
@@ -294,7 +296,8 @@ class Data extends AbstractData
         $Description,
         $Year,
         $Month,
-        $TargetTime
+        $TargetTime,
+        TblCreditor $tblCreditor = null
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -319,6 +322,7 @@ class Data extends AbstractData
             $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
             $Entity->setIsDone(false);
+            $Entity->setServiceTblCreditor($tblCreditor);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -357,10 +361,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblBasket $tblBasket
-     * @param string    $Name
-     * @param string    $Description
-     * @param /DateTime    $TargetTime
+     * @param TblBasket        $tblBasket
+     * @param string           $Name
+     * @param string           $Description
+     * @param /DateTime        $TargetTime
+     * @param TblCreditor|null $tblCreditor
      *
      * @return bool
      */
@@ -368,7 +373,8 @@ class Data extends AbstractData
         TblBasket $tblBasket,
         $Name,
         $Description,
-        $TargetTime
+        $TargetTime,
+        TblCreditor $tblCreditor = null
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -380,11 +386,13 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setTargetTime($TargetTime);
+            $Entity->setServiceTblCreditor($tblCreditor);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
+//            Debugger::screenDump($Entity);
             return true;
         }
         return false;

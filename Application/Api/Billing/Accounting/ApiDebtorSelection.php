@@ -392,7 +392,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
         // gibt es immer (auch ohne Varianten)
         $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
-            'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
+            'Individuelle Preiseingabe:'.new TextField('DebtorSelection[Price]', '', ''), -1);
 
 
         $PersonDebtorList = array();

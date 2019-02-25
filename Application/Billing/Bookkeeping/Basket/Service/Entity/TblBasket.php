@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
+use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -19,6 +21,7 @@ class TblBasket extends Element
     const ATTR_NAME = 'Name';
     const ATTR_MONTH = 'Month';
     const ATTR_YEAR = 'Year';
+    const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
 
     /**
      * @Column(type="string")
@@ -44,6 +47,10 @@ class TblBasket extends Element
      * @Column(type="boolean")
      */
     protected $IsDone;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblCreditor;
 
     /**
      * @return string
@@ -164,4 +171,28 @@ class TblBasket extends Element
     {
         $this->IsDone = $IsDone;
     }
+
+    /**
+     * @return bool|TblCreditor
+     */
+    public function getServiceTblCreditor()
+    {
+
+        if(null !== $this->serviceTblCreditor){
+            return Creditor::useService()->getCreditorById($this->serviceTblCreditor);
+        }
+        return false;
+
+    }
+
+    /**
+     * @param null|TblCreditor $serviceTblCreditor
+     */
+    public function setServiceTblCreditor(TblCreditor $serviceTblCreditor = null)
+    {
+
+        $this->serviceTblCreditor = ($serviceTblCreditor ? $serviceTblCreditor->getId() : null);
+    }
+
+
 }
