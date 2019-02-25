@@ -369,6 +369,7 @@ class Service extends AbstractService
     public function changeItemCalculation(TblItemCalculation $tblItemCalculation, $Value, $DateFrom, $DateTo = '')
     {
 
+        $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateItemCalculation($tblItemCalculation, $Value, $DateFrom, $DateTo);
     }
 
