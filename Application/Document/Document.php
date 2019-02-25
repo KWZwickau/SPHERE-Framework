@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Document;
 
 use SPHERE\Application\Document\Custom\Custom;
-use SPHERE\Application\Document\Explorer\Explorer;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Standard\Standard;
 use SPHERE\Application\Document\Storage\Storage;
@@ -25,7 +24,6 @@ class Document extends Extension implements IClusterInterface
 
         Standard::registerApplication();
         Custom::registerApplication();
-        Explorer::registerApplication();
         Storage::registerApplication();
         Generator::registerApplication();
 
