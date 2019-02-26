@@ -426,7 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Stage->setContent(
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
-                                (Company::useService()->destroyCompany($tblCompany)
+                                (Company::useService()->removeCompany($tblCompany)
                                     ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde gelöscht.')
                                     : new Danger(new Ban().' Die Institution konnte nicht gelöscht werden.')
                                 ),

@@ -2,6 +2,9 @@
 namespace SPHERE\Application\Platform\System\Anonymous;
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Group\Group as GroupCompany;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as TblGroupCompany;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -173,22 +176,35 @@ class Service extends AbstractService
     public function UpdateCompany()
     {
 
-//        $tblGroup =
-//        $tblAddressAll = GroupCompany::useService()->getMemberAllByGroup();
-//        if($tblAddressAll){
-//            $Random = new RandomCity();
-//            $ProcessList = array();
-//            foreach($tblAddressAll as $tblAddress) {
-//                $ProcessList[$tblAddress->getId()]['tblAddress'] = $tblAddress;
-//                $ProcessList[$tblAddress->getId()]['tblCity'] = $tblAddress->getTblCity();
-//                $ProcessList[$tblAddress->getId()]['City'] = $Random->getCityName();
-//            }
-//            if(!empty($ProcessList)){
-//                // second val override random City
-//                Address::useService()->updateAddressAnonymousBulk($ProcessList, '');
-//            }
-//        }
-//        return new Success('Adressen wurden erfolgreich Anonymisiert')
-//            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
+        $tblCompanyAll = Company::useService()->getCompanyAll();
+        $count = 0;
+        if($tblCompanyAll){
+            $ProcessList = array();
+
+            foreach($tblCompanyAll as $tblCompany) {
+                $count++;
+                $Name = 'Institution '.str_pad($count, 3, '0', STR_PAD_LEFT);
+                if(($tblGroupList = GroupCompany::useService()->getGroupAllByCompany($tblCompany))){
+                    foreach($tblGroupList as $tblGroup){
+                        if($tblGroup->getMetaTable() == TblGroupCompany::ATTR_SCHOOL){
+                            // schule priorisieren
+                            $Name = 'Schule '.str_pad($count, 3, '0', STR_PAD_LEFT);
+                            break;
+                        }
+                        if($tblGroup->getMetaTable() == TblGroupCompany::ATTR_NURSERY){
+                            // Kindergarten alternativ
+                            $Name = 'Kindergarten '.str_pad($count, 3, '0', STR_PAD_LEFT);
+                        }
+                    }
+                }
+                $ProcessList[$tblCompany->getId()]['tblCompany'] = $tblCompany;
+                $ProcessList[$tblCompany->getId()]['Name'] = $Name;
+            }
+            if(!empty($ProcessList)){
+                Company::useService()->updateCompanyAnonymousBulk($ProcessList);
+            }
+        }
+        return new Success('Institutionen wurden erfolgreich Anonymisiert')
+            .new Redirect('/Platform/System/Anonymous', Redirect::TIMEOUT_SUCCESS);
     }
 }

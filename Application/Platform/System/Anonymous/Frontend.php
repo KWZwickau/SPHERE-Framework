@@ -1,13 +1,17 @@
 <?php
 namespace SPHERE\Application\Platform\System\Anonymous;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Server;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -20,6 +24,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Code;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
@@ -58,7 +63,9 @@ class Frontend extends Extension implements IFrontendInterface
                             .new Container(new DangerLink('2. Adressen Anonymisieren', __NAMESPACE__.'/UpdateAddress', null, array(), 'Passiert sofort!')
                                 .(new ToolTip(new InfoIcon(), htmlspecialchars('random Städte<br/>random PLZ<br/>leert Ortsteil<br/>'
                                     .'leert Bundesland<br/>leert Land<br/>leert Postfach<br/>random Straßennummer (1-99)')))->enableHtml())
-                            .new Container(new WarningLink('3. Zusatzdaten Anonymisieren', __NAMESPACE__.'/MySQLScript', null, array(), 'Anzeige eines SQL Script\'s')
+                            .new Container(new DangerLink('3. Institutionen Anonymisieren', __NAMESPACE__.'/UpdateCompany', null, array(), 'Passiert sofort!')
+                                .(new ToolTip(new InfoIcon(), 'Institutionen Umbenennen')))
+                            .new Container(new WarningLink('4. Zusatzdaten Anonymisieren', __NAMESPACE__.'/MySQLScript', null, array(), 'Anzeige eines SQL Script\'s')
                                 .new Warning(new ToolTip(new InfoIcon(), 'Bemerkungsfelder sowie andere Personenbezogene Daten entfernen'))))
                         , 4),
                 )
@@ -69,37 +76,114 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $Confirm
+     *
      * @return Stage
      */
-    public function frontendUpdatePerson()
+    public function frontendUpdatePerson($Confirm = false)
     {
 
         $Stage = new Stage('Daten Anonymisieren', 'Personen');
-        $Stage->setContent(Anonymous::useService()->UpdatePerson());
+
+        if($Confirm){
+            $Stage->setContent(Anonymous::useService()->UpdatePerson());
+        } else {
+
+            $Acronym = new DangerText('!Mandant konnte nicht ermittelt werden!');
+            if(($tblAccount = Account::useService()->getAccountBySession())){
+                if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                    $Acronym = $tblConsumer->getAcronym();
+                }
+            }
+
+            $Stage->setContent(new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Wollen Sie für den Mandanten '.new Bold('"'.$Acronym.'"').' wirklich alle Personen Anonymisieren?',
+                                new Standard('Ja', '/Platform/System/Anonymous/UpdatePerson', new Ok(), array('Confirm' => true))
+                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()), Panel::PANEL_TYPE_DANGER
+                            )
+                        )
+                    )
+                )
+            ));
+        }
 
         return $Stage;
     }
 
     /**
+     * @param bool $Confirm
+     *
      * @return Stage
      */
-    public function frontendUpdateAddress()
+    public function frontendUpdateAddress($Confirm = false)
     {
 
         $Stage = new Stage('Daten Anonymisieren', 'Adressen');
-        $Stage->setContent(Anonymous::useService()->UpdateAddress());
+
+        if($Confirm){
+            $Stage->setContent(Anonymous::useService()->UpdateAddress());
+        } else {
+
+            $Acronym = new DangerText('!Mandant konnte nicht ermittelt werden!');
+            if(($tblAccount = Account::useService()->getAccountBySession())){
+                if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                    $Acronym = $tblConsumer->getAcronym();
+                }
+            }
+
+            $Stage->setContent(new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Wollen Sie für den Mandanten '.new Bold('"'.$Acronym.'"').' wirklich alle Adressen Anonymisieren?',
+                                new Standard('Ja', '/Platform/System/Anonymous/UpdateAddress', new Ok(), array('Confirm' => true))
+                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()), Panel::PANEL_TYPE_DANGER
+                            )
+                        )
+                    )
+                )
+            ));
+        }
 
         return $Stage;
     }
 
     /**
+     * @param bool $Confirm
+     *
      * @return Stage
      */
-    public function frontendUpdateCompany()
+    public function frontendUpdateCompany($Confirm = false)
     {
 
         $Stage = new Stage('Daten Anonymisieren', 'Institution');
-        $Stage->setContent(Anonymous::useService()->UpdateCompany());
+        if($Confirm){
+            $Stage->setContent(Anonymous::useService()->UpdateCompany());
+        } else {
+
+            $Acronym = new DangerText('!Mandant konnte nicht ermittelt werden!');
+            if(($tblAccount = Account::useService()->getAccountBySession())){
+                if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                    $Acronym = $tblConsumer->getAcronym();
+                }
+            }
+
+            $Stage->setContent(new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Wollen Sie für den Mandanten '.new Bold('"'.$Acronym.'"').' wirklich alle Institutionen Anonymisieren?',
+                                new Standard('Ja', '/Platform/System/Anonymous/UpdateCompany', new Ok(), array('Confirm' => true))
+                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()), Panel::PANEL_TYPE_DANGER
+                            )
+                        )
+                    )
+                )
+            ));
+        }
 
         return $Stage;
     }
@@ -139,10 +223,13 @@ TRUNCATE SettingConsumer_".$Acronym.".tblUntisImportLectureship;
 TRUNCATE SettingConsumer_".$Acronym.".tblUserAccount;
 TRUNCATE SettingConsumer_".$Acronym.".tblWorkSpace;
 DROP DATABASE BillingInvoice_".$Acronym.";
+DROP DATABASE ReportingCheckList_".$Acronym.";
+DROP DATABASE DocumentStorage_".$Acronym.";
+DELETE FROM CorporationCompany_".$Acronym.".tblCompany WHERE EntityRemove IS NOT null;
 UPDATE ContactMail_".$Acronym.".tblMail SET Address = 'Ref@schulsoftware.schule';
 UPDATE ContactPhone_".$Acronym.".tblPhone SET Number = concat('00000/', LPAD(FLOOR(RAND()*1000000), 6, '0'));
 UPDATE ContactWeb_".$Acronym.".tblWeb SET Address = 'www.schulsoftware.schule';
-DROP DATABASE ReportingCheckList_".$Acronym.";
+UPDATE PeopleGroup_".$Acronym.".tblGroup SET Description = '' where MetaTable = '';
 UPDATE PeopleMeta_".$Acronym.".tblClub SET Remark = '' , Identifier = FLOOR(RAND()*100000);
 UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthplace = '';
 UPDATE PeopleMeta_".$Acronym.".tblCustody SET Remark = '';

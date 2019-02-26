@@ -232,6 +232,24 @@ class Data extends AbstractData
      *
      * @param TblCompany $tblCompany
      *
+     * @return bool|TblMember[]
+     */
+    public function getMemberAllByCompany(TblCompany $tblCompany)
+    {
+
+        /** @var TblMember[] $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
+        /** @var TblMember[] $EntityList */
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     *
+     * @param TblCompany $tblCompany
+     *
      * @return bool|TblGroup[]
      */
     public function getGroupAllByCompany(TblCompany $tblCompany)
@@ -314,6 +332,25 @@ class Data extends AbstractData
      * @return bool
      */
     public function removeMember(TblMember $tblMember)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblMember $Entity */
+        $Entity = $Manager->getEntityById('TblMember', $tblMember->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblMember $tblMember
+     *
+     * @return bool
+     */
+    public function destroyMember(TblMember $tblMember)
     {
 
         $Manager = $this->getConnection()->getEntityManager();

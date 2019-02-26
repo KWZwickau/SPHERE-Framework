@@ -324,6 +324,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblMember[]
+     */
+    public function getMemberAllByCompany(TblCompany $tblCompany)
+    {
+        return (new Data($this->getBinding()))->getMemberAllByCompany($tblCompany);
+    }
+
+    /**
      * @param TblMember $tblMember
      *
      * @return bool
@@ -332,6 +342,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeMember($tblMember);
+    }
+
+    /**
+     * @param TblMember $tblMember
+     *
+     * @return bool
+     */
+    public function destroyMember(TblMember $tblMember)
+    {
+
+        return (new Data($this->getBinding()))->destroyMember($tblMember);
     }
 
     /**
@@ -345,7 +366,7 @@ class Service extends AbstractService
         $tblMemberList = Group::useService()->getMemberAllByGroup($tblGroup);
         if ($tblMemberList) {
             foreach ($tblMemberList as $tblMember) {
-                Group::useService()->removeMember($tblMember);
+                Group::useService()->destroyMember($tblMember);
             }
         }
 
