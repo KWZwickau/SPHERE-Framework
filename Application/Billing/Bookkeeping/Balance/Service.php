@@ -126,7 +126,11 @@ class Service extends AbstractService
         if(!empty($PriceList)){
             foreach($PriceList as &$Debtor) {
                 foreach($Debtor as &$PriceArray) {
-                    $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
+                    if(isset($PriceArray['Sum'])){
+                        $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
+                    } else {
+                        $PriceArray['Sum'] = 0;
+                    }
                 }
             }
         }
@@ -192,8 +196,10 @@ class Service extends AbstractService
                     $MonthOpenList[] = new DangerText(Balance::useService()->getPriceString($PriceMissing).' ('.$Time.')');
                 }
             }
-            foreach($Value['Price'] as $Time => $Price) {
-                $MonthList[] = Balance::useService()->getPriceString($Price).' ('.$Time.')';
+            if(isset($Value['Price'])){
+                foreach($Value['Price'] as $Time => $Price) {
+                    $MonthList[] = Balance::useService()->getPriceString($Price).' ('.$Time.')';
+                }
             }
             if(!empty($MonthOpenList)){
                 $ToolTipMonthPrice = new Bold('Offene Posten<br/>').implode('<br/>',
