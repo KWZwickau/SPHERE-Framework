@@ -108,7 +108,6 @@ class Service extends AbstractService
         $error = false;
 
         $form = Web::useFrontend()->formAddressToCompany($tblCompany->getId(), $tblToCompany ? $tblToCompany->getId() : null);
-        $Address = $this->validateMailAddress($Address);
         if (isset($Address) && empty($Address)) {
             $form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
             $error = true;
