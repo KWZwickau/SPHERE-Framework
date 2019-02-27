@@ -34,6 +34,8 @@ class Setup extends AbstractSetup
         $tblGradeText = $this->setTableGradeText($Schema);
         $this->setTableGrade($Schema, $tblGradeType, $tblGradeText);
 
+        $this->setTableProposalBehaviorGrade($Schema, $tblGradeType);
+
         $tblScoreRule = $this->setTableScoreRule($Schema);
         $tblScoreCondition = $this->setTableScoreCondition($Schema);
         $tblScoreGroup = $this->setTableScoreGroup($Schema);
@@ -475,6 +477,32 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
 
         $this->createIndex($Table, array('Identifier'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblGradeType
+     *
+     * @return Table
+     */
+    private function setTableProposalBehaviorGrade(Schema &$schema, Table $tblGradeType)
+    {
+
+        $Table = $this->getConnection()->createTable($schema, 'tblProposalBehaviorGrade');
+
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, false);
+        $this->createColumn($Table, 'serviceTblTask', self::FIELD_TYPE_BIGINT, false);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, false);
+        $this->createColumn($Table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, false);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING, false);
+        $this->createColumn($Table, 'Trend', 'smallint', false);
+        $this->createColumn($Table, 'Comment', self::FIELD_TYPE_STRING, false);
+
+        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+
+        $this->createIndex($Table, array('serviceTblDivision', 'serviceTblTask', 'serviceTblPerson', 'tblGradeType'), true);
 
         return $Table;
     }

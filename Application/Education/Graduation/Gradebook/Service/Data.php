@@ -2,12 +2,14 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -816,5 +818,138 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPersonStudent->getId(),
             TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
         ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblProposalBehaviorGrade
+     */
+    public function getProposalBehaviorGrade(TblDivision $tblDivision, TblTask $tblTask, TblGradeType $tblGradeType, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblProposalBehaviorGrade', array(
+            TblProposalBehaviorGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblProposalBehaviorGrade::ATTR_SERVICE_TBL_TASK => $tblTask->getId(),
+            TblProposalBehaviorGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
+            TblProposalBehaviorGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblProposalBehaviorGrade[]
+     */
+    public function getProposalBehaviorGradeAllBy(TblDivision $tblDivision, TblTask $tblTask, TblGradeType $tblGradeType = null)
+    {
+
+        if ($tblGradeType) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblProposalBehaviorGrade',
+                array(
+                    TblProposalBehaviorGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                    TblProposalBehaviorGrade::ATTR_SERVICE_TBL_TASK => $tblTask->getId(),
+                    TblProposalBehaviorGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+                ));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblProposalBehaviorGrade',
+                array(
+                    TblProposalBehaviorGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                    TblProposalBehaviorGrade::ATTR_SERVICE_TBL_TASK => $tblTask->getId()
+                ));
+        }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonTeacher
+     * @param $Grade
+     * @param $Trend
+     * @param $Comment
+     *
+     * @return TblProposalBehaviorGrade
+     */
+    public function createProposalBehaviorGrade(
+        TblDivision $tblDivision,
+        TblTask $tblTask,
+        TblGradeType $tblGradeType,
+        TblPerson $tblPerson,
+        TblPerson $tblPersonTeacher,
+        $Grade,
+        $Trend,
+        $Comment
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblProposalBehaviorGrade')
+            ->findOneBy(array(
+                TblProposalBehaviorGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                TblProposalBehaviorGrade::ATTR_SERVICE_TBL_TASK => $tblTask->getId(),
+                TblProposalBehaviorGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                TblProposalBehaviorGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblProposalBehaviorGrade();
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblTask($tblTask);
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
+            $Entity->setGrade($Grade);
+            $Entity->setComment($Comment);
+            $Entity->setTrend($Trend);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblProposalBehaviorGrade $tblProposalBehaviorGrade
+     * @param $Grade
+     * @param string $Comment
+     * @param int $Trend
+     * @param TblPerson|null $tblPersonTeacher
+     *
+     * @return bool
+     */
+    public function updateProposalBehaviorGrade(
+        TblProposalBehaviorGrade $tblProposalBehaviorGrade,
+        $Grade,
+        $Comment = '',
+        $Trend = 0,
+        TblPerson $tblPersonTeacher = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblProposalBehaviorGrade $Entity */
+        $Entity = $Manager->getEntityById('TblProposalBehaviorGrade', $tblProposalBehaviorGrade->getId());
+
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($Grade);
+            $Entity->setComment($Comment);
+            $Entity->setTrend($Trend);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

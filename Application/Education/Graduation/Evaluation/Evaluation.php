@@ -69,6 +69,19 @@ class Evaluation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Teacher\Grade\Edit',
                 __NAMESPACE__.'\Frontend::frontendEditTestGrade')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Teacher\HighlightedTestsOverview',
+                __NAMESPACE__.'\Frontend::frontendDivisionTeacherHighlightedTestsOverview')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Teacher\Proposal\Selected',
+                __NAMESPACE__.'\Frontend::frontendProposalTestSelected')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Teacher\Proposal\Grade\Edit',
+                __NAMESPACE__.'\Frontend::frontendEditProposalTestGrade')
+        );
+
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Task\Teacher',
@@ -77,10 +90,6 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Task\Teacher\Grades',
                 __NAMESPACE__.'\Frontend::frontendDivisionTeacherTaskGrades')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Teacher\HighlightedTestsOverview',
-                __NAMESPACE__.'\Frontend::frontendDivisionTeacherHighlightedTestsOverview')
         );
 
         /*

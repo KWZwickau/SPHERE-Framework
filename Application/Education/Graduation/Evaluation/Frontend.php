@@ -221,6 +221,43 @@ class Frontend extends Extension implements IFrontendInterface
                 $isDivisionTeacher = true;
             }
 
+            // Klassenlehrer für Kopfnotenvorschlag
+            if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
+                'ShowProposalBehaviorGrade'))
+                && $tblSetting->getValue()
+            ) {
+                if (($tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
+                    foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                        if (($tblDivisionItem = $tblDivisionTeacher->getTblDivision())
+                            && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
+                        ) {
+                            // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                            /** @var TblYear $tblYear */
+                            if ($tblYear
+                                && $tblYearItem->getId() != $tblYear->getId()
+                            ) {
+                                continue;
+                            }
+
+                            $divisionSubjectTable[] = array(
+                                'Year' => $tblYearItem->getDisplayName(),
+                                'Type' => $tblDivisionItem->getTypeName(),
+                                'Division' => $tblDivisionItem->getDisplayName(),
+                                'Subject' => '',
+                                'SubjectGroup' => '',
+                                'Option' => new Standard(
+                                    '', '/Education/Graduation/Evaluation/Test/Teacher/Proposal/Selected', new Select(),
+                                    array(
+                                        'DivisionId' => $tblDivisionItem->getId()
+                                    ),
+                                    'Auswählen'
+                                )
+                            );
+                        }
+                    }
+                }
+            }
+
             // Klassenlehrer
 //            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
 //            if ($tblDivisionTeacherAllByTeacher) {
@@ -4170,6 +4207,439 @@ class Frontend extends Extension implements IFrontendInterface
         $stage->setContent(
             $form
             . $receiverContent
+        );
+
+        return $stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return Stage|string
+     */
+    public function frontendProposalTestSelected($DivisionId = null)
+    {
+        $stage = new Stage('Kopfnotenvorschlag des Klassenlehrers', 'Übersicht');
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $stage->addButton(new Standard('Zurück', '/Education/Graduation/Evaluation/Test/Teacher', new ChevronLeft()));
+
+            if (($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision))) {
+                $countStudents = 4 * count($tblDivisionStudentAll);
+            } else {
+                $countStudents = 0;
+            }
+
+            if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                && ($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))
+            ) {
+                $dataList = array();
+                foreach ($tblTaskList as $tblTask) {
+                    $countGrades = 0;
+                    if (($tblGradeList = Gradebook::useService()->getProposalBehaviorGradeAllBy($tblDivision, $tblTask))) {
+                        foreach ($tblGradeList as $tblProposalBehaviorGrade) {
+                            if ($tblProposalBehaviorGrade->getDisplayGrade() !== '') {
+                                $countGrades++;
+                            }
+                        }
+                    }
+
+                    $dataList[] = array(
+                        'Date' => $tblTask->getDate(),
+                        'DisplayPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
+                        'Name' => $tblTask->getName(),
+                        'Grades' => ($countGrades >= $countStudents ? new Success($countGrades . ' von ' . $countStudents) :
+                            new Warning($countGrades . ' von ' . $countStudents)),
+                        'Option' => new Standard('', '/Education/Graduation/Evaluation/Test/Teacher/Proposal/Grade/Edit', new Listing(),
+                            array('DivisionId' => $tblDivision->getId(), 'TaskId' => $tblTask->getId()), 'Zensuren eintragen')
+                    );
+                }
+
+                $columns = array(
+                    'Date' => 'Datum',
+                    'DisplayPeriod' => 'Bearbeitungszeitraum',
+                    'Name' => 'Name',
+                    'Grades' => 'Noten eingetragen',
+                    'Option' => ''
+                );
+
+                $content = new TableData(
+                    $dataList,
+                    null,
+                    $columns,
+                    array(
+                        'order' => array(
+                            array(0, 'desc')
+                        ),
+                        'columnDefs' => array(
+                            array('type' => 'de_date', 'targets' => 0)
+                        )
+                    )
+                );
+            } else {
+                $content = new WarningMessage('Es sind aktuell keine Kopfnotenaufträge verfügbar.' , new Ban());
+            }
+
+            $stage->setContent(
+                new Panel(
+                    'Klasse',
+                    $tblDivision->getDisplayName(),
+                    Panel::PANEL_TYPE_INFO
+                )
+                . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    $content
+                )), new Title(new ListingTable() . ' Übersicht')))
+            );
+        } else {
+            return $stage . new Danger('Klasse nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $TaskId
+     * @param null $GradeTypeId
+     * @param null $Grade
+     *
+     * @return Stage|string
+     */
+    public function frontendEditProposalTestGrade($DivisionId = null, $TaskId = null, $GradeTypeId = null, $Grade = null)
+    {
+        $stage = new Stage('Kopfnotenvorschlag des Klassenlehrers', 'Zensuren eintragen');
+
+        if (!($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            return $stage . new Danger('Klasse nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
+        }
+        if (!($tblTask = Evaluation::useService()->getTaskById($TaskId))) {
+            return $stage . new Danger('Notenauftrag nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
+        }
+
+        $stage->addButton(new Standard('Zurück', '/Education/Graduation/Evaluation/Test/Teacher/Proposal/Selected',
+                new ChevronLeft(), array('DivisionId' => $DivisionId))
+        );
+
+        $showCourse = false;
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblType = $tblLevel->getServiceTblType())
+            && $tblType->getName() == 'Mittelschule / Oberschule'
+            && intval($tblLevel->getName()) > 6
+        ) {
+            $showCourse = true;
+        }
+
+        $period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
+        $tableColumns = array(
+            'Number' => '#',
+            'Name' => 'Schüler',
+            'Integration' => 'Integration'
+        );
+        if ($showCourse) {
+            $tableColumns['Course'] = 'Bildungsgang';
+        }
+        $tableColumns['PreviewsGrade'] = 'Letzter Kopfnotenvorschlag';
+        $tableColumns['Grade'] = 'Zensur';
+        $tableColumns['Comment'] = 'Vermerk Notenänderung';
+
+        $buttonList = array();
+        $tblCurrentGradeType = Gradebook::useService()->getGradeTypeById($GradeTypeId);
+        $tblNextGradeType = false;
+        if (($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision))) {
+            $tblGradeTypeList = array();
+            $isCurrent = false;
+            foreach ($tblTestList as $tblTest) {
+                if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
+                    if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                        $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
+
+                        if (!$tblCurrentGradeType) {
+                            $tblCurrentGradeType = $tblGradeTypeItem;
+                        }
+
+                        if ($tblCurrentGradeType && $isCurrent && !$tblNextGradeType) {
+                            $tblNextGradeType = $tblGradeTypeItem;
+                        }
+
+                        if (!$isCurrent && $tblCurrentGradeType
+                            && $tblCurrentGradeType->getId() == $tblGradeTypeItem->getId()
+                        ) {
+                            $isCurrent = true;
+                        }
+                    }
+                }
+            }
+
+            if ($tblCurrentGradeType) {
+                /** @var TblGradeType $tblGradeType */
+                foreach ($tblGradeTypeList as $tblGradeType) {
+                    if ($tblCurrentGradeType->getId() == $tblGradeType->getId()) {
+                        $name = new Info(new Bold($tblGradeType->getName()));
+                        $icon = new Edit();
+                    } else {
+                        $name = $tblGradeType->getName();
+                        $icon = null;
+                    }
+
+                    $buttonList[] = new Standard($name,
+                        '/Education/Graduation/Evaluation/Test/Teacher/Proposal/Grade/Edit',
+                        $icon,
+                        array(
+                            'DivisionId' => $DivisionId,
+                            'TaskId' => $TaskId,
+                            'GradeTypeId' => $tblGradeType->getId()
+                        )
+                    );
+                }
+            }
+        }
+
+        $isInPeriod = $tblTask->isInEditPeriod();
+
+        // lastTask
+        $taskDate = new DateTime($tblTask->getDate());
+        $tblLastTask = false;
+        if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+            && ($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))
+        ) {
+            $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
+            /** @var TblTask $tblTaskItem */
+            foreach ($tblTaskList as $tblTaskItem){
+                $date = new DateTime($tblTaskItem->getDate());
+                if (!$tblLastTask
+                    && $date < $taskDate
+                ) {
+                    $tblLastTask = $tblTaskItem;
+                    break;
+                }
+            }
+        }
+
+        $studentList = array();
+        if (($tblScoreType = $tblTask->getServiceTblScoreType())) {
+
+        } else {
+            $tblScoreType = Gradebook::useService()->getScoreTypeByIdentifier('GRADES_BEHAVIOR_TASK');
+        }
+        if (($tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision, true))) {
+            if ($tblScoreType) {
+                $selectList[-1] = '';
+                if ($tblScoreType->getIdentifier() == 'GRADES') {
+                    for ($i = 1; $i < 6; $i++) {
+                        $selectList[$i . '+'] = (string)($i . '+');
+                        $selectList[$i] = (string)($i);
+                        $selectList[$i . '-'] = (string)($i . '-');
+                    }
+                    $selectList[6] = 6;
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectList[$i . '+'] = (string)($i . '+');
+                        $selectList[$i] = (string)($i);
+                        $selectList[$i . '-'] = (string)($i . '-');
+                    }
+                    $selectList[5] = 5;
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    for ($i = 0; $i < 16; $i++) {
+                        $selectList[$i] = (string)$i;
+                    }
+                }
+            } else {
+                $selectList = array();
+            }
+
+            // Post setzen
+            if (($tblProposalBehaviorGradeList = Gradebook::useService()->getProposalBehaviorGradeAllBy(
+                $tblDivision,
+                $tblTask,
+                $tblCurrentGradeType
+            ))) {
+                $global = $this->getGlobal();
+                foreach ($tblProposalBehaviorGradeList as $tblProposalBehaviorGrade) {
+                    if (($tblPersonItem = $tblProposalBehaviorGrade->getServiceTblPerson())) {
+                        $global->POST['Grade'][$tblPersonItem->getId()]['Grade'] = $tblProposalBehaviorGrade->getDisplayGrade();
+                        $global->POST['Grade'][$tblPersonItem->getId()]['Comment'] = $tblProposalBehaviorGrade->getComment();
+                    }
+                }
+                $global->savePost();
+            }
+
+            $tabIndex = 1;
+            foreach ($tblStudentAll as $tblPerson) {
+                $isInActive = false;
+                // inaktive Schüler abhängig vom Austrittsdatum ignorieren
+                if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                        $tblDivision, $tblPerson
+                    ))
+                    && ($leaveDate = $tblDivisionStudent->getLeaveDateTime()) !== null
+                ) {
+                    $isInActive = $tblDivisionStudent->isInActive();
+                    if ($taskDate > $leaveDate) {
+                        continue;
+                    }
+                }
+
+                $studentTestList[$tblPerson->getId()] = $tblTest;
+                $count = count($studentList) + 1;
+                $name = $tblPerson->getLastFirstName();
+                $studentList[$tblPerson->getId()]['Number'] = $count;
+                $studentList[$tblPerson->getId()]['Name'] = $isInActive ? new Strikethrough($name) : $name;
+                if (Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                } else {
+                    $Integration = '';
+                }
+                $studentList[$tblPerson->getId()]['Integration'] = $Integration;
+                if (($tblCourse = Student::useService()->getCourseByPerson($tblPerson))) {
+                    $course = $tblCourse->getName();
+                } else {
+                    $course = '';
+                }
+                $studentList[$tblPerson->getId()]['Course'] = $isInActive ? new Strikethrough($course) : $course;
+
+                $previewsGrade = '';
+                if ($tblLastTask
+                    && ($tblLastProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade($tblDivision,
+                        $tblLastTask, $tblCurrentGradeType, $tblPerson))
+                ) {
+                    $previewsGrade = $tblLastProposalBehaviorGrade->getDisplayGrade();
+                }
+                $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
+
+                $tblGrade = Gradebook::useService()->getProposalBehaviorGrade($tblDivision, $tblTask, $tblCurrentGradeType, $tblPerson);
+                if (!$isInPeriod) {
+                    $studentList[$tblPerson->getId()]['Grade'] = $tblGrade ? $tblGrade->getDisplayGrade() : '';
+                    $studentList[$tblPerson->getId()]['Comment'] = $tblGrade ? $tblGrade->getComment() : '';
+                } else {
+                    if ($tblScoreType) {
+                        if ($tblScoreType->getIdentifier() == 'VERBAL') {
+                            $studentList[$tblPerson->getId()]['Grade']
+                                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                                new Quote()))->setTabIndex($tabIndex++);
+                        } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                            || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
+                        ) {
+                            $studentList[$tblPerson->getId()]['Grade']
+                                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
+                                ''))->setTabIndex($tabIndex++);
+                        } else {
+                            $selectComplete = (new SelectCompleter('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                                $selectList))
+                                ->setTabIndex($tabIndex++);
+
+                            $studentList[$tblPerson->getId()]['Grade']
+                                = $selectComplete;
+                        }
+                    } else {
+                        $studentList[$tblPerson->getId()]['Grade']
+                            = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                            new Quote()))->setTabIndex($tabIndex++);
+                    }
+
+                    $studentList[$tblPerson->getId()]['Comment']
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '',
+                        new Comment()))->setTabIndex(1000 + $tabIndex)->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                }
+            }
+        }
+
+        $gradeType = $tblCurrentGradeType ? $tblCurrentGradeType->getDisplayName() : '';
+        $tableData = new TableData($studentList, null, $tableColumns, array(
+            "paging" => false, // Deaktivieren Blättern
+            "iDisplayLength" => -1,    // Alle Einträge zeigen
+            "searching" => false, // Deaktivieren Suchen
+            "info" => false,  // Deaktivieren Such-Info
+            "sorting" => false,  // Deaktivieren Such-Info
+            "responsive" => false,
+            'order' => array(
+                array('0', 'asc'),
+            ),
+            'columnDefs' => array(
+                array('type' => 'natural', 'targets' => 0),
+                array('orderable' => false, 'targets' => '_all'),
+            ),
+        ));
+
+        /*
+         * Content
+         */
+        $serviceForm = Gradebook::useService()->updateProposalBehaviorGrade(
+            new Form(
+                new FormGroup(array(
+                    new FormRow(
+                        new FormColumn(
+                            $tableData
+                        )
+                    ),
+                ))
+                , new Primary('Speichern', new Save())),
+            $tblDivision,
+            $tblTask,
+            $tblCurrentGradeType,
+            $Grade,
+            $tblScoreType ? $tblScoreType : null,
+            $tblNextGradeType ? $tblNextGradeType : null
+        );
+
+        if ($tblTask->isBeforeEditPeriod()) {
+            $content = new WarningMessage(
+                'Zensuren können erst ab erreichen des Bearbeitungszeitraums vergeben werden.',
+                new Exclamation()
+            );
+        } elseif ($tblTask->isAfterEditPeriod()) {
+            $content = new WarningMessage(
+                    'Zensuren können von Ihnen nur innerhalb des Bearbeitungszeitraums vergeben werden. Zur Nachträglichen Bearbeitung der Zensuren
+                         wenden Sie sich bitte an die Schulleitung.',
+                    new Exclamation()
+                )
+                . $tableData;
+        } else {
+            $content = $serviceForm;
+        }
+
+        $stage->setContent(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout (array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Klasse',
+                                $tblDivision->getDisplayName(),
+                                Panel::PANEL_TYPE_INFO
+                            ), 3
+                        ),
+                        new LayoutColumn(
+                            new Panel('Bearbeitungszeitraum',
+                                $period,
+                                Panel::PANEL_TYPE_INFO), 3
+                        ),
+                        new LayoutColumn(
+                            new Panel('Zensuren-Typ',
+                                $gradeType,
+                                Panel::PANEL_TYPE_INFO), 3
+                        ),
+                        new LayoutColumn(
+                            new Panel(
+                                'Name',
+                                $tblTask->getName(),
+                                Panel::PANEL_TYPE_INFO
+                            ), 3
+                        ),
+                    )),
+                )),
+                (!empty($buttonList) ? new LayoutGroup(new LayoutRow(new LayoutColumn($buttonList))) : null),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $content
+                        )
+                    ))
+                ))
+            ))
         );
 
         return $stage;
