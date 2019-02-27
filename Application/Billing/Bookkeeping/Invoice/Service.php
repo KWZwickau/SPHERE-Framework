@@ -400,11 +400,12 @@ class Service extends AbstractService
                 $Name = $Description = '';
             }
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
-            $DebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
-            if($DebtorNumber && !empty($DebtorNumber)){
+            $tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
+            if($tblDebtorNumberList && !empty($tblDebtorNumberList)){
                 // ToDO mehrere Debitoren-Nr.?
                 // erste Debtitor Nummer wird gezogen
-                $DebtorNumber = current($DebtorNumber);
+                $tblDebtorNumber = current($tblDebtorNumberList);
+                $DebtorNumber = $tblDebtorNumber->getDebtorNumber();
             } else {
                 $DebtorNumber = '';
             }
