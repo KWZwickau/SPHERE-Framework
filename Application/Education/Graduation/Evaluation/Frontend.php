@@ -4058,31 +4058,35 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
 
                 // Kopfnotenvorschlag des Klassenlehrers
-                $proposalGrades = array();
-                if ($showProposalBehaviorGrade
-                    && ($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))
-                ) {
-                    foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
-                        if (($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())
-                            && ($tblGradeTeacherList = Gradebook::useService()->getGradesByDivisionAndTeacher(
-                                $tblDivision, $tblPersonTeacher, $tblPerson, $tblTest->getServiceTblGradeType()
-                            ))
-                        ) {
-                            foreach ($tblGradeTeacherList as $item) {
-                                if (($displayGrade = $item->getDisplayGrade())
-                                    && ($tblSubjectItem = $item->getServiceTblSubject())
-                                ) {
-                                    $proposalGrades[$item->getId()] = new ToolTip(
-                                        $tblSubjectItem->getAcronym() . ': ' . $displayGrade,
-                                        $tblPersonTeacher->getFullName()
-                                    );
-                                }
-                            }
-                        }
-                    }
+//                $proposalGrades = array();
+//                if ($showProposalBehaviorGrade
+//                    && ($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))
+//                ) {
+//                    foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
+//                        if (($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())
+//                            && ($tblGradeTeacherList = Gradebook::useService()->getGradesByDivisionAndTeacher(
+//                                $tblDivision, $tblPersonTeacher, $tblPerson, $tblTest->getServiceTblGradeType()
+//                            ))
+//                        ) {
+//                            foreach ($tblGradeTeacherList as $item) {
+//                                if (($displayGrade = $item->getDisplayGrade())
+//                                    && ($tblSubjectItem = $item->getServiceTblSubject())
+//                                ) {
+//                                    $proposalGrades[$item->getId()] = new ToolTip(
+//                                        $tblSubjectItem->getAcronym() . ': ' . $displayGrade,
+//                                        $tblPersonTeacher->getFullName()
+//                                    );
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                $studentList[$tblPerson->getId()]['ProposalGrade'] = implode(', ', $proposalGrades);
+                if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
+                    $tblDivision, $tblTask, $tblTest->getServiceTblGradeType(), $tblPerson
+                ))) {
+                    $studentList[$tblPerson->getId()]['ProposalGrade'] = $tblProposalBehaviorGrade->getDisplayGrade();
                 }
-
-                $studentList[$tblPerson->getId()]['ProposalGrade'] = implode(', ', $proposalGrades);
             }
         }
 
