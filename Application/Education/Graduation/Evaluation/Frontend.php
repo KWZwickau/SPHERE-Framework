@@ -3173,6 +3173,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 } else {
 
+                    if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
+                        'ShowProposalBehaviorGrade'))
+                    ) {
+                        $showProposalBehaviorGrade = $tblSetting->getValue();
+                    } else {
+                        $showProposalBehaviorGrade = false;
+                    }
+
                     // Kopfnoten
                     $tableHeaderList[$tblDivision->getId()]['Number'] = '#';
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
@@ -3229,6 +3237,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
                                     foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
                                         $gradeTypeId = $tblGradeType->getId();
+                                        // Kopfnotenvorschlag KL
+                                        if ($showProposalBehaviorGrade) {
+                                            $proposalGrade = new Warning('f');
+                                            if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
+                                                $tblDivision, $tblTask, $tblGradeType, $tblPerson
+                                                )) && $tblProposalBehaviorGrade->getDisplayGrade() !== ''
+                                            ) {
+                                                $proposalGrade = $tblProposalBehaviorGrade->getDisplayGrade();
+                                            }
+                                            $studentListByDivision['Type' . $gradeTypeId] .= new Small(' | (KL-Vorschlag: ' . $proposalGrade . ')');
+                                        }
                                         if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
                                             $studentList[$tblDivision->getId()][$personId]['Type' . $gradeTypeId] =
                                                 new Bold('&#216; ' .

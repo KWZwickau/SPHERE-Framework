@@ -765,6 +765,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $useMultipleBehaviorTasks = false;
                 $tblTaskList = false;
                 $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+
                 if (($tblSetting = ConsumerSetting::useService()->getSetting(
                         'Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
                     && $tblSetting->getValue()
@@ -774,6 +775,14 @@ class Frontend extends Extension implements IFrontendInterface
                     if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))) {
                         $useMultipleBehaviorTasks = true;
                     }
+                }
+
+                if (($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation',
+                    'ShowProposalBehaviorGrade'))
+                ) {
+                    $showProposalBehaviorGrade = $tblSetting->getValue();
+                } else {
+                    $showProposalBehaviorGrade = false;
                 }
 
                 if (($tblPrepare->getServiceTblBehaviorTask())) {
@@ -974,6 +983,14 @@ class Frontend extends Extension implements IFrontendInterface
                                                             }
                                                         }
                                                     }
+                                                    if ($showProposalBehaviorGrade) {
+                                                        if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
+                                                                $tblDivisionItem, $tblTaskItem, $tblCurrentGradeType, $tblPerson
+                                                            )) && ($proposalGrade = $tblProposalBehaviorGrade->getDisplayGrade())
+                                                        ) {
+                                                            $subString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                                        }
+                                                    }
                                                     if (!empty($subString) && isset($gradeList[$taskId])) {
                                                         $count = count($gradeList[$taskId]);
                                                         $average = $count > 0 ? round(array_sum($gradeList[$taskId]) / $count, 2) : '';
@@ -1025,6 +1042,14 @@ class Frontend extends Extension implements IFrontendInterface
                                                         $gradeListString .= ' | '
                                                             . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
                                                     }
+                                                }
+                                            }
+                                            if ($showProposalBehaviorGrade && $tblPrepare->getServiceTblBehaviorTask()) {
+                                                if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
+                                                    $tblDivisionItem, $tblPrepare->getServiceTblBehaviorTask(), $tblCurrentGradeType, $tblPerson
+                                                    )) && ($proposalGrade = $tblProposalBehaviorGrade->getDisplayGrade())
+                                                ) {
+                                                    $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
                                                 }
                                             }
                                             $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
