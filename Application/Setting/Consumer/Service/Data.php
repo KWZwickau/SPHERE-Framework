@@ -170,6 +170,13 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
                 'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das): [Standard: ]');
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking',
+            TblSetting::TYPE_BOOLEAN, '1'))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Sollen leere Bemerkungsfelder auf Zeugnissen gesperrt werden ("---"). [Standard: Ja]',
+                true);
+        }
 
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook',
             'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
