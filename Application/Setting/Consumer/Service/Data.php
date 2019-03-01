@@ -246,6 +246,12 @@ class Data extends AbstractData
                 'Automatische Bekanntgabe von Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]',
                 true);
         }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation',
+            'ShowProposalBehaviorGrade', TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen',
+                'Anzeige der Kopfnoten der Klassenlehrer als Notenvorschlag [Standard: Nein]',
+                true);
+        }
 
         if (($tblSetting = $this->createSetting('Education', 'Lesson', 'Subject', 'HasOrientationSubjects',
             TblSetting::TYPE_BOOLEAN, '1', 'Allgemein', 'Es werden Neigungskurse verwendet. [Standard: Ja]'))) {
