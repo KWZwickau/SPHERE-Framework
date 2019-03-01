@@ -742,4 +742,17 @@ class Data extends AbstractData
             TblCategorySubject::ATTR_TBL_SUBJECT => $tblSubject->getId()
         )) ? true : false;
     }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblSubject[]
+     */
+    public function  getSubjectAllByName($Name)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubject', array(
+            TblSubject::ATTR_NAME => $Name
+        ));
+    }
 }
