@@ -1892,12 +1892,24 @@ class Service extends AbstractService
 
                         $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
-                        if (trim($value) && trim($value) !== '' && $value != -1) {
-
-                            Prepare::useService()->updatePrepareGradeForBehavior(
-                                $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
-                                trim($value)
-                            );
+                        if ($value != -1) {
+                            if (trim($value) === '') {
+                                // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
+                                // direktes löschen ist ungünstig, da beim nächsten Speichern wieder der Durchschnitt eingetragen würde
+                                if (($tblPrepareGrade = $this->getPrepareGradeByGradeType(
+                                    $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType
+                                ))) {
+                                    Prepare::useService()->updatePrepareGradeForBehavior(
+                                        $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                        trim($value)
+                                    );
+                                }
+                            } else {
+                                Prepare::useService()->updatePrepareGradeForBehavior(
+                                    $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                    trim($value)
+                                );
+                            }
                         }
                     }
                 }
