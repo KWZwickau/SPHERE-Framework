@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -67,6 +68,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         // reload ColumnContent
+        $Dispatcher->registerMethod('getWarning');
         $Dispatcher->registerMethod('getItemPrice');
         $Dispatcher->registerMethod('getItemSummary');
         $Dispatcher->registerMethod('getDebtor');
@@ -115,6 +117,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
     {
 
         return (new InlineReceiver())->setIdentifier('Service');
+    }
+
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return InlineReceiver
+     */
+    public static function receiverWarning($Content = '', $Identifier = '')
+    {
+
+        return (new InlineReceiver($Content))->setIdentifier('Warning'.$Identifier);
     }
 
     /**
@@ -269,6 +283,38 @@ class ApiBasketVerification extends Extension implements IApiInterface
      *
      * @return string
      */
+    public function getWarning($BasketVerificationId)
+    {
+
+        $IsDebtorNumberNeed = false;
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+            if($tblSetting->getValue() == 1){
+                $IsDebtorNumberNeed = true;
+            }
+        }
+
+        $DebtorWarningContent = new DangerText(new WarningIcon());
+        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
+                // ignore FailMessage if not necessary
+                if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
+                    $DebtorWarningContent = '';
+                } else {
+                    if(!$IsDebtorNumberNeed){
+                        $DebtorWarningContent = '';
+                    }
+                }
+
+            }
+        }
+        return $DebtorWarningContent;
+    }
+
+    /**
+     * @param $BasketVerificationId
+     *
+     * @return string
+     */
     public function getItemSummary($BasketVerificationId)
     {
 
@@ -300,6 +346,10 @@ class ApiBasketVerification extends Extension implements IApiInterface
             }
 
             if(($tblPerson = $tblBasketVerification->getServiceTblPersonDebtor())){
+                $DebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson);
+                if($DebtorNumberList){
+                    $InfoDebtorNumber = '';
+                }
                 return $tblPerson->getLastFirstName().' '.$InfoDebtorNumber;
             }
         }
@@ -433,6 +483,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             'BasketVerificationId' => $BasketVerificationId
         ));
         $Pipeline->appendEmitter($Emitter);
+
         // reload Price column
         $Emitter = new ServerEmitter(self::receiverItemPrice('', $BasketVerificationId), self::getEndpoint());
         $Emitter->setGetPayload(array(
@@ -442,6 +493,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             'BasketVerificationId' => $BasketVerificationId
         ));
         $Pipeline->appendEmitter($Emitter);
+
         // reload Summary column
         $Emitter = new ServerEmitter(self::receiverItemSummary('', $BasketVerificationId), self::getEndpoint());
         $Emitter->setGetPayload(array(
@@ -452,6 +504,16 @@ class ApiBasketVerification extends Extension implements IApiInterface
         ));
         $Pipeline->appendEmitter($Emitter);
 
+        // reload Warning column
+        $Emitter = new ServerEmitter(self::receiverWarning('', $BasketVerificationId), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getWarning'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        // close Modal
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
         return $Pipeline;
     }

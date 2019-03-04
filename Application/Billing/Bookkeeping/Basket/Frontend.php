@@ -243,12 +243,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $IsDebtorNumberNeed
                 ){
                     $Item['PersonCauser'] = '';
-                    $Item['PersonDebtorFail'] = '';
                     $Item['PersonDebtor'] = '';
                     $Item['Item'] = '';
                     $Item['Price'] = '';
                     $Item['Quantity'] = '';
                     $Item['Summary'] = '';
+                    $DebtorWarningContent = '';
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
                         if($tblBasket->getIsDone()){
@@ -259,7 +259,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new ToolTip(new WarningIcon(), 'Beitragszahler nicht gefunden')),
                                 $tblBasketVerification->getId());
                         }
-                        $Item['PersonDebtorFail'] = new DangerText(new WarningIcon());
+                        $DebtorWarningContent = new DangerText(new WarningIcon());
                     }
 
                     $InfoDebtorNumber = '';
@@ -273,19 +273,21 @@ class Frontend extends Extension implements IFrontendInterface
                         if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
                             $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
                                 $tblBasketVerification->getId());
-                            $Item['PersonDebtorFail'] = '';
+                            $DebtorWarningContent = '';
                         } else {
                             $DebtorNumberMiss++;
                             $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName().' '.$InfoDebtorNumber,
                                 $tblBasketVerification->getId());
                             if(!$IsDebtorNumberNeed){
-                                $Item['PersonDebtorFail'] = '';
+                                $DebtorWarningContent = '';
                             }
                         }
 
                     } else {
                         $DebtorMiss++;
                     }
+                    $Item['PersonDebtorFail'] = ApiBasketVerification::receiverWarning($DebtorWarningContent, $tblBasketVerification->getId());
+
                     if(($tblItem = $tblBasketVerification->getServiceTblItem())){
                         $Item['Item'] = $tblItem->getName();
                     }
