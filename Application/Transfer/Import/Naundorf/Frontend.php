@@ -36,7 +36,6 @@ class Frontend extends Extension implements IFrontendInterface
 {
     /**
      * @param null $File
-     * @param bool $IsNextYear
      *
      * @return Stage
      */
@@ -58,6 +57,51 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Well(
                                 Naundorf::useService()->createStudentsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendStudentMetaImport($File = null)
+    {
+
+        $View = new Stage('Import Naundorf', 'Schüler-Meta-Daten');
+        $View->addButton(
+            new Standard(
+                'Zurück',
+                '/Transfer/Import',
+                new ChevronLeft()
+            )
+        );
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Naundorf::useService()->createStudentMetasFromFile(new Form(
                                     new FormGroup(
                                         new FormRow(
                                             new FormColumn(

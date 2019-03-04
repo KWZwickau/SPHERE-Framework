@@ -28,6 +28,9 @@ class Naundorf implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Student', __NAMESPACE__ . '\Frontend::frontendStudentImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentMeta', __NAMESPACE__ . '\Frontend::frontendStudentMetaImport'
+        ));
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
 //        ));
@@ -47,10 +50,19 @@ class Naundorf implements IModuleInterface
 
         $DataList[] = array(
             'Consumer' => $consumer,
-            'Name' => 'Schüler',
+            'Name' => '01 - Schüler',
             'Option' => new Standard(
                 '',
                 __NAMESPACE__ . '/Student',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '02 - Schüler-Meta-Daten',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/StudentMeta',
                 new Select()
             )
         );

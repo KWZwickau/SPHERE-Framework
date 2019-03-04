@@ -18,11 +18,10 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
-use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1145,6 +1144,172 @@ class Service
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    return new Warning(json_encode($Location)) . new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createStudentMetasFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Geburtsdatum' => null,
+                    'Geburtsort' => null,
+                    'Konfession' => null,
+                    'Quereinstieg' => null
+                );
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countStudent = 0;
+                    $error = array();
+
+                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+                        // Student
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                            $RunY)));
+                        if ($firstName === '' || $lastName === '' || $day === '') {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
+                        } else {
+                            try {
+                                $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                            } catch (\Exception $ex) {
+                                $birthday = '';
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                            }
+
+                            if ($birthday !== '') {
+                                if (($tblPersonList = Person::useService()->getPersonAllByNameAndBirthday($firstName, $lastName, $birthday))) {
+                                    $countPersons = count($tblPersonList);
+                                } else {
+                                    $countPersons = 0;
+                                }
+
+                                if ($countPersons == 1) {
+                                    // meta daten setzen
+                                    /** @var TblPerson $tblPerson */
+                                    $tblPerson = reset($tblPersonList);
+                                    if ($tblPerson) {
+                                        $Meta = array();
+                                        $Meta['BirthDates']['Birthday'] = $birthday;
+                                        $Meta['BirthDates']['Birthplace'] = trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY)));
+                                        $Meta['BirthDates']['Gender'] = '';
+                                        $Meta['Information']['Nationality'] = '';
+                                        $Meta['Information']['Denomination'] = trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)));
+                                        $Meta['Information']['IsAssistance'] = '';
+                                        $Meta['Information']['AssistanceActivity'] = '';
+                                        $Meta['Remark'] = '';
+
+                                        $entrance = trim($Document->getValue($Document->getCell($Location['Quereinstieg'], $RunY)));
+                                        if ($entrance != '') {
+                                            $entrance = str_replace('ab ', '', $entrance);
+                                            // php kommt nicht mit 2 stelligen Jahreszahlen klar :(
+                                            if (($split = preg_split('/[.]/', $entrance))) {
+                                                $entrance = $split[0] . '.' . $split[1] . '.' . '20' . $split[2];
+                                            }
+
+                                            if (($tblStudent = Student::useService()->insertStudent($tblPerson, ''))){
+                                                Student::useService()->insertStudentTransfer(
+                                                    $tblStudent,
+                                                    $tblStudentTransferType,
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    $entrance,
+                                                    'Quereinstieg'
+                                                );
+                                            }
+                                        }
+
+                                        if ((Common::useService()->updateMetaService($tblPerson, $Meta))) {
+                                            $countStudent++;
+                                        }
+                                    }
+                                } elseif ($countPersons > 1) {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Es wurden mehrere Personen gefunden: ' . implode(', ', $tblPersonList);
+                                } else {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Es wurden keine Person gefunden: ' . $firstName . ' ' . $lastName;
+                                }
+                            }
+                        }
+                    }
+
+                    return
+                        new Success('Es wurden ' . $countStudent . ' Schüler-Meta-Daten erfolgreich angelegt.')
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(
                                 'Fehler',
