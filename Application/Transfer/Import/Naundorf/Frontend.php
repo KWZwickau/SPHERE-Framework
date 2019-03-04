@@ -135,7 +135,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $View = new Stage();
-        $View->setTitle('Bad Düben Import');
+        $View->setTitle('Import Naundorf');
         $View->setDescription('Interessentendaten');
         $View->setContent(
             new Layout(
@@ -170,41 +170,39 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $File
      *
      * @return Stage
-     *
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-//    public function frontendStaffImport($File = null)
-//    {
-//
-//        $View = new Stage();
-//        $View->setTitle('Bad Düben');
-//        $View->setDescription('Mitarbeiter');
-//        $View->setContent(
-//            new Layout(
-//                new LayoutGroup(
-//                    new LayoutRow(
-//                        new LayoutColumn(array(
-//                            new Well(
-//                                Naundorf::useService()->createStaffsFromFile(new Form(
-//                                    new FormGroup(
-//                                        new FormRow(
-//                                            new FormColumn(
-//                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-//                                                    array('showPreview' => false))
-//                                            )
-//                                        )
-//                                    )
-//                                    , new Primary('Hochladen')
-//                                ), $File
-//                                )
-//                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
-//                            )
-//                        ))
-//                    )
-//                )
-//            )
-//        );
-//
-//        return $View;
-//    }
+    public function frontendStaffImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Import Naundorf');
+        $View->setDescription('Mitarbeiter');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Naundorf::useService()->createStaffsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
 }
