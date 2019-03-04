@@ -131,40 +131,40 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-//    public function frontendInterestedPersonImport($File = null)
-//    {
-//
-//        $View = new Stage();
-//        $View->setTitle('Bad Düben Import');
-//        $View->setDescription('Interessentendaten');
-//        $View->setContent(
-//            new Layout(
-//                new LayoutGroup(
-//                    new LayoutRow(
-//                        new LayoutColumn(array(
-//                            new Well(
-//                                Naundorf::useService()->createInterestedPersonsFromFile(new Form(
-//                                    new FormGroup(
-//                                        new FormRow(
-//                                            new FormColumn(
-//                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-//                                                    array('showPreview' => false))
-//                                            )
-//                                        )
-//                                    )
-//                                    , new Primary('Hochladen')
-//                                ), $File
-//                                )
-//                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
-//                            )
-//                        ))
-//                    )
-//                )
-//            )
-//        );
-//
-//        return $View;
-//    }
+    public function frontendInterestedPersonImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Bad Düben Import');
+        $View->setDescription('Interessentendaten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Naundorf::useService()->createInterestedPersonsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
 
     /**
      * @param null $File

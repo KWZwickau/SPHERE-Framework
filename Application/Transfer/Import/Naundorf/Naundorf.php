@@ -31,11 +31,11 @@ class Naundorf implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentMeta', __NAMESPACE__ . '\Frontend::frontendStudentMetaImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/InterestedPerson', __NAMESPACE__ . '\Frontend::frontendInterestedPersonImport'
+        ));
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
-//        ));
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__ . '/InterestedPerson', __NAMESPACE__ . '\Frontend::frontendInterestedPersonImport'
 //        ));
     }
 
@@ -66,21 +66,21 @@ class Naundorf implements IModuleInterface
                 new Select()
             )
         );
-//        $DataList[] = array(
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '03 - Interessenten',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/InterestedPerson',
+                new Select()
+            )
+        );
+        //        $DataList[] = array(
 //            'Consumer' => $consumer,
 //            'Name' => 'Mitarbeiter',
 //            'Option' => new Standard(
 //                '',
 //                __NAMESPACE__ . '/Staff',
-//                new Select()
-//            )
-//        );
-//        $DataList[] = array(
-//            'Consumer' => $consumer,
-//            'Name' => 'Interessenten',
-//            'Option' => new Standard(
-//                '',
-//                __NAMESPACE__ . '/InterestedPerson',
 //                new Select()
 //            )
 //        );
