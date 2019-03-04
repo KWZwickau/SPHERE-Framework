@@ -524,6 +524,21 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array  $ProcessList
+     * @param string $CityName
+     *
+     * @return bool
+     */
+    public function updateAddressAnonymousBulk(
+        $ProcessList = array(),
+        $CityName = ''
+    ) {
+
+        (new Data($this->getBinding()))->updateCityAnonymousBulk($ProcessList, $CityName);
+        return (new Data($this->getBinding()))->updateAddressAnonymousBulk($ProcessList);
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblType
