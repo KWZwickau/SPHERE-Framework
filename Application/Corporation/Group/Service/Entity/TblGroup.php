@@ -19,6 +19,9 @@ class TblGroup extends Element
     const ATTR_IS_LOCKED = 'IsLocked';
     const ATTR_META_TABLE = 'MetaTable';
 
+    const ATTR_SCHOOL = 'SCHOOL';
+    const ATTR_NURSERY = 'NURSERY';
+
     /**
      * @Column(type="string")
      */

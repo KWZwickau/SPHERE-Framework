@@ -201,10 +201,14 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function destroyCompany(TblCompany $tblCompany)
+    public function removeCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->getBinding()))->destroyCompany($tblCompany);
+        if(($tblMemberList = Group::useService()->getMemberAllByCompany($tblCompany))){
+            foreach($tblMemberList as $tblMember)
+            Group::useService()->removeMember($tblMember);
+        }
+        return (new Data($this->getBinding()))->removeCompany($tblCompany);
     }
 
     /**
@@ -231,6 +235,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateCompanyDescriptionWithoutForm($tblCompany, $Description);
+    }
+
+    /**
+     * @param array  $ProcessList
+     *
+     * @return bool
+     */
+    public function updateCompanyAnonymousBulk(
+        $ProcessList = array()
+    ) {
+
+        return (new Data($this->getBinding()))->updateCompanyAnonymousBulk($ProcessList);
     }
 
     /**
