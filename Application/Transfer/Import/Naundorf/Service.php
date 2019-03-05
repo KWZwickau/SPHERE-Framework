@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
@@ -1180,6 +1181,224 @@ class Service
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler-Meta-Daten erfolgreich angelegt.')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    return new Warning(json_encode($Location)) . new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile $File
+     *
+     * @return IFormInterface|Danger|string
+     */
+    public function createClubsFromFile(IFormInterface $Form = null, UploadedFile $File = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'MNr' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Geburtsdatum' => null,
+                    'Straße' => null,
+                    'PLZ, Ort' => null,
+                    'Telefon' => null,
+                    'E-Mail' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countClub = 0;
+                    $countClubExists = 0;
+                    $error = array();
+
+                    $tblClubGroup = Group::useService()->getGroupByMetaTable('CLUB');
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($firstName !== '' && $lastName !== '' && $firstName !== 'Vorname') {
+
+                            // Address
+                            $cityName = trim($Document->getValue($Document->getCell($Location['PLZ, Ort'], $RunY)));
+                            $cityCode = '';
+                            $cityDistrict = '';
+                            $pos = strpos($cityName, " ");
+                            if ($pos !== false) {
+                                $cityCode = trim(substr($cityName, 0, $pos));
+                                $cityName = trim(substr($cityName, $pos + 1));
+
+                                $pos = strpos($cityName, " OT ");
+                                if ($pos !== false) {
+                                    $cityDistrict = trim(substr($cityName, $pos + 4));
+                                    $cityName = trim(substr($cityName, 0, $pos));
+                                }
+                            }
+
+                            $streetName = '';
+                            $streetNumber = '';
+                            $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                $RunY)));
+                            if (preg_match_all('!\d+!', $Street, $matches)) {
+                                $pos = strpos($Street, $matches[0][0]);
+                                if ($pos !== null) {
+                                    $streetName = trim(substr($Street, 0, $pos));
+                                    $streetNumber = trim(substr($Street, $pos));
+                                }
+                            }
+
+                            $tblPersonExits = Person::useService()->existsPerson(
+                                $firstName,
+                                $lastName,
+                                $cityCode
+                            );
+
+                            if ($tblPersonExits) {
+
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
+                                Group::useService()->addGroupPerson($tblClubGroup, $tblPersonExits);
+                                Club::useService()->insertMeta($tblPersonExits,
+                                    trim($Document->getValue($Document->getCell($Location['MNr'],
+                                        $RunY))));
+                                $countClubExists++;
+
+                            } else {
+                                $groupArray = array();
+                                $groupArray[] = Group::useService()->getGroupByMetaTable('COMMON');
+                                $groupArray[] = $tblClubGroup;
+
+                                $tblPerson = Person::useService()->insertPerson(
+                                    null,
+                                    '',
+                                    $firstName,
+                                    '',
+                                    $lastName,
+                                    $groupArray
+                                );
+
+                                if ($tblPerson !== false) {
+                                    $countClub++;
+
+                                    $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                        $RunY)));
+                                    if ($day !== '') {
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } else {
+                                        $birthday = '';
+                                    }
+
+                                    Common::useService()->insertMeta(
+                                        $tblPerson,
+                                        $birthday,
+                                        '',
+                                        TblCommonBirthDates::VALUE_GENDER_NULL,
+                                        '',
+                                        '',
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                        '',
+                                        ''
+                                    );
+
+                                    Club::useService()->insertMeta($tblPerson,
+                                        trim($Document->getValue($Document->getCell($Location['MNr'],
+                                            $RunY))));
+
+                                    // Address
+                                    if ($streetName && $streetNumber && $cityCode && $cityName) {
+                                        Address::useService()->insertAddressToPerson(
+                                            $tblPerson, $streetName, $streetNumber, $cityCode, $cityName, $cityDistrict,
+                                            ''
+                                        );
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Person wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                    }
+
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $tblType = Phone::useService()->getTypeById(1);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblType = Phone::useService()->getTypeById(2);
+                                        }
+                                        Phone::useService()->insertPhoneToPerson(
+                                            $tblPerson,
+                                            $phoneNumber,
+                                            $tblType,
+                                            ''
+                                        );
+                                    }
+
+                                    $mailAddress = trim($Document->getValue($Document->getCell($Location['E-Mail'],
+                                        $RunY)));
+                                    if ($mailAddress != '') {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPerson,
+                                            $mailAddress,
+                                            Mail::useService()->getTypeById(1),
+                                            ''
+                                        );
+                                    }
+                                }
+                            }
+                        }
+//                        } else {
+//                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
+//                        }
+                    }
+
+                    return
+                        new Success('Es wurden ' . $countClub . ' Vereinsmitglieder erfolgreich angelegt.') .
+                        ($countClubExists > 0 ?
+                            new Warning($countClubExists . ' Vereinsmitglieder exisistieren bereits.') : '')
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(
                                 'Fehler',

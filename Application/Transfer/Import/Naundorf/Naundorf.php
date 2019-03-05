@@ -37,6 +37,9 @@ class Naundorf implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Club', __NAMESPACE__ . '\Frontend::frontendClubImport'
+        ));
     }
 
     /**
@@ -81,6 +84,15 @@ class Naundorf implements IModuleInterface
             'Option' => new Standard(
                 '',
                 __NAMESPACE__ . '/Staff',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '05 - Vereinsmitglieder',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/Club',
                 new Select()
             )
         );
