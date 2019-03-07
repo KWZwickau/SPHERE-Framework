@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Api\Billing\Bookkeeping;
 
 use SPHERE\Application\Api\ApiTrait;
+use SPHERE\Application\Api\Billing\Accounting\ApiDebtorSelection;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
@@ -14,8 +15,6 @@ use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -528,59 +527,13 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 'Individuelle Preiseingabe:'.new TextField('DebtorSelection[Price]', '', ''), -1);
             if($tblPersonCauser){
                 $PersonTitle = ' für '.new Bold($tblPersonCauser->getFirstName().' '.$tblPersonCauser->getLastName());
-            }
-            if($tblPersonCauser
-                && $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt')){
-                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
-                // is Causer Person in Group "Bezahler"
-//                if(Group::useService()->getMemberByPersonAndGroup($tblPersonCauser, $tblGroup)){
-                $PersonDebtorList[] = $tblPersonCauser;
-//                }
-                if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonCauser,
-                    $tblRelationshipType))){
-                    foreach($tblRelationshipList as $tblRelationship) {
-                        if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPersonCauser->getId()){
-                            // is Person in Group "Bezahler"
-                            if(Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)){
-                                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
-                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
-                                $PersonDebtorList[] = $tblPersonRel;
-                            }
-                        }
-                    }
-                    // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Bankverbindung bezahlen (Bar/Überweisung))
-//                    if(empty($SelectBoxDebtorList)) {
-                    $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
-                    foreach($tblRelationshipList as $tblRelationship) {
-                        if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPersonCauser->getId()){
-                            // is Person in Group "Sorgeberechtigte"
-                            if(Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)){
-                                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
-                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
-                            }
-                        }
-                    }
-//                    }
+                $ObjectList = ApiDebtorSelection::getSelectBoxDebtor($tblPersonCauser);
+                if(isset($ObjectList['SelectBoxDebtorList']) && $ObjectList['SelectBoxDebtorList']){
+                    $SelectBoxDebtorList = $ObjectList['SelectBoxDebtorList'];
                 }
-                if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
-                    if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonCauser,
-                        $tblRelationshipType))){
-                        foreach($tblRelationshipList as $tblRelationship) {
-                            if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPersonCauser->getId()){
-                                // is Person in Group "Bezahler"
-                                if(Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)){
-                                    $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
-                                    $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
-                                    $PersonDebtorList[] = $tblPersonRel;
-                                }
-                            }
-                        }
-                    }
+                if(isset($ObjectList['PersonDebtorList']) && $ObjectList['PersonDebtorList']){
+                    $PersonDebtorList = $ObjectList['PersonDebtorList'];
                 }
-
-                // Beitragsverursacher steht immer am Schluss
-                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonCauser);
-                $SelectBoxDebtorList[$tblPersonCauser->getId()] = $tblPersonCauser->getLastFirstName().' '.$DeborNumber;
             }
 
             if($tblPersonCauser){
@@ -598,37 +551,11 @@ class ApiBasketVerification extends Extension implements IApiInterface
             }
         }
 
-        $PostBankAccountId = false;
-        $RadioBoxListBankAccount = array();
         // no BankAccount available
         if(!isset($_POST['DebtorSelection']['BankAccount'])){
             $_POST['DebtorSelection']['BankAccount'] = '-1';
         }
-        $RadioBoxListBankAccount['-1'] = new RadioBox('DebtorSelection[BankAccount]'
-            , 'keine Bankverbindung', -1);
-        if(!empty($PersonDebtorList)){
-            /** @var TblPerson $PersonDebtor */
-            foreach($PersonDebtorList as $PersonDebtor) {
-                if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($PersonDebtor))){
-                    foreach($tblBankAccountList as $tblBankAccount) {
-                        if(!$PostBankAccountId){
-                            $PostBankAccountId = $tblBankAccount->getId();
-                            if(isset($_POST['DebtorSelection']['PaymentType'])
-                                && !isset($_POST['DebtorSelection']['BankAccount'])
-                                && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
-                                && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
-                                // override Post with first found BankAccount
-                                $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
-                            }
-                        }
-                        $RadioBoxListBankAccount[$tblBankAccount->getId()] = new RadioBox('DebtorSelection[BankAccount]'
-                            , $tblBankAccount->getOwner().'<br/>'.$tblBankAccount->getBankName().'<br/>'
-                            .$tblBankAccount->getIBANFrontend()
-                            , $tblBankAccount->getId());
-                    }
-                }
-            }
-        }
+        $RadioBoxListBankAccount = ApiDebtorSelection::getBankAccountRadioBoxList($PersonDebtorList);
 
         return (new Form(
             new FormGroup(array(
@@ -644,7 +571,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         , 6),
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
-                            $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))->setRequired()
+                            $SelectBoxDebtorList, null, true, null))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
@@ -681,41 +608,6 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 )
             ))
         ))->disableSubmitAction();
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return string
-     */
-    private function getDebtorNumberByPerson(TblPerson $tblPerson)
-    {
-
-        $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
-            if($tblSetting->getValue() == 1){
-                $IsDebtorNumberNeed = true;
-            }
-        }
-        $DeborNumber = '';
-        if($IsDebtorNumberNeed){
-            $DeborNumber = '(keine Debitoren-Nr.)';
-        }
-        // change warning if necessary to "not in PaymentGroup"
-        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
-            if(!Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
-                $DeborNumber = '(kein Bezahler)';
-            }
-        }
-        if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))){
-            $DebtorNumberList = array();
-            foreach($tblDebtorNumberList as $tblDebtorNumber) {
-                $DebtorNumberList[] = $tblDebtorNumber->getDebtorNumber();
-            }
-            $DeborNumber = implode(', ', $DebtorNumberList);
-            $DeborNumber = '('.$DeborNumber.')';
-        }
-        return $DeborNumber;
     }
 
     /**

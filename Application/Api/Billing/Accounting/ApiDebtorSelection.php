@@ -402,92 +402,20 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $PersonTitle = '';
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $PersonTitle = ' für '.new Bold($tblPerson->getFirstName().' '.$tblPerson->getLastName());
-        }
-        if($tblPerson && $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt')){
-            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
-            // SSW-466 Person darf immer zum Bezahler werden
-//            // is Causer Person in Group "Bezahler"
-//            if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
-                $PersonDebtorList[] = $tblPerson;
-//            }
-            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                $tblRelationshipType))){
-                foreach($tblRelationshipList as $tblRelationship) {
-                    if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
-                        // is Person in Group "Bezahler"
-                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)){
-                            $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
-                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
-                            $PersonDebtorList[] = $tblPersonRel;
-                        }
-                    }
-                }
-                // ToDO Sorgeberechtigte immer anzeigen oder ganz deaktivieren?
-                // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezhalen (Bar/Überweisung))
-//                if(empty($SelectBoxDebtorList)){
-                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
-                foreach($tblRelationshipList as $tblRelationship) {
-                    if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
-                        // is Person in Group "Sorgeberechtigte"
-                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)){
-                            $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
-                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
-                        }
-                    }
-                }
-//                }
+            $ObjectList = self::getSelectBoxDebtor($tblPerson);
+            if(isset($ObjectList['SelectBoxDebtorList']) && $ObjectList['SelectBoxDebtorList']){
+                $SelectBoxDebtorList = $ObjectList['SelectBoxDebtorList'];
             }
-            if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
-                if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                    $tblRelationshipType))){
-                    foreach($tblRelationshipList as $tblRelationship) {
-                        if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
-                            // is Person in Group "Bezahler"
-                            if(Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)){
-                                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
-                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
-                                $PersonDebtorList[] = $tblPersonRel;
-                            }
-                        }
-                    }
-                }
+            if(isset($ObjectList['PersonDebtorList']) && $ObjectList['PersonDebtorList']){
+                $PersonDebtorList = $ObjectList['PersonDebtorList'];
             }
-            // Beitragsverursacher steht immer am Schluss
-            $DeborNumber = $this->getDebtorNumberByPerson($tblPerson);
-            $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
         }
 
-        $PostBankAccountId = false;
-        $RadioBoxListBankAccount = array();
         // no BankAccount available
         if(!isset($_POST['DebtorSelection']['BankAccount'])){
             $_POST['DebtorSelection']['BankAccount'] = '-1';
         }
-        $RadioBoxListBankAccount['-1'] = new RadioBox('DebtorSelection[BankAccount]'
-            , 'keine Bankverbindung', -1);
-        if(!empty($PersonDebtorList)){
-            /** @var TblPerson $PersonDebtor */
-            foreach($PersonDebtorList as $PersonDebtor) {
-                if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($PersonDebtor))){
-                    foreach($tblBankAccountList as $tblBankAccount) {
-                        if(!$PostBankAccountId){
-                            $PostBankAccountId = $tblBankAccount->getId();
-                            if(isset($_POST['DebtorSelection']['PaymentType'])
-                                && !isset($_POST['DebtorSelection']['BankAccount'])
-                                && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
-                                && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
-                                // override Post with first found BankAccount
-                                $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
-                            }
-                        }
-                        $RadioBoxListBankAccount[$tblBankAccount->getId()] = new RadioBox('DebtorSelection[BankAccount]'
-                            , $tblBankAccount->getOwner().'<br/>'.$tblBankAccount->getBankName().'<br/>'
-                            .$tblBankAccount->getIBANFrontend()
-                            , $tblBankAccount->getId());
-                    }
-                }
-            }
-        }
+        $RadioBoxListBankAccount = self::getBankAccountRadioBoxList($PersonDebtorList);
 
         $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPerson);
         if($tblBankReferenceList){
@@ -559,7 +487,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
      *
      * @return string
      */
-    private function getDebtorNumberByPerson(TblPerson $tblPerson)
+    private static function getDebtorNumberByPerson(TblPerson $tblPerson)
     {
 
         $IsDebtorNumberNeed = false;
@@ -587,6 +515,99 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $DeborNumber = '('.$DeborNumber.')';
         }
         return $DeborNumber;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array array('SelectBoxDebtorList' => SelectBoxContent[]; 'PersonDebtorList' => TblPerson[])
+     */
+    public static function getSelectBoxDebtor(TblPerson $tblPerson)
+    {
+
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
+            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                $tblRelationshipType))){
+                foreach($tblRelationshipList as $tblRelationship) {
+                    if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
+                        $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
+                        $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        $PersonDebtorList[] = $tblPersonRel;
+                    }
+                }
+            }
+        }
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))){
+            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                $tblRelationshipType))){
+                foreach($tblRelationshipList as $tblRelationship) {
+                    if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
+                        $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
+                        $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        $PersonDebtorList[] = $tblPersonRel;
+                    }
+                }
+            }
+        }
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName('Bevollmächtigt'))){
+            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                $tblRelationshipType))){
+                foreach($tblRelationshipList as $tblRelationship) {
+                    if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
+                        $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
+                        $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        $PersonDebtorList[] = $tblPersonRel;
+                    }
+                }
+            }
+        }
+        // Beitragsverursacher steht immer am Schluss
+
+        $DeborNumber = self::getDebtorNumberByPerson($tblPerson);
+            // $SelectBoxDebtorList => Personen, die zur Auswahl als Debitor stehen
+        $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
+            // $PersonDebtorList = Personen von denen Kontoinformationen geholt werden
+        $PersonDebtorList[] = $tblPerson;
+
+        return array('SelectBoxDebtorList' => $SelectBoxDebtorList,
+                     'PersonDebtorList' => (isset($PersonDebtorList) ? $PersonDebtorList : false));
+    }
+
+    /**
+     * @param bool|TblPerson[] $PersonDebtorList
+     *
+     * @return RadioBox[]
+     */
+    public static function getBankAccountRadioBoxList($PersonDebtorList)
+    {
+
+        $PostBankAccountId = false;
+        $RadioBoxListBankAccount['-1'] = new RadioBox('DebtorSelection[BankAccount]'
+            , 'keine Bankverbindung', -1);
+        if(!empty($PersonDebtorList)){
+            /** @var TblPerson $PersonDebtor */
+            foreach($PersonDebtorList as $PersonDebtor) {
+                if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($PersonDebtor))){
+                    foreach($tblBankAccountList as $tblBankAccount) {
+                        if(!$PostBankAccountId){
+                            $PostBankAccountId = $tblBankAccount->getId();
+                            if(isset($_POST['DebtorSelection']['PaymentType'])
+                                && !isset($_POST['DebtorSelection']['BankAccount'])
+                                && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
+                                && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                                // override Post with first found BankAccount
+                                $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
+                            }
+                        }
+                        $RadioBoxListBankAccount[$tblBankAccount->getId()] = new RadioBox('DebtorSelection[BankAccount]'
+                            , $tblBankAccount->getOwner().'<br/>'.$tblBankAccount->getBankName().'<br/>'
+                            .$tblBankAccount->getIBANFrontend()
+                            , $tblBankAccount->getId());
+                    }
+                }
+            }
+        }
+        return $RadioBoxListBankAccount;
     }
 
     /**
