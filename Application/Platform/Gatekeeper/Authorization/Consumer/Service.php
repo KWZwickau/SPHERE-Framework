@@ -106,15 +106,17 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param string         $ConsumerAcronym
-     * @param string         $ConsumerName
+     * @param string $ConsumerAcronym
+     * @param string $ConsumerName
+     * @param $ConsumerAlias
      *
      * @return IFormInterface|Redirect
      */
     public function createConsumer(
         IFormInterface &$Form,
         $ConsumerAcronym,
-        $ConsumerName
+        $ConsumerName,
+        $ConsumerAlias
     ) {
 
         if (null === $ConsumerName
@@ -140,7 +142,7 @@ class Service extends AbstractService
         if ($Error) {
             return $Form;
         } else {
-            (new Data($this->getBinding()))->createConsumer($ConsumerAcronym, $ConsumerName);
+            (new Data($this->getBinding()))->createConsumer($ConsumerAcronym, $ConsumerName, $ConsumerAlias);
             return new Redirect('/Platform/Gatekeeper/Authorization/Consumer', 0);
         }
     }

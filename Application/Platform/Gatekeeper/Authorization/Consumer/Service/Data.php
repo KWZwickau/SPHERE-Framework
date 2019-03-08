@@ -26,10 +26,11 @@ class Data extends AbstractData
     /**
      * @param string $Acronym
      * @param string $Name
+     * @param string $Alias
      *
      * @return TblConsumer
      */
-    public function createConsumer($Acronym, $Name)
+    public function createConsumer($Acronym, $Name, $Alias = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -38,6 +39,8 @@ class Data extends AbstractData
         if (null === $Entity) {
             $Entity = new TblConsumer($Acronym);
             $Entity->setName($Name);
+            $Entity->setAlias($Alias);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }

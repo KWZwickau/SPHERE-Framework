@@ -23,10 +23,11 @@ class Frontend
     /**
      * @param string $ConsumerAcronym
      * @param string $ConsumerName
+     * @param $ConsumerAlias
      *
      * @return Stage
      */
-    public static function frontendConsumer($ConsumerAcronym, $ConsumerName)
+    public static function frontendConsumer($ConsumerAcronym, $ConsumerName, $ConsumerAlias)
     {
 
         $Stage = new Stage('Mandanten');
@@ -35,12 +36,14 @@ class Frontend
         array_walk($tblConsumerAll, function(TblConsumer $tblConsumer) use (&$TableContent){
             $Item['Acronym'] = $tblConsumer->getAcronym();
             $Item['Name'] = $tblConsumer->getName();
+            $Item['Alias'] = $tblConsumer->getAlias();
             array_push($TableContent, $Item);
         });
         $Stage->setContent(
             new TableData($TableContent, new Title('Bestehende Mandanten'), array(
                 'Acronym' => 'Mandanten-Kürzel',
-                'Name'    => 'Mandanten-Name'
+                'Name'    => 'Mandanten-Name',
+                'Alias' => 'Mandanten-Alias'
             ))
             .Consumer::useService()->createConsumer(
                 new Form(new FormGroup(
@@ -49,15 +52,20 @@ class Frontend
                                 new TextField(
                                     'ConsumerAcronym', 'Kürzel des Mandanten', 'Kürzel des Mandanten'
                                 )
-                                , 4),
+                                , 2),
                             new FormColumn(
                                 new TextField(
                                     'ConsumerName', 'Name des Mandanten', 'Name des Mandanten'
                                 )
-                                , 8),
+                                , 6),
+                            new FormColumn(
+                                new TextField(
+                                    'ConsumerAlias', 'Alias des Mandanten', 'Alias des Mandanten'
+                                )
+                                , 4),
                         )), new \SPHERE\Common\Frontend\Form\Repository\Title('Mandant anlegen'))
                     , new Primary('Hinzufügen')
-                ), $ConsumerAcronym, $ConsumerName
+                ), $ConsumerAcronym, $ConsumerName, $ConsumerAlias
             )
         );
         return $Stage;
