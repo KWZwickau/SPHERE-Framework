@@ -513,7 +513,8 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
                     foreach($tblItemVariantList as $tblItemVariant) {
                         $PriceString = new DangerText('Nicht verfügbar');
-                        if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                        $tblBasket = $tblBasketVerification->getTblBasket();
+                        if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
                             $PriceString = $tblItemCalculation->getPriceString();
                         }
 
@@ -744,7 +745,8 @@ class ApiBasketVerification extends Extension implements IApiInterface
 
             // Change BasketVerification
             if($tblItemVariant){
-                if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                $tblBasket = $tblBasketVerification->getTblBasket();
+                if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
                     $Value = $tblItemCalculation->getValue(true);
                 }
             }
