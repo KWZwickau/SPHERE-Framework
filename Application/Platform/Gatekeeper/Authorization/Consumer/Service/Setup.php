@@ -59,6 +59,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblConsumer', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
+        $this->createColumn($Table, 'Alias', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

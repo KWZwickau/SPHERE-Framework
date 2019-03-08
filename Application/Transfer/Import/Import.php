@@ -14,6 +14,7 @@ use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
 use SPHERE\Application\Transfer\Import\LebensweltZwenkau\Zwenkau;
 use SPHERE\Application\Transfer\Import\Meerane\Meerane;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
+use SPHERE\Application\Transfer\Import\Naundorf\Naundorf;
 use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Application\Transfer\Import\Schneeberg\Schneeberg;
 use SPHERE\Application\Transfer\Import\Schulstiftung\Schulstiftung;
@@ -89,6 +90,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'ESBD' || $consumerAcronym == 'DEMO') {
             BadDueben::registerModule();
         }
+        if ($consumerAcronym === 'EWS') {
+            Naundorf::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -126,6 +130,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'ESBD' || $consumerAcronym == 'DEMO') {
             $dataList = BadDueben::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EWS') {
+            $dataList = Naundorf::setLinks($dataList);
         }
 
         if(empty($dataList)){
