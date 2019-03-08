@@ -239,6 +239,38 @@ class Service extends AbstractService
     /**
      * @param string $FirstName
      * @param string $LastName
+     * @param string $Birthday
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByNameAndBirthday($FirstName, $LastName, $Birthday)
+    {
+
+        $result = array();
+        if (($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName))) {
+            foreach ($tblPersonList as $tblPerson) {
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if (!$tblCommon) {
+                    continue;
+                }
+                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
+                if (!$tblCommonBirthDates) {
+                    continue;
+                }
+
+                if ($Birthday == $tblCommonBirthDates->getBirthday()) {
+                    $result[] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+
+    /**
+     * @param string $FirstName
+     * @param string $LastName
      *
      * @return bool|TblPerson
      */
