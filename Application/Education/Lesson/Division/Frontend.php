@@ -1878,16 +1878,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
 
-                        foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-                                && ($tblTempPerson = $tblDivisionStudent->getServiceTblPerson())
-                            ) {
-                                if ($IsSekTwo) {
-                                    $missingCourseList[$tblSubject->getAcronym()]
-                                        = $tblSubject->getAcronym();
-                                } else {
-                                    $personSubjectList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
-                                        = $tblSubject->getAcronym();
+                        if($tblDivisionStudentList){
+                            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                                    && ($tblTempPerson = $tblDivisionStudent->getServiceTblPerson())
+                                ) {
+                                    if ($IsSekTwo) {
+                                        $missingCourseList[$tblSubject->getAcronym()]
+                                            = $tblSubject->getAcronym();
+                                    } else {
+                                        $personSubjectList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
+                                            = $tblSubject->getAcronym();
+                                    }
                                 }
                             }
                         }
