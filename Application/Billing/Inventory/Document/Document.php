@@ -38,6 +38,10 @@ class Document implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendDocument'
             ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\EditInformation',
+                __NAMESPACE__.'\Frontend::frontendEditDocumentInformation'
+            ));
     }
 
     /**
