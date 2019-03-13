@@ -240,7 +240,7 @@ class Frontend extends Extension implements IFrontendInterface
         $form = new Form(new FormGroup(array(
             new FormRow(new FormColumn(array(
                 new TextField('Data[Subject]', 'z.B. Schulgeldbescheinigung für das Kalenderjahr [Beitragsjahr]', 'Betreff'),
-                new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt')
+                new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 17)
             )))
         )));
         $form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
