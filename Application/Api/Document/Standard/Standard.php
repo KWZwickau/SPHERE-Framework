@@ -55,6 +55,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/MultiGradebook/Create', 'SPHERE\Application\Api\Document\Creator::createMultiGradebookPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/BillingDocument/Create', 'SPHERE\Application\Api\Document\Creator::createBillingDocumentPdf'
+        ));
     }
 
     /**
@@ -190,6 +193,23 @@ class Standard extends Extension implements IModuleInterface
             );
         }
         return Creator::createDataPdf($Data, 'MultiPassword', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param string $ItemId
+     * @param string $DocumentId
+     * @param string $Year
+     * @param string $From
+     * @param string $To
+     * @param string $DivisionId
+     * @param bool $Redirect
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createBillingDocumentPdf($ItemId = '', $DocumentId = '', $Year = '', $From = '', $To = '', $DivisionId = '0', $Redirect = true)
+    {
+
+        return Creator::createBillingDocumentPdf($ItemId, $DocumentId, $Year, $From, $To, $DivisionId, $Redirect);
     }
 
     /**

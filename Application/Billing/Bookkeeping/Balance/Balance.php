@@ -37,6 +37,10 @@ class Balance implements IModuleInterface
                 new Link\Icon(new Listing()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('/Billing/Balance/Pdf'), new Link\Name('Belegdruck Pdf'),
+                new Link\Icon(new Listing()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('/Billing/Balance/MonthOverview'), new Link\Name('Monatsübersicht'),
                 new Link\Icon(new Listing()))
         );
@@ -54,6 +58,11 @@ class Balance implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Balance/Excel',
                 __NAMESPACE__.'\Frontend::frontendBalanceExcel'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Balance/Pdf',
+                __NAMESPACE__.'\Frontend::frontendBalancePdf'
             )
         );
         Main::getDispatcher()->registerRoute(

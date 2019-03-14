@@ -6,6 +6,7 @@ use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
+use SPHERE\Application\Api\Document\Standard\Repository\Billing\Billing;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
@@ -18,6 +19,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudent
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -469,5 +472,82 @@ class Creator extends Extension
         }
 
         return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
+    }
+
+    public static function createBillingDocumentPdf($ItemId = '', $DocumentId = '', $Year = '', $From = '', $To = '', $DivisionId = '0', $Redirect = true)
+    {
+
+//        if ($Redirect) {
+//            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+//                '/Api/Document/Standard/BillingDocument/Create',
+//                array(
+//                    'ItemId'   => $ItemId,
+//                    'DocumentId'   => $DocumentId,
+//                    'Year'     => $Year,
+//                    'From'     => $From,
+//                    'To'       => $To,
+//                    'DivisionId' => $DivisionId,
+//                )
+//            );
+//        }
+
+        if(($tblItem = Item::useService()->getItemById($ItemId))
+            && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($DocumentId))
+        ) {
+            $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Year, $From, $To, $DivisionId);
+
+            if (!empty($PriceList)) {
+                $template = new Billing();
+
+                ini_set('memory_limit', '2G');
+                $PdfMerger = new PdfMerge();
+                $FileList = array();
+
+                foreach($PriceList as $DebtorId => $CauserList) {
+                    if (($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
+                        foreach ($CauserList as $CauserId => $Value) {
+                            if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
+                                $Content = $template->createSingleDocument(
+                                    $tblItem, $tblDocument, $tblPersonDebtor, $tblPersonCauser, $Year, $From, $To
+                                );
+                                // Create Tmp
+                                $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
+                                $clone[] = clone $File;
+                                // build before const is set (picture)
+                                /** @var DomPdf $Document */
+                                $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+                                $Document->setContent($Content);
+                                $Document->saveFile(new FileParameter($File->getFileLocation()));
+                                // hinzufügen für das mergen
+                                $PdfMerger->addPDF($File);
+                                // speichern der Files zum nachträglichem bereinigen
+                                $FileList[] = $File;
+                            }
+                        }
+                    }
+                }
+
+                $MergeFile = Storage::createFilePointer('pdf');
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+
+                if (!empty($FileList)) {
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach ($FileList as $File) {
+                        $File->setDestruct();
+                    }
+                }
+
+                $FileName = 'Belegdruck_' . $tblItem->getName() . '_' . date("Y-m-d") . ".pdf";
+
+                return FileSystem::getStream(
+                    $MergeFile->getRealPath(),
+                    $FileName
+                )->__toString();
+            }
+        }
+
+        return new Stage('Belegdruck', 'Konnte nicht erstellt werden.');
     }
 }
