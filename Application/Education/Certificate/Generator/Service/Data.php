@@ -1193,9 +1193,14 @@ class Data extends AbstractData
         /*
          * Abitur Zeugnis
          */
-        if (($tblCertificate = $this->createCertificate('Gymnasium Abitur', '', 'GymAbitur',
+        if (($tblCertificate = $this->createCertificate('Gymnasium Abschlusszeugnis', 'Abitur', 'GymAbitur',
             null, false, false, false, $tblCertificateTypeDiploma, $tblSchoolTypeGym))
         ) {
+            // SSW-531 Rename
+            if ($tblCertificate->getName() == 'Gymnasium Abitur') {
+                $this->updateCertificateName($tblCertificate, 'Gymnasium Abschlusszeugnis', 'Abitur');
+            }
+
             if (!$this->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate)) {
                 $this->createCertificateReferenceForLanguages($tblCertificate, 1, 'B2', 'B2+', 'C1');
                 $this->createCertificateReferenceForLanguages($tblCertificate, 2, 'B1+', 'B2', 'B2+ - C1');
@@ -4322,6 +4327,36 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $Name
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateCertificateName(
+        TblCertificate $tblCertificate,
+        $Name,
+        $Description
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
         return false;
     }
 
