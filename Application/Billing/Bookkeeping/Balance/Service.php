@@ -2,6 +2,9 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
+use Digitick\Sepa\GroupHeader;
+use Digitick\Sepa\PaymentInformation;
+use Digitick\Sepa\TransferFile\Factory\TransferFileFacadeFactory;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
@@ -511,5 +514,66 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPriceSummaryByYear($Year);
+    }
+
+    public function createSepaContent($Month = '', $Year = '')
+    {
+
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month);
+
+        //Set the custom header (Spanish banks example) information
+        $header = new GroupHeader(date('Y-m-d-H-i-s'), 'Me');
+        $header->setInitiatingPartyId('DE21WVM1234567890');
+
+        $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
+
+        foreach($tblInvoiceList as $tblInvoice){
+            $tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor();
+             $PaymentId = $tblInvoice->getId().'_PaymentId';
+            $directDebit->addPaymentInfo($PaymentId, array(
+                'id'                    => $PaymentId,
+                'dueDate'               => new \DateTime($tblInvoice->getTargetTime()), // optional. Otherwise default period is used
+                'creditorName'          => $tblInvoiceCreditor->getOwner(),
+                'creditorAccountIBAN'   => $tblInvoiceCreditor->getIBAN(),
+                'creditorAgentBIC'      => $tblInvoiceCreditor->getBIC(),
+                'seqType'               => PaymentInformation::S_ONEOFF,
+                // Element dient der Angabe, um was für eine SEPA Lastschrift es sich handelt:
+                //» SEPA OOFF = einmalige SEPA Lastschrift
+                //» SEPA FRST = erste SEPA Lastschift
+                //» SEPA RCUR = fortfolgende SEPA Lastschrift
+                //» SEPA FNAL = letzte SEPA Lastschrift
+                'creditorId'            => $tblInvoiceCreditor->getCreditorId(),
+                'localInstrumentCode'   => 'CORE' // default. optional.
+                // Element dient der Unterscheidung zwischen den einzelenen SEPA Lastschriften:
+                //» SEPA CORE Lastschrift
+                //» SEPA COR1 Lastschrift
+                //» SEPA B2B Lastschrift
+            ));
+            $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
+            if($tblInvoiceItemDebtorList){
+                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    $ReferenceDate = '';
+                    if(($tblBankReference = $tblInvoiceItemDebtor->getServiceTblBankReference())){
+                        $ReferenceDate = $tblBankReference->getReferenceDate();
+                    }
+
+                    // create a payment, it's possible to create multiple payments,
+                    // "firstPayment" is the identifier for the transactions
+                    // Add a Single Transaction to the named payment
+                    $directDebit->addTransfer($PaymentId, array(
+                        'amount'                => ($tblInvoiceItemDebtor->getSummaryPriceInt() * 100), // "Sepa amount" wird in Cent angegeben
+                        'debtorIban'            => $tblInvoiceItemDebtor->getIBAN(),
+                        'debtorBic'             => $tblInvoiceItemDebtor->getBIC(), // Pflichtfeld?
+                        'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
+                        'debtorMandate'         => $tblInvoiceItemDebtor->getBankReference(),
+                        'debtorMandateSignDate' => $ReferenceDate,
+                        'remittanceInformation' => $tblInvoiceItemDebtor->getName(),
+                        //            'endToEndId'            => 'Invoice-No X' // optional, if you want to provide additional structured info
+                    ));
+                }
+            }
+        }
+
+        return $directDebit;
     }
 }
