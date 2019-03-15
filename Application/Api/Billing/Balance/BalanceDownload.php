@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Billing\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -68,8 +69,13 @@ class BalanceDownload implements IModuleInterface
                 $MonthList = Invoice::useService()->getMonthList();
                 $StartMonth = $MonthList[$From];
                 $ToMonth = $MonthList[$To];
+                $DivisionString = '';
+                if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
+                    $DivisionString = '_'.$tblDivision->getDisplayName();
+                }
+
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    $tblItem->getName().'-'.$Year.'-'.$StartMonth.'-'.$ToMonth.'.xlsx')->__toString();
+                    $tblItem->getName().$DivisionString.'_'.$Year.'-'.$StartMonth.'-'.$ToMonth.'.xlsx')->__toString();
             }
         }
 

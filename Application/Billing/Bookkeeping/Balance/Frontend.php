@@ -80,11 +80,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
                 $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                     new Download(), array(
-                        'ItemId'   => $tblItem->getId(),
-                        'Year'     => $Balance['Year'],
-                        'From'     => $Balance['From'],
-                        'To'       => $Balance['To'],
-                        'Division' => $Balance['Division'],
+                        'ItemId'     => $tblItem->getId(),
+                        'Year'       => $Balance['Year'],
+                        'From'       => $Balance['From'],
+                        'To'         => $Balance['To'],
+                        'DivisionId' => $Balance['Division'],
                     ));
             }
         }
@@ -92,7 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Selectbox soll nach unten aufklappen (tritt nur noch bei Anwendungsansicht auf)
         $Space = '<div style="height: 100px;"></div>';
         if(empty($Balance)){
-            $Table = new Info('Bitte benutzen sie die Filterung');
+            $Table = new Info('Bitte benutzen Sie die Filterung');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
         }
@@ -222,7 +222,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Selectbox soll nach unten aufklappen (tritt nur noch bei Anwendungsansicht auf)
         $Space = '<div style="height: 100px;"></div>';
         if(empty($Balance)){
-            $Table = new Info('Bitte benutzen sie die Filterung');
+            $Table = new Info('Bitte benutzen Sie die Filterung');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
         }

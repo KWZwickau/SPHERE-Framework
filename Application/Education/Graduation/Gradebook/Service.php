@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\Service as ServiceScoreRule;
@@ -12,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
@@ -601,7 +603,8 @@ class Service extends ServiceScoreRule
                         if($this->isEditGrade($tblGrade, trim($value['Comment']), $grade, $trend,
                             isset($value['Date']) ? $value['Date'] : null,
                             isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                ? $tblGradeText : null
+                                ? $tblGradeText : null,
+                            isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                         )){
                             if (isset($value['Attendance'])) {
                                 (new Data($this->getBinding()))->updateGrade(
@@ -648,10 +651,10 @@ class Service extends ServiceScoreRule
      * @param          $trend
      * @param          $date
      * @param          $text
-     *
+     * @param          $publicComment
      * @return bool
      */
-    private function isEditGrade(TblGrade $tblGrade, $Comment, $grade, $trend, $date, $text)
+    private function isEditGrade(TblGrade $tblGrade, $Comment, $grade, $trend, $date, $text, $publicComment)
     {
         $isChange = false;
         if($tblGrade->getComment() != $Comment){
@@ -663,6 +666,8 @@ class Service extends ServiceScoreRule
         } elseif($tblGrade->getDate() != $date){
             $isChange = true;
         } elseif($tblGrade->getTblGradeText() != $text){
+            $isChange = true;
+        } elseif($tblGrade->getPublicComment() != $publicComment) {
             $isChange = true;
         }
 
@@ -1816,5 +1821,157 @@ class Service extends ServiceScoreRule
         }
 
         return empty($grades) ? false : $grades;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPersonTeacher
+     * @param TblPerson $tblPersonStudent
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getGradesByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPersonTeacher, TblPerson $tblPersonStudent, TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->getGradesByDivisionAndTeacher($tblDivision, $tblPersonTeacher, $tblPersonStudent, $tblGradeType);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblProposalBehaviorGrade
+     */
+    public function getProposalBehaviorGrade(TblDivision $tblDivision, TblTask $tblTask, TblGradeType $tblGradeType, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getProposalBehaviorGrade($tblDivision, $tblTask, $tblGradeType, $tblPerson);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblProposalBehaviorGrade[]
+     */
+    public function getProposalBehaviorGradeAllBy(TblDivision $tblDivision, TblTask $tblTask, TblGradeType $tblGradeType = null)
+    {
+
+        return (new Data($this->getBinding()))->getProposalBehaviorGradeAllBy($tblDivision, $tblTask, $tblGradeType);
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblDivision $tblDivision
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     * @param $Grade
+     * @param TblScoreType|null $tblScoreType
+     * @param TblGradeType|null $tblNextGradeType
+     *
+     * @return IFormInterface|string
+     */
+    public function updateProposalBehaviorGrade(
+        IFormInterface $form,
+        TblDivision $tblDivision,
+        TblTask $tblTask,
+        TblGradeType $tblGradeType,
+        $Grade,
+        TblScoreType $tblScoreType = null,
+        TblGradeType $tblNextGradeType = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Grade === null) {
+            return $form;
+        }
+
+        $errorRange = array();
+        // check if grade has pattern
+        if (!empty($Grade)
+            && $tblScoreType
+            && $tblScoreType->getPattern() !== ''
+        ) {
+            foreach ($Grade as $personId => $value) {
+                $tblPerson = Person::useService()->getPersonById($personId);
+                $gradeValue = str_replace(',', '.', trim($value['Grade']));
+                if (!isset($value['Attendance']) && $gradeValue !== '' && $gradeValue !== '-1') {
+                    if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
+                        if ($tblPerson) {
+                            $errorRange[] = new Container(new Bold($tblPerson->getLastFirstName()));
+                        }
+                    }
+                }
+            }
+        }
+
+        $tblPersonTeacher = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPersonTeacher = $tblPersonAllByAccount[0];
+            }
+        }
+
+        if (!empty($Grade)) {
+            foreach ($Grade as $personId => $value) {
+                $tblPerson = Person::useService()->getPersonById($personId);
+
+                $grade = str_replace(',', '.', trim($value['Grade']));
+
+                // set trend
+                $trend = 0;
+                if ($grade != -1) {
+                    if (isset($value['Trend'])) {
+                        $trend = $value['Trend'];
+                    } elseif ((strpos($grade, '+') !== false)) {
+                        $trend = TblGrade::VALUE_TREND_PLUS;
+                        $grade = str_replace('+', '', $grade);
+                    } elseif ((strpos($grade, '-') !== false)) {
+                        $trend = TblGrade::VALUE_TREND_MINUS;
+                        $grade = str_replace('-', '', $grade);
+                    }
+                }
+
+                if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade($tblDivision, $tblTask, $tblGradeType,
+                    $tblPerson))
+                ) {
+                    (new Data($this->getBinding()))->updateProposalBehaviorGrade(
+                        $tblProposalBehaviorGrade,
+                        $grade == -1 ? '' : $grade,
+                        trim($value['Comment']),
+                        $trend,
+                        $tblPersonTeacher
+                    );
+
+                } else {
+                    (new Data($this->getBinding()))->createProposalBehaviorGrade(
+                        $tblDivision,
+                        $tblTask,
+                        $tblGradeType,
+                        $tblPerson,
+                        $tblPersonTeacher,
+                        $grade,
+                        $trend,
+                        trim($value['Comment'])
+                    );
+                }
+            }
+        }
+
+        return new Success('Erfolgreich gespeichert.'
+                . ($tblNextGradeType ? ' Sie werden zum nächsten Kopfnoten-Typ weitergeleitet.' : '')
+                , new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Graduation/Evaluation/Test/Teacher/Proposal/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
+                array('DivisionId' => $tblDivision->getId(), 'TaskId' => $tblTask->getId(),
+                    'GradeTypeId' => $tblNextGradeType ? $tblNextGradeType->getId() : null)
+            );
     }
 }

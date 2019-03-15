@@ -82,7 +82,7 @@ class Data extends AbstractData
     public function getSettingGroupPersonByGroup(TblGroup $tblGroup)
     {
 
-        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(),
+        $Entity = $this->getForceEntityBy(__Method__, $this->getConnection()->getEntityManager(),
             'TblSettingGroupPerson',
             array(
                 TblSettingGroupPerson::ATTR_SERVICE_TBL_GROUP_PERSON => $tblGroup->getId()
@@ -106,7 +106,7 @@ class Data extends AbstractData
     public function getSettingGroupPersonAll()
     {
 
-        $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(),
+        $Entity = $this->getForceEntityList(__Method__, $this->getConnection()->getEntityManager(),
             'TblSettingGroupPerson');
         return (null === $Entity ? false : $Entity);
     }

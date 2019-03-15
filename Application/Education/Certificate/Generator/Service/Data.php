@@ -1,11 +1,11 @@
 <?php
 namespace SPHERE\Application\Education\Certificate\Generator\Service;
 
-use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateField;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateReferenceForLanguages;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -1193,8 +1193,20 @@ class Data extends AbstractData
         /*
          * Abitur Zeugnis
          */
-        $this->createCertificate('Gymnasium Abitur', '', 'GymAbitur',
-            null, false, false, false, $tblCertificateTypeDiploma, $tblSchoolTypeGym);
+        if (($tblCertificate = $this->createCertificate('Gymnasium Abschlusszeugnis', 'Abitur', 'GymAbitur',
+            null, false, false, false, $tblCertificateTypeDiploma, $tblSchoolTypeGym))
+        ) {
+            // SSW-531 Rename
+            if ($tblCertificate->getName() == 'Gymnasium Abitur') {
+                $this->updateCertificateName($tblCertificate, 'Gymnasium Abschlusszeugnis', 'Abitur');
+            }
+
+            if (!$this->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate)) {
+                $this->createCertificateReferenceForLanguages($tblCertificate, 1, 'B2', 'B2+', 'C1');
+                $this->createCertificateReferenceForLanguages($tblCertificate, 2, 'B1+', 'B2', 'B2+ - C1');
+                $this->createCertificateReferenceForLanguages($tblCertificate, 3, 'B1 - B1+', 'B2', 'B2+ - C1');
+            }
+        }
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer) {
@@ -4320,6 +4332,36 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
+     * @param $Name
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateCertificateName(
+        TblCertificate $tblCertificate,
+        $Name,
+        $Description
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
      * @param TblLevel $tblLevel
      *
      * @return TblCertificateLevel
@@ -4700,5 +4742,105 @@ class Data extends AbstractData
             TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
             TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
         ));
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|TblCertificateReferenceForLanguages[]
+     */
+    public function getCertificateReferenceForLanguagesAllByCertificate(TblCertificate $tblCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCertificateReferenceForLanguages', array(
+           TblCertificateReferenceForLanguages::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
+        ));
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param int $languageRanking
+     *
+     * @return false|TblCertificateReferenceForLanguages
+     */
+    public function getCertificateReferenceForLanguagesByCertificateAndRanking(TblCertificate $tblCertificate, $languageRanking)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCertificateReferenceForLanguages', array(
+            TblCertificateReferenceForLanguages::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+            TblCertificateReferenceForLanguages::ATTR_LANGUAGE_RANKING => $languageRanking
+        ));
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $languageRanking
+     * @param $toLevel10
+     * @param $afterBasicCourse
+     * @param $afterAdvancedCourse
+     *
+     * @return TblCertificateReferenceForLanguages
+     */
+    public function createCertificateReferenceForLanguages(
+        TblCertificate $tblCertificate,
+        $languageRanking,
+        $toLevel10,
+        $afterBasicCourse,
+        $afterAdvancedCourse
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateReferenceForLanguages')
+            ->findOneBy(array(
+                TblCertificateReferenceForLanguages::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateReferenceForLanguages::ATTR_LANGUAGE_RANKING => $languageRanking
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblCertificateReferenceForLanguages();
+            $Entity->setTblCertificate($tblCertificate);
+            $Entity->setLanguageRanking($languageRanking);
+            $Entity->setToLevel10($toLevel10);
+            $Entity->setAfterBasicCourse($afterBasicCourse);
+            $Entity->setAfterAdvancedCourse($afterAdvancedCourse);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblCertificateReferenceForLanguages $tblCertificateReferenceForLanguages
+     * @param $toLevel10
+     * @param $afterBasicCourse
+     * @param $afterAdvancedCourse
+     *
+     * @return bool
+     */
+    public function updateCertificateReferenceForLanguages(
+        TblCertificateReferenceForLanguages $tblCertificateReferenceForLanguages,
+        $toLevel10,
+        $afterBasicCourse,
+        $afterAdvancedCourse
+    ) {
+
+        $Manager = $this->getEntityManager();
+        /** @var TblCertificateReferenceForLanguages $Entity */
+        $Entity = $Manager->getEntityById('TblCertificateReferenceForLanguages', $tblCertificateReferenceForLanguages->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setToLevel10($toLevel10);
+            $Entity->setAfterBasicCourse($afterBasicCourse);
+            $Entity->setAfterAdvancedCourse($afterAdvancedCourse);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

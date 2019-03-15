@@ -106,7 +106,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if (!$Error) {
-            $tblAccount = GatekeeperAccount::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
+            $tblAccount = GatekeeperAccount::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer, true);
             if ($tblAccount) {
                 $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName('Token');
                 GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);

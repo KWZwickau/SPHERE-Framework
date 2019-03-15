@@ -304,7 +304,7 @@ class Service extends AbstractService
                         $Item['Price'] = $tblDebtorSelection->getValue();
                         // change to selected variant
                         if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                            if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                            if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
                         }

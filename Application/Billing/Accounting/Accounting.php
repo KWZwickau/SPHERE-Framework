@@ -22,7 +22,7 @@ class Accounting implements IApplicationInterface
          */
 //        Account::registerModule();
         Creditor::registerModule();
-        Causer::registerModule();
         Debtor::registerModule();
+        Causer::registerModule();
     }
 }

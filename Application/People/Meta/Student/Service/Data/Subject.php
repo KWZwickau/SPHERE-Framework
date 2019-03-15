@@ -302,7 +302,8 @@ abstract class Subject extends Transfer
             array(
                 TblStudentSubject::ATTR_TBL_STUDENT              => $tblStudent->getId(),
                 TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId(),
-            )
+            ),
+            array(TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_RANKING => self::ORDER_ASC)
         );
     }
 }

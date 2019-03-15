@@ -5,6 +5,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccountInitial;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblGroup;
@@ -628,17 +629,45 @@ class Service extends AbstractService
 
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param null|TblToken $tblToken
+     * @param string           $Username
+     * @param string           $Password
+     * @param null|TblToken    $tblToken
      * @param null|TblConsumer $tblConsumer
+     * @param bool             $SaveInitialPW
      *
      * @return TblAccount
      */
-    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null)
+    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null, $SaveInitialPW = false)
     {
 
-        return (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer);
+        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer);
+        if($SaveInitialPW){
+            (new Data($this->getBinding()))->createAccountInitial($tblAccount);
+        }
+        return $tblAccount;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblAccountInitial
+     */
+    public function getAccountInitialByAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->getBinding()))->getAccountInitialByAccount($tblAccount);
+    }
+
+
+    public function isAccountPWInitial(TblAccount $tblAccount)
+    {
+        if(($tblAccountInitial = $this->getAccountInitialByAccount($tblAccount))){
+            if($tblAccount->getPassword() == $tblAccountInitial->getPassword()){
+                return true;
+            }
+        }
+        return false;
+
     }
 
     /**
