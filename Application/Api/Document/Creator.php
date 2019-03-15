@@ -21,7 +21,6 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySch
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Item\Item;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -475,36 +474,31 @@ class Creator extends Extension
         return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
     }
 
-    public static function createBillingDocumentPdf($ItemId = '', $DocumentId = '', $Year = '', $From = '', $To = '', $DivisionId = '0', $Redirect = true)
+    /**
+     * @param array $Data
+     * @param bool $Redirect
+     *
+     * @return Display|Stage|string
+     */
+    public static function createBillingDocumentPdf($Data = array(), $Redirect = true)
     {
 
-//        if ($Redirect) {
-//            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-//                '/Api/Document/Standard/BillingDocument/Create',
-//                array(
-//                    'ItemId'   => $ItemId,
-//                    'DocumentId'   => $DocumentId,
-//                    'Year'     => $Year,
-//                    'From'     => $From,
-//                    'To'       => $To,
-//                    'DivisionId' => $DivisionId,
-//                )
-//            );
-//        }
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/BillingDocument/Create',
+                array(
+                    'Data'   => $Data,
+                    'Redirect' => 0
+                )
+            );
+        }
 
-        if(($tblItem = Item::useService()->getItemById($ItemId))
-            && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($DocumentId))
+        if(($tblItem = Item::useService()->getItemById($Data['Item']))
+            && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($Data['Document']))
         ) {
-            $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Year, $From, $To, $DivisionId);
+            $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Data['Year'], $Data['From'], $Data['To'], $Data['Division']);
 
             if (!empty($PriceList)) {
-                // todo formData
-                $companyAddess = Address::useService()->getAddressById(1);
-                $Data['ConsumerName'] = 'Träger';
-                $Data['ConsumerExtendedName'] = 'Zusatz';
-                $Data['ConsumerAddress'] = $companyAddess->getGuiString(false);
-                $Data['Location'] = 'Zwickau';
-                $Data['Date'] = (new \DateTime())->format('d.m.Y');
                 if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Subject'))) {
                     $Data['Subject'] = $tblDocumentInformation->getValue();
                 } else {
@@ -516,9 +510,8 @@ class Creator extends Extension
                     $Data['Content'] = '&nbsp;';
                 }
 
-                $Data['Year'] = $Year;
-                $Data['From'] = $From;
-                $Data['To'] = $To;
+                $Data['CompanyAddress'] = $Data['CompanyStreet'] . ' ' . $Data['CompanyCity']
+                    . ($Data['CompanyDistrict'] ? '  OT ' . $Data['CompanyDistrict'] : '');
 
                 $template = new Billing($tblItem, $tblDocument, $Data);
 
@@ -554,9 +547,6 @@ class Creator extends Extension
                             }
                         }
                     }
-
-                    // todo remove
-                    break;
                 }
 
                 $MergeFile = Storage::createFilePointer('pdf');

@@ -15,6 +15,7 @@ use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocumentInfo
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocumentItem;
 use SPHERE\Application\Billing\Inventory\Document\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -72,6 +73,26 @@ class Service extends AbstractService
     public function getDocumentItemAllByDocument(TblDocument $tblDocument)
     {
         return (new Data($this->getBinding()))->getDocumentItemAllByDocument($tblDocument);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return false|TblDocument[]
+     */
+    public function getDocumentAllByItem(TblItem $tblItem)
+    {
+
+        $list = array();
+        if (($tblDocumentItemList = (new Data($this->getBinding()))->getDocumentItemAllByItem($tblItem))){
+            foreach ($tblDocumentItemList as $tblDocumentItem) {
+                if (($tblDocument = $tblDocumentItem->getTblDocument())) {
+                    $list[] = $tblDocument;
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
     }
 
     /**

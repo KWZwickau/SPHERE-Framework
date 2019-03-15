@@ -3,21 +3,32 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Inventory\Document\Document;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
+use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -308,25 +319,15 @@ class Frontend extends Extension implements IFrontendInterface
         if(!isset($Balance['To'])){
             $_POST['Balance']['To'] = '12';
         }
-        // Standard Download
-        $Download = (new PrimaryLink('Herunterladen', '', new Download()))->setDisabled();
+
         $tableContent = array();
+        $tblItem = false;
         if(!empty($Balance)){
 
             if(($tblItem = Item::useService()->getItemById($Balance['Item']))){
                 $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Balance['Year'],
                     $Balance['From'], $Balance['To'], $Balance['Division']);
                 $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
-                $Download = new PrimaryLink('Herunterladen', '/Api/Document/Standard/BillingDocument/Create',
-                    // todo richtiges Dokument
-                    new Download(), array(
-                        'ItemId'   => $tblItem->getId(),
-                        'DocumentId'   => 1,
-                        'Year'     => $Balance['Year'],
-                        'From'     => $Balance['From'],
-                        'To'       => $Balance['To'],
-                        'DivisionId' => $Balance['Division'],
-                    ));
             }
         }
 
@@ -356,18 +357,22 @@ class Frontend extends Extension implements IFrontendInterface
                 // solve the problem with responsive false
                 "responsive" => false,
             ));
+
+            if ($tblItem) {
+                if (($tblDocumentList = Document::useService()->getDocumentAllByItem($tblItem))
+                ) {
+                    $Table .= new Well($this->getPdfForm($tblDocumentList, $Balance));
+                } else {
+                    $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist kein Beleg eingestellt.', new Exclamation());
+                }
+            }
             $Space = '';
-        } else {
-            $Download->setDisabled();
         }
 
         $Stage->setContent(new Layout(
             new LayoutGroup(array(
                 new LayoutRow(
                     new LayoutColumn($this->formBalanceFilter())
-                ),
-                new LayoutRow(
-                    new LayoutColumn(new Container($Download).new Container('&nbsp;'))
                 ),
                 new LayoutRow(
                     new LayoutColumn($Table)
@@ -379,5 +384,104 @@ class Frontend extends Extension implements IFrontendInterface
         ));
 
         return $Stage;
+    }
+
+    public function getPdfForm($tblDocumentList, $Balance = null, $Data = null)
+    {
+
+        if ($Data === null) {
+            $global = $this->getGlobal();
+
+            $firstDocument = reset($tblDocumentList);
+            $global->POST['Data']['Document'] = $firstDocument->getId();
+            $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+
+            if (($tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll())) {
+                /** @var TblResponsibility $tblResponsibility */
+                $tblResponsibility = reset($tblResponsibilityAll);
+                if (($tblCompany = $tblResponsibility->getServiceTblCompany())) {
+                    $global->POST['Data']['CompanyName'] = $tblCompany->getName();
+                    $global->POST['Data']['CompanyExtendedName'] = $tblCompany->getExtendedName();
+                    if (($tblAddress = $tblCompany->fetchMainAddress())
+                        && ($tblCity = $tblAddress->getTblCity())
+                    ) {
+                        $global->POST['Data']['CompanyDistrict'] = $tblCity->getDistrict();
+                        $global->POST['Data']['CompanyStreet'] = $tblAddress->getStreetName() . ' ' . $tblAddress->getStreetNumber();
+                        $global->POST['Data']['CompanyCity'] = $tblCity->getCode() . ' ' . $tblCity->getName();
+
+                        $global->POST['Data']['Location'] = $tblCity->getName();
+                    }
+                }
+            }
+
+            // Filterdaten
+            if ($Balance) {
+                $global->POST['Data']['Item'] = $Balance['Item'];
+                $global->POST['Data']['Year'] = $Balance['Year'];
+                $global->POST['Data']['From'] = $Balance['From'];
+                $global->POST['Data']['To'] = $Balance['To'];
+                $global->POST['Data']['Division'] = $Balance['Division'];
+            }
+
+            $global->savePost();
+        }
+
+        return new Form(
+            new FormGroup(array(
+                // Filterdaten
+                new FormRow(array(
+                    new FormColumn(
+                        new HiddenField('Data[Item]')
+                    , 1),
+                    new FormColumn(
+                        new HiddenField('Data[Year]')
+                    , 1),
+                    new FormColumn(
+                        new HiddenField('Data[From]')
+                    , 1),
+                    new FormColumn(
+                        new HiddenField('Data[To]')
+                    , 1),
+                    new FormColumn(
+                        new HiddenField('Data[Division]')
+                    , 1),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Belegs')
+                        , 12)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Beleg', array(
+                            new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)),
+                            new TextField('Data[Location]', '', 'Ort', new MapMarker()),
+                            new DatePicker('Data[Date]', '', 'Datum', new Calendar())
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 12),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Schulträger')
+                        , 12)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Name des Schulträgers',array(
+                            new TextField('Data[CompanyName]', '', 'Name'),
+                            new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
+                        ),Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new FormColumn(
+                        new Panel('Adressinformation des Schulträgers',array(
+                            new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
+                            new TextField('Data[CompanyStreet]', '', 'Straße'),
+                            new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
+                        ),Panel::PANEL_TYPE_INFO)
+                        , 6),
+                )),
+            )),
+            new Primary('Herunterladen', new Download(), true), '/Api/Document/Standard/BillingDocument/Create'
+        );
     }
 }

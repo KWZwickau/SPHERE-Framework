@@ -111,6 +111,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return false|TblDocumentItem[]
+     */
+    public function getDocumentItemAllByItem(TblItem $tblItem)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDocumentItem', array(
+                TblDocumentItem::ATTR_SERVICE_TBL_ITEM => $tblItem->getId())
+        );
+    }
+
+    /**
      * @param TblDocument $tblDocument
      * @param TblItem $tblItem
      *

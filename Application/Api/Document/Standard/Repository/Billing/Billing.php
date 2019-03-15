@@ -107,9 +107,9 @@ class Billing
      * @param $To
      * @param $Date
      * @param $Location
-     * @param $ConsumerName
-     * @param $ConsumerExtendedName
-     * @param $ConsumerAddress
+     * @param $CompanyName
+     * @param $CompanyExtendedName
+     * @param $CompanyAddress
      *
      * @return string
      */
@@ -128,9 +128,9 @@ class Billing
         $To,
         $Date,
         $Location,
-        $ConsumerName,
-        $ConsumerExtendedName,
-        $ConsumerAddress
+        $CompanyName,
+        $CompanyExtendedName,
+        $CompanyAddress
     ) {
         $Text = str_replace('[Beitragsart]', $ItemName, $Text);
         $Text = str_replace('[Beitragsjahr]', $Year, $Text);
@@ -145,9 +145,9 @@ class Billing
         $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Datum]', $Date, $Text);
         $Text = str_replace('[Ort]', $Location, $Text);
-        $Text = str_replace('[Trägername]', $ConsumerName, $Text);
-        $Text = str_replace('[Trägerzusatz]', $ConsumerExtendedName, $Text);
-        $Text = str_replace('[Trägeradresse]', $ConsumerAddress, $Text);
+        $Text = str_replace('[Trägername]', $CompanyName, $Text);
+        $Text = str_replace('[Trägerzusatz]', $CompanyExtendedName, $Text);
+        $Text = str_replace('[Trägeradresse]', $CompanyAddress, $Text);
 
         return $Text;
     }
@@ -165,9 +165,9 @@ class Billing
         $TotalPrice
     ) {
         $Data = $this->Data;
-        $ConsumerName = $Data['ConsumerName'];
-        $ConsumerExtendedName = $Data['ConsumerExtendedName'];
-        $ConsumerAddress = $Data['ConsumerAddress'];
+        $CompanyName = $Data['CompanyName'];
+        $CompanyExtendedName = $Data['CompanyExtendedName'];
+        $CompanyAddress = $Data['CompanyAddress'];
         $Location = $Data['Location'];
         $Date = $Data['Date'];
         $Subject = $Data['Subject'];
@@ -199,9 +199,9 @@ class Billing
             $To,
             $Date,
             $Location,
-            $ConsumerName,
-            $ConsumerExtendedName,
-            $ConsumerAddress
+            $CompanyName,
+            $CompanyExtendedName,
+            $CompanyAddress
         );
 
         $Content = $this->setPlaceholders(
@@ -219,18 +219,18 @@ class Billing
             $To,
             $Date,
             $Location,
-            $ConsumerName,
-            $ConsumerExtendedName,
-            $ConsumerAddress
+            $CompanyName,
+            $CompanyExtendedName,
+            $CompanyAddress
         );
 
         return (new Page())
             // todo exakte Höhe bestimmen
             ->addSlice($this->getHeaderSlice('200px'))
-            ->addSlice($this->getAddressSlice($ConsumerName, $ConsumerExtendedName, $ConsumerAddress, $tblPersonDebtor))
+            ->addSlice($this->getAddressSlice($CompanyName, $CompanyExtendedName, $CompanyAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent($Location . ', ' . $Date)
+                    ->setContent($Location . ', den ' . $Date)
                     ->styleTextSize(self::TEXT_SIZE)
                     ->styleAlignRight()
                     ->styleMarginTop('50px')
@@ -292,18 +292,18 @@ class Billing
     }
 
     /**
-     * @param $ConsumerName
-     * @param $ConsumerExtendedName
-     * @param $ConsumerAddress
+     * @param $CompanyName
+     * @param $CompanyExtendedName
+     * @param $CompanyAddress
      * @param TblPerson $tblPersonDebtor
      * @param string $TextSize
      *
      * @return Slice
      */
     private function getAddressSlice(
-        $ConsumerName,
-        $ConsumerExtendedName,
-        $ConsumerAddress,
+        $CompanyName,
+        $CompanyExtendedName,
+        $CompanyAddress,
         TblPerson $tblPersonDebtor,
         $TextSize = '8px'
     ) {
@@ -318,15 +318,15 @@ class Billing
 
         return (new Slice())
             ->addElement((new Element())
-                ->setContent($ConsumerName . ($ConsumerExtendedName ?  ' ' . $ConsumerExtendedName : ''))
+                ->setContent($CompanyName . ($CompanyExtendedName ?  ' ' . $CompanyExtendedName : ''))
                 ->styleTextSize($TextSize)
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent($ConsumerAddress)
+                    ->setContent($CompanyAddress)
                     ->styleTextSize($TextSize)
                     ->styleBorderBottom()
-                , '25%')
+                , '30%')
                 ->addElementColumn((new Element()))
             )
             ->addElement((new Element())

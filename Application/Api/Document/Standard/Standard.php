@@ -196,23 +196,6 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param string $ItemId
-     * @param string $DocumentId
-     * @param string $Year
-     * @param string $From
-     * @param string $To
-     * @param string $DivisionId
-     * @param bool $Redirect
-     *
-     * @return \SPHERE\Common\Window\Stage|string
-     */
-    public static function createBillingDocumentPdf($ItemId = '', $DocumentId = '', $Year = '', $From = '', $To = '', $DivisionId = '0', $Redirect = true)
-    {
-
-        return Creator::createBillingDocumentPdf($ItemId, $DocumentId, $Year, $From, $To, $DivisionId, $Redirect);
-    }
-
-    /**
      *
      */
     public static function useService()
