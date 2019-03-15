@@ -21,6 +21,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySch
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -497,7 +498,29 @@ class Creator extends Extension
             $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Year, $From, $To, $DivisionId);
 
             if (!empty($PriceList)) {
-                $template = new Billing();
+                // todo formData
+                $companyAddess = Address::useService()->getAddressById(1);
+                $Data['ConsumerName'] = 'Träger';
+                $Data['ConsumerExtendedName'] = 'Zusatz';
+                $Data['ConsumerAddress'] = $companyAddess->getGuiString(false);
+                $Data['Location'] = 'Zwickau';
+                $Data['Date'] = (new \DateTime())->format('d.m.Y');
+                if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Subject'))) {
+                    $Data['Subject'] = $tblDocumentInformation->getValue();
+                } else {
+                    $Data['Subject'] = '&nbsp;';
+                }
+                if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Content'))) {
+                    $Data['Content'] = $tblDocumentInformation->getValue();
+                } else {
+                    $Data['Content'] = '&nbsp;';
+                }
+
+                $Data['Year'] = $Year;
+                $Data['From'] = $From;
+                $Data['To'] = $To;
+
+                $template = new Billing($tblItem, $tblDocument, $Data);
 
                 ini_set('memory_limit', '2G');
                 $PdfMerger = new PdfMerge();
@@ -507,8 +530,14 @@ class Creator extends Extension
                     if (($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
                         foreach ($CauserList as $CauserId => $Value) {
                             if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
+                                if (isset($Value['Sum'])) {
+                                    $TotalPrice = number_format($Value['Sum'], 2, ',', '.') . ' €';
+                                } else {
+                                    $TotalPrice = '0,00 €';
+                                }
+
                                 $Content = $template->createSingleDocument(
-                                    $tblItem, $tblDocument, $tblPersonDebtor, $tblPersonCauser, $Year, $From, $To
+                                    $tblPersonDebtor, $tblPersonCauser, $TotalPrice
                                 );
                                 // Create Tmp
                                 $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
@@ -525,6 +554,9 @@ class Creator extends Extension
                             }
                         }
                     }
+
+                    // todo remove
+                    break;
                 }
 
                 $MergeFile = Storage::createFilePointer('pdf');

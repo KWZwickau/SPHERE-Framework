@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\Billing;
 
-
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
@@ -19,6 +18,7 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
  * Class Billing
@@ -31,19 +31,37 @@ class Billing
     /** @var null|Frame $Document */
     private $Document = null;
 
+    /** @var null|TblItem $tblItem */
+    private $tblItem = null;
+
+    /** @var null|TblDocument $tblDocument */
+    private $tblDocument = null;
+
+    /** @var null|array $Data  */
+    private $Data = null;
+
     const TEXT_SIZE = '14px';
 
+    public function __construct(TblItem $tblItem, TblDocument $tblDocument, $Data)
+    {
+        $this->tblItem = $tblItem;
+        $this->tblDocument = $tblDocument;
+        $this->Data = $Data;
+    }
+
+    /**
+     * @param TblPerson $tblPersonDebtor
+     * @param TblPerson $tblPersonCauser
+     * @param $TotalPrice
+     *
+     * @return \MOC\V\Component\Template\Component\IBridgeInterface
+     */
     public function createSingleDocument(
-        TblItem $tblItem,
-        TblDocument $tblDocument,
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
-        $Year,
-        $From,
-        $To
+        $TotalPrice
     ) {
-
-        $pageList[] = $this->buildPage($tblItem, $tblDocument, $tblPersonDebtor, $tblPersonCauser, $Year, $From, $To);
+        $pageList[] = $this->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice);
 
         $this->Document = $this->buildDocument($pageList);
 
@@ -134,36 +152,31 @@ class Billing
         return $Text;
     }
 
+    /**
+     * @param TblPerson $tblPersonDebtor
+     * @param TblPerson $tblPersonCauser
+     * @param $TotalPrice
+     *
+     * @return Page
+     */
     private function buildPage(
-        TblItem $tblItem,
-        TblDocument $tblDocument,
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
-        $Year,
-        $From,
-        $To
+        $TotalPrice
     ) {
+        $Data = $this->Data;
+        $ConsumerName = $Data['ConsumerName'];
+        $ConsumerExtendedName = $Data['ConsumerExtendedName'];
+        $ConsumerAddress = $Data['ConsumerAddress'];
+        $Location = $Data['Location'];
+        $Date = $Data['Date'];
+        $Subject = $Data['Subject'];
+        $Content = $Data['Content'];
+        $Year = $Data['Year'];
+        $From = $Data['From'];
+        $To = $Data['To'];
 
-        // todo formular data
-        $TotalPrice = '20€';
-        $companyAddess = Address::useService()->getAddressById(1);
-        $ConsumerName = 'Träger';
-        $ConsumerExtendedName = 'Zusatz';
-        $ConsumerAddress = $companyAddess->getGuiString(false);
-        $Location = 'Zwickau';
-        $Date = (new \DateTime())->format('d.m.Y');
-        if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Subject'))) {
-            $Subject = $tblDocumentInformation->getValue();
-        } else {
-            $Subject = '&nbsp;';
-        }
-        if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Content'))) {
-            $Content = $tblDocumentInformation->getValue();
-        } else {
-            $Content = '&nbsp;';
-        }
-
-        $ItemName = $tblItem->getName();
+        $ItemName = $this->tblItem->getName();
         $DebtorSalutation = $tblPersonDebtor->getSalutation();
         $DebtorFirstName = $tblPersonDebtor->getFirstSecondName();
         $DebtorLastName = $tblPersonDebtor->getLastName();
@@ -211,13 +224,9 @@ class Billing
             $ConsumerAddress
         );
 
-        // todo logo über Mandanten-Einstellung
         return (new Page())
-            ->addSlice((new Slice())
-                ->addElement((new Element()))
-                // todo exakte Höhe bestimmen
-                ->styleHeight('200px')
-            )
+            // todo exakte Höhe bestimmen
+            ->addSlice($this->getHeaderSlice('200px'))
             ->addSlice($this->getAddressSlice($ConsumerName, $ConsumerExtendedName, $ConsumerAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -246,6 +255,43 @@ class Billing
     }
 
     /**
+     * @param string $Height
+     *
+     * @return Slice
+     */
+    private function getHeaderSlice($Height = '200px')
+    {
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
+        ) {
+            $pictureAddress = (string)$tblSetting->getValue();
+        } else {
+            $pictureAddress = '';
+        }
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
+        ) {
+            $pictureHeight = (string)$tblSetting->getValue();
+        } else {
+            $pictureHeight = '';
+        }
+
+        if ($pictureAddress != '') {
+            $pictureHeight = $pictureHeight ? $pictureHeight : '90px';
+            $element = (new Element\Image($pictureAddress, 'auto', $pictureHeight));
+        } else {
+            $element = (new Element())
+                ->setContent('&nbsp;');
+        }
+
+        return (new Slice())
+            ->addElement($element)
+            ->styleAlignRight()
+            ->styleHeight($Height);
+    }
+
+    /**
      * @param $ConsumerName
      * @param $ConsumerExtendedName
      * @param $ConsumerAddress
@@ -261,7 +307,6 @@ class Billing
         TblPerson $tblPersonDebtor,
         $TextSize = '8px'
     ) {
-
         $address1 = '&nbsp;';
         $address2 = '&nbsp;';
         if(($tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPersonDebtor))) {
