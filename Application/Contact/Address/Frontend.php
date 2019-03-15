@@ -541,9 +541,16 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if ($isDeepSearch) {
-                            $type = $tblType->getName();
+                            if ($tblPersonShow->getId() == $tblPersonTo->getId()
+                                && ($tblType->getName() == 'Bevollmächtigt' || $tblType->getName() == 'Sorgeberechtigt')
+                            ) {
+                                $type = 'Kind';
+                            } else {
+                                $type = $tblType->getName();
+                            }
                         } else {
-                            $type = 'Drei-Ecks-Beziehung';
+//                            $type = 'Drei-Ecks-Beziehung';
+                            $type = '';
                         }
 
 //                        if ($tblAddress
@@ -555,21 +562,24 @@ class Frontend extends Extension implements IFrontendInterface
 //                            $global->savePost();
 //                        }
 
-                        $list[$tblPersonShow->getId()] =
-                            new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn(
-                                    (new CheckBox(
-                                        'Relationship[' . $tblPersonShow->getId() . ']',
-                                        $tblPersonShow->getFullName() . ' (' . $type . ')',
-                                        $tblPersonShow->getId()
-                                    ))->ajaxPipelineOnClick(ApiAddressToPerson::pipelineLoadRelationshipsMessage())
-                                    , 6),
-                                new LayoutColumn(
-                                    ($tblAddressPerson = $tblPersonShow->fetchMainAddress())
-                                        ? $tblAddressPerson->getGuiString()
-                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' Keine Hauptadresse vorhanden')
-                                    , 6)
-                            ))));
+                        // es soll die direkte Beziehung, statt der indirekten Beziehung (Drei-Ecks-Beziehung) angezeigt werden
+                        if ($isDeepSearch || !isset($list[$tblPersonShow->getId()])) {
+                            $list[$tblPersonShow->getId()] =
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(
+                                        (new CheckBox(
+                                            'Relationship[' . $tblPersonShow->getId() . ']',
+                                            $tblPersonShow->getFullName() . ($type  ?' (' . $type . ')' : ''),
+                                            $tblPersonShow->getId()
+                                        ))->ajaxPipelineOnClick(ApiAddressToPerson::pipelineLoadRelationshipsMessage())
+                                        , 6),
+                                    new LayoutColumn(
+                                        ($tblAddressPerson = $tblPersonShow->fetchMainAddress())
+                                            ? $tblAddressPerson->getGuiString()
+                                            : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' Keine Hauptadresse vorhanden')
+                                        , 6)
+                                ))));
+                        }
 
                         if ($isDeepSearch) {
                             $list = $this->getRelationshipList($tblPersonShow, $list, false);
