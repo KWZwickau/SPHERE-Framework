@@ -85,7 +85,7 @@ class Frontend extends Extension implements IFrontendInterface
         return new TableData($tableContent, null, array(
             'Owner'      => 'Besitzer',
             'Address'    => 'Adresse',
-            'CreditorId' => 'Gläubiger',
+            'CreditorId' => 'Gläubiger-ID',
             'BankName'   => 'Bankname',
             'IBAN'       => 'IBAN',
             'BIC'        => 'BIC',

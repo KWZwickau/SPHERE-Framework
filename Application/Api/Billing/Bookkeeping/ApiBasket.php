@@ -322,9 +322,9 @@ class ApiBasket extends Extension implements IApiInterface
                         $tblItem->getId());
                 }
             }
-            $FormContent[] = new SelectBox('Basket[Year]', 'Jahr', $YearList);
-            $FormContent[] = new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null);
             $FormContent[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
+            $FormContent[] = (new SelectBox('Basket[Year]', 'Jahr', $YearList))->setRequired();
+            $FormContent[] = (new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null))->setRequired();
 
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
@@ -486,7 +486,7 @@ class ApiBasket extends Extension implements IApiInterface
             }
         }
         $VerificationResult = array_filter($VerificationResult);
-        // Warenkorb nicht gefüllt
+        // Abrechnung nicht gefüllt
         if(empty($VerificationResult)){
             Basket::useService()->destroyBasket($tblBasket);
             return new Warning('Abrechnung enthält keine Werte d.h. es wurden im Abrechnungsmonat bereits für alle

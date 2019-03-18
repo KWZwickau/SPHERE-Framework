@@ -311,7 +311,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                         new TextField('BankAccount[Owner]', 'Inhaber der Bankverbindung', 'Inhaber der Bankverbindung')
                         , 6),
                     new FormColumn(
-                        new TextField('BankAccount[BankName]', 'Bankname', 'Bankname')
+                        (new TextField('BankAccount[BankName]', 'Bankname', 'Bankname'))->setRequired()
                         , 6)
                 )),
                 new FormRow(array(
@@ -319,7 +319,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                         (new TextField('BankAccount[IBAN]', 'IBAN', 'IBAN'))->setRequired()
                         , 6),
                     new FormColumn(
-                        new TextField('BankAccount[BIC]', 'BIC', 'BIC')
+                        (new TextField('BankAccount[BIC]', 'BIC', 'BIC'))->setRequired()
                         , 6)
                 )),
                 new FormRow(
@@ -344,8 +344,16 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         $Error = false;
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
+        if(isset($BankAccount['BankName']) && empty($BankAccount['BankName'])){
+            $form->setError('BankAccount[BankName]', 'Bitte geben Sie einen Bankname an');
+            $Error = true;
+        }
         if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])){
             $form->setError('BankAccount[IBAN]', 'Bitte geben Sie die IBAN an');
+            $Error = true;
+        }
+        if(isset($BankAccount['BIC']) && empty($BankAccount['BIC'])){
+            $form->setError('BankAccount[BIC]', 'Bitte geben Sie die BIC an');
             $Error = true;
         }
 

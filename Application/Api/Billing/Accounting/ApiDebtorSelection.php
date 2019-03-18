@@ -677,7 +677,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         $Error = true;
                     }
                 }
-                //Referenznummern ohne Bankverbindung nicht mehr benötigt
+                //Mandantsreferenznummer ohne Bankverbindung nicht mehr benötigt
 //                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
 //                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
 //                    $Error = true;

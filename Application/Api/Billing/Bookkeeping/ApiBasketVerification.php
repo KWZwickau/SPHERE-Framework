@@ -692,18 +692,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
             $Error = true;
         }
         if(isset($DebtorSelection['Variant']) && empty($DebtorSelection['Variant'])){
-            $Warning .= new Warning('Bitte geben Sie eine Bezahlvariante an, steht keine zur Auswahl, stellen Sie bitte eine bei den Beitragsarten ein.');
+            $Warning .= new Danger('Bitte geben Sie eine Bezahlvariante an, steht keine zur Auswahl, stellen Sie bitte eine bei den Beitragsarten ein.');
             $form->setError('DebtorSelection[Variant]', 'Bitte geben Sie eine Bezahlvariante an');
             $Error = true;
         } elseif(isset($DebtorSelection['Variant']) && $DebtorSelection['Variant'] == '-1') {
             // is price empty (is requiered vor no Variant)
             if(isset($DebtorSelection['Price']) && empty($DebtorSelection['Price']) && $DebtorSelection['Price'] !== '0'){
-                $Warning .= new Warning('Bitte geben Sie einen individuellen Preis an');
+                $Warning .= new Danger('Bitte geben Sie einen individuellen Preis an.');
 //                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
                 $Error = true;
             } elseif(isset($DebtorSelection['Price']) && !is_numeric(str_replace(',', '.',
                     $DebtorSelection['Price']))) {
-                $Warning .= new Warning('Bitte geben Sie eine '.new Bold('Zahl').' als individuellen Preis an');
+                $Warning .= new Danger('Bitte geben Sie eine '.new Bold('Zahl').' als individuellen Preis an.');
 //                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
                 $Error = true;
             }
@@ -723,18 +723,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
             if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
                 if($IsSepaAccountNeed){
                     if(isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])){
-                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                        $Warning .= new Warning('Bitte geben Sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
                          um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
                         $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     } elseif(isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1') {
-                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                        $Warning .= new Warning('Bitte geben Sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
                          um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
                         $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     }
                 }
-                //Referenznummern ohne Bankverbindung nicht mehr benötigt
+                //Mandantsreferenznummer ohne Bankverbindung nicht mehr benötigt
 //                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
 //                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
 //                    $Error = true;

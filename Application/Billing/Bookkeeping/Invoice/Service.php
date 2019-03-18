@@ -451,7 +451,7 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createInvoiceItemDebtorList($InvoiceItemDebtorList);
         }
 
-        // Warenkorb leeren
+        // Abrechnung leeren
 //        foreach ($tblBasketVerificationList as $tblBasketVerification) {
 //            Basket::useService()->destroyBasketVerification($tblBasketVerification);
 //        }

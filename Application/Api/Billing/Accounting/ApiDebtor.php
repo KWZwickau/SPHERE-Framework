@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -302,9 +303,13 @@ class ApiDebtor extends Extension implements IApiInterface
         // find Student's with DebtorNumber
         $StudentList = array();
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $identifier = new WarningText('keine hinterlegt');
             // Person is Student
             if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                $StudentList[] = 'Schülernummer: '.$tblStudent->getIdentifierComplete().' ('.$tblPerson->getLastFirstName().')';
+                if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
+                    $identifier = $currentIdentifier;
+                }
+                $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPerson->getLastFirstName().')';
             }
             // find Student by Person how is Guardian for Student
             $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
@@ -315,7 +320,10 @@ class ApiDebtor extends Extension implements IApiInterface
                 foreach($tblToPersonList as $tblToPerson) {
                     $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
                     if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-                        $StudentList[] = 'Schülernummer: '.$tblStudent->getIdentifierComplete().' ('.$tblPersonStudent->getLastFirstName().')';
+                        if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
+                            $identifier = $currentIdentifier;
+                        }
+                        $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPersonStudent->getLastFirstName().')';
                     }
                 }
             }
@@ -328,7 +336,10 @@ class ApiDebtor extends Extension implements IApiInterface
                 foreach($tblToPersonList as $tblToPerson) {
                     $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
                     if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-                        $StudentList[] = 'Schülernummer: '.new Bold($tblStudent->getIdentifierComplete()).' ('.$tblPersonStudent->getLastFirstName().')';
+                        if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
+                            $identifier = $currentIdentifier;
+                        }
+                        $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPersonStudent->getLastFirstName().')';
                     }
                 }
             }
@@ -449,7 +460,8 @@ class ApiDebtor extends Extension implements IApiInterface
             }
         }
 
-        if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
+        if(($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))
+            && $PostIdentifier !== ''){
             $count = $DebtorCountSetting->getValue();
             $PostIdentifier = str_pad($PostIdentifier, $count, '0', STR_PAD_LEFT);
         }

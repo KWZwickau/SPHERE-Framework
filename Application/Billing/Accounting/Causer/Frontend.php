@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -209,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Beitragszahler: Keine Bankdaten hinterlegt'));
                                     if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
                                         $BankStatus = new ToolTip(new DangerText(new Info()),
-                                            'Beitragszahler: Referenznummer fehlt');
+                                            'Beitragszahler: Mandantsreferenznummer fehlt');
                                     }
                                     if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                                         $BankStatus = new ToolTip(new SuccessText(new Info()), 'Beitragszahler OK');
@@ -363,7 +364,7 @@ class Frontend extends Extension implements IFrontendInterface
         // ToDO Implement Receiver
         $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummern',
             ApiBankReference::receiverPanelContent($this->getReferenceContent($PersonId)).
-            (new Link('Referenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
+            (new Link('Mandantsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
                 ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenAddReferenceModal('addBankReference', $PersonId)),
             Panel::PANEL_TYPE_INFO),
             3);
@@ -397,9 +398,9 @@ class Frontend extends Extension implements IFrontendInterface
 
 
         $Stage->setContent(
-            ApiBankReference::receiverModal('Hinzufügen einer Referenznummer', 'addBankReference')
-            .ApiBankReference::receiverModal('Bearbeiten der Referenznummer', 'editBankReference')
-            .ApiBankReference::receiverModal('Entfernen der Referenznummer', 'deleteBankReference')
+            ApiBankReference::receiverModal('Hinzufügen einer Mandantsreferenznummer', 'addBankReference')
+            .ApiBankReference::receiverModal('Bearbeiten der Mandantsreferenznummer', 'editBankReference')
+            .ApiBankReference::receiverModal('Entfernen der Mandantsreferenznummer', 'deleteBankReference')
             .ApiDebtorSelection::receiverModal('Hinzufügen der Beitragszahler', 'addDebtorSelection')
             .ApiDebtorSelection::receiverModal('Bearbeiten der Beitragszahler', 'editDebtorSelection')
             .ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
@@ -466,7 +467,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                     $PaymentType = 'Zahlungsart: ';
                     $BankAccount = 'Bank: ';
-                    $Reference = 'REF: ';
+                    $Reference = 'Mandantsreferenznummer: ';
                     $Debtor = 'Bezahler: ';
 
                     $OptionButtons = new PullRight(
@@ -510,7 +511,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $PanelContent[] = $Debtor;
                     /**@var Accordion[] $Accordion */
                     $Accordion[$i] = new Accordion();
-                    $Accordion[$i]->addItem($Debtor.new PullRight($PriceString), implode('<br/>', $PanelContent),
+                    $Accordion[$i]->addItem(new PullClear($Debtor.new PullRight($PriceString)), implode('<br/>', $PanelContent),
                         $IsOpen);
                     $PanelContent = array();
                     $i++;
