@@ -295,7 +295,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 )),
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[BankName]', 'Bankname', 'Bankname'))->setRequired()
+                        new TextField('Creditor[BankName]', 'Bankname', 'Bankname')
                         , 6)
                 ),
                 new FormRow(
@@ -310,7 +310,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 ),
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[BIC]', 'BIC', 'BIC'))->setRequired()
+                        new TextField('Creditor[BIC]', 'BIC', 'BIC')
                         , 6)
                 ),
                 new FormRow(
@@ -353,16 +353,8 @@ class ApiCreditor extends Extension implements IApiInterface
             $form->setError('Creditor[City]', 'Bitte geben Sie eine Stadt an');
             $Error = true;
         }
-        if(isset($Creditor['BankName']) && empty($Creditor['BankName'])){
-            $form->setError('Creditor[BankName]', 'Bitte geben Sie den Bankname an');
-            $Error = true;
-        }
         if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
-            $Error = true;
-        }
-        if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
-            $form->setError('Creditor[BIC]', 'Bitte geben Sie eine BIC an');
             $Error = true;
         }
 

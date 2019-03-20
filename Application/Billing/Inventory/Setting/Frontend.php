@@ -77,13 +77,29 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $NameListLeft = array();
             $NameListRight = array();
+//            $tblGroupAll = Group::useService()->getGroupAll();
             /** @var TblGroup $tblGroup */
             $tblGroupList = $this->getSorter($tblGroupList)->sortObjectBy('Name');
+            $NameListLeft[] = '<div style="height: 7px;"></div>';
+            $NameListRight[] = '<div style="height: 7px;"></div>';
             foreach($tblGroupList as $tblGroup) {
+                $divStart = '<div style="padding: 2.5px 8px">';
+                $divEnd = '</div>';
                 if($tblGroup->getMetaTable()){
-                    $NameListLeft[] = $tblGroup->getName();
+                    if($tblGroup->getMetaTable() == 'COMMON'){
+                        continue;
+                    }
+//                    if(in_array($tblGroup, $tblGroupList)){
+                        $NameListLeft[] = $divStart.new SuccessText(new Check().' '.$tblGroup->getName()).$divEnd;
+//                    } else {
+//                        $NameListLeft[] = $divStart.new Unchecked().' '.$tblGroup->getName().$divEnd;
+//                    }
                 } else {
-                    $NameListRight[] = $tblGroup->getName();
+//                    if(in_array($tblGroup, $tblGroupList)){
+                        $NameListRight[] = $divStart.new SuccessText(new Check().' '.$tblGroup->getName()).$divEnd;
+//                    } else {
+//                        $NameListRight[] = $divStart.new Unchecked().' '.$tblGroup->getName().$divEnd;
+//                    }
                 }
             }
             return new Layout(
@@ -105,10 +121,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Individuelle Personengruppen')
                                     , 6),
                                 new LayoutColumn(
-                                    new Listing($NameListLeft)
+                                    implode('', $NameListLeft)
+//                                    new Listing($NameListLeft)
                                     , 6),
                                 new LayoutColumn(
-                                    new Listing($NameListRight)
+                                    implode('', $NameListRight)
+//                                    new Listing($NameListRight)
                                     , 6),
                             ))
                         ))))
