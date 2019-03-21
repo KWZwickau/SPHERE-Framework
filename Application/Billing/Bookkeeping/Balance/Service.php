@@ -21,6 +21,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -194,10 +195,12 @@ class Service extends AbstractService
             $item['Debtor'] = $tblPersonDebtor->getLastFirstName();
             $item['Causer'] = $tblPersonCauser->getLastFirstName();
             $item['Value'] = Balance::useService()->getPriceString($Value['Sum']);
+            $item['Info'] = '';
             if(isset($Value['PriceMissing'])){
                 foreach($Value['PriceMissing'] as $Time => $PriceMissing) {
                     $MonthOpenList[] = new DangerText(Balance::useService()->getPriceString($PriceMissing).' ('.$Time.')');
                 }
+                $item['Info'] = new DangerText(new ToolTip(new EyeOpen(), 'Offene Posten'));
             }
             if(isset($Value['Price'])){
                 foreach($Value['Price'] as $Time => $Price) {

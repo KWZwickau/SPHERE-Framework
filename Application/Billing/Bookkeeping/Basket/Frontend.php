@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -127,9 +128,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Abrechnung bearbeiten'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket',
                                 $tblBasket->getId()))
-                        .new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
+                        .new Primary('', __NAMESPACE__.'/View', new CogWheels(),
                             array('BasketId' => $tblBasket->getId()),
-                            'Inhalt der Abrechnung')
+                            'Erstellung der Abrechnung')
                         .(new Standard('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
                                 $tblBasket->getId()));
@@ -217,7 +218,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         if(!$tblBasket){
-            return new Danger('Warenkorb wurde nicht gefunden')
+            return new Danger('Abrechnung wurde nicht gefunden')
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         $CountArray = array();
@@ -304,7 +305,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , 'Preis ändern');
                         }
                     }
-                    if(($Quantity = $tblBasketVerification->getQuantity())){
+                    if(($Quantity = $tblBasketVerification->getQuantity())|| 0 === $tblBasketVerification->getQuantity()){
                         if($tblBasket->getIsDone()){
                             $Item['Quantity'] = $Quantity;
                         } else {
@@ -460,7 +461,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Rechnungen', 'in Arbeit');
 
         if(!($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            return $Stage->setContent(new Danger('Der Warenkorb wird nicht mehr gefunden.'))
+            return $Stage->setContent(new Danger('Die Abrechnung wird nicht mehr gefunden.'))
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->setContent(new Layout(
@@ -490,7 +491,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Rechnungen', 'in Arbeit');
 
         if(!($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            return $Stage->setContent(new Danger('Der Warenkorb wird nicht mehr gefunden.'))
+            return $Stage->setContent(new Danger('Die Abrechnung wird nicht mehr gefunden.'))
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->setContent(new Layout(

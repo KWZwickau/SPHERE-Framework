@@ -56,9 +56,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Belegdruck', 'Serienbrief');
 
-        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
-            $_POST['Balance']['Item'] = $tblItem->getId();
-        }
+        // Vorauswahl für Schulgeld deaktiviert SSW-537
+//        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
+//            $_POST['Balance']['Item'] = $tblItem->getId();
+//        }
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
@@ -99,8 +100,9 @@ class Frontend extends Extension implements IFrontendInterface
         if(!empty($tableContent)){
             $Table = new TableData($tableContent, null, array(
                 'Debtor' => 'Beitragszahler',
-                'Causer' => 'Bietragsverursacher',
+                'Causer' => 'Beitragsverursacher',
                 'Value'  => 'Summe',
+                'Info'  => 'Anmerkung',
             ), array(
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),

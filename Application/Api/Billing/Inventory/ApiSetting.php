@@ -10,6 +10,11 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\System\Extension\Extension;
 
@@ -33,6 +38,8 @@ class ApiSetting extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showSetting');
         $Dispatcher->registerMethod('showFormSetting');
         $Dispatcher->registerMethod('changeSetting');
+        // SepaInfo
+        $Dispatcher->registerMethod('showSepaInfo');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -57,6 +64,15 @@ class ApiSetting extends Extension implements IApiInterface
     {
 
         return (new BlockReceiver($Content))->setIdentifier('SettingReceiver');
+    }
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverModal()
+    {
+
+        return (new ModalReceiver())->setIdentifier('ShowModal');
     }
 
     /**
@@ -156,6 +172,22 @@ class ApiSetting extends Extension implements IApiInterface
     }
 
     /**
+     * @return Pipeline
+     */
+    public static function pipelineShowSepaInfo()
+    {
+        $Receiver = self::receiverModal();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiSetting::API_TARGET => 'showSepaInfo'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
      * @return Layout
      */
     public function showPersonGroup()
@@ -165,12 +197,25 @@ class ApiSetting extends Extension implements IApiInterface
     }
 
     /**
-     * @return Layout
+     * @return string
      */
     public function showFormPersonGroup()
     {
 
         return Setting::useFrontend()->formPersonGroup();
+    }
+
+    /**
+     * @return string
+     */
+    public function showSepaInfo()
+    {
+
+        $Content = new Headline('Welche Auswirkungen hat die Eingabepflicht für SEPA-Lastschrift als XML?');
+        $Content .= new Ruler();
+        $Content .= new Container(new Minus().' Bei der Auswahl der Bezahlvariante "SEPA-Lastschrift" werden Kontodaten sowie eine Mandatsreferenznummer zum Pflichtfeld.');
+        $Content .= new Container(new Minus().' Weitere Anpassungen werden noch vorgenommen.');
+        return $Content;
     }
 
     /**
@@ -189,7 +234,7 @@ class ApiSetting extends Extension implements IApiInterface
             foreach($tblSettingGroupPersonExist as $tblSettingGroupPerson) {
                 $tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson();
                 if(!in_array($tblGroup->getId(), $GroupIdList)){
-                    Setting::useService()->removeSettingGroupPerson($tblSettingGroupPerson);
+                    Setting::useService()->destroySettingGroupPerson($tblSettingGroupPerson);
                 }
             }
             foreach($GroupIdList as $GroupId) {
@@ -231,7 +276,7 @@ class ApiSetting extends Extension implements IApiInterface
         $IsDebtorNumberNeed = (isset($Setting['IsDebtorNumberNeed']) ? true : false);
         Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
         $IsSepaAccountNeed = (isset($Setting['IsSepaAccountNeed']) ? true : false);
-        Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED, $IsSepaAccountNeed);
+        Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
 
         return Setting::useFrontend()->displaySetting();
     }

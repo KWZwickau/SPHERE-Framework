@@ -280,11 +280,11 @@ class TblBasketVerification extends Element
      */
     public function getSummaryPrice()
     {
-        if($this->Quantity !== 0){
+//        if($this->Quantity !== 0){
             $result = $this->Value * $this->Quantity;
-        } else {
-            $result = $this->Value;
-        }
+//        } else {
+//            $result = $this->Value;
+//        }
         return str_replace('.', ',', number_format($result, 2).' €');
     }
 
