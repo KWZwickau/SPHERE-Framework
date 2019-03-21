@@ -305,7 +305,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , 'Preis ändern');
                         }
                     }
-                    if(($Quantity = $tblBasketVerification->getQuantity())){
+                    if(($Quantity = $tblBasketVerification->getQuantity())|| 0 === $tblBasketVerification->getQuantity()){
                         if($tblBasket->getIsDone()){
                             $Item['Quantity'] = $Quantity;
                         } else {

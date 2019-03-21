@@ -199,9 +199,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
     {
 
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
-            if($Quantity[$BasketVerificationId] && is_numeric($Quantity[$BasketVerificationId])){
-                Basket::useService()->changeBasketVerification($tblBasketVerification,
-                    $Quantity[$BasketVerificationId]);
+            if($Quantity[$BasketVerificationId] && is_numeric($Quantity[$BasketVerificationId]) || '0' === $Quantity[$BasketVerificationId]){
+                $Quantity = str_replace('-', '', $Quantity[$BasketVerificationId]);
+                Basket::useService()->changeBasketVerification($tblBasketVerification, $Quantity);
             }
         }
         return ''.self::pipelineReloadSummary($BasketVerificationId);
@@ -706,6 +706,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 $Warning .= new Danger('Bitte geben Sie eine '.new Bold('Zahl').' als individuellen Preis an.');
 //                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
                 $Error = true;
+            } elseif(isset($DebtorSelection['Price']) && preg_match('!-!', $DebtorSelection['Price'])){
+                $Warning .= new Danger('Bitte geben Sie eine '.new Bold('Positive Zahl').' als individuellen Preis an.');
+                $Error = true;
             }
         }
         if(isset($DebtorSelection['Debtor']) && empty($DebtorSelection['Debtor'])){
@@ -715,7 +718,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
 
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
             $IsSepaAccountNeed = false;
-            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED)){
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
                 if($tblSetting->getValue() == 1){
                     $IsSepaAccountNeed = true;
                 }
@@ -733,12 +736,11 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     }
+                    if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
+                        $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
+                        $Error = true;
+                    }
                 }
-                //Mandantsreferenznummer ohne Bankverbindung nicht mehr benötigt
-//                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
-//                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
-//                    $Error = true;
-//                }
             }
         }
 

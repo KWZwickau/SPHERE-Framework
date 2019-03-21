@@ -97,6 +97,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Debtor' => 'Beitragszahler',
                 'Causer' => 'Beitragsverursacher',
                 'Value'  => 'Summe',
+                'Info'  => 'Anmerkung',
             ), array(
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),

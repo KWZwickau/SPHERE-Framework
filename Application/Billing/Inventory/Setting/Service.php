@@ -128,25 +128,24 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSettingGroupPerson $tblSettingGroupPerson
+     * @param TblSetting $tblSetting
      *
-     * @return TblSettingGroupPerson
+     * @return bool
      */
-    public function removeSettingGroupPerson(TblSettingGroupPerson $tblSettingGroupPerson)
+    public function destroySetting(TblSetting $tblSetting)
     {
-        // ToDO Löschlogik vergleichen und passende behalten
 
-        return (new Data($this->getBinding()))->removeSettingGroupPerson($tblSettingGroupPerson);
+        return (new Data($this->getBinding()))->destroySetting($tblSetting);
     }
 
     /**
-     * @param TblGroup $tblGroup
+     * @param TblSettingGroupPerson $tblSettingGroupPerson
      *
-     * @return TblSettingGroupPerson
+     * @return bool
      */
-    public function removeSettingGroupPersonByGroup(TblGroup $tblGroup)
+    public function destroySettingGroupPerson(TblSettingGroupPerson $tblSettingGroupPerson)
     {
 
-        return (new Data($this->getBinding()))->removeSettingGroupPersonByGroup($tblGroup);
+        return (new Data($this->getBinding()))->destroySettingGroupPerson($tblSettingGroupPerson);
     }
 }
