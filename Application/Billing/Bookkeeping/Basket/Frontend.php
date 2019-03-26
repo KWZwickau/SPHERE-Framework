@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
+use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
@@ -19,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -74,6 +76,7 @@ class Frontend extends Extension implements IFrontendInterface
             ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
             .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
             .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
+            .ApiSepa::receiverModal()
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -122,7 +125,13 @@ class Frontend extends Extension implements IFrontendInterface
                 if($tblBasket->getIsDone()){
                     $Item['Option'] = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
                         array('BasketId' => $tblBasket->getId()),
-                        'Inhalt der Abrechnung');
+                        'Inhalt der Abrechnung')
+                    .(new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'Sepa Download'))->ajaxPipelineOnClick(
+                        ApiSepa::pipelineOpenCauserModal($tblBasket->getId())
+                        )
+                    .(new Primary('', '#', new Download(),
+                        array('BasketId' => $tblBasket->getId()),
+                        'Datev Download'))->setDisabled();
                 } else {
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
                             'Abrechnung bearbeiten'))

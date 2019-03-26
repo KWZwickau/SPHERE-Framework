@@ -519,20 +519,52 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPriceSummaryByYear($Year);
     }
 
-    public function createSepaContent($Month = '', $Year = '')
+    public function createSepaContent($Month = '', $Year = '', $BasketName = '')
     {
 
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month);
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month, $BasketName);
+        $SepaPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
 
         //Set the custom header (Spanish banks example) information
         $header = new GroupHeader(date('Y-m-d-H-i-s'), 'Me');
         $header->setInitiatingPartyId('DE21WVM1234567890');
 
         $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
-
+        $InvoiceCount = 0;
         foreach($tblInvoiceList as $tblInvoice){
+
+            $PaymentId = $tblInvoice->getId().'_PaymentId';
+            $countSepaPayment = 0;
+
+            $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
+            // Dient nur der SEPA-Prüfung
+            if($tblInvoiceItemDebtorList){
+                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())){
+                        if($tblPaymentType->getId() == $SepaPaymentType){
+                            if($tblInvoiceItemDebtor->getIsPaid()){
+                                $countSepaPayment++;
+                            } else {
+                                // Offene posten ignorieren
+                                continue;
+                            }
+                        } else {
+                            // Zahlung mit anderem Zahlungstyp als SEPA-Lastschrift wird ignoriert
+                            continue;
+                        }
+                    } else {
+                        // Zahlung ohne Zahlungstyp wird ignoriert
+                        continue;
+                    }
+                }
+            }
+            if($countSepaPayment == 0){
+                // überspringt rechnungen ohne Sepa-Lastschrift
+                continue;
+            }
+            $InvoiceCount++;
+
             $tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor();
-             $PaymentId = $tblInvoice->getId().'_PaymentId';
             $directDebit->addPaymentInfo($PaymentId, array(
                 'id'                    => $PaymentId,
                 'dueDate'               => new \DateTime($tblInvoice->getTargetTime()), // optional. Otherwise default period is used
@@ -546,15 +578,17 @@ class Service extends AbstractService
                 //» SEPA RCUR = fortfolgende SEPA Lastschrift
                 //» SEPA FNAL = letzte SEPA Lastschrift
                 'creditorId'            => $tblInvoiceCreditor->getCreditorId(),
-                'localInstrumentCode'   => 'CORE' // default. optional.
+                'localInstrumentCode'   => 'COR1' // default. optional.
                 // Element dient der Unterscheidung zwischen den einzelenen SEPA Lastschriften:
-                //» SEPA CORE Lastschrift
-                //» SEPA COR1 Lastschrift
-                //» SEPA B2B Lastschrift
+                //» SEPA COR1 Lastschrift (aktueller Standard)
             ));
-            $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
+
             if($tblInvoiceItemDebtorList){
                 foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    // Offene posten ignorieren
+                    if(!$tblInvoiceItemDebtor->getIsPaid()){
+                        continue;
+                    }
                     $ReferenceDate = '';
                     if(($tblBankReference = $tblInvoiceItemDebtor->getServiceTblBankReference())){
                         $ReferenceDate = $tblBankReference->getReferenceDate();
@@ -575,6 +609,9 @@ class Service extends AbstractService
                     ));
                 }
             }
+        }
+        if($InvoiceCount == 0){
+            return false;
         }
 
         return $directDebit;
