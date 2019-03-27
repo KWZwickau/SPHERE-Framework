@@ -14,13 +14,14 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
-use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Extension;
@@ -117,7 +118,6 @@ class ApiSepa extends Extension implements IApiInterface
             return new Warning('Der Warenkorb wurde nicht gefunden.');
         }
 
-        $form = '';
         $toggleCheckbox = '';
         if(!empty($TableContent)){
 
@@ -140,14 +140,27 @@ class ApiSepa extends Extension implements IApiInterface
                             new HiddenField('Invoice[Month]'),
                             new HiddenField('Invoice[BasketName]'),
                         )),
-                        new FormColumn(
-                            new Title('Offene Posten', 'erneut in SEPA-Lastschrift aufnehmen')
-                        ),
                         $FormColumnTable,
                     ))
                 ), new PrimaryForm('&nbsp;SEPA Download', new Download(), true), '\Api\Billing\Sepa\Download'
             );
             $toggleCheckbox = new ToggleCheckbox( 'Alle wählen/abwählen', $form );
+        } else {
+            $form = new Form(
+                new FormGroup(
+                    new FormRow(array(
+                        new FormColumn(array(
+                            new HiddenField('Invoice[Year]'),
+                            new HiddenField('Invoice[Month]'),
+                            new HiddenField('Invoice[BasketName]'),
+                        )),
+                        new FormColumn(
+                            new Success('Es sind keine Offenen Posten vorhanden, die in die SEPA-Lastschrift XML aufgenommen
+                            werden könnten.')
+                        ),
+                    ))
+                ), new PrimaryForm('&nbsp;SEPA Download', new Download(), true), '\Api\Billing\Sepa\Download'
+            );
         }
 
 
@@ -156,6 +169,7 @@ class ApiSepa extends Extension implements IApiInterface
         $_POST['Invoice']['Month'] = $month;
         $_POST['Invoice']['BasketName'] = $BasketName;
 
-        return $toggleCheckbox.$form;
+        return
+            new Title('Offene Posten', 'erneut in SEPA-Lastschrift aufnehmen').$toggleCheckbox.$form;
     }
 }

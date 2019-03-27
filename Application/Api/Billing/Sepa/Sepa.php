@@ -8,7 +8,6 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
-use SPHERE\System\Extension\Repository\Debugger;
 
 //require_once( __DIR__.'/../../../../Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
 //AutoLoader::getNamespaceAutoLoader('Digitick\Sepa', __DIR__.'/../../../../Library/SepaXml/lib');
@@ -49,20 +48,22 @@ class Sepa implements IModuleInterface
     }
 
     /**
-     * @param string $Month
-     * @param string $Year
-     * @param string $BasketName
+     * @param array $Invoice
      *
      * @return string
      */
-    public function downloadSepa($Month = '', $Year = '', $BasketName = '')
+    public function downloadSepa($Invoice = array())
     {
-        Debugger::screenDump($_POST);
-        exit;
 
-        $directDebit = Balance::useService()->createSepaContent($Month, $Year, $BasketName);
+        $CheckboxList = array();
+        if(isset($Invoice['CheckboxList'])){
+            $CheckboxList = $Invoice['CheckboxList'];
+        }
 
-        $monthList = Invoice::useService()->getMonthList($Month, $Month);
+        $directDebit = Balance::useService()->createSepaContent($Invoice['Month'], $Invoice['Year'], $Invoice['BasketName'], $CheckboxList);
+
+        $monthString = '';
+        $monthList = Invoice::useService()->getMonthList($Invoice['Month'], $Invoice['Month']);
         if(!empty($monthList)){
             $monthString = current($monthList);
         }
@@ -70,7 +71,7 @@ class Sepa implements IModuleInterface
         if($directDebit){
             // Retrieve the resulting XML
             header('Content-type: text/xml');
-            header('Content-Disposition: attachment; filename="Abrechnung_'.$monthString.'_'.$Year.'.xml"');
+            header('Content-Disposition: attachment; filename="Abrechnung_'.$monthString.'_'.$Invoice['Year'].'.xml"');
             return $directDebit->asXML();
         } else {
             return new Warning('XML Datei enthält keine Sepa-Lastschrift');

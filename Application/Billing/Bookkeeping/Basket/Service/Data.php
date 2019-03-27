@@ -426,6 +426,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblBasket $tblBasket
+     * @param           $PersonName
+     *
+     * @return bool
+     */
+    public function updateBasketSepa(TblBasket $tblBasket, $PersonName)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setName($tblBasket->getName());
+            $Entity->setSepaUser($PersonName);
+            $Entity->setSepaDate(new \DateTime('now'));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblBasketVerification $tblBasketVerification
      * @param                       $Quantity
      *

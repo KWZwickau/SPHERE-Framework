@@ -18,6 +18,7 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -377,6 +378,26 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateBasketDone($tblBasket, $IsDone);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function changeBasketDoneSepa(TblBasket $tblBasket)
+    {
+
+        $PersonName = 'Person nicht hinterlegt!';
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                /** @var TblPerson $tblPerson */
+                $tblPerson = current($tblPersonList);
+                $PersonName = substr($tblPerson->getFirstName(), 0, 1).'. '.$tblPerson->getLastName();
+            }
+        }
+
+        return (new Data($this->getBinding()))->updateBasketSepa($tblBasket, $PersonName);
     }
 
     /**

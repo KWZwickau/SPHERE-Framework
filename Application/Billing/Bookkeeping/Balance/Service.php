@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
+use Digitick\Sepa\TransferFile\Facade\CustomerDirectDebitFacade;
 use Digitick\Sepa\TransferFile\Factory\TransferFileFacadeFactory;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
@@ -13,7 +14,10 @@ use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
@@ -519,10 +523,19 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPriceSummaryByYear($Year);
     }
 
-    public function createSepaContent($Month = '', $Year = '', $BasketName = '')
+    /**
+     * @param string $Month
+     * @param string $Year
+     * @param string $BasketName
+     * @param array  $CheckboxList
+     *
+     * @return bool|\Digitick\Sepa\TransferFile\Facade\CustomerDirectDebitFacade
+     */
+    public function createSepaContent($Month = '', $Year = '', $BasketName = '', $CheckboxList = array())
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month, $BasketName);
+        $tblBasket = Basket::useService()->getBasketByName($BasketName, $Month, $Year);
         $SepaPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
 
         //Set the custom header (Spanish banks example) information
@@ -531,6 +544,7 @@ class Service extends AbstractService
 
         $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
         $InvoiceCount = 0;
+        // Bearbeitung der in der Abrechnung liegenden Posten
         foreach($tblInvoiceList as $tblInvoice){
 
             $PaymentId = $tblInvoice->getId().'_PaymentId';
@@ -539,22 +553,22 @@ class Service extends AbstractService
             $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
             // Dient nur der SEPA-Prüfung
             if($tblInvoiceItemDebtorList){
-                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                foreach($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtor){
                     if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())){
                         if($tblPaymentType->getId() == $SepaPaymentType){
                             if($tblInvoiceItemDebtor->getIsPaid()){
                                 $countSepaPayment++;
                             } else {
                                 // Offene posten ignorieren
-                                continue;
+                                $tblInvoiceItemDebtor = false;
                             }
                         } else {
                             // Zahlung mit anderem Zahlungstyp als SEPA-Lastschrift wird ignoriert
-                            continue;
+                            $tblInvoiceItemDebtor = false;
                         }
                     } else {
                         // Zahlung ohne Zahlungstyp wird ignoriert
-                        continue;
+                        $tblInvoiceItemDebtor = false;
                     }
                 }
             }
@@ -562,58 +576,99 @@ class Service extends AbstractService
                 // überspringt rechnungen ohne Sepa-Lastschrift
                 continue;
             }
+            // entfernen der false Werte
+            $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
             $InvoiceCount++;
+            $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId);
 
-            $tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor();
-            $directDebit->addPaymentInfo($PaymentId, array(
-                'id'                    => $PaymentId,
-                'dueDate'               => new \DateTime($tblInvoice->getTargetTime()), // optional. Otherwise default period is used
-                'creditorName'          => $tblInvoiceCreditor->getOwner(),
-                'creditorAccountIBAN'   => $tblInvoiceCreditor->getIBAN(),
-                'creditorAgentBIC'      => $tblInvoiceCreditor->getBIC(),
-                'seqType'               => PaymentInformation::S_ONEOFF,
-                // Element dient der Angabe, um was für eine SEPA Lastschrift es sich handelt:
-                //» SEPA OOFF = einmalige SEPA Lastschrift
-                //» SEPA FRST = erste SEPA Lastschift
-                //» SEPA RCUR = fortfolgende SEPA Lastschrift
-                //» SEPA FNAL = letzte SEPA Lastschrift
-                'creditorId'            => $tblInvoiceCreditor->getCreditorId(),
-                'localInstrumentCode'   => 'COR1' // default. optional.
-                // Element dient der Unterscheidung zwischen den einzelenen SEPA Lastschriften:
-                //» SEPA COR1 Lastschrift (aktueller Standard)
-            ));
-
-            if($tblInvoiceItemDebtorList){
-                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
-                    // Offene posten ignorieren
-                    if(!$tblInvoiceItemDebtor->getIsPaid()){
-                        continue;
-                    }
-                    $ReferenceDate = '';
-                    if(($tblBankReference = $tblInvoiceItemDebtor->getServiceTblBankReference())){
-                        $ReferenceDate = $tblBankReference->getReferenceDate();
-                    }
-
-                    // create a payment, it's possible to create multiple payments,
-                    // "firstPayment" is the identifier for the transactions
-                    // Add a Single Transaction to the named payment
-                    $directDebit->addTransfer($PaymentId, array(
-                        'amount'                => ($tblInvoiceItemDebtor->getSummaryPriceInt() * 100), // "Sepa amount" wird in Cent angegeben
-                        'debtorIban'            => $tblInvoiceItemDebtor->getIBAN(),
-                        'debtorBic'             => $tblInvoiceItemDebtor->getBIC(), // Pflichtfeld?
-                        'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
-                        'debtorMandate'         => $tblInvoiceItemDebtor->getBankReference(),
-                        'debtorMandateSignDate' => $ReferenceDate,
-                        'remittanceInformation' => $tblInvoiceItemDebtor->getName(),
-                        //            'endToEndId'            => 'Invoice-No X' // optional, if you want to provide additional structured info
-                    ));
+            if(!empty($tblInvoiceItemDebtorList)){
+                $this->addTransfer($directDebit, $tblInvoiceItemDebtorList, $PaymentId);
+            }
+        }
+        // Bearbeitung der Offenen Posten
+        if(!empty($CheckboxList)){
+            foreach($CheckboxList as $tblInvoiceItemDebtorId){
+                $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($tblInvoiceItemDebtorId);
+                if($tblInvoiceItemDebtor){
+                    $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
+                    $PaymentId = $tblInvoice->getId().'_PaymentId';
+                    $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId);
+                    $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true);
                 }
             }
         }
+
+
         if($InvoiceCount == 0){
             return false;
         }
 
+        Basket::useService()->changeBasketDoneSepa($tblBasket);
+
         return $directDebit;
+    }
+
+    private function addPaymentInfo(CustomerDirectDebitFacade $directDebit, TblInvoice $tblInvoice, $PaymentId)
+    {
+
+        $tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor();
+        $directDebit->addPaymentInfo($PaymentId, array(
+            'id'                    => $PaymentId,
+            'dueDate'               => new \DateTime($tblInvoice->getTargetTime()), // optional. Otherwise default period is used
+            'creditorName'          => $tblInvoiceCreditor->getOwner(),
+            'creditorAccountIBAN'   => $tblInvoiceCreditor->getIBAN(),
+            'creditorAgentBIC'      => $tblInvoiceCreditor->getBIC(),
+            'seqType'               => PaymentInformation::S_ONEOFF,
+            // Element dient der Angabe, um was für eine SEPA Lastschrift es sich handelt:
+            //» SEPA OOFF = einmalige SEPA Lastschrift
+            //» SEPA FRST = erste SEPA Lastschift
+            //» SEPA RCUR = fortfolgende SEPA Lastschrift
+            //» SEPA FNAL = letzte SEPA Lastschrift
+            'creditorId'            => $tblInvoiceCreditor->getCreditorId(),
+            'localInstrumentCode'   => 'COR1' // default. optional.
+            // Element dient der Unterscheidung zwischen den einzelenen SEPA Lastschriften:
+            //» SEPA COR1 Lastschrift (aktueller Standard)
+        ));
+    }
+
+    /**
+     * @param CustomerDirectDebitFacade $directDebit
+     * @param array                     $tblInvoiceItemDebtorList
+     * @param string                    $PaymentId
+     * @param bool                      $doPaidInvoice
+     *
+     * @throws \Digitick\Sepa\Exception\InvalidArgumentException
+     */
+    private function addTransfer(CustomerDirectDebitFacade $directDebit, $tblInvoiceItemDebtorList, $PaymentId, $doPaidInvoice = false)
+    {
+
+        /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+        foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+            if(!$doPaidInvoice){
+                // Offene posten ignorieren
+                if(!$tblInvoiceItemDebtor->getIsPaid()){
+                    continue;
+                }
+            }
+
+            $ReferenceDate = '';
+            if(($tblBankReference = $tblInvoiceItemDebtor->getServiceTblBankReference())){
+                $ReferenceDate = $tblBankReference->getReferenceDate();
+            }
+
+            // create a payment, it's possible to create multiple payments,
+            // "firstPayment" is the identifier for the transactions
+            // Add a Single Transaction to the named payment
+            $directDebit->addTransfer($PaymentId, array(
+                'amount'                => ($tblInvoiceItemDebtor->getSummaryPriceInt() * 100), // "Sepa amount" wird in Cent angegeben
+                'debtorIban'            => $tblInvoiceItemDebtor->getIBAN(),
+                'debtorBic'             => $tblInvoiceItemDebtor->getBIC(), // Pflichtfeld?
+                'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
+                'debtorMandate'         => $tblInvoiceItemDebtor->getBankReference(),
+                'debtorMandateSignDate' => $ReferenceDate,
+                'remittanceInformation' => $tblInvoiceItemDebtor->getName(),
+                //            'endToEndId'            => 'Invoice-No X' // optional, if you want to provide additional structured info
+            ));
+        }
     }
 }

@@ -120,6 +120,17 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Item'] = implode(', ', $ItemArray);
                 }
 
+                $Item['Sepa'] = '';
+                $Item['Datev'] = '';
+
+                if($tblBasket->getSepaDate()){
+                    $Item['Sepa'] = $tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')';
+                }
+                if($tblBasket->getDatevDate()){
+                    $Item['Datev'] = $tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')';
+                }
+
+
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
                 if($tblBasket->getIsDone()){
@@ -156,6 +167,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
                 'Item'       => 'Beitragsart(en)',
+                'Sepa'       => 'Letzte SEPA-Download',
+                'Datev'      => 'Letzte SEPA-Download',
                 'Option'     => ''
             ), array(
                 'columnDefs' => array(
