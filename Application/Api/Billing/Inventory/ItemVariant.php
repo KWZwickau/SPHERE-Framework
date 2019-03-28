@@ -280,8 +280,11 @@ class ItemVariant extends ItemCalculation
                 }
             }
             if(!$VariantId){
-                if(isset($Calculation['Value']) && empty($Calculation['Value'])){
+                if(isset($Calculation['Value']) && empty($Calculation['Value']) && $Calculation['Value'] !== '0'){
                     $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis an');
+                    $Error = true;
+                } elseif(isset($Calculation['Value']) && $Calculation['Value'] < 0) {
+                    $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis im positiven Bereich an');
                     $Error = true;
                 }
                 if(isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])){
