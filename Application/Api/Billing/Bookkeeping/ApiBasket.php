@@ -461,7 +461,7 @@ class ApiBasket extends Extension implements IApiInterface
             return $form;
         }
 
-        //ToDO Prüfung einbauen
+        //ToDO Prüfung Wann dürfen Personen in den Warenkorb / Wann nicht?
 //        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
 //        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
 //            $tblBasket->getYear(), $tblBasket->getMonth())){

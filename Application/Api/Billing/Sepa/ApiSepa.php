@@ -86,9 +86,6 @@ class ApiSepa extends Extension implements IApiInterface
     {
 
         if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            $year = $tblBasket->getYear();
-            $month = $tblBasket->getMonth();
-            $BasketName = $tblBasket->getName();
             $TableContent = array();
             if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid())){
                 array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
@@ -136,9 +133,7 @@ class ApiSepa extends Extension implements IApiInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(array(
-                            new HiddenField('Invoice[Year]'),
-                            new HiddenField('Invoice[Month]'),
-                            new HiddenField('Invoice[BasketName]'),
+                            new HiddenField('Invoice[BasketId]'),
                         )),
                         $FormColumnTable,
                     ))
@@ -150,9 +145,7 @@ class ApiSepa extends Extension implements IApiInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(array(
-                            new HiddenField('Invoice[Year]'),
-                            new HiddenField('Invoice[Month]'),
-                            new HiddenField('Invoice[BasketName]'),
+                            new HiddenField('Invoice[BasketId]'),
                         )),
                         new FormColumn(
                             new Success('Es sind keine Offenen Posten vorhanden, die in die SEPA-Lastschrift XML aufgenommen
@@ -165,9 +158,7 @@ class ApiSepa extends Extension implements IApiInterface
 
 
         // set hidden POST
-        $_POST['Invoice']['Year'] = $year;
-        $_POST['Invoice']['Month'] = $month;
-        $_POST['Invoice']['BasketName'] = $BasketName;
+        $_POST['Invoice']['BasketId'] = $BasketId;
 
         return
             new Title('Offene Posten', 'erneut in SEPA-Lastschrift aufnehmen').$toggleCheckbox.$form;

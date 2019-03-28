@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Billing\Sepa;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -59,11 +60,17 @@ class Sepa implements IModuleInterface
         if(isset($Invoice['CheckboxList'])){
             $CheckboxList = $Invoice['CheckboxList'];
         }
+        $BasketId = $Invoice['BasketId'];
+        $tblBasket = Basket::useService()->getBasketById($BasketId);
+        $directDebit = false;
+        if($tblBasket){
+            $directDebit = Balance::useService()->createSepaContent($tblBasket, $CheckboxList);
+        }
 
-        $directDebit = Balance::useService()->createSepaContent($Invoice['Month'], $Invoice['Year'], $Invoice['BasketName'], $CheckboxList);
-
+        $month = $tblBasket->getMonth();
+        $year = $tblBasket->getYear();
         $monthString = '';
-        $monthList = Invoice::useService()->getMonthList($Invoice['Month'], $Invoice['Month']);
+        $monthList = Invoice::useService()->getMonthList($month, $month);
         if(!empty($monthList)){
             $monthString = current($monthList);
         }
@@ -71,7 +78,7 @@ class Sepa implements IModuleInterface
         if($directDebit){
             // Retrieve the resulting XML
             header('Content-type: text/xml');
-            header('Content-Disposition: attachment; filename="Abrechnung_'.$monthString.'_'.$Invoice['Year'].'.xml"');
+            header('Content-Disposition: attachment; filename="Abrechnung_'.$monthString.'_'.$year.'.xml"');
             return $directDebit->asXML();
         } else {
             return new Warning('XML Datei enthält keine Sepa-Lastschrift');

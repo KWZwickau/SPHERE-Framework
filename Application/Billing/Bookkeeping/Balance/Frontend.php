@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -44,10 +43,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Dashboard', 'Belegdruck');
-        $now = new \DateTime('now');
-        $month = $now->format('m');
-        $year = $now->format('Y');
-        $Stage->addButton((new Standard('SEPA Download '.$month.'.'.$year, '\Api\Billing\Sepa\Download', new Download(), array('Month' => $month, 'Year' => $year))));
         return $Stage;
     }
 

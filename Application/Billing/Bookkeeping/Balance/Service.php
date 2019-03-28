@@ -15,6 +15,7 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
@@ -524,18 +525,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Month
-     * @param string $Year
-     * @param string $BasketName
-     * @param array  $CheckboxList
+     * @param TblBasket $tblBasket
+     * @param array     $CheckboxList
      *
      * @return bool|\Digitick\Sepa\TransferFile\Facade\CustomerDirectDebitFacade
      */
-    public function createSepaContent($Month = '', $Year = '', $BasketName = '', $CheckboxList = array())
+    public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array())
     {
 
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Year, $Month, $BasketName);
-        $tblBasket = Basket::useService()->getBasketByName($BasketName, $Month, $Year);
+        $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
+
+        if(!$tblInvoiceList){
+            return false;
+        }
+
         $SepaPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
 
         //Set the custom header (Spanish banks example) information

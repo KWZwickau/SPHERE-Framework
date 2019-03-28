@@ -271,8 +271,6 @@ class TblBasket extends Element
         $this->DatevUser = $DatevUser;
     }
 
-
-
     /**
      * @return bool|TblCreditor
      */

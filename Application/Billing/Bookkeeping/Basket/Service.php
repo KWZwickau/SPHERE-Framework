@@ -15,6 +15,8 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -262,6 +264,11 @@ class Service extends AbstractService
 
         $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
 
+        $IsSepa = true;
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
+            $IsSepa = $tblSetting->getValue();
+        }
+
         $DebtorDataArray = array();
         if($tblPersonList){
             /** @var TblPerson $tblPerson */
@@ -270,6 +277,7 @@ class Service extends AbstractService
                     $tblItem))){
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Error = false;
+                        $IsNoDebtorSelection = false;
                         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
                         if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
                             $tblBasket->getYear(), $tblBasket->getMonth())){
@@ -308,6 +316,29 @@ class Service extends AbstractService
                             if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
+                        }
+                        // Entfernen aller DebtorSelection (SEPA-Lastschrift) welche keine gültige Sepa-Mandatsreferenznummer besitzen.
+                        if($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift'
+                        && $IsSepa){
+                            if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
+                                if(new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
+                                    // Datum der Referenz liegt noch in der Zukunft;
+                                    $IsNoDebtorSelection = true;
+                                }
+                            } else {
+                                // Keine gültige Mandatsreferenznummer
+                                $IsNoDebtorSelection = true;
+                            }
+                        }
+                        if($IsNoDebtorSelection){
+                            // entry without valid BankRef
+                            $Item['Causer'] = $tblPerson->getId();
+                            $Item['Debtor'] = '';
+                            $Item['BankAccount'] = null;
+                            $Item['BankReference'] = null;
+                            $Item['PaymentType'] = null;
+                            // default special price value
+                            $Item['Price'] = '0.00';
                         }
                         if(!$Error){
                             array_push($DebtorDataArray, $Item);
