@@ -139,10 +139,10 @@ class Frontend extends Extension implements IFrontendInterface
                         'Inhalt der Abrechnung')
                     .(new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'Sepa Download'))->ajaxPipelineOnClick(
                         ApiSepa::pipelineOpenCauserModal($tblBasket->getId())
-                        )
-                    .(new Primary('', '#', new Download(),
-                        array('BasketId' => $tblBasket->getId()),
-                        'Datev Download'))->setDisabled();
+                        );
+//                    .(new Primary('', '#', new Download(),
+//                        array('BasketId' => $tblBasket->getId()),
+//                        'Datev Download'))->setDisabled();
                 } else {
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
                             'Abrechnung bearbeiten'))
