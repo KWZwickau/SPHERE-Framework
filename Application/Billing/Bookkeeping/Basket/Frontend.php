@@ -272,6 +272,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Quantity'] = '';
                     $Item['Summary'] = '';
                     $DebtorWarningContent = '';
+                    $IsShowPriceString = false;
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
                         if($tblBasket->getIsDone()){
@@ -290,8 +291,8 @@ class Frontend extends Extension implements IFrontendInterface
                     if($IsDebtorNumberNeed){
                         $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debitoren-Nr. wird benötigt!');
                     }
-
                     if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
+                        $IsShowPriceString = true;
                         // ignore FailMessage if not necessary
                         if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
                             $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
@@ -315,11 +316,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Item'] = $tblItem->getName();
                     }
                     if(($Price = $tblBasketVerification->getPrice())){
-                        // Hide Sort by Integer
-                        $StringCount = strlen($Price) - 5;
-                        $SortPrice = substr(str_replace(',', '', $Price), 0, $StringCount);
-                        $Item['Price'] = '<span hidden>'.$SortPrice.'</span>'.ApiBasketVerification::receiverItemPrice($Price,
-                                $tblBasketVerification->getId());
+                        if($IsShowPriceString){
+                            // Hide Sort by Integer
+                            $StringCount = strlen($Price) - 5;
+                            $SortPrice = substr(str_replace(',', '', $Price), 0, $StringCount);
+                            $Item['Price'] = '<span hidden>'.$SortPrice.'</span>'.ApiBasketVerification::receiverItemPrice($Price,
+                                    $tblBasketVerification->getId());
+                        } else {
+                            $Item['Price'] = '---';
+                        }
                         // Add ChangeButton to PersonDebtor
                         if(!$tblBasket->getIsDone()){
                             $Item['Price'] .= '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
@@ -347,6 +352,9 @@ class Frontend extends Extension implements IFrontendInterface
                         $SortSummary = substr(str_replace(',', '', $Summary), 0, $StringCount);
                         $Item['Summary'] = '<span hidden>'.$SortSummary.'</span>'.ApiBasketVerification::receiverItemSummary($Summary,
                                 $tblBasketVerification->getId());
+                        if(!$IsShowPriceString){
+                            $Item['Summary'] = '---';
+                        }
                     }
 
                     // Add ChangeButton to PersonDebtor
@@ -356,7 +364,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 'Beitragszahler ändern');
                     }
 
-                    //ToDO API für's löschen
                     if($tblBasket->getIsDone()){
                         $Item['Option'] = '';
                     } else {

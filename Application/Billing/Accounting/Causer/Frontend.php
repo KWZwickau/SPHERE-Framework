@@ -379,7 +379,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
         // ToDO Implement Receiver
-        $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummern',
+        $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummer',
             ApiBankReference::receiverPanelContent($this->getReferenceContent($PersonId)).
             (new Link('Mandantsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
                 ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenAddReferenceModal('addBankReference', $PersonId)),

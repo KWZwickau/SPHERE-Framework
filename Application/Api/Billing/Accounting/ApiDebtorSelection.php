@@ -468,8 +468,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         , 6
                     ),
                     new FormColumn(
-                        new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenz',
-                            array('ReferenceNumber' => $tblBankReferenceList))
+                        new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenznummer',
+                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList))
                         , 6
                     )
                 )),
@@ -680,7 +680,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         $Error = true;
                     }
                     if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
-                        $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
+                        $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenznummer an');
                         $Error = true;
                     }
                 }
@@ -946,12 +946,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new LayoutColumn($BankAccountLeftHeadString, 2),
                 new LayoutColumn(new Bold($BankAccountString), 8),
             ))));
-            $BankReferenceString = 'Mandatsreferenz nicht gefunden!';
+            $BankReferenceString = 'Mandatsreferenznummer nicht gefunden!';
             if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                 $BankReferenceString = $tblBankReference->getReferenceNumber();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Mandatsreferenz: ', 2),
+                new LayoutColumn('Mandatsreferenznummer: ', 2),
                 new LayoutColumn(new Bold($BankReferenceString), 10),
             ))));
 

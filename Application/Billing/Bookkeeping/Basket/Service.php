@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
@@ -158,6 +159,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketVerificationAllByBasket($tblBasket);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationAllByBankReference(TblBankReference $tblBankReference)
+    {
+
+        return (new Data($this->getBinding()))->getBasketVerificationAllByBankReference($tblBankReference);
     }
 
     /**
@@ -317,6 +329,7 @@ class Service extends AbstractService
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
                         }
+                        $Item['DebtorSelection'] = $tblDebtorSelection->getId();
                         // Entfernen aller DebtorSelection (SEPA-Lastschrift) welche keine gültige Sepa-Mandatsreferenznummer besitzen.
                         if($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift'
                         && $IsSepa){
@@ -337,8 +350,9 @@ class Service extends AbstractService
                             $Item['BankAccount'] = null;
                             $Item['BankReference'] = null;
                             $Item['PaymentType'] = null;
+                            $Item['DebtorSelection'] = null;
                             // default special price value
-                            $Item['Price'] = '0.00';
+                            $Item['Price'] = '0';
                         }
                         if(!$Error){
                             array_push($DebtorDataArray, $Item);
@@ -358,8 +372,9 @@ class Service extends AbstractService
                     $Item['BankAccount'] = null;
                     $Item['BankReference'] = null;
                     $Item['PaymentType'] = null;
+                    $Item['DebtorSelection'] = null;
                     // default special price value
-                    $Item['Price'] = '0.00';
+                    $Item['Price'] = '0';
                     if(!$Error){
                         array_push($DebtorDataArray, $Item);
                     }
@@ -437,10 +452,23 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function changeBasketVerification(TblBasketVerification $tblBasketVerification, $Quantity)
+    public function changeBasketVerificationInQuantity(TblBasketVerification $tblBasketVerification, $Quantity)
     {
 
-        return (new Data($this->getBinding()))->updateBasketVerification($tblBasketVerification, $Quantity);
+        return (new Data($this->getBinding()))->updateBasketVerificationInQuantity($tblBasketVerification, $Quantity);
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     * @param TblDebtorSelection    $tblDebtorSelection
+     *
+     * @return bool
+     */
+    public function changeBasketVerificationInDebtorSelection(TblBasketVerification $tblBasketVerification,
+        TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return (new Data($this->getBinding()))->updateBasketVerificationInDebtorSelection($tblBasketVerification, $tblDebtorSelection);
     }
 
     /**

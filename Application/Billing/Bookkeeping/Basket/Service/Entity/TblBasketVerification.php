@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
@@ -69,6 +70,10 @@ class TblBasketVerification extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblItem;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDebtorSelection;
 
     /**
      * @param bool $IsFormInput
@@ -263,6 +268,28 @@ class TblBasketVerification extends Element
     {
 
         $this->serviceTblItem = (null === $tblItem ? null : $tblItem->getId());
+    }
+
+    /**
+     * @return bool|TblDebtorSelection
+     */
+    public function getServiceTblDebtorSelection()
+    {
+
+        if(null === $this->serviceTblDebtorSelection){
+            return false;
+        } else {
+            return Debtor::useService()->getDebtorSelectionById($this->serviceTblDebtorSelection);
+        }
+    }
+
+    /**
+     * @param null|TblDebtorSelection $tblDebtorSelection
+     */
+    public function setServiceTblDebtorSelection(TblDebtorSelection $tblDebtorSelection = null)
+    {
+
+        $this->serviceTblDebtorSelection = (null === $tblDebtorSelection ? null : $tblDebtorSelection->getId());
     }
 
     /**

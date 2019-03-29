@@ -97,6 +97,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDebtorSelection', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;

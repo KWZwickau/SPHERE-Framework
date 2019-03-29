@@ -271,11 +271,11 @@ class ApiSetting extends Extension implements IApiInterface
     public function changeSetting($Setting)
     {
 
-        $DebtorNumberCount = (isset($Setting['DebtorNumberCount']) ? $Setting['DebtorNumberCount'] : 7);
+        $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting['DebtorNumberCount'] : 7);
         Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
-        $IsDebtorNumberNeed = (isset($Setting['IsDebtorNumberNeed']) ? true : false);
+        $IsDebtorNumberNeed = (isset($Setting[TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED]) ? true : false);
         Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
-        $IsSepaAccountNeed = (isset($Setting['IsSepaAccountNeed']) ? true : false);
+        $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
         Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
 
         return Setting::useFrontend()->displaySetting();
