@@ -316,7 +316,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        (new TextField('BankAccount[IBAN]', 'IBAN', 'IBAN'))->setRequired()
+                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'aa99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
                     new FormColumn(
                         new TextField('BankAccount[BIC]', 'BIC', 'BIC')
