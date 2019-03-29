@@ -305,7 +305,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 ),
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[IBAN]', 'IBAN', 'IBAN'))->setRequired()
+                        (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'aa99 9999 9999 9999 9999 99'))->setRequired()
                         , 6)
                 ),
                 new FormRow(
