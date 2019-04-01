@@ -85,7 +85,7 @@ class ApiSepa extends Extension implements IApiInterface
     public function showOpenInvoice($BasketId = '')
     {
 
-        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
+        if(Basket::useService()->getBasketById($BasketId)){
             $TableContent = array();
             if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid())){
                 array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){

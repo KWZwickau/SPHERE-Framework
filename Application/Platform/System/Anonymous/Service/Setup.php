@@ -29,7 +29,7 @@ class Setup extends AbstractSetup
          * Migration & Protocol
          */
         // UTF8 repair
-        if($UTF8){
+        if ($UTF8){
             $this->getConnection()->setUTF8();
         }
         return '';
