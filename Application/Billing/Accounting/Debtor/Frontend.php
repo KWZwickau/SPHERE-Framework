@@ -23,16 +23,15 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
-use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -43,8 +42,9 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -66,63 +66,109 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswahl Gruppe der', 'Beitragszahler');
 
-        $Content = array();
+        $Stage->setContent(
+            $this->layoutPersonGroupList($GroupId)
+        );
+
+
+        return $Stage;
+    }
+
+    /**
+     * @param string $GroupId
+     *
+     * @return Layout
+     */
+    public static function layoutPersonGroupList($GroupId = '')
+    {
+
+        $tblGroupList = array();
 
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(),
-                    array('GroupId' => $tblGroup->getId()))));
+            $tblGroupList[] = $tblGroup;
         }
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(),
-                    array('GroupId' => $tblGroup->getId()))));
+            $tblGroupList[] = $tblGroup;
         }
 
-        if(($tblGroupList = Group::useService()->getGroupAll())){
-            foreach($tblGroupList as &$tblGroup) {
+        $leftBoxList = array();
+        $rightBoxList = array();
+        if(($boxList = Group::useService()->getGroupAll())){
+            foreach($boxList as $tblGroup) {
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_CUSTODY
                     || $tblGroup->getMetaTable() === TblGroup::META_TABLE_DEBTOR
+                    || $tblGroup->getMetaTable() === TblGroup::META_TABLE_COMMON
                 ){
-                    $tblGroup = false;
+                    continue;
+                }
+                if($tblGroup->getMetaTable() !== ''){
+                    $leftBoxList[] = $tblGroup;
+                } else {
+                    $rightBoxList[] = $tblGroup;
                 }
             }
             $tblGroupList = array_filter($tblGroupList);
         }
-        if(false === $tblGroupList
-            || empty($tblGroupList)){
-            $tblGroupList = array();
+
+        $tblGroupLockedList = array();
+        $tblGroupCustomList = array();
+        if (!empty($tblGroupList)) {
+            /** @var TblGroup $tblGroup */
+            foreach ($tblGroupList as $Index => $tblGroup) {
+
+                $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Mitglieder'));
+                $content =
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                $tblGroup->getName()
+                                . new Muted(new Small('<br/>' . $tblGroup->getDescription()))
+                                , 5),
+                            new LayoutColumn(
+                                $countContent
+                                , 6),
+                            new LayoutColumn(
+                                new PullRight(
+                                    new Standard('', __NAMESPACE__.'/View',
+                                        new GroupIcon(),
+                                        array('GroupId' => $tblGroup->getId()))
+                                ), 1)
+                        )
+                    )));
+
+                if ($tblGroup->isLocked()) {
+                    $tblGroupLockedList[] = $content;
+                } else {
+                    $tblGroupCustomList[] = $content;
+                }
+            }
         }
+        // Standard Gruppen Auswahl über Selectbox
+        $tblGroupLockedList[] = Debtor::useService()->directRoute(
+            new Form(new FormGroup(new FormRow(array(
+                new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $leftBoxList)), 10)
+            ,
+                new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
+            )))), $GroupId,'left');
+        // Individuelle Gruppen Auswahl über Selectbox
+        $tblGroupCustomList[] = Debtor::useService()->directRoute(
+            new Form(new FormGroup(new FormRow(array(
+                new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $rightBoxList)), 10)
+            ,
+                new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
+            )))), $GroupId, 'right');
 
-        $Content[] = new Center('Auswahl für Personen'
-            .new Container(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('', 2),
-                    new LayoutColumn(Debtor::useService()->directRoute(
-                        new Form(new FormGroup(new FormRow(array(
-                            new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $tblGroupList)), 11)
-                        ,
-                            new FormColumn(new StandardForm('', new ListingIcon()), 1)
-                        )))), $GroupId)
-                        , 8)
-                ))))
-            ));
-
-        $Stage->setContent(new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ''
-                        , 3),
-                    new LayoutColumn(
-                        new Panel('Kategorien:', new Listing($Content))
-                        , 6)
-                ))
-            )
-        ));
-
-
-        return $Stage;
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel('Personen in festen Gruppen', $tblGroupLockedList)
+                // platz, damit die Selectbox nach unten auf geht
+                .'<div style="height: 240px"></div>', 6
+            ),
+            !empty($tblGroupCustomList) ?
+                new LayoutColumn(
+                    new Panel('Personen in individuellen Gruppen', $tblGroupCustomList)
+                    // platz, damit die Selectbox nach unten auf geht
+                    .'<div style="height: 240px"></div>', 6) : null
+        ))));
     }
 
     public function frontendDebtorView($GroupId = null)

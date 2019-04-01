@@ -1232,6 +1232,68 @@ class Service extends AbstractService
             }
         }
 
+        // Klassenlehrer für Kopfnotenvorschlag
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
+                'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue()
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+            && ($tblYearList = Term::useService()->getYearByNow())
+        ) {
+            $now = new \DateTime('now');
+            $tblCurrentYear = reset($tblYearList);
+            if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
+                foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
+                    if (($tblDivisionItem = $tblDivisionTeacher->getTblDivision())
+                        && ($tblYear = $tblDivisionItem->getServiceTblYear())
+                        && $tblYear->getId() == $tblCurrentYear->getId()
+                    ) {
+                        if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivisionItem, $tblTestType))) {
+                            foreach ($tblTaskList as $tblTask) {
+                                $taskFromDate = new \DateTime($tblTask->getFromDate());
+                                $taskToDate = new \DateTime($tblTask->getToDate());
+
+                                // current Task
+                                if ($now > $taskFromDate
+                                    && $now < ($taskToDate->add(new \DateInterval('P1D')))
+                                ) {
+                                    $countGrades = 0;
+                                    if (($tblGradeList = Gradebook::useService()->getProposalBehaviorGradeAllBy($tblDivisionItem, $tblTask))) {
+                                        foreach ($tblGradeList as $tblProposalBehaviorGrade) {
+                                            if ($tblProposalBehaviorGrade->getDisplayGrade() !== '') {
+                                                $countGrades++;
+                                            }
+                                        }
+                                    }
+
+                                    $countPersons = 0;
+                                    if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivisionItem))) {
+                                        $countPersons = 4 * count($tblDivisionStudentList);
+                                    }
+
+                                    $text = ' ' . $tblDivisionItem->getDisplayName() . ' (Vorschlag-KL): '
+                                        . $countGrades . ' von ' . $countPersons . ' Zensuren vergeben';
+                                    $behaviorTask[$tblTask->getId()][$tblDivisionItem->getDisplayName()]['Message'] =
+                                        new PullClear(($countGrades < $countPersons
+                                                ? new Warning(new Exclamation() . $text)
+                                                : new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                                    . $text))
+                                            . new PullRight(new Standard(
+                                                '',
+                                                '/Education/Graduation/Evaluation/Test/Teacher/Proposal/Grade/Edit',
+                                                new Extern(),
+                                                array(
+                                                    'DivisionId' => $tblDivisionItem->getId(),
+                                                    'TaskId' => $tblTask->getId()
+                                                ),
+                                                'Zur Noteneingabe wechseln'
+                                            )));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         $columns = array();
         $columns = $this->setWelcomeContent($appointedDateTaskList,

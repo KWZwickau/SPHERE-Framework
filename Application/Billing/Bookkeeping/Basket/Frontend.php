@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
+use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
@@ -17,7 +18,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -73,6 +76,7 @@ class Frontend extends Extension implements IFrontendInterface
             ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
             .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
             .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
+            .ApiSepa::receiverModal()
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -116,20 +120,37 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Item'] = implode(', ', $ItemArray);
                 }
 
+                $Item['Sepa'] = '';
+                $Item['Datev'] = '';
+
+                if($tblBasket->getSepaDate()){
+                    $Item['Sepa'] = $tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')';
+                }
+                if($tblBasket->getDatevDate()){
+                    $Item['Datev'] = $tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')';
+                }
+
+
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
                 if($tblBasket->getIsDone()){
                     $Item['Option'] = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
                         array('BasketId' => $tblBasket->getId()),
-                        'Inhalt der Abrechnung');
+                        'Inhalt der Abrechnung')
+                    .(new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'Sepa Download'))->ajaxPipelineOnClick(
+                        ApiSepa::pipelineOpenCauserModal($tblBasket->getId())
+                        );
+//                    .(new Primary('', '#', new Download(),
+//                        array('BasketId' => $tblBasket->getId()),
+//                        'Datev Download'))->setDisabled();
                 } else {
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
                             'Abrechnung bearbeiten'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket',
                                 $tblBasket->getId()))
-                        .new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
+                        .new Primary('', __NAMESPACE__.'/View', new CogWheels(),
                             array('BasketId' => $tblBasket->getId()),
-                            'Inhalt der Abrechnung')
+                            'Erstellung der Abrechnung')
                         .(new Standard('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
                                 $tblBasket->getId()));
@@ -146,6 +167,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
                 'Item'       => 'Beitragsart(en)',
+                'Sepa'       => 'Letzte SEPA-Download',
+                'Datev'      => 'Letzte SEPA-Download',
                 'Option'     => ''
             ), array(
                 'columnDefs' => array(
@@ -217,7 +240,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         if(!$tblBasket){
-            return new Danger('Warenkorb wurde nicht gefunden')
+            return new Danger('Abrechnung wurde nicht gefunden')
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         $CountArray = array();
@@ -243,12 +266,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $IsDebtorNumberNeed
                 ){
                     $Item['PersonCauser'] = '';
-                    $Item['PersonDebtorFail'] = '';
                     $Item['PersonDebtor'] = '';
                     $Item['Item'] = '';
                     $Item['Price'] = '';
                     $Item['Quantity'] = '';
                     $Item['Summary'] = '';
+                    $DebtorWarningContent = '';
+                    $IsShowPriceString = false;
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
                         if($tblBasket->getIsDone()){
@@ -259,7 +283,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new ToolTip(new WarningIcon(), 'Beitragszahler nicht gefunden')),
                                 $tblBasketVerification->getId());
                         }
-                        $Item['PersonDebtorFail'] = new DangerText(new WarningIcon());
+                        $DebtorWarningContent = new DangerText(new WarningIcon());
                     }
 
                     $InfoDebtorNumber = '';
@@ -267,36 +291,48 @@ class Frontend extends Extension implements IFrontendInterface
                     if($IsDebtorNumberNeed){
                         $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debitoren-Nr. wird benötigt!');
                     }
-
                     if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
+                        $IsShowPriceString = true;
                         // ignore FailMessage if not necessary
                         if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
                             $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
                                 $tblBasketVerification->getId());
-                            $Item['PersonDebtorFail'] = '';
+                            $DebtorWarningContent = '';
                         } else {
                             $DebtorNumberMiss++;
                             $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName().' '.$InfoDebtorNumber,
                                 $tblBasketVerification->getId());
                             if(!$IsDebtorNumberNeed){
-                                $Item['PersonDebtorFail'] = '';
+                                $DebtorWarningContent = '';
                             }
                         }
 
                     } else {
                         $DebtorMiss++;
                     }
+                    $Item['PersonDebtorFail'] = ApiBasketVerification::receiverWarning($DebtorWarningContent, $tblBasketVerification->getId());
+
                     if(($tblItem = $tblBasketVerification->getServiceTblItem())){
                         $Item['Item'] = $tblItem->getName();
                     }
                     if(($Price = $tblBasketVerification->getPrice())){
-                        // Hide Sort by Integer
-                        $StringCount = strlen($Price) - 5;
-                        $SortPrice = substr(str_replace(',', '', $Price), 0, $StringCount);
-                        $Item['Price'] = '<span hidden>'.$SortPrice.'</span>'.ApiBasketVerification::receiverItemPrice($Price,
-                                $tblBasketVerification->getId());
+                        if($IsShowPriceString){
+                            // Hide Sort by Integer
+                            $StringCount = strlen($Price) - 5;
+                            $SortPrice = substr(str_replace(',', '', $Price), 0, $StringCount);
+                            $Item['Price'] = '<span hidden>'.$SortPrice.'</span>'.ApiBasketVerification::receiverItemPrice($Price,
+                                    $tblBasketVerification->getId());
+                        } else {
+                            $Item['Price'] = '---';
+                        }
+                        // Add ChangeButton to PersonDebtor
+                        if(!$tblBasket->getIsDone()){
+                            $Item['Price'] .= '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
+                                    ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
+                                    , 'Preis ändern');
+                        }
                     }
-                    if(($Quantity = $tblBasketVerification->getQuantity())){
+                    if(($Quantity = $tblBasketVerification->getQuantity())|| 0 === $tblBasketVerification->getQuantity()){
                         if($tblBasket->getIsDone()){
                             $Item['Quantity'] = $Quantity;
                         } else {
@@ -316,17 +352,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $SortSummary = substr(str_replace(',', '', $Summary), 0, $StringCount);
                         $Item['Summary'] = '<span hidden>'.$SortSummary.'</span>'.ApiBasketVerification::receiverItemSummary($Summary,
                                 $tblBasketVerification->getId());
+                        if(!$IsShowPriceString){
+                            $Item['Summary'] = '---';
+                        }
                     }
 
                     // Add ChangeButton to PersonDebtor
                     if(!$tblBasket->getIsDone()){
-                        $Item['PersonDebtor'] = $Item['PersonDebtor'].
-                            '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
+                        $Item['PersonDebtor'] .= '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
                                 ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
                                 , 'Beitragszahler ändern');
                     }
 
-                    //ToDO API für's löschen
                     if($tblBasket->getIsDone()){
                         $Item['Option'] = '';
                     } else {
@@ -453,7 +490,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Rechnungen', 'in Arbeit');
 
         if(!($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            return $Stage->setContent(new Danger('Der Warenkorb wird nicht mehr gefunden.'))
+            return $Stage->setContent(new Danger('Die Abrechnung wird nicht mehr gefunden.'))
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->setContent(new Layout(
@@ -483,7 +520,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Rechnungen', 'in Arbeit');
 
         if(!($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            return $Stage->setContent(new Danger('Der Warenkorb wird nicht mehr gefunden.'))
+            return $Stage->setContent(new Danger('Die Abrechnung wird nicht mehr gefunden.'))
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->setContent(new Layout(

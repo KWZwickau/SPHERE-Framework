@@ -245,8 +245,11 @@ class ItemCalculation extends Extension
             $Warning = new Danger('Beitrags-Variante ist nicht mehr vorhanden!');
             $Error = true;
         } else {
-            if(isset($Calculation['Value']) && empty($Calculation['Value'])){
+            if(isset($Calculation['Value']) && empty($Calculation['Value']) && $Calculation['Value'] !== '0'){
                 $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis an');
+                $Error = true;
+            } elseif(isset($Calculation['Value']) && $Calculation['Value'] < 0) {
+                $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis im positiven Bereich an');
                 $Error = true;
             }
             if(isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])){

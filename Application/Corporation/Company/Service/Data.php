@@ -110,6 +110,40 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array   $ProcessList
+     *
+     * @return bool
+     */
+    public function updateCompanyAnonymousBulk($ProcessList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($ProcessList)){
+            foreach($ProcessList as $Company){
+                /** @var TblCompany $tblCompany */
+                $tblCompany = $Company['tblCompany'];
+                $Name = $Company['Name'];
+                /** @var TblCompany $Entity */
+                $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
+//                $Protocol = clone $Entity;
+                if (null !== $Entity) {
+                    $Entity->setName($Name);
+                    $Entity->setDescription('');
+                    $Entity->setExtendedName('');
+                    $Manager->bulkSaveEntity($Entity);
+                    // no Protocol necessary
+//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+//                    $Protocol,
+//                    $Entity);
+                }
+            }
+            $Manager->flushCache();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return bool|TblCompany[]
      */
     public function getCompanyAll()
@@ -193,7 +227,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function destroyCompany(TblCompany $tblCompany)
+    public function removeCompany(TblCompany $tblCompany)
     {
 
         $Manager = $this->getConnection()->getEntityManager();

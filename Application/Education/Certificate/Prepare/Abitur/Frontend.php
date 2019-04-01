@@ -8,13 +8,16 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -558,6 +561,7 @@ class Frontend extends Extension
             && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
         ) {
 
+            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
             $global = $this->getGlobal();
             if (($tblPrepareInformationRemark = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Remark'))) {
                 $global->POST['Data']['Remark'] = $tblPrepareInformationRemark->getValue();
@@ -585,10 +589,61 @@ class Frontend extends Extension
                 $checkBox3->setDisabled();
             }
 
+            $global = $this->getGlobal();
+            $contentForeignLanguages = array();
+            if (($tblStudent = $tblPerson->getStudent())
+                && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))
+            ) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                        if ($tblCertificate) {
+                            if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
+                                $tblPrepare,
+                                $tblPerson,
+                                'ForeignLanguages' . $tblStudentSubject->getTblStudentSubjectRanking()->getId()
+                            ))) {
+                                $global->POST['Data']['ForeignLanguages'][$tblStudentSubject->getTblStudentSubjectRanking()->getId()]
+                                    = $tblPrepareInformation->getValue();
+                            } else {
+                                $global->POST['Data']['ForeignLanguages'][$tblStudentSubject->getTblStudentSubjectRanking()->getId()]
+                                    = Generator::useService()->getReferenceForLanguageByStudent(
+                                    $tblCertificate,
+                                    $tblStudentSubject,
+                                    $tblPerson,
+                                    $tblDivision
+                                );
+                            }
+
+                            $global->savePost();
+                        }
+
+                        $contentForeignLanguages[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn($tblStudentSubject->getTblStudentSubjectRanking()->getName() . ' FS: ' . $tblSubject->getDisplayName(), 4),
+                            new LayoutColumn(
+                                'von ' . ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() : '&ndash;')
+                                . ' bis ' . ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() : '12')
+                                , 4),
+                            new LayoutColumn(new TextField('Data[ForeignLanguages][' . $tblStudentSubject->getTblStudentSubjectRanking()->getId() . ']'),
+                                4),
+                        ))));
+                    }
+                }
+            }
+
             $form = new Form(array(
                 new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(array(
+                            new Panel(
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn('Fremdsprachen', 4),
+                                    new LayoutColumn('Klassen-/Jahrgangsstufe', 4),
+                                    new LayoutColumn('Niveau gemäß GER', 4),
+                                )))),
+                                $contentForeignLanguages,
+                                Panel::PANEL_TYPE_PRIMARY
+                            ),
                             new Panel(
                                 'Sonstige Informationen',
                                 array(

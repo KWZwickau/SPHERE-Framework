@@ -11,6 +11,7 @@ namespace SPHERE\Application\Api\Contact;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Frontend;
@@ -115,14 +116,19 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
     }
 
     /**
+     * @param $IsChild
+     *
      * @return Pipeline
      */
-    public static function pipelineSearchPerson()
+    public static function pipelineSearchPerson($IsChild)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchPerson'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'searchPerson',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'IsChild' => $IsChild
         ));
 //        $Pipeline->setLoadingMessage('Bitte warten', 'Personen werden gesucht');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -131,15 +137,22 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $IsChild
      * @param null $Search
      *
      * @return string
      */
-    public function searchPerson($Search = null)
+    public function searchPerson($IsChild, $Search = null)
     {
 
+        if ($IsChild === 'true') {
+            $IsChild = true;
+        } else {
+            $IsChild = false;
+        }
+
         $Search = trim($Search);
-        return Relationship::useFrontend()->loadPersonSearch($Search);
+        return Relationship::useFrontend()->loadPersonSearch($Search, null, $IsChild);
     }
 
     /**
@@ -298,14 +311,19 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
     }
 
     /**
+     * @param int|null $PersonId
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadExtraOptions()
+    public static function pipelineLoadExtraOptions($PersonId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ExtraOptions'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadExtraOptions',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -541,27 +559,52 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
     }
 
     /**
+     * @param $PersonId
      * @param $Type
      * @param $To
      *
      * @return Layout|null
      */
-    public function loadExtraOptions($Type, $To)
+    public function loadExtraOptions($PersonId, $Type, $To)
     {
-        if ($Type['Type'] == TblType::CHILD_ID
+        $isChild = $Type['Type'] == TblType::CHILD_ID;
+        if ($isChild
             || (($tblType = Relationship::useService()->getTypeById($Type['Type']))
                 && $tblType->getName() == TblType::IDENTIFIER_GUARDIAN)
         ) {
-            // todo Mandanteneinstellung was ist S1, Standard weiblich
+
             $post = null;
-            if ($To
-                && ($tblPersonTo = Person::useService()->getPersonById($To))
-                && ($genderName = $tblPersonTo->getGenderNameFromGenderOrSalutation())
+            // Mandanteneinstellung was ist S1
+            if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'People', 'Person', 'Relationship', 'GenderOfS1'
+                ))
+                && ($value = $tblSetting->getValue())
             ) {
-                if ($genderName == 'Weiblich') {
-                    $post = 1;
-                } elseif ($genderName == 'Männlich') {
-                    $post = 2;
+                if (($genderSetting = Common::useService()->getCommonGenderById($value))) {
+                    $genderSetting = $genderSetting->getName();
+                }
+            } else {
+                $genderSetting = '';
+            }
+
+            if ($isChild) {
+                if ($To
+                    && $genderSetting
+                    && ($tblPersonTo = Person::useService()->getPersonById($To))
+                    && ($genderName = $tblPersonTo->getGenderNameFromGenderOrSalutation())
+                ) {
+                    $post = $this->getPostForGender($genderSetting, $genderName);
+                }
+            } else {
+                // post bei neuer Personenbeziehung vom Sorgeberechtigten
+                if (!isset($Type['Ranking'])) {
+                    if ($genderSetting
+                        && $PersonId
+                        && ($tblPersonFrom = Person::useService()->getPersonById($PersonId))
+                        && ($genderName = $tblPersonFrom->getGenderNameFromGenderOrSalutation())
+                    ) {
+                        $post = $this->getPostForGender($genderSetting, $genderName);
+                    }
                 }
             }
 
@@ -569,5 +612,32 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
         }
 
         return null;
+    }
+
+    /**
+     * @param $genderSetting
+     * @param $genderName
+     *
+     * @return int|null
+     */
+    private function getPostForGender($genderSetting, $genderName)
+    {
+
+        $post = null;
+        if ($genderName == 'Weiblich') {
+            if ($genderSetting == $genderName) {
+                $post = 1;
+            } else {
+                $post = 2;
+            }
+        } elseif ($genderName == 'Männlich') {
+            if ($genderSetting == $genderName) {
+                $post = 1;
+            } else {
+                $post = 2;
+            }
+        }
+
+        return $post;
     }
 }

@@ -231,19 +231,32 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblCity')->findOneBy(array(
+        $tblCityList= $Manager->getEntity('TblCity')->findBy(array(
             TblCity::ATTR_CODE     => $Code,
             TblCity::ATTR_NAME     => $Name,
             TblCity::ATTR_DISTRICT => $District
         ));
-        if (null === $Entity) {
-            $Entity = new TblCity();
-            $Entity->setCode($Code);
-            $Entity->setName($Name);
-            $Entity->setDistrict($District);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        // SSW-533 Entity-Manager ignoriert die Groß- und Kleinschreibung
+        /** @var TblCity $tblCity */
+        if ($tblCityList) {
+            foreach ($tblCityList as $tblCity) {
+                if ($tblCity->getCode() == $Code
+                    && $tblCity->getName() == $Name
+                    && $tblCity->getDistrict() == $District
+                ) {
+                    return $tblCity;
+                }
+            }
         }
+
+        $Entity = new TblCity();
+        $Entity->setCode($Code);
+        $Entity->setName($Name);
+        $Entity->setDistrict($District);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
         return $Entity;
     }
 
@@ -269,8 +282,8 @@ class Data extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblAddress')
-            ->findOneBy(array(
+        $tblAddressList = $Manager->getEntity('TblAddress')
+            ->findBy(array(
                 TblAddress::ATTR_TBL_STATE       => ( $tblState ? $tblState->getId() : null ),
                 TblAddress::ATTR_TBL_CITY        => $tblCity->getId(),
                 TblAddress::ATTR_STREET_NAME     => $StreetName,
@@ -279,18 +292,31 @@ class Data extends AbstractData
                 TblAddress::ATTR_COUNTY          => $County,
                 TblAddress::ATTR_NATION          => $Nation,
             ));
-        if (null === $Entity) {
-            $Entity = new TblAddress();
-            $Entity->setStreetName($StreetName);
-            $Entity->setStreetNumber($StreetNumber);
-            $Entity->setPostOfficeBox($PostOfficeBox);
-            $Entity->setTblState($tblState);
-            $Entity->setTblCity($tblCity);
-            $Entity->setCounty($County);
-            $Entity->setNation($Nation);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        // SSW-533 Entity-Manager ignoriert die Groß- und Kleinschreibung
+        /** @var TblAddress $tblAddress */
+        if ($tblAddressList) {
+            foreach ($tblAddressList as $tblAddress) {
+                if ($tblAddress->getStreetName() == $StreetName
+                    && $tblAddress->getCounty() == $County
+                    && $tblAddress->getNation() == $Nation
+                ) {
+                    return $tblAddress;
+                }
+            }
         }
+
+        $Entity = new TblAddress();
+        $Entity->setStreetName($StreetName);
+        $Entity->setStreetNumber($StreetNumber);
+        $Entity->setPostOfficeBox($PostOfficeBox);
+        $Entity->setTblState($tblState);
+        $Entity->setTblCity($tblCity);
+        $Entity->setCounty($County);
+        $Entity->setNation($Nation);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
         return $Entity;
     }
 
@@ -589,6 +615,80 @@ class Data extends AbstractData
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
                 TblToCompany::ATT_TBL_TYPE        => $tblType->getId()
             ));
+    }
+
+    /**
+     * @param array  $ProcessList
+     * @param string $CityName
+     *
+     * @return bool
+     */
+    public function updateCityAnonymousBulk($ProcessList, $CityName = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($ProcessList)){
+            foreach($ProcessList as $Address){
+                /** @var TblCity $tblCity */
+                $tblCity = $Address['tblCity'];
+                if($CityName){
+                    $City = $CityName;
+                } else {
+                    $City = $Address['City'];
+                }
+                /** @var TblCity $Entity */
+                $Entity = $Manager->getEntityById('TblCity', $tblCity->getId());
+//                $Protocol = clone $Entity;
+                if (null !== $Entity) {
+                    $Entity->setName($City);
+                    $Entity->setCode(str_pad(rand(00000, 99999), 5, '0', STR_PAD_LEFT));
+                    $Entity->setDistrict('');
+                    $Manager->bulkSaveEntity($Entity);
+                    // no Protocol necessary
+//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+//                    $Protocol,
+//                    $Entity);
+                }
+            }
+            $Manager->flushCache();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array   $ProcessList
+     *
+     * @return bool
+     */
+    public function updateAddressAnonymousBulk($ProcessList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($ProcessList)){
+            foreach($ProcessList as $Address){
+                /** @var TblAddress $tblAddress */
+                $tblAddress = $Address['tblAddress'];
+                /** @var TblAddress $Entity */
+                $Entity = $Manager->getEntityById('TblAddress', $tblAddress->getId());
+//                $Protocol = clone $Entity;
+                if (null !== $Entity) {
+                    $Entity->setCounty('');
+                    $Entity->setNation('');
+                    $Entity->setPostOfficeBox('');
+                    $Entity->setStreetNumber(rand(1,99));
+                    $Entity->setTblState(null);
+                    $Manager->bulkSaveEntity($Entity);
+                    // no Protocol necessary
+//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+//                    $Protocol,
+//                    $Entity);
+                }
+            }
+            $Manager->flushCache();
+            return true;
+        }
+        return false;
     }
 
     /**

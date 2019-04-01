@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
@@ -69,6 +70,10 @@ class TblBasketVerification extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblItem;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDebtorSelection;
 
     /**
      * @param bool $IsFormInput
@@ -266,6 +271,28 @@ class TblBasketVerification extends Element
     }
 
     /**
+     * @return bool|TblDebtorSelection
+     */
+    public function getServiceTblDebtorSelection()
+    {
+
+        if(null === $this->serviceTblDebtorSelection){
+            return false;
+        } else {
+            return Debtor::useService()->getDebtorSelectionById($this->serviceTblDebtorSelection);
+        }
+    }
+
+    /**
+     * @param null|TblDebtorSelection $tblDebtorSelection
+     */
+    public function setServiceTblDebtorSelection(TblDebtorSelection $tblDebtorSelection = null)
+    {
+
+        $this->serviceTblDebtorSelection = (null === $tblDebtorSelection ? null : $tblDebtorSelection->getId());
+    }
+
+    /**
      * @return string
      * single ItemPrice
      */
@@ -280,11 +307,11 @@ class TblBasketVerification extends Element
      */
     public function getSummaryPrice()
     {
-        if($this->Quantity !== 0){
+//        if($this->Quantity !== 0){
             $result = $this->Value * $this->Quantity;
-        } else {
-            $result = $this->Value;
-        }
+//        } else {
+//            $result = $this->Value;
+//        }
         return str_replace('.', ',', number_format($result, 2).' €');
     }
 

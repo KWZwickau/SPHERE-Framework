@@ -792,7 +792,7 @@ class Service extends Support
 
             (new Data($this->getBinding()))->updateStudentField(
                 $tblStudent,
-                $tblStudent->getTblStudentMedicalRecord(),
+                $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
                 $tblStudentTransport ? $tblStudentTransport : null,
                 $tblStudentBilling ? $tblStudentBilling : null,
                 $tblStudentLocker ? $tblStudentLocker : null,

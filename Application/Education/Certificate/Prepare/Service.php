@@ -849,15 +849,15 @@ class Service extends AbstractService
                 }
             }
 
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if ($tblConsumer->getAcronym() == 'EVSR'
-                || $tblConsumer->getAcronym() == 'EVGSM'
-            ) {
-                $hasRemarkBlocking = false;
+            if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'HasRemarkBlocking'
+            ))) {
+                $hasRemarkBlocking = (boolean) $tblSetting->getValue();
             } else {
                 $hasRemarkBlocking = true;
             }
 
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
             if ($tblPrepareInformationList) {
                 // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
                 $team = '';
@@ -1892,12 +1892,24 @@ class Service extends AbstractService
 
                         $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
-                        if (trim($value) && trim($value) !== '' && $value != -1) {
-
-                            Prepare::useService()->updatePrepareGradeForBehavior(
-                                $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
-                                trim($value)
-                            );
+                        if ($value != -1) {
+                            if (trim($value) === '') {
+                                // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
+                                // direktes löschen ist ungünstig, da beim nächsten Speichern wieder der Durchschnitt eingetragen würde
+                                if (($tblPrepareGrade = $this->getPrepareGradeByGradeType(
+                                    $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType
+                                ))) {
+                                    Prepare::useService()->updatePrepareGradeForBehavior(
+                                        $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                        trim($value)
+                                    );
+                                }
+                            } else {
+                                Prepare::useService()->updatePrepareGradeForBehavior(
+                                    $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                    trim($value)
+                                );
+                            }
                         }
                     }
                 }
@@ -4059,6 +4071,21 @@ class Service extends AbstractService
             );
         } else {
             (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'Hebraicums', isset($Data['Hebraicums']));
+        }
+
+        if (isset($Data['ForeignLanguages'])) {
+            foreach ($Data['ForeignLanguages'] as $ranking => $value) {
+                $identifier = 'ForeignLanguages' . $ranking;
+                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $identifier))) {
+                    (new Data($this->getBinding()))->updatePrepareInformation(
+                        $tblPrepareInformation,
+                        $identifier,
+                        $value
+                    );
+                } else {
+                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, $identifier, $value);
+                }
+            }
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')

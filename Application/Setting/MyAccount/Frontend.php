@@ -127,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new TableData($Result, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Option' => ''))
+                new TableData($Result, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Alias' => 'Alias', 'Option' => ''))
             )), new Title(new Select().' Auswahl'))));
 
         return $Stage;

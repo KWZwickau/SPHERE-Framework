@@ -10,6 +10,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
@@ -1198,6 +1199,7 @@ class GymAbitur extends Certificate
             $section
                 ->addElementColumn((new Element())
                     ->setContent($subjectName)
+                    ->stylePaddingLeft('5px')
                     ->styleBorderLeft()
                     ->styleBorderTop()
                     ->styleBorderBottom($i < 5 ? '0px' : '1px')
@@ -1659,6 +1661,7 @@ class GymAbitur extends Certificate
             $subject = '&ndash;';
             $levelFrom = '&ndash;';
             $levelTill = '&ndash;';
+            $value = '&ndash;';
 
             if ($tblStudent
                 && $tblStudentSubjectType
@@ -1678,6 +1681,21 @@ class GymAbitur extends Certificate
                         $levelTill = $tblLevelTill->getName();
                     } else {
                         $levelTill = '12';
+                    }
+
+                    if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
+                        $this->getTblPrepareCertificate(),
+                        $tblPerson,
+                        'ForeignLanguages' . $tblStudentSubject->getTblStudentSubjectRanking()->getId()
+                    ))) {
+                        $value = $tblPrepareInformation->getValue();
+                    } else {
+                        $value = Generator::useService()->getReferenceForLanguageByStudent(
+                            $this->getCertificateEntity(),
+                            $tblStudentSubject,
+                            $tblPerson,
+                            $this->getTblDivision()
+                        );
                     }
                 }
             }
@@ -1715,8 +1733,7 @@ class GymAbitur extends Certificate
                         ->styleBorderBottom($i == 4 ? '1px' : '0px')
                     , '40%')
                     ->addElementColumn((new Element())
-                        // todo content nach dem klar ist wie und wo es gepflegt wird
-                        ->setContent('&ndash;')
+                        ->setContent($value === '' ? '&ndash;' : $value)
                         ->stylePaddingLeft('5px')
                         ->styleBorderLeft()
                         ->styleBorderRight()
@@ -1891,7 +1908,7 @@ class GymAbitur extends Certificate
      *
      * @return Slice
      */
-    private function  getInfoForBlockI($marginTop = '190px')
+    private function  getInfoForBlockI($marginTop = '180px')
     {
         $slice = new Slice();
         $slice

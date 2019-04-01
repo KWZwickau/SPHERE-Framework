@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
-use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
@@ -201,6 +200,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceByBasket(TblBasket $tblBasket)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceByBasket($tblBasket);
+    }
+
+    /**
      * @param $IntegerNumber
      * @param $Year
      * @param $Month
@@ -299,7 +309,6 @@ class Service extends AbstractService
         $Month = $tblBasket->getMonth();
         $Year = $tblBasket->getYear();
         $TargetTime = $tblBasket->getTargetTime();
-        $BasketName = $tblBasket->getName();
         $MaxInvoiceNumber = Invoice::useService()->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
 
         // First Look and remove existing Invoice
@@ -326,9 +335,7 @@ class Service extends AbstractService
         $tblBasketVerificationList = array_filter($tblBasketVerificationList);
 
         /** fill Invoice/Creditor */
-        //ToDO choose Creditor
-        if(($tblCreditorList = Creditor::useService()->getCreditorAll())){
-            $tblCreditor = current($tblCreditorList);
+        if(($tblCreditor = $tblBasket->getServiceTblCreditor())){
             $CreditorId = $tblCreditor->getCreditorId();
             $Owner = $tblCreditor->getOwner();
             $BankName = $tblCreditor->getBankName();
@@ -373,7 +380,7 @@ class Service extends AbstractService
         if(!empty($DebtorInvoiceList)){
             // Erstellen aller Rechnungen im Bulk
             (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime,
-                $BasketName);
+                $tblBasket);
         }
 
         $InvoiceItemDebtorList = array();
@@ -403,11 +410,12 @@ class Service extends AbstractService
                 $Name = $Description = '';
             }
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
-            $DebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
-            if($DebtorNumber && !empty($DebtorNumber)){
+            $tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
+            if($tblDebtorNumberList && !empty($tblDebtorNumberList)){
                 // ToDO mehrere Debitoren-Nr.?
                 // erste Debtitor Nummer wird gezogen
-                $DebtorNumber = current($DebtorNumber);
+                $tblDebtorNumber = current($tblDebtorNumberList);
+                $DebtorNumber = $tblDebtorNumber->getDebtorNumber();
             } else {
                 $DebtorNumber = '';
             }
@@ -453,7 +461,7 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createInvoiceItemDebtorList($InvoiceItemDebtorList);
         }
 
-        // Warenkorb leeren
+        // Abrechnung leeren
 //        foreach ($tblBasketVerificationList as $tblBasketVerification) {
 //            Basket::useService()->destroyBasketVerification($tblBasketVerification);
 //        }

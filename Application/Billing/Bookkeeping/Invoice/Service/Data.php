@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceCreditor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
@@ -222,6 +223,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return false|TblInvoice[]
+     */
+    public function getInvoiceByBasket(TblBasket $tblBasket)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
+            array(
+                TblInvoice::ATTR_SERVICE_TBL_BASKET  => $tblBasket->getId()
+            )
+        );
+    }
+
+    /**
      * @param $IntegerNumber
      * @param $Year
      * @param $Month
@@ -246,6 +262,7 @@ class Data extends AbstractData
      * @param string             $TargetTime
      * @param TblPerson          $tblPerson
      * @param TblInvoiceCreditor $tblInvoiceCreditor
+     * @param TblBasket          $tblBasket
      *
      * @return object|TblInvoice|null
      */
@@ -255,7 +272,8 @@ class Data extends AbstractData
         $Year,
         $TargetTime,
         TblPerson $tblPerson,
-        TblInvoiceCreditor $tblInvoiceCreditor
+        TblInvoiceCreditor $tblInvoiceCreditor,
+        TblBasket $tblBasket
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -278,6 +296,7 @@ class Data extends AbstractData
             $Entity->setLastName($tblPerson->getLastName());
             $Entity->setServiceTblPersonCauser($tblPerson);
             $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
+            $Entity->setServiceTblBasket($tblBasket);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -288,15 +307,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array  $InvoiceList
-     * @param string $Month
-     * @param string $Year
-     * @param string $TargetTime
-     * @param string $BasketName
+     * @param array     $InvoiceList
+     * @param string    $Month
+     * @param string    $Year
+     * @param string    $TargetTime
+     * @param TblBasket $tblBasket
      *
      * @return bool
      */
-    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime, $BasketName)
+    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime, TblBasket $tblBasket)
     {
         //ToDO $InvoiceNumberLength from Setting?
         $InvoiceNumberLength = 5;
@@ -322,9 +341,10 @@ class Data extends AbstractData
                     $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
                     $Entity->setFirstName($tblPerson->getFirstName());
                     $Entity->setLastName($tblPerson->getLastName());
-                    $Entity->setBasketName($BasketName);
+                    $Entity->setBasketName($tblBasket->getName());
                     $Entity->setServiceTblPersonCauser($tblPerson);
                     $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
+                    $Entity->setServiceTblBasket($tblBasket);
 
                     $Manager->bulkSaveEntity($Entity);
                     Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -47,11 +48,12 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param string|string  $GroupId
+     * @param string         $GroupId
+     * @param string         $Direction
      *
      * @return IFormInterface|string
      */
-    public function directRoute(IFormInterface &$Form, $GroupId = null)
+    public function directRoute(IFormInterface &$Form, $GroupId = null, $Direction = '')
     {
 
         /**
@@ -64,10 +66,20 @@ class Service extends AbstractService
             $Form->setError('GroupId', 'Bitte wählen Sie eine Gruppe aus');
             return $Form;
         }
-
-        return 'Lädt...'
-            .(new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
-            .new RedirectScript('/Billing/Accounting/Debtor/View', 0, array('GroupId' => $GroupId));
+        // Optisch lädt nur die richtige Seite
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))){
+            if($tblGroup->getMetaTable() !== '' && $Direction == 'left'){
+                return 'Lädt...'
+                    .(new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
+                    .new RedirectScript('/Billing/Accounting/Debtor/View', 0, array('GroupId' => $GroupId));
+            }
+            if($tblGroup->getMetaTable() === '' && $Direction == 'right'){
+                return 'Lädt...'
+                    .(new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
+                    .new RedirectScript('/Billing/Accounting/Debtor/View', 0, array('GroupId' => $GroupId));
+            }
+        }
+        return $Form;
     }
 
     /**

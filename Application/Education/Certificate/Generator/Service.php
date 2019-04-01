@@ -5,14 +5,19 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Data;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateReferenceForLanguages;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -502,5 +507,128 @@ class Service extends AbstractService
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Certificate/Setting/Approval', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|TblCertificateReferenceForLanguages[]
+     */
+    public function getCertificateReferenceForLanguagesAllByCertificate(TblCertificate $tblCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param int $languageRanking
+     *
+     * @return false|TblCertificateReferenceForLanguages
+     */
+    public function getCertificateReferenceForLanguagesByCertificateAndRanking(TblCertificate $tblCertificate, $languageRanking)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateReferenceForLanguagesByCertificateAndRanking($tblCertificate, $languageRanking);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblCertificate $tblCertificate
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateCertificateReferenceForLanguages(
+        IFormInterface $Form,
+        TblCertificate $tblCertificate,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $Form;
+        }
+
+        foreach ($Data as $ranking => $array) {
+            if (($tblCertificateReferenceForLanguages = $this->getCertificateReferenceForLanguagesByCertificateAndRanking($tblCertificate, $ranking))) {
+                (new Data($this->getBinding()))->updateCertificateReferenceForLanguages(
+                    $tblCertificateReferenceForLanguages,
+                    $array['ToLevel10'],
+                    $array['AfterBasicCourse'],
+                    $array['AfterAdvancedCourse']
+                );
+            } else {
+                (new Data($this->getBinding()))->createCertificateReferenceForLanguages(
+                    $tblCertificate,
+                    $ranking,
+                    $array['ToLevel10'],
+                    $array['AfterBasicCourse'],
+                    $array['AfterAdvancedCourse']
+                );
+            }
+        }
+
+        return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Setting/Configuration', Redirect::TIMEOUT_SUCCESS, array('Certificate' => $tblCertificate->getId()));
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblStudentSubject $tblStudentSubject
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    public function getReferenceForLanguageByStudent(
+        TblCertificate $tblCertificate,
+        TblStudentSubject $tblStudentSubject,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision
+    ) {
+        $reference = '';
+        if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+            $identifier = 'ToLevel10';
+            // bei z.B: EN2 kann in der Schülerakte trotzdem das normale EN eingestellt sein
+            if (($tblSubjectList = Subject::useService()->getSubjectAllByName($tblSubject->getName()))) {
+                $foundSubject = false;
+                foreach ($tblSubjectList as $tblSubject) {
+                    if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                        $tblDivision, $tblSubject
+                    ))) {
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            if (Division::useService()->exitsSubjectStudent($tblDivisionSubject,
+                                $tblPerson)
+                                && $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()
+                            ) {
+                                $identifier = $tblSubjectGroup->isAdvancedCourse() ? 'AfterAdvancedCourse' : 'AfterBasicCourse';
+                                $foundSubject = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($foundSubject) {
+                        break;
+                    }
+                }
+            }
+
+            if (($tblCertificateReferenceForLanguages = $this->getCertificateReferenceForLanguagesByCertificateAndRanking(
+                $tblCertificate,
+                $tblStudentSubject->getTblStudentSubjectRanking()->getId()
+            ))) {
+                switch ($identifier) {
+                    case 'ToLevel10': $reference = $tblCertificateReferenceForLanguages->getToLevel10(); break;
+                    case 'AfterBasicCourse': $reference = $tblCertificateReferenceForLanguages->getAfterBasicCourse(); break;
+                    case 'AfterAdvancedCourse': $reference = $tblCertificateReferenceForLanguages->getAfterAdvancedCourse(); break;
+                }
+            }
+        }
+
+        return $reference;
     }
 }

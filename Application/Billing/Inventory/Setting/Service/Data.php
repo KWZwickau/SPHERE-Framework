@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Inventory\Setting\Service;
 
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSettingGroupPerson;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -20,7 +21,10 @@ class Data extends AbstractData
 //        //ToDO Vorbefüllung erstellen
         $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER);
         $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1', TblSetting::TYPE_BOOLEAN);
-        $this->createSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED, '1', TblSetting::TYPE_BOOLEAN);
+        $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN);
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier('IsSepaAccountNeed'))){
+            $this->destroySetting($tblSetting);
+        }
 
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $this->createSettingGroupPerson($tblGroup);
@@ -82,7 +86,7 @@ class Data extends AbstractData
     public function getSettingGroupPersonByGroup(TblGroup $tblGroup)
     {
 
-        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(),
+        $Entity = $this->getForceEntityBy(__Method__, $this->getConnection()->getEntityManager(),
             'TblSettingGroupPerson',
             array(
                 TblSettingGroupPerson::ATTR_SERVICE_TBL_GROUP_PERSON => $tblGroup->getId()
@@ -106,7 +110,7 @@ class Data extends AbstractData
     public function getSettingGroupPersonAll()
     {
 
-        $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(),
+        $Entity = $this->getForceEntityList(__Method__, $this->getConnection()->getEntityManager(),
             'TblSettingGroupPerson');
         return (null === $Entity ? false : $Entity);
     }
@@ -201,13 +205,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSetting $tblSetting
+     *
+     * @return bool
+     */
+    public function destroySetting(TblSetting $tblSetting)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+
+        if($Entity !== null){
+
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblSettingGroupPerson $tblSettingGroupPerson
      *
-     * @return TblSettingGroupPerson
+     * @return bool
      */
-    public function removeSettingGroupPerson(TblSettingGroupPerson $tblSettingGroupPerson)
+    public function destroySettingGroupPerson(TblSettingGroupPerson $tblSettingGroupPerson)
     {
-        //ToDO BulkSave & Kill eventuell sinnvoller. (kommt auf Frontend umsetzung an...)
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblSettingGroupPerson $Entity */
@@ -218,32 +243,8 @@ class Data extends AbstractData
             $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
+            return true;
         }
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     *
-     * @return TblSettingGroupPerson
-     */
-    public function removeSettingGroupPersonByGroup(TblGroup $tblGroup)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblSettingGroupPerson $Entity */
-        $Entity = $Manager->getEntity('TblSettingGroupPerson')->findOneBy(array(
-            TblSettingGroupPerson::ATTR_SERVICE_TBL_GROUP_PERSON => $tblGroup->getId()
-        ));
-
-        if($Entity !== null){
-
-            $Manager->killEntity($Entity);
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                $Entity);
-        }
-
-        return $Entity;
+        return false;
     }
 }

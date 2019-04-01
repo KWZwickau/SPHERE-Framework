@@ -143,12 +143,21 @@ class Standard extends Extension implements IModuleInterface
 
     /**
      * @param array $Data
+     * @param bool  $Redirect
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createPasswordChangePdf($Data = array())
+    public static function createPasswordChangePdf($Data = array(), $Redirect = true)
     {
 
+        $Post = array('Data' => $Data);
+        $Post['Redirect'] = 0;
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/PasswordChange/Create',
+                $Post
+            );
+        }
         return Creator::createDataPdf($Data, 'PasswordChange', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
@@ -165,12 +174,21 @@ class Standard extends Extension implements IModuleInterface
 
     /**
      * @param array $Data
+     * @param bool  $Redirect
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createMultiPasswordPdf($Data = array())
+    public static function createMultiPasswordPdf($Data = array(), $Redirect = true)
     {
 
+        $Post = array('Data' => $Data);
+        $Post['Redirect'] = 0;
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+               '/Api/Document/Standard/MultiPassword/Create',
+                $Post
+            );
+        }
         return Creator::createDataPdf($Data, 'MultiPassword', Creator::PAPERORIENTATION_PORTRAIT);
     }
 

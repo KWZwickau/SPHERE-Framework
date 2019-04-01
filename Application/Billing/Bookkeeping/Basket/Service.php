@@ -2,9 +2,11 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
@@ -14,9 +16,12 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -159,6 +164,17 @@ class Service extends AbstractService
     /**
      * @param TblBasket $tblBasket
      *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationAllByBankReference(TblBankReference $tblBankReference)
+    {
+
+        return (new Data($this->getBinding()))->getBasketVerificationAllByBankReference($tblBankReference);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
      * @return false|\SPHERE\System\Database\Fitting\Element
      */
     public function countDebtorSelectionCountByBasket(TblBasket $tblBasket)
@@ -173,10 +189,11 @@ class Service extends AbstractService
      * @param string $Year
      * @param string $Month
      * @param string $TargetTime
+     * @param string $CreditorId
      *
      * @return TblBasket
      */
-    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '')
+    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $CreditorId = '')
     {
 
         if($TargetTime){
@@ -185,7 +202,15 @@ class Service extends AbstractService
             // now if no input (fallback)
             $TargetTime = new \DateTime();
         }
-        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime);
+        // 0 (nicht Ausgewählt) or false to null
+        $tblCreditor = false;
+        if($CreditorId !== '0'){
+            $tblCreditor = Creditor::useService()->getCreditorById($CreditorId);
+        }
+        if(!$tblCreditor){
+            $tblCreditor = null;
+        }
+        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $tblCreditor);
     }
 
     /**
@@ -251,6 +276,11 @@ class Service extends AbstractService
 
         $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
 
+        $IsSepa = true;
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
+            $IsSepa = $tblSetting->getValue();
+        }
+
         $DebtorDataArray = array();
         if($tblPersonList){
             /** @var TblPerson $tblPerson */
@@ -259,6 +289,7 @@ class Service extends AbstractService
                     $tblItem))){
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Error = false;
+                        $IsNoDebtorSelection = false;
                         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
                         if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
                             $tblBasket->getYear(), $tblBasket->getMonth())){
@@ -294,9 +325,34 @@ class Service extends AbstractService
                         $Item['Price'] = $tblDebtorSelection->getValue();
                         // change to selected variant
                         if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                            if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                            if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
+                        }
+                        $Item['DebtorSelection'] = $tblDebtorSelection->getId();
+                        // Entfernen aller DebtorSelection (SEPA-Lastschrift) welche keine gültige Sepa-Mandatsreferenznummer besitzen.
+                        if($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift'
+                        && $IsSepa){
+                            if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
+                                if(new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
+                                    // Datum der Referenz liegt noch in der Zukunft;
+                                    $IsNoDebtorSelection = true;
+                                }
+                            } else {
+                                // Keine gültige Mandatsreferenznummer
+                                $IsNoDebtorSelection = true;
+                            }
+                        }
+                        if($IsNoDebtorSelection){
+                            // entry without valid BankRef
+                            $Item['Causer'] = $tblPerson->getId();
+                            $Item['Debtor'] = '';
+                            $Item['BankAccount'] = null;
+                            $Item['BankReference'] = null;
+                            $Item['PaymentType'] = null;
+                            $Item['DebtorSelection'] = null;
+                            // default special price value
+                            $Item['Price'] = '0';
                         }
                         if(!$Error){
                             array_push($DebtorDataArray, $Item);
@@ -316,8 +372,9 @@ class Service extends AbstractService
                     $Item['BankAccount'] = null;
                     $Item['BankReference'] = null;
                     $Item['PaymentType'] = null;
+                    $Item['DebtorSelection'] = null;
                     // default special price value
-                    $Item['Price'] = '0.00';
+                    $Item['Price'] = '0';
                     if(!$Error){
                         array_push($DebtorDataArray, $Item);
                     }
@@ -336,16 +393,25 @@ class Service extends AbstractService
      * @param string    $Name
      * @param string    $Description
      * @param string    $TargetTime
+     * @param string    $CreditorId
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime)
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $CreditorId = '')
     {
 
         // String to DateTime object
         $TargetTime = new \DateTime($TargetTime);
+        // 0 (nicht Ausgewählt) or false to null
+        $tblCreditor = false;
+        if($CreditorId !== '0'){
+            $tblCreditor = Creditor::useService()->getCreditorById($CreditorId);
+        }
+        if(!$tblCreditor){
+            $tblCreditor = null;
+        }
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime);
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $tblCreditor);
     }
 
     /**
@@ -361,15 +427,48 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function changeBasketDoneSepa(TblBasket $tblBasket)
+    {
+
+        $PersonName = 'Person nicht hinterlegt!';
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                /** @var TblPerson $tblPerson */
+                $tblPerson = current($tblPersonList);
+                $PersonName = substr($tblPerson->getFirstName(), 0, 1).'. '.$tblPerson->getLastName();
+            }
+        }
+
+        return (new Data($this->getBinding()))->updateBasketSepa($tblBasket, $PersonName);
+    }
+
+    /**
      * @param TblBasketVerification $tblBasketVerification
      * @param string                $Quantity
      *
      * @return bool
      */
-    public function changeBasketVerification(TblBasketVerification $tblBasketVerification, $Quantity)
+    public function changeBasketVerificationInQuantity(TblBasketVerification $tblBasketVerification, $Quantity)
     {
 
-        return (new Data($this->getBinding()))->updateBasketVerification($tblBasketVerification, $Quantity);
+        return (new Data($this->getBinding()))->updateBasketVerificationInQuantity($tblBasketVerification, $Quantity);
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     * @param TblDebtorSelection    $tblDebtorSelection
+     *
+     * @return bool
+     */
+    public function changeBasketVerificationInDebtorSelection(TblBasketVerification $tblBasketVerification,
+        TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return (new Data($this->getBinding()))->updateBasketVerificationInDebtorSelection($tblBasketVerification, $tblDebtorSelection);
     }
 
     /**

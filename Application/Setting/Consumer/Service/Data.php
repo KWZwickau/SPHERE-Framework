@@ -57,13 +57,13 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden.
+                'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo) hinterlegt werden.
                 Adresse des Bildes: [Standard: ]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden.
+                'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo) hinterlegt werden.
                 Höhe des Bildes (Maximal 140px): [Standard: 120px]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
@@ -170,6 +170,13 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
                 'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das): [Standard: ]');
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking',
+            TblSetting::TYPE_BOOLEAN, '1'))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Sollen leere Bemerkungsfelder auf Zeugnissen gesperrt werden ("---"). [Standard: Ja]',
+                true);
+        }
 
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook',
             'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
@@ -244,6 +251,12 @@ class Data extends AbstractData
             'AutoPublicationOfTestsAfterXDays', TblSetting::TYPE_INTEGER, '28'))) {
             $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen',
                 'Automatische Bekanntgabe von Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]',
+                true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation',
+            'ShowProposalBehaviorGrade', TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen',
+                'Anzeige der Kopfnoten der Klassenlehrer als Notenvorschlag [Standard: Nein]',
                 true);
         }
 

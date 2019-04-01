@@ -140,6 +140,34 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param array $TeacherList
+     *
+     * @return bool
+     */
+    public function updateTeacherBulk(
+        $TeacherList
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        foreach($TeacherList as $TeacherId => $Acronym){
+            /** @var null|TblTeacher $Entity */
+            $Entity = $Manager->getEntityById('TblTeacher', $TeacherId);
+            if (null !== $Entity) {
+//                $Protocol = clone $Entity;
+                $Entity->setAcronym($Acronym);
+
+                $Manager->bulkSaveEntity($Entity);
+                // no Protocol necessary
+//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            }
+        }
+
+        $Manager->flushCache();
+//        Protocol::useService()->flushBulkEntries();
+        return true;
+    }
+
+    /**
      * @param TblTeacher $tblTeacher
      * @param bool $IsSoftRemove
      *

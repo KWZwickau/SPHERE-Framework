@@ -11,6 +11,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -132,7 +133,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblItemCalculationList = $this->getSorter($tblItemCalculationList)->sortObjectBy('DateFrom',
                                 new DateTimeSorter(), Sorter::ORDER_DESC);
 
-                            $Row .= '<table>';
+//                            $Row .= '<table>';
                             foreach($tblItemCalculationList as $tblItemCalculation) {
 
                                 //ToDO aktuellen Eintrag markieren
@@ -161,23 +162,20 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Span = new Bold($Span);
                                 }
 
-                                $RowContent = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;'
-                                    .$Price
-                                    .'</td><td>&nbsp;&nbsp;&nbsp;&nbsp;'
-                                    .$Span
-                                    .'</td><td>&nbsp;&nbsp;'
-                                    .$Option
-                                    .'</td></tr>';
-                                if($IsNow){
-                                    $Row .= str_replace('<tr>', '<tr style="font-weight:bold">', $RowContent);
-                                } else {
-                                    $Row .= $RowContent;
-                                }
+                                $RowContent = new Container(
+                                    new Layout(new LayoutGroup(new LayoutRow(array(
+                                        new LayoutColumn('&nbsp;&nbsp;&nbsp;&nbsp;'.$Price, 3),
+                                        new LayoutColumn($Span, 4),
+                                        new LayoutColumn($Option, 5),
+                                    ))))
+                                );
+
+                                $Row .= $RowContent;
                             }
-                            $Row .= '</table>';
-                            $Row .= '&nbsp;&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
+//                            $Row .= '</table>';
+                            $Row .= '&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
                         } else {
-                            $Row .= '&nbsp;&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
+                            $Row .= '&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
                         }
                         $RowList[] = $Row;
                     }

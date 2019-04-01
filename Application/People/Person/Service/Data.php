@@ -161,6 +161,43 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array $ProcessList
+     *
+     * @return bool
+     */
+    public function updatePersonAnonymousBulk(
+        $ProcessList = array()
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($ProcessList)){
+            foreach($ProcessList as $PersonData){
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $PersonData['Person'];
+                $firstName = $PersonData['FirstName'];
+                $lastName = $PersonData['LastName'];
+                /** @var TblPerson $Entity */
+                $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
+//                $Protocol = clone $Entity;
+                if (null !== $Entity) {
+                    $Entity->setFirstName($firstName);
+                    $Entity->setSecondName('');
+                    $Entity->setCallName('');
+                    $Entity->setLastName($lastName);
+                    $Entity->setBirthName('');
+                    $Manager->bulkSaveEntity($Entity);
+                    // no Protocol necessary
+//                    Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+//            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return bool

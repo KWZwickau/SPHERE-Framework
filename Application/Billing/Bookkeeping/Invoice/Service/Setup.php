@@ -82,6 +82,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'BasketName', self::FIELD_TYPE_STRING);
         $this->getConnection()->addForeignKey($Table, $tblInvoiceCreditor);
         $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblBasket', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }

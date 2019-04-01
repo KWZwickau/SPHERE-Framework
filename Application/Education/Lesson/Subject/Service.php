@@ -1078,4 +1078,15 @@ class Service extends AbstractService
 
         return $profileSubject;
     }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblSubject[]
+     */
+    public function  getSubjectAllByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectAllByName($Name);
+    }
 }

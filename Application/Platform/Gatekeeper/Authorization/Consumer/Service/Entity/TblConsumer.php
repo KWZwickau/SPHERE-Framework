@@ -22,10 +22,16 @@ class TblConsumer extends Element
      * @Column(type="string")
      */
     protected $Acronym;
+
     /**
      * @Column(type="string")
      */
     protected $Name;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $Alias;
 
     /**
      * @param string $Acronym
@@ -70,5 +76,21 @@ class TblConsumer extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->Alias;
+    }
+
+    /**
+     * @param string $Alias
+     */
+    public function setAlias($Alias)
+    {
+        $this->Alias = $Alias;
     }
 }
