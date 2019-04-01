@@ -14,7 +14,7 @@
         {% endif %}
         {% endif %}
         <input type="text" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
-               {% if( ElementMask is not empty and ElementValue is empty ) %}data-mask="{{ ElementMask }}" {% endif %}
+               {% if( ElementMask is not empty and ElementValue is empty ) %}data-inputmask="{{ ElementMask }}" {% endif %}
                value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %} {{ AutoFocus }}/>
         {{ ElementFeedbackIcon }}
         {% if( ElementIcon is not empty ) %}
@@ -22,6 +22,18 @@
     {% endif %}
     {{ ElementFeedbackMessage }}
 </div>
+
+{% if( ElementMask is not empty ) %}
+<script type="text/javascript">
+    Client.Use('ModCompleter', function()
+    {
+        $(document).ready(function(){
+            jQuery('input[name="{{ ElementName }}"]').inputmask({"mask": "{{ ElementMask }}", "placeholder": "", "showMaskOnFocus": false, "showMaskOnHover": false});
+        });
+    });
+</script>
+{% endif %}
+
 {% if( AutoFocus is not empty ) %}
 <script type="text/javascript">
     //noinspection JSUnresolvedFunction

@@ -58,6 +58,10 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'IsDone', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'SepaDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'SepaUser', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($Table, 'DatevDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'DatevUser', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'serviceTblCreditor', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
@@ -93,6 +97,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDebtorSelection', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;

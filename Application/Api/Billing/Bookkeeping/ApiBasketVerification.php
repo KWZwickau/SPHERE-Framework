@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -45,7 +46,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -199,9 +199,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
     {
 
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
-            if($Quantity[$BasketVerificationId] && is_numeric($Quantity[$BasketVerificationId])){
-                Basket::useService()->changeBasketVerification($tblBasketVerification,
-                    $Quantity[$BasketVerificationId]);
+            if($Quantity[$BasketVerificationId] && is_numeric($Quantity[$BasketVerificationId]) || '0' === $Quantity[$BasketVerificationId]){
+                $Quantity = str_replace('-', '', $Quantity[$BasketVerificationId]);
+                Basket::useService()->changeBasketVerificationInQuantity($tblBasketVerification, $Quantity);
             }
         }
         return ''.self::pipelineReloadSummary($BasketVerificationId);
@@ -654,13 +654,17 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         , 6),
                 )),
                 new FormRow(array(
-                    new FormColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))))
-                        , 6
+                    new FormColumn(array(
+                        new Bold('Speicherverhalten'),
+                        new Listing(array(
+                            new CheckBox('DebtorSelection[SaveSetting]', 'In Einstellungen übernehmen '
+                                .new ToolTip(new InfoIcon(), 'Wird&nbsp;für&nbsp;zukünfitge&nbsp;Abrechnungen mit berücksichtigt.'), '1'),
+                        ))
+                        ), 6
                     ),
                     new FormColumn(
-                        new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenz',
-                            array('ReferenceNumber' => $tblBankReferenceList))
+                        new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenznummer',
+                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList))
                         , 6
                     )
                 )),
@@ -692,19 +696,22 @@ class ApiBasketVerification extends Extension implements IApiInterface
             $Error = true;
         }
         if(isset($DebtorSelection['Variant']) && empty($DebtorSelection['Variant'])){
-            $Warning .= new Warning('Bitte geben Sie eine Bezahlvariante an, steht keine zur Auswahl, stellen Sie bitte eine bei den Beitragsarten ein.');
+            $Warning .= new Danger('Bitte geben Sie eine Bezahlvariante an, steht keine zur Auswahl, stellen Sie bitte eine bei den Beitragsarten ein.');
             $form->setError('DebtorSelection[Variant]', 'Bitte geben Sie eine Bezahlvariante an');
             $Error = true;
         } elseif(isset($DebtorSelection['Variant']) && $DebtorSelection['Variant'] == '-1') {
             // is price empty (is requiered vor no Variant)
             if(isset($DebtorSelection['Price']) && empty($DebtorSelection['Price']) && $DebtorSelection['Price'] !== '0'){
-                $Warning .= new Warning('Bitte geben Sie einen individuellen Preis an');
+                $Warning .= new Danger('Bitte geben Sie einen individuellen Preis an.');
 //                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
                 $Error = true;
             } elseif(isset($DebtorSelection['Price']) && !is_numeric(str_replace(',', '.',
                     $DebtorSelection['Price']))) {
-                $Warning .= new Warning('Bitte geben Sie eine '.new Bold('Zahl').' als individuellen Preis an');
+                $Warning .= new Danger('Bitte geben Sie eine '.new Bold('Zahl').' als individuellen Preis an.');
 //                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
+                $Error = true;
+            } elseif(isset($DebtorSelection['Price']) && preg_match('!-!', $DebtorSelection['Price'])){
+                $Warning .= new Danger('Bitte geben Sie eine '.new Bold('Positive Zahl').' als individuellen Preis an.');
                 $Error = true;
             }
         }
@@ -715,7 +722,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
 
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
             $IsSepaAccountNeed = false;
-            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED)){
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
                 if($tblSetting->getValue() == 1){
                     $IsSepaAccountNeed = true;
                 }
@@ -723,22 +730,31 @@ class ApiBasketVerification extends Extension implements IApiInterface
             if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
                 if($IsSepaAccountNeed){
                     if(isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])){
-                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                        $Warning .= new Warning('Bitte geben Sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
                          um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
                         $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     } elseif(isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1') {
-                        $Warning .= new Warning('Bitte geben sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
+                        $Warning .= new Warning('Bitte geben Sie eine Bankverbindung an. (Eine Bankverbindung wird benötigt,
                          um ein SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
                         $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Bankverbindung an');
                         $Error = true;
                     }
+                    if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
+                        $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenznummer an');
+                        $Error = true;
+                    } else {
+                        $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
+                        if(($tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']))){
+                            $tblBasket = $tblBasketVerification->getTblBasket();
+                            if($tblBasket && new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
+                                $form->setError('DebtorSelection[BankReference]', 'Die ausgewählte Mandatsreferenznummer 
+                                ist zum akuellen Fälligkeitsdatum ('.$tblBasket->getTargetTime().') noch nicht verfügbar.');
+                                $Error = true;
+                            }
+                        }
+                    }
                 }
-                //Referenznummern ohne Bankverbindung nicht mehr benötigt
-//                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
-//                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
-//                    $Error = true;
-//                }
             }
         }
 
@@ -773,6 +789,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
             $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
             $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
+            $Global->POST['DebtorSelection']['SaveSetting'] = (isset($DebtorSelection['SaveSetting']) ? $DebtorSelection['SaveSetting']: '');
             $Global->savePost();
             return $form;
         }
@@ -824,15 +841,28 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 $IsChange = true;
             }
 
-            // Add DebtorSelection if not already exist
-            if(!Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem)
+            // edit DebtorSelection if Checkbox is checked
+            if(isset($DebtorSelection['SaveSetting']) && $DebtorSelection['SaveSetting'] == 1
                 && $IsChange){
-                Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
-                    $tblPaymentType, $tblItem,
-                    ($tblItemVariant ? $tblItemVariant : null),
-                    $ItemPrice,
-                    ($tblBankAccount ? $tblBankAccount : null),
-                    ($tblBankReference ? $tblBankReference : null));
+                $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
+                $tblDebtorSelection = $tblBasketVerification->getServiceTblDebtorSelection();
+                if($tblDebtorSelection){
+                    // DebtorSelection on ID (Update current one)
+                    Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPersonDebtor, $tblPaymentType,
+                        ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
+                        ($tblBankAccount ? $tblBankAccount : null),
+                        ($tblBankReference ? $tblBankReference : null));
+
+                } else {
+                    // no DebtorSelection on ID (create new one)
+                    $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
+                        $tblPaymentType, $tblItem,
+                        ($tblItemVariant ? $tblItemVariant : null),
+                        $ItemPrice,
+                        ($tblBankAccount ? $tblBankAccount : null),
+                        ($tblBankReference ? $tblBankReference : null));
+                    Basket::useService()->changeBasketVerificationInDebtorSelection($tblBasketVerification, $tblDebtorSelection);
+                }
             }
         } else {
             return new Danger('Die Zuordnung des Beitragszahlers konnte nicht gengelegt werden (Person/Typ/Item)');
@@ -964,22 +994,22 @@ class ApiBasketVerification extends Extension implements IApiInterface
             $Global->savePost();
         }
 
-        // info of Handling with insert Data
-        $InfoMessage = new Info('Daten werden '.new Bold('für die aktuelle Abrechnung und in den Einstellungen').' übernommen '
-            .new ToolTip(new InfoIcon(), 'Es sind noch keine Daten vorhanden.'));
-        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
-            $tblItem = $tblBasketVerification->getServiceTblItem();
-            $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
-            if($tblItem && $tblPersonCauser){
-                if(Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem)){
-                    $InfoMessage = new Info('Daten werden '.new Bold('nur für die aktuelle Abrechnung').' übernommen '
-                        .new ToolTip(new InfoIcon(),
-                            'Daten für neue Abrechnung werden aus den vorhandenen Einstellungen gezogen.'));
-                }
-            }
-        }
+//        // info of Handling with insert Data
+//        $InfoMessage = new Info('Daten werden '.new Bold('für die aktuelle Abrechnung und in den Einstellungen').' übernommen '
+//            .new ToolTip(new InfoIcon(), 'Es sind noch keine Daten vorhanden.'));
+//        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+//            $tblItem = $tblBasketVerification->getServiceTblItem();
+//            $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
+//            if($tblItem && $tblPersonCauser){
+//                if(Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem)){
+//                    $InfoMessage = new Info('Daten werden '.new Bold('nur für die aktuelle Abrechnung').' übernommen '
+//                        .new ToolTip(new InfoIcon(),
+//                            'Daten für neue Abrechnung werden aus den vorhandenen Einstellungen gezogen.'));
+//                }
+//            }
+//        }
 
-        return $InfoMessage.new Well(self::formDebtorSelection($BasketVerificationId));
+        return new Well(self::formDebtorSelection($BasketVerificationId));
     }
 
 }

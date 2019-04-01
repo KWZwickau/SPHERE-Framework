@@ -2571,13 +2571,6 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )),
-                    (($tblTask && !$IsEdit && !$tblTask->isInEditPeriod())
-                        ? new LayoutRow(new LayoutColumn(new WarningMessage(
-                                'Sie befinden sich nicht mehr im Bearbeitungszeitraum.
-                            Zensuren können von Ihnen nicht mehr eingetragen werden.', new Exclamation())
-                        ))
-                        : null
-                    ),
                     ($hasPreviewGrades
                         ? new LayoutRow(new LayoutColumn(new WarningMessage(
                             'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
@@ -2586,7 +2579,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )),
                 (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null),
-                (!empty($buttonList) ? new LayoutGroup(new LayoutRow(new LayoutColumn($buttonList))) : null),
+                (!empty($buttonList) && !$tblTask->isBeforeEditPeriod() ? new LayoutGroup(new LayoutRow(new LayoutColumn($buttonList))) : null),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -3143,15 +3136,21 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $gradeList = array();
+        $taskDate = new DateTime($tblTask->getDate());
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
-                if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision, true))) {
                     $count = 1;
                     foreach ($tblDivisionStudentAll as $tblPerson) {
+                        if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                            continue;
+                        }
+
                         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
                             $tblPerson->getLastFirstName();
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Average'] = '';
                     }
                 }
 
@@ -3178,6 +3177,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                             $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                             if ($tblPerson) {
+                                                if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                                                    continue;
+                                                }
+
                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
                                                     $tblDivisionSubject->getTblSubjectGroup()
@@ -3190,6 +3193,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 } else {
                                     if ($tblDivisionStudentAll) {
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
+                                            if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                                                continue;
+                                            }
+
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
@@ -3279,15 +3286,22 @@ class Frontend extends Extension implements IFrontendInterface
 
                                                 $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                 if ($tblPerson) {
+                                                    if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                                                        continue;
+                                                    }
+
                                                     list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
                                                         $tblTest, $tblPerson, $studentList, $grades);
                                                 }
                                             }
                                         }
                                     } else {
-                                        $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                         if ($tblDivisionStudentAll) {
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
+                                                if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                                                    continue;
+                                                }
+
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
                                                     $tblTest, $tblPerson, $studentList, $grades);
                                             }
@@ -3315,7 +3329,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             ) {
                                                 $proposalGrade = $tblProposalBehaviorGrade->getDisplayGrade();
                                             }
-                                            $studentListByDivision['Type' . $gradeTypeId] .= new Small(' | (KL-Vorschlag: ' . $proposalGrade . ')');
+
+                                            if (isset($studentListByDivision['Type' . $gradeTypeId])) {
+                                                $studentListByDivision['Type' . $gradeTypeId] .= new Small(' | (KL-Vorschlag: ' . $proposalGrade . ')');
+                                            }
                                         }
                                         if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
                                             $studentList[$tblDivision->getId()][$personId]['Type' . $gradeTypeId] =
@@ -4743,5 +4760,29 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $stage;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param DateTime $taskDate
+     * @param DateTime $leaveDate
+     *
+     * @return bool
+     */
+    private function checkIsPersonInActive(TblDivision $tblDivision, TblPerson $tblPerson, DateTime $taskDate)
+    {
+         // inaktive Schüler abhängig vom Austrittsdatum ignorieren
+        if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                $tblDivision, $tblPerson
+            ))
+            && ($leaveDate = $tblDivisionStudent->getLeaveDateTime()) !== null
+        ) {
+            if ($taskDate > $leaveDate) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

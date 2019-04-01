@@ -38,7 +38,7 @@ class Service extends AbstractService
 
         // no DataBaseContent
         $Protocol = '';
-        if(!$withData){
+        if (!$withData){
             $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
         }
         return $Protocol;
@@ -52,20 +52,20 @@ class Service extends AbstractService
 
         $tblPersonAll = Person::useService()->getPersonAll();
         $PersonList = array();
-        if($tblPersonAll){
+        if ($tblPersonAll){
             array_walk($tblPersonAll, function(TblPerson $tblPerson) use (&$PersonList){
                 $PersonList[$tblPerson->getId()] = $tblPerson;
             });
             ksort($PersonList);
         }
-        if(!empty($PersonList)){
+        if (!empty($PersonList)){
             $Random = new RandomName();
             $PersonDoneList = array();
             $ProcessList = array();
             array_walk($PersonList, function(TblPerson $tblPerson) use ($Random, &$PersonDoneList, &$ProcessList){
                 $lastName = $Random->getLastName();
                 // bereits verarbeitete Personen in ruhe lassen
-                if(!in_array($tblPerson->getId(), $PersonDoneList)){
+                if (!in_array($tblPerson->getId(), $PersonDoneList)){
 //                    Person::useService()->updatePersonName($tblPerson, $Random->getFirstName(), $lastName);
                     $PersonDoneList[] = $tblPerson->getId();
                     $Gender = $this->getGenderByPerson($tblPerson);
@@ -73,9 +73,9 @@ class Service extends AbstractService
                     $ProcessList[$tblPerson->getId()]['FirstName'] = $Random->getFirstName($Gender);
                     $ProcessList[$tblPerson->getId()]['LastName'] = $lastName;
                     // Personen in Beziehung erhalten gleichen Nachnamen
-                    if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))){
-                        foreach($tblRelationshipList as $tblRelationship) {
-                            if(($tblPersonFrom = $tblRelationship->getServiceTblPersonFrom())
+                    if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))){
+                        foreach ($tblRelationshipList as $tblRelationship) {
+                            if (($tblPersonFrom = $tblRelationship->getServiceTblPersonFrom())
                                 && $tblPersonFrom->getId() != $tblPerson->getId()
                                 && !in_array($tblPersonFrom->getId(), $PersonDoneList)){
 //                                Person::useService()->updatePersonName($tblPersonFrom, $Random->getFirstName(), $lastName);
@@ -84,7 +84,7 @@ class Service extends AbstractService
                                 $ProcessList[$tblPersonFrom->getId()]['Person'] = $tblPersonFrom;
                                 $ProcessList[$tblPersonFrom->getId()]['FirstName'] = $Random->getFirstName($Gender);
                                 $ProcessList[$tblPersonFrom->getId()]['LastName'] = $lastName;
-                            } elseif(($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
+                            } elseif (($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
                                 && $tblPersonTo->getId() != $tblPerson->getId()
                                 && !in_array($tblPersonTo->getId(), $PersonDoneList)) {
 //                                Person::useService()->updatePersonName($tblPersonFrom, $Random->getFirstName(), $lastName);
@@ -98,17 +98,17 @@ class Service extends AbstractService
                     }
                 }
             });
-            if(!empty($ProcessList)){
+            if (!empty($ProcessList)){
 
                 Person::useService()->updatePersonAnonymousBulk($ProcessList);
             }
         }
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
-        if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
+        if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
             $TeacherList = array();
             array_walk($tblPersonList, function(TblPerson $tblPerson) use (&$TeacherList){
-                $Acronym = substr($tblPerson->getLastName(),0,1).substr($tblPerson->getFirstName(), 0, 1);
-                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                $Acronym = substr($tblPerson->getLastName(), 0, 1).substr($tblPerson->getFirstName(), 0, 1);
+                if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
                     $TeacherList[$tblTeacher->getId()] = $Acronym;
                 }
             });
@@ -127,7 +127,7 @@ class Service extends AbstractService
     private function getGenderByPerson(TblPerson $tblPerson)
     {
 
-        if(($tblGender = $tblPerson->getGender())){
+        if (($tblGender = $tblPerson->getGender())){
             // gender by MetaData gender
             $Gender = ($tblGender->getName() == 'Männlich'
                 ? RandomName::ATTR_MALE
@@ -153,15 +153,15 @@ class Service extends AbstractService
     {
 
         $tblAddressAll = Address::useService()->getAddressAll();
-        if($tblAddressAll){
+        if ($tblAddressAll){
             $Random = new RandomCity();
             $ProcessList = array();
-            foreach($tblAddressAll as $tblAddress) {
+            foreach ($tblAddressAll as $tblAddress) {
                 $ProcessList[$tblAddress->getId()]['tblAddress'] = $tblAddress;
                 $ProcessList[$tblAddress->getId()]['tblCity'] = $tblAddress->getTblCity();
                 $ProcessList[$tblAddress->getId()]['City'] = $Random->getCityName();
             }
-            if(!empty($ProcessList)){
+            if (!empty($ProcessList)){
                 // second val override random City
                 Address::useService()->updateAddressAnonymousBulk($ProcessList, '');
             }
@@ -178,20 +178,20 @@ class Service extends AbstractService
 
         $tblCompanyAll = Company::useService()->getCompanyAll();
         $count = 0;
-        if($tblCompanyAll){
+        if ($tblCompanyAll){
             $ProcessList = array();
 
-            foreach($tblCompanyAll as $tblCompany) {
+            foreach ($tblCompanyAll as $tblCompany) {
                 $count++;
                 $Name = 'Institution '.str_pad($count, 3, '0', STR_PAD_LEFT);
-                if(($tblGroupList = GroupCompany::useService()->getGroupAllByCompany($tblCompany))){
-                    foreach($tblGroupList as $tblGroup){
-                        if($tblGroup->getMetaTable() == TblGroupCompany::ATTR_SCHOOL){
+                if (($tblGroupList = GroupCompany::useService()->getGroupAllByCompany($tblCompany))){
+                    foreach ($tblGroupList as $tblGroup) {
+                        if ($tblGroup->getMetaTable() == TblGroupCompany::ATTR_SCHOOL){
                             // schule priorisieren
                             $Name = 'Schule '.str_pad($count, 3, '0', STR_PAD_LEFT);
                             break;
                         }
-                        if($tblGroup->getMetaTable() == TblGroupCompany::ATTR_NURSERY){
+                        if ($tblGroup->getMetaTable() == TblGroupCompany::ATTR_NURSERY){
                             // Kindergarten alternativ
                             $Name = 'Kindergarten '.str_pad($count, 3, '0', STR_PAD_LEFT);
                         }
@@ -200,7 +200,7 @@ class Service extends AbstractService
                 $ProcessList[$tblCompany->getId()]['tblCompany'] = $tblCompany;
                 $ProcessList[$tblCompany->getId()]['Name'] = $Name;
             }
-            if(!empty($ProcessList)){
+            if (!empty($ProcessList)){
                 Company::useService()->updateCompanyAnonymousBulk($ProcessList);
             }
         }

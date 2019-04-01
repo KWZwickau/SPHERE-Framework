@@ -603,7 +603,8 @@ class Service extends ServiceScoreRule
                         if($this->isEditGrade($tblGrade, trim($value['Comment']), $grade, $trend,
                             isset($value['Date']) ? $value['Date'] : null,
                             isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                ? $tblGradeText : null
+                                ? $tblGradeText : null,
+                            isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                         )){
                             if (isset($value['Attendance'])) {
                                 (new Data($this->getBinding()))->updateGrade(
@@ -650,10 +651,10 @@ class Service extends ServiceScoreRule
      * @param          $trend
      * @param          $date
      * @param          $text
-     *
+     * @param          $publicComment
      * @return bool
      */
-    private function isEditGrade(TblGrade $tblGrade, $Comment, $grade, $trend, $date, $text)
+    private function isEditGrade(TblGrade $tblGrade, $Comment, $grade, $trend, $date, $text, $publicComment)
     {
         $isChange = false;
         if($tblGrade->getComment() != $Comment){
@@ -665,6 +666,8 @@ class Service extends ServiceScoreRule
         } elseif($tblGrade->getDate() != $date){
             $isChange = true;
         } elseif($tblGrade->getTblGradeText() != $text){
+            $isChange = true;
+        } elseif($tblGrade->getPublicComment() != $publicComment) {
             $isChange = true;
         }
 

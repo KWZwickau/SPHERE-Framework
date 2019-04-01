@@ -103,7 +103,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new TableData($TableContent, null, array(
-                            'InvoiceNumber' => 'Abr.-Nr.',
+                            'InvoiceNumber' => 'Rechnungsnummer',
                             'Time'          => 'Abrechnungszeitraum',
                             'TargetTime'    => 'Fälligkeitsdatum',
                             'CauserPerson'  => 'Beitragsverursacher',
@@ -217,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'CauserPerson'  => 'Beitragsverursacher',
                                 'Time'          => 'Abrechnungszeitraum',
                                 'DebtorPerson'  => 'Debitor',
-                                'InvoiceNumber' => 'Abr.-Nr.',
+                                'InvoiceNumber' => 'Rechnungsnummer',
                                 'BasketName'    => 'Name der Abrechnung',
                                 'IsPaid'        => 'Offene Posten',
 //                                'Option' => '',

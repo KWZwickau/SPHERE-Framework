@@ -48,6 +48,22 @@ class TblBasket extends Element
      */
     protected $IsDone;
     /**
+     * @Column(type="datetime")
+     */
+    protected $SepaDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $SepaUser;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $DatevDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $DatevUser;
+    /**
      * @Column(type="bigint")
      */
     protected $serviceTblCreditor;
@@ -170,6 +186,89 @@ class TblBasket extends Element
     public function setIsDone($IsDone)
     {
         $this->IsDone = $IsDone;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSepaDate()
+    {
+
+        if(null === $this->SepaDate){
+            return false;
+        }
+        /** @var \DateTime $SepaDate */
+        $SepaDate = $this->SepaDate;
+        if($SepaDate instanceof \DateTime){
+            return $SepaDate->format('d.m.Y');
+        } else {
+            return (string)$SepaDate;
+        }
+    }
+
+    /**
+     * @param \DateTime|null $SepaDate
+     */
+    public function setSepaDate(\DateTime $SepaDate = null)
+    {
+        $this->SepaDate = $SepaDate;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSepaUser()
+    {
+        return $this->SepaUser;
+    }
+
+    /**
+     * @param mixed $SepaUser
+     */
+    public function setSepaUser($SepaUser)
+    {
+        $this->SepaUser = $SepaUser;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDatevDate()
+    {
+        if(null === $this->DatevDate){
+            return false;
+        }
+        /** @var \DateTime $DatevDate */
+        $DatevDate = $this->DatevDate;
+        if($DatevDate instanceof \DateTime){
+            return $DatevDate->format('d.m.Y');
+        } else {
+            return (string)$DatevDate;
+        }
+    }
+
+    /**
+     * @param \DateTime|null $DatevDate
+     */
+    public function setDatevDate(\DateTime $DatevDate = null)
+    {
+        $this->DatevDate = $DatevDate;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDatevUser()
+    {
+        return $this->DatevUser;
+    }
+
+    /**
+     * @param mixed $DatevUser
+     */
+    public function setDatevUser($DatevUser)
+    {
+        $this->DatevUser = $DatevUser;
     }
 
     /**

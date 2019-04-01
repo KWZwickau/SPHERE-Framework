@@ -393,13 +393,13 @@ class Data extends AbstractData
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
-            TblDebtorSelection::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId(),
-            TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId(),
-            TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_DEBTOR => $tblPerson->getId(),
-        ));
-
-        if($Entity === null){
+        // Es dürfen meherere Zahlungszuweisungen vorhanden sein.
+//        $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
+//            TblDebtorSelection::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId(),
+//            TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId(),
+//            TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_DEBTOR => $tblPerson->getId(),
+//        ));
+//        if($Entity === null){
             $Entity = new TblDebtorSelection();
             $Entity->setServiceTblPersonCauser($tblPersonCauser);
             $Entity->setServiceTblPersonDebtor($tblPerson);
@@ -413,7 +413,7 @@ class Data extends AbstractData
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
-        }
+//        }
 
         return $Entity;
     }

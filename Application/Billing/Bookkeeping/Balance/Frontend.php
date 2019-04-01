@@ -62,9 +62,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Belegdruck', 'Serienbrief');
 
-        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
-            $_POST['Balance']['Item'] = $tblItem->getId();
-        }
+        // Vorauswahl für Schulgeld deaktiviert SSW-537
+//        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
+//            $_POST['Balance']['Item'] = $tblItem->getId();
+//        }
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
@@ -86,11 +87,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
                 $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                     new Download(), array(
-                        'ItemId'   => $tblItem->getId(),
-                        'Year'     => $Balance['Year'],
-                        'From'     => $Balance['From'],
-                        'To'       => $Balance['To'],
-                        'Division' => $Balance['Division'],
+                        'ItemId'     => $tblItem->getId(),
+                        'Year'       => $Balance['Year'],
+                        'From'       => $Balance['From'],
+                        'To'         => $Balance['To'],
+                        'DivisionId' => $Balance['Division'],
                     ));
             }
         }
@@ -98,15 +99,16 @@ class Frontend extends Extension implements IFrontendInterface
         // Selectbox soll nach unten aufklappen (tritt nur noch bei Anwendungsansicht auf)
         $Space = '<div style="height: 100px;"></div>';
         if(empty($Balance)){
-            $Table = new Info('Bitte benutzen sie die Filterung');
+            $Table = new Info('Bitte benutzen Sie die Filterung');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
         }
         if(!empty($tableContent)){
             $Table = new TableData($tableContent, null, array(
                 'Debtor' => 'Beitragszahler',
-                'Causer' => 'Bietragsverursacher',
+                'Causer' => 'Beitragsverursacher',
                 'Value'  => 'Summe',
+                'Info'  => 'Anmerkung',
             ), array(
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),
@@ -228,7 +230,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Selectbox soll nach unten aufklappen (tritt nur noch bei Anwendungsansicht auf)
         $Space = '<div style="height: 100px;"></div>';
         if(empty($Balance)){
-            $Table = new Info('Bitte benutzen sie die Filterung');
+            $Table = new Info('Bitte benutzen Sie die Filterung');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
         }

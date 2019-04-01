@@ -85,13 +85,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Daten Anonymisieren', 'Personen');
 
-        if($Confirm){
+        if ($Confirm){
             $Stage->setContent(Anonymous::useService()->UpdatePerson());
         } else {
 
             $Acronym = new DangerText('!Mandant konnte nicht ermittelt werden!');
-            if(($tblAccount = Account::useService()->getAccountBySession())){
-                if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+            if (($tblAccount = Account::useService()->getAccountBySession())){
+                if (($tblConsumer = $tblAccount->getServiceTblConsumer())){
                     $Acronym = $tblConsumer->getAcronym();
                 }
             }
@@ -101,8 +101,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel('Wollen Sie für den Mandanten '.new Bold('"'.$Acronym.'"').' wirklich alle Personen Anonymisieren?',
-                                new Standard('Ja', '/Platform/System/Anonymous/UpdatePerson', new Ok(), array('Confirm' => true))
-                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()), Panel::PANEL_TYPE_DANGER
+                                new Standard('Ja', '/Platform/System/Anonymous/UpdatePerson', new Ok(),
+                                    array('Confirm' => true))
+                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()),
+                                Panel::PANEL_TYPE_DANGER
                             )
                         )
                     )
@@ -123,13 +125,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Daten Anonymisieren', 'Adressen');
 
-        if($Confirm){
+        if ($Confirm){
             $Stage->setContent(Anonymous::useService()->UpdateAddress());
         } else {
 
             $Acronym = new DangerText('!Mandant konnte nicht ermittelt werden!');
-            if(($tblAccount = Account::useService()->getAccountBySession())){
-                if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+            if (($tblAccount = Account::useService()->getAccountBySession())){
+                if (($tblConsumer = $tblAccount->getServiceTblConsumer())){
                     $Acronym = $tblConsumer->getAcronym();
                 }
             }
@@ -139,8 +141,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel('Wollen Sie für den Mandanten '.new Bold('"'.$Acronym.'"').' wirklich alle Adressen Anonymisieren?',
-                                new Standard('Ja', '/Platform/System/Anonymous/UpdateAddress', new Ok(), array('Confirm' => true))
-                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()), Panel::PANEL_TYPE_DANGER
+                                new Standard('Ja', '/Platform/System/Anonymous/UpdateAddress', new Ok(),
+                                    array('Confirm' => true))
+                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()),
+                                Panel::PANEL_TYPE_DANGER
                             )
                         )
                     )
@@ -160,13 +164,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Daten Anonymisieren', 'Institution');
-        if($Confirm){
+        if ($Confirm){
             $Stage->setContent(Anonymous::useService()->UpdateCompany());
         } else {
 
             $Acronym = new DangerText('!Mandant konnte nicht ermittelt werden!');
-            if(($tblAccount = Account::useService()->getAccountBySession())){
-                if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+            if (($tblAccount = Account::useService()->getAccountBySession())){
+                if (($tblConsumer = $tblAccount->getServiceTblConsumer())){
                     $Acronym = $tblConsumer->getAcronym();
                 }
             }
@@ -176,8 +180,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel('Wollen Sie für den Mandanten '.new Bold('"'.$Acronym.'"').' wirklich alle Institutionen Anonymisieren?',
-                                new Standard('Ja', '/Platform/System/Anonymous/UpdateCompany', new Ok(), array('Confirm' => true))
-                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()), Panel::PANEL_TYPE_DANGER
+                                new Standard('Ja', '/Platform/System/Anonymous/UpdateCompany', new Ok(),
+                                    array('Confirm' => true))
+                                .new Standard('Nein', '/Platform/System/Anonymous', new Disable()),
+                                Panel::PANEL_TYPE_DANGER
                             )
                         )
                     )
@@ -209,9 +215,11 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new Info(
                             new Container(new Bold('Nach SQL Script notwendig!'))
-                            .new External('DatenbankUpdate für aktuellen Mandanten', '/Platform/System/Database/Setup/Execution',
+                            .new External('DatenbankUpdate für aktuellen Mandanten',
+                                '/Platform/System/Database/Setup/Execution',
                                 new CogWheels(), array(), false)
-                            .new External('Cache löschen', '/Platform/System/Cache', new Server(), array('Clear' => 1), false)
+                            .new External('Cache löschen', '/Platform/System/Cache', new Server(), array('Clear' => 1),
+                                false)
                         )
                         , 6)
                 )),
@@ -280,13 +288,14 @@ UPDATE SettingConsumer_".$Acronym.".tblSetting SET Value = 0 WHERE Identifier li
                     new LayoutColumn(
                         new Info('Ausführen des SQL Script\'s in der Datenbank ('.new Bold('aktueller Mandant!').')'
                             .new Container('Diesen bitte in der Datenbank ausführen.'))
-                    , 6),
+                        , 6),
                     new LayoutColumn(
                         new Info(
                             new Container(new Bold('Nach SQL Script notwendig!&nbsp;&nbsp;&nbsp;')
-                                .new External('Cache löschen', '/Platform/System/Cache', new Server(), array('Clear' => 1)))
+                                .new External('Cache löschen', '/Platform/System/Cache', new Server(),
+                                    array('Clear' => 1)))
                         )
-                    , 6)
+                        , 6)
                 )),
                 new LayoutRow(
                     new LayoutColumn(
