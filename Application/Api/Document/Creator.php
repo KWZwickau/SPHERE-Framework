@@ -496,7 +496,14 @@ class Creator extends Extension
         if(($tblItem = Item::useService()->getItemById($Data['Item']))
             && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($Data['Document']))
         ) {
-            $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Data['Year'], $Data['From'], $Data['To'], $Data['Division']);
+            $PriceList = Balance::useService()->getPriceListByItemAndYear(
+                $tblItem,
+                $Data['Year'],
+                $Data['From'],
+                $Data['To'],
+                isset($Data['Division']) ? $Data['Division'] : '0',
+                isset($Data['Group']) ? $Data['Group'] : '0'
+            );
 
             if (!empty($PriceList)) {
                 if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Subject'))) {

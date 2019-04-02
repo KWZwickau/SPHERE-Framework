@@ -10,6 +10,7 @@ namespace SPHERE\Application\Api\Billing\Inventory;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Document\Document;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -65,6 +66,8 @@ class ApiDocument implements IApiInterface
 
         $Dispatcher->registerMethod('openDeleteDocumentModal');
         $Dispatcher->registerMethod('saveDeleteDocumentModal');
+
+        $Dispatcher->registerMethod('changeFilter');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -231,6 +234,18 @@ class ApiDocument implements IApiInterface
         return $Pipeline;
     }
 
+    public static function pipelineChangeFilter()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'changeFilter'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeFilter',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
     /**
      * @return string
      */
@@ -386,5 +401,11 @@ class ApiDocument implements IApiInterface
         } else {
             return new Danger('Der Beleg konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    public function changeFilter($Balance)
+    {
+
+        return Balance::useFrontend()->getFilterForm($Balance);
     }
 }
