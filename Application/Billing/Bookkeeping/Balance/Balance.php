@@ -66,6 +66,11 @@ class Balance implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Balance/Pdf/Download',
+                __NAMESPACE__.'\Frontend::frontendBalancePdfDownload'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Balance/MonthOverview',
                 __NAMESPACE__.'\Frontend::frontendMonthOverview'
             )

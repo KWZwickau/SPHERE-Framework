@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
@@ -39,7 +40,9 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -56,6 +59,8 @@ class Frontend extends Extension implements IFrontendInterface
     const FILTER_CLASS = 1;
     const FILTER_GROUP = 2;
     const FILTER_PERSON = 3;
+
+    const MAX_PDF_PAGES = 30;
 
     public function frontendBalance()
     {
@@ -338,6 +343,7 @@ class Frontend extends Extension implements IFrontendInterface
         $filterBlock = ApiDocument::receiverBlock($filterForm, 'changeFilter');
 
         $tableContent = array();
+        $countPdfs = 0;
         $tblItem = false;
         $error = false;
         if(!empty($Balance)){
@@ -366,6 +372,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivision ? $tblDivision->getId() : '0',
                         $tblGroup ? $tblGroup->getId() : '0');
                     $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
+                    $countPdfs = count($tableContent);
                 }
             } else {
                 $filterForm->setError('Balance[Item]', 'Bitte wählen Sie eine Betragsart aus');
@@ -403,7 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblItem) {
                 if (($tblDocumentList = Document::useService()->getDocumentAllByItem($tblItem))
                 ) {
-                    $Table .= new Well($this->getPdfForm($tblDocumentList, $Balance));
+                    $Table .= new Well($this->getPdfForm($tblDocumentList, $countPdfs, $Balance));
                 } else {
                     $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist kein Beleg eingestellt.', new Exclamation());
                 }
@@ -525,7 +532,15 @@ class Frontend extends Extension implements IFrontendInterface
         return null;
     }
 
-    public function getPdfForm($tblDocumentList, $Balance = null, $Data = null)
+    /**
+     * @param $tblDocumentList
+     * @param $countPdfs
+     * @param null $Balance
+     * @param null $Data
+     *
+     * @return Form
+     */
+    public function getPdfForm($tblDocumentList, $countPdfs, $Balance = null, $Data = null)
     {
 
         if ($Data === null) {
@@ -565,70 +580,137 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset($Balance['Group'])) {
                     $global->POST['Data']['Group'] = $Balance['Group'];
                 }
+                $global->POST['Data']['CountPdfs'] = $countPdfs;
             }
 
             $global->savePost();
         }
 
-        return new Form(
-            new FormGroup(array(
-                // Filterdaten
-                new FormRow(array(
-                    new FormColumn(
-                        new HiddenField('Data[Item]')
+        $formGroup = new FormGroup(array(
+            // Filterdaten
+            new FormRow(array(
+                new FormColumn(
+                    new HiddenField('Data[Item]')
                     , 1),
-                    new FormColumn(
-                        new HiddenField('Data[Year]')
+                new FormColumn(
+                    new HiddenField('Data[Year]')
                     , 1),
-                    new FormColumn(
-                        new HiddenField('Data[From]')
+                new FormColumn(
+                    new HiddenField('Data[From]')
                     , 1),
-                    new FormColumn(
-                        new HiddenField('Data[To]')
+                new FormColumn(
+                    new HiddenField('Data[To]')
                     , 1),
-                    new FormColumn(
-                        new HiddenField('Data[Division]')
+                new FormColumn(
+                    new HiddenField('Data[Division]')
                     , 1),
-                    new FormColumn(
-                        new HiddenField('Data[Group]')
+                new FormColumn(
+                    new HiddenField('Data[Group]')
                     , 1),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Belegs')
-                        , 12)
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Beleg', array(
-                            new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)),
-                            new TextField('Data[Location]', '', 'Ort', new MapMarker()),
-                            new DatePicker('Data[Date]', '', 'Datum', new Calendar())
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 12),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Schulträger')
-                        , 12)
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Name des Schulträgers',array(
-                            new TextField('Data[CompanyName]', '', 'Name'),
-                            new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
-                        ),Panel::PANEL_TYPE_INFO)
-                        , 6),
-                    new FormColumn(
-                        new Panel('Adressinformation des Schulträgers',array(
-                            new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
-                            new TextField('Data[CompanyStreet]', '', 'Straße'),
-                            new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
-                        ),Panel::PANEL_TYPE_INFO)
-                        , 6),
-                )),
+                new FormColumn(
+                    new HiddenField('Data[CountPdfs]')
+                    , 1),
             )),
-            new Primary('Herunterladen', new Download(), true), '/Api/Document/Standard/BillingDocument/Create'
-        );
+            new FormRow(array(
+                new FormColumn(
+                    new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Belegs')
+                    , 12)
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new Panel('Beleg', array(
+                        new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)),
+                        new TextField('Data[Location]', '', 'Ort', new MapMarker()),
+                        new DatePicker('Data[Date]', '', 'Datum', new Calendar())
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 12),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Schulträger')
+                    , 12)
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new Panel('Name des Schulträgers',array(
+                        new TextField('Data[CompanyName]', '', 'Name'),
+                        new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
+                    ),Panel::PANEL_TYPE_INFO)
+                    , 6),
+                new FormColumn(
+                    new Panel('Adressinformation des Schulträgers',array(
+                        new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
+                        new TextField('Data[CompanyStreet]', '', 'Straße'),
+                        new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
+                    ),Panel::PANEL_TYPE_INFO)
+                    , 6),
+            )),
+        ));
+
+        if ($countPdfs > self::MAX_PDF_PAGES ) {
+            return new Form(
+                $formGroup,
+                new Primary('Herunterladen', new Download(), false),
+                '/Billing/Balance/Pdf/Download'
+            );
+        } else {
+            return new Form(
+                $formGroup,
+                new Primary('Herunterladen', new Download(), true),
+                '/Api/Document/Standard/BillingDocument/Create'
+            );
+        }
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendBalancePdfDownload($Data = null)
+    {
+        $stage = new Stage('Belegdruck', 'Pdf herunterladen');
+        $stage->addButton(new Standard(
+            'Zurück',
+            '/Billing/Balance/Pdf',
+            new ChevronLeft()
+        ));
+
+        $countPdfs = $Data['CountPdfs'];
+        $modulo = $countPdfs % self::MAX_PDF_PAGES;
+        $countLists = intval($countPdfs / self::MAX_PDF_PAGES);
+        if ($modulo > 0) {
+            $countLists++;
+        }
+
+        $content = array();
+        for ($i = 0; $i < $countLists; $i++) {
+            $Data['List'] = $i;
+            $content[] = array(
+                'Name' => 'Liste ' . ($i + 1),
+                'Options' => new External('Herunterladen', '/Api/Document/Standard/BillingDocument/Create', new Download(), array(
+                    'Data' => $Data
+                ))
+            );
+        }
+
+        $stage->setContent(new TableData(
+            $content,
+            null,
+            array(
+                'Name' => 'Name',
+                'Options' => ''
+            )
+        ));
+
+        return $stage;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxPdfPages()
+    {
+        return self::MAX_PDF_PAGES;
     }
 }

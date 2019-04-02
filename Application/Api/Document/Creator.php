@@ -525,11 +525,23 @@ class Creator extends Extension
                 ini_set('memory_limit', '2G');
                 $PdfMerger = new PdfMerge();
                 $FileList = array();
-
+                $countPdfs = 0;
                 foreach($PriceList as $DebtorId => $CauserList) {
                     if (($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
                         foreach ($CauserList as $CauserId => $Value) {
                             if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
+                                $countPdfs++;
+                                // nur die Pdfs der ausgewählten Liste herunterladen
+                                if (isset($Data['List'])) {
+                                    $list = $Data['List'];
+                                    $maxPdfPages = Balance::useFrontend()->getMaxPdfPages();
+                                    if ($countPdfs > $maxPdfPages * $list && $countPdfs <= $maxPdfPages * ($list + 1)) {
+                                        // werden hinzugefügt
+                                    } else {
+                                        continue;
+                                    }
+                                }
+
                                 if (isset($Value['Sum'])) {
                                     $TotalPrice = number_format($Value['Sum'], 2, ',', '.') . ' €';
                                 } else {
