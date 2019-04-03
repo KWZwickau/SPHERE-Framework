@@ -522,6 +522,50 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItem $tblItem
+     * @param string $Year
+     * @param string $MonthFrom
+     * @param string $MonthTo
+     * @param TblPerson $tblPerson
+     *
+     * @return array|bool
+     */
+    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson)
+    {
+        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson);
+        $PriceList = array();
+        if($ResultList){
+            foreach($ResultList as $Key => $RowContent) {
+                $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
+                $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
+                $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+                if($PersonDebtorId && $PersonCauserId && $timeString){
+                    if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']){
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Sum'][] = $RowContent['Value'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Price'][$timeString] = $RowContent['Value'];
+                    } else {
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+                }
+            }
+        }
+
+        if(!empty($PriceList)){
+            foreach($PriceList as &$Debtor) {
+                foreach($Debtor as &$PriceArray) {
+                    if(isset($PriceArray['Sum'])){
+                        $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
+                    } else {
+                        $PriceArray['Sum'] = 0;
+                    }
+                }
+            }
+        }
+
+        return $PriceList;
+    }
+
+    /**
      * @param string $Year
      * @param string $Month
      *

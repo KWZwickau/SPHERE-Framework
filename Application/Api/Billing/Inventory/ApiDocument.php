@@ -71,6 +71,8 @@ class ApiDocument implements IApiInterface
         $Dispatcher->registerMethod('changeFilter');
         $Dispatcher->registerMethod('loadDocumentContent');
 
+        $Dispatcher->registerMethod('searchPerson');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -103,6 +105,33 @@ class ApiDocument implements IApiInterface
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
 
         return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSearchPerson()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchPerson'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'searchPerson',
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Balance
+     *
+     * @return string
+     */
+    public function searchPerson($Balance = null)
+    {
+//        Debugger::screenDump($Balance);exit;
+        return Balance::useFrontend()->loadPersonSearch(isset($Balance['Search']) ? $Balance['Search'] : '');
     }
 
     /**

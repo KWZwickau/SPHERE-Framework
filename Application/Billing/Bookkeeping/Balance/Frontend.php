@@ -11,6 +11,7 @@ use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
@@ -19,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -26,6 +28,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -33,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -46,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -341,15 +346,25 @@ class Frontend extends Extension implements IFrontendInterface
             $_POST['Balance']['Filter'] = self::FILTER_CLASS;
         }
 
-        $filterForm = $this->getFilterForm($Balance);
-        $filterBlock = ApiDocument::receiverBlock($filterForm, 'changeFilter');
-
         $tableContent = array();
         $countPdfs = 0;
         $tblItem = false;
         $error = false;
+        $message = null;
+        $tblPerson = false;
         if(!empty($Balance)){
-            // todo single person
+            if (isset($Balance['Search'])) {
+                if (!($tblPerson = Person::useService()->getPersonById(isset($Balance['PersonId']) ? $Balance['PersonId'] : 0))) {
+                    $message = new Warning('Bitte wählen Sie eine Person aus', new Exclamation());
+                    $error = true;
+                }
+            }
+        }
+
+        $filterForm = $this->getFilterForm($Balance, $message);
+        $filterBlock = ApiDocument::receiverBlock($filterForm, 'changeFilter');
+
+        if(!empty($Balance)){
             $tblDivision = false;
             $tblGroup = false;
             if (isset($Balance['Division'])) {
@@ -366,13 +381,28 @@ class Frontend extends Extension implements IFrontendInterface
             }
             if (($tblItem = Item::useService()->getItemById($Balance['Item']))) {
                 if (!$error) {
-                    $PriceList = Balance::useService()->getPriceListByItemAndYear(
-                        $tblItem,
-                        $Balance['Year'],
-                        $Balance['From'],
-                        $Balance['To'],
-                        $tblDivision ? $tblDivision->getId() : '0',
-                        $tblGroup ? $tblGroup->getId() : '0');
+                    $PriceList = array();
+                    if (isset($Balance['Search'])) {
+                        if ($tblPerson) {
+                            $PriceList = Balance::useService()->getPriceListByPerson(
+                                $tblItem,
+                                $Balance['Year'],
+                                $Balance['From'],
+                                $Balance['To'],
+                                $tblPerson
+                            );
+                        }
+                    } else {
+                        $PriceList = Balance::useService()->getPriceListByItemAndYear(
+                            $tblItem,
+                            $Balance['Year'],
+                            $Balance['From'],
+                            $Balance['To'],
+                            $tblDivision ? $tblDivision->getId() : '0',
+                            $tblGroup ? $tblGroup->getId() : '0'
+                        );
+                    }
+
                     $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
                     $countPdfs = count($tableContent);
                 }
@@ -439,10 +469,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Balance
+     * @param IMessageInterface $message
      *
      * @return IFormInterface
      */
-    public function getFilterForm($Balance)
+    public function getFilterForm($Balance, IMessageInterface $message = null)
     {
 
         $filterOptions = array(
@@ -458,16 +489,16 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($Filter) {
-            if ($Filter == self::FILTER_CLASS || $Filter == self::FILTER_GROUP) {
-                $YearList = Invoice::useService()->getYearList(1, 1);
-                $MonthList = Invoice::useService()->getMonthList();
-                $tblItemAll = Item::useService()->getItemAll();
+            $YearList = Invoice::useService()->getYearList(1, 1);
+            $MonthList = Invoice::useService()->getMonthList();
+            $tblItemAll = Item::useService()->getItemAll();
 
-                $tblYear = false;
+            $tblYear = false;
+            if (($tblYearList = Term::useService()->getYearByNow())) {
+                $tblYear = current($tblYearList);
+            }
+            if ($Filter == self::FILTER_CLASS || $Filter == self::FILTER_GROUP) {
                 $tblDivisionList = array();
-                if (($tblYearList = Term::useService()->getYearByNow())) {
-                    $tblYear = current($tblYearList);
-                }
                 if ($tblYear) {
                     if (!($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
                         $tblDivisionList = array();
@@ -524,14 +555,108 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ))
                     );
+            } elseif ($Filter = self::FILTER_PERSON) {
+                return
+                    new Form(
+                        new FormGroup(array(
+                            new FormRow(
+                                new FormColumn(
+                                    new Panel(
+                                        'Filter für',
+                                        (new SelectBox('Balance[Filter]', '',
+                                            $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter()),
+                                        Panel::PANEL_TYPE_PRIMARY
+                                    )
+                                )
+                            ),
+                            new FormRow(array(
+                                new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),
+                                new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true,
+                                    null), 4),
+                                new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true,
+                                    null), 4),
+                            )),
+                            new FormRow(array(
+                                new FormColumn((new SelectBox('Balance[Item]', 'Beitragsart',
+                                    array('{{ Name }}' => $tblItemAll)))->setRequired(), 3),
+                            )),
+                            new FormRow(array(
+                                new FormColumn(array(
+                                    (new TextField(
+                                        'Balance[Search]',
+                                        '',
+                                        'Suche',
+                                        new Search()
+                                    ))->ajaxPipelineOnKeyUp(ApiDocument::pipelineSearchPerson()),
+                                    ApiDocument::receiverBlock(
+                                        $this->loadPersonSearch(isset($Balance['Search']) ? $Balance['Search'] : '', $message),
+                                        'SearchPerson'
+                                    )
+                                ))
+                            )),
+                            new FormRow(
+                                new FormColumn(new Primary('Filtern', new Filter()))
+                            )
+                        ))
+                    );
             }
-                // todo Filter für Einzel-Person
-//            } elseif ($Filter = self::FILTER_PERSON) {
-//
-//            }
         }
 
         return null;
+    }
+
+    /**
+     * @param $Search
+     * @param IMessageInterface|null $message
+     *
+     * @return string
+     */
+    public function loadPersonSearch($Search, IMessageInterface $message = null)
+    {
+
+        if ($Search != '' && strlen($Search) > 2) {
+            if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
+                $resultList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    // onchange only by student, prospect
+                    $radio = new RadioBox('Balance[PersonId]', '&nbsp;', $tblPerson->getId());
+
+                    $resultList[] = array(
+                        'Select' => $radio,
+                        'FirstName' => $tblPerson->getFirstSecondName(),
+                        'LastName' => $tblPerson->getLastName(),
+                        'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : ''
+                    );
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Select' => '',
+                        'LastName' => 'Nachname',
+                        'FirstName' => 'Vorname',
+                        'Address' => 'Adresse'
+                    ),
+                    array(
+                        'order' => array(
+                            array(1, 'asc'),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            } else {
+                $result = new Warning('Es wurden keine entsprechenden Personen gefunden.', new Ban());
+            }
+        } else {
+            $result =  new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return $result . ($message ? $message : '');
     }
 
     /**
@@ -587,6 +712,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset($Balance['Group'])) {
                     $global->POST['Data']['Group'] = $Balance['Group'];
                 }
+                if (isset($Balance['PersonId'])) {
+                    $global->POST['Data']['PersonId'] = $Balance['PersonId'];
+                }
                 $global->POST['Data']['CountPdfs'] = $countPdfs;
             }
 
@@ -613,6 +741,9 @@ class Frontend extends Extension implements IFrontendInterface
                     , 1),
                 new FormColumn(
                     new HiddenField('Data[Group]')
+                    , 1),
+                new FormColumn(
+                    new HiddenField('Data[PersonId]')
                     , 1),
                 new FormColumn(
                     new HiddenField('Data[CountPdfs]')

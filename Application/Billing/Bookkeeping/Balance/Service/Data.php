@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -108,6 +109,43 @@ class Data extends AbstractData
             ->setParameter(2, $MonthFrom)
             ->setParameter(3, $MonthTo)
             ->setParameter(4, $tblItem->getId())
+            ->getQuery();
+
+        $PriceList = $query->getResult();
+
+        return !empty($PriceList) ? $PriceList : false;
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string $Year
+     * @param string $MonthFrom
+     * @param string $MonthTo
+     * @param TblPerson $tblPerson
+     *
+     * @return array|bool
+     */
+    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblInvoice = new TblInvoice();
+        $tblInvoiceItemDebtor = new TblInvoiceItemDebtor();
+
+        $query = $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
+             iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId')
+            ->from($tblInvoice->getEntityFullName(), 'i')
+            ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',
+                'WITH', 'iid.tblInvoice = i.Id')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
+            ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))
+            ->andWhere($queryBuilder->expr()->eq('i.serviceTblPersonCauser', '?5'))
+            ->setParameter(1, $Year)
+            ->setParameter(2, $MonthFrom)
+            ->setParameter(3, $MonthTo)
+            ->setParameter(4, $tblItem->getId())
+            ->setParameter(5, $tblPerson->getId())
             ->getQuery();
 
         $PriceList = $query->getResult();

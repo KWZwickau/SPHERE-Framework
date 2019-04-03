@@ -498,14 +498,24 @@ class Creator extends Extension
         if(($tblItem = Item::useService()->getItemById($Data['Item']))
             && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($Data['Document']))
         ) {
-            $PriceList = Balance::useService()->getPriceListByItemAndYear(
-                $tblItem,
-                $Data['Year'],
-                $Data['From'],
-                $Data['To'],
-                isset($Data['Division']) ? $Data['Division'] : '0',
-                isset($Data['Group']) ? $Data['Group'] : '0'
-            );
+            if (isset($Data['PersonId']) && ($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
+                $PriceList = Balance::useService()->getPriceListByPerson(
+                    $tblItem,
+                    $Data['Year'],
+                    $Data['From'],
+                    $Data['To'],
+                    $tblPerson
+                );
+            } else {
+                $PriceList = Balance::useService()->getPriceListByItemAndYear(
+                    $tblItem,
+                    $Data['Year'],
+                    $Data['From'],
+                    $Data['To'],
+                    isset($Data['Division']) ? $Data['Division'] : '0',
+                    isset($Data['Group']) ? $Data['Group'] : '0'
+                );
+            }
 
             if (!empty($PriceList)) {
                 $Data['CompanyAddress'] = $Data['CompanyStreet'] . ' ' . $Data['CompanyCity']
