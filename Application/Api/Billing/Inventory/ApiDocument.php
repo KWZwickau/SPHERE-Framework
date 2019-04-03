@@ -12,6 +12,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Document\Document;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -68,6 +69,7 @@ class ApiDocument implements IApiInterface
         $Dispatcher->registerMethod('saveDeleteDocumentModal');
 
         $Dispatcher->registerMethod('changeFilter');
+        $Dispatcher->registerMethod('loadDocumentContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -234,12 +236,39 @@ class ApiDocument implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @return Pipeline
+     */
     public static function pipelineChangeFilter()
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'changeFilter'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'changeFilter',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ItemId
+     * @param $Location
+     * @param $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDocumentContent($ItemId, $Location, $Date)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'loadDocumentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDocumentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ItemId' => $ItemId,
+            'Location' => $Location,
+            'Date' => $Date
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -403,9 +432,30 @@ class ApiDocument implements IApiInterface
         }
     }
 
+    /**
+     * @param $Balance
+     *
+     * @return \SPHERE\Common\Frontend\Form\IFormInterface
+     */
     public function changeFilter($Balance)
     {
-
         return Balance::useFrontend()->getFilterForm($Balance);
+    }
+
+    /**
+     * @param $ItemId
+     * @param $Location
+     * @param $Date
+     * @param $Data
+     *
+     * @return Panel|string
+     */
+    public function loadDocumentContent($ItemId, $Location, $Date, $Data)
+    {
+        if (($tblItem = Item::useService()->getItemById($ItemId))) {
+            return Balance::useFrontend()->getDocumentPanel($tblItem, $Data, $Location, $Date);
+        } else {
+            return '';
+        }
     }
 }

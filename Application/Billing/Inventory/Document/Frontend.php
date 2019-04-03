@@ -245,24 +245,7 @@ class Frontend extends Extension implements IFrontendInterface
         )));
         $form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
 
-        $freeFields = array(
-            '[Beitragsart]',
-            '[Beitragsjahr]',
-            '[Beitragssumme]',
-            '[Beitragszahler Anrede]',
-            '[Beitragszahler Vorname]',
-            '[Beitragszahler Nachname]',
-            '[Beitragsverursacher Anrede]',
-            '[Beitragsverursacher Vorname]',
-            '[Beitragsverursacher Nachname]',
-            '[Zeitraum von]',
-            '[Zeitraum bis]',
-            '[Datum]',
-            '[Ort]',
-            '[Trägername]',
-            '[Trägerzusatz]',
-            '[Trägeradresse]'
-        );
+        $freeFields = $this->getFreeFields();
 
         $Stage->setContent(new Layout(new LayoutGroup(array(
             new LayoutRow(array(
@@ -284,5 +267,30 @@ class Frontend extends Extension implements IFrontendInterface
         ))));
 
         return $Stage;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFreeFields()
+    {
+        return array(
+            '[Beitragsart]',
+            '[Beitragsjahr]',
+            '[Beitragssumme]',
+            '[Beitragszahler Anrede]',
+            '[Beitragszahler Vorname]',
+            '[Beitragszahler Nachname]',
+            '[Beitragsverursacher Anrede]',
+            '[Beitragsverursacher Vorname]',
+            '[Beitragsverursacher Nachname]',
+            '[Zeitraum von]',
+            '[Zeitraum bis]',
+            '[Datum]',
+            '[Ort]',
+            '[Trägername]',
+            '[Trägerzusatz]',
+            '[Trägeradresse]'
+        );
     }
 }

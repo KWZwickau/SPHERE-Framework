@@ -144,11 +144,13 @@ class Creator extends Extension
             // Fieldpointer auf dem der Merge durchgeführt wird, (download)
             $MergeFile = Storage::createFilePointer('pdf');
 
+            $documentName = '';
             $PdfMerger = new PdfMerge();
             if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
                 $FileList = array();
                 foreach($tblPersonList as $tblPerson){
                     $Document = new GradebookOverview\GradebookOverview($tblPerson, $tblDivision);
+                    $documentName = $Document->getName();
                     // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
                     $File = self::buildDummyFile($Document, array(), array(), $paperOrientation, false);
                     // hinzufügen für das mergen
@@ -167,7 +169,7 @@ class Creator extends Extension
                 }
             }
 
-            $FileName = $Document->getName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+            $FileName = $documentName . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($MergeFile, $FileName);
         }
@@ -506,17 +508,6 @@ class Creator extends Extension
             );
 
             if (!empty($PriceList)) {
-                if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Subject'))) {
-                    $Data['Subject'] = $tblDocumentInformation->getValue();
-                } else {
-                    $Data['Subject'] = '&nbsp;';
-                }
-                if (($tblDocumentInformation = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationBy($tblDocument, 'Content'))) {
-                    $Data['Content'] = $tblDocumentInformation->getValue();
-                } else {
-                    $Data['Content'] = '&nbsp;';
-                }
-
                 $Data['CompanyAddress'] = $Data['CompanyStreet'] . ' ' . $Data['CompanyCity']
                     . ($Data['CompanyDistrict'] ? '  OT ' . $Data['CompanyDistrict'] : '');
 

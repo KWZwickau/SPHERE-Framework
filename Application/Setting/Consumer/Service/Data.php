@@ -94,7 +94,7 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'Billing_PictureHeight',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für den Belegdruck der Fakturierung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 200px): [Standard: 90px]');
+                'Für den Belegdruck der Fakturierung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 150px): [Standard: 90px]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName',
             TblSetting::TYPE_BOOLEAN, '1'))) {

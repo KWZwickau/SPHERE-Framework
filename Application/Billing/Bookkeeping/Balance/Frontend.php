@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Billing\Inventory\ApiDocument;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Document;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -15,9 +16,11 @@ use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -312,7 +315,6 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param array $Balance
-     * @param null $Filter
      *
      * @return Stage
      */
@@ -410,7 +412,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblItem) {
                 if (($tblDocumentList = Document::useService()->getDocumentAllByItem($tblItem))
                 ) {
-                    $Table .= new Well($this->getPdfForm($tblDocumentList, $countPdfs, $Balance));
+                    $Table .= new Well($this->getPdfForm($tblItem, $tblDocumentList, $countPdfs, $Balance));
                 } else {
                     $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist kein Beleg eingestellt.', new Exclamation());
                 }
@@ -533,6 +535,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblItem $tblItem
      * @param $tblDocumentList
      * @param $countPdfs
      * @param null $Balance
@@ -540,15 +543,18 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Form
      */
-    public function getPdfForm($tblDocumentList, $countPdfs, $Balance = null, $Data = null)
+    public function getPdfForm(TblItem $tblItem, $tblDocumentList, $countPdfs, $Balance = null, $Data = null)
     {
 
+        $Location = '';
+        $Date = '';
         if ($Data === null) {
             $global = $this->getGlobal();
 
             $firstDocument = reset($tblDocumentList);
             $global->POST['Data']['Document'] = $firstDocument->getId();
             $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Date = (new \DateTime())->format('d.m.Y');
 
             if (($tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll())) {
                 /** @var TblResponsibility $tblResponsibility */
@@ -564,6 +570,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $global->POST['Data']['CompanyCity'] = $tblCity->getCode() . ' ' . $tblCity->getName();
 
                         $global->POST['Data']['Location'] = $tblCity->getName();
+                        $Location = $tblCity->getName();
                     }
                 }
             }
@@ -618,11 +625,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new Panel('Beleg', array(
-                        new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)),
-                        new TextField('Data[Location]', '', 'Ort', new MapMarker()),
-                        new DatePicker('Data[Date]', '', 'Datum', new Calendar())
-                    ), Panel::PANEL_TYPE_INFO)
+                        ApiDocument::receiverBlock(ApiDocument::pipelineLoadDocumentContent($tblItem->getId(), $Location, $Date), 'loadDocumentContent')
                     , 12),
             )),
             new FormRow(array(
@@ -635,14 +638,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel('Name des Schulträgers',array(
                         new TextField('Data[CompanyName]', '', 'Name'),
                         new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
-                    ),Panel::PANEL_TYPE_INFO)
+                    ), Panel::PANEL_TYPE_INFO)
                     , 6),
                 new FormColumn(
                     new Panel('Adressinformation des Schulträgers',array(
                         new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
                         new TextField('Data[CompanyStreet]', '', 'Straße'),
                         new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
-                    ),Panel::PANEL_TYPE_INFO)
+                    ), Panel::PANEL_TYPE_INFO)
                     , 6),
             )),
         ));
@@ -662,6 +665,61 @@ class Frontend extends Extension implements IFrontendInterface
         }
     }
 
+    /**
+     * @param TblItem $tblItem
+     * @param $Data
+     * @param $Location
+     * @param $Date
+     *
+     * @return Panel
+     */
+    public function getDocumentPanel(TblItem $tblItem, $Data, $Location, $Date)
+    {
+        $global = $this->getGlobal();
+        $tblDocumentList = Document::useService()->getDocumentAllByItem($tblItem);
+        if (!($tblDocument = Document::useService()->getDocumentById($Data['Document']))) {
+            $tblDocument = reset($tblDocumentList);
+        }
+        if ($tblDocument) {
+
+            $global->POST['Data']['Document'] = $tblDocument->getId();
+            if (($tblDocumentSubject = Document::useService()->getDocumentInformationBy($tblDocument, 'Subject'))) {
+                $global->POST['Data']['Subject'] = $tblDocumentSubject->getValue();
+            } else {
+                $global->POST['Data']['Subject'] = '';
+            }
+            if (($tblDocumentContent = Document::useService()->getDocumentInformationBy($tblDocument, 'Content'))) {
+                $global->POST['Data']['Content'] = $tblDocumentContent->getValue();
+            } else {
+                $global->POST['Data']['Content'] = '';
+            }
+        }
+        $global->POST['Data']['Location'] = $Location;
+        $global->POST['Data']['Date'] = $Date;
+        $global->savePost();
+
+        return new Panel(
+            'Beleg',
+            array(
+                (new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)))
+                    ->ajaxPipelineOnChange(ApiDocument::pipelineLoadDocumentContent($tblItem->getId(), $Location,
+                        $Date)),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new TextField('Data[Subject]',
+                            'z.B. Schulgeldbescheinigung für das Kalenderjahr [Beitragsjahr]', 'Betreff'),
+                        new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 20)
+                    ), 9),
+                    new LayoutColumn(new Panel('Freifelder', Document::useFrontend()->getFreeFields(),
+                        Panel::PANEL_TYPE_INFO), 3)
+                )))),
+                new CheckBox('Data[SalutationFamily]', 'Familien Anrede verwenden', 1),
+                new TextField('Data[Location]', '', 'Ort', new MapMarker()),
+                new DatePicker('Data[Date]', '', 'Datum', new Calendar())
+            ),
+            Panel::PANEL_TYPE_INFO
+        );
+    }
     /**
      * @param null $Data
      *

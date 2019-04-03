@@ -177,7 +177,7 @@ class Billing
         $To = $Data['To'];
 
         $ItemName = $this->tblItem->getName();
-        $DebtorSalutation = $tblPersonDebtor->getSalutation();
+        $DebtorSalutation = isset($Data['SalutationFamily']) ? 'Familie' : $tblPersonDebtor->getSalutation();
         $DebtorFirstName = $tblPersonDebtor->getFirstSecondName();
         $DebtorLastName = $tblPersonDebtor->getLastName();
         $CauserSalutation = $tblPersonCauser->getSalutation();
@@ -225,8 +225,7 @@ class Billing
         );
 
         return (new Page())
-            // todo exakte Höhe bestimmen
-            ->addSlice($this->getHeaderSlice('200px'))
+            ->addSlice($this->getHeaderSlice('150px'))
             ->addSlice($this->getAddressSlice($CompanyName, $CompanyExtendedName, $CompanyAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -330,7 +329,7 @@ class Billing
                 ->addElementColumn((new Element()))
             )
             ->addElement((new Element())
-                ->setContent($tblPersonDebtor->getSalutation())
+                ->setContent(isset($this->Data['SalutationFamily']) ? 'Familie' : $tblPersonDebtor->getSalutation())
                 ->styleTextSize(self::TEXT_SIZE)
                 ->styleMarginTop('14px')
             )
