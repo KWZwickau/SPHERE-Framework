@@ -13,6 +13,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -127,7 +128,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ((($tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT'))
                 && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
             || (($tblGroupProspect = Group::useService()->getGroupByMetaTable('PROSPECT'))
-                && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
+                && (Group::useService()->existsGroupPerson($tblGroupProspect, $tblPerson)))
         ) {
             $tblTypeAll[] = Relationship::useService()->getTypeByName('Geschwisterkind');
             $tblTypeChild = new TblType();
@@ -267,7 +268,7 @@ class Frontend extends Extension implements IFrontendInterface
             $global->savePost();
         }
 
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+        if (($tblSetting = Consumer::useService()->getSetting(
                 'People', 'Person', 'Relationship', 'GenderOfS1'
             ))
             && ($value = $tblSetting->getValue())
