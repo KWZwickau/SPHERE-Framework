@@ -481,6 +481,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblBasket $tblBasket
+     * @param           $PersonName
+     *
+     * @return bool
+     */
+    public function updateBasketDatev(TblBasket $tblBasket, $PersonName)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setName($tblBasket->getName());
+            $Entity->setDatevUser($PersonName);
+            $Entity->setDatevDate(new \DateTime('now'));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblBasketVerification $tblBasketVerification
      * @param                       $Quantity
      *

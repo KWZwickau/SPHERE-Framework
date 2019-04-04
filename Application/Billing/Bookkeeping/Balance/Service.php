@@ -534,10 +534,14 @@ class Service extends AbstractService
 
         if ($tblInvoiceList) {
             $now = new \DateTime();
-            $TestTime = $now->format('Ymdhis').'000'; // ToDO 3 Stellen nach der Sekunde mit anzeigen (Tausendstelsekunden)
+            $milliseconds = round(microtime(true) * 1000);
+            $milliseconds = substr($milliseconds, -3, 3);
+            $TestTime = $now->format('Ymdhis').$milliseconds;
             $fileLocation = Storage::createFilePointer('csv');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
+            // Auswahl des Trennzeichen's
+            $export->setDelimiter(';');
             $row = 0;
             $export->setValue($export->getCell("0", $row), "EXTF");
             $export->setValue($export->getCell("1", $row), "510");
@@ -716,6 +720,8 @@ class Service extends AbstractService
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            Basket::useService()->changeBasketDoneDatev($tblBasket);
 
             return $fileLocation;
         }

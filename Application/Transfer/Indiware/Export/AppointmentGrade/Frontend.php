@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -31,7 +32,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -112,13 +112,15 @@ class Frontend extends Extension implements IFrontendInterface
                                                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
                                                         .new ToolTip(new InfoIcon(), 'Schueler.csv'), null,
                                                         array('showPreview' => false)))->setRequired()
-                                                    .new InfoMessage('Damit das System beim Export der Noten die korrekte 
+                                                    .new WarningMessage('Damit das System beim Export der Noten die korrekte 
                                                     Spaltenreihenfolge festlegen kann, ist es notwendig zuerst einen 
                                                     Export aus der Abiturverwaltung von Indiware einzulesen. Bitte verwenden 
                                                     Sie dafür einen kompletten Schüler-Export (alle Spalten) aus der 
                                                     Abiturverwaltung von Indiware mit '.new Bold('„Komma oder Semikolon“')
-                                                        .' als Trennzeichen. Der Export benutzt als Trennzeichen ein '.
-                                                        new Bold('„Komma“').'.')
+                                                    .' als Trennzeichen.'
+                                                    .new Container('&nbsp;')
+                                                    .new Container(new Bold(new InfoIcon().' Neu').' der Export benutzt
+                                                    als Trennzeichen ein '. new Bold('„Semikolon“').'.'))
                                                     .new Danger(new Small(new Small('Pflichtfelder ')).'*')
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )

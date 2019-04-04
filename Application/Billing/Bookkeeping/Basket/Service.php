@@ -447,6 +447,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function changeBasketDoneDatev(TblBasket $tblBasket)
+    {
+
+        $PersonName = 'Person nicht hinterlegt!';
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                /** @var TblPerson $tblPerson */
+                $tblPerson = current($tblPersonList);
+                $PersonName = substr($tblPerson->getFirstName(), 0, 1).'. '.$tblPerson->getLastName();
+            }
+        }
+
+        return (new Data($this->getBinding()))->updateBasketDatev($tblBasket, $PersonName);
+    }
+
+    /**
      * @param TblBasketVerification $tblBasketVerification
      * @param string                $Quantity
      *
