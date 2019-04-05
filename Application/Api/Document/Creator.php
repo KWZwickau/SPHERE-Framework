@@ -527,14 +527,20 @@ class Creator extends Extension
                 $PdfMerger = new PdfMerge();
                 $FileList = array();
                 $countPdfs = 0;
+                if (isset($Data['List'])) {
+                    $list = $Data['List'] - 1;
+                    $isList = true;
+                } else {
+                    $list = 0;
+                    $isList = false;
+                }
                 foreach($PriceList as $DebtorId => $CauserList) {
                     if (($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
                         foreach ($CauserList as $CauserId => $Value) {
                             if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
                                 $countPdfs++;
                                 // nur die Pdfs der ausgewählten Liste herunterladen
-                                if (isset($Data['List'])) {
-                                    $list = $Data['List'];
+                                if ($isList) {
                                     $maxPdfPages = Balance::useFrontend()->getMaxPdfPages();
                                     if ($countPdfs > $maxPdfPages * $list && $countPdfs <= $maxPdfPages * ($list + 1)) {
                                         // werden hinzugefügt
@@ -581,7 +587,7 @@ class Creator extends Extension
                     }
                 }
 
-                $FileName = 'Belegdruck_' . $tblItem->getName() . '_' . date("Y-m-d") . ".pdf";
+                $FileName = 'Belegdruck_' . $tblItem->getName() . ($isList ? '_Liste_' . ($list + 1) : '') . '_' . date("Y-m-d") . ".pdf";
 
                 return FileSystem::getStream(
                     $MergeFile->getRealPath(),

@@ -8,6 +8,7 @@ use SPHERE\Application\Billing\Inventory\Document\Document;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -30,7 +31,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
@@ -47,10 +47,9 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -536,7 +535,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter()),
                                         Panel::PANEL_TYPE_PRIMARY
                                     )
-                                )
+                                , 3)
                             ),
                             new FormRow(array(
                                 new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 3),
@@ -782,10 +781,44 @@ class Frontend extends Extension implements IFrontendInterface
         ));
 
         if ($countPdfs > self::MAX_PDF_PAGES ) {
+            $modulo = $countPdfs % self::MAX_PDF_PAGES;
+            $countLists = intval($countPdfs / self::MAX_PDF_PAGES);
+            if ($modulo > 0) {
+                $countLists++;
+            }
+
+            $content = array();
+            for ($i = 1; $i <= $countLists; $i++) {
+                $Data['List'] = $i;
+                $content[] = new SelectBoxItem($i, $i . '. Liste aus ' . ($i == $countLists && $modulo > 0 ? $modulo : self::MAX_PDF_PAGES) . ' Belegen');
+            }
+
             return new Form(
-                $formGroup,
-                new Primary('Herunterladen', new Download(), false),
-                '/Billing/Balance/Pdf/Download'
+                array(
+                    $formGroup,
+                    new FormGroup(array(
+                        new FormRow(
+                            new FormColumn(
+                                new Danger(
+                                    new Container('Es sind ' . $countLists . ' Listen enthalten! Bitte wählen Sie
+                                               diese nacheinander in der Selectbox aus.')
+                                    . new Container('Bitte achten Sie darauf, den nächsten PDF-Download erst zu starten,
+                                               wenn der vorherige abgeschlossen ist')
+                                )
+                            )
+                        ),
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Data[List]', '', array('{{ Name }}' => $content))
+                                , 3),
+                            new FormColumn(
+                                new Primary('Herunterladen', new Download(), true)
+                                , 3)
+                        )),
+                    ))
+                ),
+                null,
+                '/Api/Document/Standard/BillingDocument/Create'
             );
         } else {
             return new Form(
@@ -844,55 +877,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(new Panel('Freifelder', Document::useFrontend()->getFreeFields(),
                         Panel::PANEL_TYPE_INFO), 3)
                 )))),
-                new CheckBox('Data[SalutationFamily]', 'Familien Anrede verwenden', 1),
+                new CheckBox('Data[SalutationFamily]', 'Statt der Beitragszahler Anrede die Anrede Familie verwenden', 1),
                 new TextField('Data[Location]', '', 'Ort', new MapMarker()),
                 new DatePicker('Data[Date]', '', 'Datum', new Calendar())
             ),
             Panel::PANEL_TYPE_INFO
         );
-    }
-    /**
-     * @param null $Data
-     *
-     * @return Stage
-     */
-    public function frontendBalancePdfDownload($Data = null)
-    {
-        $stage = new Stage('Belegdruck', 'Pdf herunterladen');
-        $stage->addButton(new Standard(
-            'Zurück',
-            '/Billing/Balance/Pdf',
-            new ChevronLeft()
-        ));
-
-        $countPdfs = $Data['CountPdfs'];
-        $modulo = $countPdfs % self::MAX_PDF_PAGES;
-        $countLists = intval($countPdfs / self::MAX_PDF_PAGES);
-        if ($modulo > 0) {
-            $countLists++;
-        }
-
-        $content = array();
-        for ($i = 0; $i < $countLists; $i++) {
-            $Data['List'] = $i;
-            $content[] = array(
-                'Name' => 'Liste ' . ($i + 1),
-                'Options' => new External('Herunterladen', '/Api/Document/Standard/BillingDocument/Create', new Download(), array(
-                    'Data' => $Data
-                ))
-            );
-        }
-
-        $stage->setContent(new TableData(
-            $content,
-            null,
-            array(
-                'Name' => 'Name',
-                'Options' => ''
-            )
-        ));
-
-        return $stage;
     }
 
     /**
