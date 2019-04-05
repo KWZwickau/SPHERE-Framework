@@ -172,6 +172,25 @@ class Data extends AbstractData
 
     /**
      * @param TblPrepareCertificate $tblPrepare
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getPrepareGradesByPrepare(
+        TblPrepareCertificate $tblPrepare,
+        TblTestType $tblTestType
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
+            array(
+                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+            )
+        );
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
      * @param bool $IsForced
@@ -314,6 +333,21 @@ class Data extends AbstractData
             array(
                 TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
                 TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            )
+        );
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return false|TblPrepareInformation[]
+     */
+    public function getPrepareInformationAllByPrepare(TblPrepareCertificate $tblPrepare)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblPrepareInformation',
+            array(
+                TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId()
             )
         );
     }
