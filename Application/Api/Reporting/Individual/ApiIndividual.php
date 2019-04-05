@@ -55,6 +55,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
 use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -105,6 +106,7 @@ use SPHERE\System\Debugger\Logger\QueryLogger;
 class ApiIndividual extends IndividualReceiver implements IApiInterface, IModuleInterface
 {
 
+    // Schränkt die Auswahl der Filterung auf "like" und "not like" ein
     private $reducedSelectBoxList = array(
 //        'TblSalutation_Salutation',
         'TblCommonInformation_IsAssistance',
@@ -114,11 +116,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'TblGroup_Id',
     );
 
+    // ummappen der Spaltennamen auf "_Name"
     private $IdSearchList = array(
         'TblLevel_Id',
         'TblGroup_Id',
     );
 
+    // sortierung der Spalten nach Datum
     private $FieldNameSortByDate = array(
         'Grunddaten:_Schulpflicht_beginn',
         'Person:_Geburtstag',
@@ -133,6 +137,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Verein:_Austrittsdatum'
     );
 
+    // sortieren der Spalten nach GermanString
     private $FieldNameSortByGermanString = array(
         'Person:_Vorname',
         'Person:_Zweiter_Vorname',
@@ -823,7 +828,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                    $Item['FieldCount'] = count($tblPresetSetting);
                     $ViewTypeFound = $tblPresetSetting[0]->getViewType();
 
-                    $Item['Option'] = (new Standard('', self::getEndpoint(), new Download(), array(), 'Laden der Vorlage'))
+                    $Item['Option'] = (new Standard('', self::getEndpoint(), new Filter(), array(), 'Laden der Vorlage'))
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId(), $ViewTypeFound));
                     // Optionen nur für Besitzer
                     if($tblAccount
@@ -965,10 +970,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         $tblPresetList = Individual::useService()->getPresetAll();
         $TableContent = array();
-        $viewStudent = new ViewStudent();
 
         if ($tblPresetList) {
-            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent, $ViewType) {
+            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType) {
                 $Item['Name'] = $tblPreset->getName();
                 $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('hinterlegt') : new SuccessText('leer'));
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
@@ -1361,7 +1365,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      *
      * @return string
      */
-    private function getPanelList(AbstractView $View, $WorkSpaceList = array(), $ViewType)
+    private function getPanelList(AbstractView $View, $WorkSpaceList, $ViewType)
     {
         $PanelString = '';
 
