@@ -165,10 +165,11 @@ class Service extends AbstractService
     /**
      * @param string $Name
      * @param bool   $IsPublic
+     * @param array  $Post
      *
      * @return bool|TblPreset
      */
-    public function createPreset($Name = '', $IsPublic = false)
+    public function createPreset($Name = '', $IsPublic = false, $Post = array())
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
@@ -181,7 +182,7 @@ class Service extends AbstractService
                 $PersonCreator = $tblPerson->getLastFirstName();
             }
 
-            return (new Data($this->getBinding()))->createPreset($tblAccount, $Name, $IsPublic, $PersonCreator);
+            return (new Data($this->getBinding()))->createPreset($tblAccount, $Name, $IsPublic, $PersonCreator, $Post);
         }
         return false;
     }

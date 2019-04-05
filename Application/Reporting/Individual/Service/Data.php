@@ -242,10 +242,11 @@ class Data extends AbstractData
      * @param string     $Name
      * @param bool       $IsPublic
      * @param string     $PersonCreator
+     * @param array      $Post
      *
      * @return TblPreset
      */
-    public function createPreset(TblAccount $tblAccount, $Name, $IsPublic = false, $PersonCreator = '')
+    public function createPreset(TblAccount $tblAccount, $Name, $IsPublic = false, $PersonCreator = '', $Post = array())
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPreset();
@@ -253,6 +254,7 @@ class Data extends AbstractData
         $Entity->setName($Name);
         $Entity->setIsPublic($IsPublic);
         $Entity->setPersonCreator($PersonCreator);
+        $Entity->setPostValue($Post);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
