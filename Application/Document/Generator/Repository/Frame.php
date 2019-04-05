@@ -30,11 +30,12 @@ class Frame
 
     /**
      * Frame constructor.
+     * @param string $InjectStyle
      */
-    public function __construct()
+    public function __construct($InjectStyle = '')
     {
 
-        $this->Template = Template::getTwigTemplateString('<html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><style type="text/css">'.file_get_contents(__DIR__.'/../Style.css').(new Font()).'{{ PreviewCss }}</style></head><body>{{ Documents }}</body></html>');
+        $this->Template = Template::getTwigTemplateString('<html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><style type="text/css">'.file_get_contents(__DIR__.'/../Style.css').(new Font()).'{{ PreviewCss }}'.$InjectStyle.'</style></head><body>{{ Documents }}</body></html>');
     }
 
     /**
