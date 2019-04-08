@@ -24,6 +24,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -100,10 +101,11 @@ class Service extends AbstractService
 
     /**
      * @param TblItem $tblItem
-     * @param string  $Year
-     * @param string  $MonthFrom
-     * @param string  $MonthTo
-     * @param string  $DivisionId
+     * @param string $Year
+     * @param string $MonthFrom
+     * @param string $MonthTo
+     * @param string $DivisionId*
+     * @param string $GroupId
      *
      * @return array
      */
@@ -112,7 +114,8 @@ class Service extends AbstractService
         $Year,
         $MonthFrom = '1',
         $MonthTo = '12',
-        $DivisionId = '0'
+        $DivisionId = '0',
+        $GroupId = '0'
     ){
         $PriceList = array();
         $ResultList = $this->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
@@ -151,6 +154,23 @@ class Service extends AbstractService
                 foreach($DebtorList as $CauserId => &$Content){
                     $tblPersonCauser = Person::useService()->getPersonById($CauserId);
                     if(!in_array($tblPersonCauser, $tblPersonList)){
+                        $Content = false;
+                    }
+                }
+                // remove mismatched Student
+                $DebtorList = array_filter($DebtorList);
+            }
+            // remove empty DebtorList
+            $PriceList = array_filter($PriceList);
+        }
+
+        // use only division matched Person's
+        if(!empty($PriceList) && $GroupId !== '0' && ($tblGroup = Group::useService()->getGroupById($GroupId))){
+            foreach($PriceList as &$DebtorList){
+                foreach($DebtorList as $CauserId => &$Content){
+                    if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))
+                        && !Group::useService()->existsGroupPerson($tblGroup, $tblPersonCauser)
+                    ) {
                         $Content = false;
                     }
                 }
@@ -499,6 +519,50 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string $Year
+     * @param string $MonthFrom
+     * @param string $MonthTo
+     * @param TblPerson $tblPerson
+     *
+     * @return array|bool
+     */
+    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson)
+    {
+        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson);
+        $PriceList = array();
+        if($ResultList){
+            foreach($ResultList as $Key => $RowContent) {
+                $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
+                $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
+                $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+                if($PersonDebtorId && $PersonCauserId && $timeString){
+                    if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']){
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Sum'][] = $RowContent['Value'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Price'][$timeString] = $RowContent['Value'];
+                    } else {
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+                }
+            }
+        }
+
+        if(!empty($PriceList)){
+            foreach($PriceList as &$Debtor) {
+                foreach($Debtor as &$PriceArray) {
+                    if(isset($PriceArray['Sum'])){
+                        $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
+                    } else {
+                        $PriceArray['Sum'] = 0;
+                    }
+                }
+            }
+        }
+
+        return $PriceList;
     }
 
     /**

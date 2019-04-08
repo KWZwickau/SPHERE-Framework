@@ -14,16 +14,18 @@ class TextArea extends AbstractTextField implements IFieldInterface
 {
 
     /**
-     * @param string         $Name
-     * @param null|string    $Placeholder
-     * @param null|string    $Label
+     * @param string $Name
+     * @param null|string $Placeholder
+     * @param null|string $Label
      * @param IIconInterface $Icon
+     * @param int $Rows
      */
     public function __construct(
         $Name,
         $Placeholder = '',
         $Label = '',
-        IIconInterface $Icon = null
+        IIconInterface $Icon = null,
+        $Rows = 5
     ) {
 
         $this->Name = $Name;
@@ -32,6 +34,7 @@ class TextArea extends AbstractTextField implements IFieldInterface
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);
+        $this->Template->setVariable('ElementRows', $Rows);
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }
