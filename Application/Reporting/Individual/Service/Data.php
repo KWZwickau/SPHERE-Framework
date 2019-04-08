@@ -46,7 +46,7 @@ class Data extends AbstractData
     public function getWorkSpaceAllByAccount(TblAccount $tblAccount, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
             array(
                 TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
                 TblWorkSpace::ATTR_VIEW_TYPE => $ViewType
