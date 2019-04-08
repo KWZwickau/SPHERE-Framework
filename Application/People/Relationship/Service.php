@@ -90,6 +90,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType $tblType
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPersonRelationshipAllByType(TblType $tblType)
+    {
+        return (new Data($this->getBinding()))->getPersonRelationshipAllByType($tblType);
+    }
+
+    /**
      * @param TblToPerson[] $tblToPersonList
      *
      * @return array|TblPerson[]

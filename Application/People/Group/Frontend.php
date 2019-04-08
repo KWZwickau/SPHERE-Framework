@@ -4,9 +4,12 @@ namespace SPHERE\Application\People\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person as PeoplePerson;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -101,6 +104,10 @@ class Frontend extends Extension implements IFrontendInterface
                         : new Standard('', '/People/Group/Destroy', new Remove(),
                             array('Id' => $tblGroup->getId()), 'Gruppe löschen'
                         )
+                    )
+                    . ($tblGroup->getMetaTable() == 'CUSTODY'
+                        ? new Standard('', '/People/Group/Custody', new ListingTable(), array(), 'Einordnung der Sorgeberechtigten nach S1, S2, S3')
+                        : ''
                     )
                 );
                 $Footer .= new PullRight(
@@ -633,5 +640,82 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendRelationshipCustody()
+    {
+        $stage = new Stage('Einordnung der Sorgeberechtigten', 'nach S1, S2, S3');
+        $stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
+
+        if (($tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
+            && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByType($tblType))
+        ) {
+            $genderSetting = 'Weiblich';
+            if (($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Relationship', 'GenderOfS1'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                if (($genderSetting = Common::useService()->getCommonGenderById($value))) {
+                    $genderSetting = $genderSetting->getName();
+                }
+            }
+
+            $stage->setMessage('Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).');
+
+            $data = array();
+            $content = array();
+            foreach ($tblRelationshipList as $tblToPerson) {
+                if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())
+                    && ($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                ) {
+                    if (isset($data[$tblPersonTo->getId()])) {
+                        $data[$tblPersonTo->getId()]->addCustody($tblToPerson);
+                    } else {
+                        $data[$tblPersonTo->getId()] = new CustodySorter($tblPersonTo, $tblToPerson);
+                    }
+                }
+            }
+
+            /** @var CustodySorter $custodySorter */
+            foreach ($data as $custodySorter) {
+                $custodySorter->assign($genderSetting);
+                $content[] = array(
+                    'Student' => $custodySorter->getTblPerson()->getLastFirstName(),
+                    'S1' => $custodySorter->getCustody1() ? $custodySorter->getCustody1()->getName() : '',
+                    'S2' => $custodySorter->getCustody2() ? $custodySorter->getCustody2()->getName() : '',
+                    'S3' => $custodySorter->getCustody3() ? $custodySorter->getCustody3()->getName() : '',
+                    'U1' => $custodySorter->getUnAssigned1()
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Danger($custodySorter->getUnAssigned1()->getName())
+                        : '',
+                    'U2' => $custodySorter->getUnAssigned2()
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Danger($custodySorter->getUnAssigned2()->getName())
+                        : '',
+                    'U3' => $custodySorter->getUnAssigned3()
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Danger($custodySorter->getUnAssigned3()->getName())
+                        : ''
+                );
+            }
+
+            $stage->setContent(
+                new TableData(
+                    $content,
+                    null,
+                    array(
+                        'Student' => 'Schüler / Interessent',
+                        'S1' => 'S1',
+                        'S2' => 'S2',
+                        'S3' => 'S3',
+                        'U1' => 'Sorg (unzugeordnet)',
+                        'U2' => 'Sorg (unzugeordnet)',
+                        'U3' => 'Sorg (unzugeordnet)',
+                    ),
+                    false
+                )
+            );
+        }
+
+        return $stage;
     }
 }

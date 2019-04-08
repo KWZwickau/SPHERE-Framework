@@ -382,6 +382,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblType $tblType
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPersonRelationshipAllByType(TblType $tblType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+             TblToPerson::ATTR_TBL_TYPE => $tblType->getId()
+        ));
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
      * @param bool $isForced
