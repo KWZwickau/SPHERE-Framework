@@ -4,6 +4,7 @@ namespace SPHERE\Application\Transfer\Indiware\Export;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -66,6 +67,10 @@ class Export implements IModuleInterface
             new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade/Prepare', new Upload()
                 , array(), 'Export')));
 
+        $PanelMetaExport[] = new PullClear('Grunddaten für eine Klasse exportieren: '.
+            new Center(new Standard('', __NAMESPACE__.'/Meta', new Listing()
+                , array(), 'Auswahl der Klasse')));
+
         $Stage->setMessage('Exportvorbereitung / Daten exportieren');
 
         $Stage->setContent(
@@ -74,6 +79,10 @@ class Export implements IModuleInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Indiware-Notenexport für SEK II', $PanelAppointmentGradeExport
+                                , Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Export der Grunddaten für SEK II', $PanelMetaExport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                     ))
