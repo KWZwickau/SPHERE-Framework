@@ -254,7 +254,7 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendRight($Name)
+    public function frontendRight($Name = null)
     {
 
         $Stage = new Stage('Berechtigungen', 'Rechte');
@@ -282,11 +282,8 @@ class Frontend
                 if (!in_array($Route, $publicRouteList)) {
                     $publicRightList[] = array(
                         'Route'  => $Route,
-                        'Option' => new External(
-                                'Öffnen', $Route, null, array(), false
-                            ).
-                            new Danger(
-                                'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
+                        'Option' => new External('Öffnen', $Route, null, array(), false)
+                            .new Danger('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right/Create', null,
                                 array('Name' => $Route)
                             )
                     );
@@ -294,13 +291,11 @@ class Frontend
             });
         }
         $Stage->setContent(
-            ( $tblRightAll
-                ? new TableData($tblRightAll, new Title('Bestehende Rechte', 'Routen'), array(
-                    'Route' => 'Name'
-                ))
-                : new Warning('Keine Routen vorhanden')
+            (!empty($publicRightList)
+                ? new TableData($publicRightList, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
+                :new Warning('Keine neuen Routen vorhanden')
             )
-            .Access::useService()->createRight(
+            .Access::useService()->createRightForm(
                 new Form(
                     new FormGroup(
                         new FormRow(
@@ -311,11 +306,23 @@ class Frontend
                     , new Primary('Hinzufügen')
                 ), $Name
             )
-            .(!empty($publicRightList)
-            ? new TableData($publicRightList, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
-            :new Warning('Keine neuen Routen vorhanden')
+            .( $tblRightAll
+                ? new TableData($tblRightAll, new Title('Bestehende Rechte', 'Routen'), array(
+                    'Route' => 'Name'
+                ))
+                : new Warning('Keine Routen vorhanden')
             )
         );
+        return $Stage;
+    }
+
+    public function frontendCreateRight($Name = '')
+    {
+
+        $Stage = new Stage('Recht hinzufügen');
+
+        $Stage->setContent(Access::useService()->createRight($Name));
+
         return $Stage;
     }
 

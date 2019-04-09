@@ -12,6 +12,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -165,13 +166,31 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|Redirect
+     */
+    public function createRight($Name)
+    {
+
+        if ($Name) {
+            (new Data($this->getBinding()))->createRight($Name);
+            return new Success('Recht erfolgreich angelegt.')
+                .new Redirect('/Platform/Gatekeeper/Authorization/Access/Right', 0);
+        }
+        return new Success('Recht konnte nicht angelegt werden.')
+            .new Redirect('/Platform/Gatekeeper/Authorization/Access/Right', Redirect::TIMEOUT_WAIT);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param null|string    $Name
      *
      * @return IFormInterface|Redirect
      */
-    public function createRight(IFormInterface $Form, $Name)
+    public function createRightForm(IFormInterface $Form, $Name = null)
     {
+
 
         if (null !== $Name && empty( $Name )) {
             $Form->setError('Name', 'Bitte geben Sie einen Namen ein');
