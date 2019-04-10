@@ -9,9 +9,9 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 
@@ -32,6 +32,7 @@ class TemplateReadOnly
      * @param string $titleDescription
      * @param IIconInterface|null $titleIcon
      * @param bool $noContentWell
+     * @param bool $isRelationshipContent
      *
      * @return string
      */
@@ -41,7 +42,8 @@ class TemplateReadOnly
         $linkList = array(),
         $titleDescription = '',
         IIconInterface $titleIcon = null,
-        $noContentWell = false
+        $noContentWell = false,
+        $isRelationshipContent = false
     ) {
 
         $titlePrefix = $titleIcon ? $titleIcon . ' ' : '';
@@ -53,6 +55,10 @@ class TemplateReadOnly
                 $titleDescription  = new PullRight($links);
             }
         }
+        if ($isRelationshipContent) {
+            $titleDescription .= new PullRight(new Link('', '/People/Group/Custody', new Cog()));
+        }
+
         $title = new Title($titlePrefix . $titleName, $titleDescription);
 
         if (!$noContentWell && self::USE_WELL && $content != '') {

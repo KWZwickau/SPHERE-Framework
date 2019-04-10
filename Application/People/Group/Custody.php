@@ -93,4 +93,12 @@ class Custody
             return $this->tblToPerson->getServiceTblPersonFrom()->getLastFirstName();
         }
     }
+
+    /**
+     * @return int
+     */
+    public function getToPersonId()
+    {
+        return $this->tblToPerson->getId();
+    }
 }

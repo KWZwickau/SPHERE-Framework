@@ -12,6 +12,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -711,7 +712,125 @@ class Frontend extends Extension implements IFrontendInterface
                         'U2' => 'Sorg (unzugeordnet)',
                         'U3' => 'Sorg (unzugeordnet)',
                     ),
-                    false
+                    array(
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                        "responsive" => false, // Deaktiviert RWD
+                        "order"      => array(
+                            array(0, 'asc'),
+                        ),
+                        "columnDefs" => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,1,2,3,4,5,6)),
+                        ),
+                    )
+                )
+                . new Form(new FormGroup(new FormRow(new FormColumn(new HiddenField('Data')))),
+                    array(new Primary('Automatische Zuordnung starten')),
+                    '/People/Group/Custody/Save'
+                )
+            );
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendSaveRelationshipCustody()
+    {
+        $stage = new Stage('Einordnung der Sorgeberechtigten', 'nach S1, S2, S3');
+        $stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
+
+        if (($tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
+            && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByType($tblType))
+        ) {
+            $genderSetting = 'Weiblich';
+            if (($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Relationship', 'GenderOfS1'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                if (($genderSetting = Common::useService()->getCommonGenderById($value))) {
+                    $genderSetting = $genderSetting->getName();
+                }
+            }
+
+            $stage->setMessage('Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).');
+
+            $data = array();
+            $content = array();
+            foreach ($tblRelationshipList as $tblToPerson) {
+                if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())
+                    && ($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                ) {
+                    if (isset($data[$tblPersonTo->getId()])) {
+                        $data[$tblPersonTo->getId()]->addCustody($tblToPerson);
+                    } else {
+                        $data[$tblPersonTo->getId()] = new CustodySorter($tblPersonTo, $tblToPerson);
+                    }
+                }
+            }
+
+            $modifyList = array();
+            /** @var CustodySorter $custodySorter */
+            foreach ($data as $custodySorter) {
+                if ($custodySorter->assign($genderSetting)) {
+                    $content[] = array(
+                        'Student' => $custodySorter->getTblPerson()->getLastFirstName(),
+                        'S1' => $custodySorter->getCustody1() ? $custodySorter->getCustody1()->getName() : '',
+                        'S2' => $custodySorter->getCustody2() ? $custodySorter->getCustody2()->getName() : '',
+                        'S3' => $custodySorter->getCustody3() ? $custodySorter->getCustody3()->getName() : '',
+                        'U1' => $custodySorter->getUnAssigned1()
+                            ? new \SPHERE\Common\Frontend\Text\Repository\Danger($custodySorter->getUnAssigned1()->getName())
+                            : '',
+                        'U2' => $custodySorter->getUnAssigned2()
+                            ? new \SPHERE\Common\Frontend\Text\Repository\Danger($custodySorter->getUnAssigned2()->getName())
+                            : '',
+                        'U3' => $custodySorter->getUnAssigned3()
+                            ? new \SPHERE\Common\Frontend\Text\Repository\Danger($custodySorter->getUnAssigned3()->getName())
+                            : ''
+                    );
+                } else {
+                    $custodySorter->addModifyList($modifyList);
+                }
+            }
+
+            $message = '';
+            if (!empty($modifyList)) {
+               if (Relationship::useService()->updateRelationshipRanking($modifyList)) {
+                   $message = new Success('Es wurden ' . count($modifyList) . ' Personenbeziehungen erfolgreich geändert.',
+                       new \SPHERE\Common\Frontend\Icon\Repository\Success());
+               }
+            }
+
+            $stage->setContent(
+                ($message ? $message : '')
+                . new TableData(
+                    $content,
+                    null,
+                    array(
+                        'Student' => 'Schüler / Interessent',
+                        'S1' => 'S1',
+                        'S2' => 'S2',
+                        'S3' => 'S3',
+                        'U1' => 'Sorg (unzugeordnet)',
+                        'U2' => 'Sorg (unzugeordnet)',
+                        'U3' => 'Sorg (unzugeordnet)',
+                    ),
+                    array(
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                        "responsive" => false, // Deaktiviert RWD
+                        "order"      => array(
+                            array(0, 'asc'),
+                        ),
+                        "columnDefs" => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,1,2,3,4,5,6)),
+                        ),
+                    )
                 )
             );
         }

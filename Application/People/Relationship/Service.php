@@ -712,4 +712,14 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->restoreToCompany($tblToCompany);
     }
+
+    /**
+     * @param $modifyList
+     *
+     * @return bool
+     */
+    public function updateRelationshipRanking($modifyList)
+    {
+        return (new Data($this->getBinding()))->updateRelationshipRanking($modifyList);
+    }
 }

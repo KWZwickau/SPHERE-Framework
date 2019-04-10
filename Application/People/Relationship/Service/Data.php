@@ -662,4 +662,31 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param $modifyList
+     *
+     * @return bool
+     */
+    public function updateRelationshipRanking($modifyList)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($modifyList as $ToPersonId => $ranking) {
+            /** @var TblToPerson $Entity */
+            $Entity = $Manager->getEntityById('TblToPerson', $ToPersonId);
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setRanking($ranking);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
 }

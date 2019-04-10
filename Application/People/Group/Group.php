@@ -58,6 +58,9 @@ class Group implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Custody', __NAMESPACE__.'\Frontend::frontendRelationshipCustody'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Custody/Save', __NAMESPACE__.'\Frontend::frontendSaveRelationshipCustody'
+        ));
     }
 
     /**

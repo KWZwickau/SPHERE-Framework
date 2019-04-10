@@ -68,12 +68,15 @@ class CustodySorter
 
     /**
      * @param string $genderSetting
+     *
+     * @return bool
      */
     public function assign($genderSetting)
     {
         $unAssigned = array();
         $assignedCount = 0;
         $unAssignedCount = 0;
+        $show = false;
         foreach ($this->CustodyList as $custody) {
             switch ($custody->getRanking()) {
                 case 1: $this->Custody1 = $custody; $assignedCount++; break;
@@ -156,12 +159,18 @@ class CustodySorter
                 && $this->Custody1->getGenderName() != $genderSetting
             ) {
                 $this->Custody1->setIsWarning(true);
+                $show = true;
             }
             if ($this->Custody2
                 && $this->Custody2->getGenderName()
                 && $this->Custody2->getGenderName() == $genderSetting
             ) {
                 $this->Custody2->setIsWarning(true);
+                $show = true;
+            }
+
+            if ($unAssignedCount > 0) {
+                $show = true;
             }
 
             foreach ($unAssigned as $key => $item) {
@@ -172,6 +181,8 @@ class CustodySorter
                 }
             }
         }
+
+        return $show;
     }
 
     /**
@@ -220,5 +231,21 @@ class CustodySorter
     public function getUnAssigned3()
     {
         return $this->UnAssigned3;
+    }
+
+    /**
+     * @param $ModifyList
+     */
+    public function addModifyList(&$ModifyList)
+    {
+        if ($this->Custody1 && $this->Custody1->isModified()) {
+            $ModifyList[$this->Custody1->getToPersonId()] = 1;
+        }
+        if ($this->Custody2 && $this->Custody2->isModified()) {
+            $ModifyList[$this->Custody2->getToPersonId()] = 2;
+        }
+        if ($this->Custody3 && $this->Custody3->isModified()) {
+            $ModifyList[$this->Custody3->getToPersonId()] = 3;
+        }
     }
 }
