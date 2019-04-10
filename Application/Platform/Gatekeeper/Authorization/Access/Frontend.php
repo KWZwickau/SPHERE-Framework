@@ -13,8 +13,6 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Minus;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -36,7 +34,6 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
 /**
@@ -406,33 +403,16 @@ class Frontend
 
     /**
      * @param integer      $Id
-     * @param null|integer $tblLevel
-     * @param null|bool    $Remove
      *
      * @return Stage
      */
-    public function frontendRoleGrantLevel($Id, $tblLevel, $Remove = null)
+    public function frontendRoleGrantLevel($Id)
     {
 
         $Stage = new Stage('Berechtigungen', 'Rolle');
         $this->menuButton($Stage);
-
         $tblRole = Access::useService()->getRoleById($Id);
-        if ($tblRole && null !== $tblLevel && ( $tblLevel = Access::useService()->getLevelById($tblLevel) )) {
-            if ($Remove) {
-                Access::useService()->removeRoleLevel($tblRole, $tblLevel);
-                $Stage->setContent(
-                    new Redirect('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', 0, array('Id' => $Id))
-                );
-                return $Stage;
-            } else {
-                Access::useService()->addRoleLevel($tblRole, $tblLevel);
-                $Stage->setContent(
-                    new Redirect('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', 0, array('Id' => $Id))
-                );
-                return $Stage;
-            }
-        }
+
         $tblAccessList = Access::useService()->getLevelAllByRole($tblRole);
         if (!$tblAccessList) {
             $tblAccessList = array();
@@ -446,32 +426,24 @@ class Frontend
         );
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessListAvailable, function (TblLevel &$Entity, $Index, $Id) {
+        array_walk($tblAccessListAvailable, function (TblLevel &$Entity) use ($Id){
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                    '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
-                    array(
-                        'Id'       => $Id,
-                        'tblLevel' => $Entity->getId()
-                    ))
-            );
-        }, $Id);
+            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
+                'Id'       => $Id,
+                'tblLevel' => $Entity->getId()
+            ) );
+        });
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessList, function (TblLevel &$Entity, $Index, $Id) {
+        array_walk($tblAccessList, function (TblLevel &$Entity) use ($Id){
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                    '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
-                        'Id'       => $Id,
-                        'tblLevel' => $Entity->getId(),
-                        'Remove'   => true
-                    ))
-            );
-        }, $Id);
+            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
+                'Id'       => $Id,
+                'tblLevel' => $Entity->getId()
+            ) );
+        });
 
         $Stage->setContent(
             new Info($tblRole->getName())
@@ -481,19 +453,53 @@ class Frontend
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Zugewiesen'),
-                            ( empty( $tblAccessList )
-                                ? new Warning('Keine Zugriffslevel vergeben')
-                                : new TableData($tblAccessList, null,
-                                    array('Name' => 'Name', 'Option' => ''))
-                            )
+                            new TableData($tblAccessList, null,
+                                array('Exchange' => '', 'Name' => 'Name'), array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url' => '/Api/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-minus-sign',
+                                            'To'   => 'glyphicon-plus-sign',
+                                            'All'  => 'TableRemoveAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableCurrent',
+                                            'To'   => 'TableAvailable',
+                                        )
+                                    )
+                                )
+                            ),
+                            new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll' )
                         ), 6),
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Verfügbar'),
-                            ( empty( $tblAccessListAvailable )
-                                ? new Info('Keine weiteren Zugriffslevel verfügbar')
-                                : new TableData($tblAccessListAvailable, null,
-                                    array('Name' => 'Name ', 'Option' => ' '))
-                            )
+                            new TableData($tblAccessListAvailable, null,
+                                array('Exchange' => ' ', 'Name' => 'Name '), array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url' => '/Api/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-plus-sign',
+                                            'To'   => 'glyphicon-minus-sign',
+                                            'All'  => 'TableAddAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableAvailable',
+                                            'To'   => 'TableCurrent',
+                                        ),
+                                    )
+                                )
+                            ),
+                            new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll' )
                         ), 6)
                     ))
                 )
@@ -505,35 +511,16 @@ class Frontend
 
     /**
      * @param integer      $Id
-     * @param null|integer $tblPrivilege
-     * @param null|bool    $Remove
      *
      * @return Stage
      */
-    public function frontendLevelGrantPrivilege($Id, $tblPrivilege, $Remove = null)
+    public function frontendLevelGrantPrivilege($Id)
     {
 
         $Stage = new Stage('Berechtigungen', 'Zugriffslevel');
         $this->menuButton($Stage);
 
         $tblLevel = Access::useService()->getLevelById($Id);
-        if ($tblLevel && null !== $tblPrivilege && ( $tblPrivilege = Access::useService()->getPrivilegeById($tblPrivilege) )) {
-            if ($Remove) {
-                Access::useService()->removeLevelPrivilege($tblLevel, $tblPrivilege);
-                $Stage->setContent(
-                    new Redirect('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', 0,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            } else {
-                Access::useService()->addLevelPrivilege($tblLevel, $tblPrivilege);
-                $Stage->setContent(
-                    new Redirect('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', 0,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            }
-        }
         $tblAccessList = Access::useService()->getPrivilegeAllByLevel($tblLevel);
         if (!$tblAccessList) {
             $tblAccessList = array();
@@ -547,33 +534,24 @@ class Frontend
         );
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessListAvailable, function (TblPrivilege &$Entity, $Index, $Id) {
+        array_walk($tblAccessListAvailable, function (TblPrivilege &$Entity) use ($Id){
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                    '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
-                    array(
-                        'Id'           => $Id,
-                        'tblPrivilege' => $Entity->getId()
-                    ))
-            );
-        }, $Id);
+            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
+                'Id'           => $Id,
+                'tblPrivilege' => $Entity->getId()
+            ));
+        });
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessList, function (TblPrivilege &$Entity, $Index, $Id) {
+        array_walk($tblAccessList, function (TblPrivilege &$Entity) use ($Id){
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                    '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
-                    array(
-                        'Id'           => $Id,
-                        'tblPrivilege' => $Entity->getId(),
-                        'Remove'       => true
-                    ))
-            );
-        }, $Id);
+            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
+                'Id'           => $Id,
+                'tblPrivilege' => $Entity->getId()
+            ) );
+        });
 
         $Stage->setContent(
             new Info($tblLevel->getName())
@@ -582,20 +560,54 @@ class Frontend
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Privilegien', 'Zugewiesen'),
-                            ( empty( $tblAccessList )
-                                ? new Warning('Keine Privilegien vergeben')
-                                : new TableData($tblAccessList, null,
-                                    array('Name' => 'Name', 'Option' => ''))
-                            )
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Zugewiesen'),
+                            new TableData($tblAccessList, null,
+                                array('Exchange' => '', 'Name' => 'Name'), array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url' => '/Api/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-minus-sign',
+                                            'To'   => 'glyphicon-plus-sign',
+                                            'All'  => 'TableRemoveAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableCurrent',
+                                            'To'   => 'TableAvailable',
+                                        )
+                                    )
+                                )
+                            ),
+                            new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll' )
                         ), 6),
                         new LayoutColumn(array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Privilegien', 'Verfügbar'),
-                            ( empty( $tblAccessListAvailable )
-                                ? new Info('Keine weiteren Privilegien verfügbar')
-                                : new TableData($tblAccessListAvailable, null,
-                                    array('Name' => 'Name ', 'Option' => ' '))
-                            )
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Verfügbar'),
+                            new TableData($tblAccessListAvailable, null,
+                                array('Exchange' => ' ', 'Name' => 'Name '), array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url' => '/Api/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-plus-sign',
+                                            'To'   => 'glyphicon-minus-sign',
+                                            'All'  => 'TableAddAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableAvailable',
+                                            'To'   => 'TableCurrent',
+                                        ),
+                                    )
+                                )
+                            ),
+                            new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll' )
                         ), 6)
                     ))
                 )
@@ -630,24 +642,24 @@ class Frontend
         );
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessListAvailable, function (TblRight &$Entity, $Index, $Id) {
+        array_walk($tblAccessListAvailable, function (TblRight &$Entity) use ($Id){
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
                 'Id'       => $Id,
                 'tblRight' => $Entity->getId()
             ) );
-        }, $Id);
+        });
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessList, function (TblRight &$Entity, $Index, $Id) {
+        array_walk($tblAccessList, function (TblRight &$Entity) use ($Id){
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
                 'Id'       => $Id,
                 'tblRight' => $Entity->getId()
             ) );
-        }, $Id);
+        });
 
         $Stage->setContent(
             new Info($tblPrivilege->getName())

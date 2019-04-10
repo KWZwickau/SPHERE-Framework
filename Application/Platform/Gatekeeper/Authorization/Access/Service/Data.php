@@ -88,19 +88,24 @@ class Data extends AbstractData
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Role');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+//        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel');
+//        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Level');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+//        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege');
+//        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Privilege');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+//        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight');
+//        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Right');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Api Add and Remove
         $tblRight = $this->createRight('/Api/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Api/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Api/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Consumer');
