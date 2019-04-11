@@ -11,6 +11,7 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
@@ -211,9 +212,12 @@ class ApiSetting extends Extension implements IApiInterface
     public function showSepaInfo()
     {
 
-        $Content = new Headline('Welche Auswirkungen hat die Eingabepflicht für SEPA-Lastschrift als XML?');
+        $Content = new Headline('Welche Auswirkungen hat diese Option?');
         $Content .= new Ruler();
-        $Content .= new Container(new Minus().' Bei der Auswahl der Bezahlvariante "SEPA-Lastschrift" werden Kontodaten sowie eine Mandatsreferenznummer zum Pflichtfeld.');
+        $Content .= new Container(new Minus().' in Verwendung der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:');
+        $Content .= new Container('&nbsp;&nbsp;'.new ChevronUp().' Kontodaten');
+        $Content .= new Container('&nbsp;&nbsp;'.new ChevronUp().' Mandatsreferenznummer');
+        $Content .= new Container(new Minus().' Ermöglicht den Download einer XML-Datei (SEPA) für externe Programme.');
         $Content .= new Container(new Minus().' Weitere Anpassungen werden noch vorgenommen.');
         return $Content;
     }

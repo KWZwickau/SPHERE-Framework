@@ -221,7 +221,7 @@ class Frontend extends Extension implements IFrontendInterface
                         : new DangerText(new Unchecked())));
                 break;
                 case TblSetting::IDENT_IS_SEPA:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für SEPA-Lastschrift als XML aktivieren &nbsp;'
+                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für SEPA-Lastschrift relevanten Eingaben &nbsp;'
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())))
@@ -262,7 +262,7 @@ class Frontend extends Extension implements IFrontendInterface
                     break;
                 case TblSetting::IDENT_IS_SEPA:
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', 'Bankverbindung für SEPA-Lastschrift ist eine Pflichtangabe', true);
+                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für SEPA-Lastschrift relevanten Eingaben aktivieren', true);
                     break;
             }
         }

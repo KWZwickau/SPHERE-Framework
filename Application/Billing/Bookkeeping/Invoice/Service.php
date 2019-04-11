@@ -468,9 +468,10 @@ class Service extends AbstractService
         // Set Basket to Done
         Basket::useService()->changeBasketDone($tblBasket);
 
-        $Invoice = array('Year' => $tblBasket->getYear(), 'Month' => $tblBasket->getMonth());
-        return new Redirect('/Billing/Bookkeeping/Invoice/View', Redirect::TIMEOUT_SUCCESS, array(
-            'Invoice' => $Invoice
-        ));
+        return new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_SUCCESS);
+//        $Invoice = array('Year' => $tblBasket->getYear(), 'Month' => $tblBasket->getMonth());
+//        return new Redirect('/Billing/Bookkeeping/Invoice/View', Redirect::TIMEOUT_SUCCESS, array(
+//            'Invoice' => $Invoice
+//        ));
     }
 }
