@@ -162,6 +162,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationAllByDebtorSelection(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
+            array(TblBasketVerification::ATTR_SERVICE_TBL_DEBTOR_SELECTION => $tblDebtorSelection->getId())
+        );
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return false|Element

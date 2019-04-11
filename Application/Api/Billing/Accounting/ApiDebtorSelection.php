@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -34,6 +36,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -333,9 +336,24 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
+        $tblDebtorSelection = false;
+        $BasketList = false;
         if('' !== $DebtorSelectionId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorSelection($Identifier, $PersonId, $ItemId,
                 $DebtorSelectionId));
+            if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))){
+                if(($tblBasketVerificationList = Basket::useService()->getActiveBasketVerificationByDebtorSelection
+                ($tblDebtorSelection))){
+                    $BasketArray = array();
+                    foreach($tblBasketVerificationList as $tblBasketVerification){
+                        if(($tblBasket = $tblBasketVerification->getTblBasket())){
+                            $BasketArray[] = $tblBasket->getName().' "'.$tblBasket->getYear().'.'
+                                .$tblBasket->getMonth(true).'"';
+                        }
+                    }
+                    $BasketList = implode(', ',$BasketArray);
+                }
+            }
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorSelection($Identifier, $PersonId, $ItemId));
         }
@@ -362,7 +380,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
             $ItemName = $tblItem->getName();
             // edit POST
-            if($DebtorSelectionId && ($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))){
+            if($tblDebtorSelection){
                 if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
                     $PostVariantId = $tblItemVariant->getId();
                 } else {
@@ -473,6 +491,16 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         , 6
                     )
                 )),
+                new FormRow(
+                    new FormColumn(
+                        ($BasketList ? new Warning('Es sind aktive Zahlungszuweisungen in folgenden
+                        Abrechnungen vorhanden:'.
+                            new Container('('.$BasketList.')').'Sollen die Änderungen ebenfalls für diese aktiven
+                         Abrechnungen übernommen werden?'
+                            . new CheckBox('DebtorSelection[SetActive]', 'Übernehmen', 1))
+                            : new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))))
+                    )
+                ),
                 new FormRow(
                     new FormColumn(
                         $SaveButton
@@ -805,6 +833,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
             $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
             $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
+            if(isset($DebtorSelection['SetActive'])){
+                $Global->POST['DebtorSelection']['SetActive'] = $DebtorSelection['SetActive'];
+            }
             $Global->savePost();
             return $form;
         }
@@ -839,6 +870,23 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 ($tblBankAccount ? $tblBankAccount : null),
                 ($tblBankReference ? $tblBankReference : null)
             );
+            if(isset($DebtorSelection['SetActive'])){
+                if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByDebtorSelection($tblDebtorSelection))){
+                    foreach($tblBasketVerificationList as $tblBasketVerification){
+                        $tblBasket = $tblBasketVerification->getTblBasket();
+                        if($tblItemVariant && $tblBasket){
+                            $tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $tblBasket->getTargetTime());
+                            if($tblItemCalculation){
+                                $ItemPrice = $tblItemCalculation->getValue();
+                            }
+                        }
+
+                        Basket::useService()->changeBasketVerificationDebtor($tblBasketVerification, $tblPerson,
+                            $tblPaymentType, $ItemPrice, ($tblBankAccount ? $tblBankAccount : null),
+                            ($tblBankReference ? $tblBankReference : null));
+                    }
+                }
+            }
         }
 
         return ($IsChange

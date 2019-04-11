@@ -173,6 +173,40 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationAllByDebtorSelection(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return (new Data($this->getBinding()))->getBasketVerificationAllByDebtorSelection($tblDebtorSelection);
+    }
+
+    /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return TblBasketVerification[]|bool
+     */
+    public function getActiveBasketVerificationByDebtorSelection(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        if(($tblBasketVerificationList = $this->getBasketVerificationAllByDebtorSelection($tblDebtorSelection))){
+            $BasketVerificationList = array();
+            foreach($tblBasketVerificationList as $tblBasketVerification){
+                $tblBasket = $tblBasketVerification->getTblBasket();
+                if(!$tblBasket->getIsDone()){
+                    $BasketVerificationList[] = $tblBasketVerification;
+                }
+            }
+            if(!empty($BasketVerificationList)){
+                return $BasketVerificationList;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return false|\SPHERE\System\Database\Fitting\Element
