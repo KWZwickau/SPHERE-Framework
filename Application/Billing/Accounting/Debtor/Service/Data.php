@@ -245,13 +245,12 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return false|TblBankReference
+     * @return false|TblBankReference[]
      */
-    public function getBankReferenceAll($Id)
+    public function getBankReferenceAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
-            $Id);
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference');
     }
 
     /**

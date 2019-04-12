@@ -105,6 +105,23 @@ class Service extends AbstractService
     }
 
     /**
+ * @return int
+ */
+    public function getDebtorMaxNumber()
+    {
+
+        $result = 0;
+        if(($tblDebtorNumberList = (new Data($this->getBinding()))->getDebtorNumberAll())) {
+            foreach($tblDebtorNumberList as $tblDebtorNumber){
+                if(is_numeric($tblDebtorNumber->getDebtorNumber()) && $tblDebtorNumber->getDebtorNumber() > $result){
+                    $result = $tblDebtorNumber->getDebtorNumber();
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return false|TblDebtorNumber[]
@@ -168,6 +185,23 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBankReferenceByReference($ReferenceNumber);
+    }
+
+    /**
+     * @return int
+     */
+    public function getBankReferenceMaxNumber()
+    {
+
+        $result = 0;
+        if(($tblBankReferenceList = (new Data($this->getBinding()))->getBankReferenceAll())) {
+            foreach($tblBankReferenceList as $tblBankReference){
+                if(is_numeric($tblBankReference->getReferenceNumber()) && $tblBankReference->getReferenceNumber() > $result){
+                    $result = $tblBankReference->getReferenceNumber();
+                }
+            }
+        }
+        return $result;
     }
 
     /**
@@ -251,12 +285,12 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return false|TblBankReference
+     * @return false|TblBankReference[]
      */
-    public function getBankReferenceAll($Id)
+    public function getBankReferenceAll()
     {
 
-        return (new Data($this->getBinding()))->getBankReferenceAll($Id);
+        return (new Data($this->getBinding()))->getBankReferenceAll();
     }
 
     /**

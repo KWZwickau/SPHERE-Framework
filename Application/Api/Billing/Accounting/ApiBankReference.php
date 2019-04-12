@@ -6,6 +6,8 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -294,6 +296,13 @@ class ApiBankReference extends Extension implements IApiInterface
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditReference($Identifier, $PersonId,
                 $ReferenceId));
         } else {
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER))){
+                if($tblSetting->getValue()){
+                    $MaxNumber = Debtor::useService()->getBankReferenceMaxNumber();
+                    $MaxNumber++;
+                    $_POST['Reference']['Number'] = $MaxNumber;
+                }
+            }
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddReference($Identifier, $PersonId));
         }
 

@@ -227,6 +227,18 @@ class Frontend extends Extension implements IFrontendInterface
                         : new DangerText(new Unchecked())))
                     .new PullRight((new Link(new Info(), ApiSetting::getEndpoint()))->ajaxPipelineOnClick(ApiSetting::pipelineShowSepaInfo()));
                 break;
+                case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
+                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Debitorennummer &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                        ? new SuccessText(new Check())
+                        : new DangerText(new Unchecked())));
+                break;
+                case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
+                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Mandatsreferenznummer &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                        ? new SuccessText(new Check())
+                        : new DangerText(new Unchecked())));
+                break;
             }
         }
         ksort($Listing);
@@ -263,6 +275,14 @@ class Frontend extends Extension implements IFrontendInterface
                 case TblSetting::IDENT_IS_SEPA:
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
                     $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für SEPA-Lastschrift relevanten Eingaben aktivieren', true);
+                    break;
+                case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
+                    $_POST['Setting'][TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER] = $tblSetting->getValue();
+                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER.']', ' Vorschlag höchste Debitorennummer', true);
+                    break;
+                case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
+                    $_POST['Setting'][TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER] = $tblSetting->getValue();
+                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER.']', ' Vorschlag höchste Mandatsreferenznummer', true);
                     break;
             }
         }

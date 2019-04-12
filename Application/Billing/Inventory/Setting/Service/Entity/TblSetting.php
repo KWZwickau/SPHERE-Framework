@@ -22,6 +22,8 @@ class TblSetting extends Element
     const IDENT_PERSON_GROUP_ACTIVE_LIST = 'PersonGroupActiveList';
     const IDENT_IS_DEBTOR_NUMBER_NEED = 'IsDebtorNumberNeed';
     const IDENT_IS_SEPA = 'IsSepa';
+    const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
+    const IDENT_IS_AUTO_REFERENCE_NUMBER = 'IsAutoReferenceNumber';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
