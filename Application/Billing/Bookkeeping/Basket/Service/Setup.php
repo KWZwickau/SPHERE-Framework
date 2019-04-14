@@ -63,6 +63,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'DatevDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'DatevUser', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'serviceTblCreditor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }

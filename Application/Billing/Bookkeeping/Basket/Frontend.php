@@ -129,6 +129,15 @@ class Frontend extends Extension implements IFrontendInterface
                 if($tblBasket->getDatevDate()){
                     $Item['Datev'] = $tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')';
                 }
+                $TypeName = '';
+                $DivisionName = '';
+                if(($tblType = $tblBasket->getServiceTblType())){
+                    $TypeName = $tblType->getName();
+                }
+                if(($tblDivision = $tblBasket->getServiceTblDivision())){
+                    $DivisionName = $tblDivision->getDisplayName();
+                }
+                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').$DivisionName;
 
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
@@ -181,6 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Name'       => 'Name',
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
+                'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
                 'Sepa'       => 'Letzter SEPA-Download',
                 'Datev'      => 'Letzter DATEV-Download',

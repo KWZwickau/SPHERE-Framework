@@ -9,7 +9,11 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -28,6 +32,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -322,9 +327,31 @@ class ApiBasket extends Extension implements IApiInterface
                         $tblItem->getId());
                 }
             }
+            $tblDivisionList = array();
+            if(($tblYear = Term::useService()->getYearByNow())){
+                // Es sollte nur noch ein Jahr geben.
+                $tblYear = current($tblYear);
+                if(!($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
+                    $tblDivisionList = array();
+                }
+            }
+            $tblTypeList = array();
+            if(($tblSchoolList = School::useService()->getSchoolAll())){
+                foreach($tblSchoolList as $tblSchool){
+                    $tblTypeList[] = $tblSchool->getServiceTblType();
+                }
+            }
+            if(empty($tblTypeList)){
+                $tblTypeList[] = Type::useService()->getTypeByName('Grundschule');
+                $tblTypeList[] = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+                $tblTypeList[] = Type::useService()->getTypeByName('Gymnasium');
+            }
+
             $FormContent[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
             $FormContent[] = (new SelectBox('Basket[Year]', 'Jahr', $YearList))->setRequired();
             $FormContent[] = (new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null))->setRequired();
+            $FormContent[] = new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList));
+            $FormContent[] = new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList));
 
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
@@ -452,6 +479,8 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Month'] = $Basket['Month'];
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
             $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
+            $Global->POST['Basket']['Creditor'] = $Basket['Division'];
+            $Global->POST['Basket']['Creditor'] = $Basket['SchoolType'];
             if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
@@ -469,8 +498,15 @@ class ApiBasket extends Extension implements IApiInterface
 //            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
 //            $Error = true;
 //        }
+        if(!($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
+            $tblDivision = null;
+        }
+        if(!($tblType = Type::useService()->getTypeById($Basket['SchoolType']))){
+            $tblType = null;
+        }
+
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor']);
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor'], $tblDivision, $tblType);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){
@@ -482,15 +518,17 @@ class ApiBasket extends Extension implements IApiInterface
         if(!empty($tblItemList)){
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                $VerificationResult[] = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem);
+                $VerificationResult[] = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType);
             }
         }
         $VerificationResult = array_filter($VerificationResult);
         // Abrechnung nicht gefüllt
         if(empty($VerificationResult)){
             Basket::useService()->destroyBasket($tblBasket);
-            return new Warning('Abrechnung enthält keine Werte d.h. es wurden im Abrechnungsmonat bereits für alle
-            ausgewählten Beitragsarten für alle zutreffenden Personen eine Rechnung erstellt.');
+            return new Warning('Abrechnung enthält keine Werte d.h.:'.
+            new Container('- Es wurden im Abrechnungsmonat bereits für alle ausgewählten Beitragsarten,
+             für alle zutreffenden Personen, eine Rechnung erstellt.')
+            .new Container('- Filterung lässt keine Personen zur Abrechnung zu.'));
         }
 
         if($tblBasket){

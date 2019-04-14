@@ -14,6 +14,8 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -328,6 +330,8 @@ class Data extends AbstractData
      * @param string           $Month
      * @param \DateTime        $TargetTime
      * @param TblCreditor|null $tblCreditor
+     * @param TblDivision|null $tblDivision
+     * @param TblType|null     $tblType
      *
      * @return TblBasket
      */
@@ -337,7 +341,9 @@ class Data extends AbstractData
         $Year,
         $Month,
         $TargetTime,
-        TblCreditor $tblCreditor = null
+        TblCreditor $tblCreditor = null,
+        TblDivision $tblDivision = null,
+        TblType $tblType = null
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -363,6 +369,8 @@ class Data extends AbstractData
             $Entity->setTargetTime($TargetTime);
             $Entity->setIsDone(false);
             $Entity->setServiceTblCreditor($tblCreditor);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblType($tblType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);

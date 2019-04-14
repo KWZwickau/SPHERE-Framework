@@ -18,6 +18,10 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -218,16 +222,19 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Name
-     * @param string $Description
-     * @param string $Year
-     * @param string $Month
-     * @param string $TargetTime
-     * @param string $CreditorId
+     * @param string           $Name
+     * @param string           $Description
+     * @param string           $Year
+     * @param string           $Month
+     * @param string           $TargetTime
+     * @param string           $CreditorId
+     * @param TblDivision|null $tblDivision
+     * @param TblType|null     $tblType
      *
      * @return TblBasket
      */
-    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $CreditorId = '')
+    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '',
+        $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null)
     {
 
         if($TargetTime){
@@ -244,7 +251,8 @@ class Service extends AbstractService
         if(!$tblCreditor){
             $tblCreditor = null;
         }
-        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $tblCreditor);
+        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime,
+            $tblCreditor, $tblDivision, $tblType);
     }
 
     /**
@@ -279,7 +287,7 @@ class Service extends AbstractService
     /**
      * @param TblGroup[]|bool $tblGroupList
      *
-     * @return array|bool
+     * @return TblPerson[]|bool
      */
     public function getPersonListByGroupList($tblGroupList)
     {
@@ -298,17 +306,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket $tblBasket
-     * @param TblItem   $tblItem
+     * @param TblBasket        $tblBasket
+     * @param TblItem          $tblItem
+     * @param TblDivision|null $tblDivision
+     * @param TblType|null     $tblType
      *
      * @return bool
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null)
     {
 
         $tblGroupList = $this->getGroupListByItem($tblItem);
 
         $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
+        if(null !== $tblDivision && $tblPersonList){
+            $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivision);
+        }
+        if(null !== $tblType && $tblPersonList){
+            $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType);
+        }
 
         $IsSepa = true;
         if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
@@ -420,6 +436,54 @@ class Service extends AbstractService
                 $DebtorDataArray);
         }
         return false;
+    }
+
+    /**
+     * @param TblPerson[] $tblPersonList
+     * @param TblDivision $tblDivision
+     *
+     * @return TblPerson[]|bool
+     */
+    private function filterPersonListByDivision($tblPersonList, TblDivision $tblDivision)
+    {
+
+        $resultPersonList = array();
+        if(!empty($tblPersonList)){
+            foreach($tblPersonList as $tblPerson){
+                if(Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson)){
+                    $resultPersonList[] = $tblPerson;
+                }
+            }
+        }
+        return (!empty($resultPersonList) ? $resultPersonList : false);
+    }
+
+    /**
+     * @param TblPerson[] $tblPersonList
+     * @param TblType     $tblType
+     *
+     * @return TblPerson[]|bool
+     */
+    private function filterPersonListBySchoolType($tblPersonList, TblType $tblType)
+    {
+
+        $resultPersonList = array();
+        if(!empty($tblPersonList)){
+            $tblYearList = Term::useService()->getYearByNow();
+            if($tblYearList){
+                $tblYear = current($tblYearList);
+            } else {
+                $tblYear = false;
+            }
+            foreach($tblPersonList as $tblPerson){
+                if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
+                    if($tblType->getName() === $tblDivision->getTypeName()){
+                        $resultPersonList[] = $tblPerson;
+                    }
+                }
+            }
+        }
+        return (!empty($resultPersonList) ? $resultPersonList : false);
     }
 
     /**
