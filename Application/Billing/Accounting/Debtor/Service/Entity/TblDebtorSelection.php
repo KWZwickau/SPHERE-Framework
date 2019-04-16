@@ -66,6 +66,14 @@ class TblDebtorSelection extends Element
      * @Column(type="bigint")
      */
     protected $tblBankReference;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $FromDate;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $ToDate;
 
     /**
      * @return bool|TblPerson
@@ -256,5 +264,59 @@ class TblDebtorSelection extends Element
     {
 
         $this->tblBankReference = (null === $tblBankReference ? null : $tblBankReference->getId());
+    }
+
+    /**
+     * @return string|bool
+     */
+    public function getFromDate()
+    {
+
+        if(null === $this->FromDate){
+            return false;
+        }
+        /** @var \DateTime $FromDate */
+        $FromDate = $this->FromDate;
+        if($FromDate instanceof \DateTime){
+            return $FromDate->format('d.m.Y');
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param \DateTime $FromDate
+     */
+    public function setFromDate(\DateTime $FromDate)
+    {
+
+        $this->FromDate = $FromDate;
+    }
+
+    /**
+     * @return string|bool
+     */
+    public function getToDate()
+    {
+
+        if(null === $this->ToDate){
+            return false;
+        }
+        /** @var \DateTime $ToDate */
+        $ToDate = $this->ToDate;
+        if($ToDate instanceof \DateTime){
+            return $ToDate->format('d.m.Y');
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param \DateTime $ToDate
+     */
+    public function setToDate(\DateTime $ToDate)
+    {
+
+        $this->ToDate = $ToDate;
     }
 }

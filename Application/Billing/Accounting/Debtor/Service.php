@@ -356,6 +356,8 @@ class Service extends AbstractService
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblItem               $tblItem
+     * @param string                $FromDate
+     * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -364,13 +366,13 @@ class Service extends AbstractService
      * @return null|TblDebtorSelection
      */
     public function createDebtorSelection(TblPerson $tblPersonCauser, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, TblItem $tblItem, TblItemVariant $tblItemVariant = null, $Value = '0',
+        TblPaymentType $tblPaymentType, TblItem $tblItem, $FromDate, $ToDate = null, TblItemVariant $tblItemVariant = null, $Value = '0',
         TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->createDebtorSelection($tblPersonCauser, $tblPerson, $tblPaymentType,
-            $tblItem, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
+            $tblItem, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
 
     /**
@@ -425,6 +427,8 @@ class Service extends AbstractService
      * @param TblDebtorSelection    $tblDebtorSelection
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
+     * @param string                $FromDate
+     * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -433,13 +437,13 @@ class Service extends AbstractService
      * @return bool
      */
     public function changeDebtorSelection(TblDebtorSelection $tblDebtorSelection, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, TblItemVariant $tblItemVariant = null, $Value = '0',
+        TblPaymentType $tblPaymentType, $FromDate, $ToDate = null,TblItemVariant $tblItemVariant = null, $Value = '0',
         TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
-            $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
+            $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
 
     /**

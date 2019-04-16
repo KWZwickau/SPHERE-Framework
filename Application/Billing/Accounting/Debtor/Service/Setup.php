@@ -114,6 +114,8 @@ class Setup extends AbstractSetup
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'FromDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
         $this->getConnection()->addForeignKey($Table, $tblBankAccount, true);
         $this->getConnection()->addForeignKey($Table, $tblBankReference, true);
 

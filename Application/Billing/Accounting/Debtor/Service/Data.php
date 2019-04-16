@@ -373,6 +373,8 @@ class Data extends AbstractData
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblItem               $tblItem
+     * @param string                $FromDate
+     * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -385,6 +387,8 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         TblPaymentType $tblPaymentType,
         TblItem $tblItem,
+        $FromDate,
+        $ToDate = null,
         TblItemVariant $tblItemVariant = null,
         $Value = '0',
         TblBankAccount $tblBankAccount = null,
@@ -408,6 +412,10 @@ class Data extends AbstractData
             $Entity->setValue($Value);
             $Entity->setTblBankAccount($tblBankAccount);
             $Entity->setTblBankReference($tblBankReference);
+            $Entity->setFromDate(new \DateTime($FromDate));
+            if($ToDate){
+                $Entity->setToDate(new \DateTime($ToDate));
+            }
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -511,6 +519,8 @@ class Data extends AbstractData
      * @param TblDebtorSelection    $tblDebtorSelection
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
+     * @param string                $FromDate
+     * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -522,6 +532,8 @@ class Data extends AbstractData
         TblDebtorSelection $tblDebtorSelection,
         TblPerson $tblPerson,
         TblPaymentType $tblPaymentType,
+        $FromDate,
+        $ToDate = null,
         TblItemVariant $tblItemVariant = null,
         $Value = '0',
         TblBankAccount $tblBankAccount = null,
@@ -536,6 +548,10 @@ class Data extends AbstractData
             $Entity->setServiceTblPersonDebtor($tblPerson);
             $Entity->setServiceTblPaymentType($tblPaymentType);
             $Entity->setServiceTblItemVariant($tblItemVariant);
+            $Entity->setFromDate(new \DateTime($FromDate));
+            if($ToDate){
+                $Entity->setToDate(new \DateTime($ToDate));
+            }
             $Entity->setValue($Value);
             $Entity->setTblBankAccount($tblBankAccount);
             $Entity->setTblBankReference($tblBankReference);

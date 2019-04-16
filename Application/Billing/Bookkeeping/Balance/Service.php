@@ -615,16 +615,16 @@ class Service extends AbstractService
             $export->setValue($export->getCell("5", $row), $TestTime);
             $export->setValue($export->getCell("6", $row), "");     // muss leer sein
             $export->setValue($export->getCell("7", $row), "RE");
-            $export->setValue($export->getCell("8", $row), "");     // todo Export User
+            $export->setValue($export->getCell("8", $row), "");     // Export User -> leer lassen!
             $export->setValue($export->getCell("9", $row), "");     // muss leer sein
-            $export->setValue($export->getCell("10", $row), "1");   // todo Berater
-            $export->setValue($export->getCell("11", $row), "1");   // todo Mandat
-            $export->setValue($export->getCell("12", $row), "20190101");// todo WJ-Beginn
-            $export->setValue($export->getCell("13", $row), "7");   // todo Sachkonten Nummernlänge
-            $export->setValue($export->getCell("14", $row), $tblBasket->getTargetTime());// todo Buchungsstapel von
-            $export->setValue($export->getCell("15", $row), $tblBasket->getTargetTime());// todo Buchungsstapel bis
+            $export->setValue($export->getCell("10", $row), "1");   // todo Berater über Option
+            $export->setValue($export->getCell("11", $row), "1");   // todo Mandat über Option Schulart bedingt unterschiedlich
+            $export->setValue($export->getCell("12", $row), "20190101");// todo WJ-Beginn Aktuelle Jahr vorne ziehen
+            $export->setValue($export->getCell("13", $row), "7");   // todo "Sachkonten Nummernlänge" über Option
+            $export->setValue($export->getCell("14", $row), $tblBasket->getTargetTime());// todo Buchungsstapel von 01.01.xxxx
+            $export->setValue($export->getCell("15", $row), $tblBasket->getTargetTime());// todo Buchungsstapel bis xx.01.xxxx
             $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
-            $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel
+            $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Mitarbeiterkürzel Optionen ob es gezogen wird
             $export->setValue($export->getCell("18", $row), "1");   // Buchungstyp 1 = Finanzbuchführung 2 = Jahresabschluss
             $export->setValue($export->getCell("19", $row), "");    // todo Rechnungslegungszweck
             $export->setValue($export->getCell("20", $row), "0");   // Festschreibung 0 = keine Festschreibung 1 = Festschreibung
@@ -764,18 +764,18 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("0", $row), $Summary);// Umsatz
                 $export->setValue($export->getCell("1", $row), 'S');// Soll / Haben Kennzeichen
                 $export->setValue($export->getCell("2", $row), 'EUR');// Dreistelliger ISO-Code der Währung
-                $export->setValue($export->getCell("3", $row), utf8_encode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()));// Kurs
+                $export->setValue($export->getCell("3", $row), utf8_encode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()));// Kurs todo leer lassen
                 $export->setValue($export->getCell("4", $row), '');// Basisumsatz
                 $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
-                $export->setValue($export->getCell("6", $row), '');// Konto
-                $export->setValue($export->getCell("7", $row), '');// Gegenkonto (ohne BU-Schlüssel)
-                $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel
-                $export->setValue($export->getCell("9", $row), '');// Belegdatum Format?
+                $export->setValue($export->getCell("6", $row), '');// Konto todo Gläubiger Id
+                $export->setValue($export->getCell("7", $row), '');// Gegenkonto (ohne BU-Schlüssel) todo IBAN der Debitorenkonten
+                $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
+                $export->setValue($export->getCell("9", $row), '');// Belegdatum Format? (3108)
                 $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
                 $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                 $export->setValue($export->getCell("12", $row), '');// Skonto
                 $export->setValue($export->getCell("13", $row), '');// Buchungstext (60 Zeichen)
-                $export->setValue($export->getCell("14", $row), '');// Postensperre (0/1)
+                $export->setValue($export->getCell("14", $row), '0');// Postensperre (0/1)
                 $export->setValue($export->getCell("15", $row), '');// Diverse Adressnummer (9 Zeichen)
                 $export->setValue($export->getCell("16", $row), '');// Geschäftspartnerbank
                 $export->setValue($export->getCell("17", $row), '');// Sachverhalt
@@ -866,7 +866,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("102", $row), '');// Leerfeld
                 $export->setValue($export->getCell("103", $row), '');// KOST-Datum
                 $export->setValue($export->getCell("104", $row), '');// SEPA-Mandatsreferenz
-                $export->setValue($export->getCell("105", $row), '');// Skontosperre
+                $export->setValue($export->getCell("105", $row), '0');// Skontosperre
                 $export->setValue($export->getCell("106", $row), '');// Gesellschaftlername
                 $export->setValue($export->getCell("107", $row), '');// Beteiligtennummer
                 $export->setValue($export->getCell("108", $row), '');// Identifikationsnummer
@@ -874,7 +874,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("110", $row), '');// Postensperre bis
                 $export->setValue($export->getCell("111", $row), '');// Bezeichnung SoBil-Sachverhalt
                 $export->setValue($export->getCell("112", $row), '');// Kennzeichen SoBil-Buchung
-                $export->setValue($export->getCell("113", $row), '');// Festschreibung 0 = Keine Festschreibung 1 = Festschreibung
+                $export->setValue($export->getCell("113", $row), '0');// Festschreibung 0 = Keine Festschreibung 1 = Festschreibung
                 $export->setValue($export->getCell("114", $row), '');// Leistungsdatum
                 $export->setValue($export->getCell("115", $row), '');// Datum Zuord. Steuerperiode
             }

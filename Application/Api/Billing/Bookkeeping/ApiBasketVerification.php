@@ -847,16 +847,25 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
                 $tblDebtorSelection = $tblBasketVerification->getServiceTblDebtorSelection();
                 if($tblDebtorSelection){
+                    $FromDate = $tblDebtorSelection->getFromDate();
+                    if(!$FromDate){
+                        $FromDate = (new \DateTime())->format('d.m.Y');
+                    }
+                    $ToDate = null;
                     // DebtorSelection on ID (Update current one)
                     Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPersonDebtor, $tblPaymentType,
+                        $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),
                         ($tblBankReference ? $tblBankReference : null));
 
                 } else {
                     // no DebtorSelection on ID (create new one)
+                    $FromDate = (new \DateTime())->format('d.m.Y');
+                    $ToDate = null;
+
                     $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
-                        $tblPaymentType, $tblItem,
+                        $tblPaymentType, $tblItem, $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null),
                         $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),

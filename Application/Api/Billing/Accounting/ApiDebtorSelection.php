@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -356,6 +357,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             }
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorSelection($Identifier, $PersonId, $ItemId));
+
         }
 
         $PaymentTypeList = array();
@@ -392,6 +394,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
         if(!isset($_POST['DebtorSelection']['Variant'])){
             $_POST['DebtorSelection']['Variant'] = $PostVariantId;
+        }
+        if(!isset($_POST['DebtorSelection']['FromDate'])){
+            $_POST['DebtorSelection']['FromDate'] = (new \DateTime())->format('d.m.Y');
         }
 
         $RadioBoxListVariant = array();
@@ -482,7 +487,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))))
+                        array(
+                            (new DatePicker('DebtorSelection[FromDate]', '', 'Gültig ab'))->setRequired(),
+                            new DatePicker('DebtorSelection[ToDate]', '', 'Gültig bis')
+                        )
                         , 6
                     ),
                     new FormColumn(
@@ -686,6 +694,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Bezahler an');
             $Error = true;
         }
+        if(isset($DebtorSelection['FromDate']) && empty($DebtorSelection['FromDate'])){
+            $form->setError('DebtorSelection[FromDate]', 'Bitte geben Sie eine Datum an');
+            $Error = true;
+        }
 
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
             $IsSepaAccountNeed = false;
@@ -760,6 +772,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
             $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
             $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
+            $Global->POST['DebtorSelection']['FromDate'] = $DebtorSelection['FromDate'];
+            $Global->POST['DebtorSelection']['ToDate'] = $DebtorSelection['ToDate'];
             $Global->savePost();
             return $form;
         }
@@ -769,6 +783,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
         $tblItem = Item::useService()->getItemById($ItemId);
         $tblItemVariant = Item::useService()->getItemVariantById($DebtorSelection['Variant']);
+        $FromDate = $DebtorSelection['FromDate'];
+        $ToDate = $DebtorSelection['ToDate'];
         $ItemPrice = '';
         // ItemPrice only if Variant is "-1"
         if($DebtorSelection['Variant'] == '-1'){
@@ -789,7 +805,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 Group::useService()->addGroupPerson($tblGroup, $tblPerson);
             }
             $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPerson,
-                $tblPaymentType, $tblItem,
+                $tblPaymentType, $tblItem, $FromDate, $ToDate,
                 ($tblItemVariant ? $tblItemVariant : null),
                 $ItemPrice,
                 ($tblBankAccount ? $tblBankAccount : null),
@@ -843,6 +859,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $tblPerson = Person::useService()->getPersonById($DebtorSelection['Debtor']);
         $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
         $tblItemVariant = Item::useService()->getItemVariantById($DebtorSelection['Variant']);
+        $FromDate = $DebtorSelection['FromDate'];
+        $ToDate = $DebtorSelection['ToDate'];
         $ItemPrice = '';
         // ItemPrice only if Variant is "-1"
         if($DebtorSelection['Variant'] == '-1'){
@@ -865,10 +883,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 Group::useService()->addGroupPerson($tblGroup, $tblPerson);
             }
             $IsChange = Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
-                ($tblItemVariant ? $tblItemVariant : null),
-                $ItemPrice,
-                ($tblBankAccount ? $tblBankAccount : null),
-                ($tblBankReference ? $tblBankReference : null)
+                $FromDate, $ToDate, ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
+                ($tblBankAccount ? $tblBankAccount : null), ($tblBankReference ? $tblBankReference : null)
             );
             if(isset($DebtorSelection['SetActive'])){
                 if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByDebtorSelection($tblDebtorSelection))){
@@ -911,7 +927,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType();
             ($tblPaymentType ? $Global->POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId() : '');
             $tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant();
-            ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
+            ($tblItemVariant ? $Global->POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
+            ($tblDebtorSelection->getFromDate() ? $Global->POST['DebtorSelection']['FromDate'] = $tblDebtorSelection->getFromDate() : '');
+            ($tblDebtorSelection->getToDate() ? $Global->POST['DebtorSelection']['ToDate'] = $tblDebtorSelection->getToDate() : '');
             $Value = $tblDebtorSelection->getValue(true);
             ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
             $tblPerson = $tblDebtorSelection->getServiceTblPersonDebtor();
