@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Billing\Bookkeeping;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -24,6 +25,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -320,6 +322,13 @@ class ApiBasket extends Extension implements IApiInterface
             if(!isset($_POST['Basket']['Month'])){
                 $_POST['Basket']['Month'] = $Month;
             }
+            if(!isset($_POST['Basket']['DebtorPeriodType'])){
+                if($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName('Monatlich')){
+                    $_POST['Basket']['DebtorPeriodType'] = $tblDebtorPeriodType->getId();
+                } else {
+                    $_POST['Basket']['DebtorPeriodType'] = '1';
+                }
+            }
 
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddBasket($Identifier));
             $CheckboxList = '';
@@ -352,6 +361,13 @@ class ApiBasket extends Extension implements IApiInterface
             $FormContentLeft[] = (new SelectBox('Basket[Year]', 'Jahr', $YearList))->setRequired();
             $FormContentLeft[] = (new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null))->setRequired();
 
+            $PeriodRadioBox = array();
+            if(($tblDebtorPeriodTypeAll = Debtor::useService()->getDebtorPeriodTypeAll())){
+                foreach($tblDebtorPeriodTypeAll as $tblDebtorPeriodType){
+                    $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName(), $tblDebtorPeriodType->getId());
+                }
+            }
+
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
                     new Panel('Abrechnung', $FormContentLeft)
@@ -361,7 +377,9 @@ class ApiBasket extends Extension implements IApiInterface
                     new Panel('Erweiterte Personenfilterung', array(
                         new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)),
                         new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
-                    ))
+                    )),
+                    new Bold('Zahlungszeitraum '.new DangerText('*')),
+                    new Panel('', $PeriodRadioBox)
                 ), 6),
                 new FormColumn(
                     $SaveButton
@@ -482,8 +500,9 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Month'] = $Basket['Month'];
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
             $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
-            $Global->POST['Basket']['Creditor'] = $Basket['Division'];
-            $Global->POST['Basket']['Creditor'] = $Basket['SchoolType'];
+            $Global->POST['Basket']['Division'] = $Basket['Division'];
+            $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
+            $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
             if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
@@ -498,9 +517,12 @@ class ApiBasket extends Extension implements IApiInterface
         if(!($tblType = Type::useService()->getTypeById($Basket['SchoolType']))){
             $tblType = null;
         }
+        if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
+            $tblDebtorPeriodType = null;
+        }
 
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor'], $tblDivision, $tblType);
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor'], $tblDivision, $tblType, $tblDebtorPeriodType);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){

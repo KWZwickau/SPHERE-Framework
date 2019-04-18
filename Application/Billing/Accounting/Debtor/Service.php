@@ -228,6 +228,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return TblDebtorPeriodType[]|false
+     */
+    public function getDebtorPeriodTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getDebtorPeriodTypeAll();
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDebtorSelection

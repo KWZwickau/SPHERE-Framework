@@ -65,6 +65,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblCreditor', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDebtorPeriodType', self::FIELD_TYPE_BIGINT, true, 1);
 
         return $Table;
     }

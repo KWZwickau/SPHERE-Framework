@@ -162,6 +162,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return TblDebtorPeriodType[]|false
+     */
+    public function getDebtorPeriodTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorPeriodType');
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDebtorSelection

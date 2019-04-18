@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
@@ -223,19 +224,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
-     * @param string           $Year
-     * @param string           $Month
-     * @param string           $TargetTime
-     * @param string           $CreditorId
-     * @param TblDivision|null $tblDivision
-     * @param TblType|null     $tblType
+     * @param string              $Name
+     * @param string              $Description
+     * @param string              $Year
+     * @param string              $Month
+     * @param string              $TargetTime
+     * @param string              $CreditorId
+     * @param TblDivision|null    $tblDivision
+     * @param TblType|null        $tblType
+     * @param TblDebtorPeriodType $tblDebtorPeriodType
      *
      * @return TblBasket
      */
     public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '',
-        $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null)
+        $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null, TblDebtorPeriodType $tblDebtorPeriodType = null)
     {
 
         if($TargetTime){
@@ -253,7 +255,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
         return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime,
-            $tblCreditor, $tblDivision, $tblType);
+            $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
     }
 
     /**

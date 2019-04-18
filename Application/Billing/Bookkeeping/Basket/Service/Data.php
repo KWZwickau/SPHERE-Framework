@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
@@ -324,14 +325,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
-     * @param string           $Year
-     * @param string           $Month
-     * @param \DateTime        $TargetTime
-     * @param TblCreditor|null $tblCreditor
-     * @param TblDivision|null $tblDivision
-     * @param TblType|null     $tblType
+     * @param string              $Name
+     * @param string              $Description
+     * @param string              $Year
+     * @param string              $Month
+     * @param \DateTime           $TargetTime
+     * @param TblCreditor|null    $tblCreditor
+     * @param TblDivision|null    $tblDivision
+     * @param TblType|null        $tblType
+     * @param TblDebtorPeriodType $tblDebtorPeriodType
      *
      * @return TblBasket
      */
@@ -343,22 +345,16 @@ class Data extends AbstractData
         $TargetTime,
         TblCreditor $tblCreditor = null,
         TblDivision $tblDivision = null,
-        TblType $tblType = null
+        TblType $tblType = null,
+        TblDebtorPeriodType $tblDebtorPeriodType = null
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
-        if($Month && $Year){
-            $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
-                TblBasket::ATTR_NAME  => $Name,
-                TblBasket::ATTR_MONTH => $Month,
-                TblBasket::ATTR_YEAR  => $Year,
-            ));
-        } else {
-            $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
-                TblBasket::ATTR_NAME => $Name
-            ));
-        }
-
+        $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
+            TblBasket::ATTR_NAME  => $Name,
+            TblBasket::ATTR_MONTH => $Month,
+            TblBasket::ATTR_YEAR  => $Year,
+        ));
 
         if(null === $Entity){
             $Entity = new TblBasket();
@@ -371,6 +367,7 @@ class Data extends AbstractData
             $Entity->setServiceTblCreditor($tblCreditor);
             $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblType($tblType);
+            $Entity->setServiceTblDebtorPeriodType($tblDebtorPeriodType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);

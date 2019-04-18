@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -81,6 +83,10 @@ class TblBasket extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDebtorPeriodType;
 
     /**
      * @return string
@@ -348,4 +354,27 @@ class TblBasket extends Element
 
         $this->serviceTblType = ($serviceTblType ? $serviceTblType->getId() : null);
     }
+
+    /**
+     * @return TblDebtorPeriodType|false
+     */
+    public function getServiceTblDebtorPeriodType()
+    {
+
+        if(null !== $this->serviceTblDebtorPeriodType){
+            return Debtor::useService()->getDebtorPeriodTypeById($this->serviceTblDebtorPeriodType);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDebtorPeriodType|bool $serviceTblDebtorPeriodType
+     */
+    public function setServiceTblDebtorPeriodType($serviceTblDebtorPeriodType)
+    {
+
+        $this->serviceTblDebtorPeriodType = ($serviceTblDebtorPeriodType ? $serviceTblDebtorPeriodType->getId() : null);
+    }
+
+
 }
