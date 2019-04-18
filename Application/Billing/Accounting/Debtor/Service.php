@@ -5,6 +5,7 @@ use SPHERE\Application\Billing\Accounting\Debtor\Service\Data;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorNumber;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
@@ -207,6 +208,28 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
+     * @return false|TblDebtorPeriodType
+     */
+    public function getDebtorPeriodTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorPeriodTypeById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblDebtorPeriodType
+     */
+    public function getDebtorPeriodTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorPeriodTypeByName($Name);
+    }
+
+    /**
+     * @param $Id
+     *
      * @return false|TblDebtorSelection
      */
     public function getDebtorSelectionById($Id)
@@ -356,6 +379,7 @@ class Service extends AbstractService
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblItem               $tblItem
+     * @param TblDebtorPeriodType   $tblDebtorPeriodType
      * @param string                $FromDate
      * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
@@ -366,13 +390,14 @@ class Service extends AbstractService
      * @return null|TblDebtorSelection
      */
     public function createDebtorSelection(TblPerson $tblPersonCauser, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, TblItem $tblItem, $FromDate, $ToDate = null, TblItemVariant $tblItemVariant = null, $Value = '0',
-        TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
+        TblPaymentType $tblPaymentType, TblItem $tblItem, TblDebtorPeriodType $tblDebtorPeriodType, $FromDate, $ToDate = null,
+        TblItemVariant $tblItemVariant = null, $Value = '0', TblBankAccount $tblBankAccount = null,
+        TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->createDebtorSelection($tblPersonCauser, $tblPerson, $tblPaymentType,
-            $tblItem, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
+            $tblItem, $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
 
     /**
@@ -427,6 +452,7 @@ class Service extends AbstractService
      * @param TblDebtorSelection    $tblDebtorSelection
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
+     * @param TblDebtorPeriodType   $tblDebtorPeriodType
      * @param string                $FromDate
      * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
@@ -437,13 +463,13 @@ class Service extends AbstractService
      * @return bool
      */
     public function changeDebtorSelection(TblDebtorSelection $tblDebtorSelection, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, $FromDate, $ToDate = null,TblItemVariant $tblItemVariant = null, $Value = '0',
-        TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
+        TblPaymentType $tblPaymentType, TblDebtorPeriodType $tblDebtorPeriodType, $FromDate, $ToDate = null,TblItemVariant $tblItemVariant = null,
+        $Value = '0', TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
-            $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
+            $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
 
     /**

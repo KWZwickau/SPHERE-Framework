@@ -27,6 +27,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -311,7 +312,7 @@ class Service extends AbstractService
      * @param TblDivision|null $tblDivision
      * @param TblType|null     $tblType
      *
-     * @return bool
+     * @return array|bool
      */
     public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null)
     {
@@ -325,34 +326,49 @@ class Service extends AbstractService
         if(null !== $tblType && $tblPersonList){
             $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType);
         }
-
         $IsSepa = true;
         if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
             $IsSepa = $tblSetting->getValue();
         }
 
         $DebtorDataArray = array();
+        $PersonExclude = array();
+        $PersonExclude['IsCreate'] = false;
         if($tblPersonList){
             /** @var TblPerson $tblPerson */
             foreach($tblPersonList as $tblPerson) {
                 if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
                     $tblItem))){
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
-                        $Error = false;
+                        $Item = array();
                         $IsNoDebtorSelection = false;
+                        // entfernen aller Personen, die keine Zahlungszuweisung im Abrechnungszeitraum haben.
+                        if(($From = $tblDebtorSelection->getFromDate())
+                            && new \DateTime($From) > new \DateTime($tblBasket->getTargetTime())){
+                            $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Gültig ab: '.$From.' >
+                             Fälligkeitsdatum '.$tblBasket->getTargetTime().new Bold(' (noch nicht Aktiv)');
+                            continue;
+                        }
+                        if(($To = $tblDebtorSelection->getToDate())
+                            && new \DateTime($To) < new \DateTime($tblBasket->getTargetTime())){
+                            $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Gültig bis: '.$To.' <
+                             Fälligkeitsdatum '.$tblBasket->getTargetTime().new Bold(' (nicht mehr Aktiv)');
+                            continue;
+                        }
+                        if(!$tblDebtorSelection->getServiceTblPersonCauser()){
+                            //BasketVerification doesn't work without Causer
+                            $Item['Causer'] = '';
+                            continue; // $Error = true;
+                        } else {
+                            $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
+                        }
                         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
                         if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
                             $tblBasket->getYear(), $tblBasket->getMonth())){
                             // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
-                            $Error = true;
-                        }
-                        $Item = array();
-                        if(!$tblDebtorSelection->getServiceTblPersonCauser()){
-                            //BasketVerification doesn't work without Causer
-                            $Item['Causer'] = '';
-                            $Error = true;
-                        } else {
-                            $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
+                            $PersonExclude[$tblPerson->getId()][] = 'Rechnung für '.$tblItem->getName().' diesen Monat
+                            ('.$tblBasket->getMonth(true).'.'.$tblBasket->getYear().') bereits erstellt';
+                            continue;
                         }
                         if(!$tblDebtorSelection->getServiceTblPersonDebtor()){
                             $Item['Debtor'] = '';
@@ -385,7 +401,7 @@ class Service extends AbstractService
                         && $IsSepa){
                             if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                                 if(new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
-                                    // Datum der Referenz liegt noch in der Zukunft;
+                                    // Datum der Referenz liegt noch in der Zukunft
                                     $IsNoDebtorSelection = true;
                                 }
                             } else {
@@ -404,9 +420,7 @@ class Service extends AbstractService
                             // default special price value
                             $Item['Price'] = '0';
                         }
-                        if(!$Error){
-                            array_push($DebtorDataArray, $Item);
-                        }
+                        array_push($DebtorDataArray, $Item);
                     }
                 } else {
                     $Error = false;
@@ -431,11 +445,23 @@ class Service extends AbstractService
                 }
             }
         }
+
+        // Personen zu denen Zahlungszuweisungen gefunden werden,
+        // zu denen werden andere nicht zutreffende Zahlungszuweisungen ignoriert
         if(!empty($DebtorDataArray)){
-            return (new Data($this->getBinding()))->createBasketVerificationBulk($tblBasket, $tblItem,
-                $DebtorDataArray);
+            foreach($DebtorDataArray as $DebtorData){
+                if(isset($PersonExclude[$DebtorData['Causer']])){
+                    unset($PersonExclude[$DebtorData['Causer']]);
+                }
+            }
         }
-        return false;
+
+        if(!empty($DebtorDataArray)){
+            $IsCreate = (new Data($this->getBinding()))->createBasketVerificationBulk($tblBasket, $tblItem,
+                $DebtorDataArray);
+            $PersonExclude['IsCreate'] = $IsCreate;
+        }
+        return $PersonExclude;
     }
 
     /**

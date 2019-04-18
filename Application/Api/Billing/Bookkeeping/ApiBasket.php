@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -41,6 +42,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -286,20 +288,20 @@ class ApiBasket extends Extension implements IApiInterface
         $MonthList = Invoice::useService()->getMonthList();
         $CreditorList = Creditor::useService()->getCreditorAll();
 
-        $FormContent[] = (new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired();
-        $FormContent[] = new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung');
-        $FormContent[] = (new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired();
+        $FormContentLeft[] = (new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired();
+        $FormContentLeft[] = new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung');
+        $FormContentLeft[] = (new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired();
+        $FormContentLeft[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
         if('' !== $BasketId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditBasket($Identifier,
                 $BasketId));
-            $FormContent[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
 
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
-                    $FormContent
+                    new Panel('Abrechnung', $FormContentLeft)
                     , 6),
                 new FormColumn(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))))
@@ -347,19 +349,20 @@ class ApiBasket extends Extension implements IApiInterface
                 $tblTypeList[] = Type::useService()->getTypeByName('Gymnasium');
             }
 
-            $FormContent[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
-            $FormContent[] = (new SelectBox('Basket[Year]', 'Jahr', $YearList))->setRequired();
-            $FormContent[] = (new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null))->setRequired();
-            $FormContent[] = new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList));
-            $FormContent[] = new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList));
+            $FormContentLeft[] = (new SelectBox('Basket[Year]', 'Jahr', $YearList))->setRequired();
+            $FormContentLeft[] = (new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null))->setRequired();
 
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
-                    $FormContent
+                    new Panel('Abrechnung', $FormContentLeft)
                     , 6),
-                new FormColumn(
-                    new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList)
-                    , 6),
+                new FormColumn(array(
+                    new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList),
+                    new Panel('Erweiterte Personenfilterung', array(
+                        new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)),
+                        new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
+                    ))
+                ), 6),
                 new FormColumn(
                     $SaveButton
                 )
@@ -489,15 +492,6 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->savePost();
             return $form;
         }
-
-        //ToDO Prüfung Wann dürfen Personen in den Warenkorb / Wann nicht?
-//        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
-//        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
-//            $tblBasket->getYear(), $tblBasket->getMonth())){
-//
-//            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
-//            $Error = true;
-//        }
         if(!($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
             $tblDivision = null;
         }
@@ -514,16 +508,25 @@ class ApiBasket extends Extension implements IApiInterface
                 $tblBasketItemList[] = Basket::useService()->createBasketItem($tblBasket, $tblItem);
             }
         }
-        $VerificationResult = array();
+        $isCreate = false;
+        $PersonMissing = array();
         if(!empty($tblItemList)){
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                $VerificationResult[] = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType);
+                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType);
+                if($isCreate == false){
+                    $isCreate = $VerificationResult['IsCreate'];
+                }
+                if(!empty($VerificationResult))
+                foreach($VerificationResult as $PersonId => $ErrorMessageList){
+                    if(is_numeric($PersonId) && $tblPerson = Person::useService()->getPersonById($PersonId)){
+                        $PersonMissing[] = new Bold($tblPerson->getLastFirstName()).':<br/>'.implode('<br/>', $ErrorMessageList);
+                    }
+                }
             }
         }
-        $VerificationResult = array_filter($VerificationResult);
         // Abrechnung nicht gefüllt
-        if(empty($VerificationResult)){
+        if(!$isCreate){
             Basket::useService()->destroyBasket($tblBasket);
             return new Warning('Abrechnung enthält keine Werte d.h.:'.
             new Container('- Es wurden im Abrechnungsmonat bereits für alle ausgewählten Beitragsarten,
@@ -532,7 +535,15 @@ class ApiBasket extends Extension implements IApiInterface
         }
 
         if($tblBasket){
-            return new Success('Abrechnung erfolgreich angelegt').self::pipelineCloseModal($Identifier);
+            if(empty($PersonMissing)){
+                return new Success('Abrechnung erfolgreich angelegt').self::pipelineCloseModal($Identifier);
+            } else {
+                return new Success('Abrechnung erfolgreich angelegt').
+                    new Warning('Folgende Zahlungszuweisungen wurden herrausgefiltert:<br/>'
+                    .implode('<br/>', $PersonMissing))
+                    .(new Standard('Ok', ApiBasket::getEndpoint(), new Ok()))
+                        ->ajaxPipelineOnClick(ApiBasket::pipelineCloseModal($Identifier));
+            }
         } else {
             return new Danger('Abrechnung konnte nicht gengelegt werden');
         }

@@ -467,6 +467,23 @@ class Frontend extends Extension implements IFrontendInterface
                     $BankAccount = 'Bank: ';
                     $Reference = 'Mandantsreferenznummer: ';
                     $Debtor = 'Bezahler: ';
+                    $PeriodPayType = 'Zahlungszeitraum: ';
+                    $FromDate = 'Gültig ab: ';
+                    $ToDate = 'Gültig bis: ';
+
+                    if(($tblDebtorPeriodType = $tblDebtorSelection->getTblDebtorPeriodType())){
+                        $PeriodPayType .= new Bold($tblDebtorPeriodType->getName());
+                    }
+                    if($tblDebtorSelection->getFromDate()){
+                        $FromDate .= new Bold($tblDebtorSelection->getFromDate());
+                    } else {
+                        $FromDate .= new Bold('---');
+                    }
+                    if($tblDebtorSelection->getToDate()){
+                        $ToDate .= new Bold($tblDebtorSelection->getToDate());
+                    } else {
+                        $ToDate .= new Bold('kein Enddatum');
+                    }
 
                     $OptionButtons = new PullRight(
                         (new Link('', '', new Pencil()))
@@ -499,13 +516,16 @@ class Frontend extends Extension implements IFrontendInterface
                     if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                         $Reference .= new Bold($tblBankReference->getReferenceNumber());
                     }
-                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
-                        $Debtor .= new Bold($tblPersonDebtor->getLastFirstName());
-                    }
+//                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
+//                        $Debtor .= new Bold($tblPersonDebtor->getLastFirstName());
+//                    }
                     $PanelContent[] = $PaymentType;
                     $PanelContent[] = $ItemVariant;
                     $PanelContent[] = $BankAccount;
                     $PanelContent[] = $Reference;
+                    $PanelContent[] = $PeriodPayType;
+                    $PanelContent[] = $FromDate;
+                    $PanelContent[] = $ToDate;
 //                    $PanelContent[] = $Debtor;
                     /**@var Accordion[] $Accordion */
                     $Accordion[$i] = new Accordion();

@@ -67,6 +67,10 @@ class TblDebtorSelection extends Element
      */
     protected $tblBankReference;
     /**
+     * @Column(type="bigint")
+     */
+    protected $tblDebtorPeriodType;
+    /**
      * @Column(type="datetime")
      */
     protected $FromDate;
@@ -291,6 +295,28 @@ class TblDebtorSelection extends Element
     {
 
         $this->FromDate = $FromDate;
+    }
+
+    /**
+     * @return TblDebtorPeriodType|false
+     */
+    public function getTblDebtorPeriodType()
+    {
+
+        if(null === $this->tblDebtorPeriodType){
+            return false;
+        } else {
+            return Debtor::useService()->getDebtorPeriodTypeById($this->tblDebtorPeriodType);
+        }
+    }
+
+    /**
+     * @param TblDebtorPeriodType $tblDebtorPeriodType
+     */
+    public function setTblDebtorPeriodType(TblDebtorPeriodType $tblDebtorPeriodType)
+    {
+
+        $this->tblDebtorPeriodType = $tblDebtorPeriodType->getId();
     }
 
     /**

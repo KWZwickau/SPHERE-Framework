@@ -854,7 +854,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     $ToDate = null;
                     // DebtorSelection on ID (Update current one)
                     Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPersonDebtor, $tblPaymentType,
-                        $FromDate, $ToDate,
+                        $tblDebtorSelection->getTblDebtorPeriodType(), $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),
                         ($tblBankReference ? $tblBankReference : null));
@@ -864,8 +864,11 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     $FromDate = (new \DateTime())->format('d.m.Y');
                     $ToDate = null;
 
+                    //ToDO richtigen Zahlungszeitraum ziehen
+                    $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName('Monatlich');
+
                     $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
-                        $tblPaymentType, $tblItem, $FromDate, $ToDate,
+                        $tblPaymentType, $tblDebtorPeriodType, $tblItem,  $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null),
                         $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),
