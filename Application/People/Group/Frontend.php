@@ -663,7 +663,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            $stage->setMessage('Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).');
+            $stage->setMessage(new Warning('Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).'));
 
             $data = array();
             $content = array();
@@ -756,7 +756,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            $stage->setMessage('Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).');
+            $stage->setMessage(new Warning('Geschlecht: ' . $genderSetting . ' ist für S1 voreingestellt (Mandanteneinstellung).'));
 
             $data = array();
             $content = array();
@@ -796,12 +796,10 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            $message = '';
+            $message = new Success('Es wurden ' . count($modifyList) . ' Personenbeziehungen erfolgreich geändert.',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
             if (!empty($modifyList)) {
-               if (Relationship::useService()->updateRelationshipRanking($modifyList)) {
-                   $message = new Success('Es wurden ' . count($modifyList) . ' Personenbeziehungen erfolgreich geändert.',
-                       new \SPHERE\Common\Frontend\Icon\Repository\Success());
-               }
+               Relationship::useService()->updateRelationshipRanking($modifyList);
             }
 
             $stage->setContent(

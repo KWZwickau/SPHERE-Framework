@@ -9,7 +9,6 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Common\Frontend\Icon\IIconInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
@@ -32,7 +31,6 @@ class TemplateReadOnly
      * @param string $titleDescription
      * @param IIconInterface|null $titleIcon
      * @param bool $noContentWell
-     * @param bool $isRelationshipContent
      *
      * @return string
      */
@@ -42,8 +40,7 @@ class TemplateReadOnly
         $linkList = array(),
         $titleDescription = '',
         IIconInterface $titleIcon = null,
-        $noContentWell = false,
-        $isRelationshipContent = false
+        $noContentWell = false
     ) {
 
         $titlePrefix = $titleIcon ? $titleIcon . ' ' : '';
@@ -54,9 +51,6 @@ class TemplateReadOnly
             } else {
                 $titleDescription  = new PullRight($links);
             }
-        }
-        if ($isRelationshipContent) {
-            $titleDescription .= new PullRight(new Link('', '/People/Group/Custody', new Cog()));
         }
 
         $title = new Title($titlePrefix . $titleName, $titleDescription);

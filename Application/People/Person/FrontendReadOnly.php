@@ -191,8 +191,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())) . ' zu Personen und Institutionen',
                 new \SPHERE\Common\Frontend\Icon\Repository\Link(),
-                false,
-                true
+                false
             );
 
             $stage->setContent(
