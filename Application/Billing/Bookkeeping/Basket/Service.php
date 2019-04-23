@@ -344,6 +344,19 @@ class Service extends AbstractService
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Item = array();
                         $IsNoDebtorSelection = false;
+                        // entfernen aller Zahlungszuweisungen die nicht mit dem Zahlungszeitraum (Monatlich/ Jährlich) übereinstimmen
+                        $tblDebtorPeriodTypeBasket = $tblBasket->getServiceTblDebtorPeriodType();
+                        $tblDebtorPeriodTypeSelection = $tblDebtorSelection->getTblDebtorPeriodType();
+
+                        if($tblDebtorPeriodTypeSelection
+                        && $tblDebtorPeriodTypeBasket
+                        && $tblDebtorPeriodTypeSelection->getId() != $tblDebtorPeriodTypeBasket->getId()){
+                            // unnötige Anzeige (wird deswegen erstmal entfernt)
+//                            $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Zahlungszeitraum: '
+//                                .new Bold($tblDebtorPeriodTypeSelection->getName().' != '.$tblDebtorPeriodTypeBasket->getName());
+                            continue;
+                        }
+
                         // entfernen aller Personen, die keine Zahlungszuweisung im Abrechnungszeitraum haben.
                         if(($From = $tblDebtorSelection->getFromDate())
                             && new \DateTime($From) > new \DateTime($tblBasket->getTargetTime())){
