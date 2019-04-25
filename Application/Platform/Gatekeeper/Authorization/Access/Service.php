@@ -168,7 +168,7 @@ class Service extends AbstractService
     /**
      * @param string $Name
      *
-     * @return bool|Redirect
+     * @return string
      */
     public function createRight($Name)
     {

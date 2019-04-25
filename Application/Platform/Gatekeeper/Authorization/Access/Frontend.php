@@ -36,8 +36,6 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
-// ToDO Refactor $Entity->
-
 /**
  * Class Frontend
  *
@@ -279,13 +277,12 @@ class Frontend
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
                 // only routes that haven't to be public
                 if (!in_array($Route, $publicRouteList)) {
-                    $publicRightList[] = array(
-                        'Route'  => $Route,
-                        'Option' => new External('Öffnen', $Route, null, array(), false)
-                            .new Danger('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right/Create', null,
-                                array('Name' => $Route)
-                            )
-                    );
+                    $item['Route'] = $Route;
+                    $item['Option'] = new External('Öffnen', $Route, null, array(), false)
+                        .new Danger('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right/Create', null,
+                            array('Name' => $Route)
+                        );
+                    array_push($publicRightList, $item);
                 }
             });
         }
@@ -427,24 +424,26 @@ class Frontend
             }
         );
 
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessListAvailable, function (TblLevel &$Entity) use ($Id){
+        $tableContentRight = array();
+        array_walk($tblAccessListAvailable, function (TblLevel $tblLevel) use ($Id, &$tableContentRight){
 
-            /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
+            $item['Name'] = $tblLevel->getName();
+            $item['Exchange'] = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
                 'Id'       => $Id,
-                'tblLevel' => $Entity->getId()
-            ) );
+                'tblLevel' => $tblLevel->getId()
+            ));
+            array_push($tableContentRight, $item);
         });
 
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessList, function (TblLevel &$Entity) use ($Id){
+        $tableContentLeft = array();
+        array_walk($tblAccessList, function (TblLevel $tblLevel) use ($Id, &$tableContentLeft){
 
-            /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
+            $item['Name'] = $tblLevel->getName();
+            $item['Exchange'] = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
                 'Id'       => $Id,
-                'tblLevel' => $Entity->getId()
-            ) );
+                'tblLevel' => $tblLevel->getId()
+            ));
+            array_push($tableContentLeft, $item);
         });
 
         $Stage->setContent(
@@ -455,7 +454,7 @@ class Frontend
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Zugewiesen'),
-                            new TableData($tblAccessList, null,
+                            new TableData($tableContentLeft, null,
                                 array('Exchange' => '', 'Name' => 'Name'), array(
                                     'order'                => array(array(1, 'asc')),
                                     'columnDefs'           => array(
@@ -480,7 +479,7 @@ class Frontend
                         ), 6),
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Verfügbar'),
-                            new TableData($tblAccessListAvailable, null,
+                            new TableData($tableContentRight, null,
                                 array('Exchange' => ' ', 'Name' => 'Name '), array(
                                     'order'                => array(array(1, 'asc')),
                                     'columnDefs'           => array(
@@ -644,25 +643,24 @@ class Frontend
                 return $ObjectA->getId() - $ObjectB->getId();
             }
         );
-
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessListAvailable, function (TblRight &$Entity) use ($Id){
-
-            /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
+        $tableContentRight = array();
+        array_walk($tblAccessListAvailable, function (TblRight $tblRight) use ($Id, &$tableContentRight){
+            $item['Route'] = $tblRight->getRoute();
+            $item['Exchange'] = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
                 'Id'       => $Id,
-                'tblRight' => $Entity->getId()
-            ) );
+                'tblRight' => $tblRight->getId()
+            ));
+            array_push($tableContentRight, $item);
         });
 
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessList, function (TblRight &$Entity) use ($Id){
-
-            /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
+        $tableContentLeft = array();
+        array_walk($tblAccessList, function (TblRight $tblRight) use ($Id, &$tableContentLeft){
+            $item['Route'] = $tblRight->getRoute();
+            $item['Exchange'] = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
                 'Id'       => $Id,
-                'tblRight' => $Entity->getId()
-            ) );
+                'tblRight' => $tblRight->getId()
+            ));
+            array_push($tableContentLeft, $item);
         });
 
         $Stage->setContent(
@@ -673,7 +671,7 @@ class Frontend
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Zugewiesen'),
-                            new TableData($tblAccessList, null,
+                            new TableData($tableContentLeft, null,
                                     array('Exchange' => '', 'Route' => 'Route'), array(
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
@@ -698,7 +696,7 @@ class Frontend
                         ), 6),
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Verfügbar'),
-                            new TableData($tblAccessListAvailable, null,
+                            new TableData($tableContentRight, null,
                                     array('Exchange' => ' ', 'Route' => 'Route '), array(
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
