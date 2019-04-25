@@ -7,21 +7,19 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use \SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -32,6 +30,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
@@ -241,22 +240,7 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 // SEPA
                 case TblSetting::IDENT_IS_SEPA:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für SEPA-Lastschrift relevanten Eingaben &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                            ? new SuccessText(new Check())
-                            : new DangerText(new Unchecked())))
-                        .new PullRight((new Link(new Info(), ApiSetting::getEndpoint()))->ajaxPipelineOnClick(ApiSetting::pipelineShowSepaInfo()));
-                break;
-                case TblSetting::IDENT_ADVISER:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabe des SEPA-Baraters &nbsp;'
-                        .new Bold($tblSetting->getValue());
-                break;
-                case TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Maximale länge der Sachkontennummer &nbsp;'
-                        .new Bold($tblSetting->getValue());
-                break;
-                case TblSetting::IDENT_IS_WORKER_ACRONYM:
-                    $Listing[$tblSetting->getId()] ='&nbsp; Mitarbeiter-Kürzel &nbsp;'
+                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift &nbsp;'
                         .new Bold(($tblSetting->getValue()
                             ? new SuccessText(new Check())
                             : new DangerText(new Unchecked())));
@@ -312,19 +296,8 @@ class Frontend extends Extension implements IFrontendInterface
                     // Sepa Option's
                 case TblSetting::IDENT_IS_SEPA:
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für SEPA-Lastschrift relevanten Eingaben aktivieren', true);
-                break;
-                case TblSetting::IDENT_ADVISER:
-                    $_POST['Setting'][TblSetting::IDENT_ADVISER] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new TextField('Setting['.TblSetting::IDENT_ADVISER.']', '', 'SEPA-Berater');
-                break;
-                case TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH:
-                    $_POST['Setting'][TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new NumberField('Setting['.TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH.']', '', 'Maximale länge der Sachkontennummer');
-                break;
-                case TblSetting::IDENT_IS_WORKER_ACRONYM:
-                    $_POST['Setting'][TblSetting::IDENT_IS_WORKER_ACRONYM] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_WORKER_ACRONYM.']', ' Verdendung des Mitarbeiterkürzel', true);
+                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift aktivieren', true);
+                    $elementList[] = $this->showSepaInfo();
                 break;
             }
         }
@@ -351,6 +324,19 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         )));
+    }
+
+    /**
+     * @return Layout
+     */
+    private function showSepaInfo()
+    {
+
+        $Content = new Warning(
+            new Container('- Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:  Kontodaten, Mandatsreferenznummer')
+            .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme.')
+        );
+        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Content))));
     }
 
     private function getTitleByCategory($Category = '')

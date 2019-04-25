@@ -655,9 +655,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(array(
-                        new Bold('Speicherverhalten'),
+                        new Bold('Option'),
                         new Listing(array(
-                            new CheckBox('DebtorSelection[SaveSetting]', 'In Einstellungen übernehmen '
+                            new CheckBox('DebtorSelection[SaveSetting]', 'dauerhaft speichern '
                                 .new ToolTip(new InfoIcon(), 'Wird&nbsp;für&nbsp;zukünfitge&nbsp;Abrechnungen mit berücksichtigt.'), '1'),
                         ))
                         ), 6
@@ -868,7 +868,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName('Monatlich');
 
                     $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
-                        $tblPaymentType, $tblDebtorPeriodType, $tblItem,  $FromDate, $ToDate,
+                        $tblPaymentType, $tblItem, $tblDebtorPeriodType, $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null),
                         $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),

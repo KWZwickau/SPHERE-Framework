@@ -39,9 +39,6 @@ class Data extends AbstractData
         if($tblSetting->getCategory() == ''){
             $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
         }
-        $this->createSetting(TblSetting::IDENT_ADVISER, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
-        $this->createSetting(TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH, '6', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_SEPA);
-        $this->createSetting(TblSetting::IDENT_IS_WORKER_ACRONYM, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
 
 
 

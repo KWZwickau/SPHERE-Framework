@@ -513,9 +513,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(
                     new FormColumn(
                         ($BasketList ? new Warning('Es sind aktive Zahlungszuweisungen in folgenden
-                        Abrechnungen vorhanden:'.
-                            new Container('('.$BasketList.')').'Sollen die Änderungen ebenfalls für diese aktiven
-                         Abrechnungen übernommen werden?'
+                        Abrechnungen vorhanden: '.new Bold($BasketList).''.
+                            new Container('Sollen die Änderungen ebenfalls für diese aktiven
+                         Abrechnungen übernommen werden?')
                             . new CheckBox('DebtorSelection[SetActive]', 'Übernehmen', 1))
                             : new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))))
                     )

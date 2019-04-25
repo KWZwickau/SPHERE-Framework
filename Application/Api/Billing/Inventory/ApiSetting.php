@@ -11,11 +11,6 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
-use SPHERE\Common\Frontend\Icon\Repository\Minus;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Headline;
-use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\System\Extension\Extension;
 
@@ -39,8 +34,6 @@ class ApiSetting extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showSetting');
         $Dispatcher->registerMethod('showFormSetting');
         $Dispatcher->registerMethod('changeSetting');
-        // SepaInfo
-        $Dispatcher->registerMethod('showSepaInfo');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -188,22 +181,6 @@ class ApiSetting extends Extension implements IApiInterface
     }
 
     /**
-     * @return Pipeline
-     */
-    public static function pipelineShowSepaInfo()
-    {
-        $Receiver = self::receiverModal();
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $Emitter->setGetPayload(array(
-            ApiSetting::API_TARGET => 'showSepaInfo'
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
      * @return Layout
      */
     public function showPersonGroup()
@@ -219,22 +196,6 @@ class ApiSetting extends Extension implements IApiInterface
     {
 
         return Setting::useFrontend()->formPersonGroup();
-    }
-
-    /**
-     * @return string
-     */
-    public function showSepaInfo()
-    {
-
-        $Content = new Headline('Welche Auswirkungen hat diese Option?');
-        $Content .= new Ruler();
-        $Content .= new Container(new Minus().' in Verwendung der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:');
-        $Content .= new Container('&nbsp;&nbsp;'.new ChevronUp().' Kontodaten');
-        $Content .= new Container('&nbsp;&nbsp;'.new ChevronUp().' Mandatsreferenznummer');
-        $Content .= new Container(new Minus().' Ermöglicht den Download einer XML-Datei (SEPA) für externe Programme.');
-        $Content .= new Container(new Minus().' Weitere Anpassungen werden noch vorgenommen.');
-        return $Content;
     }
 
     /**
@@ -309,12 +270,6 @@ class ApiSetting extends Extension implements IApiInterface
             case TblSetting::CATEGORY_SEPA:
                 $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
-                $Adviser = (isset($Setting[TblSetting::IDENT_ADVISER]) ? $Setting[TblSetting::IDENT_ADVISER] : '');
-                Setting::useService()->createSetting(TblSetting::IDENT_ADVISER, $Adviser);
-                $numberLength = (isset($Setting[TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH]) ? $Setting[TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH] : 6);
-                Setting::useService()->createSetting(TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH, $numberLength);
-                $IsWorkerAcronym = (isset($Setting[TblSetting::IDENT_IS_WORKER_ACRONYM]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_WORKER_ACRONYM, $IsWorkerAcronym);
             break;
         }
 

@@ -44,7 +44,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -246,6 +245,21 @@ class ApiBasket extends Extension implements IApiInterface
         ));
         $Pipeline->appendEmitter($Emitter);
 
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineRefreshTable()
+    {
+        $Pipeline = new Pipeline();
+        // reload the whole Table
+        $Emitter = new ServerEmitter(self::receiverContent(''), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getBasketTable'
+        ));
+        $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
 
@@ -550,10 +564,10 @@ class ApiBasket extends Extension implements IApiInterface
         // Abrechnung nicht gefüllt
         if(!$isCreate){
             Basket::useService()->destroyBasket($tblBasket);
-            return new Warning('Abrechnung enthält keine Werte d.h.:'.
-            new Container('- Es wurden im Abrechnungsmonat bereits für alle ausgewählten Beitragsarten,
-             für alle zutreffenden Personen, eine Rechnung erstellt.')
-            .new Container('- Filterung lässt keine Personen zur Abrechnung zu.'));
+            return new Warning('Abrechnung kann nicht erstellt werden. Mögliche Ursachen:'.
+            new Container('- Es wurden im Abrechnungsmonat bereits für alle ausgewählten Beitragsarten
+             und alle zutreffenden Personen eine Rechnung erstellt')
+            .new Container('- Aktuelle Filterung lässt keine Personen zur Abrechnung zu'));
         }
 
         if($tblBasket){
@@ -563,8 +577,7 @@ class ApiBasket extends Extension implements IApiInterface
                 return new Success('Abrechnung erfolgreich angelegt').
                     new Warning('Folgende Zahlungszuweisungen wurden herrausgefiltert:<br/>'
                     .implode('<br/>', $PersonMissing))
-                    .(new Standard('Ok', ApiBasket::getEndpoint(), new Ok()))
-                        ->ajaxPipelineOnClick(ApiBasket::pipelineCloseModal($Identifier));
+                    .ApiBasket::pipelineRefreshTable();
             }
         } else {
             return new Danger('Abrechnung konnte nicht gengelegt werden');

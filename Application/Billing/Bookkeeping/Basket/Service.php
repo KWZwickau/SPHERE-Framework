@@ -516,10 +516,12 @@ class Service extends AbstractService
             } else {
                 $tblYear = false;
             }
-            foreach($tblPersonList as $tblPerson){
-                if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
-                    if($tblType->getName() === $tblDivision->getTypeName()){
-                        $resultPersonList[] = $tblPerson;
+            if($tblYear){
+                foreach($tblPersonList as $tblPerson){
+                    if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
+                        if($tblType->getName() === $tblDivision->getTypeName()){
+                            $resultPersonList[] = $tblPerson;
+                        }
                     }
                 }
             }

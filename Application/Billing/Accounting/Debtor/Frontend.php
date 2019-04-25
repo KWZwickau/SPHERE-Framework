@@ -201,7 +201,6 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
-                $i = 0;
 
                 $IsDebtorNumberNeed = false;
                 if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
@@ -211,10 +210,11 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 array_walk($tblPersonList,
-                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed){
+                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, $IsDebtorNumberNeed){
                         $Item['Name'] = $tblPerson->getLastFirstName();
+                        // nullen sind für die Sortierung wichtig, (sonnst werden die Warnungen der Debitorennummern inmitten der anderen Werte angezeigt)
                         $Item['DebtorNumber'] = ($IsDebtorNumberNeed
-                            ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(),
+                            ? '<span hidden>0000000000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(),
                                 'Debitoren-Nr. wird benötigt'))
                             : '');
                         $Item['Address'] = '';

@@ -137,7 +137,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if(($tblDivision = $tblBasket->getServiceTblDivision())){
                     $DivisionName = $tblDivision->getDisplayName();
                 }
-                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').$DivisionName;
+                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').($DivisionName ? 'Klasse '.$DivisionName: '');
 
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 

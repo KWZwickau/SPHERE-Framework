@@ -624,7 +624,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell("14", $row), $tblBasket->getTargetTime());// todo Buchungsstapel von 01.01.xxxx
             $export->setValue($export->getCell("15", $row), $tblBasket->getTargetTime());// todo Buchungsstapel bis xx.01.xxxx
             $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
-            $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Mitarbeiterkürzel Optionen ob es gezogen wird
+            $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Initialen der am Account verknüpften Personen Vorname, Nachname (z.b. JK)
             $export->setValue($export->getCell("18", $row), "1");   // Buchungstyp 1 = Finanzbuchführung 2 = Jahresabschluss
             $export->setValue($export->getCell("19", $row), "");    // todo Rechnungslegungszweck
             $export->setValue($export->getCell("20", $row), "0");   // Festschreibung 0 = keine Festschreibung 1 = Festschreibung
