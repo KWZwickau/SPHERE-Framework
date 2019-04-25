@@ -567,8 +567,10 @@ class Gradebook
          * Body
          */
         if ($tblPersonList) {
-            $number = 1;
+            $number = 0;
             foreach ($tblPersonList as $tblPerson) {
+                $number++;
+
                 $isMissing = isset($addStudentList[$tblPerson->getId()]);
                 $name = $isMissing ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
 
@@ -585,8 +587,6 @@ class Gradebook
                         $courseName = 'HS';
                     }
                 }
-
-                $number++;
 
                 $subSection = new Section();
                 $subSection
