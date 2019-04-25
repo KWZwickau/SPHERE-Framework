@@ -190,7 +190,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     ))->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineOpenCreateRelationshipToCompanyModal($tblPerson->getId())),
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())) . ' zu Personen und Institutionen',
-                new \SPHERE\Common\Frontend\Icon\Repository\Link()
+                new \SPHERE\Common\Frontend\Icon\Repository\Link(),
+                false
             );
 
             $stage->setContent(

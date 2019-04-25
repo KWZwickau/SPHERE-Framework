@@ -304,8 +304,9 @@ class Frontend extends Extension
                                     ApiGenerate::pipelineCreateBehaviorTaskSelect($receiverBehaviorTask)
                                 )
                             )->setRequired(),
-                            new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()),
-                            new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList))
+                            (new TextField('Data[Name]', '', 'Name des Zeugnisauftrags'))->setRequired(),
+                            (new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()))->setRequired(),
+                            (new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)))->setRequired()
                         ),
                         Panel::PANEL_TYPE_INFO
                     ), 4
@@ -948,6 +949,7 @@ class Frontend extends Extension
             if (!$Global->POST) {
 
                 $Global->POST['Data']['Date'] = $tblGenerateCertificate->getDate();
+                $Global->POST['Data']['Name'] = $tblGenerateCertificate->getName();
                 $Global->POST['Data']['IsTeacherAvailable'] = $tblGenerateCertificate->isDivisionTeacherAvailable();
                 $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
                 $Global->POST['Data']['GenderHeadmaster'] = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()
@@ -958,6 +960,26 @@ class Frontend extends Extension
                     ? $tblGenerateCertificate->getServiceTblBehaviorTask()->getId() : 0;
 
                 $Global->savePost();
+            }
+
+            $message = '';
+            if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+                $countBehaviorGrades = 0;
+                foreach ($tblPrepareList as $tblPrepare) {
+                    if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                        if (($tblGradeList = Prepare::useService()->getPrepareGradesByPrepare($tblPrepare, $tblTestType))) {
+                            $countBehaviorGrades += count($tblGradeList);
+                        }
+                    }
+                }
+
+                if ($countBehaviorGrades > 0) {
+                    $message = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                        'Es wurden bereits ' . $countBehaviorGrades . ' Kopfnoten festgelegt',
+                        new Exclamation()
+                    );
+                }
             }
 
             $tblYear = $tblGenerateCertificate->getServiceTblYear();
@@ -983,7 +1005,8 @@ class Frontend extends Extension
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Well(Generate::useService()->updateGenerateCertificate($Form,
+                                ($message !== '' ? $message : '')
+                                . new Well(Generate::useService()->updateGenerateCertificate($Form,
                                     $tblGenerateCertificate, $Data))
                             ),
                         ))
@@ -1031,7 +1054,8 @@ class Frontend extends Extension
                     new Panel(
                         'Zeugnis',
                         array(
-                            new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar())
+                            (new TextField('Data[Name]', '', 'Name des Zeugnisauftrags'))->setRequired(),
+                            (new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()))->setRequired(),
                         ),
                         Panel::PANEL_TYPE_INFO
                     ), 4
@@ -1093,19 +1117,47 @@ class Frontend extends Extension
 
             if (!$Confirm) {
                 $divisionList = array();
-                $divisionList[] = 'Zeungisdatum: ' . $tblGenerateCertificate->getDate();
-                $divisionList[] = 'Typ: ' . (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                $divisionList[0] = 'Zeungisdatum: ' . $tblGenerateCertificate->getDate();
+                $divisionList[1] = 'Typ: ' . (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                         ? $tblCertificateType->getName() : '');
-                $divisionList[] = 'Name: ' . $tblGenerateCertificate->getName();
+                $divisionList[2] = 'Name: ' . $tblGenerateCertificate->getName();
 
                 if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
-                    $divisionList[] = '&nbsp;';
+                    $divisionList[3] = '&nbsp;';
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
                     foreach ($tblPrepareList as $tblPrepare) {
                         if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-                            $divisionList[] = 'Klasse: ' . $tblDivision->getDisplayName();
+                            $hasBehaviorGrades = false;
+                            $countBehaviorGrades = 0;
+                            $hasPrepareInformation = false;
+                            $countPrepareInformation = 0;
+                            if (($tblGradeList = Prepare::useService()->getPrepareGradesByPrepare($tblPrepare, $tblTestType))) {
+                                $hasBehaviorGrades = true;
+                                $countBehaviorGrades = count($tblGradeList);
+                            }
+                            if (($tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPrepare($tblPrepare))) {
+                                $hasPrepareInformation = true;
+                                $countPrepareInformation = count($tblPrepareInformationList);
+                            }
+                            if ($hasBehaviorGrades && $hasPrepareInformation) {
+                                $message = 'Es wurden bereits ' . $countBehaviorGrades . ' Kopfnoten festgelegt und '
+                                    . $countPrepareInformation . ' Sonstige Informationen gespeichert ' . new Exclamation();
+                            } elseif ($hasBehaviorGrades) {
+                                $message = 'Es wurden bereits ' . $countBehaviorGrades . ' Kopfnoten festgelegt '
+                                    . new Exclamation();
+                            } elseif ($hasPrepareInformation) {
+                                $message = 'Es wurden bereits ' . $countPrepareInformation . ' Sonstige Informationen gespeichert ' . new Exclamation();
+                            } else {
+                                $message = '';
+                            }
+
+                            $divisionList[$tblDivision->getDisplayName()] = 'Klasse: ' . $tblDivision->getDisplayName()
+                                . ($message !== '' ? new \SPHERE\Common\Frontend\Text\Repository\Danger('&nbsp;&nbsp;&nbsp;' . $message) : '');
                         }
                     }
                 }
+
+                ksort($divisionList);
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(

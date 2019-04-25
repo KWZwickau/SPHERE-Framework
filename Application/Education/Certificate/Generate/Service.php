@@ -120,6 +120,10 @@ class Service extends AbstractService
             $Form->setError('Data[Year]', 'Bitte wählen Sie einen Typ aus');
             $Error = true;
         }
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $Form->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
 
         if ($Error) {
             return $Form;
@@ -128,20 +132,10 @@ class Service extends AbstractService
         $tblAppointedDateTask = Evaluation::useService()->getTaskById($Data['AppointedDateTask']);
         $tblBehaviorTask = Evaluation::useService()->getTaskById($Data['BehaviorTask']);
 
-        if ($tblAppointedDateTask && $tblBehaviorTask) {
-            $Name = $tblAppointedDateTask->getName() . ', ' . $tblBehaviorTask->getName();
-        } elseif ($tblAppointedDateTask) {
-            $Name = $tblAppointedDateTask->getName();
-        } elseif ($tblBehaviorTask) {
-            $Name = $tblBehaviorTask->getName();
-        } else {
-            $Name = $tblCertificateType->getName();
-        }
-
         if ($tblGenerateCertificate = (new Data($this->getBinding()))->createGenerateCertificate(
             $tblYear,
             $Data['Date'],
-            $Name,
+            $Data['Name'],
             $tblCertificateType,
             $tblAppointedDateTask ? $tblAppointedDateTask : null,
             $tblBehaviorTask ? $tblBehaviorTask : null,
@@ -550,6 +544,10 @@ class Service extends AbstractService
             $Form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $Form->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
 
         if ($Error) {
             return $Form;
@@ -558,22 +556,11 @@ class Service extends AbstractService
         if ($tblGenerateCertificate->isLocked()) {
             $tblAppointedDateTask = $tblGenerateCertificate->getServiceTblAppointedDateTask();
             $tblBehaviorTask = $tblGenerateCertificate->getServiceTblBehaviorTask();
-            $Name = $tblGenerateCertificate->getName();
         } else {
             $tblAppointedDateTask = isset($Data['AppointedDateTask'])
                 ? Evaluation::useService()->getTaskById($Data['AppointedDateTask']) : false;
             $tblBehaviorTask = isset($Data['BehaviorTask'])
                 ? Evaluation::useService()->getTaskById($Data['BehaviorTask']) : false;
-            if ($tblAppointedDateTask && $tblBehaviorTask) {
-                $Name = $tblAppointedDateTask->getName() . ', ' . $tblBehaviorTask->getName();
-            } elseif ($tblAppointedDateTask) {
-                $Name = $tblAppointedDateTask->getName();
-            } elseif ($tblBehaviorTask) {
-                $Name = $tblBehaviorTask->getName();
-            } else {
-                $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
-                $Name = $tblCertificateType ? $tblCertificateType->getName() : '';
-            }
         }
 
         if ((new Data($this->getBinding()))->updateGenerateCertificate(
@@ -586,7 +573,7 @@ class Service extends AbstractService
                 ? $tblCommonGender : null,
             $tblAppointedDateTask ? $tblAppointedDateTask : null,
             $tblBehaviorTask ? $tblBehaviorTask : null,
-            $Name
+            $Data['Name']
         )
         ) {
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
@@ -594,7 +581,7 @@ class Service extends AbstractService
                     Prepare::useService()->updatePrepareData(
                         $tblPrepare,
                         $Data['Date'],
-                        $Name,
+                        $Data['Name'],
                         $tblAppointedDateTask ? $tblAppointedDateTask : null,
                         $tblBehaviorTask ? $tblBehaviorTask : null,
                         isset($Data['IsTeacherAvailable'])

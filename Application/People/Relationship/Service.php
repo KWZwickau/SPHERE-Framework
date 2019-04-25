@@ -90,6 +90,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType $tblType
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPersonRelationshipAllByType(TblType $tblType)
+    {
+        return (new Data($this->getBinding()))->getPersonRelationshipAllByType($tblType);
+    }
+
+    /**
      * @param TblToPerson[] $tblToPersonList
      *
      * @return array|TblPerson[]
@@ -701,5 +711,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->restoreToCompany($tblToCompany);
+    }
+
+    /**
+     * @param $modifyList
+     *
+     * @return bool
+     */
+    public function updateRelationshipRanking($modifyList)
+    {
+        return (new Data($this->getBinding()))->updateRelationshipRanking($modifyList);
     }
 }
