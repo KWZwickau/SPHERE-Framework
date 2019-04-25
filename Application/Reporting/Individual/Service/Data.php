@@ -46,7 +46,7 @@ class Data extends AbstractData
     public function getWorkSpaceAllByAccount(TblAccount $tblAccount, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
             array(
                 TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
                 TblWorkSpace::ATTR_VIEW_TYPE => $ViewType
@@ -242,10 +242,11 @@ class Data extends AbstractData
      * @param string     $Name
      * @param bool       $IsPublic
      * @param string     $PersonCreator
+     * @param array      $Post
      *
      * @return TblPreset
      */
-    public function createPreset(TblAccount $tblAccount, $Name, $IsPublic = false, $PersonCreator = '')
+    public function createPreset(TblAccount $tblAccount, $Name, $IsPublic = false, $PersonCreator = '', $Post = array())
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPreset();
@@ -253,6 +254,7 @@ class Data extends AbstractData
         $Entity->setName($Name);
         $Entity->setIsPublic($IsPublic);
         $Entity->setPersonCreator($PersonCreator);
+        $Entity->setPostValue($Post);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;

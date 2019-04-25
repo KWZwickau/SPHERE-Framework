@@ -46,6 +46,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IsPublic', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($Table, 'PersonCreator', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'PostValue', self::FIELD_TYPE_TEXT);
 
         return $Table;
     }

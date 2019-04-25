@@ -17,74 +17,17 @@ vMC.TblCommonGender_Name AS TblCommonGender_Name,
 vMC.TblCommonInformation_Nationality AS TblCommonInformation_Nationality,
 vMC.TblCommonInformation_Denomination AS TblCommonInformation_Denomination,
 vMC.TblCommonInformation_AssistanceActivity AS TblCommonInformation_AssistanceActivity,
-IF (vMC.TblCommonInformation_IsAssistance, 'Ja', 'Nein') AS TblCommonInformation_IsAssistance
-
---     (select vCA.TblAddress_StreetName from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblAddress_StreetName,
---
--- 	(select vCA.TblAddress_StreetNumber from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblAddress_StreetNumber,
---
--- 	(select vCA.TblCity_Name from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblCity_City,
---
--- 	(select vCA.TblCity_District from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblCity_District,
---
--- 	(select vCA.TblCity_Code from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblCity_Code,
---
--- 	(select vCA.TblAddress_County from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblAddress_County,
---
--- 	(select vCA.TblState_Name from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblState_Name,
---
--- 	(select vCA.TblAddress_Nation from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
---     vP.TblPerson_Id = vCA.TblPerson_Id
---     and vCA.TblType_Name = 'Hauptadresse'
--- 	) TblAddress_Nation,
---
--- 	(
--- 	select group_concat(
--- 		concat(
---         vCP.TblType_Name,
---         ': ',
--- 		vCP.TblPhone_Number,
---         case when vCP.TblToPerson_Remark then ' - ' else '' end,
---         vCP.TblToPerson_Remark
---         ) separator '<br/>'
---     ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP where
---     vP.TblPerson_Id = vCP.TblPerson_Id
---
--- 	) TblPhone_Number,
---
--- 	(
--- 	select group_concat(
--- 		concat(
---         vCM.TblType_Name,
---         ': ',
--- 		vCM.TblMail_Address,
---         case when vCM.TblToPerson_Remark then ' - ' else '' end,
---         vCM.TblToPerson_Remark
---         ) separator '<br/>'
---     ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM where
---     vP.TblPerson_Id = vCM.TblPerson_Id
--- 	) TblMail_Address
+IF (vMC.TblCommonInformation_IsAssistance, 'Ja', 'Nein') AS TblCommonInformation_IsAssistance,
+(select
+    group_concat(
+        concat(tG.Name)
+        separator ', '
+    )
+    from PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
+    LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.tblGroup
+    where tM.serviceTblPerson = vP.TblPerson_Id
+    and tG.Name != 'Alle'
+) TblGroup_GroupList
 
 FROM
 PeoplePerson_{{ ConsumerAcronym }}.viewPerson vP
