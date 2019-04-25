@@ -231,6 +231,9 @@ class Frontend extends Extension implements IFrontendInterface
                     'Guardian2'      => 'Sorgeberechtigter 2',
                     'PhoneGuardian2' => 'Tel. Sorgeber. 2 '.
                         new ToolTip(new Info(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
+                    'Guardian3'      => 'Sorgeberechtigter 3',
+                    'PhoneGuardian3' => 'Tel. Sorgeber. 3 '.
+                        new ToolTip(new Info(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
                 );
 
                 if($IsAuthorized){

@@ -2,6 +2,7 @@ SELECT
     viewRelationshipToPerson.TblToPerson_Remark AS TblToPerson_Remark,
     viewRelationshipToPerson.TblToPerson_serviceTblPersonFrom AS TblToPerson_serviceTblPersonFrom,
     viewRelationshipToPerson.TblToPerson_serviceTblPersonTo AS TblToPerson_serviceTblPersonTo,
+    viewRelationshipToPerson.TblToPerson_Ranking AS TblToPerson_Ranking,
     viewRelationshipToPerson.TblType_Name AS TblType_Name,
     viewRelationshipToPerson.TblType_Description AS TblType_Description
 FROM
@@ -10,6 +11,7 @@ UNION SELECT
     viewRelationshipToPerson.TblToPerson_Remark AS TblToPerson_Remark,
     viewRelationshipToPerson.TblToPerson_serviceTblPersonTo AS TblToPerson_serviceTblPersonTo,
     viewRelationshipToPerson.TblToPerson_serviceTblPersonFrom AS TblToPerson_serviceTblPersonFrom,
+    viewRelationshipToPerson.TblToPerson_Ranking AS TblToPerson_Ranking,
     viewRelationshipToPerson.TblType_Name AS TblType_Name,
     viewRelationshipToPerson.TblType_Description AS TblType_Description
 FROM
