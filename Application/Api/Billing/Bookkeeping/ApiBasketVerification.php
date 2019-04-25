@@ -655,9 +655,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(array(
-                        new Bold('Speicherverhalten'),
+                        new Bold('Option'),
                         new Listing(array(
-                            new CheckBox('DebtorSelection[SaveSetting]', 'In Einstellungen übernehmen '
+                            new CheckBox('DebtorSelection[SaveSetting]', 'dauerhaft speichern '
                                 .new ToolTip(new InfoIcon(), 'Wird&nbsp;für&nbsp;zukünfitge&nbsp;Abrechnungen mit berücksichtigt.'), '1'),
                         ))
                         ), 6
@@ -847,16 +847,28 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
                 $tblDebtorSelection = $tblBasketVerification->getServiceTblDebtorSelection();
                 if($tblDebtorSelection){
+                    $FromDate = $tblDebtorSelection->getFromDate();
+                    if(!$FromDate){
+                        $FromDate = (new \DateTime())->format('d.m.Y');
+                    }
+                    $ToDate = null;
                     // DebtorSelection on ID (Update current one)
                     Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPersonDebtor, $tblPaymentType,
+                        $tblDebtorSelection->getTblDebtorPeriodType(), $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),
                         ($tblBankReference ? $tblBankReference : null));
 
                 } else {
                     // no DebtorSelection on ID (create new one)
+                    $FromDate = (new \DateTime())->format('d.m.Y');
+                    $ToDate = null;
+
+                    //ToDO richtigen Zahlungszeitraum ziehen
+                    $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName('Monatlich');
+
                     $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
-                        $tblPaymentType, $tblItem,
+                        $tblPaymentType, $tblItem, $tblDebtorPeriodType, $FromDate, $ToDate,
                         ($tblItemVariant ? $tblItemVariant : null),
                         $ItemPrice,
                         ($tblBankAccount ? $tblBankAccount : null),

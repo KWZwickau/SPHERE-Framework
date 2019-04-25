@@ -298,6 +298,18 @@ class ApiDebtor extends Extension implements IApiInterface
                 $DebtorNumberId));
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorNumber($Identifier, $PersonId));
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER))){
+                if($tblSetting->getValue()){
+                    $MaxNumber = Debtor::useService()->getDebtorMaxNumber();
+                    $MaxNumber++;
+                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
+                        $NumberCount = $tblSetting->getValue();
+                        $MaxNumber = substr($MaxNumber, 0, $NumberCount);
+                        $MaxNumber = str_pad($MaxNumber, $NumberCount, '0', STR_PAD_LEFT);
+                    }
+                    $_POST['DebtorNumber']['Number'] = $MaxNumber;
+                }
+            }
         }
 
         // find Student's with DebtorNumber

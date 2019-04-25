@@ -129,20 +129,44 @@ class Frontend extends Extension implements IFrontendInterface
                 if($tblBasket->getDatevDate()){
                     $Item['Datev'] = $tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')';
                 }
-
+                $TypeName = '';
+                $DivisionName = '';
+                if(($tblType = $tblBasket->getServiceTblType())){
+                    $TypeName = $tblType->getName();
+                }
+                if(($tblDivision = $tblBasket->getServiceTblDivision())){
+                    $DivisionName = $tblDivision->getDisplayName();
+                }
+                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').($DivisionName ? 'Klasse '.$DivisionName: '');
 
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
                 if($tblBasket->getIsDone()){
-                    $Item['Option'] = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
+                    $Buttons = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
                         array('BasketId' => $tblBasket->getId()),
-                        'Inhalt der Abrechnung')
-                    .(new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'Sepa Download'))->ajaxPipelineOnClick(
-                        ApiSepa::pipelineOpenCauserModal($tblBasket->getId())
-                        );
-//                    .(new Primary('', '#', new Download(),
-//                        array('BasketId' => $tblBasket->getId()),
-//                        'Datev Download'))->setDisabled();
+                        'Inhalt der Abrechnung');
+                    $IsSepa = false;
+                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA))){
+                        $IsSepa = $tblSetting->getValue();
+                    }
+                    if($IsSepa){
+                        if($tblBasket->getSepaDate()){
+                            $Buttons .= (new Standard('', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
+                                ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
+                        } else {
+                            $Buttons .= (new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
+                                ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
+                        }
+                    }
+                    if($tblBasket->getDatevDate()){
+                        $Buttons .= (new Standard('', '\Api\Billing\Datev\Download', new Download(),
+                            array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+                    } else {
+                        $Buttons .= (new Primary('', '\Api\Billing\Datev\Download', new Download(),
+                            array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+                    }
+
+                    $Item['Option'] = $Buttons;
                 } else {
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
                             'Abrechnung bearbeiten'))
@@ -166,9 +190,10 @@ class Frontend extends Extension implements IFrontendInterface
                 'Name'       => 'Name',
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
+                'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
-                'Sepa'       => 'Letzte SEPA-Download',
-                'Datev'      => 'Letzte SEPA-Download',
+                'Sepa'       => 'Letzter SEPA-Download',
+                'Datev'      => 'Letzter DATEV-Download',
                 'Option'     => ''
             ), array(
                 'columnDefs' => array(

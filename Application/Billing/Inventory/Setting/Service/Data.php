@@ -4,7 +4,6 @@ namespace SPHERE\Application\Billing\Inventory\Setting\Service;
 
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSettingGroupPerson;
-use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -18,13 +17,31 @@ class Data extends AbstractData
 {
     public function setupDatabaseContent()
     {
-//        //ToDO Vorbefüllung erstellen
-        $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER);
-        $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1', TblSetting::TYPE_BOOLEAN);
-        $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN);
-        if(($tblSetting = Setting::useService()->getSettingByIdentifier('IsSepaAccountNeed'))){
-            $this->destroySetting($tblSetting);
+        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_REGULAR);
+        if($tblSetting->getCategory() == ''){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
         }
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
+        if($tblSetting->getCategory() == ''){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
+        }
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
+        if($tblSetting->getCategory() == ''){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
+        }
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
+//        if($tblSetting->getCategory() == ''){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
+//        }
+
+        // SEPA Option's
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN);
+        if($tblSetting->getCategory() == ''){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
+        }
+
+
+
 
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $this->createSettingGroupPerson($tblGroup);
@@ -105,6 +122,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Category
+     *
+     * @return TblSetting[]|false
+     */
+    public function getSettingAllByCategory($Category = '')
+    {
+
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblSetting',
+            array(
+                TblSetting::ATTR_CATEGORY => $Category
+            ));
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
      * @return bool|TblSetting[]
      */
     public function getSettingGroupPersonAll()
@@ -119,10 +151,11 @@ class Data extends AbstractData
      * @param string $Identifier
      * @param string $Value
      * @param string $Type
+     * @param string $Category
      *
      * @return TblSetting
      */
-    public function createSetting($Identifier, $Value, $Type = TblSetting::TYPE_STRING)
+    public function createSetting($Identifier, $Value, $Type = TblSetting::TYPE_STRING, $Category = TblSetting::CATEGORY_REGULAR)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -138,6 +171,7 @@ class Data extends AbstractData
             $Entity->setIdentifier($Identifier);
             $Entity->setValue($Value);
             $Entity->setType($Type);
+            $Entity->setCategory($Category);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -199,6 +233,33 @@ class Data extends AbstractData
                     $Protocol,
                     $Entity);
             }
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param string     $Category
+     *
+     * @return TblSetting
+     */
+    public function updateSettingCategory(TblSetting $tblSetting, $Category = TblSetting::CATEGORY_REGULAR)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+
+        if(null !== $Entity
+            && $Entity->getCategory() != $Category){
+            $Protocol = clone $Entity;
+            $Entity->setCategory($Category);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
         }
 
         return $Entity;
