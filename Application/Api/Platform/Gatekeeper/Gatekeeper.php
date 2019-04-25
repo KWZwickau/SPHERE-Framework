@@ -26,6 +26,16 @@ class Gatekeeper extends Extension implements IModuleInterface
             __NAMESPACE__.'/Authorization/Access/PrivilegeGrantRight',
             __CLASS__.'::executeAuthorizationAccessPrivilegeGrantRight'
         ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Authorization/Access/LevelGrantPrivilege',
+            __CLASS__.'::executeAuthorizationAccessLevelGrantPrivilege'
+        ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Authorization/Access/RoleGrantLevel',
+            __CLASS__.'::executeAuthorizationAccessRoleGrantLevel'
+        ));
     }
 
     /**
@@ -45,12 +55,12 @@ class Gatekeeper extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null|array $Data
-     * @param null|array $Additional
+     * @param null|array  $Direction
+     * @param null|array  $Data
      *
      * @return Response
      */
-    public function executeAuthorizationAccessPrivilegeGrantRight( $Direction = null, $Data = null, $Additional = null)
+    public function executeAuthorizationAccessPrivilegeGrantRight( $Direction = null, $Data = null)
     {
 
 
@@ -81,5 +91,79 @@ class Gatekeeper extends Extension implements IModuleInterface
         }
         return ( new Response() )->addError('Fehler!',
             new HazardSign().' Die Zuweisung der Rechte konnte nicht aktualisiert werden.', 0);
+    }
+
+    /**
+     * @param null|array  $Direction
+     * @param null|array  $Data
+     *
+     * @return Response|string
+     */
+    public function executeAuthorizationAccessLevelGrantPrivilege( $Direction = null, $Data = null)
+    {
+
+        if ($Data && $Direction) {
+            if (!isset( $Data['Id'] ) || !isset( $Data['tblPrivilege'] )) {
+                return ( new Response() )->addError('Fehler!',
+                    new HazardSign().' Die Zuweisung der Privilegien konnte nicht aktualisiert werden.', 0);
+            }
+            $Id = $Data['Id'];
+            $tblPrivilege = $Data['tblPrivilege'];
+
+            if ($Direction['From'] == 'TableAvailable') {
+                $Remove = false;
+            } else {
+                $Remove = true;
+            }
+
+            $tblLevel = Access::useService()->getLevelById($Id);
+            if ($tblLevel && null !== $tblPrivilege && ( $tblPrivilege = Access::useService()->getPrivilegeById($tblPrivilege) )) {
+                if ($Remove) {
+                    Access::useService()->removeLevelPrivilege($tblLevel, $tblPrivilege);
+                } else {
+                    Access::useService()->addLevelPrivilege($tblLevel, $tblPrivilege);
+                }
+            }
+            return ( new Response() )->addData(new Success().' Die Zuweisung der Privilegien wurde erfolgreich aktualisiert.');
+        }
+        return ( new Response() )->addError('Fehler!',
+            new HazardSign().' Die Zuweisung der Privilegien konnte nicht aktualisiert werden.', 0);
+    }
+
+    /**
+     * @param null|array  $Direction
+     * @param null|array  $Data
+     *
+     * @return Response|string
+     */
+    public function executeAuthorizationAccessRoleGrantLevel( $Direction = null, $Data = null)
+    {
+
+        if ($Data && $Direction) {
+            if (!isset( $Data['Id'] ) || !isset( $Data['tblLevel'] )) {
+                return ( new Response() )->addError('Fehler!',
+                    new HazardSign().' Die Zuweisung der Zugriffslevel konnte nicht aktualisiert werden.', 0);
+            }
+            $Id = $Data['Id'];
+            $tblLevel = $Data['tblLevel'];
+
+            if ($Direction['From'] == 'TableAvailable') {
+                $Remove = false;
+            } else {
+                $Remove = true;
+            }
+
+            $tblRole = Access::useService()->getRoleById($Id);
+            if ($tblRole && null !== $tblLevel && ( $tblLevel = Access::useService()->getLevelById($tblLevel) )) {
+                if ($Remove) {
+                    Access::useService()->removeRoleLevel($tblRole, $tblLevel);
+                } else {
+                    Access::useService()->addRoleLevel($tblRole, $tblLevel);
+                }
+            }
+            return ( new Response() )->addData(new Success().' Die Zuweisung der Zugriffslevel wurde erfolgreich aktualisiert.');
+        }
+        return ( new Response() )->addError('Fehler!',
+            new HazardSign().' Die Zuweisung der Zugriffslevel konnte nicht aktualisiert werden.', 0);
     }
 }
