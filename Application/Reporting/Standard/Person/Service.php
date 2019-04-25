@@ -481,10 +481,9 @@ class Service extends Extension
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StudentNumber'] = '';
                 $Item['Gender'] = '';
-                $Item['Guardian1'] = '';
-                $Item['Guardian2'] = '';
-                $Item['PhoneGuardian1'] = '';
-                $Item['PhoneGuardian2'] = '';
+                $Item['Guardian1'] = $Item['PhoneGuardian1'] = $Item['PhoneGuardian1Excel'] = '';
+                $Item['Guardian2'] = $Item['PhoneGuardian2'] = $Item['PhoneGuardian2Excel'] = '';
+                $Item['Authorized'] = $Item['PhoneAuthorized'] = $Item['PhoneAuthorizedExcel'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = '';
@@ -522,108 +521,48 @@ class Service extends Extension
                     $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
                     $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
                 }
-                $Guardian1 = null;
-                $Guardian2 = null;
-                unset($phoneListGuardian1);
-                unset($phoneListGuardian2);
-                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-                if ($guardianList) {
+                // Guardian 1
+                $tblPersonG1 = false;
+                // Guardian 2
+                $tblPersonG2 = false;
+                // Authorized
+                $tblPersonA = false;
+                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                if ($tblToPersonList) {
                     $Count = 0;
-                    foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt') {
+                    foreach ($tblToPersonList as $tblToPerson) {
+                        if ($tblToPerson->getTblType()->getName() == 'Sorgeberechtigt') {
+                            //ToDO S1 und S2 Überarbeitung
                             if ($Count === 0) {
-                                if ($guardian->getServiceTblPersonFrom()) {
-                                    $Guardian1 = $guardian->getServiceTblPersonFrom();
+                                if ($tblToPerson->getServiceTblPersonFrom()) {
+                                    $tblPersonG1 = $tblToPerson->getServiceTblPersonFrom();
                                 }
                             }
                             if ($Count === 1) {
-                                if ($guardian->getServiceTblPersonFrom()) {
-                                    $Guardian2 = $guardian->getServiceTblPersonFrom();
+                                if ($tblToPerson->getServiceTblPersonFrom()) {
+                                    $tblPersonG2 = $tblToPerson->getServiceTblPersonFrom();
                                 }
                             }
-                            $Count = $Count + 1;
+                            $Count++;
+                        } elseif($tblToPerson->getTblType()->getName() == 'Bevollmächtigt'){
+                            $tblPersonA = $tblToPerson->getServiceTblPersonFrom();
                         }
                     }
                 }
-                if (isset($Guardian1)) {
-                    $Item['Guardian1'] = $Guardian1->getFullName();
-                    $Guardian1PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian1);
-                    if ($Guardian1PhoneList) {
-                        $privateList = array();
-                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
-                            if($Guardian1Phone->getTblType()->getName() == 'Privat'){
-                                $privateList[] = $Guardian1Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian1Phone);
-                            }
-                        }
-                        $companyList = array();
-                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
-                            if($Guardian1Phone->getTblType()->getName() == 'Geschäftlich'){
-                                $companyList[] = $Guardian1Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian1Phone);
-                            }
-                        }
-                        $secureList = array();
-                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
-                            if($Guardian1Phone->getTblType()->getName() == 'Notfall'){
-                                $secureList[] = $Guardian1Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian1Phone);
-                            }
-                        }
-                        $faxList = array();
-                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
-                            if($Guardian1Phone->getTblType()->getName() == 'Fax'){
-                                $faxList[] = $Guardian1Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian1Phone);
-                            }
-                        }
-                        $phoneListGuardian1 = array_merge($privateList, $companyList, $secureList, $faxList);
-                    }
+                if ($tblPersonG1) {
+                    $Item['Guardian1'] = $tblPersonG1->getFullName();
+                    $Item['PhoneGuardian1'] = $this->getPhoneList($tblPersonG1);
+                    $Item['PhoneGuardian1Excel'] = $this->getPhoneList($tblPersonG1, true);
                 }
-                if (isset($Guardian2)) {
-                    $Item['Guardian2'] = $Guardian2->getFullName();
-                    $Guardian2PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian2);
-                    if ($Guardian2PhoneList) {
-                        $privateList = array();
-                        foreach ($Guardian2PhoneList as $Guardian2Phone) {
-                            if($Guardian2Phone->getTblType()->getName() == 'Privat'){
-                                $privateList[] = $Guardian2Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian2Phone);
-                            }
-                        }
-                        $companyList = array();
-                        foreach ($Guardian2PhoneList as $Guardian2Phone) {
-                            if($Guardian2Phone->getTblType()->getName() == 'Geschäftlich'){
-                                $companyList[] = $Guardian2Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian2Phone);
-                            }
-                        }
-                        $secureList = array();
-                        foreach ($Guardian2PhoneList as $Guardian2Phone) {
-                            if($Guardian2Phone->getTblType()->getName() == 'Notfall'){
-                                $secureList[] = $Guardian2Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian2Phone);
-                            }
-                        }
-                        $faxList = array();
-                        foreach ($Guardian2PhoneList as $Guardian2Phone) {
-                            if($Guardian2Phone->getTblType()->getName() == 'Fax'){
-                                $faxList[] = $Guardian2Phone->getTblPhone()->getNumber().' '.
-                                    $this->getShortTypeByTblToPersonPhone($Guardian2Phone);
-                            }
-                        }
-                        $phoneListGuardian2 = array_merge($privateList, $companyList, $secureList, $faxList);
-                    }
+                if ($tblPersonG2) {
+                    $Item['Guardian2'] = $tblPersonG2->getFullName();
+                    $Item['PhoneGuardian2'] = $this->getPhoneList($tblPersonG2);
+                    $Item['PhoneGuardian2Excel'] = $this->getPhoneList($tblPersonG2, true);
                 }
-
-                // display phoneList for Guardian1
-                if(!empty($phoneListGuardian1)){
-                    $Item['PhoneGuardian1'] = implode(', ', $phoneListGuardian1);
-                }
-
-                // display phoneList for Guardian2
-                if(!empty($phoneListGuardian2)){
-                    $Item['PhoneGuardian2'] = implode(', ', $phoneListGuardian2);
+                if($tblPersonA){
+                    $Item['Authorized'] = $tblPersonA->getFullName();
+                    $Item['PhoneAuthorized'] = $this->getPhoneList($tblPersonA);
+                    $Item['PhoneAuthorizedExcel'] = $this->getPhoneList($tblPersonA, true);
                 }
 
                 array_push($TableContent, $Item);
@@ -634,17 +573,76 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param TblPerson $tblPerson
+     * @param bool      $IsExcel
+     *
+     * @return string
+     */
+    private function getPhoneList(TblPerson $tblPerson, $IsExcel = false)
+    {
+
+        $tblToPersonList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+
+        $phoneList = array();
+
+        if ($tblToPersonList) {
+            $privateList = array();
+            foreach ($tblToPersonList as $tblToPerson) {
+                if($tblToPerson->getTblType()->getName() == 'Privat'){
+                    $privateList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
+                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                }
+            }
+            $companyList = array();
+            foreach ($tblToPersonList as $tblToPerson) {
+                if($tblToPerson->getTblType()->getName() == 'Geschäftlich'){
+                    $companyList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
+                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                }
+            }
+            $secureList = array();
+            foreach ($tblToPersonList as $tblToPerson) {
+                if($tblToPerson->getTblType()->getName() == 'Notfall'){
+                    $secureList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
+                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                }
+            }
+            $faxList = array();
+            foreach ($tblToPersonList as $tblToPerson) {
+                if($tblToPerson->getTblType()->getName() == 'Fax'){
+                    $faxList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
+                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                }
+            }
+            $phoneList = array_merge($privateList, $companyList, $secureList, $faxList);
+        }
+        if(!empty($phoneList)){
+            return implode(', ', $phoneList);
+        }
+        return '';
+    }
+
+    /**
+     * @param $PersonList
+     * @param $tblPersonList
      *
      * @return bool|FilePointer
-     * @throws TypeFileException
      * @throws DocumentTypeException
      */
     public function createExtendedClassListExcel($PersonList, $tblPersonList)
     {
 
         if (!empty($PersonList)) {
+
+            $IsAuthorized = false;
+            $TempList = $PersonList;
+
+            foreach($TempList as $Row){
+                if($Row['Authorized']){
+                    $IsAuthorized = true;
+                    break;
+                }
+            }
 
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
@@ -667,6 +665,11 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, "0"), "Tel. Sorgeber. 1");
             $export->setValue($export->getCell($column++, "0"), "Sorgeberechtigter 2");
             $export->setValue($export->getCell($column, "0"), "Tel. Sorgeber. 2");
+            if($IsAuthorized){
+                $column++;
+                $export->setValue($export->getCell($column++, "0"), "Bevollmächtigt");
+                $export->setValue($export->getCell($column, "0"), "Tel. Bevollmächtigt");
+            }
 
             $Row = 1;
 
@@ -687,9 +690,14 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Birthday']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Birthplace']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Guardian1']);
-                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneGuardian1']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneGuardian1Excel']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Guardian2']);
-                $export->setValue($export->getCell($column, $Row), $PersonData['PhoneGuardian2']);
+                $export->setValue($export->getCell($column, $Row), $PersonData['PhoneGuardian2Excel']);
+                if($IsAuthorized){
+                    $column++;
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['Authorized']);
+                    $export->setValue($export->getCell($column, $Row), $PersonData['PhoneAuthorizedExcel']);
+                }
 
                 $Row++;
             }
@@ -2990,10 +2998,7 @@ class Service extends Extension
         $TableContent = array();
 
         if (!empty($tblPersonList)) {
-
-            $count = 1;
-
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
                 $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['StudentNumber'] = '';
                 $Item['Birthday'] = '';
@@ -3107,10 +3112,7 @@ class Service extends Extension
         $TableContent = array();
 
         if (!empty($tblPersonList)) {
-
-            $count = 1;
-
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
                 $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['StudentNumber'] = '';
                 $Item['Birthday'] = '';
