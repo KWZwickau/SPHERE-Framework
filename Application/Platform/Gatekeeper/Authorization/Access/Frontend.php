@@ -36,6 +36,8 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+// ToDO Refactor $Entity->
+
 /**
  * Class Frontend
  *
@@ -505,7 +507,6 @@ class Frontend
                 )
             )
         );
-
         return $Stage;
     }
 
@@ -533,24 +534,27 @@ class Frontend
             }
         );
 
+        $tableContentRight = array();
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessListAvailable, function (TblPrivilege &$Entity) use ($Id){
+        array_walk($tblAccessListAvailable, function (TblPrivilege $tblPrivilege) use ($Id, &$tableContentRight){
 
-            /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
+            $item['Name'] = $tblPrivilege->getName();
+            $item['Exchange'] = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
                 'Id'           => $Id,
-                'tblPrivilege' => $Entity->getId()
+                'tblPrivilege' => $tblPrivilege->getId()
             ));
+
+            array_push($tableContentRight, $item);
         });
 
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAccessList, function (TblPrivilege &$Entity) use ($Id){
-
-            /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
+        $tableContentLeft = array();
+        array_walk($tblAccessList, function (TblPrivilege $tblPrivilege) use ($Id, &$tableContentLeft){
+            $item['Name'] = $tblPrivilege->getName();
+            $item['Exchange'] = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
                 'Id'           => $Id,
-                'tblPrivilege' => $Entity->getId()
-            ) );
+                'tblPrivilege' => $tblPrivilege->getId()
+            ));
+            array_push($tableContentLeft, $item);
         });
 
         $Stage->setContent(
@@ -561,7 +565,7 @@ class Frontend
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Zugewiesen'),
-                            new TableData($tblAccessList, null,
+                            new TableData($tableContentLeft, null,
                                 array('Exchange' => '', 'Name' => 'Name'), array(
                                     'order'                => array(array(1, 'asc')),
                                     'columnDefs'           => array(
@@ -586,7 +590,7 @@ class Frontend
                         ), 6),
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Verfügbar'),
-                            new TableData($tblAccessListAvailable, null,
+                            new TableData($tableContentRight, null,
                                 array('Exchange' => ' ', 'Name' => 'Name '), array(
                                     'order'                => array(array(1, 'asc')),
                                     'columnDefs'           => array(
