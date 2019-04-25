@@ -89,6 +89,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Category
+     *
+     * @return false|TblSetting[]
+     */
+    public function getSettingAllByCategory($Category = '')
+    {
+
+        return (new Data($this->getBinding()))->getSettingAllByCategory($Category);
+    }
+
+    /**
      * @return bool|TblSettingGroupPerson[]
      */
     public function getSettingGroupPersonAll()

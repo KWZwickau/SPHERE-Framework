@@ -17,17 +17,29 @@ class TblSetting extends Element
 
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_VALUE = 'Value';
+    const ATTR_TYPE = 'Type';
+    const ATTR_CATEGORY = 'Category';
 
+    // Regular Options
     const IDENT_DEBTOR_NUMBER_COUNT = 'DebtorNumberCount';
     const IDENT_PERSON_GROUP_ACTIVE_LIST = 'PersonGroupActiveList';
     const IDENT_IS_DEBTOR_NUMBER_NEED = 'IsDebtorNumberNeed';
-    const IDENT_IS_SEPA = 'IsSepa';
     const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
     const IDENT_IS_AUTO_REFERENCE_NUMBER = 'IsAutoReferenceNumber';
+
+    // Sepa Option's
+    const IDENT_IS_SEPA = 'IsSepa';
+    const IDENT_ADVISER = 'Adviser';
+    // ToDO Mandant über Schularten ziehen
+    const IDENT_SEPA_ACCOUNT_NUMBER_LENGTH = 'SepaAccountNumberLength';
+    const IDENT_IS_WORKER_ACRONYM = 'IsWorkerAcronym';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
     const TYPE_INTEGER = 'integer';
+
+    const CATEGORY_REGULAR = 'Allgemein';
+    const CATEGORY_SEPA = 'SEPA';
 
     /**
      * @Column(type="string")
@@ -41,6 +53,10 @@ class TblSetting extends Element
      * @Column(type="string")
      */
     protected $Type;
+    /**
+     * @Column(type="string")
+     */
+    protected $Category;
 
     /**
      * @return string
@@ -88,5 +104,21 @@ class TblSetting extends Element
     public function setType($Type)
     {
         $this->Type = $Type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCategory()
+    {
+        return $this->Category;
+    }
+
+    /**
+     * @param string $Category
+     */
+    public function setCategory($Category)
+    {
+        $this->Category = $Category;
     }
 }

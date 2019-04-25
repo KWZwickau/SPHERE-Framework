@@ -7,6 +7,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -56,11 +57,15 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiSetting::receiverPersonGroup($this->displayPersonGroup())
                     )
                 ),
-                new LayoutRow(
+                new LayoutRow(array(
                     new LayoutColumn(
-                        ApiSetting::receiverSetting($this->displaySetting())
-                    )
-                )
+                        ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_REGULAR), TblSetting::CATEGORY_REGULAR)
+                    , 6),
+                    new LayoutColumn(
+                        ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_SEPA), TblSetting::CATEGORY_SEPA)
+                    , 6),
+
+                ))
             ))
         ). ApiSetting::receiverModal()
         );
@@ -198,16 +203,18 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param string $Category
+     *
      * @return Layout
      */
-    public function displaySetting()
+    public function displaySetting($Category = TblSetting::CATEGORY_REGULAR)
     {
 
-        $tblSettingList = Setting::useService()->getSettingAll();
-
+        $tblSettingList = Setting::useService()->getSettingAllByCategory($Category);
         $Listing = array();
         foreach($tblSettingList as &$tblSetting){
             switch($tblSetting->getIdentifier()){
+                // REGULAR
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $Listing[$tblSetting->getId()] = '&nbsp;Länge der Debitoren-Nr.: &nbsp;'
                         .new Bold(($tblSetting->getValue()
@@ -219,13 +226,6 @@ class Frontend extends Extension implements IFrontendInterface
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())));
-                break;
-                case TblSetting::IDENT_IS_SEPA:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für SEPA-Lastschrift relevanten Eingaben &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                        ? new SuccessText(new Check())
-                        : new DangerText(new Unchecked())))
-                    .new PullRight((new Link(new Info(), ApiSetting::getEndpoint()))->ajaxPipelineOnClick(ApiSetting::pipelineShowSepaInfo()));
                 break;
                 case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
                     $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Debitorennummer &nbsp;'
@@ -239,58 +239,102 @@ class Frontend extends Extension implements IFrontendInterface
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())));
                 break;
+                // SEPA
+                case TblSetting::IDENT_IS_SEPA:
+                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für SEPA-Lastschrift relevanten Eingaben &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                            ? new SuccessText(new Check())
+                            : new DangerText(new Unchecked())))
+                        .new PullRight((new Link(new Info(), ApiSetting::getEndpoint()))->ajaxPipelineOnClick(ApiSetting::pipelineShowSepaInfo()));
+                break;
+                case TblSetting::IDENT_ADVISER:
+                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabe des SEPA-Baraters &nbsp;'
+                        .new Bold($tblSetting->getValue());
+                break;
+                case TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH:
+                    $Listing[$tblSetting->getId()] ='&nbsp;Maximale länge der Sachkontennummer &nbsp;'
+                        .new Bold($tblSetting->getValue());
+                break;
+                case TblSetting::IDENT_IS_WORKER_ACRONYM:
+                    $Listing[$tblSetting->getId()] ='&nbsp; Mitarbeiter-Kürzel &nbsp;'
+                        .new Bold(($tblSetting->getValue()
+                            ? new SuccessText(new Check())
+                            : new DangerText(new Unchecked())));
+                break;
             }
         }
         ksort($Listing);
+        $Title = $this->getTitleByCategory($Category);
         return new Layout(new LayoutGroup(array(
             new LayoutRow(
                 new LayoutColumn(
-                    new Title('Allgemeine Einstellungen: ',
+                    new Title($Title,
                         (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pencil()))
-                            ->ajaxPipelineOnClick(ApiSetting::pipelineShowFormSetting()))
-                )
+                            ->ajaxPipelineOnClick(ApiSetting::pipelineShowFormSetting($Category))))
             ),
-            new LayoutRow(new LayoutColumn(new Well(new Listing($Listing)), 6))
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Well(new Listing($Listing))
+                ),
+            ))
         )));
     }
 
     /**
+     * @param string $Category
+     *
      * @return Layout
      */
-    public function formSetting()
+    public function formSetting($Category = TblSetting::CATEGORY_REGULAR)
     {
 
         $elementList = array();
-        $tblSettingList = Setting::useService()->getSettingAll();
+        $tblSettingList = Setting::useService()->getSettingAllByCategory($Category);
         foreach($tblSettingList as &$tblSetting){
             switch($tblSetting->getIdentifier()){
+                    // Regular Option's
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
                     $elementList[$tblSetting->getId()] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debitoren-Nr.');
-                    break;
+                break;
                 case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
                     $_POST['Setting'][TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED] = $tblSetting->getValue();
                     $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debitoren-Nr. ist eine Pflichtangabe', true);
-                    break;
-                case TblSetting::IDENT_IS_SEPA:
-                    $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für SEPA-Lastschrift relevanten Eingaben aktivieren', true);
-                    break;
+                break;
                 case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER] = $tblSetting->getValue();
                     $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER.']', ' Vorschlag höchste Debitorennummer', true);
-                    break;
+                break;
                 case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER] = $tblSetting->getValue();
                     $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER.']', ' Vorschlag höchste Mandatsreferenznummer', true);
-                    break;
+                break;
+                    // Sepa Option's
+                case TblSetting::IDENT_IS_SEPA:
+                    $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
+                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für SEPA-Lastschrift relevanten Eingaben aktivieren', true);
+                break;
+                case TblSetting::IDENT_ADVISER:
+                    $_POST['Setting'][TblSetting::IDENT_ADVISER] = $tblSetting->getValue();
+                    $elementList[$tblSetting->getId()] = new TextField('Setting['.TblSetting::IDENT_ADVISER.']', '', 'SEPA-Berater');
+                break;
+                case TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH:
+                    $_POST['Setting'][TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH] = $tblSetting->getValue();
+                    $elementList[$tblSetting->getId()] = new NumberField('Setting['.TblSetting::IDENT_SEPA_ACCOUNT_NUMBER_LENGTH.']', '', 'Maximale länge der Sachkontennummer');
+                break;
+                case TblSetting::IDENT_IS_WORKER_ACRONYM:
+                    $_POST['Setting'][TblSetting::IDENT_IS_WORKER_ACRONYM] = $tblSetting->getValue();
+                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_WORKER_ACRONYM.']', ' Verdendung des Mitarbeiterkürzel', true);
+                break;
             }
         }
         ksort($elementList);
+        $Title = $this->getTitleByCategory($Category);
+
         return new Layout(new LayoutGroup(array(
             new LayoutRow(
                 new LayoutColumn(
-                    new Title('Allgemeine Einstellungen:')
+                    new Title($Title)
                 )
             ),
             new LayoutRow(
@@ -299,13 +343,28 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormRow(new FormColumn($elementList, 12)),
                         new FormRow(new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             (new Primary('Speichern', ApiSetting::getEndpoint(), new Save()))
-                                ->ajaxPipelineOnClick(ApiSetting::pipelineSaveSetting())
+                                ->ajaxPipelineOnClick(ApiSetting::pipelineSaveSetting($Category))
                             .(new Primary('Abbrechen', ApiSetting::getEndpoint(), new Disable()))
-                                ->ajaxPipelineOnClick(ApiSetting::pipelineShowSetting())
+                                ->ajaxPipelineOnClick(ApiSetting::pipelineShowSetting($Category))
                         ))))))
                     ))))->disableSubmitAction()
-                ), 6)
+                ))
             )
         )));
+    }
+
+    private function getTitleByCategory($Category = '')
+    {
+
+        $Title = '';
+        switch($Category){
+            case TblSetting::CATEGORY_REGULAR:
+                $Title = 'Allgemeine Einstellungen:';
+                break;
+            case TblSetting::CATEGORY_SEPA:
+                $Title = 'SEPA Einstellungen:';
+                break;
+        }
+        return $Title;
     }
 }

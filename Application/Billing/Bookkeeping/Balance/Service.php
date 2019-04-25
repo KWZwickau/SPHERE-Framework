@@ -620,7 +620,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell("10", $row), "1");   // todo Berater über Option
             $export->setValue($export->getCell("11", $row), "1");   // todo Mandat über Option Schulart bedingt unterschiedlich
             $export->setValue($export->getCell("12", $row), "20190101");// todo WJ-Beginn Aktuelle Jahr vorne ziehen
-            $export->setValue($export->getCell("13", $row), "7");   // todo "Sachkonten Nummernlänge" über Option
+            $export->setValue($export->getCell("13", $row), "6");   // todo "Sachkonten Nummernlänge" über Option
             $export->setValue($export->getCell("14", $row), $tblBasket->getTargetTime());// todo Buchungsstapel von 01.01.xxxx
             $export->setValue($export->getCell("15", $row), $tblBasket->getTargetTime());// todo Buchungsstapel bis xx.01.xxxx
             $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
