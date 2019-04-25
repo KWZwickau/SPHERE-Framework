@@ -192,7 +192,8 @@ class Standard extends Extension implements IModuleInterface
                 $Post
             );
         }
-        return Creator::createDataPdf($Data, 'MultiPassword', Creator::PAPERORIENTATION_PORTRAIT);
+
+        return Creator::createMultiPasswordPdf($Data, Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**

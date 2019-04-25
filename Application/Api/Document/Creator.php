@@ -22,6 +22,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Document\Generator\Generator;
+use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -336,17 +337,11 @@ class Creator extends Extension
             if ($DocumentName == 'PasswordChange') {
                 $Document = new PasswordChange($Data);
             }
-            if ($DocumentName == 'MultiPassword') {
-                $Document = new MultiPassword($Data);
-            }
 
             if ($Document) {
                 $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
 
                 $FileName = $Document->getName().'_'.date("Y-m-d").".pdf";
-                if ($DocumentName == 'MultiPassword') {
-                    $FileName = $Document->getName().".pdf";
-                }
 
                 return self::buildDownloadFile($File, $FileName);
             }
@@ -474,6 +469,66 @@ class Creator extends Extension
         }
 
         return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param $Data
+     * @param string $paperOrientation
+     * @return Stage|string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public static function createMultiPasswordPdf($Data, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    {
+
+        $multiPassword = new MultiPassword($Data);
+        $pageList = $multiPassword->getPageList();
+
+        if (!empty($pageList)) {
+            ini_set('memory_limit', '2G');
+            $PdfMerger = new PdfMerge();
+            $FileList = array();
+
+            foreach ($pageList as $page) {
+                // Create Tmp
+                $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
+                $clone[] = clone $File;
+                // build before const is set (picture)
+                /** @var DomPdf $Document */
+                $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+                $Document->setPaperOrientationParameter(new PaperOrientationParameter($paperOrientation));
+                $pdfDocument = new \SPHERE\Application\Document\Generator\Repository\Document();
+                $pdfDocument->addPage($page);
+                $pdfFrame = new Frame();
+                $pdfFrame->addDocument($pdfDocument);
+                $Document->setContent($pdfFrame->getTemplate());
+                $Document->saveFile(new FileParameter($File->getFileLocation()));
+                // hinzufügen für das mergen
+                $PdfMerger->addPDF($File);
+                // speichern der Files zum nachträglichem bereinigen
+                $FileList[] = $File;
+            }
+
+            $MergeFile = Storage::createFilePointer('pdf');
+            // mergen aller hinzugefügten PDF-Datein
+            $PdfMerger->mergePdf($MergeFile);
+
+            if(!empty($FileList)){
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+            }
+
+            $FileName = $multiPassword->getName().".pdf";
+
+            return FileSystem::getStream(
+                $MergeFile->getRealPath(),
+                $FileName
+            )->__toString();
+        }
+
+        return new Stage('Account Export', 'Konnte nicht erstellt werden.');
     }
 
     /**
