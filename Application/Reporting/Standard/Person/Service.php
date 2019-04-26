@@ -483,6 +483,7 @@ class Service extends Extension
                 $Item['Gender'] = '';
                 $Item['Guardian1'] = $Item['PhoneGuardian1'] = $Item['PhoneGuardian1Excel'] = '';
                 $Item['Guardian2'] = $Item['PhoneGuardian2'] = $Item['PhoneGuardian2Excel'] = '';
+                $Item['Guardian3'] = $Item['PhoneGuardian3'] = $Item['PhoneGuardian3Excel'] = '';
                 $Item['Authorized'] = $Item['PhoneAuthorized'] = $Item['PhoneAuthorizedExcel'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
@@ -525,26 +526,20 @@ class Service extends Extension
                 $tblPersonG1 = false;
                 // Guardian 2
                 $tblPersonG2 = false;
+                // Guardian 3
+                $tblPersonG3 = false;
                 // Authorized
                 $tblPersonA = false;
                 $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($tblToPersonList) {
-                    $Count = 0;
                     foreach ($tblToPersonList as $tblToPerson) {
-                        if ($tblToPerson->getTblType()->getName() == 'Sorgeberechtigt') {
-                            //ToDO S1 und S2 Überarbeitung
-                            if ($Count === 0) {
-                                if ($tblToPerson->getServiceTblPersonFrom()) {
-                                    $tblPersonG1 = $tblToPerson->getServiceTblPersonFrom();
-                                }
+                        if ($tblToPerson->getTblType()->getName() == 'Sorgeberechtigt' && $tblToPerson->getServiceTblPersonFrom()) {
+                            switch ($tblToPerson->getRanking()) {
+                                case 1: $tblPersonG1 = $tblToPerson->getServiceTblPersonFrom(); break;
+                                case 2: $tblPersonG2 = $tblToPerson->getServiceTblPersonFrom(); break;
+                                case 3: $tblPersonG3 = $tblToPerson->getServiceTblPersonFrom(); break;
                             }
-                            if ($Count === 1) {
-                                if ($tblToPerson->getServiceTblPersonFrom()) {
-                                    $tblPersonG2 = $tblToPerson->getServiceTblPersonFrom();
-                                }
-                            }
-                            $Count++;
-                        } elseif($tblToPerson->getTblType()->getName() == 'Bevollmächtigt'){
+                        } elseif($tblToPerson->getTblType()->getName() == 'Bevollmächtigt' && $tblToPerson->getServiceTblPersonFrom()){
                             $tblPersonA = $tblToPerson->getServiceTblPersonFrom();
                         }
                     }
@@ -558,6 +553,11 @@ class Service extends Extension
                     $Item['Guardian2'] = $tblPersonG2->getFullName();
                     $Item['PhoneGuardian2'] = $this->getPhoneList($tblPersonG2);
                     $Item['PhoneGuardian2Excel'] = $this->getPhoneList($tblPersonG2, true);
+                }
+                if ($tblPersonG3) {
+                    $Item['Guardian3'] = $tblPersonG3->getFullName();
+                    $Item['PhoneGuardian3'] = $this->getPhoneList($tblPersonG3);
+                    $Item['PhoneGuardian3Excel'] = $this->getPhoneList($tblPersonG3, true);
                 }
                 if($tblPersonA){
                     $Item['Authorized'] = $tblPersonA->getFullName();
@@ -664,7 +664,9 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, "0"), "Sorgeberechtigter 1");
             $export->setValue($export->getCell($column++, "0"), "Tel. Sorgeber. 1");
             $export->setValue($export->getCell($column++, "0"), "Sorgeberechtigter 2");
-            $export->setValue($export->getCell($column, "0"), "Tel. Sorgeber. 2");
+            $export->setValue($export->getCell($column++, "0"), "Tel. Sorgeber. 2");
+            $export->setValue($export->getCell($column++, "0"), "Sorgeberechtigter 3");
+            $export->setValue($export->getCell($column, "0"), "Tel. Sorgeber. 3");
             if($IsAuthorized){
                 $column++;
                 $export->setValue($export->getCell($column++, "0"), "Bevollmächtigt");
@@ -692,7 +694,9 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Guardian1']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneGuardian1Excel']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Guardian2']);
-                $export->setValue($export->getCell($column, $Row), $PersonData['PhoneGuardian2Excel']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneGuardian2Excel']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Guardian3']);
+                $export->setValue($export->getCell($column, $Row), $PersonData['PhoneGuardian3Excel']);
                 if($IsAuthorized){
                     $column++;
                     $export->setValue($export->getCell($column++, $Row), $PersonData['Authorized']);
