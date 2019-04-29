@@ -21,10 +21,12 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -36,6 +38,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 /**
  * Class ApiItem
@@ -288,7 +291,7 @@ class ApiItem extends ItemVariant implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', ApiItem::getEndpoint(), new Save());
-        if('' !== $ItemId /* && ($tblItem = Item::useService()->getItemById($ItemId)) */){
+        if('' !== $ItemId){
             $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveEditItem($Identifier, $ItemId));
         } else {
             $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveAddItem($Identifier));
@@ -321,19 +324,48 @@ class ApiItem extends ItemVariant implements IApiInterface
 
 
         return (new Form(
-            new FormGroup(
+            new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         (new TextField('Item[Name]', 'Beitragsart', 'Beitragsart'))->setRequired()
                         , 6),
                     new FormColumn(
                         $CheckboxList
-                        , 6),
+                        , 6)
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new Ruler()
+                    )
+                ),
+                new FormRow(array(
+                    new FormColumn(new Panel('Buchungstext',
+                        array(
+                            new TextField('Item[SepaRemark]', 'z.B.: GId: [GID], Art: [BA]', 'Sepa &nbsp;'
+                                .new ToolTip(new Info(), 'Wird keine Eingabe getätigt,
+                                so steht im Buchungstext der Name der Beitragsart')),
+                            new TextField('Item[DatevRemark]', 'z.B.: GId: [GID], Art: [BA]', 'Datev &nbsp;'
+                                .new ToolTip(new Info(), 'Wird keine Eingabe getätigt,
+                                so steht im Buchungstext der Name der Beitragsart'))
+                        ), Panel::PANEL_TYPE_INFO)
+                    , 8),
+                    new FormColumn(
+                        new Panel('Freifelder für Buchungstext', array(
+                                '[GID] = Gläubiger Id',
+                                '[BA] = Beitragsart',
+                                '[BJ] = Beitragsjahr',
+                                '[BS] = Beitragssumme'
+                            )
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4),
+
+                )),
+                new FormRow(array(
                     new FormColumn(
                         $SaveButton
                     )
-                ))
-            )
+                )),
+            ))
         ))->disableSubmitAction();
     }
 
@@ -404,11 +436,13 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $Item['Name'];
             $Global->POST['Group'] = $Group;
+            $Global->POST['Item']['SepaRemark'] = $Item['SepaRemark'];
+            $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
             $Global->savePost();
             return $form;
         }
 
-        if(($tblItem = Item::useService()->createItem($Item['Name']))){
+        if(($tblItem = Item::useService()->createItem($Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark']))){
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
@@ -438,21 +472,27 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $Item['Name'];
             $Global->POST['Group'] = $Group;
+            $Global->POST['Item']['SepaRemark'] = $Item['SepaRemark'];
+            $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->getItemById($ItemId))){
-            Item::useService()->changeItem($tblItem, $Item['Name']);
-
-            // Delete existing PersonGroup
-            //ToDO only remove not necessary Entry's
+            Item::useService()->changeItem($tblItem, $Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark']);
+            // entfernen überflüssiger Personengruppen-Verknüpfungen
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
-                    Item::useService()->removeItemGroup($tblItemGroup);
+                    $serviceTblGroup = $tblItemGroup->getServiceTblGroup();
+                    // Personengruppen-Verknüpfungen, die weiterhin benutzt werden, müssen nicht gelöscht werden
+                    // entfernte Personengruppen werden ebenfalls gelöscht
+                    if($serviceTblGroup && !in_array($serviceTblGroup->getId(), $Group)
+                    || !$serviceTblGroup){
+                        Item::useService()->removeItemGroup($tblItemGroup);
+                    }
                 }
             }
-
+            // Erstellen der neuen Personengruppen-Verknüpfungen
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);

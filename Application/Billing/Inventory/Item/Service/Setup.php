@@ -71,7 +71,12 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblItem');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
-        $this->createColumn($Table, 'Amount', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'SepaRemark', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'DatevRemark', self::FIELD_TYPE_STRING);
+        //ToDo can be removed after DB update 1.8.56 on Live
+        if ($Table->hasColumn('Amount')) {
+            $Table->dropColumn('Amount');
+        }
         $this->getConnection()->addForeignKey($Table, $tblItemType);
 
         return $Table;

@@ -30,6 +30,14 @@ class TblItem extends Element
      * @Column(type="bigint")
      */
     protected $tblItemType;
+    /**
+     * @Column(type="string")
+     */
+    protected $SepaRemark;
+    /**
+     * @Column(type="string")
+     */
+    protected $DatevRemark;
 
     /**
      * @return string
@@ -95,5 +103,45 @@ class TblItem extends Element
     public function getDisplayDescription()
     {
         return nl2br($this->getDescription());
+    }
+
+    /**
+     * @return string
+     */
+    public function getSepaRemark()
+    {
+
+        if($this->SepaRemark){
+            return $this->SepaRemark;
+        }
+        return $this->getName();
+    }
+
+    /**
+     * @param string $SepaRemark
+     */
+    public function setSepaRemark($SepaRemark = '')
+    {
+        $this->SepaRemark = $SepaRemark;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDatevRemark()
+    {
+
+        if($this->DatevRemark){
+            return $this->DatevRemark;
+        }
+        return $this->getName();
+    }
+
+    /**
+     * @param string $DatevRemark
+     */
+    public function setDatevRemark($DatevRemark = '')
+    {
+        $this->DatevRemark = $DatevRemark;
     }
 }
