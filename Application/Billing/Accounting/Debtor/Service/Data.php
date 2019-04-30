@@ -587,8 +587,8 @@ class Data extends AbstractData
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblDebtorPeriodType   $tblDebtorPeriodType
-     * @param string                $FromDate
-     * @param string|null           $ToDate
+     * @param \DateTime             $FromDate
+     * @param \DateTime|null        $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -601,15 +601,13 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         TblPaymentType $tblPaymentType,
         TblDebtorPeriodType $tblDebtorPeriodType,
-        $FromDate,
+        \DateTime $FromDate,
         $ToDate = null,
         TblItemVariant $tblItemVariant = null,
         $Value = '0',
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
     ){
-
-        // ToDo Period
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDebtorSelection $Entity */
@@ -620,10 +618,8 @@ class Data extends AbstractData
             $Entity->setServiceTblPaymentType($tblPaymentType);
             $Entity->setServiceTblItemVariant($tblItemVariant);
             $Entity->setTblDebtorPeriodType($tblDebtorPeriodType);
-            $Entity->setFromDate(new \DateTime($FromDate));
-            if($ToDate){
-                $Entity->setToDate(new \DateTime($ToDate));
-            }
+            $Entity->setFromDate($FromDate);
+            $Entity->setToDate($ToDate);
             $Entity->setValue($Value);
             $Entity->setTblBankAccount($tblBankAccount);
             $Entity->setTblBankReference($tblBankReference);

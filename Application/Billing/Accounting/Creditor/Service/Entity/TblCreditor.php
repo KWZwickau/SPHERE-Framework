@@ -209,14 +209,14 @@ class TblCreditor extends Element
     }
 
     /**
-     * @param bool $IsFormat
+     * @param bool $IsFrontend
      *
      * @return string $IBAN
      */
-    public function getIBAN($IsFormat = true)
+    public function getIBAN($IsFrontend = false)
     {
 
-        if($IsFormat){
+        if($IsFrontend){
             $countLetter = strlen($this->IBAN);
             $IBANParts = array();
             for($i = 0; $i < $countLetter; $i += 4) {

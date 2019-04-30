@@ -351,7 +351,7 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         if($Error){
             // Debtor::useFrontend()->getPersonPanel($PersonId).
-            return $form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId).new Well($form);
         }
 
         return $Error;
@@ -390,7 +390,7 @@ class ApiBankAccount extends Extension implements IApiInterface
             $Global->POST['BankAccount']['IBAN'] = $BankAccount['IBAN'];
             $Global->POST['BankAccount']['BIC'] = $BankAccount['BIC'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
+            return $form;
         }
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
@@ -422,7 +422,9 @@ class ApiBankAccount extends Extension implements IApiInterface
         if($form = $this->checkInputBankAccount($Identifier, $PersonId, $BankAccountId, $BankAccount)){
             // display Errors on form
             $Global = $this->getGlobal();
-            $Global->POST['BankAccount']['Number'] = $BankAccount['Number'];
+            if(isset($BankAccount['Number'])){
+                $Global->POST['BankAccount']['Number'] = $BankAccount['Number'];
+            }
             $Global->savePost();
             return $form;
         }

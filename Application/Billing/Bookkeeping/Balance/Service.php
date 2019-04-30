@@ -892,7 +892,7 @@ class Service extends AbstractService
      * @param TblBasket $tblBasket
      * @param array     $CheckboxList
      *
-     * @return bool|\Digitick\Sepa\TransferFile\Facade\CustomerDirectDebitFacade
+     * @return bool|CustomerDirectDebitFacade
      */
     public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array())
     {

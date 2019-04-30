@@ -359,7 +359,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
-        // ToDO Implement Receiver
         $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummer',
             ApiBankReference::receiverPanelContent($this->getReferenceContent($PersonId)).
             (new Link('Mandantsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
@@ -370,7 +369,6 @@ class Frontend extends Extension implements IFrontendInterface
         if($ItemList){
             foreach($ItemList as $tblItem) {
                 // Panel Color (unchoosen)
-                // ToDO Receiver für den Content
                 $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(),
                         ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
                             , $tblItem->getId())
@@ -483,6 +481,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $ToDate .= new Bold($tblDebtorSelection->getToDate());
                     } else {
                         $ToDate .= new Bold('kein Enddatum');
+                    }
+                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
+                        $Debtor .= $tblPersonDebtor->getSalutation().' '.substr($tblPersonDebtor->getFirstName(), 0, 1) .'. '
+                            .$tblPersonDebtor->getLastName();
                     }
 
                     $OptionButtons = new PullRight(

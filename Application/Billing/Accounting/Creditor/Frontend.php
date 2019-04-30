@@ -69,7 +69,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .' '.$tblCreditor->getCity().' '.$tblCreditor->getDistrict();
                 $Item['CreditorId'] = $tblCreditor->getCreditorId();
                 $Item['BankName'] = $tblCreditor->getBankName();
-                $Item['IBAN'] = $tblCreditor->getIBAN();
+                $Item['IBAN'] = $tblCreditor->getIBAN(true);
                 $Item['BIC'] = $tblCreditor->getBIC();
                 $Item['Option'] = (new Link('', ApiCreditor::getEndpoint(), new Pencil(), array(), 'Bearbeiten'))
                         ->ajaxPipelineOnClick(ApiCreditor::pipelineOpenEditCreditorModal('editCreditor',

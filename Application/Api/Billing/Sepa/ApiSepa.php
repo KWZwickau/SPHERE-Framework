@@ -105,9 +105,11 @@ class ApiSepa extends Extension implements IApiInterface
                     $item['Name'] = $tblInvoiceItemDebtor->getName();
                     $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
                     $item['Owner'] = $tblInvoiceItemDebtor->getOwner();
-//                    $item[''] = ;
-
-                    array_push($TableContent, $item);
+                    // Es werden nur Sepa-Lastschriften zur Verfügung gestellt
+                    if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())
+                        && $tblPaymentType->getName() == 'SEPA-Lastschrift' ){
+                        array_push($TableContent, $item);
+                    }
                 });
             }
 

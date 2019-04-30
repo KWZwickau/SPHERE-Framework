@@ -340,9 +340,9 @@ class TblDebtorSelection extends Element
     /**
      * @param \DateTime $ToDate
      */
-    public function setToDate(\DateTime $ToDate)
+    public function setToDate(\DateTime $ToDate = null)
     {
 
-        $this->ToDate = $ToDate;
+        $this->ToDate = ($ToDate ? $ToDate : null);
     }
 }

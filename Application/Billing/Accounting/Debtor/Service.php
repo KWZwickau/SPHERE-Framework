@@ -367,6 +367,8 @@ class Service extends AbstractService
     public function createBankAccount(TblPerson $tblPerson, $Owner = '', $BankName = '', $IBAN = '', $BIC = '')
     {
 
+        $IBAN = str_replace(' ', '', $IBAN);
+        $BIC = str_replace(' ', '', $BIC);
         return (new Data($this->getBinding()))->createBankAccount($tblPerson, $BankName, $IBAN, $BIC, $Owner);
     }
 
@@ -440,6 +442,8 @@ class Service extends AbstractService
     public function changeBankAccount(TblBankAccount $tblBankAccount, $Owner = '', $BankName = '', $IBAN = '', $BIC = ''
     ){
 
+        $IBAN = str_replace(' ', '', $IBAN);
+        $BIC = str_replace(' ', '', $BIC);
         return (new Data($this->getBinding()))->updateBankAccount($tblBankAccount, $BankName, $IBAN, $BIC, $Owner);
     }
 
@@ -472,11 +476,21 @@ class Service extends AbstractService
      * @return bool
      */
     public function changeDebtorSelection(TblDebtorSelection $tblDebtorSelection, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, TblDebtorPeriodType $tblDebtorPeriodType, $FromDate, $ToDate = null,TblItemVariant $tblItemVariant = null,
+        TblPaymentType $tblPaymentType, TblDebtorPeriodType $tblDebtorPeriodType, $FromDate, $ToDate = '',TblItemVariant $tblItemVariant = null,
         $Value = '0', TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
+
+        //Pflichtfeld
+        $FromDate = new \DateTime($FromDate);
+        // (kein Pflichtfeld)
+        // hiermit kann das ToDate wieder entfernt werden
+        if('' === $ToDate){
+            $ToDate = null;
+        } else {
+            $ToDate = new \DateTime($ToDate);
+        }
         return (new Data($this->getBinding()))->updateDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
             $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
