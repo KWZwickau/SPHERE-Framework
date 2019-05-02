@@ -637,8 +637,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell("4", $row), "Basisumsatz");
             $export->setValue($export->getCell("5", $row), "WKZ Basisumsatz");
             $export->setValue($export->getCell("6", $row), "Konto");
-            $export->setValue($export->getCell("7", $row), "Gegenkonto (ohne BU-Schlüssel)");
-            $export->setValue($export->getCell("8", $row), "BU-Schlüssel");
+            $export->setValue($export->getCell("7", $row), utf8_decode("Gegenkonto (ohne BU-Schlüssel)"));
+            $export->setValue($export->getCell("8", $row), utf8_decode("BU-Schlüssel"));
             $export->setValue($export->getCell("9", $row), "Belegdatum");
             $export->setValue($export->getCell("10", $row), "Belegfeld 1");
             $export->setValue($export->getCell("11", $row), "Belegfeld 2");
@@ -646,7 +646,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell("13", $row), "Buchungstext");
             $export->setValue($export->getCell("14", $row), "Postensperre");
             $export->setValue($export->getCell("15", $row), "Diverse Adressnummer");
-            $export->setValue($export->getCell("16", $row), "Geschäftspartnerbank");
+            $export->setValue($export->getCell("16", $row), utf8_decode("Geschäftspartnerbank"));
             $export->setValue($export->getCell("17", $row), "Sachverhalt");
             $export->setValue($export->getCell("18", $row), "Zinssperre");
             $export->setValue($export->getCell("19", $row), "Beleglink");
@@ -673,10 +673,10 @@ class Service extends AbstractService
             $export->setValue($export->getCell("40", $row), "EU-Steuersatz");
             $export->setValue($export->getCell("41", $row), "Abw. Versteuerungsart");
             $export->setValue($export->getCell("42", $row), "Sachverhalt L+L");
-            $export->setValue($export->getCell("43", $row), "Funktionsergänzung L+L");
+            $export->setValue($export->getCell("43", $row), utf8_decode("Funktionsergänzung L+L"));
             $export->setValue($export->getCell("44", $row), "BU 49 Hauptfunktionstyp");
             $export->setValue($export->getCell("45", $row), "BU 49 Hauptfunktionsnummer(");
-            $export->setValue($export->getCell("46", $row), "BU 49 Funktionsergänzung");
+            $export->setValue($export->getCell("46", $row), utf8_decode("BU 49 Funktionsergänzung"));
             $export->setValue($export->getCell("47", $row), "Zusatzinformation – Art 1");
             $export->setValue($export->getCell("48", $row), "Zusatzinformation – Inhalt 1");
             $export->setValue($export->getCell("49", $row), "Zusatzinformation – Art 2");
@@ -717,20 +717,20 @@ class Service extends AbstractService
             $export->setValue($export->getCell("84", $row), "Zusatzinformation – Inhalt 19");
             $export->setValue($export->getCell("85", $row), "Zusatzinformation – Art 20");
             $export->setValue($export->getCell("86", $row), "Zusatzinformation – Inhalt 20");
-            $export->setValue($export->getCell("87", $row), "Stück");
+            $export->setValue($export->getCell("87", $row), utf8_decode("Stück"));
             $export->setValue($export->getCell("88", $row), "Gewicht");
             $export->setValue($export->getCell("89", $row), "Zahlweise");
             $export->setValue($export->getCell("90", $row), "Forderungsart");
             $export->setValue($export->getCell("91", $row), "Veranlagungsjahr");
-            $export->setValue($export->getCell("92", $row), "Zugeordnete Fälligkeit");
+            $export->setValue($export->getCell("92", $row), utf8_decode("Zugeordnete Fälligkeit"));
             $export->setValue($export->getCell("93", $row), "Skontotyp");
             $export->setValue($export->getCell("94", $row), "Auftragsnummer");
             $export->setValue($export->getCell("95", $row), "Buchungstyp");
-            $export->setValue($export->getCell("96", $row), "USt-Schlüssel (Anzahlungen)");
+            $export->setValue($export->getCell("96", $row), utf8_decode("USt-Schlüssel (Anzahlungen)"));
             $export->setValue($export->getCell("97", $row), "EU-Mitgliedstaat (Anzahlungen)");
             $export->setValue($export->getCell("98", $row), "Sachverhalt L+L (Anzahlungen)");
             $export->setValue($export->getCell("99", $row), "EU-Steuersatz (Anzahlungen)");
-            $export->setValue($export->getCell("100", $row), "Erlöskonto (Anzahlungen)");
+            $export->setValue($export->getCell("100", $row), utf8_decode("Erlöskonto (Anzahlungen)"));
             $export->setValue($export->getCell("101", $row), "Herkunft-Kz");
             $export->setValue($export->getCell("102", $row), "Leerfeld");
             $export->setValue($export->getCell("103", $row), "KOST-Datum");
@@ -764,7 +764,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("0", $row), $Summary);// Umsatz
                 $export->setValue($export->getCell("1", $row), 'S');// Soll / Haben Kennzeichen
                 $export->setValue($export->getCell("2", $row), 'EUR');// Dreistelliger ISO-Code der Währung
-                $export->setValue($export->getCell("3", $row), utf8_encode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()));// Kurs todo leer lassen
+                $export->setValue($export->getCell("3", $row), '');// Kurs (Test: utf8_decode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
                 $export->setValue($export->getCell("4", $row), '');// Basisumsatz
                 $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
                 $export->setValue($export->getCell("6", $row), '');// Konto todo Gläubiger Id
