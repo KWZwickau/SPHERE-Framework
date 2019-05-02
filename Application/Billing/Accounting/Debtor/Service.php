@@ -407,6 +407,11 @@ class Service extends AbstractService
     ){
 
         $Value = str_replace(',', '.', $Value);
+        // nicht benötigte Informationen entfernen
+        if($tblPaymentType->getName() != 'SEPA-Lastschrift'){
+            $tblBankAccount = null;
+            $tblBankReference = null;
+        }
         return (new Data($this->getBinding()))->createDebtorSelection($tblPersonCauser, $tblPerson, $tblPaymentType,
             $tblItem, $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
@@ -490,6 +495,11 @@ class Service extends AbstractService
             $ToDate = null;
         } else {
             $ToDate = new \DateTime($ToDate);
+        }
+        // nicht benötigte Informationen entfernen
+        if($tblPaymentType->getName() != 'SEPA-Lastschrift'){
+            $tblBankAccount = null;
+            $tblBankReference = null;
         }
         return (new Data($this->getBinding()))->updateDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
             $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
