@@ -163,6 +163,8 @@ class ApiSepa extends Extension implements IApiInterface
         $_POST['Invoice']['BasketId'] = $BasketId;
 
         return
-            new Title('Offene Posten', 'erneut in SEPA-Lastschrift aufnehmen').$toggleCheckbox.$form;
+            new Title('Offene Posten')
+            .new Warning('Offene Posten erneut in SEPA-Lastschrift aufnehmen')
+            .$toggleCheckbox.$form;
     }
 }
