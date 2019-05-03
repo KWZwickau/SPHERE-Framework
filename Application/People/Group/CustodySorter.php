@@ -153,6 +153,13 @@ class CustodySorter
             $this->Custody1->setIsModified(true);
             $this->Custody2 = $temp;
             $this->Custody2->setIsModified(true);
+        // 1 unzugeordneter Sorgeberechtigter mit dem Geschlecht von S1 (Mandanteneinstellung)
+        } elseif ($assignedCount == 0 && $unAssignedCount == 1
+            && ($gender1 = $unAssigned[1]->getGenderName())
+            && $gender1 == $genderSetting
+        ) {
+            $this->Custody1 = $unAssigned[1];
+            $this->Custody1->setIsModified(true);
         } else {
             if ($this->Custody1
                 && $this->Custody1->getGenderName()
