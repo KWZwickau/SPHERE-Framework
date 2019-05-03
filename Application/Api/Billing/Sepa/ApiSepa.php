@@ -118,8 +118,9 @@ class ApiSepa extends Extension implements IApiInterface
         }
 
         $toggleCheckbox = '';
+        $Warning = '';
         if(!empty($TableContent)){
-
+            $Warning = new Warning('Offene Posten erneut in SEPA-Lastschrift aufnehmen');
             $FormColumnTable = new FormColumn(
                 new TableData($TableContent, null, array(
                     'Option' => 'Erneut',
@@ -163,8 +164,6 @@ class ApiSepa extends Extension implements IApiInterface
         $_POST['Invoice']['BasketId'] = $BasketId;
 
         return
-            new Title('Offene Posten')
-            .new Warning('Offene Posten erneut in SEPA-Lastschrift aufnehmen')
-            .$toggleCheckbox.$form;
+            new Title('Offene Posten').$Warning.$toggleCheckbox.$form;
     }
 }
