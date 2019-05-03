@@ -874,7 +874,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'z.B. Schulgeldbescheinigung für das Kalenderjahr [Beitragsjahr]', 'Betreff'),
                         new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 20)
                     ), 9),
-                    new LayoutColumn(new Panel('Freifelder', Document::useFrontend()->getFreeFields(),
+                    new LayoutColumn(new Panel('Platzhalter', Document::useFrontend()->getFreeFields(),
                         Panel::PANEL_TYPE_INFO), 3)
                 )))),
                 new CheckBox('Data[SalutationFamily]', 'Statt der Beitragszahler Anrede die Anrede Familie verwenden', 1),

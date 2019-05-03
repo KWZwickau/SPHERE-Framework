@@ -262,7 +262,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new LayoutRow(array(
                 new LayoutColumn(new Well(Document::useService()->updateDocumentInformation($form, $tblDocument, $Data)), 9),
-                new LayoutColumn(new Panel('Freifelder', $freeFields, Panel::PANEL_TYPE_INFO), 3)
+                new LayoutColumn(new Panel('Platzhalter', $freeFields, Panel::PANEL_TYPE_INFO), 3)
             ))
         ))));
 
