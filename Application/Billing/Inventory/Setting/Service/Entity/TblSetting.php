@@ -26,8 +26,12 @@ class TblSetting extends Element
     const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
     const IDENT_IS_AUTO_REFERENCE_NUMBER = 'IsAutoReferenceNumber';
 
-    // Sepa Option's
+    // Sepa Options
     const IDENT_IS_SEPA = 'IsSepa';
+    const IDENT_SEPA_REMARK = 'SepaRemark';
+
+    // Datev Options
+    const IDENT_DATEV_REMARK = 'DatevRemark';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
@@ -35,6 +39,7 @@ class TblSetting extends Element
 
     const CATEGORY_REGULAR = 'Allgemein';
     const CATEGORY_SEPA = 'SEPA';
+    const CATEGORY_DATEV = 'DATEV';
 
     /**
      * @Column(type="string")
