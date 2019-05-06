@@ -9,7 +9,6 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -300,17 +299,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItemType             $tblItemType
-     * @param                         $Name
-     * @param string                  $Description
+     * @param TblItemType $tblItemType
+     * @param string      $Name
+     * @param string      $Description
+     * @param string      $SepaRemark
+     * @param string      $DatevRemark
      *
      * @return TblItem
      */
-    public function createItem(
-        TblItemType $tblItemType,
-        $Name,
-        $Description = ''
-    ){
+    public function createItem(TblItemType $tblItemType, $Name, $Description = '', $SepaRemark = '', $DatevRemark = '')
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -323,6 +321,8 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setTblItemType($tblItemType);
             $Entity->setDescription($Description);
+            $Entity->setSepaRemark($SepaRemark);
+            $Entity->setDatevRemark($DatevRemark);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -338,10 +338,8 @@ class Data extends AbstractData
      *
      * @return TblItemGroup
      */
-    public function createItemGroup(
-        TblItem $tblItem,
-        TblGroup $tblGroup
-    ){
+    public function createItemGroup(TblItem $tblItem, TblGroup $tblGroup)
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -453,27 +451,27 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItem     $tblItem
-     * @param             $Name
-     * @param             $Description
+     * @param TblItem $tblItem
+     * @param string  $Name
+     * @param string  $Description
+     * @param string  $SepaRemark
+     * @param string  $DatevRemark
      *
      * @return bool
      */
-    public function updateItem(
-        TblItem $tblItem,
-        $Name,
-        $Description
-    ){
+    public function updateItem(TblItem $tblItem, $Name, $Description = '', $SepaRemark = '', $DatevRemark = '')
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblItem $Entity */
         $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
         $Protocol = clone $Entity;
-        if(null !== $Entity){
+        if (null !== $Entity){
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-
+            $Entity->setSepaRemark($SepaRemark);
+            $Entity->setDatevRemark($DatevRemark);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

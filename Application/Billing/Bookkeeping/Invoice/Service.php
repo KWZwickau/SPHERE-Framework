@@ -311,8 +311,8 @@ class Service extends AbstractService
         $TargetTime = $tblBasket->getTargetTime();
         $MaxInvoiceNumber = Invoice::useService()->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
 
-        // First Look and remove existing Invoice
-        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
+        // erste Durchsicht, entfernnen vorhandener Rechnungen (gleiche Rechnungen im Abrechnungszeitraum
+        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt
         array_walk($tblBasketVerificationList,
             function(TblBasketVerification &$tblBasketVerification) use ($Month, $Year){
                 $tblPerson = $tblBasketVerification->getServiceTblPersonCauser();
@@ -367,7 +367,12 @@ class Service extends AbstractService
                 $PersonDebtorId = $tblPersonDebtor->getId();
                 $PersonCauserId = $tblPersonCauser->getId();
 
-                $GroupString = $PersonDebtorId.'#'.$PersonCauserId;
+                $tblReferenceId = '';
+                if($tblBankReference = $tblBasketVerification->getServiceTblBankReference()){
+                    $tblReferenceId = $tblBankReference->getId();
+                }
+
+                $GroupString = $PersonDebtorId.'#'.$PersonCauserId.'#'.$tblReferenceId;
                 /** Fill InvoiceList */
                 if(!isset($DebtorInvoiceList[$GroupString])){
                     $MaxInvoiceNumber++;

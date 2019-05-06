@@ -7,18 +7,19 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use \SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
@@ -30,10 +31,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -60,10 +61,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_REGULAR), TblSetting::CATEGORY_REGULAR)
                     , 6),
+                )),
+                new LayoutRow(array(
                     new LayoutColumn(
                         ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_SEPA), TblSetting::CATEGORY_SEPA)
                     , 6),
-
+                    new LayoutColumn(
+                        ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_DATEV), TblSetting::CATEGORY_DATEV)
+                    , 6),
                 ))
             ))
         ). ApiSetting::receiverModal()
@@ -211,42 +216,58 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblSettingList = Setting::useService()->getSettingAllByCategory($Category);
         $Listing = array();
-        foreach($tblSettingList as &$tblSetting){
-            switch($tblSetting->getIdentifier()){
-                // REGULAR
-                case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
-                    $Listing[$tblSetting->getId()] = '&nbsp;Länge der Debitoren-Nr.: &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                        ? new SuccessText($tblSetting->getValue())
-                        : new DangerText('Nicht hinterlegt!')));
-                break;
-                case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
-                    $Listing[$tblSetting->getId()] = '&nbsp;Debitoren-Nr. ist eine Pflichtangabe: &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                        ? new SuccessText(new Check())
-                        : new DangerText(new Unchecked())));
-                break;
-                case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Debitorennummer &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                        ? new SuccessText(new Check())
-                        : new DangerText(new Unchecked())));
-                break;
-                case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Mandatsreferenznummer &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                        ? new SuccessText(new Check())
-                        : new DangerText(new Unchecked())));
-                break;
-                // SEPA
-                case TblSetting::IDENT_IS_SEPA:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift &nbsp;'
-                        .new Bold(($tblSetting->getValue()
-                            ? new SuccessText(new Check())
-                            : new DangerText(new Unchecked())));
-                break;
+        if($tblSettingList){
+            foreach($tblSettingList as &$tblSetting){
+                switch($tblSetting->getIdentifier()){
+                    // REGULAR
+                    case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
+                        $Listing[$tblSetting->getId()] = '&nbsp;Länge der Debitoren-Nr.: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
+                    case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
+                        $Listing[$tblSetting->getId()] = '&nbsp;Debitoren-Nr. ist eine Pflichtangabe: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                        break;
+                    case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
+                        $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Debitorennummer &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                        break;
+                    case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
+                        $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Mandatsreferenznummer &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                        break;
+                    // SEPA
+                    case TblSetting::IDENT_IS_SEPA:
+                        $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                        break;
+                    case TblSetting::IDENT_SEPA_REMARK:
+                        $Listing[$tblSetting->getId()] ='&nbsp;SEPA-Verwendungszweck &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Verwendungszweck hinterlegt.')));
+                        break;
+                    // DATEV
+                    case TblSetting::IDENT_DATEV_REMARK:
+                        $Listing[$tblSetting->getId()] ='&nbsp;DATEV-Buchungstext &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Buchungstext hinterlegt.')));
+                        break;
+                }
             }
         }
+
         ksort($Listing);
         $Title = $this->getTitleByCategory($Category);
         return new Layout(new LayoutGroup(array(
@@ -279,26 +300,35 @@ class Frontend extends Extension implements IFrontendInterface
                     // Regular Option's
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debitoren-Nr.');
+                    $elementList[0] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debitoren-Nr.');
                 break;
                 case TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED:
                     $_POST['Setting'][TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debitoren-Nr. ist eine Pflichtangabe', true);
+                    $elementList[1] = new CheckBox('Setting['.TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED.']', 'Debitoren-Nr. ist eine Pflichtangabe', true);
                 break;
                 case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER.']', ' Vorschlag höchste Debitorennummer', true);
+                    $elementList[2] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER.']', ' Vorschlag höchste Debitorennummer', true);
                 break;
                 case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER.']', ' Vorschlag höchste Mandatsreferenznummer', true);
+                    $elementList[3] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER.']', ' Vorschlag höchste Mandatsreferenznummer', true);
                 break;
                     // Sepa Option's
                 case TblSetting::IDENT_IS_SEPA:
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
-                    $elementList[$tblSetting->getId()] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift aktivieren', true);
-                    $elementList[] = $this->showSepaInfo();
+                    $elementList[0] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift aktivieren', true);
+                    $elementList[1] = $this->showSepaInfo();
                 break;
+                case TblSetting::IDENT_SEPA_REMARK:
+                    $_POST['Setting'][TblSetting::IDENT_SEPA_REMARK] = $tblSetting->getValue();
+                    $elementList[2] = new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', 'SEPA-Verwendungszweck');
+                break;
+                    // Datev Option's
+                case TblSetting::IDENT_DATEV_REMARK:
+                    $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
+                    $elementList[0] = new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', 'DATEV-Buchungstext');
+                    break;
             }
         }
         ksort($elementList);
@@ -332,10 +362,10 @@ class Frontend extends Extension implements IFrontendInterface
     private function showSepaInfo()
     {
 
-        $Content = new Warning(
-            new Container('- Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:  Kontodaten, Mandatsreferenznummer')
-            .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme.')
-        );
+        $Content ='<div class="alert alert-warning" style="padding: 8px !important; margin-bottom: 8px">
+            - Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:  Kontodaten, Mandatsreferenznummer <br/>
+            - Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme.
+            </div>';
         return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Content))));
     }
 
@@ -349,6 +379,9 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case TblSetting::CATEGORY_SEPA:
                 $Title = 'SEPA Einstellungen:';
+                break;
+            case TblSetting::CATEGORY_DATEV:
+                $Title = 'DATEV Einstellungen:';
                 break;
         }
         return $Title;

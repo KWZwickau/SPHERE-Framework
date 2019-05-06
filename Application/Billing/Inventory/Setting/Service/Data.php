@@ -34,11 +34,15 @@ class Data extends AbstractData
             $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
 //        }
 
-        // SEPA Option's
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN);
+        // SEPA Options
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
         if($tblSetting->getCategory() == ''){
             $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
         }
+        $this->createSetting(TblSetting::IDENT_SEPA_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
+
+        // DATEV Options
+        $this->createSetting(TblSetting::IDENT_DATEV_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
 
 
 

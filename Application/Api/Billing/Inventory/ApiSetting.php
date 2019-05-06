@@ -270,6 +270,12 @@ class ApiSetting extends Extension implements IApiInterface
             case TblSetting::CATEGORY_SEPA:
                 $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
+                $SepaRemark = (isset($Setting[TblSetting::IDENT_SEPA_REMARK]) ? $Setting[TblSetting::IDENT_SEPA_REMARK]: '');
+                Setting::useService()->createSetting(TblSetting::IDENT_SEPA_REMARK, $SepaRemark);
+            break;
+            case TblSetting::CATEGORY_DATEV:
+                $DatevRemark = (isset($Setting[TblSetting::IDENT_DATEV_REMARK]) ? $Setting[TblSetting::IDENT_DATEV_REMARK] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_DATEV_REMARK, $DatevRemark);
             break;
         }
 
