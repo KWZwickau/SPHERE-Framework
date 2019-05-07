@@ -984,7 +984,7 @@ class Service extends AbstractService
             'creditorName'          => $tblInvoiceCreditor->getOwner(),
             'creditorAccountIBAN'   => $tblInvoiceCreditor->getIBAN(),
             'creditorAgentBIC'      => $tblInvoiceCreditor->getBIC(),
-            'seqType'               => PaymentInformation::S_ONEOFF,
+            'seqType'               => PaymentInformation::S_RECURRING,
             // Element dient der Angabe, um was für eine SEPA Lastschrift es sich handelt:
             //» SEPA OOFF = einmalige SEPA Lastschrift
             //» SEPA FRST = erste SEPA Lastschift
