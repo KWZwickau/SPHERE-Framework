@@ -1100,9 +1100,14 @@ class Data extends AbstractData
             }
         }
 
-        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulabschluss', 'MsAbgLernenHs',
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang', 'MsAbgLernenHs',
             null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
         if ($tblCertificate) {
+            // SSW-574 Rename
+            if ($tblCertificate->getDescription() == 'Förderschwerpunkt Lernen + Hauptschulabschluss') {
+                $this->updateCertificateName($tblCertificate, 'Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang');
+            }
+
             if (!$this->getCertificateSubjectAll($tblCertificate)) {
                 $row = 1;
                 $column = 1;
