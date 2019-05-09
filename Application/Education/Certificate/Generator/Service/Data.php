@@ -3165,6 +3165,12 @@ class Data extends AbstractData
                             $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                         }
                     }
+
+                    $this->createCertificate('Oberschule Halbjahresinformation Beiblatt','ab Klasse 8', 'CMS\CmsMsHjBeiblatt',
+                        $tblConsumerCertificate, false, true, false, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary, null, true);
+
+                    $this->createCertificate('Oberschule Jahreszeugnis Beiblatt','ab Klasse 8', 'CMS\CmsMsJBeiblatt',
+                        $tblConsumerCertificate, false, false, false, $tblCertificateTypeYear, $tblSchoolTypeSecondary, null, true);
                 }
             }
             if ($tblConsumer->getAcronym() == 'EZSH' || $tblConsumer->getAcronym() == 'DEMO') {
@@ -3741,6 +3747,7 @@ class Data extends AbstractData
      * @param TblCertificateType|null $tblCertificateType
      * @param TblType|null $tblSchoolType
      * @param TblCourse|null $tblCourse
+     * @param bool $IsIgnoredForAutoSelect
      *
      * @return TblCertificate
      */
@@ -3754,7 +3761,8 @@ class Data extends AbstractData
         $IsChosenDefault = false,
         TblCertificateType $tblCertificateType = null,
         TblType $tblSchoolType = null,
-        TblCourse $tblCourse = null
+        TblCourse $tblCourse = null,
+        $IsIgnoredForAutoSelect = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -3775,7 +3783,7 @@ class Data extends AbstractData
             $Entity->setTblCertificateType($tblCertificateType);
             $Entity->setServiceTblSchoolType($tblSchoolType);
             $Entity->setServiceTblCourse($tblCourse);
-            $Entity->setIsIgnoredForAutoSelect(false);
+            $Entity->setIsIgnoredForAutoSelect($IsIgnoredForAutoSelect);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
