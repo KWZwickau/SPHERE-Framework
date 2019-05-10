@@ -25,8 +25,8 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createDebtorPeriodType('Monatlich');
-        $this->createDebtorPeriodType('Jährlich');
+        $this->createDebtorPeriodType(TblDebtorPeriodType::ATTR_MONTH);
+        $this->createDebtorPeriodType(TblDebtorPeriodType::ATTR_YEAR);
     }
 
     /**

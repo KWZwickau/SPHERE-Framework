@@ -17,6 +17,9 @@ class TblDebtorPeriodType extends Element
 
     const ATTR_NAME = 'Name';
 
+    const ATTR_MONTH = 'Monatlich';
+    const ATTR_YEAR = 'Jährlich';
+
     /**
      * @Column(type="string")
      */

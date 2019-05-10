@@ -599,6 +599,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPersonFrom
+     * @param TblPerson $tblPersonTo
+     *
+     * @return bool|TblToPerson
+     */
+    public function getRelationshipToPersonByPersonFromAndPersonTo(TblPerson $tblPersonFrom,TblPerson $tblPersonTo)
+    {
+
+        return (new Data($this->getBinding()))->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonFrom, $tblPersonTo);
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblToCompany
