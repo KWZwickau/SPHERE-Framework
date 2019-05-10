@@ -4099,11 +4099,14 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $calcValue = '';
                                                 if (isset($gradeList['J'])) {
                                                     $calc = false;
-                                                    if (isset($gradeList['LS'])) {
+                                                    if (isset($gradeList['LS']) && isset($gradeList['LM'])) {
+                                                        $calc = ($gradeList['J'] + $gradeList['LS'] + $gradeList['LM']) / 3;
+                                                    } elseif (isset($gradeList['LS'])) {
                                                         $calc = (2 * $gradeList['J'] + $gradeList['LS']) / 3;
                                                     } elseif (isset($gradeList['LM'])) {
                                                         $calc = (2 * $gradeList['J'] + $gradeList['LM']) / 3;
                                                     }
+
                                                     if ($calc) {
                                                         $calcValue = round($calc, 2);
                                                     } else {
