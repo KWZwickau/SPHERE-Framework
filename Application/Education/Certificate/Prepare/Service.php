@@ -3227,8 +3227,11 @@ class Service extends AbstractService
             return $form;
         }
 
-
-        $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+        if (($tblLeaveStudent = $this->getLeaveStudentBy($tblPerson, $tblDivision))) {
+            (new Data($this->getBinding()))->updateLeaveStudentCertificate($tblLeaveStudent, $tblCertificate);
+        } else {
+            $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+        }
 
         if ($tblLeaveStudent) {
             return new Success('Die Daten wurden gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
