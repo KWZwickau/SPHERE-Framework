@@ -15,7 +15,6 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
-use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -27,10 +26,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -75,16 +76,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Importvorbereitung / Daten importieren');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Import', new ChevronLeft()));
 
-        $tblIndiwareImportLectureshipList = Import::useService()->getImportAll();
-
         $Stage->setContent(
             new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            ($tblIndiwareImportLectureshipList ? new Warning(new WarningIcon().' Vorsicht vorhandene Importdaten werden entfernt!') : '')
-                            , 6, array(LayoutColumn::GRID_OPTION_HIDDEN_SM)
-                        )),
+                new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(new Well(
                             new Form(
@@ -105,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ), 6)
                     )
-                ), new Title('Grunddaten', 'importieren'))
+                , new Title('Grunddaten', 'importieren'))
             )
         );
 
@@ -121,9 +115,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Indiware', 'Daten importieren');
-        $Stage->setMessage('Grunddaten importieren');
 
-        if ($File && !$File->getError()
+        if($File && !$File->getError()
             && (strtolower($File->getClientOriginalExtension()) == 'xlsx')
         ){
 
@@ -140,12 +133,12 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Test
             $Control = new ImportControl($Payload->getRealPath());
-            if (!$Control->getCompare()){
+            if(!$Control->getCompare()){
                 $LayoutColumnList = array();
                 $LayoutColumnList[] = new LayoutColumn(new Warning('Die Datei beinhaltet nicht alle benötigten Spalten'));
                 $ColumnList = $Control->getDifferenceList();
-                if (!empty($ColumnList)){
-                    foreach ($ColumnList as $Value) {
+                if(!empty($ColumnList)){
+                    foreach($ColumnList as $Value) {
                         $LayoutColumnList[] = new LayoutColumn(new Panel('Fehlende Spalte', $Value,
                             Panel::PANEL_TYPE_DANGER), 3);
                     }
@@ -170,9 +163,14 @@ class Frontend extends Extension implements IFrontendInterface
             $Gateway = new ImportGateway($Payload->getRealPath(), $Control);
 
             $ImportList = $Gateway->getImportList();
-            if ($ImportList){
+            if($ImportList){
                 Import::useService()->createImportBulk($ImportList);
             }
+
+            $Stage->setMessage(new DangerText(new Bold('Validierung '.$Gateway->getErrorCount())
+                .' rote Einträge verhindern den Import, überarbeiten Sie die Excel bitte so,
+                das alle Fehlermeldungen verschwinden oder Pflegen Sie die Eintsellungen in der Schulsoftware korrekt
+                und starten Sie den Import erneut.'));
 
             // view up to 5 divisions
             $Stage->setContent(
@@ -182,25 +180,20 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($Gateway->getResultList(), null,
                                     array(
-                                        'Row' => 'Zeile',
-                                        'FirstName' => 'Vorname',
-                                        'LastName' => 'Nachname',
-                                        'Birthday' => 'Geburtstag',
-                                        'PersonFrontend' => 'Test',
-                                        'Value' => 'Betrag',
-                                        'PriceVariant' => 'Preis-Variante',
-                                        'Item' => 'Beitragsart',
-                                        'Reference' => 'Mandatsreferenz',
-                                        'ReferenceDate' => 'M.Ref. Gültig ab',
-                                        'PaymentFromDate' => 'Zahlung ab',
-                                        'PaymentTillDate' => 'Zahlung bis',
-                                        'DebtorFirstName' => 'Zahler Vorname',
-                                        'DebtorLastName' => 'Zahler Nachname',
-                                        'DebtorFrontend' => 'Test',
-                                        'DebtorNumber' => 'Debitoren Nr.',
-                                        'IBANControl' => 'IBAN Kontrolle',
-                                        'BIC' => 'BIC',
-                                        'Bank' => 'Bank',
+                                        'Row'                 => 'Zeile',
+                                        'PersonFrontend'      => 'Beitragsverursacher',
+                                        'ValueFrontend'       => 'Betrag',
+                                        'ItemVariantFrontend' => 'Preis-Variante',
+                                        'ItemControl'         => 'Beitragsart',
+                                        'Reference'           => 'Mandatsrefere<nz',
+                                        'ReferenceDate'       => 'M.Ref. Gültig ab',
+                                        'PaymentFromDate'     => 'Zahlung ab',
+                                        'PaymentTillDate'     => 'Zahlung bis',
+                                        'DebtorFrontend'      => 'Beitragszahler',
+                                        'DebtorNumber'        => 'Debitoren Nr.',
+                                        'IBANControl'         => 'IBAN Kontrolle',
+                                        'BICControl'          => 'BIC',
+                                        'Bank'                => 'Bank',
                                     ),
                                     array(
                                         'order'      => array(array(0, 'desc')),
@@ -213,14 +206,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             ),
                             new LayoutColumn(
-                                new DangerLink('Abbrechen', '/Billing/Inventory/Import').
-                                new Standard('Weiter', '/Billing/Inventory/Import/Do', new ChevronRight())
+                                new DangerLink('Abbrechen', '/Billing/Inventory/Import/Prepare').
+                                ($Gateway->getErrorCount() == 0
+                                    ? new Standard('Weiter', '/Billing/Inventory/Import/Do', new ChevronRight())
+                                    : ''
+                                )
                             )
                         ))
-                        , new Title('Validierung',
-                        'Rote '.new Danger(new WarningIcon()).' Einträge wurden nicht für die Bearbeitung aufgenommen! '
-                        .new ToolTip(new InfoIcon(), 'Werden Klassen nicht in der Schulsoftware gefunden, kann kein 
-                        Lehrauftrag für diese erstellt werden!')))
+                    )
                 )
             );
         } else {
@@ -239,18 +232,31 @@ class Frontend extends Extension implements IFrontendInterface
 
         //ToDO Überarbeitung
 
-        $Stage = new Stage('Import', 'Ergebnis');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Import', new ChevronLeft(), array(),
+        $Stage = new Stage('Import', 'Prozess');
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory', new ChevronLeft(), array(),
             'Zurück zum Import'));
-
-        $LayoutRowList = Import::useService()->importBillingData();
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    $LayoutRowList
-                )
+        Import::useService()->importBillingData();
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Success('Import wurde erfolgreich durchgeführt.')
+                    ),
+                    new LayoutColumn(
+                        new Redirect('/Billing/Inventory', Redirect::TIMEOUT_SUCCESS)
+                    )
+                ))
             )
-        );
+        ));
+
+//        $LayoutRowList = Import::useService()->importBillingData();
+//        $Stage->setContent(
+//            new Layout(
+//                new LayoutGroup(
+//                    $LayoutRowList
+//                )
+//            )
+//        );
         return $Stage;
     }
 }

@@ -292,15 +292,22 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblDebtorSelection
      */
-    public function getDebtorSelectionAll($Id)
+    public function getDebtorSelectionAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
-            $Id);
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection');
+    }
+
+    /**
+     * @return string
+     */
+    public function getDebtorSelectionCount()
+    {
+
+        return $this->getForceEntityCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection'
+            , array());
     }
 
     /**

@@ -326,14 +326,21 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblDebtorSelection
      */
-    public function getDebtorSelectionAll($Id)
+    public function getDebtorSelectionAll()
     {
 
-        return (new Data($this->getBinding()))->getDebtorSelectionAll($Id);
+        return (new Data($this->getBinding()))->getDebtorSelectionAll();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDebtorSelectionCount()
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionCount();
     }
 
     /**
