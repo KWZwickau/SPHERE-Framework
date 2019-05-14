@@ -90,6 +90,7 @@ class ImportGateway extends AbstractConverter
         $this->setPointer(new FieldPointer($ColumnList['Beitragsart'], 'ItemControl'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Beitragsart'], 'ItemControl', array($this, 'sanitizeItem')));
         $this->setPointer(new FieldPointer($ColumnList['Mandatsreferenznummer'], 'Reference'));
+        $this->setPointer(new FieldPointer($ColumnList['Mandatsref Beschreibung'], 'ReferenceDescription'));
         $this->setPointer(new FieldPointer($ColumnList['Mandatsreferenznummer gültig ab'], 'ReferenceDate'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Mandatsreferenznummer gültig ab'], 'ReferenceDate', array($this, 'sanitizeDate')));
         $this->setPointer(new FieldPointer($ColumnList['Datum beitragspflichtig von'], 'PaymentFromDate'));
@@ -144,6 +145,7 @@ class ImportGateway extends AbstractConverter
             'PriceVariant'           => $Result['PriceVariant'],
             'Item'                   => $Result['Item'],
             'Reference'              => $Result['Reference'],
+            'ReferenceDescription'   => $Result['ReferenceDescription'],
             'ReferenceDate'          => $Result['ReferenceDate'],
             'PaymentFromDate'        => $Result['PaymentFromDate'],
             'PaymentTillDate'        => $Result['PaymentTillDate'],

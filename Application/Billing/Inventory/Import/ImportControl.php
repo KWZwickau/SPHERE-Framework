@@ -45,6 +45,7 @@ class ImportControl extends AbstractConverter
         'Preis-Variante',
         'Beitragsart',
         'Mandatsreferenznummer',
+        'Mandatsref Beschreibung',
         'Mandatsreferenznummer gültig ab',
         'Datum beitragspflichtig von',
         'Datum beitragspflichtig bis',

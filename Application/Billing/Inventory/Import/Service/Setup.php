@@ -59,6 +59,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'PriceVariant', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Item', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Reference', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'ReferenceDescription', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'ReferenceDate', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'PaymentFromDate', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'PaymentTillDate', self::FIELD_TYPE_STRING);

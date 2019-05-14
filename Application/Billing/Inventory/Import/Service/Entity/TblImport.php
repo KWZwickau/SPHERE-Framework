@@ -27,6 +27,7 @@ class TblImport extends Element
     const ATTR_PRICE_VARIANT = 'PriceVariant';
     const ATTR_ITEM = 'Item';
     const ATTR_REFERENCE = 'Reference';
+    const ATTR_REFERENCE_DESCRIPTION = 'ReferenceDescription';
     const ATTR_REFERENCE_DATE = 'ReferenceDate';
     const ATTR_PAYMENT_FROM_DATE = 'PaymentFromDate';
     const ATTR_PAYMENT_TILL_DATE = 'PaymentTillDate';
@@ -74,6 +75,10 @@ class TblImport extends Element
      * @column(type="string")
      */
     protected $Reference;
+    /**
+     * @column(type="string")
+     */
+    protected $ReferenceDescription;
     /**
      * @column(type="string")
      */
@@ -262,6 +267,22 @@ class TblImport extends Element
     public function setReference($Reference)
     {
         $this->Reference = $Reference;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReferenceDescription()
+    {
+        return $this->ReferenceDescription;
+    }
+
+    /**
+     * @param string $ReferenceDescription
+     */
+    public function setReferenceDescription($ReferenceDescription)
+    {
+        $this->ReferenceDescription = $ReferenceDescription;
     }
 
     /**

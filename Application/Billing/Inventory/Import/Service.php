@@ -9,8 +9,6 @@ use SPHERE\Application\Billing\Inventory\Import\Service\Data;
 use SPHERE\Application\Billing\Inventory\Import\Service\Entity\TblImport;
 use SPHERE\Application\Billing\Inventory\Import\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Item;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -72,12 +70,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @return LayoutRow[]
+     * @return string
      */
     public function importBillingData()
     {
 
-        $InfoList = array();
+//        $InfoList = array();
         $tblImportList = $this->getImportAll();
         if ($tblImportList) {
             foreach ($tblImportList as $tblImport) {
@@ -99,12 +97,15 @@ class Service extends AbstractService
                 if($tblPerson){
                     // Mandatsreferenz
                     if($tblImport->getReference() && $tblImport->getReferenceDate()){
-                        $tblBankReference = Debtor::useService()->createBankReference($tblPerson, $tblImport->getReference(), $tblImport->getReferenceDate());
+                        $tblBankReference = Debtor::useService()->createBankReference($tblPerson,
+                            $tblImport->getReference(),
+                            $tblImport->getReferenceDescription(),
+                            $tblImport->getReferenceDate());
                     }
                 }
 
                 $tblItem = Item::useService()->getItemByName($tblImport->getItem());
-                // Zahlungszuweisungen (SEPA)
+                // Zahlungszuweisungen (SEPA) // andere Zahlungsarten werden nicht importiert!
                 if($tblBankAccount && $tblBankReference && $tblItem){
                     $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
                     $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_MONTH);
@@ -116,8 +117,6 @@ class Service extends AbstractService
 
                     Debtor::useService()->createDebtorSelection($tblPerson, $tblPersonDebtor, $tblPaymentType, $tblItem, $tblDebtorPeriodType,
                         $tblImport->getPaymentFromDate(), $tblImport->getPaymentTillDate(), $tblVariant, $Value, $tblBankAccount, $tblBankReference);
-                } else {
-                    //ToDO Wie händeln wir Lastschrift/Überweisung/BAR?
                 }
             }
 
@@ -126,56 +125,58 @@ class Service extends AbstractService
         }
 
 
-        //ToDO Aufräumen
-        $LayoutColumnArray = array();
-        if (!empty($InfoList)) {
-            // better show result
-            foreach ($InfoList as $key => $Info) {
-                $divisionName[$key] = strtoupper($Info['DivisionName']);
-            }
-            array_multisort($divisionName, SORT_NATURAL, $InfoList);
-            foreach ($InfoList as $Info) {
-
-                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
-                    $LayoutColumnList = array();
-                    $PanelContent = array();
-                    if (!empty($Info['SubjectList'])) {
-                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
-                            if (!empty($SubjectAndTeacherArray)) {
-                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
-                                    $PanelContent[] = $SubjectAndTeacher;
-                                }
-                            }
-                        }
-                        $LayoutColumnList[] = new LayoutColumn(array(
-                                new Title('Klasse: '.$Info['DivisionName']),
-                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
-                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
-                            )
-                            , 4);
-                    }
-                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
-                }
-            }
-        }
-
-        // save clean view by LayoutRows
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblPhone
-         */
-        foreach ($LayoutColumnArray as $LayoutColumn) {
-            if ($LayoutRowCount % 3 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($LayoutColumn);
-            $LayoutRowCount++;
-        }
-
-        return $LayoutRowList;
+        //ToDO Aufräumen wenn es gar nicht mehr gebraucht wird
+        // Wird noch eine Ausgabe benötigt? Ausgabe aller importierten Daten würde einfach riesig und unübersichtlich
+        // werden, zumal das in der Tabelle davor schon ersichtlich gemacht wurde.
+//        $LayoutColumnArray = array();
+//        if (!empty($InfoList)) {
+//            // better show result
+//            foreach ($InfoList as $key => $Info) {
+//                $divisionName[$key] = strtoupper($Info['DivisionName']);
+//            }
+//            array_multisort($divisionName, SORT_NATURAL, $InfoList);
+//            foreach ($InfoList as $Info) {
+//
+//                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
+//                    $LayoutColumnList = array();
+//                    $PanelContent = array();
+//                    if (!empty($Info['SubjectList'])) {
+//                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
+//                            if (!empty($SubjectAndTeacherArray)) {
+//                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
+//                                    $PanelContent[] = $SubjectAndTeacher;
+//                                }
+//                            }
+//                        }
+//                        $LayoutColumnList[] = new LayoutColumn(array(
+//                                new Title('Klasse: '.$Info['DivisionName']),
+//                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
+//                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
+//                            )
+//                            , 4);
+//                    }
+//                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
+//                }
+//            }
+//        }
+//
+//        // save clean view by LayoutRows
+//        $LayoutRowList = array();
+//        $LayoutRowCount = 0;
+//        $LayoutRow = null;
+//        /**
+//         * @var LayoutColumn $tblPhone
+//         */
+//        foreach ($LayoutColumnArray as $LayoutColumn) {
+//            if ($LayoutRowCount % 3 == 0) {
+//                $LayoutRow = new LayoutRow(array());
+//                $LayoutRowList[] = $LayoutRow;
+//            }
+//            $LayoutRow->addColumn($LayoutColumn);
+//            $LayoutRowCount++;
+//        }
+//        return $LayoutRowList;
+        return '';
     }
 
     /**

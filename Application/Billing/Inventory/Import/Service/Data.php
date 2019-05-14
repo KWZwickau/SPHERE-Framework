@@ -63,6 +63,7 @@ class Data extends AbstractData
                 $Entity->setPriceVariant($Result['PriceVariant']);
                 $Entity->setItem($Result['Item']);
                 $Entity->setReference($Result['Reference']);
+                $Entity->setReferenceDescription($Result['ReferenceDescription']);
                 $Entity->setReferenceDate($Result['ReferenceDate']);
                 $Entity->setPaymentFromDate($Result['PaymentFromDate']);
                 $Entity->setPaymentTillDate($Result['PaymentTillDate']);
