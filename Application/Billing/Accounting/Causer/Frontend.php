@@ -424,8 +424,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $NumberList = array();
                 foreach($tblReferenceList as $tblReference) {
                     //ToDO bearbeiten/löschen deaktivieren, wenn sie bereits benutzt werden
-                    $NumberList[] = $tblReference->getReferenceNumber().' '.new ToolTip(new Info().'&nbsp;&nbsp;'
-                            , 'Gültig ab: '.$tblReference->getReferenceDate()).' '
+                    $Description = '';
+                    if($tblReference->getDescription()){
+                        $Description = '<br/>'.$tblReference->getDescription();
+                    }
+
+                    $NumberList[] = $tblReference->getReferenceNumber().' '.(new ToolTip(new Info().'&nbsp;&nbsp;'
+                            , htmlspecialchars('Gültig ab: '.$tblReference->getReferenceDate()).' '.$Description))->enableHtml()
                         .(new Link('', ApiBankReference::getEndpoint(), new Pencil()))
                             ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenEditReferenceModal('editBankReference',
                                 $PersonId, $tblReference->getId()))

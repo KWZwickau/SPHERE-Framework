@@ -664,7 +664,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     ),
                     new FormColumn(
                         new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenznummer',
-                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList))
+                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}}) {{Description}}' => $tblBankReferenceList))
                         , 6
                     )
                 )),

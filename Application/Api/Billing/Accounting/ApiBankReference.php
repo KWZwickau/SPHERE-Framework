@@ -288,6 +288,7 @@ class ApiBankReference extends Extension implements IApiInterface
      * @return IFormInterface $Form
      */
     public function formReference($Identifier = '', $PersonId = '', $ReferenceId = '')
+
     {
 
         // choose between Add and Edit
@@ -316,6 +317,11 @@ class ApiBankReference extends Extension implements IApiInterface
                         (new DatePicker('Reference[Date]', 'Datum', 'Gültig ab'))->setRequired()
                         , 6)
                 )),
+                new FormRow(
+                    new FormColumn(
+                        new TextField('Reference[Description]', 'Beschreibung', 'Beschreibung')
+                    )
+                ),
                 new FormRow(
                     new FormColumn(
                         $SaveButton
@@ -395,13 +401,15 @@ class ApiBankReference extends Extension implements IApiInterface
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Reference']['Number'] = $Reference['Number'];
+            $Global->POST['Reference']['Description'] = $Reference['Description'];
+            $Global->POST['Reference']['Date'] = $Reference['Date'];
             $Global->savePost();
             return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
         }
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $tblReference = Debtor::useService()->createBankReference($tblPerson, $Reference['Number'],
-                $Reference['Date']);
+                $Reference['Description'], $Reference['Date']);
             if($tblReference){
                 return new Success('Mandantsreferenznummer erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
@@ -429,6 +437,8 @@ class ApiBankReference extends Extension implements IApiInterface
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Reference']['Number'] = $Reference['Number'];
+            $Global->POST['Reference']['Description'] = $Reference['Description'];
+            $Global->POST['Reference']['Date'] = $Reference['Date'];
             $Global->savePost();
             return $form;
         }
@@ -436,7 +446,7 @@ class ApiBankReference extends Extension implements IApiInterface
         $IsChange = false;
         if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))){
             $IsChange = Debtor::useService()->changeBankReference($tblReference, $Reference['Number'],
-                $Reference['Date']);
+                $Reference['Description'], $Reference['Date']);
         }
 
         return ($IsChange
@@ -457,6 +467,7 @@ class ApiBankReference extends Extension implements IApiInterface
         if('' !== $ReferenceId && ($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))){
             $Global = $this->getGlobal();
             $Global->POST['Reference']['Number'] = $tblReference->getReferenceNumber();
+            $Global->POST['Reference']['Description'] = $tblReference->getDescription();
             $Global->POST['Reference']['Date'] = $tblReference->getReferenceDate();
             $Global->savePost();
         }
