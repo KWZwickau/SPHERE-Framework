@@ -411,11 +411,12 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param string    $ReferenceNumber
+     * @param string    $Description
      * @param string    $ReferenceDate
      *
      * @return null|TblBankReference
      */
-    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $ReferenceDate = '')
+    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $Description = '', $ReferenceDate = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -427,6 +428,7 @@ class Data extends AbstractData
         if($Entity === null){
             $Entity = new TblBankReference();
             $Entity->setReference($ReferenceNumber);
+            $Entity->setDescription($Description);
             $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
             $Entity->setServiceTblPerson($tblPerson);
             $Manager->saveEntity($Entity);
@@ -564,11 +566,12 @@ class Data extends AbstractData
     /**
      * @param TblBankReference $tblBankReference
      * @param string           $ReferenceNumber
+     * @param string           $Description
      * @param string           $ReferenceDate
      *
      * @return bool
      */
-    public function updateBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $ReferenceDate = '')
+    public function updateBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $Description = '', $ReferenceDate = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -578,6 +581,7 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if(null !== $Entity){
             $Entity->setReference($ReferenceNumber);
+            $Entity->setDescription($Description);
             $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

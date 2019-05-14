@@ -502,7 +502,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     ),
                     new FormColumn(array(
                         new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenznummer',
-                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList)),
+                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}}) {{Description}}' => $tblBankReferenceList)),
                             new Bold('Zahlungszeitraum'),
                             new Listing(array(new RadioBox('DebtorSelection[DebtorPeriodTypeId]', 'Monatlich', $tblDebtorPeriodTypeMonth->getId()),
                                 new RadioBox('DebtorSelection[DebtorPeriodTypeId]', 'Jährlich', $tblDebtorPeriodTypeYear->getId())))

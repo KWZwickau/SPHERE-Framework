@@ -382,14 +382,15 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param string    $ReferenceNumber
+     * @param string    $Description
      * @param string    $ReferenceDate
      *
      * @return null|TblBankReference
      */
-    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $ReferenceDate = '')
+    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $Description = '', $ReferenceDate = '')
     {
 
-        return (new Data($this->getBinding()))->createBankReference($tblPerson, $ReferenceNumber, $ReferenceDate);
+        return (new Data($this->getBinding()))->createBankReference($tblPerson, $ReferenceNumber, $Description, $ReferenceDate);
     }
 
     /**
@@ -462,14 +463,15 @@ class Service extends AbstractService
     /**
      * @param TblBankReference $tblBankReference
      * @param string           $ReferenceNumber
+     * @param string           $Description
      * @param string           $ReferenceDate
      *
      * @return bool
      */
-    public function changeBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $ReferenceDate = '')
+    public function changeBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $Description = '', $ReferenceDate = '')
     {
 
-        return (new Data($this->getBinding()))->updateBankReference($tblBankReference, $ReferenceNumber,
+        return (new Data($this->getBinding()))->updateBankReference($tblBankReference, $ReferenceNumber, $Description,
             $ReferenceDate);
     }
 
