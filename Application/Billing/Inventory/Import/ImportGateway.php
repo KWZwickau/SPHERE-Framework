@@ -79,8 +79,10 @@ class ImportGateway extends AbstractConverter
         $this->setPointer(new FieldPointer($ColumnList['Zählung'], 'Row'));
         $this->setPointer(new FieldPointer($ColumnList['Verursacher Vorname'], 'FirstName'));
         $this->setPointer(new FieldPointer($ColumnList['Verursacher Nachname'], 'LastName'));
-        $this->setPointer(new FieldPointer($ColumnList['Verursacher Geburtstag'], 'Birthday'));
-        $this->setSanitizer(new FieldSanitizer($ColumnList['Verursacher Geburtstag'], 'Birthday', array($this, 'sanitizeDate')));
+        if(isset($ColumnList['Verursacher Geburtstag'])){
+            $this->setPointer(new FieldPointer($ColumnList['Verursacher Geburtstag'], 'Birthday'));
+            $this->setSanitizer(new FieldSanitizer($ColumnList['Verursacher Geburtstag'], 'Birthday', array($this, 'sanitizeDate')));
+        }
         $this->setPointer(new FieldPointer($ColumnList['Individueller Preis'], 'Value'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Individueller Preis'], 'Value', array($this, 'sanitizePriceString')));
         $this->setPointer(new FieldPointer($ColumnList['Individueller Preis'], 'ValueControl'));
@@ -90,21 +92,29 @@ class ImportGateway extends AbstractConverter
         $this->setPointer(new FieldPointer($ColumnList['Beitragsart'], 'ItemControl'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Beitragsart'], 'ItemControl', array($this, 'sanitizeItem')));
         $this->setPointer(new FieldPointer($ColumnList['Mandatsreferenznummer'], 'Reference'));
-        $this->setPointer(new FieldPointer($ColumnList['Mandatsref Beschreibung'], 'ReferenceDescription'));
+        if(isset($ColumnList['Mandatsref Beschreibung'])){
+            $this->setPointer(new FieldPointer($ColumnList['Mandatsref Beschreibung'], 'ReferenceDescription'));
+        }
         $this->setPointer(new FieldPointer($ColumnList['Mandatsreferenznummer gültig ab'], 'ReferenceDate'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Mandatsreferenznummer gültig ab'], 'ReferenceDate', array($this, 'sanitizeDate')));
         $this->setPointer(new FieldPointer($ColumnList['Datum beitragspflichtig von'], 'PaymentFromDate'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Datum beitragspflichtig von'], 'PaymentFromDate', array($this, 'sanitizeDate')));
-        $this->setPointer(new FieldPointer($ColumnList['Datum beitragspflichtig bis'], 'PaymentTillDate'));
-        $this->setSanitizer(new FieldSanitizer($ColumnList['Datum beitragspflichtig bis'], 'PaymentTillDate', array($this, 'sanitizeDate')));
+        if(isset($ColumnList['Datum beitragspflichtig bis'])){
+            $this->setPointer(new FieldPointer($ColumnList['Datum beitragspflichtig bis'], 'PaymentTillDate'));
+            $this->setSanitizer(new FieldSanitizer($ColumnList['Datum beitragspflichtig bis'], 'PaymentTillDate', array($this, 'sanitizeDate')));
+        }
         $this->setPointer(new FieldPointer($ColumnList['Zahler Vorname'], 'DebtorFirstName'));
         $this->setPointer(new FieldPointer($ColumnList['Zahler Nachname'], 'DebtorLastName'));
-        $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
+        if(isset($ColumnList['Debitorennummer'])){
+            $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
+        }
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBAN'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['IBAN'], 'IBAN', array($this, 'sanitizeTrimSpace')));
         $this->setPointer(new FieldPointer($ColumnList['BIC'], 'BIC'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['BIC'], 'BIC', array($this, 'sanitizeTrimSpace')));
-        $this->setPointer(new FieldPointer($ColumnList['Bank Name'], 'Bank'));
+        if(isset($ColumnList['Debitorennummer'])){
+            $this->setPointer(new FieldPointer($ColumnList['Bank Name'], 'Bank'));
+        }
         // Beispiel funktionalität (mach noch was mit dem ausgelesenem Wert:)
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBANControl'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['IBAN'], 'IBANControl', array($this, 'sanitizeIBANFrontend')));
@@ -124,6 +134,23 @@ class ImportGateway extends AbstractConverter
         $Result = array();
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
+        }
+
+        // Fehende "nicht pflicht Felder" leer hinterlegen
+        if(!isset($Result['Birthday'])){
+            $Result['Birthday'] = '';
+        }
+        if(!isset($Result['ReferenceDescription'])){
+            $Result['ReferenceDescription'] = '';
+        }
+        if(!isset($Result['PaymentTillDate'])){
+            $Result['PaymentTillDate'] = '';
+        }
+        if(!isset($Result['DebtorNumber'])){
+            $Result['DebtorNumber'] = '';
+        }
+        if(!isset($Result['Bank'])){
+            $Result['Bank'] = '';
         }
 
         $tblPerson = $this->getPerson($Result['FirstName'], $Result['LastName'], $Result['Birthday']);

@@ -9,6 +9,8 @@ use SPHERE\Application\Billing\Inventory\Import\Service\Data;
 use SPHERE\Application\Billing\Inventory\Import\Service\Entity\TblImport;
 use SPHERE\Application\Billing\Inventory\Import\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -78,11 +80,15 @@ class Service extends AbstractService
 //        $InfoList = array();
         $tblImportList = $this->getImportAll();
         if ($tblImportList) {
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
             foreach ($tblImportList as $tblImport) {
                 $tblPerson = $tblImport->getServiceTblPerson();
                 $tblPersonDebtor = $tblImport->getServiceTblPersonDebtor();
                 $tblBankAccount = $tblBankReference = false;
                 if($tblPersonDebtor){
+                    // Debitor als Beitragszahler hinzufügen
+                    Group::useService()->addGroupPerson($tblGroup, $tblPersonDebtor);
+
                     //Debitornummer zum Debitor
                     if(($DebtorNumber = $tblImport->getDebtorNumber())){
                         Debtor::useService()->createDebtorNumber($tblPersonDebtor, $DebtorNumber);
