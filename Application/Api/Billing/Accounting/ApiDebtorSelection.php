@@ -978,29 +978,32 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
 
         if($tblDebtorSelection){
+            $LeftColumn = 4;
+            $RightColumn = 8;
+
             $PersonString = 'Person nicht gefunden!';
             if(($tblPerson = $tblDebtorSelection->getServiceTblPersonDebtor())){
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Person: ', 2),
-                new LayoutColumn(new Bold($PersonString), 10),
+                new LayoutColumn('Person: ', $LeftColumn),
+                new LayoutColumn(new Bold($PersonString), $RightColumn),
             ))));
             $ItemString = 'Beitragsart nicht gefunden!';
             if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
                 $ItemString = $tblItem->getName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Beitragsart: ', 2),
-                new LayoutColumn(new Bold($ItemString), 10),
+                new LayoutColumn('Beitragsart: ', $LeftColumn),
+                new LayoutColumn(new Bold($ItemString), $RightColumn),
             ))));
             $PaymentTypeString = 'Zahlungsart nicht gefunden!';
             if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
                 $PaymentTypeString = $tblPaymentType->getName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Zahlungsart: ', 2),
-                new LayoutColumn(new Bold($PaymentTypeString), 10),
+                new LayoutColumn('Zahlungsart: ', $LeftColumn),
+                new LayoutColumn(new Bold($PaymentTypeString), $RightColumn),
             ))));
             $PriceString = 'Konditionen nicht gefunden';
             if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
@@ -1013,8 +1016,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 $PriceString = $Value;
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Konditionen: ', 2),
-                new LayoutColumn(new Bold($PriceString), 10),
+                new LayoutColumn('Konditionen: ', $LeftColumn),
+                new LayoutColumn(new Bold($PriceString), $RightColumn),
             ))));
             $BankAccountString = 'Bankverbindung nicht gefunden!';
             $BankAccountLeftHeadString = '';
@@ -1035,8 +1038,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 $BankReferenceString = $tblBankReference->getReferenceNumber();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Mandatsreferenznummer: ', 2),
-                new LayoutColumn(new Bold($BankReferenceString), 10),
+                new LayoutColumn('Mandatsreferenznummer: ', $LeftColumn),
+                new LayoutColumn(new Bold($BankReferenceString), $RightColumn),
             ))));
 
             return new Layout(

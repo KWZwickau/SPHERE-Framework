@@ -28,7 +28,7 @@ class Inventory implements IApplicationInterface
         Document::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellung'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'))
         );
 
         /**

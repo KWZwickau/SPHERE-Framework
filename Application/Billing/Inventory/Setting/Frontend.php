@@ -113,7 +113,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Title('Personengruppen, die für Beitragsarten zur Auswahl stehen: '
+                            new Title('Auswahl der Personengruppen für die Beitragsarten: '
                                 ,(new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                     ->ajaxPipelineOnClick(ApiSetting::pipelineShowFormPersonGroup()))
                         )
@@ -179,7 +179,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             });
 
-            return new Title('Personengruppen, die für Beitragsarten zur Auswahl stehen:')
+            return new Title('Auswahl der Personengruppen für die Beitragsarten:')
                 .new Well((new Form(
                     new FormGroup(
                         new FormRow(array(
@@ -227,20 +227,20 @@ class Frontend extends Extension implements IFrontendInterface
                         : new DangerText(new Unchecked())));
                 break;
                 case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Debitorennummer &nbsp;'
+                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Debitorennummer: &nbsp;'
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())));
                 break;
                 case TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Mandatsreferenznummer &nbsp;'
+                    $Listing[$tblSetting->getId()] ='&nbsp;Vorschlag höchste Mandatsreferenznummer: &nbsp;'
                         .new Bold(($tblSetting->getValue()
                         ? new SuccessText(new Check())
                         : new DangerText(new Unchecked())));
                 break;
                 // SEPA
                 case TblSetting::IDENT_IS_SEPA:
-                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift &nbsp;'
+                    $Listing[$tblSetting->getId()] ='&nbsp;Eingabepflicht für relevanten Eingaben bei SEPA-Lastschrift: &nbsp;'
                         .new Bold(($tblSetting->getValue()
                             ? new SuccessText(new Check())
                             : new DangerText(new Unchecked())));
@@ -334,7 +334,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Content = new Warning(
             new Container('- Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:  Kontodaten, Mandatsreferenznummer')
-            .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme.')
+            .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme')
         );
         return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Content))));
     }

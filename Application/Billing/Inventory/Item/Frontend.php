@@ -41,7 +41,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendItem()
     {
 
-        $Stage = new Stage('Beitragsart', 'Übersicht');
+        $Stage = new Stage('Beitragsarten', 'Übersicht');
         $Stage->addButton((new Primary('Beitragsart hinzufügen', ApiItem::getEndpoint(), new Plus()))
             ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddItemModal('addItem')));
 
@@ -115,11 +115,11 @@ class Frontend extends Extension implements IFrontendInterface
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
                     foreach($tblItemVariantList as $tblItemVariant) {
                         $Row = $tblItemVariant->getName().
-                            (new Link('', ApiItem::getEndpoint(), new Pencil()))
+                            (new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Preisvariante bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditVariantModal('editVariant',
                                     $tblItem->getId(), $tblItemVariant->getId()))
                             .'|'.
-                            (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
+                            (new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Preisvariante'))
                                 ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteVariantModal('deleteVariant',
                                     $tblItemVariant->getId()))
                             .($tblItemVariant->getDescription() ? '<br/>'.$tblItemVariant->getDescription() : '');
@@ -149,11 +149,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         ? ' - '.$tblItemCalculation->getDateTo()
                                         : '')
                                     : '');
-                                $Option = (new Link('', ApiItem::getEndpoint(), new Pencil()))
+                                $Option = (new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Preis bearbeiten'))
                                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditCalculationModal('editCalculation',
                                             $tblItemVariant->getId(), $tblItemCalculation->getId()))
                                     .'|'.
-                                    (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
+                                    (new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Preise'))
                                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation',
                                             $tblItemCalculation->getId()));
 
