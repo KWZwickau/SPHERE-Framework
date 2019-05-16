@@ -185,6 +185,70 @@ class TblBasket extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getTargetTimeDatev()
+    {
+
+        if(null === $this->TargetTime){
+            return false;
+        }
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            return $TargetTime->format('Ymd');
+        } else {
+            return (string)$TargetTime;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetYear()
+    {
+
+        if(null === $this->TargetTime){
+            return false;
+        }
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            return $TargetTime->format('Y');
+        }
+        return (new \DateTime())->format('Y');
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetYearMonth($IsMaxMonthDay = false)
+    {
+
+        if(null === $this->TargetTime){
+            return false;
+        }
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            if($IsMaxMonthDay){
+                $TimeLong = mktime(null, null, null, $TargetTime->format('m'), $TargetTime->format('d'), $TargetTime->format('Y'));
+                $Day = date('t', $TimeLong);
+                return $TargetTime->format('Ym').$Day;
+            } else {
+                return $TargetTime->format('Ym').'01';
+            }
+        }
+        if($IsMaxMonthDay){
+            $TimeLong = mktime(null, null, null, (new \DateTime())->format('m'), (new \DateTime())->format('d'), (new \DateTime())->format('Y'));
+            $Day = date('t', $TimeLong);
+            return $TargetTime->format('Ym').$Day;
+        } else {
+            return (new \DateTime())->format('Ym').'01';
+        }
+    }
+
+    /**
      * @param null|\DateTime $TargetTime
      */
     public function setTargetTime(\DateTime $TargetTime = null)
