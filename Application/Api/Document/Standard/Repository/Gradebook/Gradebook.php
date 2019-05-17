@@ -32,9 +32,10 @@ class Gradebook
     const TEXT_SIZE_HEADER = '8pt';// '12px';
     const TEXT_SIZE_BODY = '8pt';// '11px';
     const HEIGHT_HEADER = 450;
-    const COLOR_HEADER = 'darkgray';
-    const COLOR_BODY_ALTERNATE_1 = '#E4E4E4';
+    const COLOR_HEADER = 'white';
+    const COLOR_BODY_ALTERNATE_1 = '#F0F0F0';
     const COLOR_BODY_ALTERNATE_2 = '#FFF';
+    const COLOR_BODY_DARK = '#E4E4E4';
     const MINIMUM_TEST_COUNT = 4;
     // Anzahl der Spalten für die Vornoten
     const EXTRA_GRADES_WIDTH = 2;
@@ -729,7 +730,7 @@ class Gradebook
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
                                 ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_HEADER)
+                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
                                 , $widthColumnTestString);
                         }
 
@@ -758,7 +759,7 @@ class Gradebook
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
                                 ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_HEADER)
+                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
                                 , $widthColumnTestString);
                         }
 
@@ -786,7 +787,7 @@ class Gradebook
                 ->styleBorderTop()
                 ->styleBorderLeft()
                 ->styleBorderBottom()
-                ->styleBackgroundColor(self::COLOR_HEADER)
+                ->styleBackgroundColor(self::COLOR_BODY_DARK)
                 , $widthNumber)
             ->addElementColumn((new Element())
                 ->setContent('&#216;' . '&nbsp;' . 'Fach-Klasse')
@@ -796,7 +797,7 @@ class Gradebook
                 ->styleBorderLeft()
                 ->styleBorderBottom()
                 ->styleTextItalic()
-                ->styleBackgroundColor(self::COLOR_HEADER)
+                ->styleBackgroundColor(self::COLOR_BODY_DARK)
                 , $widthStudentName);
         if ($showCourse) {
             $subSection
@@ -807,7 +808,7 @@ class Gradebook
                     ->styleBorderTop()
                     ->styleBorderLeft()
                     ->styleBorderBottom()
-                    ->styleBackgroundColor(self::COLOR_HEADER)
+                    ->styleBackgroundColor(self::COLOR_BODY_DARK)
                     , $widthCourse);
         }
 
@@ -838,7 +839,7 @@ class Gradebook
                                 ->styleBorderBottom()
                                 ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
                                     ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_HEADER)
+                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
                                 , ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%');
                         } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
                             && ($tblGradeType = $tblTest->getServiceTblGradeType())
@@ -858,7 +859,7 @@ class Gradebook
                                 ->styleBorderBottom()
                                 ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
                                     ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_HEADER)
+                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
                                 , $widthColumnTestString);
                         }
                     }
@@ -876,7 +877,7 @@ class Gradebook
                             ->styleBorderBottom()
                             ->styleBorderRight($isLastTestLastColumn && $countTests == ($countTestPeriod - 1)
                                 ? '1px' : '0px')
-                            ->styleBackgroundColor(self::COLOR_HEADER)
+                            ->styleBackgroundColor(self::COLOR_BODY_DARK)
                             , $widthColumnTestString);
                     }
                 }
@@ -891,7 +892,7 @@ class Gradebook
                         ->styleBorderLeft()
                         ->styleBorderBottom()
                         ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
-                        ->styleBackgroundColor(self::COLOR_HEADER)
+                        ->styleBackgroundColor(self::COLOR_BODY_DARK)
                         , $widthColumnTestString);
                 }
 
@@ -905,7 +906,7 @@ class Gradebook
                         ->styleBorderLeft()
                         ->styleBorderBottom()
                         ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
-                        ->styleBackgroundColor(self::COLOR_HEADER)
+                        ->styleBackgroundColor(self::COLOR_BODY_DARK)
                         , $widthColumnTestString);
                 }
 
