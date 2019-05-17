@@ -351,10 +351,12 @@ class ApiItem extends ItemVariant implements IApiInterface
                     , 8),
                     new FormColumn(
                         new Panel('Freifelder für Buchungstext', array(
-                                '[GID] = Gläubiger Id',
-                                '[BA] = Beitragsart',
-                                '[BJ] = Beitragsjahr',
-                                '[BS] = Beitragssumme'
+                                '[GID] Gläubiger-ID',
+                                '[SN] Mandantsreferenznummer',
+                                '[BVN] Beitragsverursacher Name',
+                                '[BVV] Beitragsverursacher Vorname',
+                                '[BA] Beitragsart',
+                                '[BAM] Abrechnungszeitraum (Jahr+Monat)',
                             )
                             , Panel::PANEL_TYPE_INFO)
                         , 4),
@@ -517,6 +519,8 @@ class ApiItem extends ItemVariant implements IApiInterface
         if('' !== $ItemId && ($tblItem = Item::useService()->getItemById($ItemId))){
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $tblItem->getName();
+            $Global->POST['Item']['SepaRemark'] = $tblItem->getSepaRemark();
+            $Global->POST['Item']['DatevRemark'] = $tblItem->getDatevRemark();
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
                     if(($tblGroup = $tblItemGroup->getServiceTblGroup())){
