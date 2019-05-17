@@ -916,7 +916,7 @@ class Service extends AbstractService
             $InvoiceCount = 0;
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getId().'_PaymentId';
+                $PaymentId = $tblInvoice->getId().'-PaymentId';
                 $countSepaPayment = 0;
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
