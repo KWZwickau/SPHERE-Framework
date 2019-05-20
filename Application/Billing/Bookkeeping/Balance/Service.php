@@ -753,9 +753,24 @@ class Service extends AbstractService
             foreach ($tblInvoiceList as $tblInvoice) {
 
                 $Summary = 0;
+                $bookingText = '';
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
                         $Summary = $Summary + (float)$tblInvoiceItemDebtor->getSummaryPriceInt();
+                    }
+
+                    if(count($tblInvoiceItemDebtorList) > 1){
+
+//                        Setting::useService()
+                        //ToDO Ziehen der Grundeinstellung (mehrere Beitragsarten)
+                    } else {
+                        /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                        $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
+                        if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                            $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getDatevRemark());
+                        } else {
+                            $bookingText = $tblInvoiceItemDebtor->getName();
+                        }
                     }
                 }
                 $Summary = str_replace(',', '', $Summary);
@@ -773,7 +788,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("7", $row), '');// Gegenkonto (ohne BU-Schlüssel) todo IBAN der Debitorenkonten
                 $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
                 $export->setValue($export->getCell("9", $row), '');// Belegdatum Format? (3108)
-                $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
+                $export->setValue($export->getCell("10", $row), $bookingText);// Belegfeld 1
                 $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                 $export->setValue($export->getCell("12", $row), '');// Skonto
                 $export->setValue($export->getCell("13", $row), '');// Buchungstext (60 Zeichen)
@@ -979,6 +994,39 @@ class Service extends AbstractService
         return $directDebit;
     }
 
+    private function getBookingText(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $bookingText = '')
+    {
+
+        $ItemName = '';
+        if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+            $ItemName = $tblItem->getName();
+            $bookingText = $tblItem->getSepaRemark();
+        }
+
+
+        if($bookingText){
+            $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
+            $CreditorId = '';
+            $RefNumber = $tblInvoiceItemDebtor->getBankReference();
+            $CauserName = $tblInvoice->getLastName();
+            $CauserFirstName = $tblInvoice->getFirstName();
+            $TimeString = $tblInvoice->getYear().'.'.$tblInvoice->getMonth();
+            if(($tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor())){
+                $CreditorId = $tblInvoiceCreditor->getCreditorId();
+            }
+
+            $bookingText = str_replace('[GID]', $CreditorId, $bookingText);
+            $bookingText = str_replace('[SN]', $RefNumber, $bookingText);
+            $bookingText = str_replace('[BVN]', $CauserName, $bookingText);
+            $bookingText = str_replace('[BVV]', $CauserFirstName, $bookingText);
+            $bookingText = str_replace('[BA]', $ItemName, $bookingText);
+            $bookingText = str_replace('[BAM]', $TimeString, $bookingText);
+            return $bookingText;
+        }
+
+        return $bookingText;
+    }
+
     /**
      * @param CustomerDirectDebitFacade $directDebit
      * @param TblInvoice                $tblInvoice
@@ -1029,6 +1077,12 @@ class Service extends AbstractService
                 $ReferenceDate = $tblBankReference->getReferenceDate();
             }
 
+            if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getSepaRemark());
+            } else {
+                $bookingText = $tblInvoiceItemDebtor->getName();
+            }
+
             // create a payment, it's possible to create multiple payments,
             // "firstPayment" is the identifier for the transactions
             // Add a Single Transaction to the named payment
@@ -1040,7 +1094,7 @@ class Service extends AbstractService
                     'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
                     'debtorMandate'         => $tblInvoiceItemDebtor->getBankReference(),
                     'debtorMandateSignDate' => $ReferenceDate,
-                    'remittanceInformation' => $tblInvoiceItemDebtor->getName(),
+                    'remittanceInformation' => $bookingText,
                     //            'endToEndId'            => 'Invoice-No X' // optional, if you want to provide additional structured info
                 ));
             } else {
@@ -1050,7 +1104,7 @@ class Service extends AbstractService
                     'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
                     'debtorMandate'         => $tblInvoiceItemDebtor->getBankReference(),
                     'debtorMandateSignDate' => $ReferenceDate,
-                    'remittanceInformation' => $tblInvoiceItemDebtor->getName(),
+                    'remittanceInformation' => $bookingText,
                     //            'endToEndId'            => 'Invoice-No X' // optional, if you want to provide additional structured info
                 ));
             }
