@@ -207,37 +207,37 @@ class Frontend extends Extension implements IFrontendInterface
         if($tblBasket->getIsCompanyCredit()){
             if($IsSepa){
                 if($tblBasket->getDatevDate()){
-                    $Buttons .= (new Standard('', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                    $Buttons .= (new Standard('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
                         array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
                 } else {
-                    $Buttons .= (new Primary('', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                    $Buttons .= (new Primary('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
                         array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
                 }
             }
             // ToDO Muss noch die Überweisung in die andere Richtung implentieren
             if($tblBasket->getDatevDate()){
-                $Buttons .= (new Standard('', '\Api\Billing\Datev\Download', new Download(),
+                $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
                     array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
             } else {
-                $Buttons .= (new Primary('', '\Api\Billing\Datev\Download', new Download(),
+                $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
                     array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
             }
         } else {
             // debit
             if($IsSepa){
                 if($tblBasket->getSepaDate()){
-                    $Buttons .= (new Standard('', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
+                    $Buttons .= (new Standard('SEPA', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
                         ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
                 } else {
-                    $Buttons .= (new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
+                    $Buttons .= (new Primary('SEPA', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
                         ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
                 }
             }
             if($tblBasket->getDatevDate()){
-                $Buttons .= (new Standard('', '\Api\Billing\Datev\Download', new Download(),
+                $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
                     array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
             } else {
-                $Buttons .= (new Primary('', '\Api\Billing\Datev\Download', new Download(),
+                $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
                     array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
             }
         }
