@@ -58,6 +58,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'IsDone', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsCompanyCredit', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'SepaDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'SepaUser', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'DatevDate', self::FIELD_TYPE_DATETIME, true);

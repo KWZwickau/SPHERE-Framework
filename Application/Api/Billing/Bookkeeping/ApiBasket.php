@@ -393,7 +393,10 @@ class ApiBasket extends Extension implements IApiInterface
                         new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
                     )),
                     new Bold('Zahlungszeitraum '.new DangerText('*')),
-                    new Panel('', $PeriodRadioBox)
+                    new Panel('', $PeriodRadioBox),
+                    new Panel('Auszahlung',
+                        new CheckBox('Basket[IsCompanyCredit]', 'Auszahlung an Debitoren', 1)
+                    ),
                 ), 6),
                 new FormColumn(
                     $SaveButton
@@ -517,6 +520,9 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Division'] = $Basket['Division'];
             $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
             $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
+            if(isset($Basket['IsCompanyCredit'])){
+                $Global->POST['Basket']['IsCompanyCredit'] = $Basket['IsCompanyCredit'];
+            }
             if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
@@ -534,9 +540,14 @@ class ApiBasket extends Extension implements IApiInterface
         if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
             $tblDebtorPeriodType = null;
         }
+        $IsCompanyCredit = false;
+        if(isset($Basket['IsCompanyCredit'])){
+            $IsCompanyCredit = true;
+        }
 
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor'], $tblDivision, $tblType, $tblDebtorPeriodType);
+            , $Basket['Month'], $Basket['TargetTime'], $IsCompanyCredit, $Basket['Creditor'], $tblDivision, $tblType,
+            $tblDebtorPeriodType);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){

@@ -31,8 +31,8 @@ class Sepa implements IModuleInterface
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Backward/Download',
-            __CLASS__.'::downloadBackwardSepa'
+            __NAMESPACE__.'/Credit/Download',
+            __CLASS__.'::downloadSepaCredit'
         ));
 
     }
@@ -92,18 +92,17 @@ class Sepa implements IModuleInterface
     }
 
     /**
-     * @param array $Invoice
+     * @param string $BasketId
      *
      * @return string
      */
-    public function downloadBackwardSepa($Invoice = array())
+    public function downloadSepaCredit($BasketId = '')
     {
 
-        $BasketId = $Invoice['BasketId'];
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         $customerCredit = false;
         if($tblBasket){
-            $customerCredit = Balance::useService()->createSepaBackwardContent($tblBasket);
+            $customerCredit = Balance::useService()->createSepaCreditContent($tblBasket);
         }
 
         $name = $tblBasket->getName();

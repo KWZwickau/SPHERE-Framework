@@ -330,6 +330,7 @@ class Data extends AbstractData
      * @param string              $Year
      * @param string              $Month
      * @param \DateTime           $TargetTime
+     * @param bool                $IsCompanyCredit
      * @param TblCreditor|null    $tblCreditor
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
@@ -343,6 +344,7 @@ class Data extends AbstractData
         $Year,
         $Month,
         $TargetTime,
+        $IsCompanyCredit = false,
         TblCreditor $tblCreditor = null,
         TblDivision $tblDivision = null,
         TblType $tblType = null,
@@ -364,6 +366,7 @@ class Data extends AbstractData
             $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
             $Entity->setIsDone(false);
+            $Entity->setIsCompanyCredit($IsCompanyCredit);
             $Entity->setServiceTblCreditor($tblCreditor);
             $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblType($tblType);

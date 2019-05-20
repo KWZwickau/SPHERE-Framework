@@ -1116,7 +1116,7 @@ class Service extends AbstractService
      *
      * @return bool|CustomerCreditFacade
      */
-    public function createSepaBackwardContent(TblBasket $tblBasket)
+    public function createSepaCreditContent(TblBasket $tblBasket)
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
@@ -1204,6 +1204,13 @@ class Service extends AbstractService
 
         /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
         foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+
+            if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getSepaRemark());
+            } else {
+                $bookingText = $tblInvoiceItemDebtor->getName();
+            }
+
             // Offene posten ignorieren
             if (!$tblInvoiceItemDebtor->getIsPaid()){
                 continue;
@@ -1214,7 +1221,7 @@ class Service extends AbstractService
                 'creditorIban'          => $tblInvoiceItemDebtor->getIBAN(),
                 'creditorBic'           => $tblInvoiceItemDebtor->getBIC(),
                 'creditorName'          => $tblInvoiceItemDebtor->getOwner(),
-                'remittanceInformation' => $tblInvoiceItemDebtor->getName()
+                'remittanceInformation' => $bookingText
             ));
         }
 
