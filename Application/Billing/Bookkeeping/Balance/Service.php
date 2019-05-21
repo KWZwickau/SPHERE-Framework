@@ -608,6 +608,10 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             // Auswahl des Trennzeichen's
             $export->setDelimiter(';');
+            $YearBegin = $tblBasket->getTargetYear().'0101';
+            $BookingFrom = $tblBasket->getTargetYearMonth();
+            $BookingTo = $tblBasket->getTargetYearMonth(true);
+
             $row = 0;
             $export->setValue($export->getCell("0", $row), "EXTF");
             $export->setValue($export->getCell("1", $row), "510");
@@ -621,10 +625,10 @@ class Service extends AbstractService
             $export->setValue($export->getCell("9", $row), "");     // muss leer sein
             $export->setValue($export->getCell("10", $row), "1");   // todo Berater über Option
             $export->setValue($export->getCell("11", $row), "1");   // todo Mandat über Option Schulart bedingt unterschiedlich
-            $export->setValue($export->getCell("12", $row), "20190101");// todo WJ-Beginn Aktuelle Jahr vorne ziehen
+            $export->setValue($export->getCell("12", $row), $YearBegin);// todo WJ-Beginn Aktuelle Jahr vorne ziehen
             $export->setValue($export->getCell("13", $row), "6");   // todo "Sachkonten Nummernlänge" über Option
-            $export->setValue($export->getCell("14", $row), $tblBasket->getTargetTime());// todo Buchungsstapel von 01.01.xxxx
-            $export->setValue($export->getCell("15", $row), $tblBasket->getTargetTime());// todo Buchungsstapel bis xx.01.xxxx
+            $export->setValue($export->getCell("14", $row), $BookingFrom);// todo Buchungsstapel von xxxx0101
+            $export->setValue($export->getCell("15", $row), $BookingTo);// todo Buchungsstapel bis xxxx01xx
             $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
             $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Initialen der am Account verknüpften Personen Vorname, Nachname (z.b. JK)
             $export->setValue($export->getCell("18", $row), "1");   // Buchungstyp 1 = Finanzbuchführung 2 = Jahresabschluss
@@ -652,24 +656,24 @@ class Service extends AbstractService
             $export->setValue($export->getCell("17", $row), "Sachverhalt");
             $export->setValue($export->getCell("18", $row), "Zinssperre");
             $export->setValue($export->getCell("19", $row), "Beleglink");
-            $export->setValue($export->getCell("20", $row), "Beleginfo – Art 1");
-            $export->setValue($export->getCell("21", $row), "Beleginfo – Inhalt 1");
-            $export->setValue($export->getCell("22", $row), "Beleginfo – Art 2");
-            $export->setValue($export->getCell("23", $row), "Beleginfo – Inhalt 2");
-            $export->setValue($export->getCell("24", $row), "Beleginfo – Art 3");
-            $export->setValue($export->getCell("25", $row), "Beleginfo – Inhalt 3");
-            $export->setValue($export->getCell("26", $row), "Beleginfo – Art 4");
-            $export->setValue($export->getCell("27", $row), "Beleginfo – Inhalt 4");
-            $export->setValue($export->getCell("28", $row), "Beleginfo – Art 5");
-            $export->setValue($export->getCell("29", $row), "Beleginfo – Inhalt 5");
-            $export->setValue($export->getCell("30", $row), "Beleginfo – Art 6");
-            $export->setValue($export->getCell("31", $row), "Beleginfo – Inhalt 6");
-            $export->setValue($export->getCell("32", $row), "Beleginfo – Art 7");
-            $export->setValue($export->getCell("33", $row), "Beleginfo – Inhalt 7");
-            $export->setValue($export->getCell("34", $row), "Beleginfo – Art 8");
-            $export->setValue($export->getCell("35", $row), "Beleginfo – Inhalt 8");
-            $export->setValue($export->getCell("36", $row), "KOST1 – Kostenstelle");
-            $export->setValue($export->getCell("37", $row), "KOST2 – Kostenstelle");
+            $export->setValue($export->getCell("20", $row), "Beleginfo - Art 1");
+            $export->setValue($export->getCell("21", $row), "Beleginfo - Inhalt 1");
+            $export->setValue($export->getCell("22", $row), "Beleginfo - Art 2");
+            $export->setValue($export->getCell("23", $row), "Beleginfo - Inhalt 2");
+            $export->setValue($export->getCell("24", $row), "Beleginfo - Art 3");
+            $export->setValue($export->getCell("25", $row), "Beleginfo - Inhalt 3");
+            $export->setValue($export->getCell("26", $row), "Beleginfo - Art 4");
+            $export->setValue($export->getCell("27", $row), "Beleginfo - Inhalt 4");
+            $export->setValue($export->getCell("28", $row), "Beleginfo - Art 5");
+            $export->setValue($export->getCell("29", $row), "Beleginfo - Inhalt 5");
+            $export->setValue($export->getCell("30", $row), "Beleginfo - Art 6");
+            $export->setValue($export->getCell("31", $row), "Beleginfo - Inhalt 6");
+            $export->setValue($export->getCell("32", $row), "Beleginfo - Art 7");
+            $export->setValue($export->getCell("33", $row), "Beleginfo - Inhalt 7");
+            $export->setValue($export->getCell("34", $row), "Beleginfo - Art 8");
+            $export->setValue($export->getCell("35", $row), "Beleginfo - Inhalt 8");
+            $export->setValue($export->getCell("36", $row), "KOST1 - Kostenstelle");
+            $export->setValue($export->getCell("37", $row), "KOST2 - Kostenstelle");
             $export->setValue($export->getCell("38", $row), "KOST-Menge");
             $export->setValue($export->getCell("39", $row), "EU-Mitgliedstaat u. USt-IdNr.");
             $export->setValue($export->getCell("40", $row), "EU-Steuersatz");
@@ -679,46 +683,46 @@ class Service extends AbstractService
             $export->setValue($export->getCell("44", $row), "BU 49 Hauptfunktionstyp");
             $export->setValue($export->getCell("45", $row), "BU 49 Hauptfunktionsnummer(");
             $export->setValue($export->getCell("46", $row), utf8_decode("BU 49 Funktionsergänzung"));
-            $export->setValue($export->getCell("47", $row), "Zusatzinformation – Art 1");
-            $export->setValue($export->getCell("48", $row), "Zusatzinformation – Inhalt 1");
-            $export->setValue($export->getCell("49", $row), "Zusatzinformation – Art 2");
-            $export->setValue($export->getCell("50", $row), "Zusatzinformation – Inhalt 2");
-            $export->setValue($export->getCell("51", $row), "Zusatzinformation – Art 3");
-            $export->setValue($export->getCell("52", $row), "Zusatzinformation – Inhalt 3");
-            $export->setValue($export->getCell("53", $row), "Zusatzinformation – Art 4");
-            $export->setValue($export->getCell("54", $row), "Zusatzinformation – Inhalt 4");
-            $export->setValue($export->getCell("55", $row), "Zusatzinformation – Art 5");
-            $export->setValue($export->getCell("56", $row), "Zusatzinformation – Inhalt 5");
-            $export->setValue($export->getCell("57", $row), "Zusatzinformation – Art 6");
-            $export->setValue($export->getCell("58", $row), "Zusatzinformation – Inhalt 6");
-            $export->setValue($export->getCell("59", $row), "Zusatzinformation – Art 7");
-            $export->setValue($export->getCell("60", $row), "Zusatzinformation – Inhalt 7");
-            $export->setValue($export->getCell("61", $row), "Zusatzinformation – Art 8");
-            $export->setValue($export->getCell("62", $row), "Zusatzinformation – Inhalt 8");
-            $export->setValue($export->getCell("63", $row), "Zusatzinformation – Art 9");
-            $export->setValue($export->getCell("64", $row), "Zusatzinformation – Inhalt 9");
-            $export->setValue($export->getCell("65", $row), "Zusatzinformation – Art 10");
-            $export->setValue($export->getCell("66", $row), "Zusatzinformation – Inhalt 10");
-            $export->setValue($export->getCell("67", $row), "Zusatzinformation – Art 11");
-            $export->setValue($export->getCell("68", $row), "Zusatzinformation – Inhalt 11");
-            $export->setValue($export->getCell("69", $row), "Zusatzinformation – Art 12");
-            $export->setValue($export->getCell("70", $row), "Zusatzinformation – Inhalt 12");
-            $export->setValue($export->getCell("71", $row), "Zusatzinformation – Art 13");
-            $export->setValue($export->getCell("72", $row), "Zusatzinformation – Inhalt 13");
-            $export->setValue($export->getCell("73", $row), "Zusatzinformation – Art 14");
-            $export->setValue($export->getCell("74", $row), "Zusatzinformation – Inhalt 14");
-            $export->setValue($export->getCell("75", $row), "Zusatzinformation – Art 15");
-            $export->setValue($export->getCell("76", $row), "Zusatzinformation – Inhalt 15");
-            $export->setValue($export->getCell("77", $row), "Zusatzinformation – Art 16");
-            $export->setValue($export->getCell("78", $row), "Zusatzinformation – Inhalt 16");
-            $export->setValue($export->getCell("79", $row), "Zusatzinformation – Art 17");
-            $export->setValue($export->getCell("80", $row), "Zusatzinformation – Inhalt 17");
-            $export->setValue($export->getCell("81", $row), "Zusatzinformation – Art 18");
-            $export->setValue($export->getCell("82", $row), "Zusatzinformation – Inhalt 18");
-            $export->setValue($export->getCell("83", $row), "Zusatzinformation – Art 19");
-            $export->setValue($export->getCell("84", $row), "Zusatzinformation – Inhalt 19");
-            $export->setValue($export->getCell("85", $row), "Zusatzinformation – Art 20");
-            $export->setValue($export->getCell("86", $row), "Zusatzinformation – Inhalt 20");
+            $export->setValue($export->getCell("47", $row), "Zusatzinformation - Art 1");
+            $export->setValue($export->getCell("48", $row), "Zusatzinformation - Inhalt 1");
+            $export->setValue($export->getCell("49", $row), "Zusatzinformation - Art 2");
+            $export->setValue($export->getCell("50", $row), "Zusatzinformation - Inhalt 2");
+            $export->setValue($export->getCell("51", $row), "Zusatzinformation - Art 3");
+            $export->setValue($export->getCell("52", $row), "Zusatzinformation - Inhalt 3");
+            $export->setValue($export->getCell("53", $row), "Zusatzinformation - Art 4");
+            $export->setValue($export->getCell("54", $row), "Zusatzinformation - Inhalt 4");
+            $export->setValue($export->getCell("55", $row), "Zusatzinformation - Art 5");
+            $export->setValue($export->getCell("56", $row), "Zusatzinformation - Inhalt 5");
+            $export->setValue($export->getCell("57", $row), "Zusatzinformation - Art 6");
+            $export->setValue($export->getCell("58", $row), "Zusatzinformation - Inhalt 6");
+            $export->setValue($export->getCell("59", $row), "Zusatzinformation - Art 7");
+            $export->setValue($export->getCell("60", $row), "Zusatzinformation - Inhalt 7");
+            $export->setValue($export->getCell("61", $row), "Zusatzinformation - Art 8");
+            $export->setValue($export->getCell("62", $row), "Zusatzinformation - Inhalt 8");
+            $export->setValue($export->getCell("63", $row), "Zusatzinformation - Art 9");
+            $export->setValue($export->getCell("64", $row), "Zusatzinformation - Inhalt 9");
+            $export->setValue($export->getCell("65", $row), "Zusatzinformation - Art 10");
+            $export->setValue($export->getCell("66", $row), "Zusatzinformation - Inhalt 10");
+            $export->setValue($export->getCell("67", $row), "Zusatzinformation - Art 11");
+            $export->setValue($export->getCell("68", $row), "Zusatzinformation - Inhalt 11");
+            $export->setValue($export->getCell("69", $row), "Zusatzinformation - Art 12");
+            $export->setValue($export->getCell("70", $row), "Zusatzinformation - Inhalt 12");
+            $export->setValue($export->getCell("71", $row), "Zusatzinformation - Art 13");
+            $export->setValue($export->getCell("72", $row), "Zusatzinformation - Inhalt 13");
+            $export->setValue($export->getCell("73", $row), "Zusatzinformation - Art 14");
+            $export->setValue($export->getCell("74", $row), "Zusatzinformation - Inhalt 14");
+            $export->setValue($export->getCell("75", $row), "Zusatzinformation - Art 15");
+            $export->setValue($export->getCell("76", $row), "Zusatzinformation - Inhalt 15");
+            $export->setValue($export->getCell("77", $row), "Zusatzinformation - Art 16");
+            $export->setValue($export->getCell("78", $row), "Zusatzinformation - Inhalt 16");
+            $export->setValue($export->getCell("79", $row), "Zusatzinformation - Art 17");
+            $export->setValue($export->getCell("80", $row), "Zusatzinformation - Inhalt 17");
+            $export->setValue($export->getCell("81", $row), "Zusatzinformation - Art 18");
+            $export->setValue($export->getCell("82", $row), "Zusatzinformation - Inhalt 18");
+            $export->setValue($export->getCell("83", $row), "Zusatzinformation - Art 19");
+            $export->setValue($export->getCell("84", $row), "Zusatzinformation - Inhalt 19");
+            $export->setValue($export->getCell("85", $row), "Zusatzinformation - Art 20");
+            $export->setValue($export->getCell("86", $row), "Zusatzinformation - Inhalt 20");
             $export->setValue($export->getCell("87", $row), utf8_decode("Stück"));
             $export->setValue($export->getCell("88", $row), "Gewicht");
             $export->setValue($export->getCell("89", $row), "Zahlweise");

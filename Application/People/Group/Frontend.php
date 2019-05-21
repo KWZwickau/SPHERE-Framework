@@ -702,9 +702,9 @@ class Frontend extends Extension implements IFrontendInterface
             $stage->setContent(
                 new TableData(
                     $content,
-                    null,
+                    new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau', '(grün = wird geändert, gelb/rot = keine automatische Zuordnung)'),
                     array(
-                        'Student' => 'Schüler / Interessent',
+                        'Student' => 'Schüler / Interessent / Ehemalige',
                         'S1' => 'S1',
                         'S2' => 'S2',
                         'S3' => 'S3',
@@ -806,9 +806,10 @@ class Frontend extends Extension implements IFrontendInterface
                 ($message ? $message : '')
                 . new TableData(
                     $content,
-                    null,
+                    new \SPHERE\Common\Frontend\Table\Repository\Title('Keine automatische Zuordnung für folgende Datensätze',
+                        'manuelle Korrektur in der Personenverwaltung notwendig'),
                     array(
-                        'Student' => 'Schüler / Interessent',
+                        'Student' => 'Schüler / Interessent / Ehemalige',
                         'S1' => 'S1',
                         'S2' => 'S2',
                         'S3' => 'S3',

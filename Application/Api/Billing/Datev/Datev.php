@@ -45,7 +45,7 @@ class Datev implements IApplicationInterface, IModuleInterface
             if(($fileLocation = Balance::useService()->createDatevCsv($tblBasket))){
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Test ".date("Y-m-d H:i:s").".csv")->__toString();
+                    "EXTF_".date("Y-m-d H:i:s").".csv")->__toString();
             }
         }
 
