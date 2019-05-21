@@ -362,10 +362,10 @@ class Frontend extends Extension implements IFrontendInterface
     private function showSepaInfo()
     {
 
-        $Content = new Warning(
-            new Container('- Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:  Kontodaten, Mandatsreferenznummer')
-            .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme')
-        );
+        $Content = '<div class="alert alert-warning" style="padding: 8px !important; margin-bottom: 8px">
+            - Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu Pflichtangaben:  Kontodaten, Mandatsreferenznummer <br/>
+            - Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme
+            </div>';;
         return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Content))));
     }
 
