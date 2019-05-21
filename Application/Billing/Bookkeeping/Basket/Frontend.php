@@ -448,14 +448,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $Title = 'Anzahl der Zahlungszuordnungen:';
                         break;
                     case 'DebtorNumberMiss':
-                        $Title = 'Anzahl fehlernder Debitoren-Nr.:';
+                        $Title = 'Anzahl der fehlenden Debitoren-Nr.:';
                         if($Count > 0 && $IsDebtorNumberNeed){
                             $Title = new DangerText($Title);
                             $DebtorNumberMissCount = $Count;
                         }
                         break;
                     case 'DebtorMiss':
-                        $Title = 'Anzahl fehlender Zahlungszuweisungen:';
+                        $Title = 'Anzahl der fehlenden Zahlungszuweisungen:';
                         if($Count > 0){
                             $Title = new DangerText($Title);
                             $DebtorMissCount = $Count;
