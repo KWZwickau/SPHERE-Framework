@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -47,6 +48,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
@@ -123,6 +125,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Sepa'] = '';
                 $Item['Datev'] = '';
 
+                $Item['IsCredit'] = '';
+                if($tblBasket->getIsCompanyCredit()){
+                    $Item['IsCredit'] = new SuccessText(new SuccessIcon());
+                }
+
                 if($tblBasket->getSepaDate()){
                     $Item['Sepa'] = $tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')';
                 }
@@ -173,6 +180,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Time'       => 'Abrechnungsmonat',
                 'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
+                'IsCredit'   => 'Auszahlung',
                 'Sepa'       => 'Letzter SEPA-Download',
                 'Datev'      => 'Letzter DATEV-Download',
                 'Option'     => ''
@@ -214,14 +222,14 @@ class Frontend extends Extension implements IFrontendInterface
                         array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
                 }
             }
-            // ToDO Muss noch die Überweisung in die andere Richtung implentieren
-            if($tblBasket->getDatevDate()){
-                $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
-                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
-            } else {
-                $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
-                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
-            }
+//            // Datev für diesen Vorgang erstmal verschoben
+//            if($tblBasket->getDatevDate()){
+//                $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
+//                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+//            } else {
+//                $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
+//                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+//            }
         } else {
             // debit
             if($IsSepa){
