@@ -21,16 +21,17 @@ class TblSetting extends Element
     const ATTR_CATEGORY = 'Category';
 
     // Regular Options
-    const IDENT_DEBTOR_NUMBER_COUNT = 'DebtorNumberCount';
-    const IDENT_IS_DEBTOR_NUMBER_NEED = 'IsDebtorNumberNeed';
-    const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
-    const IDENT_IS_AUTO_REFERENCE_NUMBER = 'IsAutoReferenceNumber';
+    // aktuell leer
 
     // Sepa Options
     const IDENT_IS_SEPA = 'IsSepa';
+    const IDENT_IS_AUTO_REFERENCE_NUMBER = 'IsAutoReferenceNumber';
     const IDENT_SEPA_REMARK = 'SepaRemark';
 
     // Datev Options
+    const IDENT_IS_DATEV = 'IsDatev';
+    const IDENT_DEBTOR_NUMBER_COUNT = 'DebtorNumberCount';
+    const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
     const IDENT_DATEV_REMARK = 'DatevRemark';
 
     const TYPE_BOOLEAN = 'boolean';

@@ -258,22 +258,23 @@ class ApiSetting extends Extension implements IApiInterface
 
         switch($Category){
             case TblSetting::CATEGORY_REGULAR:
-                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 7);
-                Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
-                $IsDebtorNumberNeed = (isset($Setting[TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
-                $IsAutoDebtorNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
-                $IsAutoReferenceNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, $IsAutoReferenceNumber);
+                // aktuell leer
             break;
             case TblSetting::CATEGORY_SEPA:
                 $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
+                $IsAutoReferenceNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, $IsAutoReferenceNumber);
                 $SepaRemark = (isset($Setting[TblSetting::IDENT_SEPA_REMARK]) ? $Setting[TblSetting::IDENT_SEPA_REMARK]: '');
                 Setting::useService()->createSetting(TblSetting::IDENT_SEPA_REMARK, $SepaRemark);
             break;
             case TblSetting::CATEGORY_DATEV:
+                $IsDatev = (isset($Setting[TblSetting::IDENT_IS_DATEV]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_DATEV, $IsDatev);
+                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 7);
+                Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
+                $IsAutoDebtorNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
                 $DatevRemark = (isset($Setting[TblSetting::IDENT_DATEV_REMARK]) ? $Setting[TblSetting::IDENT_DATEV_REMARK] : '');
                 Setting::useService()->createSetting(TblSetting::IDENT_DATEV_REMARK, $DatevRemark);
             break;

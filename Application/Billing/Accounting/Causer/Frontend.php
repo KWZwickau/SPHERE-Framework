@@ -163,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
                 $IsDebtorNumberNeed = false;
-                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
                     if($tblSetting->getValue() == 1){
                         $IsDebtorNumberNeed = true;
                     }

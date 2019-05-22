@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Inventory\Setting\Service;
 
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSettingGroupPerson;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -17,44 +18,52 @@ class Data extends AbstractData
 {
     public function setupDatabaseContent()
     {
-        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_REGULAR);
-        if($tblSetting->getCategory() == ''){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
-        }
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
-        if($tblSetting->getCategory() == ''){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
-        }
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
-        if($tblSetting->getCategory() == ''){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
-        }
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
-//        if($tblSetting->getCategory() == ''){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_REGULAR);
-//        }
+
 
         // SEPA Options
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
-        if($tblSetting->getCategory() == ''){
+        $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
+        $this->createSetting(TblSetting::IDENT_SEPA_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
+        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
+        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
             $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
         }
-        $this->createSetting(TblSetting::IDENT_SEPA_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
 
         // DATEV Options
+        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
+        $tblSetting = $this->getSettingByIdentifier('IsDebtorNumberNeed');
+        if($tblSetting){
+            $this->updateSettingIdentifier($tblSetting, TblSetting::IDENT_IS_DATEV);
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
+        }
+        $this->createSetting(TblSetting::IDENT_IS_DATEV, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
+
+        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
+        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
+        }
+        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
+        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
+        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
+            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
+        }
         $this->createSetting(TblSetting::IDENT_DATEV_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
 
 
 
 
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-        $this->createSettingGroupPerson($tblGroup);
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
-        $this->createSettingGroupPerson($tblGroup);
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
-        $this->createSettingGroupPerson($tblGroup);
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
-        $this->createSettingGroupPerson($tblGroup);
+        // Wird nur ausgeführt, wenn noch keine Personengruppen ausgewählt sind
+        if(false === Setting::useService()->getSettingGroupPersonAll()){
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            $this->createSettingGroupPerson($tblGroup);
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
+            $this->createSettingGroupPerson($tblGroup);
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
+            $this->createSettingGroupPerson($tblGroup);
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
+            $this->createSettingGroupPerson($tblGroup);
+        }
 //        $tblSetting = $this->createSetting(TblSetting::IDENT_PERSON_GROUP_ACTIVE_LIST, '1;2;3;4;6');
 //        $this->updateSetting($tblSetting, '1;2;3;4;6');
     }
@@ -259,6 +268,32 @@ class Data extends AbstractData
             && $Entity->getCategory() != $Category){
             $Protocol = clone $Entity;
             $Entity->setCategory($Category);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param string     $Identifier
+     *
+     * @return TblSetting
+     */
+    public function updateSettingIdentifier(TblSetting $tblSetting, $Identifier = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+
+        if(null !== $Entity){
+            $Protocol = clone $Entity;
+            $Entity->setIdentifier($Identifier);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

@@ -538,7 +538,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     {
 
         $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
             if($tblSetting->getValue() == 1){
                 $IsDebtorNumberNeed = true;
             }
