@@ -163,7 +163,7 @@ class MsAbgLernen extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId,true, array(), '14px', false, false, true)->styleHeight('320px'))
+            ->addSlice($this->getSubjectLanes($personId,true, array(), '14px', false, false, false)->styleHeight('320px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                 ->setContent('Bemerkungen: Inklusive Unterrichtung¹:
