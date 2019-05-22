@@ -69,6 +69,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -87,6 +88,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -4471,10 +4473,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $PersonId
      * @param null $DivisionId
      * @param null $Data
+     * @param null $ChangeCertificate
      *
      * @return Stage|string
      */
-    public function frontendLeaveStudentTemplate($PersonId = null, $DivisionId = null, $Data = null)
+    public function frontendLeaveStudentTemplate($PersonId = null, $DivisionId = null, $Data = null, $ChangeCertificate = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $stage = new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler');
@@ -4493,6 +4496,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCourse = $tblStudent->getCourse();
                 if (($tblLevel = $tblDivision->getTblLevel())) {
                     $tblType = $tblLevel->getServiceTblType();
+                }
+
+                // nachträgliche Änderung der Zeugnisvorlage
+                if ($ChangeCertificate && $tblType) {
+                    return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
                 }
 
                 if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))) {
@@ -4583,7 +4591,21 @@ class Frontend extends Extension implements IFrontendInterface
         $Data = null
     ) {
         $stage = new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Zeugnisvorlage auswählen');
-        $stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Leave', new ChevronLeft()));
+
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
+            && ($tblLeaveCertificate = $tblLeaveStudent->getServiceTblCertificate())
+        ) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Certificate'] = $tblLeaveCertificate->getId();
+            $global->savePost();
+
+            $stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array(
+                'PersonId' => $tblPerson->getId(),
+                'DivisionId' => $tblDivision->getId()
+            )));
+        } else {
+            $stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Leave', new ChevronLeft()));
+        }
 
         $list = array();
         if (($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
@@ -4691,6 +4713,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasPreviewGrades = false;
         $isApproved = false;
         $hasMissingSubjects = false;
+        $hasCertificateGrades = false;
 
         if (Student::useService()->getIsSupportByPerson($tblPerson)) {
             $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
@@ -4883,6 +4906,12 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        if (!$isApproved && $tblType && $tblType->getName() == 'Mittelschule / Oberschule') {
+            $canChangeCertificate = true;
+        } else {
+            $canChangeCertificate = false;
+        }
+
         $layoutGroups[] = new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
@@ -4919,6 +4948,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblCertificate->getName()
                             . ($tblCertificate->getDescription()
                                 ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
+                            . ($canChangeCertificate
+                                ? new Link('Bearbeiten', '/Education/Certificate/Prepare/Leave/Student', new Pencil(), array(
+                                    'PersonId' => $tblPerson->getId(),
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'ChangeCertificate' => true
+                                ))
+                                : '')
                             : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
                             . ' Keine Zeugnisvorlage verfügbar!'),
                         $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
