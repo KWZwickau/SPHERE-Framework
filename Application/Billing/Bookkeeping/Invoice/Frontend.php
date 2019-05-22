@@ -6,15 +6,16 @@ use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -155,81 +156,54 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Rechnungsliste', 'Sicht Beitragsverursacher');
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'],
-            $Invoice['BasketName']);
-        $TableContent = array();
-        if($tblInvoiceList){
-            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
-                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
-                $item['BasketName'] = $tblInvoice->getBasketName();
-//                $item['TargetTime'] = $tblInvoice->getTargetTime();
-                //ToDO Person aus Service oder fester string?
-                $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
-
-
-                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
-                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
-                        $item['DebtorPerson'] = '';
-                        $item['Item'] = '';
-                        $item['ItemQuantity'] = '';
-                        $item['ItemPrice'] = 0;
-                        $item['ItemSumPrice'] = 0;
-
-                        $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
-                        $item['Item'] = $tblInvoiceItemDebtor->getName();
-                        $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
-                        $item['ItemPrice'] = $tblInvoiceItemDebtor->getValue();
-                        $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
-
-                        $CheckBox = (new CheckBox('IsPaid', ' ', $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
-                            ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
-                        if(!$tblInvoiceItemDebtor->getIsPaid()){
-                            $CheckBox->setChecked();
-                        }
-
-                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox, $tblInvoiceItemDebtor->getId());
-//                        $item['Option'] = '';
-                        // convert to Frontend
-                        $item['ItemPrice'] = number_format($item['ItemPrice'], 2).' €';
-                        $item['ItemSumPrice'] = number_format($item['ItemSumPrice'], 2).' €';
-                        array_push($TableContent, $item);
-                    }
-                }
-            });
-        }
+        $TableContent = Invoice::useService()->getInvoiceCauserList(
+            $Invoice['Year'],
+            $Invoice['Month'],
+            isset($Invoice['BasketName']) ? $Invoice['BasketName'] : '',
+            isset($Invoice['ItemName']) ? $Invoice['ItemName'] : '',
+            true
+        );
 
         $Stage->setContent(
             ApiInvoiceIsPaid::receiverService()
             .new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(
-                        new LayoutColumn($this->formInvoiceFilter())
+                        new LayoutColumn($this->formInvoiceFilter(true))
                     ),
+                    empty($TableContent) ? null : new LayoutRow(new LayoutColumn(
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Billing/Invoice/Causer/Download',
+                            new Download(), array(
+                                'Year'   => $Invoice['Year'],
+                                'Month'   => $Invoice['Month'],
+                                'BasketName' => isset($Invoice['BasketName']) ? $Invoice['BasketName'] : '',
+                                'ItemName' => isset($Invoice['ItemName']) ? $Invoice['ItemName'] : ''
+                            ))
+                    )),
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
+                                'CauserPerson'  => 'Beitragsverursacher',
                                 'Item'          => 'Beitragsarten',
+                                'DebtorPerson'  => 'Beitragszahler',
+                                'BasketName'    => 'Name der Abrechnung',
+                                'Time'          => 'Abrechnungszeitraum',
+                                'InvoiceNumber' => 'Rechnungsnummer',
+                                'PaymentType'   => 'Zahlungsart',
                                 'ItemQuantity'  => 'Menge',
                                 'ItemPrice'     => new ToolTip('EP', 'Einzelpreis'),
                                 'ItemSumPrice'  => new ToolTip('GP', 'Gesamtpreis'),
-                                'CauserPerson'  => 'Beitragsverursacher',
-                                'Time'          => 'Abrechnungszeitraum',
-                                'DebtorPerson'  => 'Debitor',
-                                'InvoiceNumber' => 'Rechnungsnummer',
-                                'BasketName'    => 'Name der Abrechnung',
                                 'IsPaid'        => 'Offene Posten',
 //                                'Option' => '',
                             ), array(
                                 'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => array(1, 2, 3, 7)),
+                                    array('type' => 'natural', 'targets' => array(0,1, 2, 3, 4, 5, 6)),
 //                                    array('type' => 'de_date', 'targets' => array(2)),
                                     array("orderable" => false, "targets" => -1),
                                 ),
                                 'order'      => array(
 //                            array(1, 'desc'),
-                                    array(7, 'desc')
+                                    array(5, 'desc')
                                 ),
                                 'responsive' => false,
                             ))
@@ -242,7 +216,12 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function formInvoiceFilter()
+    /**
+     * @param bool $HasItemFilter
+     *
+     * @return Well
+     */
+    public function formInvoiceFilter($HasItemFilter = false)
     {
 
         $YearList = Invoice::useService()->getYearList(3, 1);
@@ -256,17 +235,28 @@ class Frontend extends Extension implements IFrontendInterface
             $BasketNameList = array_unique($BasketNameList);
         }
 
+        $width = $HasItemFilter ? 3 : 4;
+        $columns[] = new FormColumn(new SelectBox('Invoice[Year]', 'Jahr', $YearList), $width);
+        $columns[] = new FormColumn(new SelectBox('Invoice[Month]', 'Monat', $MonthList, null, true, null), $width);
+        $columns[] = new FormColumn(new AutoCompleter('Invoice[BasketName]', 'Name der Abrechnung', '', $BasketNameList), $width);
+        if ($HasItemFilter) {
+            $ItemNameList = array();
+            if(($tblItemList = Item::useService()->getItemAll())){
+                foreach($tblItemList as $tblItem) {
+                    $ItemNameList[] = $tblItem->getName();
+                }
+                $ItemNameList = array_unique($ItemNameList);
+            }
+
+            $columns[] = new FormColumn(new AutoCompleter('Invoice[ItemName]', 'Beitragsart', '', $ItemNameList), $width);
+        }
+
         return new Well(new Form(
             new FormGroup(array(
                 new FormRow(
                     new FormColumn(new Title('Rechnungen filtern'))
                 ),
-                new FormRow(array(
-                    new FormColumn(new SelectBox('Invoice[Year]', 'Jahr', $YearList), 4),
-                    new FormColumn(new SelectBox('Invoice[Month]', 'Monat', $MonthList, null, true, null), 4),
-                    new FormColumn(new AutoCompleter('Invoice[BasketName]', 'Name der Abrechnung', '', $BasketNameList),
-                        4),
-                )),
+                new FormRow($columns),
                 new FormRow(array(
 //                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))), 2),
 //                    new FormColumn(new Primary('Filter', new Filter()), 10),
