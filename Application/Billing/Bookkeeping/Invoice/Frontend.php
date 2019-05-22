@@ -4,7 +4,6 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -17,7 +16,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -59,69 +57,43 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Rechnungsliste', 'Sicht Beitragszahler');
-        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month'],
-            $Invoice['BasketName']);
-        $TableContent = array();
-        if($tblInvoiceList){
-            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
-                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
-                $item['TargetTime'] = $tblInvoice->getTargetTime();
-                $item['BasketName'] = $tblInvoice->getBasketName();
-                $item['CauserPerson'] = '';
-                if($tblPersonCauser = $tblInvoice->getServiceTblPersonCauser()){
-                    $item['CauserPerson'] = $tblPersonCauser->getLastFirstName();
-                }
-                $item['DebtorPerson'] = '';
-                $item['DebtorNumber'] = '';
-                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
-                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                    $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
-                    $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
-                    $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
-                    $ItemList = array();
-                    $ItemPrice = 0;
-                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
-                        $ItemList[] = $tblInvoiceItemDebtor->getName();
-                        $ItemPrice += $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
-                    }
-                    $ItemString = implode(', ', $ItemList);
-                    // convert to Frontend
-                    $item['SumPrice'] = number_format($ItemPrice, 2).' €&nbsp;&nbsp;&nbsp;'.new ToolTip(new Info(),
-                            $ItemString);
-                }
-//                $item['Option'] = '';
-
-                array_push($TableContent, $item);
-            });
-        }
+        $TableContent = Invoice::useService()->getInvoiceDebtorList($Invoice['Year'], $Invoice['Month'], $Invoice['BasketName'], true);
 
         $Stage->setContent(new Layout(
             new LayoutGroup(array(
                 new LayoutRow(
                     new LayoutColumn($this->formInvoiceFilter())
                 ),
+                empty($TableContent) ? null : new LayoutRow(new LayoutColumn(
+                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Billing/Invoice/Debtor/Download',
+                        new Download(), array(
+                            'Year'   => $Invoice['Year'],
+                            'Month'   => $Invoice['Month'],
+                            'BasketName' => isset($Invoice['BasketName']) ? $Invoice['BasketName'] : ''
+                        ))
+                )),
                 new LayoutRow(
                     new LayoutColumn(
                         new TableData($TableContent, null, array(
-                            'InvoiceNumber' => 'Rechnungsnummer',
-                            'Time'          => 'Abrechnungszeitraum',
-                            'TargetTime'    => 'Fälligkeitsdatum',
-                            'CauserPerson'  => 'Beitragsverursacher',
                             'DebtorPerson'  => 'Beitragszahler',
                             'DebtorNumber'  => 'Debitoren-Nr.',
-                            'SumPrice'      => 'Gesamtbetrag',
                             'BasketName'    => 'Name der Abrechnung',
+                            'CauserPerson'  => 'Beitragsverursacher',
+                            'Time'          => 'Abrechnungszeitraum',
+                            'TargetTime'    => 'Fälligkeitsdatum',
+                            'InvoiceNumber' => 'Rechnungsnummer',
+                            'PaymentType'   => 'Zahlungsart',
+                            'DisplaySumPrice'      => 'Gesamtbetrag',
 //                            'Option' => '',
                         ), array(
                             'columnDefs' => array(
-                                array('type' => 'natural', 'targets' => array(0, 6)),
-                                array('type' => 'de_date', 'targets' => array(2)),
+                                array('type' => 'natural', 'targets' => array(1, 6)),
+                                array('type' => 'de_date', 'targets' => array(5)),
 //                                array("orderable" => false, "targets"   => -1),
                             ),
                             'order'      => array(
 //                            array(1, 'desc'),
-                                array(0, 'desc')
+                                array(6, 'desc')
                             ),
                             'responsive' => false,
                         ))

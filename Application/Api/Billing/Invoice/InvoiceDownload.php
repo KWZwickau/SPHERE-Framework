@@ -29,6 +29,9 @@ class InvoiceDownload implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Causer/Download', __NAMESPACE__.'\InvoiceDownload::downloadInvoiceCauserList'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Debtor/Download', __NAMESPACE__.'\InvoiceDownload::downloadInvoiceDebtorList'
+        ));
     }
 
     /**
@@ -47,6 +50,14 @@ class InvoiceDownload implements IModuleInterface
         // Implement useFrontend() method.
     }
 
+    /**
+     * @param $Year
+     * @param $Month
+     * @param string $BasketName
+     * @param string $ItemName
+     *
+     * @return bool|string
+     */
     public function downloadInvoiceCauserList(
         $Year,
         $Month,
@@ -58,6 +69,27 @@ class InvoiceDownload implements IModuleInterface
                 'Rechnungsliste-Beitragsverursacher-' . $Year . '-' . $Month
                 . ($BasketName == '' ? '' : '-' . $BasketName)
                 . ($ItemName == '' ? '' : '-' . $ItemName)
+                . '.xlsx')->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     * @param string $BasketName
+     *
+     * @return bool|string
+     */
+    public function downloadInvoiceDebtorList(
+        $Year,
+        $Month,
+        $BasketName = ''
+    ) {
+        if(($fileLocation = Invoice::useService()->createInvoiceDebtorListExcel($Year, $Month, $BasketName))){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Rechnungsliste-Beitragszahler-' . $Year . '-' . $Month
+                . ($BasketName == '' ? '' : '-' . $BasketName)
                 . '.xlsx')->__toString();
         }
         return false;
