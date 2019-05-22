@@ -160,7 +160,10 @@ class FrontendCommon extends FrontendReadOnly
                 if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
                     $Global->POST['Meta']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
                     $Global->POST['Meta']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace();
-                    $Global->POST['Meta']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+                    // post für "Gender" wird an anderer Stelle gesetzt
+//                    if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
+//                        $Global->POST['Meta']['BirthDates']['Gender'] = $tblCommonGender->getId();
+//                    }
                 }
 
                 if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
@@ -204,9 +207,16 @@ class FrontendCommon extends FrontendReadOnly
     public function getEditCommonForm(TblPerson $tblPerson = null)
     {
 
+        $genderId = 0;
+        if($tblPerson){
+            if(($tblCommonGender = $tblPerson->getGender())){
+                $genderId = $tblCommonGender->getId();
+            }
+        }
+
         return new Form(array(
             new FormGroup(array(
-                $this->getCommonFormRow(),
+                $this->getCommonFormRow($genderId),
                 new FormRow(array(
                     new FormColumn(array(
                         (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
@@ -220,9 +230,11 @@ class FrontendCommon extends FrontendReadOnly
     }
 
     /**
+     * @param int $genderId
+     *
      * @return FormRow
      */
-    public function getCommonFormRow()
+    public function getCommonFormRow($genderId = 0)
     {
         $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
         $tblBirthplaceAll = array();
@@ -276,7 +288,7 @@ class FrontendCommon extends FrontendReadOnly
             });
         }
 
-        $genderReceiver = ApiPersonReadOnly::receiverBlock($this->getGenderSelectBox(0), 'SelectedGender');
+        $genderReceiver = ApiPersonReadOnly::receiverBlock($this->getGenderSelectBox($genderId), 'SelectedGender');
 
         return new FormRow(array(
             new FormColumn(array(

@@ -11,10 +11,6 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
-use SPHERE\Common\Frontend\Icon\Repository\Minus;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Headline;
-use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\System\Extension\Extension;
 
@@ -38,8 +34,6 @@ class ApiSetting extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showSetting');
         $Dispatcher->registerMethod('showFormSetting');
         $Dispatcher->registerMethod('changeSetting');
-        // SepaInfo
-        $Dispatcher->registerMethod('showSepaInfo');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -57,13 +51,14 @@ class ApiSetting extends Extension implements IApiInterface
 
     /**
      * @param string $Content
+     * @param string $Idenifier
      *
      * @return BlockReceiver
      */
-    public static function receiverSetting($Content = '')
+    public static function receiverSetting($Content = '', $Idenifier = '')
     {
 
-        return (new BlockReceiver($Content))->setIdentifier('SettingReceiver');
+        return (new BlockReceiver($Content))->setIdentifier('SettingReceiver'.$Idenifier);
     }
 
     /**
@@ -124,47 +119,42 @@ class ApiSetting extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $Category
+     *
      * @return Pipeline
      */
-    public static function pipelineShowSetting()
+    public static function pipelineShowSetting($Category)
     {
-        $Receiver = self::receiverSetting();
+        $Receiver = self::receiverSetting('', $Category);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
         $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'showSetting'
         ));
+        $Emitter->setPostPayload(array(
+            'Category' => $Category
+        ));
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param string $Category
+     *
      * @return Pipeline
      */
-    public static function pipelineShowFormSetting()
+    public static function pipelineShowFormSetting($Category)
     {
-        $Receiver = self::receiverSetting();
+
+        $Receiver = self::receiverSetting('', $Category);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
         $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'showFormSetting'
         ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @return Pipeline
-     */
-    public static function pipelineSaveSetting()
-    {
-        $Receiver = self::receiverSetting();
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $Emitter->setGetPayload(array(
-            ApiSetting::API_TARGET => 'changeSetting'
+        $Emitter->setPostPayload(array(
+            'Category' => $Category
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -174,13 +164,16 @@ class ApiSetting extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineShowSepaInfo()
+    public static function pipelineSaveSetting($Category)
     {
-        $Receiver = self::receiverModal();
+        $Receiver = self::receiverSetting('', $Category);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
         $Emitter->setGetPayload(array(
-            ApiSetting::API_TARGET => 'showSepaInfo'
+            ApiSetting::API_TARGET => 'changeSetting'
+        ));
+        $Emitter->setPostPayload(array(
+            'Category' => $Category
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -203,19 +196,6 @@ class ApiSetting extends Extension implements IApiInterface
     {
 
         return Setting::useFrontend()->formPersonGroup();
-    }
-
-    /**
-     * @return string
-     */
-    public function showSepaInfo()
-    {
-
-        $Content = new Headline('Welche Auswirkungen hat die Eingabepflicht für SEPA-Lastschrift als XML?');
-        $Content .= new Ruler();
-        $Content .= new Container(new Minus().' Bei der Auswahl der Bezahlvariante "SEPA-Lastschrift" werden Kontodaten sowie eine Mandatsreferenznummer zum Pflichtfeld.');
-        $Content .= new Container(new Minus().' Weitere Anpassungen werden noch vorgenommen.');
-        return $Content;
     }
 
     /**
@@ -246,38 +226,53 @@ class ApiSetting extends Extension implements IApiInterface
     }
 
     /**
-     * @return Layout
-     */
-    public function showSetting()
-    {
-
-        return Setting::useFrontend()->displaySetting();
-    }
-
-    /**
-     * @return Layout
-     */
-    public function showFormSetting()
-    {
-
-        return Setting::useFrontend()->formSetting();
-    }
-
-    /**
-     * @param $Setting
+     * @param string $Category
      *
      * @return Layout
      */
-    public function changeSetting($Setting)
+    public function showSetting($Category)
     {
 
-        $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting['DebtorNumberCount'] : 7);
-        Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
-        $IsDebtorNumberNeed = (isset($Setting[TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED]) ? true : false);
-        Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
-        $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
-        Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
+        return Setting::useFrontend()->displaySetting($Category);
+    }
 
-        return Setting::useFrontend()->displaySetting();
+    /**
+     * @param $Category
+     *
+     * @return Layout
+     */
+    public function showFormSetting($Category)
+    {
+
+        return Setting::useFrontend()->formSetting($Category);
+    }
+
+    /**
+     * @param array  $Setting
+     * @param string $Category
+     *
+     * @return Layout
+     */
+    public function changeSetting($Setting, $Category)
+    {
+
+        switch($Category){
+            case TblSetting::CATEGORY_REGULAR:
+                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 7);
+                Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
+                $IsDebtorNumberNeed = (isset($Setting[TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
+                $IsAutoDebtorNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
+                $IsAutoReferenceNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, $IsAutoReferenceNumber);
+            break;
+            case TblSetting::CATEGORY_SEPA:
+                $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
+            break;
+        }
+
+        return Setting::useFrontend()->displaySetting($Category);
     }
 }

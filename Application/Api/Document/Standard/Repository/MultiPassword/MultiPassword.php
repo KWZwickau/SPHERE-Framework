@@ -20,6 +20,11 @@ class MultiPassword extends AbstractDocument
     const PLACE_HOLDER = '#BBBB00';
 
     /**
+     * @var array
+     */
+    private $pageList = array();
+
+    /**
      * MultiPassword constructor.
      *
      * @param $Data
@@ -28,6 +33,14 @@ class MultiPassword extends AbstractDocument
     {
 
         $this->setFieldValue($Data);
+    }
+
+    /**
+     * @return array
+     */
+    public function getPageList()
+    {
+        return $this->pageList;
     }
 
     /**
@@ -113,6 +126,9 @@ class MultiPassword extends AbstractDocument
                                 }
                             }
                         }
+
+                        $this->pageList[] = $this->buildPageOne($tblAccount->getId());
+                        $this->pageList[] = $this->buildPageTwo($tblAccount->getId());
                     }
                 }
                 // set flag IsExport
@@ -146,6 +162,7 @@ class MultiPassword extends AbstractDocument
     public function buildDocument($pageList = array())
     {
 
+        // wird jetzt nicht mehr verwendet
         $Document = new Document();
         if(!empty($this->FieldValue['tblAccountList'])){
             /** @var TblAccount $tblAccount */

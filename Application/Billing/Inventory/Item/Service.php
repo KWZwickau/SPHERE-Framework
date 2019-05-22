@@ -195,17 +195,18 @@ class Service extends AbstractService
 
     /**
      * @param TblItemVariant $tblItemVariant
+     * @param string         $Date
      *
      * @return bool|TblItemCalculation
      */
-    public function getItemCalculationNowByItemVariant(TblItemVariant $tblItemVariant)
+    public function getItemCalculationNowByItemVariant(TblItemVariant $tblItemVariant, $Date = 'now')
     {
 
         $tblItemCalculationActive = false;
         $tblItemCalculationList = (new Data($this->getBinding()))->getItemCalculationByItemVariant($tblItemVariant);
         if($tblItemCalculationList){
             foreach($tblItemCalculationList as $tblItemCalculation) {
-                $now = new \DateTime();
+                $now = new \DateTime($Date);
                 $from = new \DateTime($tblItemCalculation->getDateFrom());
                 if(($tblItemCalculation->getDateTo())){
                     $to = new \DateTime($tblItemCalculation->getDateTo());

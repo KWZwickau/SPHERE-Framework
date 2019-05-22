@@ -86,6 +86,16 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Dokumente',
                 'Für die Schulbescheinigung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 120px): [Standard: 90px]');
         }
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'Billing_PictureAddress',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für den Belegdruck der Fakturierung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
+        }
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'Billing_PictureHeight',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für den Belegdruck der Fakturierung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 150px): [Standard: 90px]');
+        }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName',
             TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',

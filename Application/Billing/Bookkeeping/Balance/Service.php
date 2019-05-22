@@ -24,6 +24,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -100,10 +101,11 @@ class Service extends AbstractService
 
     /**
      * @param TblItem $tblItem
-     * @param string  $Year
-     * @param string  $MonthFrom
-     * @param string  $MonthTo
-     * @param string  $DivisionId
+     * @param string $Year
+     * @param string $MonthFrom
+     * @param string $MonthTo
+     * @param string $DivisionId*
+     * @param string $GroupId
      *
      * @return array
      */
@@ -112,7 +114,8 @@ class Service extends AbstractService
         $Year,
         $MonthFrom = '1',
         $MonthTo = '12',
-        $DivisionId = '0'
+        $DivisionId = '0',
+        $GroupId = '0'
     ){
         $PriceList = array();
         $ResultList = $this->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
@@ -151,6 +154,23 @@ class Service extends AbstractService
                 foreach($DebtorList as $CauserId => &$Content){
                     $tblPersonCauser = Person::useService()->getPersonById($CauserId);
                     if(!in_array($tblPersonCauser, $tblPersonList)){
+                        $Content = false;
+                    }
+                }
+                // remove mismatched Student
+                $DebtorList = array_filter($DebtorList);
+            }
+            // remove empty DebtorList
+            $PriceList = array_filter($PriceList);
+        }
+
+        // use only division matched Person's
+        if(!empty($PriceList) && $GroupId !== '0' && ($tblGroup = Group::useService()->getGroupById($GroupId))){
+            foreach($PriceList as &$DebtorList){
+                foreach($DebtorList as $CauserId => &$Content){
+                    if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))
+                        && !Group::useService()->existsGroupPerson($tblGroup, $tblPersonCauser)
+                    ) {
                         $Content = false;
                     }
                 }
@@ -502,6 +522,50 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItem $tblItem
+     * @param string $Year
+     * @param string $MonthFrom
+     * @param string $MonthTo
+     * @param TblPerson $tblPerson
+     *
+     * @return array|bool
+     */
+    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson)
+    {
+        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson);
+        $PriceList = array();
+        if($ResultList){
+            foreach($ResultList as $Key => $RowContent) {
+                $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
+                $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
+                $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+                if($PersonDebtorId && $PersonCauserId && $timeString){
+                    if(isset($RowContent['IsPaid']) && $RowContent['IsPaid']){
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Sum'][] = $RowContent['Value'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['Price'][$timeString] = $RowContent['Value'];
+                    } else {
+                        $PriceList[$PersonDebtorId][$PersonCauserId]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+                }
+            }
+        }
+
+        if(!empty($PriceList)){
+            foreach($PriceList as &$Debtor) {
+                foreach($Debtor as &$PriceArray) {
+                    if(isset($PriceArray['Sum'])){
+                        $PriceArray['Sum'] = array_sum($PriceArray['Sum']);
+                    } else {
+                        $PriceArray['Sum'] = 0;
+                    }
+                }
+            }
+        }
+
+        return $PriceList;
+    }
+
+    /**
      * @param string $Year
      * @param string $Month
      *
@@ -524,17 +588,320 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPriceSummaryByYear($Year);
     }
 
+    public function createDatevCsv(TblBasket $tblBasket)
+    {
+
+        $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
+        if(!$tblInvoiceList){
+            return false;
+        }
+
+        if ($tblInvoiceList) {
+            $now = new \DateTime();
+            $milliseconds = round(microtime(true) * 1000);
+            $milliseconds = substr($milliseconds, -3, 3);
+            $TestTime = $now->format('Ymdhis').$milliseconds;
+            $fileLocation = Storage::createFilePointer('csv');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            // Auswahl des Trennzeichen's
+            $export->setDelimiter(';');
+            $YearBegin = $tblBasket->getTargetYear().'0101';
+            $BookingFrom = $tblBasket->getTargetYearMonth();
+            $BookingTo = $tblBasket->getTargetYearMonth(true);
+
+            $row = 0;
+            $export->setValue($export->getCell("0", $row), "EXTF");
+            $export->setValue($export->getCell("1", $row), "510");
+            $export->setValue($export->getCell("2", $row), "21");
+            $export->setValue($export->getCell("3", $row), "Buchungsstapel");
+            $export->setValue($export->getCell("4", $row), "7");
+            $export->setValue($export->getCell("5", $row), $TestTime);
+            $export->setValue($export->getCell("6", $row), "");     // muss leer sein
+            $export->setValue($export->getCell("7", $row), "RE");
+            $export->setValue($export->getCell("8", $row), "");     // Export User -> leer lassen!
+            $export->setValue($export->getCell("9", $row), "");     // muss leer sein
+            $export->setValue($export->getCell("10", $row), "1");   // todo Berater über Option
+            $export->setValue($export->getCell("11", $row), "1");   // todo Mandat über Option Schulart bedingt unterschiedlich
+            $export->setValue($export->getCell("12", $row), $YearBegin);// todo WJ-Beginn Aktuelle Jahr vorne ziehen
+            $export->setValue($export->getCell("13", $row), "6");   // todo "Sachkonten Nummernlänge" über Option
+            $export->setValue($export->getCell("14", $row), $BookingFrom);// todo Buchungsstapel von xxxx0101
+            $export->setValue($export->getCell("15", $row), $BookingTo);// todo Buchungsstapel bis xxxx01xx
+            $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
+            $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Initialen der am Account verknüpften Personen Vorname, Nachname (z.b. JK)
+            $export->setValue($export->getCell("18", $row), "1");   // Buchungstyp 1 = Finanzbuchführung 2 = Jahresabschluss
+            $export->setValue($export->getCell("19", $row), "");    // todo Rechnungslegungszweck
+            $export->setValue($export->getCell("20", $row), "0");   // Festschreibung 0 = keine Festschreibung 1 = Festschreibung
+            $export->setValue($export->getCell("21", $row++), "EUR"); // Währungskennzeichen
+
+            $export->setValue($export->getCell("0", $row), "Umsatz (ohne Soll-/Haben-Kennzeichen)");
+            $export->setValue($export->getCell("1", $row), "Soll-/Haben-Kennzeichen");
+            $export->setValue($export->getCell("2", $row), "WKZ Umsatz");
+            $export->setValue($export->getCell("3", $row), "Kurs");
+            $export->setValue($export->getCell("4", $row), "Basisumsatz");
+            $export->setValue($export->getCell("5", $row), "WKZ Basisumsatz");
+            $export->setValue($export->getCell("6", $row), "Konto");
+            $export->setValue($export->getCell("7", $row), utf8_decode("Gegenkonto (ohne BU-Schlüssel)"));
+            $export->setValue($export->getCell("8", $row), utf8_decode("BU-Schlüssel"));
+            $export->setValue($export->getCell("9", $row), "Belegdatum");
+            $export->setValue($export->getCell("10", $row), "Belegfeld 1");
+            $export->setValue($export->getCell("11", $row), "Belegfeld 2");
+            $export->setValue($export->getCell("12", $row), "Skonto");
+            $export->setValue($export->getCell("13", $row), "Buchungstext");
+            $export->setValue($export->getCell("14", $row), "Postensperre");
+            $export->setValue($export->getCell("15", $row), "Diverse Adressnummer");
+            $export->setValue($export->getCell("16", $row), utf8_decode("Geschäftspartnerbank"));
+            $export->setValue($export->getCell("17", $row), "Sachverhalt");
+            $export->setValue($export->getCell("18", $row), "Zinssperre");
+            $export->setValue($export->getCell("19", $row), "Beleglink");
+            $export->setValue($export->getCell("20", $row), "Beleginfo - Art 1");
+            $export->setValue($export->getCell("21", $row), "Beleginfo - Inhalt 1");
+            $export->setValue($export->getCell("22", $row), "Beleginfo - Art 2");
+            $export->setValue($export->getCell("23", $row), "Beleginfo - Inhalt 2");
+            $export->setValue($export->getCell("24", $row), "Beleginfo - Art 3");
+            $export->setValue($export->getCell("25", $row), "Beleginfo - Inhalt 3");
+            $export->setValue($export->getCell("26", $row), "Beleginfo - Art 4");
+            $export->setValue($export->getCell("27", $row), "Beleginfo - Inhalt 4");
+            $export->setValue($export->getCell("28", $row), "Beleginfo - Art 5");
+            $export->setValue($export->getCell("29", $row), "Beleginfo - Inhalt 5");
+            $export->setValue($export->getCell("30", $row), "Beleginfo - Art 6");
+            $export->setValue($export->getCell("31", $row), "Beleginfo - Inhalt 6");
+            $export->setValue($export->getCell("32", $row), "Beleginfo - Art 7");
+            $export->setValue($export->getCell("33", $row), "Beleginfo - Inhalt 7");
+            $export->setValue($export->getCell("34", $row), "Beleginfo - Art 8");
+            $export->setValue($export->getCell("35", $row), "Beleginfo - Inhalt 8");
+            $export->setValue($export->getCell("36", $row), "KOST1 - Kostenstelle");
+            $export->setValue($export->getCell("37", $row), "KOST2 - Kostenstelle");
+            $export->setValue($export->getCell("38", $row), "KOST-Menge");
+            $export->setValue($export->getCell("39", $row), "EU-Mitgliedstaat u. USt-IdNr.");
+            $export->setValue($export->getCell("40", $row), "EU-Steuersatz");
+            $export->setValue($export->getCell("41", $row), "Abw. Versteuerungsart");
+            $export->setValue($export->getCell("42", $row), "Sachverhalt L+L");
+            $export->setValue($export->getCell("43", $row), utf8_decode("Funktionsergänzung L+L"));
+            $export->setValue($export->getCell("44", $row), "BU 49 Hauptfunktionstyp");
+            $export->setValue($export->getCell("45", $row), "BU 49 Hauptfunktionsnummer(");
+            $export->setValue($export->getCell("46", $row), utf8_decode("BU 49 Funktionsergänzung"));
+            $export->setValue($export->getCell("47", $row), "Zusatzinformation - Art 1");
+            $export->setValue($export->getCell("48", $row), "Zusatzinformation - Inhalt 1");
+            $export->setValue($export->getCell("49", $row), "Zusatzinformation - Art 2");
+            $export->setValue($export->getCell("50", $row), "Zusatzinformation - Inhalt 2");
+            $export->setValue($export->getCell("51", $row), "Zusatzinformation - Art 3");
+            $export->setValue($export->getCell("52", $row), "Zusatzinformation - Inhalt 3");
+            $export->setValue($export->getCell("53", $row), "Zusatzinformation - Art 4");
+            $export->setValue($export->getCell("54", $row), "Zusatzinformation - Inhalt 4");
+            $export->setValue($export->getCell("55", $row), "Zusatzinformation - Art 5");
+            $export->setValue($export->getCell("56", $row), "Zusatzinformation - Inhalt 5");
+            $export->setValue($export->getCell("57", $row), "Zusatzinformation - Art 6");
+            $export->setValue($export->getCell("58", $row), "Zusatzinformation - Inhalt 6");
+            $export->setValue($export->getCell("59", $row), "Zusatzinformation - Art 7");
+            $export->setValue($export->getCell("60", $row), "Zusatzinformation - Inhalt 7");
+            $export->setValue($export->getCell("61", $row), "Zusatzinformation - Art 8");
+            $export->setValue($export->getCell("62", $row), "Zusatzinformation - Inhalt 8");
+            $export->setValue($export->getCell("63", $row), "Zusatzinformation - Art 9");
+            $export->setValue($export->getCell("64", $row), "Zusatzinformation - Inhalt 9");
+            $export->setValue($export->getCell("65", $row), "Zusatzinformation - Art 10");
+            $export->setValue($export->getCell("66", $row), "Zusatzinformation - Inhalt 10");
+            $export->setValue($export->getCell("67", $row), "Zusatzinformation - Art 11");
+            $export->setValue($export->getCell("68", $row), "Zusatzinformation - Inhalt 11");
+            $export->setValue($export->getCell("69", $row), "Zusatzinformation - Art 12");
+            $export->setValue($export->getCell("70", $row), "Zusatzinformation - Inhalt 12");
+            $export->setValue($export->getCell("71", $row), "Zusatzinformation - Art 13");
+            $export->setValue($export->getCell("72", $row), "Zusatzinformation - Inhalt 13");
+            $export->setValue($export->getCell("73", $row), "Zusatzinformation - Art 14");
+            $export->setValue($export->getCell("74", $row), "Zusatzinformation - Inhalt 14");
+            $export->setValue($export->getCell("75", $row), "Zusatzinformation - Art 15");
+            $export->setValue($export->getCell("76", $row), "Zusatzinformation - Inhalt 15");
+            $export->setValue($export->getCell("77", $row), "Zusatzinformation - Art 16");
+            $export->setValue($export->getCell("78", $row), "Zusatzinformation - Inhalt 16");
+            $export->setValue($export->getCell("79", $row), "Zusatzinformation - Art 17");
+            $export->setValue($export->getCell("80", $row), "Zusatzinformation - Inhalt 17");
+            $export->setValue($export->getCell("81", $row), "Zusatzinformation - Art 18");
+            $export->setValue($export->getCell("82", $row), "Zusatzinformation - Inhalt 18");
+            $export->setValue($export->getCell("83", $row), "Zusatzinformation - Art 19");
+            $export->setValue($export->getCell("84", $row), "Zusatzinformation - Inhalt 19");
+            $export->setValue($export->getCell("85", $row), "Zusatzinformation - Art 20");
+            $export->setValue($export->getCell("86", $row), "Zusatzinformation - Inhalt 20");
+            $export->setValue($export->getCell("87", $row), utf8_decode("Stück"));
+            $export->setValue($export->getCell("88", $row), "Gewicht");
+            $export->setValue($export->getCell("89", $row), "Zahlweise");
+            $export->setValue($export->getCell("90", $row), "Forderungsart");
+            $export->setValue($export->getCell("91", $row), "Veranlagungsjahr");
+            $export->setValue($export->getCell("92", $row), utf8_decode("Zugeordnete Fälligkeit"));
+            $export->setValue($export->getCell("93", $row), "Skontotyp");
+            $export->setValue($export->getCell("94", $row), "Auftragsnummer");
+            $export->setValue($export->getCell("95", $row), "Buchungstyp");
+            $export->setValue($export->getCell("96", $row), utf8_decode("USt-Schlüssel (Anzahlungen)"));
+            $export->setValue($export->getCell("97", $row), "EU-Mitgliedstaat (Anzahlungen)");
+            $export->setValue($export->getCell("98", $row), "Sachverhalt L+L (Anzahlungen)");
+            $export->setValue($export->getCell("99", $row), "EU-Steuersatz (Anzahlungen)");
+            $export->setValue($export->getCell("100", $row), utf8_decode("Erlöskonto (Anzahlungen)"));
+            $export->setValue($export->getCell("101", $row), "Herkunft-Kz");
+            $export->setValue($export->getCell("102", $row), "Leerfeld");
+            $export->setValue($export->getCell("103", $row), "KOST-Datum");
+            $export->setValue($export->getCell("104", $row), "SEPA-Mandatsreferenz");
+            $export->setValue($export->getCell("105", $row), "Skontosperre");   // 0
+            $export->setValue($export->getCell("106", $row), "Gesellschaftername");
+            $export->setValue($export->getCell("107", $row), "Beteiligtennummer");
+            $export->setValue($export->getCell("108", $row), "Identifikationsnummer");
+            $export->setValue($export->getCell("109", $row), "Zeichnernummer");
+            $export->setValue($export->getCell("110", $row), "Postensperre bis");
+            $export->setValue($export->getCell("111", $row), "Bezeichnung SoBil-Sachverhalt");
+            $export->setValue($export->getCell("112", $row), "Kennzeichen SoBil-Sachverhalt");
+            $export->setValue($export->getCell("113", $row), "Festschreibung"); // 0
+            $export->setValue($export->getCell("114", $row), "Leistungsdatum");
+            $export->setValue($export->getCell("115", $row), "Datum Zuord. Steuerperiode");
+
+
+            foreach ($tblInvoiceList as $tblInvoice) {
+
+                $Summary = 0;
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                        $Summary = $Summary + (float)$tblInvoiceItemDebtor->getSummaryPriceInt();
+                    }
+                }
+                $Summary = str_replace(',', '', $Summary);
+                $Summary = str_replace('.', ',', $Summary);
+
+                $row++;
+
+                $export->setValue($export->getCell("0", $row), $Summary);// Umsatz
+                $export->setValue($export->getCell("1", $row), 'S');// Soll / Haben Kennzeichen
+                $export->setValue($export->getCell("2", $row), 'EUR');// Dreistelliger ISO-Code der Währung
+                $export->setValue($export->getCell("3", $row), '');// Kurs (Test: utf8_decode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
+                $export->setValue($export->getCell("4", $row), '');// Basisumsatz
+                $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
+                $export->setValue($export->getCell("6", $row), '');// Konto todo Gläubiger Id
+                $export->setValue($export->getCell("7", $row), '');// Gegenkonto (ohne BU-Schlüssel) todo IBAN der Debitorenkonten
+                $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
+                $export->setValue($export->getCell("9", $row), '');// Belegdatum Format? (3108)
+                $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
+                $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
+                $export->setValue($export->getCell("12", $row), '');// Skonto
+                $export->setValue($export->getCell("13", $row), '');// Buchungstext (60 Zeichen)
+                $export->setValue($export->getCell("14", $row), '0');// Postensperre (0/1)
+                $export->setValue($export->getCell("15", $row), '');// Diverse Adressnummer (9 Zeichen)
+                $export->setValue($export->getCell("16", $row), '');// Geschäftspartnerbank
+                $export->setValue($export->getCell("17", $row), '');// Sachverhalt
+                $export->setValue($export->getCell("18", $row), '');// Zinssperre
+                $export->setValue($export->getCell("19", $row), '');// Beleglink
+                $export->setValue($export->getCell("20", $row), '');// Beleginfo - Art 1
+                $export->setValue($export->getCell("21", $row), '');// Beleginfo - Inhalt 1
+                $export->setValue($export->getCell("22", $row), '');// Beleginfo - Art 2
+                $export->setValue($export->getCell("23", $row), '');// Beleginfo - Inhalt 2
+                $export->setValue($export->getCell("24", $row), '');// Beleginfo - Art 3
+                $export->setValue($export->getCell("25", $row), '');// Beleginfo - Inhalt 3
+                $export->setValue($export->getCell("26", $row), '');// Beleginfo - Art 4
+                $export->setValue($export->getCell("27", $row), '');// Beleginfo - Inhalt 4
+                $export->setValue($export->getCell("28", $row), '');// Beleginfo - Art 5
+                $export->setValue($export->getCell("29", $row), '');// Beleginfo - Inhalt 5
+                $export->setValue($export->getCell("30", $row), '');// Beleginfo - Art 6
+                $export->setValue($export->getCell("31", $row), '');// Beleginfo - Inhalt 6
+                $export->setValue($export->getCell("32", $row), '');// Beleginfo - Art 7
+                $export->setValue($export->getCell("33", $row), '');// Beleginfo - Inhalt 7
+                $export->setValue($export->getCell("34", $row), '');// Beleginfo - Art 8
+                $export->setValue($export->getCell("35", $row), '');// Beleginfo - Inhalt 8
+                $export->setValue($export->getCell("36", $row), '');// KOST1 - Kostenstelle
+                $export->setValue($export->getCell("37", $row), '');// KOST2 - Kostenstelle
+                $export->setValue($export->getCell("38", $row), '');// KOST-Menge
+                $export->setValue($export->getCell("39", $row), '');// EU-Mitgliedstaat u. USt-IdNr.
+                $export->setValue($export->getCell("40", $row), '');// EU-Steuersatz
+                $export->setValue($export->getCell("41", $row), '');// Abw. Versteuerungsart
+                $export->setValue($export->getCell("42", $row), '');// Sachverhalt L+L
+                $export->setValue($export->getCell("43", $row), '');// Funktionsergänzung L+L
+                $export->setValue($export->getCell("44", $row), '');// BU 49 Hauptfunktionstyp
+                $export->setValue($export->getCell("45", $row), '');// BU 49 Hauptfunktionsnummer
+                $export->setValue($export->getCell("46", $row), '');// BU 49 Funktionsergänzung
+                $export->setValue($export->getCell("47", $row), '');// Zusatzinformation - Art 1
+                $export->setValue($export->getCell("48", $row), '');// Zusatzinformation - Inhalt 1
+                $export->setValue($export->getCell("49", $row), '');// Zusatzinformation - Art 2
+                $export->setValue($export->getCell("50", $row), '');// Zusatzinformation - Inhalt 2
+                $export->setValue($export->getCell("51", $row), '');// Zusatzinformation - Art 3
+                $export->setValue($export->getCell("52", $row), '');// Zusatzinformation - Inhalt 3
+                $export->setValue($export->getCell("53", $row), '');// Zusatzinformation - Art 4
+                $export->setValue($export->getCell("54", $row), '');// Zusatzinformation - Inhalt 4
+                $export->setValue($export->getCell("55", $row), '');// Zusatzinformation - Art 5
+                $export->setValue($export->getCell("56", $row), '');// Zusatzinformation - Inhalt 5
+                $export->setValue($export->getCell("57", $row), '');// Zusatzinformation - Art 6
+                $export->setValue($export->getCell("58", $row), '');// Zusatzinformation - Inhalt 6
+                $export->setValue($export->getCell("59", $row), '');// Zusatzinformation - Art 7
+                $export->setValue($export->getCell("60", $row), '');// Zusatzinformation - Inhalt 7
+                $export->setValue($export->getCell("61", $row), '');// Zusatzinformation - Art 8
+                $export->setValue($export->getCell("62", $row), '');// Zusatzinformation - Inhalt 8
+                $export->setValue($export->getCell("63", $row), '');// Zusatzinformation - Art 9
+                $export->setValue($export->getCell("64", $row), '');// Zusatzinformation - Inhalt 9
+                $export->setValue($export->getCell("65", $row), '');// Zusatzinformation - Art 10
+                $export->setValue($export->getCell("66", $row), '');// Zusatzinformation - Inhalt 10
+                $export->setValue($export->getCell("67", $row), '');// Zusatzinformation - Art 11
+                $export->setValue($export->getCell("68", $row), '');// Zusatzinformation - Inhalt 11
+                $export->setValue($export->getCell("69", $row), '');// Zusatzinformation - Art 12
+                $export->setValue($export->getCell("70", $row), '');// Zusatzinformation - Inhalt 12
+                $export->setValue($export->getCell("71", $row), '');// Zusatzinformation - Art 13
+                $export->setValue($export->getCell("72", $row), '');// Zusatzinformation - Inhalt 13
+                $export->setValue($export->getCell("73", $row), '');// Zusatzinformation - Art 14
+                $export->setValue($export->getCell("74", $row), '');// Zusatzinformation - Inhalt 14
+                $export->setValue($export->getCell("75", $row), '');// Zusatzinformation - Art 15
+                $export->setValue($export->getCell("76", $row), '');// Zusatzinformation - Inhalt 15
+                $export->setValue($export->getCell("77", $row), '');// Zusatzinformation - Art 16
+                $export->setValue($export->getCell("78", $row), '');// Zusatzinformation - Inhalt 16
+                $export->setValue($export->getCell("79", $row), '');// Zusatzinformation - Art 17
+                $export->setValue($export->getCell("80", $row), '');// Zusatzinformation - Inhalt 17
+                $export->setValue($export->getCell("81", $row), '');// Zusatzinformation - Art 18
+                $export->setValue($export->getCell("82", $row), '');// Zusatzinformation - Inhalt 18
+                $export->setValue($export->getCell("83", $row), '');// Zusatzinformation - Art 19
+                $export->setValue($export->getCell("84", $row), '');// Zusatzinformation - Inhalt 19
+                $export->setValue($export->getCell("85", $row), '');// Zusatzinformation - Art 20
+                $export->setValue($export->getCell("86", $row), '');// Zusatzinformation - Inhalt 20
+                $export->setValue($export->getCell("87", $row), '');// Stück
+                $export->setValue($export->getCell("88", $row), '');// Gewicht
+                $export->setValue($export->getCell("89", $row), '');// Zahlweise
+                $export->setValue($export->getCell("90", $row), '');// Forderungsart
+                $export->setValue($export->getCell("91", $row), '');// Veranlagungsjahr
+                $export->setValue($export->getCell("92", $row), '');// Zugeordnete Fälligkeit (Datum)
+                $export->setValue($export->getCell("93", $row), '');// Skontotyp
+                $export->setValue($export->getCell("94", $row), '');// Auftragsnummer
+                $export->setValue($export->getCell("95", $row), '');// Buchungstyp
+                $export->setValue($export->getCell("96", $row), '');// USt-Schlüssel
+                $export->setValue($export->getCell("97", $row), '');// EU-Mitgliedsstaat
+                $export->setValue($export->getCell("98", $row), '');// Sachverhalt L+L
+                $export->setValue($export->getCell("99", $row), '');// EU-Steuersatz
+                $export->setValue($export->getCell("100", $row), '');// Erlöskonto
+                $export->setValue($export->getCell("101", $row), '');// Herkunf-Kz
+                $export->setValue($export->getCell("102", $row), '');// Leerfeld
+                $export->setValue($export->getCell("103", $row), '');// KOST-Datum
+                $export->setValue($export->getCell("104", $row), '');// SEPA-Mandatsreferenz
+                $export->setValue($export->getCell("105", $row), '0');// Skontosperre
+                $export->setValue($export->getCell("106", $row), '');// Gesellschaftlername
+                $export->setValue($export->getCell("107", $row), '');// Beteiligtennummer
+                $export->setValue($export->getCell("108", $row), '');// Identifikationsnummer
+                $export->setValue($export->getCell("109", $row), '');// Zeichnernummer
+                $export->setValue($export->getCell("110", $row), '');// Postensperre bis
+                $export->setValue($export->getCell("111", $row), '');// Bezeichnung SoBil-Sachverhalt
+                $export->setValue($export->getCell("112", $row), '');// Kennzeichen SoBil-Buchung
+                $export->setValue($export->getCell("113", $row), '0');// Festschreibung 0 = Keine Festschreibung 1 = Festschreibung
+                $export->setValue($export->getCell("114", $row), '');// Leistungsdatum
+                $export->setValue($export->getCell("115", $row), '');// Datum Zuord. Steuerperiode
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            Basket::useService()->changeBasketDoneDatev($tblBasket);
+
+            return $fileLocation;
+        }
+        return false;
+    }
+
     /**
      * @param TblBasket $tblBasket
      * @param array     $CheckboxList
      *
-     * @return bool|\Digitick\Sepa\TransferFile\Facade\CustomerDirectDebitFacade
+     * @return bool|CustomerDirectDebitFacade
      */
     public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array())
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
-
         if(!$tblInvoiceList){
             return false;
         }

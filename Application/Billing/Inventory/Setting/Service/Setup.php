@@ -52,6 +52,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Value', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Type', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Category', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

@@ -68,25 +68,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswahl Gruppe der', 'Beitragsverursacher');
 
-//        $Content = array();
-//
-//        $tblGroupList = array();
-//        if(($tblSettingGroupPersonList = Setting::useService()->getSettingGroupPersonAll())){
-//            foreach($tblSettingGroupPersonList as $tblSettingGroupPerson){
-//                $tblGroupList[] = $tblSettingGroupPerson->getServiceTblGroupPerson();
-//            }
-//        }
-//        // Erzeugen aller benutzen Gruppen als Link's
-//        if(!empty($tblGroupList)){
-//            $tblGroupList = $this->getSorter($tblGroupList)->sortObjectBy('Name', new StringGermanOrderSorter());
-//            /** @var TblGroup $tblGroup */
-//            foreach($tblGroupList as $tblGroup){
-//                $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-//                    .new Container(new Standard('', __NAMESPACE__.'/View', new GroupIcon(),
-//                        array('GroupId' => $tblGroup->getId()))));
-//            }
-//        }
-
         $Stage->setContent(
             $this->layoutPersonGroupList()
         );
@@ -378,7 +359,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
-        // ToDO Implement Receiver
         $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummer',
             ApiBankReference::receiverPanelContent($this->getReferenceContent($PersonId)).
             (new Link('Mandantsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
@@ -389,7 +369,6 @@ class Frontend extends Extension implements IFrontendInterface
         if($ItemList){
             foreach($ItemList as $tblItem) {
                 // Panel Color (unchoosen)
-                // ToDO Receiver für den Content
                 $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(),
                         ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
                             , $tblItem->getId())
@@ -467,7 +446,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param string $PersonId
      * @param string $ItemId
-     * @param bool   $IsOpen
+     * @param bool   $IsOpen  // Accordion
      *
      * @return string
      */
@@ -486,6 +465,27 @@ class Frontend extends Extension implements IFrontendInterface
                     $BankAccount = 'Bank: ';
                     $Reference = 'Mandantsreferenznummer: ';
                     $Debtor = 'Bezahler: ';
+                    $PeriodPayType = 'Zahlungszeitraum: ';
+                    $FromDate = 'Gültig ab: ';
+                    $ToDate = 'Gültig bis: ';
+
+                    if(($tblDebtorPeriodType = $tblDebtorSelection->getTblDebtorPeriodType())){
+                        $PeriodPayType .= new Bold($tblDebtorPeriodType->getName());
+                    }
+                    if($tblDebtorSelection->getFromDate()){
+                        $FromDate .= new Bold($tblDebtorSelection->getFromDate());
+                    } else {
+                        $FromDate .= new Bold('---');
+                    }
+                    if($tblDebtorSelection->getToDate()){
+                        $ToDate .= new Bold($tblDebtorSelection->getToDate());
+                    } else {
+                        $ToDate .= new Bold('kein Enddatum');
+                    }
+                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
+                        $Debtor .= $tblPersonDebtor->getSalutation().' '.substr($tblPersonDebtor->getFirstName(), 0, 1) .'. '
+                            .$tblPersonDebtor->getLastName();
+                    }
 
                     $OptionButtons = new PullRight(
                         (new Link('', '', new Pencil()))
@@ -518,13 +518,16 @@ class Frontend extends Extension implements IFrontendInterface
                     if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                         $Reference .= new Bold($tblBankReference->getReferenceNumber());
                     }
-                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
-                        $Debtor .= new Bold($tblPersonDebtor->getLastFirstName());
-                    }
+//                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
+//                        $Debtor .= new Bold($tblPersonDebtor->getLastFirstName());
+//                    }
                     $PanelContent[] = $PaymentType;
                     $PanelContent[] = $ItemVariant;
                     $PanelContent[] = $BankAccount;
                     $PanelContent[] = $Reference;
+                    $PanelContent[] = $PeriodPayType;
+                    $PanelContent[] = $FromDate;
+                    $PanelContent[] = $ToDate;
 //                    $PanelContent[] = $Debtor;
                     /**@var Accordion[] $Accordion */
                     $Accordion[$i] = new Accordion();

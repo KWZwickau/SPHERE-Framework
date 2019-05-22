@@ -7,6 +7,8 @@ use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -298,6 +300,18 @@ class ApiDebtor extends Extension implements IApiInterface
                 $DebtorNumberId));
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorNumber($Identifier, $PersonId));
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER))){
+                if($tblSetting->getValue()){
+                    $MaxNumber = Debtor::useService()->getDebtorMaxNumber();
+                    $MaxNumber++;
+                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
+                        $NumberCount = $tblSetting->getValue();
+                        $MaxNumber = substr($MaxNumber, 0, $NumberCount);
+                        $MaxNumber = str_pad($MaxNumber, $NumberCount, '0', STR_PAD_LEFT);
+                    }
+                    $_POST['DebtorNumber']['Number'] = $MaxNumber;
+                }
+            }
         }
 
         // find Student's with DebtorNumber
@@ -305,41 +319,44 @@ class ApiDebtor extends Extension implements IApiInterface
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $identifier = new WarningText('keine hinterlegt');
             // Person is Student
-            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                || Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
+                if($tblStudent && ($currentIdentifier = $tblStudent->getIdentifierComplete())){
                     $identifier = $currentIdentifier;
                 }
                 $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPerson->getLastFirstName().')';
-            }
-            // find Student by Person how is Guardian for Student
-            $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
-            $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                $tblRelationshipType);
-            if($tblToPersonList){
-                /* @var TblToPerson $tblToPerson */
-                foreach($tblToPersonList as $tblToPerson) {
-                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-                        if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
-                            $identifier = $currentIdentifier;
+            } else {
+                // suche für Sorgeberechtigte nach Schüler'n
+                $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $tblRelationshipType);
+                if($tblToPersonList){
+                    /* @var TblToPerson $tblToPerson */
+                    foreach($tblToPersonList as $tblToPerson) {
+                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+                            if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
+                                $identifier = $currentIdentifier;
+                            }
+                            $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPersonStudent->getLastFirstName().')';
                         }
-                        $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPersonStudent->getLastFirstName().')';
                     }
                 }
-            }
-            // find Student by Person how is Authorized for Student
-            $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
-            $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                $tblRelationshipType);
-            if($tblToPersonList){
-                /* @var TblToPerson $tblToPerson */
-                foreach($tblToPersonList as $tblToPerson) {
-                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-                        if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
-                            $identifier = $currentIdentifier;
+                // suche für Bevollmächtigte nach Schüler'n
+                $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
+                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $tblRelationshipType);
+                if($tblToPersonList){
+                    /* @var TblToPerson $tblToPerson */
+                    foreach($tblToPersonList as $tblToPerson) {
+                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+                            if(($currentIdentifier = $tblStudent->getIdentifierComplete())){
+                                $identifier = $currentIdentifier;
+                            }
+                            $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPersonStudent->getLastFirstName().')';
                         }
-                        $StudentList[] = 'Schülernummer: '.new Bold($identifier).' ('.$tblPersonStudent->getLastFirstName().')';
                     }
                 }
             }
@@ -425,51 +442,6 @@ class ApiDebtor extends Extension implements IApiInterface
      */
     public function showAddDebtorNumber($Identifier = '', $PersonId = '')
     {
-
-        $PostIdentifier = '';
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-            // Person is Student
-            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                $PostIdentifier = $tblStudent->getIdentifierComplete();
-            } else {
-
-                $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
-                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                    $tblRelationshipType);
-                if($tblToPersonList){
-                    /* @var TblToPerson $tblToPerson */
-                    $tblToPerson = current($tblToPersonList);
-                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-                        $PostIdentifier = $tblStudent->getIdentifierComplete();
-                    }
-                } else {
-                    // Person how is Authorized for Student
-                    $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
-                    $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                        $tblRelationshipType);
-                    if($tblToPersonList){
-                        /* @var TblToPerson $tblToPerson */
-                        $tblToPerson = current($tblToPersonList);
-                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-                        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-                            $PostIdentifier = $tblStudent->getIdentifierComplete();
-                        }
-                    }
-                }
-            }
-        }
-
-        if(($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))
-            && $PostIdentifier !== ''){
-            $count = $DebtorCountSetting->getValue();
-            $PostIdentifier = str_pad($PostIdentifier, $count, '0', STR_PAD_LEFT);
-        }
-        if($PostIdentifier){
-            $Global = $this->getGlobal();
-            $Global->POST['DebtorNumber']['Number'] = $PostIdentifier;
-            $Global->savePost();
-        }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId)
             .new Well($this->formDebtorNumber($Identifier,

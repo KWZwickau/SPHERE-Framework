@@ -8,6 +8,12 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -22,6 +28,8 @@ class TblBasket extends Element
     const ATTR_MONTH = 'Month';
     const ATTR_YEAR = 'Year';
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
+    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
+    const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
 
     /**
      * @Column(type="string")
@@ -67,6 +75,18 @@ class TblBasket extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblCreditor;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDivision;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDebtorPeriodType;
 
     /**
      * @return string
@@ -161,6 +181,70 @@ class TblBasket extends Element
             return $TargetTime->format('d.m.Y');
         } else {
             return (string)$TargetTime;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetTimeDatev()
+    {
+
+        if(null === $this->TargetTime){
+            return false;
+        }
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            return $TargetTime->format('Ymd');
+        } else {
+            return (string)$TargetTime;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetYear()
+    {
+
+        if(null === $this->TargetTime){
+            return false;
+        }
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            return $TargetTime->format('Y');
+        }
+        return (new \DateTime())->format('Y');
+    }
+
+    /**
+     * @return string
+     */
+    public function getTargetYearMonth($IsMaxMonthDay = false)
+    {
+
+        if(null === $this->TargetTime){
+            return false;
+        }
+        /** @var \DateTime $TargetTime */
+        $TargetTime = $this->TargetTime;
+        if($TargetTime instanceof \DateTime){
+            if($IsMaxMonthDay){
+                $TimeLong = mktime(null, null, null, $TargetTime->format('m'), $TargetTime->format('d'), $TargetTime->format('Y'));
+                $Day = date('t', $TimeLong);
+                return $TargetTime->format('Ym').$Day;
+            } else {
+                return $TargetTime->format('Ym').'01';
+            }
+        }
+        if($IsMaxMonthDay){
+            $TimeLong = mktime(null, null, null, (new \DateTime())->format('m'), (new \DateTime())->format('d'), (new \DateTime())->format('Y'));
+            $Day = date('t', $TimeLong);
+            return $TargetTime->format('Ym').$Day;
+        } else {
+            return (new \DateTime())->format('Ym').'01';
         }
     }
 
@@ -291,6 +375,69 @@ class TblBasket extends Element
     {
 
         $this->serviceTblCreditor = ($serviceTblCreditor ? $serviceTblCreditor->getId() : null);
+    }
+
+    /**
+     * @return TblDivision|false
+     */
+    public function getServiceTblDivision()
+    {
+
+        if(null !== $this->serviceTblDivision){
+            return Division::useService()->getDivisionById($this->serviceTblDivision);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivision|bool $serviceTblDivision
+     */
+    public function setServiceTblDivision($serviceTblDivision)
+    {
+
+        $this->serviceTblDivision = ($serviceTblDivision ? $serviceTblDivision->getId() : null);
+    }
+
+    /**
+     * @return TblType|false
+     */
+    public function getServiceTblType()
+    {
+
+        if(null !== $this->serviceTblType){
+            return Type::useService()->getTypeById($this->serviceTblType);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblType|bool $serviceTblType
+     */
+    public function setServiceTblType($serviceTblType)
+    {
+
+        $this->serviceTblType = ($serviceTblType ? $serviceTblType->getId() : null);
+    }
+
+    /**
+     * @return TblDebtorPeriodType|false
+     */
+    public function getServiceTblDebtorPeriodType()
+    {
+
+        if(null !== $this->serviceTblDebtorPeriodType){
+            return Debtor::useService()->getDebtorPeriodTypeById($this->serviceTblDebtorPeriodType);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDebtorPeriodType|bool $serviceTblDebtorPeriodType
+     */
+    public function setServiceTblDebtorPeriodType($serviceTblDebtorPeriodType)
+    {
+
+        $this->serviceTblDebtorPeriodType = ($serviceTblDebtorPeriodType ? $serviceTblDebtorPeriodType->getId() : null);
     }
 
 

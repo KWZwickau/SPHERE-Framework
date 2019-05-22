@@ -3661,8 +3661,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Number' => '#',
                 'Name' => 'Name',
                 'Course' => 'Bildungsgang',
-                'J' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('J'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'J',
+                'JN' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn',
                 'LS' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LS'))
                     ? $tblPrepareAdditionalGradeType->getName() : 'Ls',
                 'LM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LM'))
@@ -3670,9 +3670,9 @@ class Frontend extends Extension implements IFrontendInterface
             );
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
-                $columnTable['EN'] = 'Jn (Jahresnote)';
+                $columnTable['EN'] = 'En (Endnote)';
                 $columnTable['Text'] = 'oder Zeugnistext';
-                $tableTitle = 'Jahresnote';
+                $tableTitle = 'Endnote';
                 if ($tblNextSubject) {
                     $textSaveButton = 'Speichern und weiter zum nächsten Fach';
                 } else {
@@ -3680,7 +3680,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             } else {
                 $tableTitle = 'Leistungsnachweisnoten';
-                $textSaveButton = 'Speichern und weiter zur Jahresnote';
+                $textSaveButton = 'Speichern und weiter zur Endnote';
             }
         } else {
             // Klasse 10 Realschule
@@ -3873,7 +3873,7 @@ class Frontend extends Extension implements IFrontendInterface
         $buttonList = array();
 
         if (Prepare::useService()->isCourseMainDiploma($tblPrepare)) {
-            $textLinkButton = ' - Leistungsnachweisnoten/Jahresnote';
+            $textLinkButton = ' - Leistungsnachweisnoten/Endnote';
         } else {
             $textLinkButton = ' - Prüfungsnoten/Endnote';
         }
@@ -4022,30 +4022,16 @@ class Frontend extends Extension implements IFrontendInterface
 
                                     foreach ($tblSubjectList[$tblCurrentSubject->getId()] as $testId => $value) {
                                         if ($isCourseMainDiploma) {
-                                            if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
-                                                $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
-                                                    $tblDivisionItem,
-                                                    $tblCurrentSubject,
-                                                    $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null
+                                            if (!$isMuted && (($tblTestTemp = Evaluation::useService()->getTestById($testId)))) {
+                                                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent(
+                                                    $tblTestTemp, $tblPerson
                                                 );
-                                                $average = Gradebook::useService()->calcStudentGrade(
-                                                    $tblPerson, $tblDivisionItem, $tblCurrentSubject,
-                                                    Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                                    $tblScoreRule ? $tblScoreRule : null,
-                                                    ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivisionItem))
-                                                        ? $tblTaskPeriod : null,
-                                                    $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
-                                                    $tblTask->getDate() ? $tblTask->getDate() : false
-                                                );
-
-                                                if ($average) {
-                                                    if (!is_array($average) && ($pos = strpos($average, '('))) {
-                                                        $average = substr($average, 0, $pos);
+                                                if ($tblGrade) {
+                                                    $gradeValue = $tblGrade->getDisplayGrade();
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
+                                                    if ($gradeValue && is_numeric($gradeValue)) {
+                                                        $gradeList['JN'] = $gradeValue;
                                                     }
-                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['J'] = str_replace('.',
-                                                        ',',
-                                                        $average);
-                                                    $gradeList['J'] = $average;
                                                 }
                                             }
                                         } else {
@@ -4097,17 +4083,20 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($isCourseMainDiploma) {
                                             if (!$isMuted) {
                                                 $calcValue = '';
-                                                if (isset($gradeList['J'])) {
+                                                if (isset($gradeList['JN'])) {
                                                     $calc = false;
-                                                    if (isset($gradeList['LS'])) {
-                                                        $calc = (2 * $gradeList['J'] + $gradeList['LS']) / 3;
+                                                    if (isset($gradeList['LS']) && isset($gradeList['LM'])) {
+                                                        $calc = ($gradeList['JN'] + $gradeList['LS'] + $gradeList['LM']) / 3;
+                                                    } elseif (isset($gradeList['LS'])) {
+                                                        $calc = (2 * $gradeList['JN'] + $gradeList['LS']) / 3;
                                                     } elseif (isset($gradeList['LM'])) {
-                                                        $calc = (2 * $gradeList['J'] + $gradeList['LM']) / 3;
+                                                        $calc = (2 * $gradeList['JN'] + $gradeList['LM']) / 3;
                                                     }
+
                                                     if ($calc) {
                                                         $calcValue = round($calc, 2);
                                                     } else {
-                                                        $calcValue = $gradeList['J'];
+                                                        $calcValue = $gradeList['JN'];
                                                     }
                                                 }
 
@@ -4180,15 +4169,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     if ($IsFinalGrade
                                         || $isApproved
                                     ) {
-                                        $studentTable[$tblPerson->getId()]['J'] =
-                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][J]'))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['JN'] =
+                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][JN]'))->setDisabled();
                                         $studentTable[$tblPerson->getId()]['LS'] =
                                             (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LS]'))->setDisabled();
                                         $studentTable[$tblPerson->getId()]['LM'] =
                                             (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LM]'))->setDisabled();
                                     } else {
-                                        $studentTable[$tblPerson->getId()]['J'] =
-                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][J]'))->setTabIndex($tabIndex++)->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['JN'] =
+                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
                                         $studentTable[$tblPerson->getId()]['LS'] =
                                             (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LS]'))->setTabIndex($tabIndex++);
                                         $studentTable[$tblPerson->getId()]['LM'] =
@@ -4215,7 +4204,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 } else {
-                                    $studentTable[$tblPerson->getId()]['J']
+                                    $studentTable[$tblPerson->getId()]['JN']
                                         = $studentTable[$tblPerson->getId()]['LS']
                                         = $studentTable[$tblPerson->getId()]['LM']
                                         = $studentTable[$tblPerson->getId()]['EN'] = '';

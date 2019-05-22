@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
@@ -23,6 +24,8 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -34,6 +37,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -333,11 +337,27 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
+        $tblDebtorSelection = false;
+        $BasketList = false;
         if('' !== $DebtorSelectionId){
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorSelection($Identifier, $PersonId, $ItemId,
                 $DebtorSelectionId));
+            if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))){
+                if(($tblBasketVerificationList = Basket::useService()->getActiveBasketVerificationByDebtorSelection
+                ($tblDebtorSelection))){
+                    $BasketArray = array();
+                    foreach($tblBasketVerificationList as $tblBasketVerification){
+                        if(($tblBasket = $tblBasketVerification->getTblBasket())){
+                            $BasketArray[] = $tblBasket->getName().' "'.$tblBasket->getYear().'.'
+                                .$tblBasket->getMonth(true).'"';
+                        }
+                    }
+                    $BasketList = implode(', ',$BasketArray);
+                }
+            }
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorSelection($Identifier, $PersonId, $ItemId));
+
         }
 
         $PaymentTypeList = array();
@@ -362,7 +382,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
             $ItemName = $tblItem->getName();
             // edit POST
-            if($DebtorSelectionId && ($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))){
+            if($tblDebtorSelection){
                 if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
                     $PostVariantId = $tblItemVariant->getId();
                 } else {
@@ -374,6 +394,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
         if(!isset($_POST['DebtorSelection']['Variant'])){
             $_POST['DebtorSelection']['Variant'] = $PostVariantId;
+        }
+        if(!isset($_POST['DebtorSelection']['FromDate'])){
+            $_POST['DebtorSelection']['FromDate'] = (new \DateTime())->format('d.m.Y');
         }
 
         $RadioBoxListVariant = array();
@@ -411,10 +434,17 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             }
         }
 
+        // no DebtorPeriodTypeId available
+        $tblDebtorPeriodTypeMonth = Debtor::useService()->getDebtorPeriodTypeByName('Monatlich');
+        $tblDebtorPeriodTypeYear = Debtor::useService()->getDebtorPeriodTypeByName('Jährlich');
+        if(!isset($_POST['DebtorSelection']['DebtorPeriodTypeId'])){
+            $_POST['DebtorSelection']['DebtorPeriodTypeId'] = $tblDebtorPeriodTypeMonth->getId();
+        }
         // no BankAccount available
         if(!isset($_POST['DebtorSelection']['BankAccount'])){
             $_POST['DebtorSelection']['BankAccount'] = '-1';
         }
+
         $RadioBoxListBankAccount = self::getBankAccountRadioBoxList($PersonDebtorList);
 
         $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPerson);
@@ -464,15 +494,32 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))))
+                        array(
+                            (new DatePicker('DebtorSelection[FromDate]', '', 'Gültig ab'))->setRequired(),
+                            new DatePicker('DebtorSelection[ToDate]', '', 'Gültig bis')
+                        )
                         , 6
                     ),
-                    new FormColumn(
+                    new FormColumn(array(
                         new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenznummer',
-                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList))
+                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList)),
+                            new Bold('Zahlungszeitraum'),
+                            new Listing(array(new RadioBox('DebtorSelection[DebtorPeriodTypeId]', 'Monatlich', $tblDebtorPeriodTypeMonth->getId()),
+                                new RadioBox('DebtorSelection[DebtorPeriodTypeId]', 'Jährlich', $tblDebtorPeriodTypeYear->getId())))
+                        )
                         , 6
                     )
                 )),
+                new FormRow(
+                    new FormColumn(
+                        ($BasketList ? new Warning('Es sind aktive Zahlungszuweisungen in folgenden
+                        Abrechnungen vorhanden: '.new Bold($BasketList).''.
+                            new Container('Sollen die Änderungen ebenfalls für diese aktiven
+                         Abrechnungen übernommen werden?')
+                            . new CheckBox('DebtorSelection[SetActive]', 'Übernehmen', 1))
+                            : new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))))
+                    )
+                ),
                 new FormRow(
                     new FormColumn(
                         $SaveButton
@@ -658,6 +705,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Bezahler an');
             $Error = true;
         }
+        if(isset($DebtorSelection['FromDate']) && empty($DebtorSelection['FromDate'])){
+            $form->setError('DebtorSelection[FromDate]', 'Bitte geben Sie eine Datum an');
+            $Error = true;
+        }
 
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
             $IsSepaAccountNeed = false;
@@ -732,6 +783,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
             $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
             $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
+            $Global->POST['DebtorSelection']['DebtorPeriodTypeId'] = $DebtorSelection['DebtorPeriodTypeId'];
+            $Global->POST['DebtorSelection']['FromDate'] = $DebtorSelection['FromDate'];
+            $Global->POST['DebtorSelection']['ToDate'] = $DebtorSelection['ToDate'];
             $Global->savePost();
             return $form;
         }
@@ -741,6 +795,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
         $tblItem = Item::useService()->getItemById($ItemId);
         $tblItemVariant = Item::useService()->getItemVariantById($DebtorSelection['Variant']);
+        $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($DebtorSelection['DebtorPeriodTypeId']);
+        $FromDate = $DebtorSelection['FromDate'];
+        $ToDate = $DebtorSelection['ToDate'];
         $ItemPrice = '';
         // ItemPrice only if Variant is "-1"
         if($DebtorSelection['Variant'] == '-1'){
@@ -761,7 +818,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 Group::useService()->addGroupPerson($tblGroup, $tblPerson);
             }
             $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPerson,
-                $tblPaymentType, $tblItem,
+                $tblPaymentType, $tblItem, $tblDebtorPeriodType, $FromDate, $ToDate,
                 ($tblItemVariant ? $tblItemVariant : null),
                 $ItemPrice,
                 ($tblBankAccount ? $tblBankAccount : null),
@@ -805,6 +862,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
             $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
             $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
+            if(isset($DebtorSelection['SetActive'])){
+                $Global->POST['DebtorSelection']['SetActive'] = $DebtorSelection['SetActive'];
+            }
+            $Global->POST['DebtorSelection']['DebtorPeriodTypeId'] = $DebtorSelection['DebtorPeriodTypeId'];
+            $Global->POST['DebtorSelection']['FromDate'] = $DebtorSelection['FromDate'];
+            $Global->POST['DebtorSelection']['ToDate'] = $DebtorSelection['ToDate'];
             $Global->savePost();
             return $form;
         }
@@ -812,6 +875,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $tblPerson = Person::useService()->getPersonById($DebtorSelection['Debtor']);
         $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
         $tblItemVariant = Item::useService()->getItemVariantById($DebtorSelection['Variant']);
+        $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($DebtorSelection['DebtorPeriodTypeId']);
+        $FromDate = $DebtorSelection['FromDate'];
+        $ToDate = $DebtorSelection['ToDate'];
         $ItemPrice = '';
         // ItemPrice only if Variant is "-1"
         if($DebtorSelection['Variant'] == '-1'){
@@ -834,11 +900,26 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 Group::useService()->addGroupPerson($tblGroup, $tblPerson);
             }
             $IsChange = Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
-                ($tblItemVariant ? $tblItemVariant : null),
-                $ItemPrice,
-                ($tblBankAccount ? $tblBankAccount : null),
-                ($tblBankReference ? $tblBankReference : null)
+                $tblDebtorPeriodType, $FromDate, $ToDate, ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
+                ($tblBankAccount ? $tblBankAccount : null), ($tblBankReference ? $tblBankReference : null)
             );
+            if(isset($DebtorSelection['SetActive'])){
+                if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByDebtorSelection($tblDebtorSelection))){
+                    foreach($tblBasketVerificationList as $tblBasketVerification){
+                        $tblBasket = $tblBasketVerification->getTblBasket();
+                        if($tblItemVariant && $tblBasket){
+                            $tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $tblBasket->getTargetTime());
+                            if($tblItemCalculation){
+                                $ItemPrice = $tblItemCalculation->getValue();
+                            }
+                        }
+
+                        Basket::useService()->changeBasketVerificationDebtor($tblBasketVerification, $tblPerson,
+                            $tblPaymentType, $ItemPrice, ($tblBankAccount ? $tblBankAccount : null),
+                            ($tblBankReference ? $tblBankReference : null));
+                    }
+                }
+            }
         }
 
         return ($IsChange
@@ -863,7 +944,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType();
             ($tblPaymentType ? $Global->POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId() : '');
             $tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant();
-            ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
+            ($tblItemVariant ? $Global->POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
+            $Global->POST['DebtorSelection']['DebtorPeriodTypeId'] = $tblDebtorSelection->getTblDebtorPeriodType()->getId();
+            ($tblDebtorSelection->getFromDate() ? $Global->POST['DebtorSelection']['FromDate'] = $tblDebtorSelection->getFromDate() : '');
+            ($tblDebtorSelection->getToDate() ? $Global->POST['DebtorSelection']['ToDate'] = $tblDebtorSelection->getToDate() : '');
             $Value = $tblDebtorSelection->getValue(true);
             ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
             $tblPerson = $tblDebtorSelection->getServiceTblPersonDebtor();

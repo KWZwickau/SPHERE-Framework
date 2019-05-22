@@ -11,7 +11,6 @@ namespace SPHERE\Application\People\Person;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 
@@ -53,6 +52,7 @@ class TemplateReadOnly
                 $titleDescription  = new PullRight($links);
             }
         }
+
         $title = new Title($titlePrefix . $titleName, $titleDescription);
 
         if (!$noContentWell && self::USE_WELL && $content != '') {

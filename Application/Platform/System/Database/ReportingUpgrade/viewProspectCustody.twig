@@ -7,7 +7,9 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
         where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name = 'Sorgeberechtigt'
+        and vRTP.TblToPerson_Ranking = 1
         limit 0,1
+        -- limit 0,1
     ) TblPerson_S1_Id,
 
     (select vP.TblSalutation_Salutation
@@ -151,7 +153,9 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
         where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name = 'Sorgeberechtigt'
-        limit 1,1
+        and vRTP.TblToPerson_Ranking = 2
+        limit 0,1
+        -- limit 1,1
     ) TblPerson_S2_Id,
 
     (select vP.TblSalutation_Salutation
@@ -295,7 +299,9 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
         where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name = 'Sorgeberechtigt'
-        limit 2,1
+        and vRTP.TblToPerson_Ranking = 3
+        limit 0,1
+        -- limit 2,1
     ) TblPerson_S3_Id,
 
     (select vP.TblSalutation_Salutation

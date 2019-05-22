@@ -514,7 +514,7 @@ class ApiCreditor extends Extension implements IApiInterface
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('IBAN: ', 2),
-                new LayoutColumn(new Bold($tblCreditor->getIBAN()), 10),
+                new LayoutColumn(new Bold($tblCreditor->getIBAN(true)), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('BIC: ', 2),

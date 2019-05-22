@@ -1,14 +1,14 @@
 select
-    vGS.TblPerson_Id AS TblPerson_Id,
-    vGS.TblStudent_Id AS TblStudent_Id,
-
+    vP.TblPerson_Id AS TblPerson_Id,
     -- Person S1
     -- Definition S1 Id
     (select vRTP.TblToPerson_serviceTblPersonTo
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vGS.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name = 'Sorgeberechtigt'
+        and vRTP.TblToPerson_Ranking = 1
         limit 0,1
+        -- limit 0,1
     ) TblPerson_S1_Id,
 
     (select vP.TblSalutation_Salutation
@@ -149,9 +149,11 @@ select
     -- Definition S2 Id
     (select vRTP.TblToPerson_serviceTblPersonTo
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vGS.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name = 'Sorgeberechtigt'
-        limit 1,1
+        and vRTP.TblToPerson_Ranking = 2
+        limit 0,1
+        -- limit 1,1
     ) TblPerson_S2_Id,
 
     (select vP.TblSalutation_Salutation
@@ -292,9 +294,11 @@ select
     -- Definition S3 Id
     (select vRTP.TblToPerson_serviceTblPersonTo
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vGS.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name = 'Sorgeberechtigt'
-        limit 2,1
+        and vRTP.TblToPerson_Ranking = 3
+        limit 0,1
+        -- limit 2,1
     ) TblPerson_S3_Id,
 
     (select vP.TblSalutation_Salutation
@@ -430,7 +434,6 @@ select
         where TblPerson_S3_Id = vCM.TblPerson_Id
         and vCM.TblType_Name like 'Gesch%ftlich'
     ) TblMail_AddressCompany_S3
-
-from SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudent vGS
-    JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
+from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
+    JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroup vG ON vG.TblPerson_Id = vP.TblPerson_Id
 where vG.TblGroup_MetaTable = 'STUDENT'

@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
@@ -14,6 +15,8 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -158,6 +161,19 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
             array(TblBasketVerification::ATTR_SERVICE_TBL_BANK_REFERENCE => $tblBankReference->getId())
+        );
+    }
+
+    /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationAllByDebtorSelection(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
+            array(TblBasketVerification::ATTR_SERVICE_TBL_DEBTOR_SELECTION => $tblDebtorSelection->getId())
         );
     }
 
@@ -309,12 +325,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
-     * @param string           $Year
-     * @param string           $Month
-     * @param \DateTime        $TargetTime
-     * @param TblCreditor|null $tblCreditor
+     * @param string              $Name
+     * @param string              $Description
+     * @param string              $Year
+     * @param string              $Month
+     * @param \DateTime           $TargetTime
+     * @param TblCreditor|null    $tblCreditor
+     * @param TblDivision|null    $tblDivision
+     * @param TblType|null        $tblType
+     * @param TblDebtorPeriodType $tblDebtorPeriodType
      *
      * @return TblBasket
      */
@@ -324,22 +343,18 @@ class Data extends AbstractData
         $Year,
         $Month,
         $TargetTime,
-        TblCreditor $tblCreditor = null
+        TblCreditor $tblCreditor = null,
+        TblDivision $tblDivision = null,
+        TblType $tblType = null,
+        TblDebtorPeriodType $tblDebtorPeriodType = null
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
-        if($Month && $Year){
-            $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
-                TblBasket::ATTR_NAME  => $Name,
-                TblBasket::ATTR_MONTH => $Month,
-                TblBasket::ATTR_YEAR  => $Year,
-            ));
-        } else {
-            $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
-                TblBasket::ATTR_NAME => $Name
-            ));
-        }
-
+        $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
+            TblBasket::ATTR_NAME  => $Name,
+            TblBasket::ATTR_MONTH => $Month,
+            TblBasket::ATTR_YEAR  => $Year,
+        ));
 
         if(null === $Entity){
             $Entity = new TblBasket();
@@ -350,6 +365,9 @@ class Data extends AbstractData
             $Entity->setTargetTime($TargetTime);
             $Entity->setIsDone(false);
             $Entity->setServiceTblCreditor($tblCreditor);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblType($tblType);
+            $Entity->setServiceTblDebtorPeriodType($tblDebtorPeriodType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -470,6 +488,34 @@ class Data extends AbstractData
             $Entity->setName($tblBasket->getName());
             $Entity->setSepaUser($PersonName);
             $Entity->setSepaDate(new \DateTime('now'));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param           $PersonName
+     *
+     * @return bool
+     */
+    public function updateBasketDatev(TblBasket $tblBasket, $PersonName)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setName($tblBasket->getName());
+            $Entity->setDatevUser($PersonName);
+            $Entity->setDatevDate(new \DateTime('now'));
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

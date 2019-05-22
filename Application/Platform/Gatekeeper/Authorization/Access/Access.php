@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Access;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -64,9 +63,10 @@ class Access implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Right', __NAMESPACE__.'\Frontend::frontendRight'
-        )
-            ->setParameterDefault('Name', null)
-        );
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Right/Create', __NAMESPACE__.'\Frontend::frontendCreateRight'
+        ));
     }
 
     /**

@@ -694,6 +694,20 @@ class Data extends AbstractData
         return false;
     }
 
+    public function destroyAccountInitial(TblAccountInitial $tblAccountInitial)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblAccountInitial $Entity */
+        $Entity = $Manager->getEntityById('TblAccountInitial', $tblAccountInitial->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @param TblAccount $tblAccount
      *
@@ -733,6 +747,11 @@ class Data extends AbstractData
                 foreach( $tblSessionList as $tblSession ) {
                     $this->destroySession( $tblSession->getSession() );
                 }
+            }
+            // Remove Initial
+            $tblAccountInitial = $this->getAccountInitialByAccount($Entity);
+            if($tblAccountInitial){
+                $this->destroyAccountInitial($tblAccountInitial);
             }
             // Remove Role
             $tblAuthorizationList = $this->getAuthorizationAllByAccount( $Entity );

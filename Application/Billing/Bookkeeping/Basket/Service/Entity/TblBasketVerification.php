@@ -33,6 +33,7 @@ class TblBasketVerification extends Element
     const ATTR_SERVICE_TBL_BANK_REFERENCE = 'serviceTblBankReference';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
+    const ATTR_SERVICE_TBL_DEBTOR_SELECTION = 'serviceTblDebtorSelection';
 
     /**
      * @Column(type="decimal", precision=14, scale=4)

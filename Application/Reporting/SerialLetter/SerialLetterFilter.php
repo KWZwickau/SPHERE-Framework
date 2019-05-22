@@ -223,6 +223,8 @@ class SerialLetterFilter
                 $FilterPerson = array();
 
                 // Preparation $FilterStudent
+                // Filterung immer durch Leave_date muss null sein ergänzen
+                $FilterStudentList[$FilterNumber][ViewDivisionStudent::TBL_DIVISION_STUDENT_LEAVE_DATE] = array(null);
                 if (isset($FilterStudentList[$FilterNumber])) {
                     array_walk($FilterStudentList[$FilterNumber], function (&$Input) {
                         if (!is_array($Input)) {
@@ -513,11 +515,11 @@ class SerialLetterFilter
 
     /**
  * @param TblSerialLetter|null $tblSerialLetter
- * @param                      $Result
+ * @param array                $Result
  *
  * @return array|bool TblPerson[]
  */
-    public function getPersonListByResult(TblSerialLetter $tblSerialLetter = null, $Result)
+    public function getPersonListByResult(TblSerialLetter $tblSerialLetter = null, $Result = array())
     {
         $tblCategory = false;
         if ($tblSerialLetter !== null) {

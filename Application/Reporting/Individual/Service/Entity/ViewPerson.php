@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
@@ -37,6 +39,8 @@ class ViewPerson extends AbstractView
     const TBL_PERSON_CALL_NAME = 'TblPerson_CallName';
     const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
     const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
+
+    const TBL_GROUP_GROUP_LIST = 'TblGroup_GroupList';
 
     const TBL_COMMON_BIRTHDATES_BIRTHDAY = 'TblCommonBirthDates_Birthday';
     const TBL_COMMON_BIRTHDATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
@@ -95,6 +99,10 @@ class ViewPerson extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblGroup_GroupList;
+    /**
+     * @Column(type="string")
+     */
     protected $TblCommonInformation_Denomination;
     /**
      * @Column(type="string")
@@ -138,6 +146,8 @@ class ViewPerson extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Person: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Person: Geburtsname');
 
+        $this->setNameDefinition(self::TBL_GROUP_GROUP_LIST, 'Person: Gruppenliste');
+
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Person: Geburtstag');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Person: Geburtsort');
         $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Person: Geschlecht');
@@ -158,6 +168,7 @@ class ViewPerson extends AbstractView
 //            self::TBL_PERSON_BIRTH_NAME,
         ));
         $this->setGroupDefinition('Personendaten', array(
+            self::TBL_GROUP_GROUP_LIST,
             self::TBL_COMMON_BIRTHDATES_BIRTHDAY,
             self::TBL_COMMON_BIRTHDATES_BIRTHPLACE,
             self::TBL_COMMON_GENDER_NAME,
@@ -245,6 +256,10 @@ class ViewPerson extends AbstractView
             case self::TBL_SALUTATION_SALUTATION:
                 $Data = Person::useService()->getPropertyList( new TblSalutation(''), TblSalutation::ATTR_SALUTATION );
                 $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_GROUP_GROUP_LIST:
+                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );

@@ -5,6 +5,7 @@ namespace SPHERE\Application\Transfer\Indiware;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\AppointmentGrade;
 use SPHERE\Application\Transfer\Indiware\Export\Export;
+use SPHERE\Application\Transfer\Indiware\Export\Meta\Meta;
 use SPHERE\Application\Transfer\Indiware\Import\Import;
 use SPHERE\Application\Transfer\Indiware\Import\Lectureship as ImportLectureship;
 use SPHERE\Application\Transfer\Indiware\Import\StudentCourse as ImportStudentCourse;
@@ -26,6 +27,7 @@ class Indiware implements IApplicationInterface
         ImportStudentCourse::registerModule();
         Export::registerModule();
         AppointmentGrade::registerModule();
+        Meta::registerModule();
 //        ExportLectureship::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(

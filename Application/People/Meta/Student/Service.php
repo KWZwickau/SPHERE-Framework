@@ -77,15 +77,6 @@ class Service extends Support
         return ( new Data($this->getBinding()) )->viewStudentBaptism();
     }
 
-//    /**
-//     * @return false|ViewStudentBilling[]
-//     */
-//    public function viewStudentBilling()
-//    {
-//
-//        return (new Data($this->getBinding()))->viewStudentBilling();
-//    }
-
     /**
      * @return false|ViewStudentDisorder[]
      */
@@ -139,15 +130,6 @@ class Service extends Support
 
         return ( new Data($this->getBinding()) )->viewStudentMedicalRecord();
     }
-
-//    /**
-//     * @return false|ViewStudentSubject[]
-//     */
-//    public function viewStudentSubject()
-//    {
-//
-//        return ( new Data($this->getBinding()) )->viewStudentSubject();
-//    }
 
     /**
      * @return false|ViewStudentTransfer[]
@@ -942,7 +924,6 @@ class Service extends Support
                 }
             }
         }
-//        return (new Data($this->getBinding()))->getStudentMaxIdentifier();
         return $result;
     }
 

@@ -5,6 +5,7 @@ use SPHERE\Application\Billing\Accounting\Debtor\Service\Data;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorNumber;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
@@ -105,6 +106,23 @@ class Service extends AbstractService
     }
 
     /**
+ * @return int
+ */
+    public function getDebtorMaxNumber()
+    {
+
+        $result = 0;
+        if(($tblDebtorNumberList = (new Data($this->getBinding()))->getDebtorNumberAll())) {
+            foreach($tblDebtorNumberList as $tblDebtorNumber){
+                if(is_numeric($tblDebtorNumber->getDebtorNumber()) && $tblDebtorNumber->getDebtorNumber() > $result){
+                    $result = $tblDebtorNumber->getDebtorNumber();
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return false|TblDebtorNumber[]
@@ -168,6 +186,54 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBankReferenceByReference($ReferenceNumber);
+    }
+
+    /**
+     * @return int
+     */
+    public function getBankReferenceMaxNumber()
+    {
+
+        $result = 0;
+        if(($tblBankReferenceList = (new Data($this->getBinding()))->getBankReferenceAll())) {
+            foreach($tblBankReferenceList as $tblBankReference){
+                if(is_numeric($tblBankReference->getReferenceNumber()) && $tblBankReference->getReferenceNumber() > $result){
+                    $result = $tblBankReference->getReferenceNumber();
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorPeriodType
+     */
+    public function getDebtorPeriodTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorPeriodTypeById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblDebtorPeriodType
+     */
+    public function getDebtorPeriodTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorPeriodTypeByName($Name);
+    }
+
+    /**
+     * @return TblDebtorPeriodType[]|false
+     */
+    public function getDebtorPeriodTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getDebtorPeriodTypeAll();
     }
 
     /**
@@ -251,12 +317,12 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return false|TblBankReference
+     * @return false|TblBankReference[]
      */
-    public function getBankReferenceAll($Id)
+    public function getBankReferenceAll()
     {
 
-        return (new Data($this->getBinding()))->getBankReferenceAll($Id);
+        return (new Data($this->getBinding()))->getBankReferenceAll();
     }
 
     /**
@@ -301,6 +367,8 @@ class Service extends AbstractService
     public function createBankAccount(TblPerson $tblPerson, $Owner = '', $BankName = '', $IBAN = '', $BIC = '')
     {
 
+        $IBAN = str_replace(' ', '', $IBAN);
+        $BIC = str_replace(' ', '', $BIC);
         return (new Data($this->getBinding()))->createBankAccount($tblPerson, $BankName, $IBAN, $BIC, $Owner);
     }
 
@@ -322,6 +390,9 @@ class Service extends AbstractService
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblItem               $tblItem
+     * @param TblDebtorPeriodType   $tblDebtorPeriodType
+     * @param string                $FromDate
+     * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -330,13 +401,19 @@ class Service extends AbstractService
      * @return null|TblDebtorSelection
      */
     public function createDebtorSelection(TblPerson $tblPersonCauser, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, TblItem $tblItem, TblItemVariant $tblItemVariant = null, $Value = '0',
-        TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
+        TblPaymentType $tblPaymentType, TblItem $tblItem, TblDebtorPeriodType $tblDebtorPeriodType, $FromDate, $ToDate = null,
+        TblItemVariant $tblItemVariant = null, $Value = '0', TblBankAccount $tblBankAccount = null,
+        TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
+        // nicht benötigte Informationen entfernen
+        if($tblPaymentType->getName() != 'SEPA-Lastschrift'){
+            $tblBankAccount = null;
+            $tblBankReference = null;
+        }
         return (new Data($this->getBinding()))->createDebtorSelection($tblPersonCauser, $tblPerson, $tblPaymentType,
-            $tblItem, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
+            $tblItem, $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
 
     /**
@@ -370,6 +447,8 @@ class Service extends AbstractService
     public function changeBankAccount(TblBankAccount $tblBankAccount, $Owner = '', $BankName = '', $IBAN = '', $BIC = ''
     ){
 
+        $IBAN = str_replace(' ', '', $IBAN);
+        $BIC = str_replace(' ', '', $BIC);
         return (new Data($this->getBinding()))->updateBankAccount($tblBankAccount, $BankName, $IBAN, $BIC, $Owner);
     }
 
@@ -391,6 +470,9 @@ class Service extends AbstractService
      * @param TblDebtorSelection    $tblDebtorSelection
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
+     * @param TblDebtorPeriodType   $tblDebtorPeriodType
+     * @param string                $FromDate
+     * @param string|null           $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -399,13 +481,28 @@ class Service extends AbstractService
      * @return bool
      */
     public function changeDebtorSelection(TblDebtorSelection $tblDebtorSelection, TblPerson $tblPerson,
-        TblPaymentType $tblPaymentType, TblItemVariant $tblItemVariant = null, $Value = '0',
-        TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
+        TblPaymentType $tblPaymentType, TblDebtorPeriodType $tblDebtorPeriodType, $FromDate, $ToDate = '',TblItemVariant $tblItemVariant = null,
+        $Value = '0', TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
     ){
 
         $Value = str_replace(',', '.', $Value);
+
+        //Pflichtfeld
+        $FromDate = new \DateTime($FromDate);
+        // (kein Pflichtfeld)
+        // hiermit kann das ToDate wieder entfernt werden
+        if('' === $ToDate){
+            $ToDate = null;
+        } else {
+            $ToDate = new \DateTime($ToDate);
+        }
+        // nicht benötigte Informationen entfernen
+        if($tblPaymentType->getName() != 'SEPA-Lastschrift'){
+            $tblBankAccount = null;
+            $tblBankReference = null;
+        }
         return (new Data($this->getBinding()))->updateDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
-            $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
+            $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }
 
     /**
