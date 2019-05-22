@@ -22,7 +22,6 @@ class ViewStudentCustody extends AbstractView
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
-    const TBL_STUDENT_ID = 'TblStudent_Id';
 
     // S1
     const TBL_SALUTATION_SALUTATION_S1 = 'TblSalutation_Salutation_S1';
@@ -103,10 +102,6 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_Id;
     /**
      * @Column(type="string")
      */
