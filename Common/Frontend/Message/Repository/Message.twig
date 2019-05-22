@@ -3,7 +3,7 @@
             data-target="#Message-{{ Hash }},#Toggle-{{ Hash }}">
         <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
     </button>
-    <div id="Message-{{ Hash }}" class="alert alert-{{ Type }} text-left collapse" role="alert">
+    <div id="Message-{{ Hash }}" class="alert alert-{{ Type }} text-left collapse" role="alert" style="padding: {{ Padding }}px; margin-bottom: {{ MarginBottom }}px;">
         <button type="button" class="close" data-toggle="collapse" data-target="#Message-{{ Hash }},#Toggle-{{ Hash }}">
             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
         </button>
@@ -11,7 +11,7 @@
         {{ Content }}
     </div>
 {% else %}
-    <div class="alert alert-{{ Type }} text-left" role="alert">
+    <div class="alert alert-{{ Type }} text-left" role="alert" style="padding: {{ Padding }}px; margin-bottom: {{ MarginBottom }}px;">
         {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
         {{ Content }}
     </div>

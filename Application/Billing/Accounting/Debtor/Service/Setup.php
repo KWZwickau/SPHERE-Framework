@@ -89,6 +89,7 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblBankReference');
         $this->createColumn($Table, 'ReferenceNumber', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'ReferenceDate', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
 
         return $Table;

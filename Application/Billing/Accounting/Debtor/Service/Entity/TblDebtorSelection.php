@@ -31,6 +31,9 @@ class TblDebtorSelection extends Element
     const ATTR_VALUE = 'Value';
     const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
     const ATTR_TBL_BANK_REFERENCE = 'tblBankReference';
+    const ATTR_TBL_DEBTOR_PERIOD_TYPE = 'tblDebtorPeriodType';
+    const ATTR_FROM_DATE = 'FromDate';
+    const ATTR_TO_DATE = 'ToDate';
 
     /**
      * @Column(type="bigint")

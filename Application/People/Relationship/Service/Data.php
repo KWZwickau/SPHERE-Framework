@@ -343,6 +343,25 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPersonFrom
+     * @param TblPerson $tblPersonTo
+     *
+     * @return bool|TblToPerson
+     */
+    public function getRelationshipToPersonByPersonFromAndPersonTo(TblPerson $tblPersonFrom,TblPerson $tblPersonTo)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $Manager, 'TblToPerson', array(
+            TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPersonFrom->getId(),
+            TblToPerson::SERVICE_TBL_PERSON_TO => $tblPersonTo->getId(),
+        ));
+        /** @var TblToPerson $Entity */
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblToCompany
