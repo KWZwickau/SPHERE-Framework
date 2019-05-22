@@ -403,7 +403,11 @@ class Service extends AbstractService
             /** get Invoice from BulkSave */
             $PersonDebtorId = $tblPersonDebtor->getId();
             $PersonCauserId = $tblPersonCauser->getId();
-            $GroupString = $PersonDebtorId.'#'.$PersonCauserId;
+            $tblReferenceId = '';
+            if($tblBankReference = $tblBasketVerification->getServiceTblBankReference()){
+                $tblReferenceId = $tblBankReference->getId();
+            }
+            $GroupString = $PersonDebtorId.'#'.$PersonCauserId.'#'.$tblReferenceId;
             $tblInvoice = $this->getInvoiceByIntegerAndYearAndMonth($DebtorInvoiceList[$GroupString]['Identifier'],
                 $Year, $Month);
             /** fill Invoice/ItemDebtor */
