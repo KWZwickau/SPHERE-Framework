@@ -792,7 +792,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("7", $row), '');// Gegenkonto (ohne BU-Schlüssel) todo IBAN der Debitorenkonten
                 $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
                 $export->setValue($export->getCell("9", $row), '');// Belegdatum Format? (3108)
-                $export->setValue($export->getCell("10", $row), $bookingText);// Belegfeld 1
+                $export->setValue($export->getCell("10", $row), utf8_decode($bookingText));// Belegfeld 1
                 $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                 $export->setValue($export->getCell("12", $row), '');// Skonto
                 $export->setValue($export->getCell("13", $row), '');// Buchungstext (60 Zeichen)
@@ -900,6 +900,8 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("115", $row), '');// Datum Zuord. Steuerperiode
             }
 
+            // Angabe der in Excel höchsten Spalte, die in der CSV abgebildet werden soll (erste Zeile / Header)
+            $export->setHeadColumnLimitCsv('AE');
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             Basket::useService()->changeBasketDoneDatev($tblBasket);

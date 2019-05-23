@@ -15,12 +15,25 @@ abstract class File extends Config
     /** @var $string $delimiter */
     private $delimiter = null;
 
+    /** @var $string $delimiter */
+    private $headColumnLimitCsv = null;
+
     /**
      * @param $delimiter
      */
     public function setDelimiter($delimiter)
     {
         $this->delimiter = $delimiter;
+    }
+
+    /**
+     * @param string $HeaderMax (ColumnName in Excel like 'AE' or 'C')
+     * only first line will change his length
+     * necessary for CSV DateV export
+     */
+    public function setHeadColumnLimitCsv($HeaderMax = '')
+    {
+        $this->headColumnLimitCsv = $HeaderMax;
     }
 
     /**
@@ -208,7 +221,13 @@ abstract class File extends Config
                 }
             }
 
-            $Writer->save($Location);
+            if($this->headColumnLimitCsv && 'CSV' == $WriterType){
+                // updated save function for CSV Writer to manipulate first row
+                $Writer->save($Location, $this->headColumnLimitCsv);
+            } else {
+                $Writer->save($Location);
+            }
+
         } else {
             // @codeCoverageIgnoreStart
             throw new TypeFileException('No Writer for '.$Info->getExtension().' available!');

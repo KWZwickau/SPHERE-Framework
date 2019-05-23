@@ -99,11 +99,12 @@ class PHPExcel_Writer_CSV extends PHPExcel_Writer_Abstract implements PHPExcel_W
     /**
      * Save PHPExcel to file
      *
-     * @param    string $pFilename
+     * @param string      $pFilename
+     * @param string|bool $headColumnLimitCsv
      *
-     * @throws    PHPExcel_Writer_Exception
+     * @throws PHPExcel_Writer_Exception
      */
-    public function save($pFilename = null)
+    public function save($pFilename = null, $headColumnLimitCsv = false)
     {
 
         // Fetch sheet
@@ -135,12 +136,28 @@ class PHPExcel_Writer_CSV extends PHPExcel_Writer_Abstract implements PHPExcel_W
         $maxCol = $sheet->getHighestDataColumn();
         $maxRow = $sheet->getHighestDataRow();
 
-        // Write rows to file
-        for ($row = 1; $row <= $maxRow; ++$row) {
-            // Convert the row to an array...
-            $cellsArray = $sheet->rangeToArray('A'.$row.':'.$maxCol.$row, '', $this->_preCalculateFormulas);
-            // ... and write to the file
+        // new option, to reduce the length of the first line (is necessary for Datev export)
+        if($headColumnLimitCsv){
+            // Convert the row to an array for the first line...
+            $cellsArray = $sheet->rangeToArray('A1:'.$headColumnLimitCsv.'1', '', $this->_preCalculateFormulas);
+            // ... and write the first line into the file
             $this->_writeLine($fileHandle, $cellsArray[0]);
+            // Write rows to file
+
+            // repeat the normal way fo the following content
+            for ($row = 2; $row <= $maxRow; ++$row) {
+                // Convert the row to an array...
+                $cellsArray = $sheet->rangeToArray('A'.$row.':'.$maxCol.$row, '', $this->_preCalculateFormulas);
+                // ... and write to the file
+                $this->_writeLine($fileHandle, $cellsArray[0]);
+            }
+        } else {
+            for ($row = 1; $row <= $maxRow; ++$row) {
+                // Convert the row to an array...
+                $cellsArray = $sheet->rangeToArray('A'.$row.':'.$maxCol.$row, '', $this->_preCalculateFormulas);
+                // ... and write to the file
+                $this->_writeLine($fileHandle, $cellsArray[0]);
+            }
         }
 
         // Close file
@@ -204,8 +221,10 @@ class PHPExcel_Writer_CSV extends PHPExcel_Writer_Abstract implements PHPExcel_W
                     $writeDelimiter = true;
                 }
 
-                // Add enclosed string
-                $line .= $this->_enclosure.$element.$this->_enclosure;
+//                if('' !== $element){
+                    // Add enclosed string
+                    $line .= $this->_enclosure.$element.$this->_enclosure;
+//                }
             }
 
             // Add line ending
