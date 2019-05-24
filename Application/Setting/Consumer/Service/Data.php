@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
@@ -24,6 +25,8 @@ class Data extends AbstractData
 
     public function setupDatabaseContent()
     {
+
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
 
         if (($tblSetting = $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber',
             TblSetting::TYPE_BOOLEAN, '0'))) {
@@ -178,8 +181,18 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
-                'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das): [Standard: ]');
+                'Artikel vor dem Schulnamen auf Abschlusszeugnissen und Abgangszeugnissen (z.B. das): [Standard: ]');
         }
+
+        $presetSchoolName = '';
+        if ($tblConsumer
+            && $tblConsumer->getAcronym() == 'ESZC'
+        ) {
+            $presetSchoolName = 'Evangelische Schulzentrum Chemnitz';
+        }
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'AlternateSchoolName', TblSetting::TYPE_STRING,
+            $presetSchoolName, 'Zeugnisse', 'Schulname auf Abschlusszeugnissen und Abgangszeugnissen: [Standard: ]');
+
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking',
             TblSetting::TYPE_BOOLEAN, '1'))
         ) {

@@ -204,6 +204,19 @@ class MsAbsRs extends Certificate
 
         $sliceList = array();
 
+        // SSW-164 Schulname aus den Mandanteneinstellungen verwenden
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'AlternateSchoolName'))
+            && ($value = trim($tblSetting->getValue()))
+        ) {
+            $schoolName = $value;
+        } else {
+            $schoolName = '{% if(Content.P' . $personId . '.Company.Data.Name) %}
+                                {{ Content.P' . $personId . '.Company.Data.Name }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}';
+        }
+
         // Artikel vor dem Schulnamen
         if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName'))
@@ -215,11 +228,7 @@ class MsAbsRs extends Certificate
                         ->setContent('hat ' . $tblSetting->getValue())
                         , '9%')
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                        ->setContent($schoolName)
                         ->styleBorderBottom('1px')
                         ->styleAlignCenter()
                     )
@@ -236,11 +245,7 @@ class MsAbsRs extends Certificate
                         ->setContent('hat')
                         , '5%')
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                        ->setContent($schoolName)
                         ->styleBorderBottom('1px')
                         ->styleAlignCenter()
                     )
