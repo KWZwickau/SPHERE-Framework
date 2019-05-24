@@ -488,6 +488,9 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
         if (Relationship::useService()->createRelationshipToPerson($tblPerson, $tblPersonTo, $Type)) {
             return new Success('Die Personenbeziehung wurde erfolgreich gespeichert.')
                 . self::pipelineLoadRelationshipToPersonContent($PersonId)
+                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
+                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Personenbeziehung konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -526,6 +529,9 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
         if (Relationship::useService()->updateRelationshipToPerson($tblToPerson, $tblPersonFrom, $tblPersonTo, $Type)) {
             return new Success('Die Personenbeziehung wurde erfolgreich gespeichert.')
                 . self::pipelineLoadRelationshipToPersonContent($PersonId)
+                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
+                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Personenbeziehung konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -552,6 +558,9 @@ class ApiRelationshipToPerson  extends Extension implements IApiInterface
         if (Relationship::useService()->removePersonRelationshipToPerson($tblToPerson)) {
             return new Success('Die Personenbeziehung wurde erfolgreich gelöscht.')
                 . self::pipelineLoadRelationshipToPersonContent($PersonId)
+                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
+                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Personenbeziehung konnte nicht gelöscht werden.') . self::pipelineClose();
