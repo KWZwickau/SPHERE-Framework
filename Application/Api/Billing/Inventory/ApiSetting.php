@@ -277,6 +277,10 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
                 $DatevRemark = (isset($Setting[TblSetting::IDENT_DATEV_REMARK]) ? $Setting[TblSetting::IDENT_DATEV_REMARK] : '');
                 Setting::useService()->createSetting(TblSetting::IDENT_DATEV_REMARK, $DatevRemark);
+                $FibuAccount = (isset($Setting[TblSetting::IDENT_FIBU_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_ACCOUNT] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_FIBU_ACCOUNT, $FibuAccount);
+                $FibuToAccount = (isset($Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_FIBU_TO_ACCOUNT, $FibuToAccount);
             break;
         }
 

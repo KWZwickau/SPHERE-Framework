@@ -304,10 +304,13 @@ class Data extends AbstractData
      * @param string      $Description
      * @param string      $SepaRemark
      * @param string      $DatevRemark
+     * @param string      $FibuAccount
+     * @param string      $FibuToAccount
      *
      * @return TblItem
      */
-    public function createItem(TblItemType $tblItemType, $Name, $Description = '', $SepaRemark = '', $DatevRemark = '')
+    public function createItem(TblItemType $tblItemType, $Name, $Description = '', $SepaRemark = '', $DatevRemark = ''
+        , $FibuAccount = '', $FibuToAccount = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -323,6 +326,8 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setSepaRemark($SepaRemark);
             $Entity->setDatevRemark($DatevRemark);
+            $Entity->setFibuAccount($FibuAccount);
+            $Entity->setFibuToAccount($FibuToAccount);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -456,10 +461,13 @@ class Data extends AbstractData
      * @param string  $Description
      * @param string  $SepaRemark
      * @param string  $DatevRemark
+     * @param string  $FibuAccount
+     * @param string  $FibuToAccount
      *
      * @return bool
      */
-    public function updateItem(TblItem $tblItem, $Name, $Description = '', $SepaRemark = '', $DatevRemark = '')
+    public function updateItem(TblItem $tblItem, $Name, $Description = '', $SepaRemark = '', $DatevRemark = '',
+        $FibuAccount = '', $FibuToAccount = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -472,6 +480,8 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setSepaRemark($SepaRemark);
             $Entity->setDatevRemark($DatevRemark);
+            $Entity->setFibuAccount($FibuAccount);
+            $Entity->setFibuToAccount($FibuToAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

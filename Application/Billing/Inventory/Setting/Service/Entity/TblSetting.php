@@ -33,6 +33,8 @@ class TblSetting extends Element
     const IDENT_DEBTOR_NUMBER_COUNT = 'DebtorNumberCount';
     const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
     const IDENT_DATEV_REMARK = 'DatevRemark';
+    const IDENT_FIBU_ACCOUNT = 'FibuAccount';
+    const IDENT_FIBU_TO_ACCOUNT = 'FibuToAccount';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';

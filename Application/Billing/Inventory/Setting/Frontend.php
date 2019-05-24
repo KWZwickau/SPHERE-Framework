@@ -264,10 +264,24 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new DangerText(new Unchecked())));
                         break;
                     case TblSetting::IDENT_DATEV_REMARK:
-                        $Listing[3] ='&nbsp;DATEV-Buchungstext &nbsp;'
+                        $Listing[3] ='&nbsp;DATEV-Buchungstext: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Buchungstext hinterlegt.')));
+                        break;
+                    case TblSetting::IDENT_FIBU_ACCOUNT:
+                        $Listing[4] ='&nbsp;FiBu-Konto: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können and er Beitragsart hinerlegt werden.'));
+                        break;
+                    case TblSetting::IDENT_FIBU_TO_ACCOUNT:
+                        $Listing[5] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können and er Beitragsart hinerlegt werden.'));
                         break;
                 }
             }
@@ -343,6 +357,14 @@ class Frontend extends Extension implements IFrontendInterface
                 case TblSetting::IDENT_DATEV_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
                     $elementList[3] = new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', 'DATEV-Buchungstext');
+                break;
+                case TblSetting::IDENT_FIBU_ACCOUNT:
+                    $_POST['Setting'][TblSetting::IDENT_FIBU_ACCOUNT] = $tblSetting->getValue();
+                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto');
+                break;
+                case TblSetting::IDENT_FIBU_TO_ACCOUNT:
+                    $_POST['Setting'][TblSetting::IDENT_FIBU_TO_ACCOUNT] = $tblSetting->getValue();
+                    $elementList[5] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto');
                 break;
             }
         }

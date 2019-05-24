@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -38,6 +40,14 @@ class TblItem extends Element
      * @Column(type="string")
      */
     protected $DatevRemark;
+    /**
+     * @Column(type="string")
+     */
+    protected $FibuAccount;
+    /**
+     * @Column(type="string")
+     */
+    protected $FibuToAccount;
 
     /**
      * @return string
@@ -143,5 +153,55 @@ class TblItem extends Element
     public function setDatevRemark($DatevRemark = '')
     {
         $this->DatevRemark = $DatevRemark;
+    }
+
+    /**
+     * @param bool $ignoreDefault
+     *
+     * @return string
+     */
+    public function getFibuAccount($ignoreDefault = false)
+    {
+
+        // Ohne individuelle Einstellung, wird versucht, die Grundeinstellung zu ziehen
+        if('' === $this->FibuAccount && !$ignoreDefault){
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT))){
+                return $tblSetting->getValue();
+            }
+        }
+        return $this->FibuAccount;
+    }
+
+    /**
+     * @param string $FibuAccount
+     */
+    public function setFibuAccount($FibuAccount = '')
+    {
+        $this->FibuAccount = $FibuAccount;
+    }
+
+    /**
+     * @param bool $ignoreDefault
+     *
+     * @return string
+     */
+    public function getFibuToAccount($ignoreDefault = false)
+    {
+
+        // Ohne individuelle Einstellung, wird versucht, die Grundeinstellung zu ziehen
+        if('' === $this->FibuToAccount && !$ignoreDefault){
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_TO_ACCOUNT))){
+                return $tblSetting->getValue();
+            }
+        }
+        return $this->FibuToAccount;
+    }
+
+    /**
+     * @param string $FibuToAccount
+     */
+    public function setFibuToAccount($FibuToAccount = '')
+    {
+        $this->FibuToAccount = $FibuToAccount;
     }
 }
