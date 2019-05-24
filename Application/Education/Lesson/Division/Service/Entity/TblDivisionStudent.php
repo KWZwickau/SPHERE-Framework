@@ -173,4 +173,14 @@ class TblDivisionStudent extends Element
 
         return $this->getLeaveDateTime() !== null && $now > $this->getLeaveDateTime();
     }
+
+    /**
+     * @param \DateTime $dateTime
+     *
+     * @return bool
+     */
+    public function  isInActiveByDateTime(\DateTime $dateTime)
+    {
+        return $this->getLeaveDateTime() !== null && $dateTime > $this->getLeaveDateTime();
+    }
 }
