@@ -312,15 +312,18 @@ class Service extends AbstractService
      * @param string $Description
      * @param string $SepaRemark
      * @param string $DatevRemark
+     * @param string $FibuAccount
+     * @param string $FibuToAccount
      *
      * @return TblItem
      */
-    public function createItem($ItemName, $Description = '', $SepaRemark = '', $DatevRemark = '')
+    public function createItem($ItemName, $Description = '', $SepaRemark = '', $DatevRemark = '', $FibuAccount = '', $FibuToAccount = '')
     {
 
         // ToDO Standard Einzelleistung (later choosable)
         $tblItemType = Item::useService()->getItemTypeByName(TblItemType::TYPE_SINGLE);
-        return (new Data($this->getBinding()))->createItem($tblItemType, $ItemName, $Description, $SepaRemark, $DatevRemark);
+        return (new Data($this->getBinding()))->createItem($tblItemType, $ItemName, $Description, $SepaRemark,
+            $DatevRemark, $FibuAccount, $FibuToAccount);
     }
 
     /**
@@ -370,13 +373,17 @@ class Service extends AbstractService
      * @param string  $Description
      * @param string  $SepaRemark
      * @param string  $DatevRemark
+     * @param string  $FibuAccount
+     * @param string  $FibuToAccount
      *
      * @return string
      */
-    public function changeItem(TblItem $tblItem, $ItemName, $Description = '', $SepaRemark = '', $DatevRemark = '')
+    public function changeItem(TblItem $tblItem, $ItemName, $Description = '', $SepaRemark = '', $DatevRemark = '',
+        $FibuAccount = '', $FibuToAccount = '')
     {
 
-        return (new Data($this->getBinding()))->updateItem($tblItem, $ItemName, $Description, $SepaRemark, $DatevRemark);
+        return (new Data($this->getBinding()))->updateItem($tblItem, $ItemName, $Description, $SepaRemark, $DatevRemark,
+            $FibuAccount, $FibuToAccount);
     }
 
     /**

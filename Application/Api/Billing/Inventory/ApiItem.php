@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Billing\Inventory;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
@@ -322,6 +323,15 @@ class ApiItem extends ItemVariant implements IApiInterface
         }
 //        }
 
+        $FibuAccountValue = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT))){
+            $FibuAccountValue = '(Standard) '.$tblSetting->getValue();
+        }
+        $FibuToAccountValue = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_TO_ACCOUNT))){
+            $FibuToAccountValue = '(Standard) '.$tblSetting->getValue();
+        }
+
 
         return (new Form(
             new FormGroup(array(
@@ -361,6 +371,15 @@ class ApiItem extends ItemVariant implements IApiInterface
                             , Panel::PANEL_TYPE_INFO)
                         , 4),
 
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new Ruler()
+                    )
+                ),
+                new FormRow(array(
+                   new FormColumn(new TextField('Item[FibuAccount]', $FibuAccountValue, 'Fibu-Konto'), 6),
+                   new FormColumn(new TextField('Item[FibuToAccount]', $FibuToAccountValue, 'Fibu-Gegenkonto'), 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
@@ -440,11 +459,14 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Group'] = $Group;
             $Global->POST['Item']['SepaRemark'] = $Item['SepaRemark'];
             $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
+            $Global->POST['Item']['FibuAccount'] = $Item['FibuAccount'];
+            $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
             $Global->savePost();
             return $form;
         }
 
-        if(($tblItem = Item::useService()->createItem($Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark']))){
+        if(($tblItem = Item::useService()->createItem($Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
+            $Item['FibuAccount'], $Item['FibuToAccount']))){
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
@@ -476,12 +498,15 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Group'] = $Group;
             $Global->POST['Item']['SepaRemark'] = $Item['SepaRemark'];
             $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
+            $Global->POST['Item']['FibuAccount'] = $Item['FibuAccount'];
+            $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->getItemById($ItemId))){
-            Item::useService()->changeItem($tblItem, $Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark']);
+            Item::useService()->changeItem($tblItem, $Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
+                $Item['FibuAccount'], $Item['FibuToAccount']);
             // entfernen überflüssiger Personengruppen-Verknüpfungen
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
@@ -521,6 +546,8 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Item']['Name'] = $tblItem->getName();
             $Global->POST['Item']['SepaRemark'] = $tblItem->getSepaRemark();
             $Global->POST['Item']['DatevRemark'] = $tblItem->getDatevRemark();
+            $Global->POST['Item']['FibuAccount'] = $tblItem->getFibuAccount(true);
+            $Global->POST['Item']['FibuToAccount'] = $tblItem->getFibuToAccount(true);
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
                     if(($tblGroup = $tblItemGroup->getServiceTblGroup())){

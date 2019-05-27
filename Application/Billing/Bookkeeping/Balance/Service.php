@@ -758,6 +758,8 @@ class Service extends AbstractService
 
                 $Summary = 0;
                 $bookingText = '';
+                $FibuAccount = '';
+                $FibuToAccount = '';
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
                         $Summary = $Summary + (float)$tblInvoiceItemDebtor->getSummaryPriceInt();
@@ -772,6 +774,8 @@ class Service extends AbstractService
                         $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
                         if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
                             $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getDatevRemark());
+                            $FibuAccount = $tblItem->getFibuAccount();
+                            $FibuToAccount = $tblItem->getFibuToAccount();
                         } else {
                             $bookingText = $tblInvoiceItemDebtor->getName();
                         }
@@ -788,14 +792,14 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("3", $row), '');// Kurs (Test: utf8_decode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
                 $export->setValue($export->getCell("4", $row), '');// Basisumsatz
                 $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
-                $export->setValue($export->getCell("6", $row), '');// Konto todo Gläubiger Id
-                $export->setValue($export->getCell("7", $row), '');// Gegenkonto (ohne BU-Schlüssel) todo IBAN der Debitorenkonten
+                $export->setValue($export->getCell("6", $row), $FibuAccount);// Fibu-Konto
+                $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
                 $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
                 $export->setValue($export->getCell("9", $row), '');// Belegdatum Format? (3108)
-                $export->setValue($export->getCell("10", $row), utf8_decode($bookingText));// Belegfeld 1
+                $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
                 $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                 $export->setValue($export->getCell("12", $row), '');// Skonto
-                $export->setValue($export->getCell("13", $row), '');// Buchungstext (60 Zeichen)
+                $export->setValue($export->getCell("13", $row), utf8_decode($bookingText));// Buchungstext (60 Zeichen)
                 $export->setValue($export->getCell("14", $row), '0');// Postensperre (0/1)
                 $export->setValue($export->getCell("15", $row), '');// Diverse Adressnummer (9 Zeichen)
                 $export->setValue($export->getCell("16", $row), '');// Geschäftspartnerbank
