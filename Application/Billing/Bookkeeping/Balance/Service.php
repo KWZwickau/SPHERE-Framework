@@ -795,7 +795,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("6", $row), $FibuAccount);// Fibu-Konto
                 $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
                 $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
-                $export->setValue($export->getCell("9", $row), '');// Belegdatum Format? (3108)
+                $export->setValue($export->getCell("9", $row), $tblInvoice->getTargetTime('dm'));// Belegdatum Format? (3108)
                 $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
                 $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                 $export->setValue($export->getCell("12", $row), '');// Skonto
@@ -1025,12 +1025,12 @@ class Service extends AbstractService
                 $CreditorId = $tblInvoiceCreditor->getCreditorId();
             }
 
-            $bookingText = str_replace('[GID]', $CreditorId, $bookingText);
-            $bookingText = str_replace('[SN]', $RefNumber, $bookingText);
-            $bookingText = str_replace('[BVN]', $CauserName, $bookingText);
-            $bookingText = str_replace('[BVV]', $CauserFirstName, $bookingText);
-            $bookingText = str_replace('[BA]', $ItemName, $bookingText);
-            $bookingText = str_replace('[BAM]', $TimeString, $bookingText);
+            $bookingText = str_ireplace('[GID]', $CreditorId, $bookingText);
+            $bookingText = str_ireplace('[SN]', $RefNumber, $bookingText);
+            $bookingText = str_ireplace('[BVN]', $CauserName, $bookingText);
+            $bookingText = str_ireplace('[BVV]', $CauserFirstName, $bookingText);
+            $bookingText = str_ireplace('[BA]', $ItemName, $bookingText);
+            $bookingText = str_ireplace('[BAM]', $TimeString, $bookingText);
             return $bookingText;
         }
 
