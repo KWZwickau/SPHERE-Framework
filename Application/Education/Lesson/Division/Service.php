@@ -504,7 +504,13 @@ class Service extends AbstractService
         $tblStudentSubjectList = (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
         if ($tblStudentSubjectList) {
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                (new Data($this->getBinding()))->removeSubjectStudent($tblStudentSubject, $IsSoftRemove);
+                // SSW-603 nur von dieser Klasse entfernen
+                if (($tblDivisionSubject = $tblStudentSubject->getTblDivisionSubject())
+                    && ($tblDivisionTemp = $tblDivisionSubject->getTblDivision())
+                    && $tblDivisionTemp->getId() == $tblDivision->getId()
+                ) {
+                    (new Data($this->getBinding()))->removeSubjectStudent($tblStudentSubject, $IsSoftRemove);
+                }
             }
         }
 
