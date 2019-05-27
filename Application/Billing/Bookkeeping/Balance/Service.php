@@ -1010,7 +1010,6 @@ class Service extends AbstractService
         $ItemName = '';
         if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
             $ItemName = $tblItem->getName();
-            $bookingText = $tblItem->getSepaRemark();
         }
 
 
