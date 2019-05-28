@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use \SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -338,7 +339,22 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_SEPA_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_SEPA_REMARK] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', 'SEPA-Verwendungszweck');
+                    $elementList[3] =
+                        new Form(new FormGroup(new FormRow(array(
+//                            new FormColumn(),
+                            new FormColumn(new Panel('SEPA-Verwendungszweck', array(
+                                new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', ''),
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Freifelder für Verwendungszweck')),
+                                    new LayoutColumn('[GID] Gläubiger-ID', 4),
+                                    new LayoutColumn('[SN] Mandantsreferenz&shy;nummer', 4),
+                                    new LayoutColumn('[BVN] Beitragsverursacher Name', 4),
+                                    new LayoutColumn('[BVV] Beitragsverursacher Vorname', 4),
+                                    new LayoutColumn('[BA] Beitragsart', 4),
+                                    new LayoutColumn('[BAM] Abrechnungszeitraum (Jahr+Monat)', 4),
+                                )))),
+                            ), Panel::PANEL_TYPE_INFO)),
+                        ))));
                 break;
 
                     // Datev Option's
@@ -356,7 +372,21 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_DATEV_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', 'DATEV-Buchungstext');
+                    $elementList[3] =
+                        new Form(new FormGroup(new FormRow(array(
+                            new FormColumn(new Panel('DATEV-Buchungstext', array(
+                                new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', ''),
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Freifelder für Buchungstext')),
+                                    new LayoutColumn('[GID] Gläubiger-ID', 4),
+                                    new LayoutColumn('[SN] Mandantsreferenz&shy;nummer', 4),
+                                    new LayoutColumn('[BVN] Beitragsverursacher Name', 4),
+                                    new LayoutColumn('[BVV] Beitragsverursacher Vorname', 4),
+                                    new LayoutColumn('[BA] Beitragsart', 4),
+                                    new LayoutColumn('[BAM] Abrechnungszeitraum (Jahr+Monat)', 4),
+                                )))),
+                            ), Panel::PANEL_TYPE_INFO)),
+                        ))));
                 break;
                 case TblSetting::IDENT_FIBU_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_ACCOUNT] = $tblSetting->getValue();
