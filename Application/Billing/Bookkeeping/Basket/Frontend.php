@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -119,7 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $ItemArray[] = $tblItem->getName();
                     }
                     sort($ItemArray);
-                    $Item['Item'] = implode(', ', $ItemArray);
+                    $Item['Item'] = implode('<br/>', $ItemArray);
                 }
 
                 $Item['Sepa'] = '';
@@ -127,14 +128,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['IsCredit'] = '';
                 if($tblBasket->getIsCompanyCredit()){
-                    $Item['IsCredit'] = new SuccessText(new SuccessIcon());
+                    $Item['IsCredit'] = new Center(new SuccessText(new SuccessIcon()));
                 }
 
                 if($tblBasket->getSepaDate()){
-                    $Item['Sepa'] = $tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')';
+                    $Item['Sepa'] = new Small($tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')');
                 }
                 if($tblBasket->getDatevDate()){
-                    $Item['Datev'] = $tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')';
+                    $Item['Datev'] = new Small($tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')');
                 }
                 $TypeName = '';
                 $DivisionName = '';

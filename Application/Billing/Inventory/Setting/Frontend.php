@@ -319,8 +319,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Sepa ElementGroup
             $SepaElementInWell = new WellReadOnly(
-                new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true)
-                .$this->showSepaInfo()
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true)
+                    ),
+                    new LayoutColumn(
+                        $this->showSepaInfo()
+                    ),
+                ))))
             );
 
             switch($tblSetting->getIdentifier()){
@@ -340,9 +346,8 @@ class Frontend extends Extension implements IFrontendInterface
                 case TblSetting::IDENT_SEPA_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_SEPA_REMARK] = $tblSetting->getValue();
                     $elementList[3] =
-                        new Form(new FormGroup(new FormRow(array(
-//                            new FormColumn(),
-                            new FormColumn(new Panel('SEPA-Verwendungszweck', array(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(new Panel('SEPA-Verwendungszweck', array(
                                 new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', ''),
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Verwendungszweck')),
@@ -373,8 +378,8 @@ class Frontend extends Extension implements IFrontendInterface
                 case TblSetting::IDENT_DATEV_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
                     $elementList[3] =
-                        new Form(new FormGroup(new FormRow(array(
-                            new FormColumn(new Panel('DATEV-Buchungstext', array(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(new Panel('DATEV-Buchungstext', array(
                                 new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', ''),
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Buchungstext')),

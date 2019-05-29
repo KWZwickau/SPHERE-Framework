@@ -121,10 +121,17 @@ class TblItem extends Element
     public function getSepaRemark()
     {
 
+        $BookingText = $this->getName();
         if($this->SepaRemark){
             return $this->SepaRemark;
+        } else {
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
+                if($tblSetting->getValue() !== ''){
+                    $BookingText = $tblSetting->getValue();
+                }
+            }
         }
-        return $this->getName();
+        return $BookingText;
     }
 
     /**
@@ -141,10 +148,18 @@ class TblItem extends Element
     public function getDatevRemark()
     {
 
+        $BookingText = $this->getName();
         if($this->DatevRemark){
             return $this->DatevRemark;
+        } else {
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DATEV_REMARK))){
+                if($tblSetting->getValue() !== ''){
+                    $BookingText = $tblSetting->getValue();
+                }
+            }
         }
-        return $this->getName();
+
+        return $BookingText;
     }
 
     /**
