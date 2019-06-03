@@ -1146,6 +1146,7 @@ class Frontend extends FrontendMinimumGradeCount
                 $Stage->setContent(new Warning('Die Berechnungsvariante konnte nicht abgerufen werden'));
             } else {
                 $contentSelectedTable = array();
+                $contentAvailableTable = array();
                 $tblGradeTypeAllByCondition = array();
                 if (($tblScoreConditionGradeTypeListByCondition
                     = Gradebook::useService()->getScoreConditionGradeTypeListByCondition($tblScoreCondition))
@@ -1298,23 +1299,23 @@ class Frontend extends FrontendMinimumGradeCount
                                             )
                                         )
                                     )
-                                ), 6
-                                ),
+                                ), 6),
                                 new LayoutColumn(array(
                                     new Title('Verfügbare', 'Bedingungen'),
-                                    new TableData($contentAvailableTable, null,
-                                        array(
-                                            'Name' => 'Name ',
-                                            'Option' => ' '
-                                        ),
-                                        array(
-                                            'columnDefs' => array(
-                                                array('orderable' => false, 'targets' => -1),
+                                    empty($contentAvailableTable)
+                                        ? new Warning('Keine Bedingungen (Zensurengruppen) verfügbar', new Ban())
+                                        : new TableData($contentAvailableTable, null,
+                                            array(
+                                                'Name' => 'Name ',
+                                                'Option' => ' '
+                                            ),
+                                            array(
+                                                'columnDefs' => array(
+                                                    array('orderable' => false, 'targets' => -1),
+                                                )
                                             )
                                         )
-                                    )
-                                ), 6
-                                )
+                                ), 6)
                             )),
                         )),
                     ))
