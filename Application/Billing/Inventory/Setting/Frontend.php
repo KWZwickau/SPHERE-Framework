@@ -242,7 +242,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Listing[2] ='&nbsp;SEPA-Verwendungszweck &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Verwendungszweck hinterlegt.')));
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
 
                     // DATEV
@@ -268,21 +269,22 @@ class Frontend extends Extension implements IFrontendInterface
                         $Listing[3] ='&nbsp;DATEV-Buchungstext: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Buchungstext hinterlegt.')));
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
                     case TblSetting::IDENT_FIBU_ACCOUNT:
                         $Listing[4] ='&nbsp;FiBu-Konto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können and er Beitragsart hinerlegt werden.'));
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_TO_ACCOUNT:
                         $Listing[5] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können and er Beitragsart hinerlegt werden.'));
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
                         break;
                 }
             }

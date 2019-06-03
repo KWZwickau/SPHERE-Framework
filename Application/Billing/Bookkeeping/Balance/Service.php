@@ -623,16 +623,16 @@ class Service extends AbstractService
             $export->setValue($export->getCell("7", $row), "RE");
             $export->setValue($export->getCell("8", $row), "");     // Export User -> leer lassen!
             $export->setValue($export->getCell("9", $row), "");     // muss leer sein
-            $export->setValue($export->getCell("10", $row), "1");   // todo Berater über Option
-            $export->setValue($export->getCell("11", $row), "1");   // todo Mandat über Option Schulart bedingt unterschiedlich
-            $export->setValue($export->getCell("12", $row), $YearBegin);// todo WJ-Beginn Aktuelle Jahr vorne ziehen
-            $export->setValue($export->getCell("13", $row), "6");   // todo "Sachkonten Nummernlänge" über Option
-            $export->setValue($export->getCell("14", $row), $BookingFrom);// todo Buchungsstapel von xxxx0101
-            $export->setValue($export->getCell("15", $row), $BookingTo);// todo Buchungsstapel bis xxxx01xx
+            $export->setValue($export->getCell("10", $row), "1");   // todo Beraternummer über Option kann bis zu 7 Stellen
+            $export->setValue($export->getCell("11", $row), "1");   // todo Mandantennummer über Option  Schulart bedingt unterschiedlich bis zu 5 Stellen
+            $export->setValue($export->getCell("12", $row), $YearBegin);// WJ-Beginn Aktuelle Jahr vorne ziehen
+            $export->setValue($export->getCell("13", $row), "6");   // todo "Sachkonten Nummernlänge" über Option 4 bis 8 stellig
+            $export->setValue($export->getCell("14", $row), $BookingFrom);// Buchungsstapel von xxxx0101
+            $export->setValue($export->getCell("15", $row), $BookingTo);// Buchungsstapel bis xxxx01xx
             $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
             $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Initialen der am Account verknüpften Personen Vorname, Nachname (z.b. JK)
             $export->setValue($export->getCell("18", $row), "1");   // Buchungstyp 1 = Finanzbuchführung 2 = Jahresabschluss
-            $export->setValue($export->getCell("19", $row), "");    // todo Rechnungslegungszweck
+            $export->setValue($export->getCell("19", $row), "0");   // Rechnungslegungszweck (0 oder leer)
             $export->setValue($export->getCell("20", $row), "0");   // Festschreibung 0 = keine Festschreibung 1 = Festschreibung
             $export->setValue($export->getCell("21", $row++), "EUR"); // Währungskennzeichen
 
@@ -781,7 +781,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
                         $export->setValue($export->getCell("6", $row), $FibuAccount);// Fibu-Konto
                         $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
-                        $export->setValue($export->getCell("8", $row), '');// BU-Schlüssel todo 3 oder 9 wird noch entschieden
+                        $export->setValue($export->getCell("8", $row), '3');// BU-Schlüssel 3(Umsatzsteuer) oder 9
                         $export->setValue($export->getCell("9", $row), $tblInvoice->getTargetTime('dm'));// Belegdatum Format? (3108)
                         $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
                         $export->setValue($export->getCell("11", $row), '');// Belegfeld 2

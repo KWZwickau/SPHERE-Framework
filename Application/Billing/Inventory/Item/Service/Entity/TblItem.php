@@ -116,10 +116,16 @@ class TblItem extends Element
     }
 
     /**
+     * @param bool $ignoreDefault used for POST in Frontend
+     *
      * @return string
      */
-    public function getSepaRemark()
+    public function getSepaRemark($ignoreDefault = false)
     {
+
+        if($ignoreDefault){
+            return $this->SepaRemark;
+        }
 
         $BookingText = $this->getName();
         if($this->SepaRemark){
@@ -143,10 +149,16 @@ class TblItem extends Element
     }
 
     /**
+     * @param bool $ignoreDefault used for POST in Frontend
+     *
      * @return string
      */
-    public function getDatevRemark()
+    public function getDatevRemark($ignoreDefault = false)
     {
+
+        if($ignoreDefault){
+            return $this->DatevRemark;
+        }
 
         $BookingText = $this->getName();
         if($this->DatevRemark){
