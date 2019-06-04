@@ -22,6 +22,8 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceCreditor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -29,6 +31,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
@@ -602,7 +605,7 @@ class Service extends AbstractService
             $now = new \DateTime();
             $milliseconds = round(microtime(true) * 1000);
             $milliseconds = substr($milliseconds, -3, 3);
-            $TestTime = $now->format('Ymdhis').$milliseconds;
+            $time = $now->format('Ymdhis').$milliseconds;
             $fileLocation = Storage::createFilePointer('csv');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
@@ -612,25 +615,47 @@ class Service extends AbstractService
             $BookingFrom = $tblBasket->getTargetYearMonth();
             $BookingTo = $tblBasket->getTargetYearMonth(true);
 
+            $ConsultNumber = '1';
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_CONSULT_NUMBER))){
+                $ConsultNumber = $tblSetting->getValue();
+            }
+            $ClientNumber = '1';
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_CLIENT_NUMBER))){
+                $ClientNumber = $tblSetting->getValue();
+            }
+            $NumberLength = '8';
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH))){
+                $NumberLength = $tblSetting->getValue();
+            }
+            $Acronym = '';
+            if(($tblAccount = Account::useService()->getAccountBySession())){
+                $PersonList = Account::useService()->getPersonAllByAccount($tblAccount);
+                if($PersonList){
+                    /** @var TblPerson $tblPerson */
+                    $tblPerson = current($PersonList);
+                    $Acronym = substr($tblPerson->getFirstName(), 0, 1).substr($tblPerson->getLastName(), 0, 1);
+                }
+            }
+
             $row = 0;
             $export->setValue($export->getCell("0", $row), "EXTF");
             $export->setValue($export->getCell("1", $row), "510");
             $export->setValue($export->getCell("2", $row), "21");
             $export->setValue($export->getCell("3", $row), "Buchungsstapel");
             $export->setValue($export->getCell("4", $row), "7");
-            $export->setValue($export->getCell("5", $row), $TestTime);
+            $export->setValue($export->getCell("5", $row), $time);
             $export->setValue($export->getCell("6", $row), "");     // muss leer sein
             $export->setValue($export->getCell("7", $row), "RE");
             $export->setValue($export->getCell("8", $row), "");     // Export User -> leer lassen!
             $export->setValue($export->getCell("9", $row), "");     // muss leer sein
-            $export->setValue($export->getCell("10", $row), "1");   // todo Beraternummer über Option kann bis zu 7 Stellen
-            $export->setValue($export->getCell("11", $row), "1");   // todo Mandantennummer über Option  Schulart bedingt unterschiedlich bis zu 5 Stellen
+            $export->setValue($export->getCell("10", $row), $ConsultNumber);   // Beraternummer über Option kann bis zu 7 Stellen
+            $export->setValue($export->getCell("11", $row), $ClientNumber);   // Mandantennummer über Option  Schulart bedingt unterschiedlich bis zu 5 Stellen
             $export->setValue($export->getCell("12", $row), $YearBegin);// WJ-Beginn Aktuelle Jahr vorne ziehen
-            $export->setValue($export->getCell("13", $row), "6");   // todo "Sachkonten Nummernlänge" über Option 4 bis 8 stellig
+            $export->setValue($export->getCell("13", $row), $NumberLength);   // "Sachkonten Nummernlänge" über Option 4 bis 8 stellig
             $export->setValue($export->getCell("14", $row), $BookingFrom);// Buchungsstapel von xxxx0101
             $export->setValue($export->getCell("15", $row), $BookingTo);// Buchungsstapel bis xxxx01xx
             $export->setValue($export->getCell("16", $row), "");    // darf leer sein (z.B. Rechnung vom März) Bezeichnung
-            $export->setValue($export->getCell("17", $row), "");    // todo Diktatkürzel -> Initialen der am Account verknüpften Personen Vorname, Nachname (z.b. JK)
+            $export->setValue($export->getCell("17", $row), $Acronym);    // Diktatkürzel -> Initialen der am Account verknüpften Personen Vorname, Nachname (z.b. JK)
             $export->setValue($export->getCell("18", $row), "1");   // Buchungstyp 1 = Finanzbuchführung 2 = Jahresabschluss
             $export->setValue($export->getCell("19", $row), "0");   // Rechnungslegungszweck (0 oder leer)
             $export->setValue($export->getCell("20", $row), "0");   // Festschreibung 0 = keine Festschreibung 1 = Festschreibung
