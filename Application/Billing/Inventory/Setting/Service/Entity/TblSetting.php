@@ -35,6 +35,9 @@ class TblSetting extends Element
     const IDENT_DATEV_REMARK = 'DatevRemark';
     const IDENT_FIBU_ACCOUNT = 'FibuAccount';
     const IDENT_FIBU_TO_ACCOUNT = 'FibuToAccount';
+    const IDENT_CONSULT_NUMBER = 'ConsultNumber'; // Beraternummer
+    const IDENT_CLIENT_NUMBER = 'ClientNumber'; // Mandantennummer
+    const IDENT_PROPER_ACCOUNT_NUMBER_LENGTH = 'ProperAccountNumberLength'; // Sachkonten Nummernlänge
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';

@@ -265,22 +265,40 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new SuccessText(new Check())
                                 : new DangerText(new Unchecked())));
                         break;
+                    case TblSetting::IDENT_CONSULT_NUMBER:
+                        $Listing[3] = '&nbsp;Beraternummer: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
+                    case TblSetting::IDENT_CLIENT_NUMBER:
+                        $Listing[4] = '&nbsp;Mandantennummer: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
+                    case TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH:
+                        $Listing[5] = '&nbsp;Länge der Sachkontennummern: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
                     case TblSetting::IDENT_DATEV_REMARK:
-                        $Listing[3] ='&nbsp;DATEV-Buchungstext: &nbsp;'
+                        $Listing[6] ='&nbsp;DATEV-Buchungstext: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
                                  Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
                     case TblSetting::IDENT_FIBU_ACCOUNT:
-                        $Listing[4] ='&nbsp;FiBu-Konto: &nbsp;'
+                        $Listing[7] ='&nbsp;FiBu-Konto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
                                  Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_TO_ACCOUNT:
-                        $Listing[5] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
+                        $Listing[8] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
@@ -377,9 +395,24 @@ class Frontend extends Extension implements IFrontendInterface
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER] = $tblSetting->getValue();
                     $elementList[2] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER.']', ' Vorschlag höchste Debitorennummer', true);
                 break;
+                case TblSetting::IDENT_CONSULT_NUMBER:
+                    $_POST['Setting'][TblSetting::IDENT_CONSULT_NUMBER] = $tblSetting->getValue();
+                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beaternummer '
+                    .new ToolTip(new Info(), 'Kann bis zu 7 Zeichen enthalten'));
+                    break;
+                case TblSetting::IDENT_CLIENT_NUMBER:
+                    $_POST['Setting'][TblSetting::IDENT_CLIENT_NUMBER] = $tblSetting->getValue();
+                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_CLIENT_NUMBER.']', '', 'Mandantnummer '
+                    .new ToolTip(new Info(), 'Kann bis zu 5 Zeichen enthalten'));
+                    break;
+                case TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH:
+                    $_POST['Setting'][TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH] = $tblSetting->getValue();
+                    $elementList[5] = new NumberField('Setting['.TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH.']', '', 'Länge der Sachkontennummern '
+                        .new ToolTip(new Info(), 'Bitte geben Sie eine Anzahl zwischen 4 und 8 an'));
+                break;
                 case TblSetting::IDENT_DATEV_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
-                    $elementList[3] =
+                    $elementList[6] =
                         new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(new Panel('DATEV-Buchungstext', array(
                                 new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', ''),
@@ -397,11 +430,11 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_FIBU_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_ACCOUNT] = $tblSetting->getValue();
-                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto');
+                    $elementList[7] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto');
                 break;
                 case TblSetting::IDENT_FIBU_TO_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_TO_ACCOUNT] = $tblSetting->getValue();
-                    $elementList[5] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto');
+                    $elementList[8] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto');
                 break;
             }
         }
