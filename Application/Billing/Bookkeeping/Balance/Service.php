@@ -673,6 +673,8 @@ class Service extends AbstractService
                             $bookingText = $tblInvoiceItemDebtor->getName();
                             // Was, mit fehlenden Fibu-Daten?
                         }
+                        // Datev darf nur 60 Zeichen im Buchuntstext verarbeiten
+                        $bookingText = substr($bookingText, 0, 60);
 
                         $row++;
                         $export->setValue($export->getCell("0", $row), $Summary);// Umsatz

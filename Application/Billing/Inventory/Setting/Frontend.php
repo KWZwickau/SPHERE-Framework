@@ -414,7 +414,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
                     $elementList[6] =
                         new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(new Panel('DATEV-Buchungstext', array(
+                            new LayoutColumn(new Panel('DATEV-Buchungstext '.new ToolTip(new Info(), 'Datev erlaubt maximal 60 Zeichen, der rest wird abgeschnitten'), array(
                                 new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', ''),
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Buchungstext')),
