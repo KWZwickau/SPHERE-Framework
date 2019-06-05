@@ -273,6 +273,12 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_DATEV, $IsDatev);
                 $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 7);
                 Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
+                $ConsultNumber = (isset($Setting[TblSetting::IDENT_CONSULT_NUMBER]) ? $Setting[TblSetting::IDENT_CONSULT_NUMBER] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_CONSULT_NUMBER, $ConsultNumber);
+                $ClientNumber = (isset($Setting[TblSetting::IDENT_CLIENT_NUMBER]) ? $Setting[TblSetting::IDENT_CLIENT_NUMBER] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_CLIENT_NUMBER, $ClientNumber);
+                $ProperAccountLength = (isset($Setting[TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH]) ? $Setting[TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH] : 8);
+                Setting::useService()->createSetting(TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH, $ProperAccountLength);
                 $IsAutoDebtorNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER]) ? true : false);
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
                 $DatevRemark = (isset($Setting[TblSetting::IDENT_DATEV_REMARK]) ? $Setting[TblSetting::IDENT_DATEV_REMARK] : '');

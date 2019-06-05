@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use \SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -241,7 +242,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Listing[2] ='&nbsp;SEPA-Verwendungszweck &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Verwendungszweck hinterlegt.')));
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
 
                     // DATEV
@@ -263,25 +265,44 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new SuccessText(new Check())
                                 : new DangerText(new Unchecked())));
                         break;
-                    case TblSetting::IDENT_DATEV_REMARK:
-                        $Listing[3] ='&nbsp;DATEV-Buchungstext: &nbsp;'
+                    case TblSetting::IDENT_CONSULT_NUMBER:
+                        $Listing[3] = '&nbsp;Beraternummer: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Wird nichts hinerlegt, wird die Beitragsart(en) als Buchungstext hinterlegt.')));
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
+                    case TblSetting::IDENT_CLIENT_NUMBER:
+                        $Listing[4] = '&nbsp;Mandantennummer: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
+                    case TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH:
+                        $Listing[5] = '&nbsp;Länge der Sachkontennummern: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : new DangerText('Nicht hinterlegt!')));
+                        break;
+                    case TblSetting::IDENT_DATEV_REMARK:
+                        $Listing[6] ='&nbsp;DATEV-Buchungstext: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
                     case TblSetting::IDENT_FIBU_ACCOUNT:
-                        $Listing[4] ='&nbsp;FiBu-Konto: &nbsp;'
+                        $Listing[7] ='&nbsp;FiBu-Konto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können and er Beitragsart hinerlegt werden.'));
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_TO_ACCOUNT:
-                        $Listing[5] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
+                        $Listing[8] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
                                 : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können and er Beitragsart hinerlegt werden.'));
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
                         break;
                 }
             }
@@ -318,8 +339,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Sepa ElementGroup
             $SepaElementInWell = new WellReadOnly(
-                new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true)
-                .$this->showSepaInfo()
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true)
+                    ),
+                    new LayoutColumn(
+                        $this->showSepaInfo()
+                    ),
+                ))))
             );
 
             switch($tblSetting->getIdentifier()){
@@ -338,7 +365,21 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_SEPA_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_SEPA_REMARK] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', 'SEPA-Verwendungszweck');
+                    $elementList[3] =
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(new Panel('SEPA-Verwendungszweck', array(
+                                new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', ''),
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Freifelder für Verwendungszweck')),
+                                    new LayoutColumn('[GID] Gläubiger-ID', 4),
+                                    new LayoutColumn('[SN] Mandantsreferenz&shy;nummer', 4),
+                                    new LayoutColumn('[BVN] Beitragsverursacher Name', 4),
+                                    new LayoutColumn('[BVV] Beitragsverursacher Vorname', 4),
+                                    new LayoutColumn('[BA] Beitragsart', 4),
+                                    new LayoutColumn('[BAM] Abrechnungszeitraum (Jahr+Monat)', 4),
+                                )))),
+                            ), Panel::PANEL_TYPE_INFO)),
+                        ))));
                 break;
 
                     // Datev Option's
@@ -354,17 +395,46 @@ class Frontend extends Extension implements IFrontendInterface
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER] = $tblSetting->getValue();
                     $elementList[2] = new CheckBox('Setting['.TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER.']', ' Vorschlag höchste Debitorennummer', true);
                 break;
+                case TblSetting::IDENT_CONSULT_NUMBER:
+                    $_POST['Setting'][TblSetting::IDENT_CONSULT_NUMBER] = $tblSetting->getValue();
+                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beaternummer '
+                    .new ToolTip(new Info(), 'Kann bis zu 7 Zeichen enthalten'));
+                    break;
+                case TblSetting::IDENT_CLIENT_NUMBER:
+                    $_POST['Setting'][TblSetting::IDENT_CLIENT_NUMBER] = $tblSetting->getValue();
+                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_CLIENT_NUMBER.']', '', 'Mandantnummer '
+                    .new ToolTip(new Info(), 'Kann bis zu 5 Zeichen enthalten'));
+                    break;
+                case TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH:
+                    $_POST['Setting'][TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH] = $tblSetting->getValue();
+                    $elementList[5] = new NumberField('Setting['.TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH.']', '', 'Länge der Sachkontennummern '
+                        .new ToolTip(new Info(), 'Bitte geben Sie eine Anzahl zwischen 4 und 8 an'));
+                break;
                 case TblSetting::IDENT_DATEV_REMARK:
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', 'DATEV-Buchungstext');
+                    $elementList[6] =
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(new Panel('DATEV-Buchungstext '.new ToolTip(new Info(), 'Datev erlaubt maximal 60 Zeichen, der rest wird abgeschnitten'), array(
+                                new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', ''),
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Freifelder für Buchungstext')),
+                                    new LayoutColumn('[GID] Gläubiger-ID', 4),
+                                    new LayoutColumn('[SN] Mandantsreferenz&shy;nummer', 4),
+                                    new LayoutColumn('[BVN] Beitragsverursacher Name', 4),
+                                    new LayoutColumn('[BVV] Beitragsverursacher Vorname', 4),
+                                    new LayoutColumn('[BA] Beitragsart', 4),
+                                    new LayoutColumn('[BAM] Abrechnungszeitraum (Jahr+Monat)', 4),
+                                )))),
+                            ), Panel::PANEL_TYPE_INFO)),
+                        ))));
                 break;
                 case TblSetting::IDENT_FIBU_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_ACCOUNT] = $tblSetting->getValue();
-                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto');
+                    $elementList[7] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto');
                 break;
                 case TblSetting::IDENT_FIBU_TO_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_TO_ACCOUNT] = $tblSetting->getValue();
-                    $elementList[5] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto');
+                    $elementList[8] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto');
                 break;
             }
         }

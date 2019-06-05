@@ -264,6 +264,7 @@ class TblBasket extends Element
 
     /**
      * @return boolean
+     * Rechnungen aus Warenkorb erstellt
      */
     public function getIsDone()
     {
@@ -280,6 +281,7 @@ class TblBasket extends Element
 
     /**
      * @return boolean
+     * Auszahlung an Beitragszahler
      */
     public function getIsCompanyCredit()
     {
@@ -461,6 +463,5 @@ class TblBasket extends Element
 
         $this->serviceTblDebtorPeriodType = ($serviceTblDebtorPeriodType ? $serviceTblDebtorPeriodType->getId() : null);
     }
-
 
 }

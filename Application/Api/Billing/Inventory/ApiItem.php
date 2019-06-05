@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -39,7 +38,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 /**
  * Class ApiItem
@@ -323,6 +321,22 @@ class ApiItem extends ItemVariant implements IApiInterface
         }
 //        }
 
+        $InfoSepa = '';
+        $InfoDatev = '';
+        if(($tblItem = Item::useService()->getItemById($ItemId))){
+            $InfoDatev = $InfoSepa = $tblItem->getName();
+        }
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
+            if($tblSetting->getValue()){
+                $InfoSepa = $tblSetting->getValue();
+            }
+        }
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DATEV_REMARK))){
+            if($tblSetting->getValue()){
+                $InfoDatev = $tblSetting->getValue();
+            }
+        }
+
         $FibuAccountValue = '';
         if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT))){
             $FibuAccountValue = '(Standard) '.$tblSetting->getValue();
@@ -351,12 +365,8 @@ class ApiItem extends ItemVariant implements IApiInterface
                 new FormRow(array(
                     new FormColumn(new Panel('Buchungstext',
                         array(
-                            new TextField('Item[SepaRemark]', 'z.B.: GId: [GID], Art: [BA]', 'Sepa &nbsp;'
-                                .new ToolTip(new Info(), 'Wird keine Eingabe getätigt,
-                                so steht im Buchungstext der Name der Beitragsart')),
-                            new TextField('Item[DatevRemark]', 'z.B.: GId: [GID], Art: [BA]', 'Datev &nbsp;'
-                                .new ToolTip(new Info(), 'Wird keine Eingabe getätigt,
-                                so steht im Buchungstext der Name der Beitragsart'))
+                            new TextField('Item[SepaRemark]', '(Standard) '.$InfoSepa, 'Sepa &nbsp;'),
+                            new TextField('Item[DatevRemark]', '(Standard) '.$InfoDatev, 'Datev &nbsp;')
                         ), Panel::PANEL_TYPE_INFO)
                     , 8),
                     new FormColumn(
@@ -544,8 +554,8 @@ class ApiItem extends ItemVariant implements IApiInterface
         if('' !== $ItemId && ($tblItem = Item::useService()->getItemById($ItemId))){
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $tblItem->getName();
-            $Global->POST['Item']['SepaRemark'] = $tblItem->getSepaRemark();
-            $Global->POST['Item']['DatevRemark'] = $tblItem->getDatevRemark();
+            $Global->POST['Item']['SepaRemark'] = $tblItem->getSepaRemark(true);
+            $Global->POST['Item']['DatevRemark'] = $tblItem->getDatevRemark(true);
             $Global->POST['Item']['FibuAccount'] = $tblItem->getFibuAccount(true);
             $Global->POST['Item']['FibuToAccount'] = $tblItem->getFibuToAccount(true);
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){

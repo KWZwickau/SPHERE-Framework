@@ -116,15 +116,28 @@ class TblItem extends Element
     }
 
     /**
+     * @param bool $ignoreDefault used for POST in Frontend
+     *
      * @return string
      */
-    public function getSepaRemark()
+    public function getSepaRemark($ignoreDefault = false)
     {
 
-        if($this->SepaRemark){
+        if($ignoreDefault){
             return $this->SepaRemark;
         }
-        return $this->getName();
+
+        $BookingText = $this->getName();
+        if($this->SepaRemark){
+            return $this->SepaRemark;
+        } else {
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
+                if($tblSetting->getValue() !== ''){
+                    $BookingText = $tblSetting->getValue();
+                }
+            }
+        }
+        return $BookingText;
     }
 
     /**
@@ -136,15 +149,29 @@ class TblItem extends Element
     }
 
     /**
+     * @param bool $ignoreDefault used for POST in Frontend
+     *
      * @return string
      */
-    public function getDatevRemark()
+    public function getDatevRemark($ignoreDefault = false)
     {
 
-        if($this->DatevRemark){
+        if($ignoreDefault){
             return $this->DatevRemark;
         }
-        return $this->getName();
+
+        $BookingText = $this->getName();
+        if($this->DatevRemark){
+            return $this->DatevRemark;
+        } else {
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DATEV_REMARK))){
+                if($tblSetting->getValue() !== ''){
+                    $BookingText = $tblSetting->getValue();
+                }
+            }
+        }
+
+        return $BookingText;
     }
 
     /**
