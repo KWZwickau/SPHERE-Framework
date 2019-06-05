@@ -671,7 +671,7 @@ class Service extends AbstractService
                             $FibuToAccount = $tblItem->getFibuToAccount();
                         } else {
                             $bookingText = $tblInvoiceItemDebtor->getName();
-                            //ToDO Was, mit fehlenden Fibu-Daten?
+                            // Was, mit fehlenden Fibu-Daten?
                         }
 
                         $row++;

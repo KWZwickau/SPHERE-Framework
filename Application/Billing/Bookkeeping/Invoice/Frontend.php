@@ -75,15 +75,16 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new TableData($TableContent, null, array(
-                            'DebtorPerson'  => 'Beitragszahler',
-                            'DebtorNumber'  => 'Debitoren-Nr.',
-                            'BasketName'    => 'Name der Abrechnung',
-                            'CauserPerson'  => 'Beitragsverursacher',
-                            'Time'          => 'Abrechnungszeitraum',
-                            'TargetTime'    => 'Fälligkeitsdatum',
-                            'InvoiceNumber' => 'Rechnungsnummer',
-                            'PaymentType'   => 'Zahlungsart',
-                            'DisplaySumPrice'      => 'Gesamtbetrag',
+                            'DebtorPerson'    => 'Beitragszahler',
+                            'DebtorNumber'    => 'Debitoren-Nr.',
+                            'BasketName'      => 'Name der Abrechnung',
+                            'CauserPerson'    => 'Beitragsverursacher',
+                            'Time'            => 'Abrechnungszeitraum',
+                            'TargetTime'      => 'Fälligkeitsdatum',
+                            'InvoiceNumber'   => 'Rechnungsnummer',
+                            'PaymentType'     => 'Zahlungsart',
+                            'CompanyCredit'   => 'Auszahlung',
+                            'DisplaySumPrice' => 'Gesamtbetrag',
 //                            'Option' => '',
                         ), array(
                             'columnDefs' => array(
@@ -165,6 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'ItemQuantity'  => 'Menge',
                                 'ItemPrice'     => new ToolTip('EP', 'Einzelpreis'),
                                 'ItemSumPrice'  => new ToolTip('GP', 'Gesamtpreis'),
+                                'CompanyCredit' => 'Auszahlung',
                                 'IsPaid'        => 'Offene Posten',
 //                                'Option' => '',
                             ), array(

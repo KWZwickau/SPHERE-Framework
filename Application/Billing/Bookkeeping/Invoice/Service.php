@@ -19,6 +19,9 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -517,6 +520,12 @@ class Service extends AbstractService
 //                $item['TargetTime'] = $tblInvoice->getTargetTime();
                 //ToDO Person aus Service oder fester string?
                 $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
+                $item['CompanyCredit'] = '';
+                if(($tblBasket = $tblInvoice->getServiceTblBasket())){
+                    if($tblBasket->getIsCompanyCredit()){
+                        $item['CompanyCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                    }
+                }
 
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
@@ -581,13 +590,7 @@ class Service extends AbstractService
         $BasketName,
         $ItemName
     ) {
-        $resultList =  $this->getInvoiceCauserList(
-            $Year,
-            $Month,
-            $BasketName,
-            $ItemName,
-            false
-        );
+        $resultList =  $this->getInvoiceCauserList($Year, $Month, $BasketName, $ItemName, false);
         if(!empty($resultList)){
             // nach Beitragsverursacher sortieren
             foreach ($resultList as $key => $value) {
@@ -610,7 +613,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), 'Zahlungsart');
             $export->setValue($export->getCell($column++, $row), 'Menge');
             $export->setValue($export->getCell($column++, $row), 'Einzelpreis');
-            $export->setValue($export->getCell($column, $row), 'Gesamtpreis');
+            $export->setValue($export->getCell($column++, $row), 'Gesamtpreis');
+            $export->setValue($export->getCell($column, $row), 'Auszahlung');
 
             $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
             foreach($resultList as $result) {
@@ -626,7 +630,8 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $result['PaymentType']);
                 $export->setValue($export->getCell($column++, $row), $result['ItemQuantity']);
                 $export->setValue($export->getCell($column++, $row), $result['ItemPrice']);
-                $export->setValue($export->getCell($column, $row), $result['ItemSumPrice']);
+                $export->setValue($export->getCell($column++, $row), $result['ItemSumPrice']);
+                $export->setValue($export->getCell($column, $row), ($result['CompanyCredit'] ? 'Ja' : ''));
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -663,6 +668,12 @@ class Service extends AbstractService
                 }
                 $item['DebtorPerson'] = '';
                 $item['DebtorNumber'] = '';
+                $item['CompanyCredit'] = '';
+                if(($tblBasket = $tblInvoice->getServiceTblBasket())){
+                    if($tblBasket->getIsCompanyCredit()){
+                        $item['CompanyCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                    }
+                }
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
                     $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
@@ -753,6 +764,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), 'Fälligkeitsdatum');
             $export->setValue($export->getCell($column++, $row), 'Rechnungsnummer');
             $export->setValue($export->getCell($column++, $row), 'Zahlungsart');
+            $export->setValue($export->getCell($column++, $row), 'Auszahlung');
             $export->setValue($export->getCell($column++, $row), 'Gesamtbetrag');
             foreach ($extraHeaderList as $item) {
                 $export->setValue($export->getCell($column++, $row), $item);
@@ -772,6 +784,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $result['TargetTime']);
                 $export->setValue($export->getCell($column++, $row), $result['InvoiceNumber']);
                 $export->setValue($export->getCell($column++, $row), $result['PaymentType']);
+                $export->setValue($export->getCell($column++, $row), ($result['CompanyCredit'] ? 'Ja' : ''));
                 $export->setValue($export->getCell($column++, $row), $result['DisplaySumPrice']);
 
                 $sum['Total'] += $result['SumPrice'];
@@ -790,7 +803,7 @@ class Service extends AbstractService
             }
 
             // Aufsummierung
-            $column = 7;
+            $column = 8;
             $row++;
             $export->setValue($export->getCell($column++, $row), 'Summe');
             $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum['Total'], 2)));
