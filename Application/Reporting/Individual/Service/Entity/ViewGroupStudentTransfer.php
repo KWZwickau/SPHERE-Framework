@@ -158,20 +158,20 @@ class ViewGroupStudentTransfer extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_TYPE, 'Einschulung: Schulart');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_COURSE, 'Einschulung: Bildungsgang');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_TRANSFER_DATE, 'Einschulung: Datum');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_REMARK, 'Einschulung: Bemerkungen');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_REMARK, 'Einschulung: Bemerkungen');
 
         $this->setNameDefinition(self::TBL_COMPANY_ARRIVE_NAME, 'Aufnahme: Abgebende Schule / Kita');
         $this->setNameDefinition(self::TBL_STATE_COMPANY_ARRIVE_NAME, 'Aufnahme: Staatliche Stammschule');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_TYPE, 'Aufnahme: Letzte Schulart');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_COURSE, 'Aufnahme: Letzter Bildungsgang');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_TRANSFER_DATE, 'Aufnahme: Datum');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_REMARK, 'Aufnahme: Bemerkungen');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_REMARK, 'Aufnahme: Bemerkungen');
 
         $this->setNameDefinition(self::TBL_COMPANY_LEAVE_NAME, 'Abgabe: Aufnehmende Schule');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_TYPE, 'Abgabe: Letzte Schulart');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_COURSE, 'Abgabe: Letzter Bildungsgang');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_TRANSFER_DATE, 'Abgabe: Datum');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_REMARK, 'Abgabe: Bemerkungen');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_REMARK, 'Abgabe: Bemerkungen');
 
         $this->setGroupDefinition('Schulverlauf', array(
             self::TBL_COMPANY_PROCESS_NAME,

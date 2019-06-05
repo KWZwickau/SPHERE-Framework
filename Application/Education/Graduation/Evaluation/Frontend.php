@@ -3961,19 +3961,26 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
-        if ($tblGradeList && $tblDivision && $tblSubject && $tblDivisionSubject
-        ) {
+        if ($tblGradeList && $tblDivision && $tblSubject && $tblDivisionSubject) {
             foreach ($tblGradeList as $tblGrade) {
                 if (($tblPerson = $tblGrade->getServiceTblPerson())
                 ) {
                     $countGrades++;
-                    if ($tblSubjectGroup) {
-                        if (!Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
-                            $countStudents++;
-                        }
+
+                    if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                            $tblDivision, $tblPerson
+                        )) && $tblDivisionStudent->isInActiveByDateTime($tblGrade->getDateForSorter())
+                    ) {
+                        $countStudents++;
                     } else {
-                        if (!Division::useService()->existsDivisionStudent($tblDivision, $tblPerson)) {
-                            $countStudents++;
+                        if ($tblSubjectGroup) {
+                            if (!Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
+                                $countStudents++;
+                            }
+                        } else {
+                            if (!Division::useService()->existsDivisionStudent($tblDivision, $tblPerson)) {
+                                $countStudents++;
+                            }
                         }
                     }
                 }
@@ -3986,9 +3993,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $count = 0;
                 foreach ($tblSubjectStudentAll as $tblSubjectStudent) {
                     if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
-                        && Division::useService()->existsDivisionStudent($tblDivision, $tblPerson)
+                        && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                            $tblDivision, $tblPerson
+                        ))
                     ) {
-                        $count++;
+                        if ($tblTest->isContinues()) {
+                            if (!$tblDivisionStudent->isInActive()) {
+                                $count++;
+                            }
+                        } elseif (!$tblDivisionStudent->isInActiveByDateTime(new DateTime($tblTest->getDate()))) {
+                            $count++;
+                        }
                     }
                 }
                 $countStudents += $count;
@@ -3996,8 +4011,22 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true);
             if ($tblDivisionStudentAll) {
-                $countStudents += count($tblDivisionStudentAll);
+                $count = 0;
+                foreach ($tblDivisionStudentAll as $divisionStudent) {
+                    if ($tblTest->isContinues()) {
+                        if (!$divisionStudent->isInActive()) {
+                            $count++;
+                        }
+                    } elseif (!$divisionStudent->isInActiveByDateTime(new DateTime($tblTest->getDate()))) {
+                        $count++;
+                    }
+                }
+                $countStudents += $count;
             }
+        }
+
+        if ($countStudents < $countGrades) {
+            $countStudents = $countGrades;
         }
     }
 
