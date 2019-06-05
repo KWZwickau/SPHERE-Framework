@@ -14,6 +14,7 @@ use SPHERE\Application\Api\Billing\Datev\Datev;
 use SPHERE\Application\Api\Billing\Inventory\ApiDocument;
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Api\Billing\Inventory\ApiSetting;
+use SPHERE\Application\Api\Billing\Inventory\Import;
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Api\Billing\Invoice\InvoiceDownload;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
@@ -49,5 +50,6 @@ class Billing implements IApplicationInterface
         ApiDocument::registerApi();
         Datev::registerModule();
         InvoiceDownload::registerModule();
+        Import::registerModule();
     }
 }

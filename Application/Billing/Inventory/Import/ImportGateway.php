@@ -203,6 +203,7 @@ class ImportGateway extends AbstractConverter
             $DebtorMessage = new Success($Result['DebtorFirstName'].'&nbsp;'.$Result['DebtorLastName']
                 , null, false, 2, 0);
         } else {
+            $this->addErrorCount();
             $DebtorMessage = new ToolTip(new Danger($Result['DebtorFirstName'].'&nbsp;'.$Result['DebtorLastName']
                 , null, false, 2, 0), 'Person nicht oder nicht eindeutig vorhanden');
         }
