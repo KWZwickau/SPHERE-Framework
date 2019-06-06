@@ -155,23 +155,19 @@ class Frontend extends Extension implements IFrontendInterface
         $divisionTable = array();
         if ($IsGroup) {
             // tudorGroups
-            if (($tblGroupAll = Group::useService()->getGroupAll())) {
+            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
-                    if (!$tblGroup->isLocked()
-                        && $tblGroup->getTudors()
-                    ) {
-                        $divisionTable[] = array(
-                            'Group' => $tblGroup->getName(),
-                            'Option' => new Standard(
-                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                                array(
-                                    'GroupId' => $tblGroup->getId(),
-                                    'Route' => 'Diploma'
-                                ),
-                                'Auswählen'
-                            )
-                        );
-                    }
+                    $divisionTable[] = array(
+                        'Group' => $tblGroup->getName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                            array(
+                                'GroupId' => $tblGroup->getId(),
+                                'Route' => 'Diploma'
+                            ),
+                            'Auswählen'
+                        )
+                    );
                 }
             }
 
@@ -294,23 +290,19 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                 ) {
-                    if (($tblGroupAll = Group::useService()->getGroupAll())) {
+                    if (($tblGroupAll = Group::useService()->getTudorGroupAll($tblPerson))) {
                         foreach ($tblGroupAll as $tblGroup) {
-                            if (!$tblGroup->isLocked() && Group::useService()->existsGroupPerson($tblGroup,
-                                    $tblPerson)
-                            ) {
-                                $divisionTable[] = array(
-                                    'Group' => $tblGroup->getName(),
-                                    'Option' => new Standard(
-                                        '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                                        array(
-                                            'GroupId' => $tblGroup->getId(),
-                                            'Route' => 'Teacher'
-                                        ),
-                                        'Auswählen'
-                                    )
-                                );
-                            }
+                            $divisionTable[] = array(
+                                'Group' => $tblGroup->getName(),
+                                'Option' => new Standard(
+                                    '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                    array(
+                                        'GroupId' => $tblGroup->getId(),
+                                        'Route' => 'Teacher'
+                                    ),
+                                    'Auswählen'
+                                )
+                            );
                         }
                     }
                 }
@@ -412,23 +404,19 @@ class Frontend extends Extension implements IFrontendInterface
         $divisionTable = array();
         if ($IsGroup) {
             // tudorGroups
-            if (($tblGroupAll = Group::useService()->getGroupAll())) {
+            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
-                    if (!$tblGroup->isLocked()
-                        && $tblGroup->getTudors()
-                    ) {
-                        $divisionTable[] = array(
-                            'Group' => $tblGroup->getName(),
-                            'Option' => new Standard(
-                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                                array(
-                                    'GroupId' => $tblGroup->getId(),
-                                    'Route' => 'Headmaster'
-                                ),
-                                'Auswählen'
-                            )
-                        );
-                    }
+                    $divisionTable[] = array(
+                        'Group' => $tblGroup->getName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                            array(
+                                'GroupId' => $tblGroup->getId(),
+                                'Route' => 'Headmaster'
+                            ),
+                            'Auswählen'
+                        )
+                    );
                 }
             }
 
