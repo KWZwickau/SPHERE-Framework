@@ -13,9 +13,12 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -30,6 +33,7 @@ class ImportGateway extends AbstractConverter
     private $ResultList = array();
     private $ImportList = array();
     private $ErrorCount = 0;
+    private $IsError = false;
 
     /**
      * @return array
@@ -60,6 +64,7 @@ class ImportGateway extends AbstractConverter
     {
 
         $this->ErrorCount++;
+        $this->IsError = true;
     }
 
     /**
@@ -135,6 +140,10 @@ class ImportGateway extends AbstractConverter
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
+
+        // Default Error Value
+        $this->IsError = false;
+        $Result['IsError'] = '';
 
         // Fehende "nicht pflicht Felder" leer hinterlegen
         if(!isset($Result['Birthday'])){
@@ -226,6 +235,9 @@ class ImportGateway extends AbstractConverter
             }
         }
         $Result['ValueFrontend'] = $ValueFrontend;
+        if($this->IsError){
+            $Result['IsError'] = new Center(new DangerText(new Disable()));
+        }
 
         $this->ImportList[] = $ImportRow;
         $this->ResultList[] = $Result;

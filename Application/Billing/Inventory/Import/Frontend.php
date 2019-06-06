@@ -121,7 +121,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpload(UploadedFile $File = null)
     {
 
-        $Stage = new Stage('Indiware', 'Daten importieren');
+        $Stage = new Stage('Fakturierung Grunddaten', 'importieren');
 
         if ($File && !$File->getError()
             && (strtolower($File->getClientOriginalExtension()) == 'xlsx')
@@ -174,10 +174,12 @@ class Frontend extends Extension implements IFrontendInterface
                 Import::useService()->createImportBulk($ImportList);
             }
 
-            $Stage->setMessage(new DangerText(new Bold('Validierung '.$Gateway->getErrorCount())
-                .' rote Einträge verhindern den Import, überarbeiten Sie die Excel bitte so,
-                das alle Fehlermeldungen verschwinden oder Pflegen Sie die Eintsellungen in der Schulsoftware korrekt
-                und starten Sie den Import erneut.'));
+            if($Gateway->getErrorCount() > 0){
+                $Stage->setMessage(new DangerText(new Bold($Gateway->getErrorCount())
+                    .' Einträge (rot) verhindern den Import.<br/>
+                Bitte überarbeiten Sie die Excel-Vorlage und/oder prüfen Sie, ob die Daten in der Personenverwaltung
+                der Schulsoftware korrekt hinterlegt sind.'));
+            }
 
             // view up to 5 divisions
             $Stage->setContent(
@@ -188,6 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData($Gateway->getResultList(), null,
                                     array(
                                         'Row'                 => 'Zeile',
+                                        'IsError'             => 'Fehler',
                                         'PersonFrontend'      => 'Beitragsverursacher',
                                         'ValueFrontend'       => 'Betrag',
                                         'ItemVariantFrontend' => 'Preis-Variante',
@@ -203,7 +206,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Bank'                => 'Bank',
                                     ),
                                     array(
-                                        'order'      => array(array(0, 'desc')),
+                                        'order'      => array(array(1, 'desc')),
                                         'columnDefs' => array(
                                             array('type' => 'natural', 'targets' => 0),
                                         ),
