@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -25,7 +26,9 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -48,9 +51,13 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Fakturierung', 'Import');
+        $Stage = new Stage('Datenimport', 'Fakturierung ');
 
-        $PanelImport[] = new PullClear('Grundimport für Fakturierung: '.
+        $PanelImport[] =
+            new Info('Bitte verwenden Sie die Vorlage, um ihre Daten korrekt in das Tool einzuspielen: &nbsp;&nbsp;&nbsp;&nbsp;'
+                .new External('Download Import-Vorlage','/Api/Billing/Inventory/DownloadTemplateInvoice',
+                    new Download(), array(), false), null, false, 5, 3)
+            .new PullClear('Grundimport für Fakturierung: '.
             new Center(new Standard('', '/Billing/Inventory/Import/Prepare', new Upload()
                 , array(), 'Hochladen, danach kontrollieren')));
 
@@ -59,9 +66,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Import Fakturierung', $PanelImport
+                            new Panel('Grunddaten', $PanelImport
                                 , Panel::PANEL_TYPE_INFO)
-                            , 4)
+                            , 6)
                     )
                 )
             )
@@ -88,7 +95,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             new Panel('Import',
                                                 array(
                                                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
-                                                        .new ToolTip(new InfoIcon(), 'Import.xlsx')
+                                                        .new ToolTip(new InfoIcon(), 'Fakturierung Import.xlsx')
                                                         , null, array('showPreview' => false)))->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
@@ -114,9 +121,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpload(UploadedFile $File = null)
     {
 
-        $Stage = new Stage('Indiware', 'Daten importieren');
+        $Stage = new Stage('Fakturierung Grunddaten', 'importieren');
 
-        if($File && !$File->getError()
+        if ($File && !$File->getError()
             && (strtolower($File->getClientOriginalExtension()) == 'xlsx')
         ){
 
@@ -133,12 +140,12 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Test
             $Control = new ImportControl($Payload->getRealPath());
-            if(!$Control->getCompare()){
+            if (!$Control->getCompare()){
                 $LayoutColumnList = array();
                 $LayoutColumnList[] = new LayoutColumn(new Warning('Die Datei beinhaltet nicht alle benötigten Spalten'));
                 $ColumnList = $Control->getDifferenceList();
-                if(!empty($ColumnList)){
-                    foreach($ColumnList as $Value) {
+                if (!empty($ColumnList)){
+                    foreach ($ColumnList as $Value) {
                         $LayoutColumnList[] = new LayoutColumn(new Panel('Fehlende Spalte', $Value,
                             Panel::PANEL_TYPE_DANGER), 3);
                     }
@@ -163,14 +170,16 @@ class Frontend extends Extension implements IFrontendInterface
             $Gateway = new ImportGateway($Payload->getRealPath(), $Control);
 
             $ImportList = $Gateway->getImportList();
-            if($ImportList){
+            if ($ImportList){
                 Import::useService()->createImportBulk($ImportList);
             }
 
-            $Stage->setMessage(new DangerText(new Bold('Validierung '.$Gateway->getErrorCount())
-                .' rote Einträge verhindern den Import, überarbeiten Sie die Excel bitte so,
-                das alle Fehlermeldungen verschwinden oder Pflegen Sie die Eintsellungen in der Schulsoftware korrekt
-                und starten Sie den Import erneut.'));
+            if($Gateway->getErrorCount() > 0){
+                $Stage->setMessage(new DangerText(new Bold($Gateway->getErrorCount())
+                    .' Einträge (rot) verhindern den Import.<br/>
+                Bitte überarbeiten Sie die Excel-Vorlage und/oder prüfen Sie, ob die Daten in der Personenverwaltung
+                der Schulsoftware korrekt hinterlegt sind.'));
+            }
 
             // view up to 5 divisions
             $Stage->setContent(
@@ -181,6 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData($Gateway->getResultList(), null,
                                     array(
                                         'Row'                 => 'Zeile',
+                                        'IsError'             => 'Fehler',
                                         'PersonFrontend'      => 'Beitragsverursacher',
                                         'ValueFrontend'       => 'Betrag',
                                         'ItemVariantFrontend' => 'Preis-Variante',
@@ -196,7 +206,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Bank'                => 'Bank',
                                     ),
                                     array(
-                                        'order'      => array(array(0, 'desc')),
+                                        'order'      => array(array(1, 'desc')),
                                         'columnDefs' => array(
                                             array('type' => 'natural', 'targets' => 0),
                                         ),
@@ -230,8 +240,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDoImport()
     {
 
-        //ToDO Überarbeitung
-
         $Stage = new Stage('Import', 'Prozess');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory', new ChevronLeft(), array(),
             'Zurück zum Import'));
@@ -248,15 +256,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         ));
-
-//        $LayoutRowList = Import::useService()->importBillingData();
-//        $Stage->setContent(
-//            new Layout(
-//                new LayoutGroup(
-//                    $LayoutRowList
-//                )
-//            )
-//        );
         return $Stage;
     }
 }

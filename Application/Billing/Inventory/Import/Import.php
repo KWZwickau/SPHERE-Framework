@@ -22,7 +22,7 @@ class Import extends Extension implements IModuleInterface
     {
         if(Debtor::useService()->getDebtorSelectionCount() == 0){
             Main::getDisplay()->addModuleNavigation(
-                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
+                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datenimport'))
             );
         }
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
