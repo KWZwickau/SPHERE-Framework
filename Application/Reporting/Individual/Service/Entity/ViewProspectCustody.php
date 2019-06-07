@@ -44,6 +44,7 @@ class ViewProspectCustody extends AbstractView
     const TBL_MAIL_ADDRESS_S1 = 'TblMail_Address_S1';
     const TBL_MAIL_ADDRESS_PRIVATE_S1 = 'TblMail_AddressPrivate_S1';
     const TBL_MAIL_ADDRESS_COMPANY_S1 = 'TblMail_AddressCompany_S1';
+    const TBL_To_Person_Is_Single_Parent_S1 = 'TblToPerson_IsSingleParent_S1';
 
     // S2
     const TBL_SALUTATION_SALUTATION_S2 = 'TblSalutation_Salutation_S2';
@@ -66,6 +67,7 @@ class ViewProspectCustody extends AbstractView
     const TBL_MAIL_ADDRESS_S2 = 'TblMail_Address_S2';
     const TBL_MAIL_ADDRESS_PRIVATE_S2 = 'TblMail_AddressPrivate_S2';
     const TBL_MAIL_ADDRESS_COMPANY_S2 = 'TblMail_AddressCompany_S2';
+    const TBL_To_Person_Is_Single_Parent_S2 = 'TblToPerson_IsSingleParent_S2';
 
     // S3
     const TBL_SALUTATION_SALUTATION_S3 = 'TblSalutation_Salutation_S3';
@@ -88,6 +90,7 @@ class ViewProspectCustody extends AbstractView
     const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
     const TBL_MAIL_ADDRESS_PRIVATE_S3 = 'TblMail_AddressPrivate_S3';
     const TBL_MAIL_ADDRESS_COMPANY_S3 = 'TblMail_AddressCompany_S3';
+    const TBL_To_Person_Is_Single_Parent_S3 = 'TblToPerson_IsSingleParent_S3';
 
     /**
      * @return array
@@ -182,6 +185,10 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_AddressCompany_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblToPerson_IsSingleParent_S1;
 
     /**
      * @Column(type="string")
@@ -263,6 +270,10 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_AddressCompany_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblToPerson_IsSingleParent_S2;
 
     /**
      * @Column(type="string")
@@ -344,6 +355,10 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_AddressCompany_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblToPerson_IsSingleParent_S3;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -374,6 +389,7 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'S1: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1, 'S1: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1, 'S1: E-Mail Geschäftlich');
+        $this->setNameDefinition(self::TBL_To_Person_Is_Single_Parent_S1, 'S1: Alleinerziehend');
         // S2
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'S2: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2: Titel');
@@ -395,6 +411,7 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'S2: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2, 'S2: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2, 'S2: E-Mail Geschäftlich');
+        $this->setNameDefinition(self::TBL_To_Person_Is_Single_Parent_S2, 'S2: Alleinerziehend');
         // S3
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'S3: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3: Titel');
@@ -416,6 +433,7 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3, 'S3: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3, 'S3: E-Mail Geschäftlich');
+        $this->setNameDefinition(self::TBL_To_Person_Is_Single_Parent_S3, 'S3: Alleinerziehend');
 
         //GroupDefinition
 
@@ -439,7 +457,8 @@ class ViewProspectCustody extends AbstractView
             self::TBL_PHONE_NUMBER_S1,
             self::TBL_MAIL_ADDRESS_S1,
             self::TBL_MAIL_ADDRESS_PRIVATE_S1,
-            self::TBL_MAIL_ADDRESS_COMPANY_S1
+            self::TBL_MAIL_ADDRESS_COMPANY_S1,
+            self::TBL_To_Person_Is_Single_Parent_S1
         ));
         $this->setGroupDefinition('Sorge. S2 (Zusatzinfo)', array(
             self::TBL_SALUTATION_SALUTATION_S2,
@@ -461,7 +480,8 @@ class ViewProspectCustody extends AbstractView
             self::TBL_PHONE_NUMBER_S2,
             self::TBL_MAIL_ADDRESS_S2,
             self::TBL_MAIL_ADDRESS_PRIVATE_S2,
-            self::TBL_MAIL_ADDRESS_COMPANY_S2
+            self::TBL_MAIL_ADDRESS_COMPANY_S2,
+            self::TBL_To_Person_Is_Single_Parent_S2
         ));
         $this->setGroupDefinition('Sorge. S3 (Zusatzinfo)', array(
             self::TBL_SALUTATION_SALUTATION_S3,
@@ -483,7 +503,8 @@ class ViewProspectCustody extends AbstractView
             self::TBL_PHONE_NUMBER_S3,
             self::TBL_MAIL_ADDRESS_S3,
             self::TBL_MAIL_ADDRESS_PRIVATE_S3,
-            self::TBL_MAIL_ADDRESS_COMPANY_S3
+            self::TBL_MAIL_ADDRESS_COMPANY_S3,
+            self::TBL_To_Person_Is_Single_Parent_S3
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
@@ -507,6 +528,7 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1);
+        $this->setDisableDefinition(self::TBL_To_Person_Is_Single_Parent_S1);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S2);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
@@ -527,6 +549,7 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2);
+        $this->setDisableDefinition(self::TBL_To_Person_Is_Single_Parent_S2);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S3);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);
@@ -547,6 +570,7 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3);
+        $this->setDisableDefinition(self::TBL_To_Person_Is_Single_Parent_S3);
     }
 
     /**
