@@ -329,6 +329,8 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
+
         $View->setContent($this->getIdentificationLayout($Form));
 
         return $View;
@@ -436,35 +438,64 @@ class Frontend extends Extension implements IFrontendInterface
             // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
 
-        // Create Form
-        $Form = new Form(
-            new FormGroup(array(
-                    new FormRow(
-                        new FormColumn(array(
-                            new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
-                            new Ruler(),
-                            new Listing($FormInformation),
-                            new Listing(array(
-                                new Container($CredentialKeyField)
-                            )),
-                            $FormError
-                        ))
-                    ),
-                    new FormRow(
-                        new FormColumn(array(
-                            (new Primary('Bestätigen'))
-                        ))
+        if (isset($_COOKIE['cookies_available'])) {
+            // Create Form
+            $Form = new Form(
+                new FormGroup(array(
+                        new FormRow(
+                            new FormColumn(array(
+                                new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                                new Ruler(),
+                                new Listing($FormInformation),
+                                new Listing(array(
+                                    new Container($CredentialKeyField)
+                                )),
+                                $FormError
+                            ))
+                        ),
+                        new FormRow(
+                            new FormColumn(array(
+                                (new Primary('Bestätigen'))
+                            ))
+                        )
                     )
                 )
-            )
-            , null, new Route(__NAMESPACE__ . '/Token'), array(
-            'tblAccount' => $tblAccount,
-            'tblIdentification' => $tblIdentification
-        ));
+                , null, new Route(__NAMESPACE__ . '/Token'), array(
+                'tblAccount' => $tblAccount,
+                'tblIdentification' => $tblIdentification
+            ));
 
-        $View->setContent($this->getIdentificationLayout($Form));
+            $View->setContent($this->getIdentificationLayout($Form));
+        } else {
+            // es sind keine Cookies erlaubt -> Login ist nicht möglich
+            $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                    new Ruler(),
+                    new Listing($FormInformation),
+                    $this->getCookieMessage()
+                ))
+            ))));
+            $View->setContent($this->getIdentificationLayout($layout));
+        }
 
         return $View;
+    }
+
+    /**
+     * @return DangerMessage
+     */
+    private function getCookieMessage()
+    {
+        return new DangerMessage(
+            'Ihre Browsereinstellungen lassen keine Cookies zu.' . '<br><br>'
+            . 'Um auf die Schulsoftware zu können, müssen Sie Cookies in Ihrem Browser zulassen.' . '<br><br>'
+            . 'Darum sind Cookies notwendig:' . '<br>'
+            . 'Aus Sicherheitsgründen wird beim Login ein Cookie auf Ihrem Rechner gespeichert. ' . '<br>'
+            . 'So wird sichergestellt, dass nur Sie während einer Sitzung auf die Schulsoftware zugreifen können.' . '<br>'
+            . 'Wenn Sie sich ausloggen oder das Browserfenster schließen, wird das Cookie gelöscht und Ihre Sitzung dadurch ungültig gemacht.'
+            , new Exclamation()
+        );
     }
 
     /**
@@ -513,6 +544,28 @@ class Frontend extends Extension implements IFrontendInterface
         ) {
             // Restart Identification Process
             return $this->frontendIdentificationCredential();
+        }
+
+        // es sind keine Cookies erlaubt -> Login ist nicht möglich
+        if (!isset($_COOKIE['cookies_available'])) {
+
+            $FormInformation = array(
+                $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
+                'Benutzer: ' . $tblAccount->getUsername()
+            );
+
+            $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                    new Ruler(),
+                    new Listing($FormInformation),
+                    $this->getCookieMessage()
+                ))
+            ))));
+
+            $View->setContent($this->getIdentificationLayout($layout));
+
+            return $View;
         }
 
         $Headline = 'Allgemeine Geschäftsbedingungen';
