@@ -34,6 +34,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPersonContact;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewProspectCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentAuthorized;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
@@ -1226,6 +1227,15 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Panel( 'Sorgeberechtigte:', new Scrollable( $Block, 300 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Sorgeberechtigte:', new Scrollable( $Block ) );
+                    }
+                }
+                // View only for Student
+                $Block = $this->getPanelList(new ViewStudentAuthorized(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewStudentAuthorized']) ) {
+                        $AccordionList[] = new Panel( 'Bevollmächtigter:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Bevollmächtigter:', new Scrollable( $Block ) );
                     }
                 }
             break;

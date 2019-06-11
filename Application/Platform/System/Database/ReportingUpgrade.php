@@ -52,6 +52,7 @@ class ReportingUpgrade
         'viewRelationshipToPerson' => 'viewRelationshipToPerson.twig',
         'viewStudent' => 'viewStudent.twig',
         'viewStudentCustody' => 'viewStudentCustody.twig',
+        'viewStudentAuthorized' => 'viewStudentAuthorized.twig',
         'viewProspectCustody' => 'viewProspectCustody.twig'
     );
 
