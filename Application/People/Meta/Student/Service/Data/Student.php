@@ -163,7 +163,7 @@ abstract class Student extends AbstractData
             ->findOneBy(array(
                 TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
             ));
-        if ($IdentifierResult) {
+        if ($IdentifierResult && $Identifier !== '') {
             $IsIdentifier = false;
         }
 
