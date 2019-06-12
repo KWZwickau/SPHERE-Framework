@@ -91,10 +91,13 @@ class Service extends AbstractService
 
                     //Debitornummer zum Debitor
                     if(($DebtorNumber = $tblImport->getDebtorNumber())){
-                        Debtor::useService()->createDebtorNumber($tblPersonDebtor, $DebtorNumber);
+                        // Debitornummer wird nur gespeichert, wenn noch keine hinterlegt ist.
+                        if(!Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
+                            Debtor::useService()->createDebtorNumber($tblPersonDebtor, $DebtorNumber);
+                        }
                     }
                     // Kontodaten zum Debitor
-                    if($tblImport->getIBAN() && $tblImport->getBIC()){
+                    if($tblImport->getIBAN()){
                         $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor,
                             $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName(),
                             $tblImport->getBank(), $tblImport->getIBAN(), $tblImport->getBIC());

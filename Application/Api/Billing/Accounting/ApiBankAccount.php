@@ -319,7 +319,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                         (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'aa99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
                     new FormColumn(
-                        (new TextField('BankAccount[BIC]', 'BIC', 'BIC'))->setRequired()
+                        new TextField('BankAccount[BIC]', 'BIC', 'BIC')
                         , 6)
                 )),
                 new FormRow(
@@ -346,10 +346,6 @@ class ApiBankAccount extends Extension implements IApiInterface
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
         if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])){
             $form->setError('BankAccount[IBAN]', 'Bitte geben Sie die IBAN an');
-            $Error = true;
-        }
-        if(isset($BankAccount['BIC']) && empty($BankAccount['BIC'])){
-            $form->setError('BankAccount[BIC]', 'Bitte geben Sie die BIC an');
             $Error = true;
         }
 
