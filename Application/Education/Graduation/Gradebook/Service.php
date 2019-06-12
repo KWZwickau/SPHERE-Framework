@@ -815,6 +815,18 @@ class Service extends ServiceScoreRule
             $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
         }
 
+        // todo Johk nach diesem Schuljahr für alle Mandanten + Frontend für Teilnote
+        if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+            && $tblConsumer->getAcronym() == 'EZSH'
+        ) {
+            return $this->calcStudentGradeWithPartGrade(
+                $tblGradeList,
+                $tblDivision,
+                $tblScoreRule ? $tblScoreRule : null,
+                $tblPeriod ? $tblPeriod : null
+            );
+        }
+
         if ($tblGradeList) {
             $result = array();
             $averageGroup = array();
@@ -899,6 +911,211 @@ class Service extends ServiceScoreRule
                     return round($average, 2);
                 } else {
                     return false;
+                }
+            }
+
+            if (!empty($result)) {
+                foreach ($result as $conditionId => $groups) {
+                    if (!empty($groups)) {
+                        foreach ($groups as $groupId => $group) {
+                            if (!empty($group)
+                                && ($tblScoreGroupItem = Gradebook::useService()->getScoreGroupById($groupId))
+                            ) {
+
+                                $countGrades = 0;
+                                foreach ($group as $value) {
+                                    if ($tblScoreGroupItem->isEveryGradeASingleGroup()) {
+                                        $countGrades++;
+                                        $averageGroup[$conditionId][$groupId][$countGrades]['Value'] = $value['Value'];
+                                        $averageGroup[$conditionId][$groupId][$countGrades]['Multiplier'] = $value['Multiplier'];
+                                    } else {
+                                        if (isset($averageGroup[$conditionId][$groupId])) {
+                                            $averageGroup[$conditionId][$groupId]['Value'] += $value['Value'];
+                                            $averageGroup[$conditionId][$groupId]['Multiplier'] += $value['Multiplier'];
+                                        } else {
+                                            $averageGroup[$conditionId][$groupId]['Value'] = $value['Value'];
+                                            $averageGroup[$conditionId][$groupId]['Multiplier'] = $value['Multiplier'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($averageGroup[$tblScoreCondition->getId()])) {
+                    $average = 0;
+                    $totalMultiplier = 0;
+                    foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group) {
+                        if (($tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId))) {
+                            $multiplier = floatval($tblScoreGroup->getMultiplier());
+                            if ($tblScoreGroup->isEveryGradeASingleGroup() && is_array($group)) {
+
+                                foreach ($group as $itemValue) {
+                                    if (isset($itemValue['Value']) && isset($itemValue['Multiplier'])) {
+                                        $totalMultiplier += $multiplier;
+                                        $average += $multiplier * ($itemValue['Value'] / $itemValue['Multiplier']);
+                                    }
+                                }
+
+                            } else {
+
+                                if (isset($group['Value']) && isset($group['Multiplier'])) {
+                                    $totalMultiplier += $multiplier;
+                                    $average += $multiplier * ($group['Value'] / $group['Multiplier']);
+                                }
+
+                            }
+                        }
+                    }
+
+                    if ($totalMultiplier > 0) {
+                        $average = $average / $totalMultiplier;
+                        $resultAverage = round($average, 2);
+                    } else {
+                        $resultAverage = '';
+                    }
+                }
+            }
+
+            return $resultAverage === '' ? false : $resultAverage
+                . ($tblScoreCondition ? '(' . $tblScoreCondition->getPriority() . ': ' . $tblScoreCondition->getName() . ')' : '');
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $tblGradeList
+     * @param TblDivision $tblDivision
+     * @param TblScoreRule|null $tblScoreRule
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return array|bool|float|string
+     */
+    private function calcStudentGradeWithPartGrade(
+        $tblGradeList,
+        TblDivision $tblDivision,
+        TblScoreRule $tblScoreRule = null,
+        TblPeriod $tblPeriod = null
+    ) {
+        if ($tblGradeList) {
+            $result = array();
+            $averageGroup = array();
+            $resultAverage = '';
+            $count = 0;
+            $sum = 0;
+
+            if ($tblScoreRule) {
+                $tblLevel = $tblDivision->getTblLevel();
+                $tblYear = $tblDivision->getServiceTblYear();
+                $tblScoreCondition = $this->getScoreConditionByStudent(
+                    $tblScoreRule,
+                    $tblGradeList,
+                    $tblYear ? $tblYear : null,
+                    $tblPeriod ? $tblPeriod : null,
+                    $tblLevel && $tblLevel->getName() == '12'
+                );
+            } else {
+                $tblScoreCondition = false;
+            }
+
+            $error = array();
+            // Teilnoten
+            $subResult = array();
+            /** @var TblGrade $tblGrade */
+            foreach ($tblGradeList as $tblGrade) {
+                if ($tblScoreCondition) {
+                    /** @var TblScoreCondition $tblScoreCondition */
+                    if (($tblScoreConditionGroupListByCondition
+                        = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
+                    ) {
+                        $hasFoundGradeType = false;
+                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
+                            if (($tblScoreGroupGradeTypeListByGroup
+                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
+                            ) {
+                                foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
+                                    if ($tblGrade->getTblGradeType() && $tblScoreGroupGradeTypeList->getTblGradeType()
+                                        && $tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()
+                                    ) {
+                                        $hasFoundGradeType = true;
+                                        if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                                            // für Teilnoten Extra-Liste
+                                            if (($tblGradeType = $tblGrade->getTblGradeType())
+                                                && $tblGradeType->isPartGrade()
+                                            ) {
+                                                if (isset($subResult[$tblGradeType->getId()])) {
+                                                    $subResult[$tblGradeType->getId()]['SubCount']++;
+                                                    $subResult[$tblGradeType->getId()]['SubValue'] += floatval($tblGrade->getGrade());
+                                                } else {
+                                                    $subResult[$tblGradeType->getId()] = array(
+                                                        'tblScoreConditionId' => $tblScoreCondition->getId(),
+                                                        'tblScoreGroupId' => $tblScoreGroup->getTblScoreGroup()->getId(),
+                                                        'Multiplier' => floatval($tblScoreGroupGradeTypeList->getMultiplier()),
+                                                        'SubValue' =>  floatval($tblGrade->getGrade()),
+                                                        'SubCount' => 1
+                                                    );
+                                                }
+
+                                            } else {
+                                                $count++;
+                                                $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
+                                                    = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                                $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
+                                                    = floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!$hasFoundGradeType && $tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                            if ($tblGrade->getTblGradeType()) {
+                                $error[$tblGrade->getTblGradeType()->getId()] =
+                                    new LayoutRow(
+                                        new LayoutColumn(
+                                            new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getDisplayName()
+                                                . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
+                                                new Ban()
+                                            )
+                                        )
+                                    );
+                            }
+                        }
+                    }
+                } else {
+                    // alle Noten gleichwertig
+                    if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                        $count++;
+                        $sum = $sum + floatval($tblGrade->getGrade());
+                    }
+                }
+            }
+            if (!empty($error)) {
+                return $error;
+            }
+
+            if (!$tblScoreCondition) {
+                if ($count > 0) {
+                    $average = $sum / $count;
+                    return round($average, 2);
+                } else {
+                    return false;
+                }
+            }
+
+            // Teilnoten zusammenführen -> Gesamt-Teilnote
+            if (!empty($subResult)) {
+                foreach ($subResult as $item) {
+                    $count++;
+                    $result[$item['tblScoreConditionId']][$item['tblScoreGroupId']][$count]['Value']
+                        = ($item['SubValue'] / $item['SubCount']) * $item['Multiplier'];
+                    $result[$item['tblScoreConditionId']][$item['tblScoreGroupId']][$count]['Multiplier']
+                        = $item['Multiplier'];
                 }
             }
 

@@ -54,6 +54,11 @@ class TblGradeType extends Element
     protected $IsActive;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsPartGrade;
+
+    /**
      * @return string
      */
     public function getCode()
@@ -161,6 +166,22 @@ class TblGradeType extends Element
     public function setIsActive($IsActive)
     {
         $this->IsActive = (boolean) $IsActive;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isPartGrade()
+    {
+        return $this->IsPartGrade;
+    }
+
+    /**
+     * @param boolean $IsPartGrade
+     */
+    public function setIsPartGrade($IsPartGrade)
+    {
+        $this->IsPartGrade = (boolean) $IsPartGrade;
     }
 
     /**
