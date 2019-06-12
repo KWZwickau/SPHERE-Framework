@@ -90,6 +90,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setHighlighted($IsHighlighted);
             $Entity->setServiceTblTestType($tblTestType);
             $Entity->setIsActive(true);
+            $Entity->setIsPartGrade(false);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

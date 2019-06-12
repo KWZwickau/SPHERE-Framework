@@ -93,6 +93,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'IsActive')) {
             $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
+        $this->createColumn($Table, 'IsPartGrade', self::FIELD_TYPE_BOOLEAN, false, '0');
 
         return $Table;
     }
