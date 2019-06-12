@@ -326,10 +326,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Belegdruck', 'Pdf');
-
-        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
-            $_POST['Balance']['Item'] = $tblItem->getId();
-        }
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
