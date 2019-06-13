@@ -268,7 +268,7 @@ class ItemCalculation extends Extension
                                 && new \DateTime($tblItemVariantCompare->getDateTo()) <= new \DateTime($Calculation['DateTo'])){
                                 if($CalculationId != $tblItemVariantCompare->getId()){
                                     $form->setError('Calculation[DateFrom]',
-                                        '1Datum liegt im Gültigkeitsbereich eines anderer Preises ('
+                                        'Datum liegt im Gültigkeitsbereich eines anderer Preises ('
                                         .$tblItemVariantCompare->getDateFrom().' - '.$tblItemVariantCompare->getDateTo().')');
                                     $Error = true;
                                     break;
@@ -284,7 +284,7 @@ class ItemCalculation extends Extension
                             ){
                                 if($CalculationId != $tblItemVariantCompare->getId()){
                                     $form->setError('Calculation[DateFrom]',
-                                        '2Datum liegt im Gültigkeitsbereich eines anderer Preises ('
+                                        'Datum liegt im Gültigkeitsbereich eines anderer Preises ('
                                         .$tblItemVariantCompare->getDateFrom().' - '.$tblItemVariantCompare->getDateTo().')');
                                     $Error = true;
                                     break;
