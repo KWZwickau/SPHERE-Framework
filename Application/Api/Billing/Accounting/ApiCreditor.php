@@ -292,7 +292,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('Creditor[CreditorId]', 'Gläubiger Id', 'Gläubiger Id')
+                        (new TextField('Creditor[CreditorId]', 'Gläubiger Id', 'Gläubiger Id'))->setRequired()
                         , 6),
 //                    new FormColumn(new Ruler())
                 )),
@@ -359,7 +359,10 @@ class ApiCreditor extends Extension implements IApiInterface
             $form->setError('Creditor[City]', 'Bitte geben Sie eine Stadt an');
             $Error = true;
         }
-        if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
+        if(isset($Creditor['CreditorId']) && empty($Creditor['CreditorId'])){
+            $form->setError('Creditor[CreditorId]', 'Bitte geben Sie eine Gläubiger Id an');
+            $Error = true;
+        }if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
             $Error = true;
         }
