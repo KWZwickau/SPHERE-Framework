@@ -606,16 +606,18 @@ class Service extends AbstractService
 
                             if (!empty(trim($value))) {
                                 $value = trim($value);
-                                // Zeichenbegrenzen
-                                if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
-                                    $tblCertificate, $field, !isset($array['TeamExtra'])))
-                                ) {
-                                    $value = str_replace("\n", " ", $value);
 
-                                    if (strlen($value) > $CharCount) {
-                                        $value = substr($value, 0, $CharCount);
-                                    }
-                                }
+                                // erstmal deaktivieren, es werden teilweise zuviele Zeichen abgeschnitten
+//                                // Zeichenbegrenzen
+//                                if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
+//                                    $tblCertificate, $field, !isset($array['TeamExtra'])))
+//                                ) {
+//                                    $value = str_replace("\n", " ", $value);
+//
+//                                    if (strlen($value) > $CharCount) {
+//                                        $value = substr($value, 0, $CharCount);
+//                                    }
+//                                }
 
                                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                                     $field))
