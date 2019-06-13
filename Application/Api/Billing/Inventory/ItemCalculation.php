@@ -255,6 +255,58 @@ class ItemCalculation extends Extension
             if(isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])){
                 $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Beginn der Gültigkeit an');
                 $Error = true;
+            } else {
+                if(($tblItemVariantList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                    foreach($tblItemVariantList as $tblItemVariantCompare){
+                        // Alle von / Bis Datumsvergleiche
+                        if($tblItemVariantCompare->getDateTo()) {
+                            // Datumsangaben liegen in anderen Zeiträumen
+                            if(new \DateTime($tblItemVariantCompare->getDateFrom()) <= new \DateTime($Calculation['DateFrom'])
+                                && new \DateTime($tblItemVariantCompare->getDateTo()) >= new \DateTime($Calculation['DateFrom'])
+                                || isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])
+                                && new \DateTime($tblItemVariantCompare->getDateFrom()) >= new \DateTime($Calculation['DateTo'])
+                                && new \DateTime($tblItemVariantCompare->getDateTo()) <= new \DateTime($Calculation['DateTo'])){
+                                if($CalculationId != $tblItemVariantCompare->getId()){
+                                    $form->setError('Calculation[DateFrom]',
+                                        '1Datum liegt im Gültigkeitsbereich eines anderer Preises ('
+                                        .$tblItemVariantCompare->getDateFrom().' - '.$tblItemVariantCompare->getDateTo().')');
+                                    $Error = true;
+                                    break;
+                                }
+                            }
+                            // Datumsangaben überlagern sich mit anderen Zeiträumen
+                            if(isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])
+                                && new \DateTime($tblItemVariantCompare->getDateFrom()) <= new \DateTime($Calculation['DateFrom'])
+                                && new \DateTime($tblItemVariantCompare->getDateTo()) >= new \DateTime($Calculation['DateTo'])
+                                || isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])
+                                && new \DateTime($tblItemVariantCompare->getDateFrom()) >= new \DateTime($Calculation['DateFrom'])
+                                && new \DateTime($tblItemVariantCompare->getDateTo()) <= new \DateTime($Calculation['DateTo'])
+                            ){
+                                if($CalculationId != $tblItemVariantCompare->getId()){
+                                    $form->setError('Calculation[DateFrom]',
+                                        '2Datum liegt im Gültigkeitsbereich eines anderer Preises ('
+                                        .$tblItemVariantCompare->getDateFrom().' - '.$tblItemVariantCompare->getDateTo().')');
+                                    $Error = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            // Es gibt keine "Bis" Angabe
+                            // Update nur durchführen, wenn Eingabe funktioniert
+                            if( !$Error
+                                && !$tblItemVariantCompare->getDateFrom()
+                                || new \DateTime($tblItemVariantCompare->getDateFrom()) <= new \DateTime($Calculation['DateFrom'])){
+                                // alte Calculation updaten ('DateFrom' minus 1 Tag)
+                                $DateTime = (date_sub(new \DateTime($Calculation['DateFrom'])
+                                    , date_interval_create_from_date_string('1 days')));
+                                $DateTime = $DateTime->format('d.m.Y');
+                                // Update der fehlenden "Bis" Angabe
+                                Item::useService()->changeItemCalculation($tblItemVariantCompare, $tblItemVariantCompare->getValue(),
+                                    $tblItemVariantCompare->getDateFrom(), $DateTime);
+                            }
+                        }
+                    }
+                }
             }
         }
 
