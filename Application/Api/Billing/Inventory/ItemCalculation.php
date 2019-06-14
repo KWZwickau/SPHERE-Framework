@@ -257,15 +257,21 @@ class ItemCalculation extends Extension
                 $Error = true;
             } else {
                 if(($tblItemVariantList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                    $FromDate = new \DateTime($Calculation['DateFrom']);
+                    if(isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])){
+                        $ToDate = new \DateTime($Calculation['DateTo']);
+                    } else {
+                        $ToDate = false;
+                    }
                     foreach($tblItemVariantList as $tblItemVariantCompare){
                         // Alle von / Bis Datumsvergleiche
                         if($tblItemVariantCompare->getDateTo()) {
                             // Datumsangaben liegen in anderen Zeiträumen
-                            if(new \DateTime($tblItemVariantCompare->getDateFrom()) <= new \DateTime($Calculation['DateFrom'])
-                                && new \DateTime($tblItemVariantCompare->getDateTo()) >= new \DateTime($Calculation['DateFrom'])
-                                || isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])
-                                && new \DateTime($tblItemVariantCompare->getDateFrom()) >= new \DateTime($Calculation['DateTo'])
-                                && new \DateTime($tblItemVariantCompare->getDateTo()) <= new \DateTime($Calculation['DateTo'])){
+                            if($FromDate >= $tblItemVariantCompare->getDateFrom(true)
+                                && $FromDate <= $tblItemVariantCompare->getDateTo(true)
+                                || $ToDate
+                                && $ToDate >= $tblItemVariantCompare->getDateFrom(true)
+                                && $ToDate <= $tblItemVariantCompare->getDateTo(true)){
                                 if($CalculationId != $tblItemVariantCompare->getId()){
                                     $form->setError('Calculation[DateFrom]',
                                         'Datum liegt im Gültigkeitsbereich eines anderer Preises ('
@@ -275,12 +281,9 @@ class ItemCalculation extends Extension
                                 }
                             }
                             // Datumsangaben überlagern sich mit anderen Zeiträumen
-                            if(isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])
-                                && new \DateTime($tblItemVariantCompare->getDateFrom()) <= new \DateTime($Calculation['DateFrom'])
-                                && new \DateTime($tblItemVariantCompare->getDateTo()) >= new \DateTime($Calculation['DateTo'])
-                                || isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])
-                                && new \DateTime($tblItemVariantCompare->getDateFrom()) >= new \DateTime($Calculation['DateFrom'])
-                                && new \DateTime($tblItemVariantCompare->getDateTo()) <= new \DateTime($Calculation['DateTo'])
+                            if($ToDate
+                                && $FromDate >= $tblItemVariantCompare->getDateFrom(true)
+                                && $ToDate <= $tblItemVariantCompare->getDateTo(true)
                             ){
                                 if($CalculationId != $tblItemVariantCompare->getId()){
                                     $form->setError('Calculation[DateFrom]',
@@ -291,18 +294,23 @@ class ItemCalculation extends Extension
                                 }
                             }
                         } else {
-                            // Es gibt keine "Bis" Angabe
-                            // Update nur durchführen, wenn Eingabe funktioniert
-                            if( !$Error
-                                && !$tblItemVariantCompare->getDateFrom()
-                                || new \DateTime($tblItemVariantCompare->getDateFrom()) <= new \DateTime($Calculation['DateFrom'])){
-                                // alte Calculation updaten ('DateFrom' minus 1 Tag)
-                                $DateTime = (date_sub(new \DateTime($Calculation['DateFrom'])
-                                    , date_interval_create_from_date_string('1 days')));
-                                $DateTime = $DateTime->format('d.m.Y');
-                                // Update der fehlenden "Bis" Angabe
-                                Item::useService()->changeItemCalculation($tblItemVariantCompare, $tblItemVariantCompare->getValue(),
-                                    $tblItemVariantCompare->getDateFrom(), $DateTime);
+                            // Update nur, wenn es keine Bearbeitung ist
+                            if(!$CalculationId){
+                                // Es gibt keine "Bis" Angabe
+                                // Update nur durchführen, wenn Eingabe funktioniert
+                                if( !$Error
+                                    && !$tblItemVariantCompare->getDateFrom()
+                                    || $tblItemVariantCompare->getDateFrom(true) <= $FromDate){
+                                    // alte Calculation updaten ('DateFrom' minus 1 Tag)
+                                    // Objekt muss geklont werden, da es sonnst im Vergleich nicht funktioniert
+                                    $TemoFromDate = clone $FromDate;
+                                    $DateTime = (date_sub($TemoFromDate
+                                        , date_interval_create_from_date_string('1 days')));
+                                    $DateTime = $DateTime->format('d.m.Y');
+                                    // Update der fehlenden "Bis" Angabe
+                                    Item::useService()->changeItemCalculation($tblItemVariantCompare, $tblItemVariantCompare->getValue(),
+                                        $tblItemVariantCompare->getDateFrom(), $DateTime);
+                                }
                             }
                         }
                     }

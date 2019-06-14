@@ -62,9 +62,12 @@ class TblItemCalculation extends Element
     }
 
     /**
+     * @param bool $getDateTimeObjekt
+     * false = string; true = DateTimeObject
+     *
      * @return string
      */
-    public function getDateFrom()
+    public function getDateFrom($getDateTimeObjekt = false)
     {
 
         if(null === $this->DateFrom){
@@ -73,9 +76,17 @@ class TblItemCalculation extends Element
         /** @var \DateTime $Date */
         $Date = $this->DateFrom;
         if($Date instanceof \DateTime){
-            return $Date->format('d.m.Y');
+            if($getDateTimeObjekt){
+                return $Date;
+            } else {
+                return $Date->format('d.m.Y');
+            }
         } else {
-            return (string)$Date;
+            if($getDateTimeObjekt){
+                return new \DateTime($Date);
+            } else {
+                return (string)$Date;
+            }
         }
     }
 
@@ -88,9 +99,12 @@ class TblItemCalculation extends Element
     }
 
     /**
+     * @param bool $getDateTimeObjekt
+     * false = string; true = DateTimeObject
+     *
      * @return string
      */
-    public function getDateTo()
+    public function getDateTo($getDateTimeObjekt = false)
     {
         if(null === $this->DateTo){
             return false;
@@ -98,9 +112,17 @@ class TblItemCalculation extends Element
         /** @var \DateTime $Date */
         $Date = $this->DateTo;
         if($Date instanceof \DateTime){
-            return $Date->format('d.m.Y');
+            if($getDateTimeObjekt){
+                return $Date;
+            } else {
+                return $Date->format('d.m.Y');
+            }
         } else {
-            return (string)$Date;
+            if($getDateTimeObjekt){
+                return new \DateTime($Date);
+            } else {
+                return (string)$Date;
+            }
         }
     }
 
