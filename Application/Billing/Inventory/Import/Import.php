@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Inventory\Import;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -22,7 +23,7 @@ class Import extends Extension implements IModuleInterface
     {
         if(Debtor::useService()->getDebtorSelectionCount() == 0){
             Main::getDisplay()->addModuleNavigation(
-                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datenimport'))
+                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datenimport'), new Link\Icon(new Upload()))
             );
         }
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
