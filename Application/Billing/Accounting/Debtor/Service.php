@@ -304,14 +304,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblBankAccount
      */
-    public function getBankAccountAll($Id)
+    public function getBankAccountAll()
     {
 
-        return (new Data($this->getBinding()))->getBankAccountAll($Id);
+        return (new Data($this->getBinding()))->getBankAccountAll();
     }
 
     /**

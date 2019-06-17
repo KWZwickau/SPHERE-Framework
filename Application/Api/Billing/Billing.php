@@ -32,7 +32,6 @@ class Billing implements IApplicationInterface
     public static function registerApplication()
     {
 
-//        Invoice::registerModule();
         ApiSetting::registerApi();
         ApiItem::registerApi();
         ApiCauser::registerApi();

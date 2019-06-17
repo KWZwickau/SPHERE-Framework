@@ -365,8 +365,8 @@ class ApiItem extends ItemVariant implements IApiInterface
                 new FormRow(array(
                     new FormColumn(new Panel('Buchungstext',
                         array(
-                            new TextField('Item[SepaRemark]', '(Standard) '.$InfoSepa, 'Sepa &nbsp;'),
-                            new TextField('Item[DatevRemark]', '(Standard) '.$InfoDatev, 'Datev &nbsp;')
+                            new TextField('Item[SepaRemark]', '(Standard) '.$InfoSepa, 'SEPA &nbsp;'),
+                            new TextField('Item[DatevRemark]', '(Standard) '.$InfoDatev, 'DATEV &nbsp;')
                         ), Panel::PANEL_TYPE_INFO)
                     , 8),
                     new FormColumn(

@@ -82,11 +82,11 @@ class ImportGateway extends AbstractConverter
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
         $this->setPointer(new FieldPointer($ColumnList['Zählung'], 'Row'));
-        $this->setPointer(new FieldPointer($ColumnList['Verursacher Vorname'], 'FirstName'));
-        $this->setPointer(new FieldPointer($ColumnList['Verursacher Nachname'], 'LastName'));
-        if(isset($ColumnList['Verursacher Geburtstag'])){
-            $this->setPointer(new FieldPointer($ColumnList['Verursacher Geburtstag'], 'Birthday'));
-            $this->setSanitizer(new FieldSanitizer($ColumnList['Verursacher Geburtstag'], 'Birthday', array($this, 'sanitizeDate')));
+        $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Vorname'], 'FirstName'));
+        $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Nachname'], 'LastName'));
+        if(isset($ColumnList['Beitragsverursacher Geburtstag'])){
+            $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Geburtstag'], 'Birthday'));
+            $this->setSanitizer(new FieldSanitizer($ColumnList['Beitragsverursacher Geburtstag'], 'Birthday', array($this, 'sanitizeDate')));
         }
         $this->setPointer(new FieldPointer($ColumnList['Individueller Preis'], 'Value'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Individueller Preis'], 'Value', array($this, 'sanitizePriceString')));
@@ -108,8 +108,8 @@ class ImportGateway extends AbstractConverter
             $this->setPointer(new FieldPointer($ColumnList['Datum beitragspflichtig bis'], 'PaymentTillDate'));
             $this->setSanitizer(new FieldSanitizer($ColumnList['Datum beitragspflichtig bis'], 'PaymentTillDate', array($this, 'sanitizeDate')));
         }
-        $this->setPointer(new FieldPointer($ColumnList['Zahler Vorname'], 'DebtorFirstName'));
-        $this->setPointer(new FieldPointer($ColumnList['Zahler Nachname'], 'DebtorLastName'));
+        $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Vorname'], 'DebtorFirstName'));
+        $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Nachname'], 'DebtorLastName'));
         if(isset($ColumnList['Debitorennummer'])){
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
         }

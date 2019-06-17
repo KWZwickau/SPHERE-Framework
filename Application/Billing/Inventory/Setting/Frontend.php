@@ -402,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
                     break;
                 case TblSetting::IDENT_CLIENT_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_CLIENT_NUMBER] = $tblSetting->getValue();
-                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_CLIENT_NUMBER.']', '', 'Mandantnummer '
+                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_CLIENT_NUMBER.']', '', 'Mandantennummer '
                     .new ToolTip(new Info(), 'Kann bis zu 5 Zeichen enthalten'));
                     break;
                 case TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH:

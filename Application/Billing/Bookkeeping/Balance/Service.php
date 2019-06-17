@@ -835,7 +835,7 @@ class Service extends AbstractService
             $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getId().'-PaymentId';
+                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                 $countSepaPayment = 0;
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
@@ -879,7 +879,7 @@ class Service extends AbstractService
                     $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($tblInvoiceItemDebtorId);
                     if($tblInvoiceItemDebtor){
                         $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
-                        $PaymentId = $tblInvoice->getId().'-PaymentId';
+                        $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                         $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
                         $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true);
                     }
@@ -912,7 +912,7 @@ class Service extends AbstractService
             $RefNumber = $tblInvoiceItemDebtor->getBankReference();
             $CauserName = $tblInvoice->getLastName();
             $CauserFirstName = $tblInvoice->getFirstName();
-            $TimeString = $tblInvoice->getYear().'.'.$tblInvoice->getMonth();
+            $TimeString = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
             if(($tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor())){
                 $CreditorId = $tblInvoiceCreditor->getCreditorId();
             }
@@ -1038,7 +1038,7 @@ class Service extends AbstractService
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getId().'-PaymentId';
+                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                 $countSepaPayment = 0;
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
@@ -1093,7 +1093,7 @@ class Service extends AbstractService
 
         // create a payment, it's possible to create multiple payments,
         // "firstPayment" is the identifier for the transactions
-        $customerCredit->addPaymentInfo($PaymentId.'-Payment', array(
+        $customerCredit->addPaymentInfo($PaymentId.'-', array(
             'id'                      => $tblInvoice->getInvoiceNumber(),
             'debtorName'              => $tblInvoiceCreditor->getOwner(),
             'debtorAccountIBAN'       => $tblInvoiceCreditor->getIBAN(),
@@ -1118,7 +1118,7 @@ class Service extends AbstractService
                 continue;
             }
             // Add a Single Transaction to the named payment
-            $customerCredit->addTransfer($PaymentId.'-Payment', array(
+            $customerCredit->addTransfer($PaymentId.'-', array(
                 'amount'                => $tblInvoiceItemDebtor->getSummaryPriceInt(),
                 'creditorIban'          => $tblInvoiceItemDebtor->getIBAN(),
                 'creditorBic'           => $tblInvoiceItemDebtor->getBIC(),

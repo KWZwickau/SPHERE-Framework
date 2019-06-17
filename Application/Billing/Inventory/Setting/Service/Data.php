@@ -38,7 +38,7 @@ class Data extends AbstractData
         }
         $this->createSetting(TblSetting::IDENT_IS_DATEV, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
 
-        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '5', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
         // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
         if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
             $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);

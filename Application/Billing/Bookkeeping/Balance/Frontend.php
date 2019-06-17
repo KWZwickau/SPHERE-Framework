@@ -762,7 +762,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(array(
                         new TextField('Data[Subject]',
-                            'z.B. Schulgeldbescheinigung für das Kalenderjahr [Beitragsjahr]', 'Betreff'),
+                            'z.B. Schulgeldbescheinigung für das Kalenderjahr [Jahr]', 'Betreff'),
                         new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 20)
                     ), 9),
                     new LayoutColumn(new Panel('Platzhalter', Document::useFrontend()->getFreeFields(),

@@ -269,15 +269,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblBankAccount
      */
-    public function getBankAccountAll($Id)
+    public function getBankAccountAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount',
-            $Id);
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount');
     }
 
     /**

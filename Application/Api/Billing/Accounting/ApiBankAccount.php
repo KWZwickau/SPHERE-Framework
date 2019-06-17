@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -290,7 +291,7 @@ class ApiBankAccount extends Extension implements IApiInterface
         if(!isset($Global->POST['BankAccount']['Owner'])){
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if($tblPerson){
-                $Global->POST['BankAccount']['Owner'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
+                $Global->POST['BankAccount']['Owner'] = $tblPerson->getLastName().' '.$tblPerson->getFirstName();
                 $Global->savePost();
             }
         }
@@ -303,15 +304,16 @@ class ApiBankAccount extends Extension implements IApiInterface
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddBankAccount($Identifier, $PersonId));
         }
+        $tblBankAccountAll = Debtor::useService()->getBankAccountAll();
 
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('BankAccount[Owner]', 'Inhaber der Bankverbindung', 'Inhaber der Bankverbindung')
+                        new TextField('BankAccount[Owner]', 'Kontoinhaber', 'Kontoinhaber')
                         , 6),
                     new FormColumn(
-                        new TextField('BankAccount[BankName]', 'Bankname', 'Bankname')
+                        new AutoCompleter('BankAccount[BankName]', 'Bankname', 'Bankname', array('BankName' => $tblBankAccountAll))
                         , 6)
                 )),
                 new FormRow(array(
@@ -319,7 +321,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                         (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'aa99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
                     new FormColumn(
-                        (new TextField('BankAccount[BIC]', 'BIC', 'BIC'))->setRequired()
+                        (new AutoCompleter('BankAccount[BIC]', 'BIC', 'BIC', array('BIC' => $tblBankAccountAll)))->setRequired()
                         , 6)
                 )),
                 new FormRow(

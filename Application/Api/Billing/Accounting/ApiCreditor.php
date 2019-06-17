@@ -276,7 +276,7 @@ class ApiCreditor extends Extension implements IApiInterface
                 ),
                 new FormRow(array(
                     new FormColumn(
-                        (new TextField('Creditor[Owner]', 'Inhaber der Bankverbindung', 'Inhaber der Bankverbindung'))->setRequired()
+                        (new TextField('Creditor[Owner]', 'Kontoinhaber', 'Kontoinhaber'))->setRequired()
                         , 6),
                     new FormColumn(
                         new TextField('Creditor[BankName]', 'Bankname', 'Bankname')
@@ -340,7 +340,7 @@ class ApiCreditor extends Extension implements IApiInterface
         $Error = false;
         $form = $this->formCreditor($Identifier, $CreditorId);
         if(isset($Creditor['Owner']) && empty($Creditor['Owner'])){
-            $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Inhaber der Bankverbindung an');
+            $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Kontoinhaber an');
             $Error = true;
         }
         if(isset($Creditor['Street']) && empty($Creditor['Street'])){
@@ -506,7 +506,7 @@ class ApiCreditor extends Extension implements IApiInterface
 
         if($tblCreditor){
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Inhaber der Bankverbindung: ', 2),
+                new LayoutColumn('Kontoinhaber: ', 2),
                 new LayoutColumn(new Bold($tblCreditor->getOwner()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
