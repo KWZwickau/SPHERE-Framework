@@ -242,8 +242,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Listing[2] ='&nbsp;SEPA-Verwendungszweck &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten 
+                                als Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.')));
                         break;
 
                     // DATEV
@@ -287,22 +287,22 @@ class Frontend extends Extension implements IFrontendInterface
                         $Listing[6] ='&nbsp;DATEV-Buchungstext: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
+                                : 'Nicht hinterlegt').' '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten
+                                 als Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_ACCOUNT:
                         $Listing[7] ='&nbsp;FiBu-Konto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
+                                : '').' '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als
+                                 Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_TO_ACCOUNT:
                         $Listing[8] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : '').' '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
-                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.'));
+                                : '').' '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als 
+                                Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
                 }
             }
@@ -397,7 +397,7 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_CONSULT_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_CONSULT_NUMBER] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beaternummer '
+                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beraternummer '
                     .new ToolTip(new Info(), 'Kann bis zu 7 Zeichen enthalten'));
                     break;
                 case TblSetting::IDENT_CLIENT_NUMBER:

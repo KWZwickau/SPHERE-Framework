@@ -8,6 +8,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -246,8 +247,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Offene Posten', 'Übersicht');
         $TableContent = array();
         if($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid()){
-            array_walk($tblInvoiceItemDebtorList,
-                function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
+            array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
                     $item['DebtorPerson'] = '';
                     $item['Item'] = $tblInvoiceItemDebtor->getName();
                     $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
@@ -266,12 +266,22 @@ class Frontend extends Extension implements IFrontendInterface
                         $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                         $item['BasketName'] = $tblInvoice->getBasketName();
                     }
+                    $CheckBox = (new CheckBox('IsPaid', ' ',
+                        $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
+                        ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
+                    if (!$tblInvoiceItemDebtor->getIsPaid()) {
+                        $CheckBox->setChecked();
+                    }
+
+                    $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox,
+                        $tblInvoiceItemDebtor->getId());
 
                     array_push($TableContent, $item);
                 });
         }
 
-        $Stage->setContent(new Layout(
+        $Stage->setContent(ApiInvoiceIsPaid::receiverService()
+            .new Layout(
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(
@@ -284,7 +294,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Item'          => 'Beitragsart',
                             'ItemQuantity'  => 'Anzahl',
                             'ItemPrice'     => 'Einzelpreis',
-                            'ItemSumPrice'  => 'Gesamtpreis'
+                            'ItemSumPrice'  => 'Gesamtpreis',
+                            'IsPaid'        => 'Offene Posten'
                         ), array(
                             'columnDefs' => array(
                                 array('type' => 'natural', 'targets' => array(0, 6, 7, 8)),
