@@ -350,14 +350,15 @@ class ImportGateway extends AbstractConverter
             return new Success($bic, null, false, 2, 0);
         }
 
-        // Fehlerzählung
-        $this->addErrorCount();
-
         if($bic === ''){
             $bic = '&nbsp;';
         }
+        if($bic === '&nbsp;'){
+            // Hinweis
+            return new ToolTip(new Warning($bic, null, false, 2, 0), 'Es wird empfohlen, eine BIC anzugeben');
+        }
         // BIC Warnung anzeigen
-        return new ToolTip(new Danger($bic, null, false, 2, 0), 'Anzahl der Zeichen stimmen nicht');
+        return new ToolTip(new Warning($bic, null, false, 2, 0), 'Anzahl der Zeichen stimmen nicht');
     }
 
     /**
