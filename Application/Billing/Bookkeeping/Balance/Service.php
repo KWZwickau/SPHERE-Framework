@@ -661,6 +661,8 @@ class Service extends AbstractService
                     foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
                         $FibuAccount = '';
                         $FibuToAccount = '';
+                        $Kost1 = '';
+                        $Kost2 = '';
                         $Summary = $tblInvoiceItemDebtor->getSummaryPriceInt();
                         $Summary = str_replace(',', '', $Summary);
                         $Summary = str_replace('.', ',', $Summary);
@@ -687,7 +689,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
                         $export->setValue($export->getCell("8", $row), '3');// BU-Schlüssel 3(Umsatzsteuer) oder 9
                         $export->setValue($export->getCell("9", $row), $tblInvoice->getTargetTime('dm'));// Belegdatum Format? (3108)
-                        $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
+                        $export->setValue($export->getCell("10", $row), $tblInvoice->getInvoiceNumber());// Belegfeld 1
                         $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                         $export->setValue($export->getCell("12", $row), '');// Skonto
                         $export->setValue($export->getCell("13", $row), utf8_decode($bookingText));// Buchungstext (60 Zeichen)
@@ -713,8 +715,8 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("33", $row), '');// Beleginfo - Inhalt 7
                         $export->setValue($export->getCell("34", $row), '');// Beleginfo - Art 8
                         $export->setValue($export->getCell("35", $row), '');// Beleginfo - Inhalt 8
-                        $export->setValue($export->getCell("36", $row), '');// KOST1 - Kostenstelle
-                        $export->setValue($export->getCell("37", $row), '');// KOST2 - Kostenstelle
+                        $export->setValue($export->getCell("36", $row), $Kost1);// KOST1 - Kostenstelle
+                        $export->setValue($export->getCell("37", $row), $Kost2);// KOST2 - Kostenstelle
                         $export->setValue($export->getCell("38", $row), '');// KOST-Menge
                         $export->setValue($export->getCell("39", $row), '');// EU-Mitgliedstaat u. USt-IdNr.
                         $export->setValue($export->getCell("40", $row), '');// EU-Steuersatz

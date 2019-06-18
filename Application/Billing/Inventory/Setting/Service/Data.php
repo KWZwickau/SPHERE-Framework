@@ -54,6 +54,8 @@ class Data extends AbstractData
         $this->createSetting(TblSetting::IDENT_CONSULT_NUMBER, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_CLIENT_NUMBER, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH, '8', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $this->createSetting(TblSetting::IDENT_KOST_1, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $this->createSetting(TblSetting::IDENT_KOST_2, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
 
 
 

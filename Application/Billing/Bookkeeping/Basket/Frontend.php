@@ -212,6 +212,10 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA))){
             $IsSepa = $tblSetting->getValue();
         }
+        $IsDatev = false;
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV))){
+            $IsDatev = $tblSetting->getValue();
+        }
             // credit
         if($tblBasket->getIsCompanyCredit()){
             if($IsSepa){
@@ -242,12 +246,14 @@ class Frontend extends Extension implements IFrontendInterface
                         ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
                 }
             }
-            if($tblBasket->getDatevDate()){
-                $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
-                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
-            } else {
-                $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
-                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+            if($IsDatev){
+                if ($tblBasket->getDatevDate()){
+                    $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+                } else {
+                    $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+                }
             }
         }
         return $Buttons;
