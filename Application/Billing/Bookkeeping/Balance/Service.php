@@ -949,7 +949,7 @@ class Service extends AbstractService
             //» SEPA OOFF = einmalige SEPA Lastschrift
             //» SEPA RCUR = fortfolgende SEPA Lastschrift -> für uns default
             // die anderen werden nicht mehr benutzt (FRST, FNAL)
-            'creditorId'            => $tblInvoiceCreditor->getCreditorId(), // 18 Stellen lang und beginnt immer mit "DE"
+            'creditorId'            => ($tblInvoiceCreditor->getCreditorId() ? $tblInvoiceCreditor->getCreditorId() : 'ERROR'), // 18 Stellen lang und beginnt immer mit "DE"
             'localInstrumentCode'   => 'CORE' // default. optional.
             // Element dient der Unterscheidung zwischen den einzelenen SEPA Lastschriften:
             //» SEPA CORE Lastschrift (aktueller Standard -> COR1 ist deprecated)
