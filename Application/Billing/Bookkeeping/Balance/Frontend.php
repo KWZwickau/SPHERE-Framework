@@ -216,11 +216,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBalancePdf($Balance = array())
     {
 
-        $Stage = new Stage('Belegdruck', 'Pdf');
-
-        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
-            $_POST['Balance']['Item'] = $tblItem->getId();
-        }
+        $Stage = new Stage('Belegdruck', 'PDF');
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
