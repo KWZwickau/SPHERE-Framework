@@ -271,7 +271,7 @@ class ApiSetting extends Extension implements IApiInterface
             case TblSetting::CATEGORY_DATEV:
                 $IsDatev = (isset($Setting[TblSetting::IDENT_IS_DATEV]) ? true : false);
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_DATEV, $IsDatev);
-                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 7);
+                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 5);
                 Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
                 $ConsultNumber = (isset($Setting[TblSetting::IDENT_CONSULT_NUMBER]) ? $Setting[TblSetting::IDENT_CONSULT_NUMBER] : '');
                 Setting::useService()->createSetting(TblSetting::IDENT_CONSULT_NUMBER, $ConsultNumber);
@@ -287,6 +287,10 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_FIBU_ACCOUNT, $FibuAccount);
                 $FibuToAccount = (isset($Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT] : '');
                 Setting::useService()->createSetting(TblSetting::IDENT_FIBU_TO_ACCOUNT, $FibuToAccount);
+                $Kost1 = (isset($Setting[TblSetting::IDENT_KOST_1]) ? $Setting[TblSetting::IDENT_KOST_1] : '0');
+                Setting::useService()->createSetting(TblSetting::IDENT_KOST_1, $Kost1);
+                $Kost2 = (isset($Setting[TblSetting::IDENT_KOST_2]) ? $Setting[TblSetting::IDENT_KOST_2] : '0');
+                Setting::useService()->createSetting(TblSetting::IDENT_KOST_2, $Kost2);
             break;
         }
 

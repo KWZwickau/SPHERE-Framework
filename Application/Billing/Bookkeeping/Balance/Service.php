@@ -661,6 +661,8 @@ class Service extends AbstractService
                     foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
                         $FibuAccount = '';
                         $FibuToAccount = '';
+                        $Kost1 = '';
+                        $Kost2 = '';
                         $Summary = $tblInvoiceItemDebtor->getSummaryPriceInt();
                         $Summary = str_replace(',', '', $Summary);
                         $Summary = str_replace('.', ',', $Summary);
@@ -687,7 +689,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
                         $export->setValue($export->getCell("8", $row), '3');// BU-Schlüssel 3(Umsatzsteuer) oder 9
                         $export->setValue($export->getCell("9", $row), $tblInvoice->getTargetTime('dm'));// Belegdatum Format? (3108)
-                        $export->setValue($export->getCell("10", $row), '');// Belegfeld 1
+                        $export->setValue($export->getCell("10", $row), $tblInvoice->getInvoiceNumber());// Belegfeld 1
                         $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                         $export->setValue($export->getCell("12", $row), '');// Skonto
                         $export->setValue($export->getCell("13", $row), utf8_decode($bookingText));// Buchungstext (60 Zeichen)
@@ -713,8 +715,8 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("33", $row), '');// Beleginfo - Inhalt 7
                         $export->setValue($export->getCell("34", $row), '');// Beleginfo - Art 8
                         $export->setValue($export->getCell("35", $row), '');// Beleginfo - Inhalt 8
-                        $export->setValue($export->getCell("36", $row), '');// KOST1 - Kostenstelle
-                        $export->setValue($export->getCell("37", $row), '');// KOST2 - Kostenstelle
+                        $export->setValue($export->getCell("36", $row), $Kost1);// KOST1 - Kostenstelle
+                        $export->setValue($export->getCell("37", $row), $Kost2);// KOST2 - Kostenstelle
                         $export->setValue($export->getCell("38", $row), '');// KOST-Menge
                         $export->setValue($export->getCell("39", $row), '');// EU-Mitgliedstaat u. USt-IdNr.
                         $export->setValue($export->getCell("40", $row), '');// EU-Steuersatz
@@ -835,7 +837,7 @@ class Service extends AbstractService
             $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getId().'-PaymentId';
+                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                 $countSepaPayment = 0;
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
@@ -879,7 +881,7 @@ class Service extends AbstractService
                     $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($tblInvoiceItemDebtorId);
                     if($tblInvoiceItemDebtor){
                         $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
-                        $PaymentId = $tblInvoice->getId().'-PaymentId';
+                        $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                         $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
                         $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true);
                     }
@@ -912,7 +914,7 @@ class Service extends AbstractService
             $RefNumber = $tblInvoiceItemDebtor->getBankReference();
             $CauserName = $tblInvoice->getLastName();
             $CauserFirstName = $tblInvoice->getFirstName();
-            $TimeString = $tblInvoice->getYear().'.'.$tblInvoice->getMonth();
+            $TimeString = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
             if(($tblInvoiceCreditor = $tblInvoice->getTblInvoiceCreditor())){
                 $CreditorId = $tblInvoiceCreditor->getCreditorId();
             }
@@ -1038,7 +1040,7 @@ class Service extends AbstractService
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getId().'-PaymentId';
+                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                 $countSepaPayment = 0;
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
@@ -1093,7 +1095,7 @@ class Service extends AbstractService
 
         // create a payment, it's possible to create multiple payments,
         // "firstPayment" is the identifier for the transactions
-        $customerCredit->addPaymentInfo($PaymentId.'-Payment', array(
+        $customerCredit->addPaymentInfo($PaymentId.'-', array(
             'id'                      => $tblInvoice->getInvoiceNumber(),
             'debtorName'              => $tblInvoiceCreditor->getOwner(),
             'debtorAccountIBAN'       => $tblInvoiceCreditor->getIBAN(),
@@ -1118,7 +1120,7 @@ class Service extends AbstractService
                 continue;
             }
             // Add a Single Transaction to the named payment
-            $customerCredit->addTransfer($PaymentId.'-Payment', array(
+            $customerCredit->addTransfer($PaymentId.'-', array(
                 'amount'                => $tblInvoiceItemDebtor->getSummaryPriceInt(),
                 'creditorIban'          => $tblInvoiceItemDebtor->getIBAN(),
                 'creditorBic'           => $tblInvoiceItemDebtor->getBIC(),

@@ -304,14 +304,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblBankAccount
      */
-    public function getBankAccountAll($Id)
+    public function getBankAccountAll()
     {
 
-        return (new Data($this->getBinding()))->getBankAccountAll($Id);
+        return (new Data($this->getBinding()))->getBankAccountAll();
     }
 
     /**
@@ -376,6 +374,7 @@ class Service extends AbstractService
 
         $IBAN = str_replace(' ', '', $IBAN);
         $BIC = str_replace(' ', '', $BIC);
+        $IBAN = strtoupper($IBAN);
         return (new Data($this->getBinding()))->createBankAccount($tblPerson, $BankName, $IBAN, $BIC, $Owner);
     }
 
@@ -457,6 +456,7 @@ class Service extends AbstractService
 
         $IBAN = str_replace(' ', '', $IBAN);
         $BIC = str_replace(' ', '', $BIC);
+        $IBAN = strtoupper($IBAN);
         return (new Data($this->getBinding()))->updateBankAccount($tblBankAccount, $BankName, $IBAN, $BIC, $Owner);
     }
 

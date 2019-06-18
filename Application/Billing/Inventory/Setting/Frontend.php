@@ -242,8 +242,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Listing[2] ='&nbsp;SEPA-Verwendungszweck &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten 
-                                als Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.')));
+                                : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
+                                 Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
 
                     // DATEV
@@ -285,24 +285,38 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                     case TblSetting::IDENT_DATEV_REMARK:
                         $Listing[6] ='&nbsp;DATEV-Buchungstext: &nbsp;'
-                            .new Bold(($tblSetting->getValue()
-                                ? new SuccessText($tblSetting->getValue())
-                                : 'Nicht hinterlegt').' '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten
-                                 als Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                            .new Bold(new ToolTip(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue().' '.new Info())
+                                : 'Nicht hinterlegt '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als 
+                                Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_ACCOUNT:
                         $Listing[7] ='&nbsp;FiBu-Konto: &nbsp;'
-                            .new Bold(($tblSetting->getValue()
-                                ? new SuccessText($tblSetting->getValue())
-                                : '').' '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als
-                                 Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                            .new Bold(new ToolTip(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue().' '.new Info())
+                                : ' '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet. 
+                                Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
                     case TblSetting::IDENT_FIBU_TO_ACCOUNT:
                         $Listing[8] ='&nbsp;FiBu-Gegenkonto: &nbsp;'
-                            .new Bold(($tblSetting->getValue()
-                                ? new SuccessText($tblSetting->getValue())
-                                : '').' '.new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als 
-                                Standardwert verwendet. Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                            .new Bold(new ToolTip(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue().' '.new Info())
+                                : ' '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                        break;
+                    case TblSetting::IDENT_KOST_1:
+                        $Listing[9] ='&nbsp;Kostenstelle 1: &nbsp;'
+                            .new Bold(new ToolTip(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue().' '.new Info())
+                                : ' '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                        break;
+                    case TblSetting::IDENT_KOST_2:
+                        $Listing[10] ='&nbsp;Kostenstelle 2: &nbsp;'
+                            .new Bold(new ToolTip(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue().' '.new Info())
+                                : ' '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
                 }
             }
@@ -337,23 +351,22 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSettingList = Setting::useService()->getSettingAllByCategory($Category);
         foreach($tblSettingList as &$tblSetting){
 
-            // Sepa ElementGroup
-            $SepaElementInWell = new WellReadOnly(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true)
-                    ),
-                    new LayoutColumn(
-                        $this->showSepaInfo()
-                    ),
-                ))))
-            );
-
             switch($tblSetting->getIdentifier()){
                     // Regular Option's
                 // erstmal leer
                     // Sepa Option's
                 case TblSetting::IDENT_IS_SEPA:
+                    // Sepa ElementGroup
+                    $SepaElementInWell = new WellReadOnly(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true)
+                            ),
+                            new LayoutColumn(
+                                $this->showSepaInfo()
+                            ),
+                        ))))
+                    );
                     $_POST['Setting'][TblSetting::IDENT_IS_SEPA] = $tblSetting->getValue();
                     $elementList[0] = $SepaElementInWell;
 //                    $elementList[0] = new CheckBox('Setting['.TblSetting::IDENT_IS_SEPA.']', ' Eingabepflicht relevanter Eingaben für SEPA-Lastschrift aktivieren', true);
@@ -384,12 +397,23 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Datev Option's
                 case TblSetting::IDENT_IS_DATEV:
+                    // Datev ElementGroup
+                    $DatevElementInWell = new WellReadOnly(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Eingabepflicht relevanter Eingaben Für DATEV aktivieren', true)
+                            ),
+                            new LayoutColumn(
+                                $this->showDatevInfo()
+                            ),
+                        ))))
+                    );
                     $_POST['Setting'][TblSetting::IDENT_IS_DATEV] = $tblSetting->getValue();
-                    $elementList[0] = new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Eingabepflicht relevanter Eingaben Für DATEV aktivieren', true);
+                    $elementList[0] = $DatevElementInWell;
                 break;
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
-                    $elementList[1] = new NumberField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debitoren-Nr.');
+                    $elementList[1] = new TextField('Setting['.TblSetting::IDENT_DEBTOR_NUMBER_COUNT.']', '', 'Länge der Debitoren-Nr.');
                 break;
                 case TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER] = $tblSetting->getValue();
@@ -397,12 +421,12 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_CONSULT_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_CONSULT_NUMBER] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beraternummer '
+                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beaternummer '
                     .new ToolTip(new Info(), 'Kann bis zu 7 Zeichen enthalten'));
                     break;
                 case TblSetting::IDENT_CLIENT_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_CLIENT_NUMBER] = $tblSetting->getValue();
-                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_CLIENT_NUMBER.']', '', 'Mandantnummer '
+                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_CLIENT_NUMBER.']', '', 'Mandantennummer '
                     .new ToolTip(new Info(), 'Kann bis zu 5 Zeichen enthalten'));
                     break;
                 case TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH:
@@ -430,11 +454,29 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_FIBU_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_ACCOUNT] = $tblSetting->getValue();
-                    $elementList[7] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto');
+                    $elementList[7] = new TextField('Setting['.TblSetting::IDENT_FIBU_ACCOUNT.']', '', 'Fibu-Konto '
+                        .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.')
+                        , null, '99999999');
                 break;
                 case TblSetting::IDENT_FIBU_TO_ACCOUNT:
                     $_POST['Setting'][TblSetting::IDENT_FIBU_TO_ACCOUNT] = $tblSetting->getValue();
-                    $elementList[8] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto');
+                    $elementList[8] = new TextField('Setting['.TblSetting::IDENT_FIBU_TO_ACCOUNT.']', '', 'Fibu-Gegenkonto '
+                        .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.')
+                        , null, '99999999');
+                break;
+                case TblSetting::IDENT_KOST_1:
+                    $_POST['Setting'][TblSetting::IDENT_KOST_1] = $tblSetting->getValue();
+                    $elementList[9] = new NumberField('Setting['.TblSetting::IDENT_KOST_1.']', '', 'Kostenstelle 1 '
+                        .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                break;
+                case TblSetting::IDENT_KOST_2:
+                    $_POST['Setting'][TblSetting::IDENT_KOST_2] = $tblSetting->getValue();
+                    $elementList[10] = new NumberField('Setting['.TblSetting::IDENT_KOST_2.']', '', 'Kostenstelle 2 '
+                        .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                 break;
             }
         }
@@ -464,7 +506,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return Layout
+     * @return Warning
      */
     private function showSepaInfo()
     {
@@ -473,7 +515,20 @@ class Frontend extends Extension implements IFrontendInterface
                     Pflichtangaben: Kontodaten, Mandatsreferenznummer')
                     .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme')
             , null, false, 5, 0);
-        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Content))));
+        return $Content;
+    }
+
+    /**
+     * @return Warning
+     */
+    private function showDatevInfo()
+    {
+
+        $Content = new Warning(
+                     new Container('- Bei der Verwendung von DATEV wird folgendes Feld zur Pflichtangabe: Debitorennummer')
+                    .new Container('- Ermöglicht den Download einer DATEV-CSV-Datei für externe Programme')
+            , null, false, 5, 0);
+        return $Content;
     }
 
     private function getTitleByCategory($Category = '')

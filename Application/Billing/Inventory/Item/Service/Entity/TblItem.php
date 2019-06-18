@@ -48,6 +48,14 @@ class TblItem extends Element
      * @Column(type="string")
      */
     protected $FibuToAccount;
+    /**
+     * @Column(type="string")
+     */
+    protected $Kost1;
+    /**
+     * @Column(type="string")
+     */
+    protected $Kost2;
 
     /**
      * @return string
@@ -230,5 +238,55 @@ class TblItem extends Element
     public function setFibuToAccount($FibuToAccount = '')
     {
         $this->FibuToAccount = $FibuToAccount;
+    }
+
+    /**
+     * @param bool $ignoreDefault
+     *
+     * @return string
+     */
+    public function getKost1($ignoreDefault = false)
+    {
+
+        // Ohne individuelle Einstellung, wird versucht, die Grundeinstellung zu ziehen
+        if('' === $this->Kost1 && !$ignoreDefault){
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_1))){
+                return $tblSetting->getValue();
+            }
+        }
+        return $this->Kost1;
+    }
+
+    /**
+     * @param string $Kost1
+     */
+    public function setKost1($Kost1 = '')
+    {
+        $this->Kost1 = $Kost1;
+    }
+
+    /**
+     * @param bool $ignoreDefault
+     *
+     * @return string
+     */
+    public function getKost2($ignoreDefault = false)
+    {
+
+        // Ohne individuelle Einstellung, wird versucht, die Grundeinstellung zu ziehen
+        if('' === $this->Kost2 && !$ignoreDefault){
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_2))){
+                return $tblSetting->getValue();
+            }
+        }
+        return $this->Kost2;
+    }
+
+    /**
+     * @param string $Kost2
+     */
+    public function setKost2($Kost2 = '')
+    {
+        $this->Kost2 = $Kost2;
     }
 }

@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -346,6 +347,15 @@ class ApiItem extends ItemVariant implements IApiInterface
             $FibuToAccountValue = '(Standard) '.$tblSetting->getValue();
         }
 
+        $Kost1 = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_1))){
+            $Kost1 = '(Standard) '.$tblSetting->getValue();
+        }
+        $Kost2 = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_2))){
+            $Kost2 = '(Standard) '.$tblSetting->getValue();
+        }
+
 
         return (new Form(
             new FormGroup(array(
@@ -365,8 +375,8 @@ class ApiItem extends ItemVariant implements IApiInterface
                 new FormRow(array(
                     new FormColumn(new Panel('Buchungstext',
                         array(
-                            new TextField('Item[SepaRemark]', '(Standard) '.$InfoSepa, 'Sepa &nbsp;'),
-                            new TextField('Item[DatevRemark]', '(Standard) '.$InfoDatev, 'Datev &nbsp;')
+                            new TextField('Item[SepaRemark]', '(Standard) '.$InfoSepa, 'SEPA Verwendungszweck &nbsp;'),
+                            new TextField('Item[DatevRemark]', '(Standard) '.$InfoDatev, 'DATEV Buchungstext &nbsp;')
                         ), Panel::PANEL_TYPE_INFO)
                     , 8),
                     new FormColumn(
@@ -390,6 +400,10 @@ class ApiItem extends ItemVariant implements IApiInterface
                 new FormRow(array(
                    new FormColumn(new TextField('Item[FibuAccount]', $FibuAccountValue, 'Fibu-Konto'), 6),
                    new FormColumn(new TextField('Item[FibuToAccount]', $FibuToAccountValue, 'Fibu-Gegenkonto'), 6),
+                )),
+                new FormRow(array(
+                   new FormColumn(new NumberField('Item[Kost1]', $Kost1, 'Kostenstelle 1'), 6),
+                   new FormColumn(new NumberField('Item[Kost2]', $Kost2, 'Kostenstelle 2'), 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
@@ -471,12 +485,14 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
             $Global->POST['Item']['FibuAccount'] = $Item['FibuAccount'];
             $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
+            $Global->POST['Item']['Kost1'] = $Item['Kost1'];
+            $Global->POST['Item']['Kost2'] = $Item['Kost2'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->createItem($Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
-            $Item['FibuAccount'], $Item['FibuToAccount']))){
+            $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2']))){
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
@@ -510,13 +526,15 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
             $Global->POST['Item']['FibuAccount'] = $Item['FibuAccount'];
             $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
+            $Global->POST['Item']['Kost1'] = $Item['Kost1'];
+            $Global->POST['Item']['Kost2'] = $Item['Kost2'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->getItemById($ItemId))){
             Item::useService()->changeItem($tblItem, $Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
-                $Item['FibuAccount'], $Item['FibuToAccount']);
+                $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2']);
             // entfernen überflüssiger Personengruppen-Verknüpfungen
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
@@ -558,6 +576,8 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Item']['DatevRemark'] = $tblItem->getDatevRemark(true);
             $Global->POST['Item']['FibuAccount'] = $tblItem->getFibuAccount(true);
             $Global->POST['Item']['FibuToAccount'] = $tblItem->getFibuToAccount(true);
+            $Global->POST['Item']['Kost1'] = $tblItem->getKost1(true);
+            $Global->POST['Item']['Kost2'] = $tblItem->getKost2(true);
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
                     if(($tblGroup = $tblItemGroup->getServiceTblGroup())){

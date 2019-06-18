@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\Billing;
 
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
@@ -132,8 +133,10 @@ class Billing
         $CompanyExtendedName,
         $CompanyAddress
     ) {
+        $Text = str_replace('[Jahr]', $Year, $Text);
+        $Text = str_replace('[Zeitraum von]', $From, $Text);
+        $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Beitragsart]', $ItemName, $Text);
-        $Text = str_replace('[Beitragsjahr]', $Year, $Text);
         $Text = str_replace('[Beitragssumme]', $TotalPrice, $Text);
         $Text = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Text);
         $Text = str_replace('[Beitragszahler Vorname]', $DebtorFirstName, $Text);
@@ -141,8 +144,6 @@ class Billing
         $Text = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Text);
         $Text = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Text);
         $Text = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Text);
-        $Text = str_replace('[Zeitraum von]', $From, $Text);
-        $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Datum]', $Date, $Text);
         $Text = str_replace('[Ort]', $Location, $Text);
         $Text = str_replace('[Trägername]', $CompanyName, $Text);
@@ -175,6 +176,9 @@ class Billing
         $Year = $Data['Year'];
         $From = $Data['From'];
         $To = $Data['To'];
+        // Aus Zahlen werden die Namen der Monate
+        $From = Invoice::useService()->getMonthName($From);
+        $To = Invoice::useService()->getMonthName($To);
 
         $ItemName = $this->tblItem->getName();
         $DebtorSalutation = isset($Data['SalutationFamily']) ? 'Familie' : $tblPersonDebtor->getSalutation();

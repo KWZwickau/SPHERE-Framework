@@ -70,6 +70,10 @@ class Service extends AbstractService
     public function createCreditor($Owner = '', $Street = '', $Number = '', $Code = '', $City = '', $District = ''
         , $CreditorId = '', $BankName = '', $IBAN = '', $BIC = ''
     ){
+
+        $IBAN = str_replace(' ', '', $IBAN);
+        $BIC = str_replace(' ', '', $BIC);
+        $IBAN = strtoupper($IBAN);
         return (new Data($this->getBinding()))->createCreditor($Owner, $Street, $Number, $Code, $City, $District,
             $CreditorId
             , $BankName, $IBAN, $BIC);
@@ -94,6 +98,10 @@ class Service extends AbstractService
         $City = '', $District = ''
         , $CreditorId = '', $BankName = '', $IBAN = '', $BIC = ''
     ){
+
+        $IBAN = str_replace(' ', '', $IBAN);
+        $BIC = str_replace(' ', '', $BIC);
+        $IBAN = strtoupper($IBAN);
         return (new Data($this->getBinding()))->updateCreditor($tblCreditor, $Owner, $Street, $Number, $Code, $City,
             $District, $CreditorId
             , $BankName, $IBAN, $BIC);

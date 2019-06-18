@@ -304,6 +304,33 @@ class Service extends AbstractService
     }
 
     /**
+     * @param null|int $Count
+     *
+     * @return string
+     */
+    public function getMonthName($Count = null)
+    {
+
+        $Month = '';
+        $MonthList[1] = 'Januar';
+        $MonthList[2] = 'Februar';
+        $MonthList[3] = 'März';
+        $MonthList[4] = 'April';
+        $MonthList[5] = 'Mai';
+        $MonthList[6] = 'Juni';
+        $MonthList[7] = 'Juli';
+        $MonthList[8] = 'August';
+        $MonthList[9] = 'September';
+        $MonthList[10] = 'Oktober';
+        $MonthList[11] = 'November';
+        $MonthList[12] = 'Dezember';
+        if(isset($MonthList[(int)$Count])){
+            $Month = $MonthList[(int)$Count];
+        }
+        return $Month;
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return bool|Redirect
