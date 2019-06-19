@@ -7,6 +7,7 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -206,8 +207,19 @@ class ItemCalculation extends Extension
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddCalculation($Identifier, $VariantId));
         }
 
+        $VariantName = 'Name der Variante nicht gefunden!';
+        if(($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
+            $VariantName = $tblItemVariant->getName();
+            if(($Item = $tblItemVariant->getTblItem())){
+                $VariantName = $Item->getName().' - '.$VariantName;
+            }
+        }
+
         return (new Form(
-            new FormGroup(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Title($VariantName))
+                ),
                 new FormRow(array(
                     new FormColumn(
                         (new TextField('Calculation[Value]', '0,00', 'Preis'))->setRequired()
@@ -223,7 +235,7 @@ class ItemCalculation extends Extension
                         $SaveButton
                     )
                 ))
-            )
+            ))
         ))->disableSubmitAction();
     }
 
@@ -241,38 +253,38 @@ class ItemCalculation extends Extension
         $form = $this->formCalculation($Identifier, $VariantId, $CalculationId);
 
         $Warning = '';
-        if(!($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
+        if (!($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
             $Warning = new Danger('Beitrags-Variante ist nicht mehr vorhanden!');
             $Error = true;
         } else {
-            if(isset($Calculation['Value']) && empty($Calculation['Value']) && $Calculation['Value'] !== '0'){
+            if (isset($Calculation['Value']) && empty($Calculation['Value']) && $Calculation['Value'] !== '0'){
                 $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis an');
                 $Error = true;
-            } elseif(isset($Calculation['Value']) && $Calculation['Value'] < 0) {
+            } elseif (isset($Calculation['Value']) && $Calculation['Value'] < 0) {
                 $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis im positiven Bereich an');
                 $Error = true;
             }
-            if(isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])){
+            if (isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])){
                 $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Beginn der Gültigkeit an');
                 $Error = true;
             } else {
-                if(($tblItemVariantList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                if (($tblItemVariantList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
                     $FromDate = new \DateTime($Calculation['DateFrom']);
-                    if(isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])){
+                    if (isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])){
                         $ToDate = new \DateTime($Calculation['DateTo']);
                     } else {
                         $ToDate = false;
                     }
-                    foreach($tblItemVariantList as $tblItemVariantCompare){
+                    foreach ($tblItemVariantList as $tblItemVariantCompare) {
                         // Alle von / Bis Datumsvergleiche
-                        if($tblItemVariantCompare->getDateTo()) {
+                        if ($tblItemVariantCompare->getDateTo()){
                             // Datumsangaben liegen in anderen Zeiträumen
-                            if($FromDate >= $tblItemVariantCompare->getDateFrom(true)
+                            if ($FromDate >= $tblItemVariantCompare->getDateFrom(true)
                                 && $FromDate <= $tblItemVariantCompare->getDateTo(true)
                                 || $ToDate
                                 && $ToDate >= $tblItemVariantCompare->getDateFrom(true)
                                 && $ToDate <= $tblItemVariantCompare->getDateTo(true)){
-                                if($CalculationId != $tblItemVariantCompare->getId()){
+                                if ($CalculationId != $tblItemVariantCompare->getId()){
                                     $form->setError('Calculation[DateFrom]',
                                         'Datum liegt im Gültigkeitsbereich eines anderer Preises ('
                                         .$tblItemVariantCompare->getDateFrom().' - '.$tblItemVariantCompare->getDateTo().')');
@@ -281,11 +293,11 @@ class ItemCalculation extends Extension
                                 }
                             }
                             // Datumsangaben überlagern sich mit anderen Zeiträumen
-                            if($ToDate
+                            if ($ToDate
                                 && $FromDate >= $tblItemVariantCompare->getDateFrom(true)
                                 && $ToDate <= $tblItemVariantCompare->getDateTo(true)
                             ){
-                                if($CalculationId != $tblItemVariantCompare->getId()){
+                                if ($CalculationId != $tblItemVariantCompare->getId()){
                                     $form->setError('Calculation[DateFrom]',
                                         'Datum liegt im Gültigkeitsbereich eines anderer Preises ('
                                         .$tblItemVariantCompare->getDateFrom().' - '.$tblItemVariantCompare->getDateTo().')');
@@ -294,11 +306,11 @@ class ItemCalculation extends Extension
                                 }
                             }
                         } else {
-                            // Update nur, wenn es keine Bearbeitung ist
-                            if(!$CalculationId){
+                            // Update nur, wenn es keine Bearbeitung ist & das Datum in der Zukunft liegt.
+                            if (!$CalculationId && $tblItemVariantCompare->getDateFrom(true) < $FromDate){
                                 // Es gibt keine "Bis" Angabe
                                 // Update nur durchführen, wenn Eingabe funktioniert
-                                if( !$Error
+                                if (!$Error
                                     && !$tblItemVariantCompare->getDateFrom()
                                     || $tblItemVariantCompare->getDateFrom(true) <= $FromDate){
                                     // alte Calculation updaten ('DateFrom' minus 1 Tag)
@@ -308,9 +320,21 @@ class ItemCalculation extends Extension
                                         , date_interval_create_from_date_string('1 days')));
                                     $DateTime = $DateTime->format('d.m.Y');
                                     // Update der fehlenden "Bis" Angabe
-                                    Item::useService()->changeItemCalculation($tblItemVariantCompare, $tblItemVariantCompare->getValue(),
+                                    Item::useService()->changeItemCalculation($tblItemVariantCompare,
+                                        $tblItemVariantCompare->getValue(),
                                         $tblItemVariantCompare->getDateFrom(), $DateTime);
                                 }
+                            } elseif (!$CalculationId && $tblItemVariantCompare->getDateFrom(true) > $FromDate && !$ToDate) {
+                                $form->setError('Calculation[DateTo]',
+                                    'Bitte geben Sie für das Datum ein "Gültig bis" Zeitraum an.');
+                                $Error = true;
+                                break;
+                            } elseif (!$CalculationId && $tblItemVariantCompare->getDateFrom(true) == $FromDate) {
+                                $form->setError('Calculation[DateFrom]',
+                                    'Bitte geben Sie für das Datum ein Freies Datum "Gültig ab" an. (
+                                    Preisangabe zu diesem Datum schon vorhanden)');
+                                $Error = true;
+                                break;
                             }
                         }
                     }
