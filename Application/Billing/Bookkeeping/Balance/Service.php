@@ -989,12 +989,22 @@ class Service extends AbstractService
                 $bookingText = $tblInvoiceItemDebtor->getName();
             }
 
+            $Price = $tblInvoiceItemDebtor->getSummaryPriceInt();
+            if($doPaidInvoice){
+                if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))
+                    && $tblSetting->getValue()){
+                    $Value = str_replace(',', '.', $tblSetting->getValue());
+                    $Value = round($Value, 2);
+                    $Price = (float)$tblInvoiceItemDebtor->getSummaryPriceInt() + $Value;
+                }
+            }
+
             // create a payment, it's possible to create multiple payments,
             // "firstPayment" is the identifier for the transactions
             // Add a Single Transaction to the named payment
             if($tblInvoiceItemDebtor->getBIC()){
                 $directDebit->addTransfer($PaymentId, array(
-                    'amount'                => ($tblInvoiceItemDebtor->getSummaryPriceInt()),
+                    'amount'                => $Price,
                     'debtorIban'            => $tblInvoiceItemDebtor->getIBAN(),
                     'debtorBic'             => $tblInvoiceItemDebtor->getBIC(), // mit BIC
                     'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
@@ -1005,7 +1015,7 @@ class Service extends AbstractService
                 ));
             } else {
                 $directDebit->addTransfer($PaymentId, array(
-                    'amount'                => ($tblInvoiceItemDebtor->getSummaryPriceInt()),
+                    'amount'                => $Price,
                     'debtorIban'            => $tblInvoiceItemDebtor->getIBAN(),
                     'debtorName'            => $tblInvoiceItemDebtor->getOwner(), // Vor / Zuname
                     'debtorMandate'         => $tblInvoiceItemDebtor->getBankReference(),

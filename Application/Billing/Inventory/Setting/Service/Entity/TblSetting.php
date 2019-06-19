@@ -27,6 +27,7 @@ class TblSetting extends Element
     const IDENT_IS_SEPA = 'IsSepa';
     const IDENT_IS_AUTO_REFERENCE_NUMBER = 'IsAutoReferenceNumber';
     const IDENT_SEPA_REMARK = 'SepaRemark';
+    const IDENT_SEPA_FEE = 'SepaFee';
 
     // Datev Options
     const IDENT_IS_DATEV = 'IsDatev';

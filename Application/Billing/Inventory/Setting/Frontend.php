@@ -245,6 +245,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 : 'Nicht hinterlegt '.new ToolTip(new Info(), 'Eingabe wird automatisch für alle Beitragsarten als
                                  Grundwert bestimmt. Individuelle anpassungen können an der Beitragsart hinerlegt werden.')));
                         break;
+                    case TblSetting::IDENT_SEPA_FEE:
+                        $Listing[3] ='&nbsp;Kosten Rücklastschrift &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue())
+                                : 'Nicht hinterlegt '));
+                        break;
 
                     // DATEV
                     case TblSetting::IDENT_IS_DATEV:
@@ -401,6 +407,10 @@ class Frontend extends Extension implements IFrontendInterface
                             ), Panel::PANEL_TYPE_INFO)),
                         ))));
                 break;
+                case TblSetting::IDENT_SEPA_FEE:
+                    $_POST['Setting'][TblSetting::IDENT_SEPA_FEE] = $tblSetting->getValue();
+                    $elementList[4] = new TextField('Setting['.TblSetting::IDENT_SEPA_FEE.']', 'z.B.: 3,85', 'Kosten einer Rücklastschrift');
+                    break;
 
                     // Datev Option's
                 case TblSetting::IDENT_IS_DATEV:

@@ -267,6 +267,8 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, $IsAutoReferenceNumber);
                 $SepaRemark = (isset($Setting[TblSetting::IDENT_SEPA_REMARK]) ? $Setting[TblSetting::IDENT_SEPA_REMARK]: '');
                 Setting::useService()->createSetting(TblSetting::IDENT_SEPA_REMARK, $SepaRemark);
+                $SepaFee = (isset($Setting[TblSetting::IDENT_SEPA_FEE]) ? $Setting[TblSetting::IDENT_SEPA_FEE]: '');
+                Setting::useService()->createSetting(TblSetting::IDENT_SEPA_FEE, $SepaFee);
             break;
             case TblSetting::CATEGORY_DATEV:
                 $IsDatev = (isset($Setting[TblSetting::IDENT_IS_DATEV]) ? true : false);

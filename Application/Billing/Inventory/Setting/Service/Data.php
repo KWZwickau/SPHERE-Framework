@@ -28,6 +28,7 @@ class Data extends AbstractData
         if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
             $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
         }
+        $this->createSetting(TblSetting::IDENT_SEPA_FEE, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
 
         // DATEV Options
         // ToDO Update darf später wieder entfernt werden (nach 1.8.56)

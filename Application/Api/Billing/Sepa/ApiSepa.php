@@ -6,6 +6,8 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -103,7 +105,16 @@ class ApiSepa extends Extension implements IApiInterface
                     $item['CauserName'] = $CauserName;
                     $item['InvoiceTime'] = $InvoiceTime;
                     $item['Name'] = $tblInvoiceItemDebtor->getName();
-                    $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                    $Price = $tblInvoiceItemDebtor->getSummaryPrice();
+                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))
+                        && $tblSetting->getValue()){
+                        $Value = str_replace(',', '.', $tblSetting->getValue());
+                        $Value = round($Value, 2);
+                        $Price = $Value + (float)$tblInvoiceItemDebtor->getSummaryPriceInt();
+                        $Price = $tblInvoiceItemDebtor->getSummaryPrice().' + '.$Value.' € ('.$Price.' €)';
+                    }
+                    $Price = str_replace('.', ',', $Price);
+                    $item['SummaryPrice'] = $Price;
                     $item['Owner'] = $tblInvoiceItemDebtor->getOwner();
                     // Es werden nur Sepa-Lastschriften zur Verfügung gestellt
                     if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())
