@@ -672,6 +672,8 @@ class Service extends AbstractService
                             $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getDatevRemark());
                             $FibuAccount = $tblItem->getFibuAccount();
                             $FibuToAccount = $tblItem->getFibuToAccount();
+                            $Kost1 = $tblItem->getKost1();
+                            $Kost2 = $tblItem->getKost2();
                             $BuKey = $tblItem->getBuKey();
                         } else {
                             $bookingText = $tblInvoiceItemDebtor->getName();
