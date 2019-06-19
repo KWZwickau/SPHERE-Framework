@@ -291,6 +291,8 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_KOST_1, $Kost1);
                 $Kost2 = (isset($Setting[TblSetting::IDENT_KOST_2]) ? $Setting[TblSetting::IDENT_KOST_2] : '0');
                 Setting::useService()->createSetting(TblSetting::IDENT_KOST_2, $Kost2);
+                $BuKey = (isset($Setting[TblSetting::IDENT_BU_KEY]) ? $Setting[TblSetting::IDENT_BU_KEY] : '0');
+                Setting::useService()->createSetting(TblSetting::IDENT_BU_KEY, $BuKey);
             break;
         }
 

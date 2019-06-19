@@ -56,6 +56,10 @@ class TblItem extends Element
      * @Column(type="string")
      */
     protected $Kost2;
+    /**
+     * @Column(type="string")
+     */
+    protected $BuKey;
 
     /**
      * @return string
@@ -288,5 +292,30 @@ class TblItem extends Element
     public function setKost2($Kost2 = '')
     {
         $this->Kost2 = $Kost2;
+    }
+
+    /**
+     * @param bool $ignoreDefault
+     *
+     * @return string
+     */
+    public function getBuKey($ignoreDefault = false)
+    {
+
+        // Ohne individuelle Einstellung, wird versucht, die Grundeinstellung zu ziehen
+        if('' === $this->BuKey && !$ignoreDefault){
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_2))){
+                return $tblSetting->getValue();
+            }
+        }
+        return $this->BuKey;
+    }
+
+    /**
+     * @param string $BuKey
+     */
+    public function setBuKey($BuKey = '')
+    {
+        $this->BuKey = $BuKey;
     }
 }

@@ -406,6 +406,9 @@ class ApiItem extends ItemVariant implements IApiInterface
                    new FormColumn(new NumberField('Item[Kost2]', $Kost2, 'Kostenstelle 2'), 6),
                 )),
                 new FormRow(array(
+                   new FormColumn(new NumberField('Item[BuKey]', $Kost1, 'BU-Schlüssel'), 6),
+                )),
+                new FormRow(array(
                     new FormColumn(
                         $SaveButton
                     )
@@ -487,12 +490,13 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
             $Global->POST['Item']['Kost1'] = $Item['Kost1'];
             $Global->POST['Item']['Kost2'] = $Item['Kost2'];
+            $Global->POST['Item']['BuKey'] = $Item['BuKey'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->createItem($Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
-            $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2']))){
+            $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2'], $Item['BuKey']))){
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
@@ -528,13 +532,14 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
             $Global->POST['Item']['Kost1'] = $Item['Kost1'];
             $Global->POST['Item']['Kost2'] = $Item['Kost2'];
+            $Global->POST['Item']['BuKey'] = $Item['BuKey'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->getItemById($ItemId))){
             Item::useService()->changeItem($tblItem, $Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
-                $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2']);
+                $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2'], $Item['BuKey']);
             // entfernen überflüssiger Personengruppen-Verknüpfungen
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {

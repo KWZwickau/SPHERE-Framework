@@ -312,7 +312,7 @@ class Data extends AbstractData
      * @return TblItem
      */
     public function createItem(TblItemType $tblItemType, $Name, $Description = '', $SepaRemark = '', $DatevRemark = ''
-        , $FibuAccount = '', $FibuToAccount = '', $Kost1 = '0', $Kost2 = '0')
+        , $FibuAccount = '', $FibuToAccount = '', $Kost1 = '0', $Kost2 = '0', $BuKey = '0')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -332,6 +332,7 @@ class Data extends AbstractData
             $Entity->setFibuToAccount($FibuToAccount);
             $Entity->setKost1($Kost1);
             $Entity->setKost2($Kost2);
+            $Entity->setBuKey($BuKey);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -469,11 +470,12 @@ class Data extends AbstractData
      * @param string  $FibuToAccount
      * @param string  $Kost1
      * @param string  $Kost2
+     * @param string  $BuKey
      *
      * @return bool
      */
     public function updateItem(TblItem $tblItem, $Name, $Description = '', $SepaRemark = '', $DatevRemark = '',
-        $FibuAccount = '', $FibuToAccount = '', $Kost1 = '0', $Kost2 = '0')
+        $FibuAccount = '', $FibuToAccount = '', $Kost1 = '0', $Kost2 = '0', $BuKey = '0')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -490,6 +492,7 @@ class Data extends AbstractData
             $Entity->setFibuToAccount($FibuToAccount);
             $Entity->setKost1($Kost1);
             $Entity->setKost2($Kost2);
+            $Entity->setBuKey($BuKey);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

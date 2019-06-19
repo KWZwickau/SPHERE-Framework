@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -92,6 +94,77 @@ class Frontend extends Extension implements IFrontendInterface
                             ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteItemModal('deleteItem',
                                 $tblItem->getId()));
                 }
+//                $Item['Name'] .= new WellReadOnly(
+//                    new Layout(new LayoutGroup(array(
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                'Fibu-Konto: '.new Bold(($tblItem->getFibuAccount(true) ? $tblItem->getFibuAccount(true) : $tblItem->getFibuAccount().' (Standard)'))
+//                            , 6),
+//                            new LayoutColumn(
+//                                'Fibu-Gegenkonto: '.new Bold(($tblItem->getFibuToAccount(true) ? $tblItem->getFibuToAccount(true) : $tblItem->getFibuToAccount().' (Standard)'))
+//                            , 6),
+//                        )),
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                'Kostenstelle 1: '.new Bold(($tblItem->getKost1(true) ? $tblItem->getKost1(true) : $tblItem->getKost1().' (Standard)'))
+//                            , 6),
+//                            new LayoutColumn(
+//                                'Kostenstelle 2: '.new Bold(($tblItem->getKost2(true) ? $tblItem->getKost2(true) : $tblItem->getKost2().' (Standard)'))
+//                            , 6),
+//                        )),
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                'BU-Schlüssel: '.new Bold(($tblItem->getBuKey(true) ? $tblItem->getBuKey(true) : $tblItem->getBuKey().' (Standard)'))
+//                            , 6),
+//                        ))
+//                    )))
+//                );
+                $left = 5;
+                $right = 7;
+                $Item['Name'] .= new WellReadOnly(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Fibu-Konto:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getFibuAccount(true) ? $tblItem->getFibuAccount(true) : new Muted('('.$tblItem->getFibuAccount().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Fibu-Gegenkonto:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getFibuToAccount(true) ? $tblItem->getFibuToAccount(true) : new Muted('('.$tblItem->getFibuToAccount().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Kostenstelle 1:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getKost1(true) ? $tblItem->getKost1(true) : new Muted('('.$tblItem->getKost1().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Kostenstelle 2:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getKost2(true) ? $tblItem->getKost2(true) : new Muted('('.$tblItem->getKost2().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'BU-Schlüssel:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getBuKey(true) ? $tblItem->getBuKey(true) : new Muted('('.$tblItem->getBuKey().')')))
+                            , $right),
+                        ))
+                    )))
+                );
 
                 $Item['PersonGroup'] = '';
 //                $Item['ItemType'] = $tblItem->getTblItemType()->getName();

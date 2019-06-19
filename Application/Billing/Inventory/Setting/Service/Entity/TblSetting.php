@@ -40,6 +40,7 @@ class TblSetting extends Element
     const IDENT_PROPER_ACCOUNT_NUMBER_LENGTH = 'ProperAccountNumberLength'; // Sachkonten Nummernlänge
     const IDENT_KOST_1 = 'KOST1'; // Kostenstelle 1
     const IDENT_KOST_2 = 'KOST2'; // Kostenstelle 2
+    const IDENT_BU_KEY = 'BuKey'; // BU-Schlüssel
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';

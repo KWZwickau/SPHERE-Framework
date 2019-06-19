@@ -318,6 +318,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 : ' '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
                                  Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                         break;
+                    case TblSetting::IDENT_BU_KEY:
+                        $Listing[11] ='&nbsp;BU-Schlüssel: &nbsp;'
+                            .new Bold(new ToolTip(($tblSetting->getValue()
+                                ? new SuccessText($tblSetting->getValue().' '.new Info())
+                                : ' '.new Info()), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                        break;
                 }
             }
         }
@@ -475,6 +482,12 @@ class Frontend extends Extension implements IFrontendInterface
                 case TblSetting::IDENT_KOST_2:
                     $_POST['Setting'][TblSetting::IDENT_KOST_2] = $tblSetting->getValue();
                     $elementList[10] = new NumberField('Setting['.TblSetting::IDENT_KOST_2.']', '', 'Kostenstelle 2 '
+                        .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
+                                 Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
+                break;
+                case TblSetting::IDENT_BU_KEY:
+                    $_POST['Setting'][TblSetting::IDENT_BU_KEY] = $tblSetting->getValue();
+                    $elementList[11] = new NumberField('Setting['.TblSetting::IDENT_BU_KEY.']', '', 'Kostenstelle 2 '
                         .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
                                  Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                 break;

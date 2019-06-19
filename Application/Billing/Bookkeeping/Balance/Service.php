@@ -663,6 +663,7 @@ class Service extends AbstractService
                         $FibuToAccount = '';
                         $Kost1 = '';
                         $Kost2 = '';
+                        $BuKey = '0';
                         $Summary = $tblInvoiceItemDebtor->getSummaryPriceInt();
                         $Summary = str_replace(',', '', $Summary);
                         $Summary = str_replace('.', ',', $Summary);
@@ -671,6 +672,7 @@ class Service extends AbstractService
                             $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getDatevRemark());
                             $FibuAccount = $tblItem->getFibuAccount();
                             $FibuToAccount = $tblItem->getFibuToAccount();
+                            $BuKey = $tblItem->getBuKey();
                         } else {
                             $bookingText = $tblInvoiceItemDebtor->getName();
                             // Was, mit fehlenden Fibu-Daten?
@@ -687,7 +689,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
                         $export->setValue($export->getCell("6", $row), $FibuAccount);// Fibu-Konto
                         $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
-                        $export->setValue($export->getCell("8", $row), '3');// BU-Schlüssel 3(Umsatzsteuer) oder 9
+                        $export->setValue($export->getCell("8", $row), $BuKey);// BU-Schlüssel 3(Umsatzsteuer) oder 9
                         $export->setValue($export->getCell("9", $row), $tblInvoice->getTargetTime('dm'));// Belegdatum Format? (3108)
                         $export->setValue($export->getCell("10", $row), $tblInvoice->getInvoiceNumber());// Belegfeld 1
                         $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
