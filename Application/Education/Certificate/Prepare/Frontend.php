@@ -3701,7 +3701,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        list($studentTable, $hasPreviewGrades) = $this->createExamsContent($tblTestList,
+        list($studentTable, $hasPreviewGrades, $missingTemplateList) = $this->createExamsContent($tblTestList,
             $IsFinalGrade, $studentTable, $tblCurrentSubject, $tblSubjectList, $tblPrepareList, $tblGroup);
 
         $columnDef = array(
@@ -3774,6 +3774,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $hasPreviewGrades
                             ? new LayoutColumn(new Warning(
                             'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
+                        ))
+                            : null,
+                        !empty($missingTemplateList)
+                            ? new LayoutColumn(new Warning(
+                            'Es wurde für die folgenden Hauptschüler keine Zeugnisvorlage ausgewählt: <br>'
+                            . implode('<br>', $missingTemplateList)
+                            . '<br>'
+                            . 'Es können erst Zensuren eingetragen werden, wenn eine Zeugnisvorlage unter: "Zeugnisse generieren" ausgewählt wurde!'
+                            , new Exclamation()
                         ))
                             : null,
                     )),
@@ -3930,6 +3939,7 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $hasPreviewGrades = false;
+        $missingTemplateList = array();
         $tabIndex = 1;
         foreach ($tblPrepareList as $tblPrepareItem) {
             if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
@@ -3953,6 +3963,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                                 if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
                                     $isMuted = false;
+
+                                    // SSW-640 Hinweistext keine Zeugnisvorlage ausgewählt
+                                    if (!$tblPrepareStudent
+                                        || ($tblPrepareStudent && !$tblPrepareStudent->getServiceTblCertificate())
+                                    ) {
+                                        $missingTemplateList[$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                                    }
                                 }
                             }
                         }
@@ -4257,7 +4274,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        return array($studentTable, $hasPreviewGrades);
+        return array($studentTable, $hasPreviewGrades, $missingTemplateList);
     }
 
     /**
