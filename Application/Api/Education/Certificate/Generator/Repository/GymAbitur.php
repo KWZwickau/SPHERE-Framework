@@ -434,15 +434,18 @@ class GymAbitur extends Certificate
             ->addSection($this->setSubjectRow($personId, 'Physik'))
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'RELIGION'))
-            ->addSection($this->setSubjectRow($personId, 'Sport'))
+            ->addSection($this->setSubjectRow($personId, 'Sport'));
+        // SSW-637
+        if (($tblExtraSubject = Subject::useService()->getSubjectByAcronym('DSW'))) {
+            $slice->addSection($this->setSubjectRow($personId, $tblExtraSubject->getName()));
+        }
+        $slice
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'Astronomie', false))
             ->addSection($this->setSubjectRow($personId, 'Informatik', false))
             ->addSection($this->setSubjectRow($personId, 'Philosophie', false))
             ->addSection($this->setSubjectRow($personId, '&nbsp;', false))
-            ->addSection($this->setSubjectRow($personId, '&nbsp;', false, true))
-        ;
-
+            ->addSection($this->setSubjectRow($personId, '&nbsp;', false, true));
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -469,7 +472,7 @@ class GymAbitur extends Certificate
                     )
                 )
             )
-            ->addSlice($slice)
+            ->addSlice($slice->styleHeight('860px'))
             ->addSlice($this->getInfoForBlockI())
         ;
 
@@ -921,6 +924,9 @@ class GymAbitur extends Certificate
                 if ($subjectName == 'Ev. Religion') {
                     $width = '23%';
                 }
+                if ($subjectName == 'Evangelische Religion') {
+                    $width = '41%';
+                }
             }
         } else {
             // Leistungskurse markieren
@@ -1160,7 +1166,11 @@ class GymAbitur extends Certificate
                             $i))
                     ) {
                         if (($tblSubject = $verbalExamGrade->getServiceTblSubject())) {
-                            $subjectName = $i . '. ' . ($i < 3 ? '(LF) ' : ' ') . $tblSubject->getName();
+                            if ($tblSubject->getAcronym() == 'GRW') {
+                                $subjectName = $i . '. ' . 'GK/RE/Wirtschaft';
+                            } else {
+                                $subjectName = $i . '. ' . $tblSubject->getName();
+                            }
                         }
 
                         $verbalExam = ($isBellUsed && $i == 5 ? '(' : '')
@@ -1908,7 +1918,7 @@ class GymAbitur extends Certificate
      *
      * @return Slice
      */
-    private function  getInfoForBlockI($marginTop = '180px')
+    private function  getInfoForBlockI($marginTop = '10px')
     {
         $slice = new Slice();
         $slice
