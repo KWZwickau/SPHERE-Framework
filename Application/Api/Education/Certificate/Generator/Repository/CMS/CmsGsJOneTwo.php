@@ -20,6 +20,14 @@ class CmsGsJOneTwo extends CmsStyle
      */
     public function selectValuesTransfer()
     {
+        if(($tblDivision = $this->getTblDivision())){
+            if(($tblLevel = $tblDivision->getTblLevel())){
+                // Versetzungevermerk wird für Klasse 1 deaktiviert
+                if($tblLevel->getName() == '1'){
+                    return array(1 => "Nicht verfügbar");
+                }
+            }
+        }
         return array(
             1 => "wird versetzt",
             2 => "wird nicht versetzt"
@@ -37,6 +45,20 @@ class CmsGsJOneTwo extends CmsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        // Versetzungevermerk wird für Klasse 1 nicht mehr angezeigt
+        $Transfer = self::getCMSTransfer($personId);
+        if(($tblDivision = $this->getTblDivision())){
+            if(($tblLevel = $tblDivision->getTblLevel())){
+                if($tblLevel->getName() == '1'){
+                    $SectionTransfer = new Section();
+                    $Transfer = $SectionTransfer->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleMarginTop('1px')
+                    );
+                }
+            }
+        }
 
         return (new Page())
             ->addSlice((new Slice())
@@ -84,7 +106,7 @@ class CmsGsJOneTwo extends CmsStyle
                     ->styleMarginTop('15px')
                 )
                 ->addSection(
-                    self::getCMSTransfer($personId)
+                    $Transfer
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('15px')

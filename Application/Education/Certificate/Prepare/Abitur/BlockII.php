@@ -422,6 +422,7 @@ class BlockII extends AbstractBlock
         $this->setAvailableExamsSubjectToArray('Ethik', false);
         $this->setAvailableExamsSubjectToArray('Informatik', false);
 
+        $tblSubjectEn2 = Subject::useService()->getSubjectByAcronym('EN2');
         $foreignLanguages = array();
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
             && $this->tblPerson
@@ -435,6 +436,9 @@ class BlockII extends AbstractBlock
                         || ($tblStudentSubject->getServiceTblLevelFrom() && $tblStudentSubject->getServiceTblLevelFrom()->getName() != '10')
                     ) {
                         $foreignLanguages[$tblSubjectItem->getId()] = $tblSubjectItem;
+                        if ($tblSubjectItem->getName() == 'Englisch' && $tblSubjectEn2) {
+                            $foreignLanguages[$tblSubjectEn2->getId()] = $tblSubjectEn2;
+                        }
                     }
                 }
             }
