@@ -257,6 +257,40 @@ class MsAbsRs extends Certificate
                 ->styleMarginTop('35px');
         }
 
+        // Schul-Zusatz
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName'))
+            && ($value = trim($tblSetting->getValue()))
+        ) {
+           $showExtendedSchoolName = true;
+        } else {
+            $showExtendedSchoolName = false;
+        }
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'AlternateExtendedSchoolName'))
+            && ($value = trim($tblSetting->getValue()))
+        ) {
+            $extendedSchoolName = $value;
+        } else {
+            $extendedSchoolName = '';
+        }
+        if ($showExtendedSchoolName || $extendedSchoolName != '') {
+            if ($extendedSchoolName == '') {
+                $extendedSchoolName = '
+                {% if(Content.P' . $personId . '.Company.Data.ExtendedName) %}
+                    {{ Content.P' . $personId . '.Company.Data.ExtendedName }}
+                {% else %}
+                    &nbsp;
+                {% endif %}';
+            }
+            $sliceList[] = (new Slice())
+                ->addElement(
+                    (new Element())
+                        ->setContent($extendedSchoolName)
+                        ->styleBorderBottom('1px')
+                        ->styleAlignCenter()
+                )
+                ->styleMarginTop('10px');
+        }
+
         $sliceList[] = (new Slice())
                 ->addElement(
                     (new Element())

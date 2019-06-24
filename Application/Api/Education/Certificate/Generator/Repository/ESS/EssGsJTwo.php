@@ -22,8 +22,8 @@ class EssGsJTwo extends Certificate
     const TEXT_SIZE_SMALL = '8pt';
     const TEXT_FAMILY = 'MyriadPro';
 
-    const TEXT_SIZE_RATING = '11pt'; // 10pt
-    const LINE_HEIGHT_RATING = '100%'; // 95%
+    const TEXT_SIZE_RATING = '10pt';
+    const LINE_HEIGHT_RATING = '85%';
 
     /**
      * @return array
@@ -149,7 +149,7 @@ class EssGsJTwo extends Certificate
                                 &nbsp;
                             {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE_RATING)
-                        ->styleLineHeight('90%')
+                        ->styleLineHeight(self::LINE_HEIGHT_RATING)
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleMarginTop('25px')
@@ -182,7 +182,7 @@ class EssGsJTwo extends Certificate
                             &nbsp;
                         {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE_RATING)
-                        ->styleLineHeight('90%')
+                        ->styleLineHeight(self::LINE_HEIGHT_RATING)
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleHeight('235px')
@@ -206,7 +206,7 @@ class EssGsJTwo extends Certificate
                               &nbsp;
                         {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE_RATING)
-                        ->styleLineHeight(self::LINE_HEIGHT_RATING)
+                        ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '75%'
                     )
