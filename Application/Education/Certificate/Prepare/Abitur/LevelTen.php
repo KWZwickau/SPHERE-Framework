@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -38,7 +39,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
  * @package SPHERE\Application\Education\Certificate\Prepare\Abitur
  */
 class LevelTen extends AbstractBlock
-                                                              {
+{
 
     // todo Sind es alle Fächer, Profile?
     /**
@@ -96,7 +97,7 @@ class LevelTen extends AbstractBlock
 
         // todo automatische Ermittelung der abgewählten Pflichtfächer aus Klasse 10
         // todo Sortierung?
-        $this->setAvailableSubjets();
+        $this->setAvailableSubjects();
         $this->setGradeList();
 
         // Zensuren der Klasse 10 ermitteln
@@ -284,14 +285,26 @@ class LevelTen extends AbstractBlock
         ));
     }
 
-    private function setAvailableSubjets()
+    private function setAvailableSubjects()
     {
         $this->setCourses();
         $list = array();
         foreach ($this->subjectList as $acronym => $name) {
-            $tblSubject = Subject::useService()->getSubjectByAcronym($acronym);
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByName($name);
+            // 2. Fremdsprache mit dem der tatsächlichen Sprache ersetzen
+            if ($acronym == '2FS'
+                && ($tblStudent = $this->tblPerson->getStudent())
+                && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier(2))
+                && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
+                    $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking
+                ))
+            ) {
+                $tblSubject = $tblStudentSubject->getServiceTblSubject();
+            } else {
+                $tblSubject = Subject::useService()->getSubjectByAcronym($acronym);
+                if (!$tblSubject) {
+                    $tblSubject = Subject::useService()->getSubjectByName($name);
+                }
             }
 
             if ($tblSubject) {

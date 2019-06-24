@@ -3400,6 +3400,10 @@ class Service extends AbstractService
             foreach ($tblPrepareGradeList as $tblPrepareGrade) {
                 if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
                 ) {
+                    if ($tblSubject->getAcronym() == 'EN2') {
+                        $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                    }
+
                     if (($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
                         $tblPrepareCertificate,
                         $tblPerson,
@@ -3452,6 +3456,10 @@ class Service extends AbstractService
                                 && ($tblSubject = $tblGrade->getServiceTblSubject())
                             ) {
                                 if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
+                                    if ($tblSubject->getAcronym() == 'EN2') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                                    }
+
                                     if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
                                         $tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
                                     ) {
@@ -3795,10 +3803,16 @@ class Service extends AbstractService
                                 && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
                                 && $tblPerson->getId() == $tblPersonStudent->getId()
                             ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
-                                } else {
-                                    $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                if ($tblSubject->getAcronym() == 'EN2') {
+                                    $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                                }
+
+                                if ($tblSubject) {
+                                    if ($tblSubjectGroup->isAdvancedCourse()) {
+                                        $advancedCourses[$tblSubject->getId()] = $tblSubject;
+                                    } else {
+                                        $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                    }
                                 }
                             }
                         }
