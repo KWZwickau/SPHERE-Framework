@@ -839,6 +839,9 @@ class Service extends AbstractService
             $header->setInitiatingPartyId('DE21WVM1234567890');
 
             $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
+
+            $combinedItemDebtorList = array();
+
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
                 $PaymentId = $tblInvoice->getInvoiceNumber().'-';
@@ -847,22 +850,22 @@ class Service extends AbstractService
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
                 // Dient nur der SEPA-Prüfung
                 if($tblInvoiceItemDebtorList){
-                    foreach($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtor){
-                        if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())){
+                    foreach($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtorCheck){
+                        if(($tblPaymentType = $tblInvoiceItemDebtorCheck->getServiceTblPaymentType())){
                             if($tblPaymentType->getId() == $SepaPaymentType){
-                                if($tblInvoiceItemDebtor->getIsPaid()){
+                                if($tblInvoiceItemDebtorCheck->getIsPaid()){
                                     $countSepaPayment++;
                                 } else {
                                     // Offene posten ignorieren
-                                    $tblInvoiceItemDebtor = false;
+                                    $tblInvoiceItemDebtorCheck = false;
                                 }
                             } else {
                                 // Zahlung mit anderem Zahlungstyp als SEPA-Lastschrift wird ignoriert
-                                $tblInvoiceItemDebtor = false;
+                                $tblInvoiceItemDebtorCheck = false;
                             }
                         } else {
                             // Zahlung ohne Zahlungstyp wird ignoriert
-                            $tblInvoiceItemDebtor = false;
+                            $tblInvoiceItemDebtorCheck = false;
                         }
                     }
                 }
@@ -876,9 +879,59 @@ class Service extends AbstractService
                 $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
 
                 if(!empty($tblInvoiceItemDebtorList)){
-                    $this->addTransfer($directDebit, $tblInvoiceItemDebtorList, $PaymentId);
+                    $item = array();
+                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                        $Ref = $tblInvoiceItemDebtor->getBankReference();
+
+                        // Offene posten ignorieren
+                        if(!$tblInvoiceItemDebtor->getIsPaid()){
+                            continue;
+                        }
+
+                        $item[$Ref]['PaymentId'] = $PaymentId;
+                        if(!isset($item[$Ref]['ReferenceDate'])){
+                            $item[$Ref]['ReferenceDate'] = '';
+                            if(($tblBankReference = $tblInvoiceItemDebtor->getServiceTblBankReference())){
+                                $item[$Ref]['ReferenceDate'] = $tblBankReference->getReferenceDate();
+                            }
+                            if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getSepaRemark());
+                            } else {
+                                $item[$Ref]['BookingText'] = $tblInvoiceItemDebtor->getName();
+                            }
+                            $item[$Ref]['Price'] = $tblInvoiceItemDebtor->getSummaryPriceInt();
+                            $item[$Ref]['IBAN'] = $tblInvoiceItemDebtor->getIBAN();
+                            $item[$Ref]['BIC'] = $tblInvoiceItemDebtor->getBIC();
+                            $item[$Ref]['Owner'] = $tblInvoiceItemDebtor->getOwner();
+                            $item[$Ref]['BankReference'] = $Ref;
+                            $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
+
+                        } else {
+                            if(isset($item[$Ref]['ItemName'])){
+                                $item[$Ref]['ItemName'] .= ', '.$tblInvoiceItemDebtor->getName();
+                            } else {
+                                $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
+                            }
+
+                            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
+                                // allgemeinen Buchungstext verwenden
+                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $item[$Ref]['ItemName']);
+                            }
+                            if(isset($item[$Ref]['ItemName'])){
+                                $item[$Ref]['Price'] = $item[$Ref]['Price'] + $tblInvoiceItemDebtor->getSummaryPriceInt();
+                            } else {
+                                $item[$Ref]['Price'] = $tblInvoiceItemDebtor->getSummaryPriceInt();
+                            }
+                        }
+                    }
+                    array_push($combinedItemDebtorList, $item);
+//                    $this->addTransfer($directDebit, $tblInvoiceItemDebtorList, $PaymentId);
                 }
             }
+            $this->addCombinedTransfer($directDebit, $combinedItemDebtorList);
+
+
             // Bearbeitung der Offenen Posten
             if(!empty($CheckboxList)){
                 foreach($CheckboxList as $tblInvoiceItemDebtorId){
@@ -903,14 +956,22 @@ class Service extends AbstractService
         return $directDebit;
     }
 
-    private function getBookingText(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $bookingText = '')
+    /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param string               $bookingText
+     * @param string               $ItemCombinedName
+     *
+     * @return mixed|string|string[]|null
+     */
+    private function getBookingText(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $bookingText = '', $ItemCombinedName = '')
     {
 
-        $ItemName = '';
-        if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
-            $ItemName = $tblItem->getName();
+        $ItemName = $ItemCombinedName;
+        if($ItemName == ''){
+            if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                $ItemName = $tblItem->getName();
+            }
         }
-
 
         if($bookingText){
             $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
@@ -1025,6 +1086,53 @@ class Service extends AbstractService
                     'remittanceInformation' => $bookingText,
                     //            'endToEndId'            => 'Invoice-No X' // optional, if you want to provide additional structured info
                 ));
+            }
+        }
+    }
+
+    /**
+     * @param CustomerDirectDebitFacade $directDebit
+     * @param array                     $combinedItemDebtorList
+     */
+    private function addCombinedTransfer(CustomerDirectDebitFacade $directDebit, $combinedItemDebtorList = array())
+    {
+
+        /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+        foreach($combinedItemDebtorList as $ReferenceGroup){
+            foreach($ReferenceGroup as $Content){
+                $ReferenceDate = $Content['ReferenceDate'];
+                $bookingText = $Content['BookingText'];
+                $Price = $Content['Price'];
+                $IBAN = $Content['IBAN'];
+                $BIC = $Content['BIC'];
+                $Owner = $Content['Owner'];
+                $BankReference = $Content['BankReference'];
+
+                $PaymentId = $Content['PaymentId'];
+
+                // create a payment, it's possible to create multiple payments,
+                // "firstPayment" is the identifier for the transactions
+                // Add a Single Transaction to the named payment
+                if($BIC){
+                    $directDebit->addTransfer($PaymentId, array(
+                        'amount'                => $Price,
+                        'debtorIban'            => $IBAN,
+                        'debtorBic'             => $BIC, // mit BIC
+                        'debtorName'            => $Owner,
+                        'debtorMandate'         => $BankReference,
+                        'debtorMandateSignDate' => $ReferenceDate,
+                        'remittanceInformation' => $bookingText,
+                    ));
+                } else {
+                    $directDebit->addTransfer($PaymentId, array(
+                        'amount'                => $Price,
+                        'debtorIban'            => $IBAN,
+                        'debtorName'            => $Owner,
+                        'debtorMandate'         => $BankReference,
+                        'debtorMandateSignDate' => $ReferenceDate,
+                        'remittanceInformation' => $bookingText,
+                    ));
+                }
             }
         }
     }

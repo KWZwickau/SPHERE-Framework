@@ -7,6 +7,8 @@
 namespace SPHERE\Application\Billing\Inventory\Import;
 
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -112,6 +114,8 @@ class ImportGateway extends AbstractConverter
         $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Nachname'], 'DebtorLastName'));
         if(isset($ColumnList['Debitorennummer'])){
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
+            $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumberControl'));
+            $this->setSanitizer(new FieldSanitizer($ColumnList['Debitorennummer'], 'DebtorNumberControl', array($this, 'sanitizeDebtorNumber')));
         }
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBAN'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['IBAN'], 'IBAN', array($this, 'sanitizeTrimSpace')));
@@ -359,6 +363,27 @@ class ImportGateway extends AbstractConverter
         }
         // BIC Warnung anzeigen
         return new ToolTip(new Warning($bic, null, false, 2, 0), 'Anzahl der Zeichen stimmen nicht');
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return Warning|string
+     */
+    protected function sanitizeDebtorNumber($Value)
+    {
+
+        if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
+            if(strlen($Value) > $Setting->getValue()){
+                $this->addErrorCount();
+                return new ToolTip(new Danger($Value, null, false, 2, 0), 'Debitorennummer ist zu lang (max '.$Setting->getValue().')');
+            } elseif($Value && strlen($Value) < $Setting->getValue()) {
+                return new ToolTip(new Warning($Value, null, false, 2, 0), 'Debitorennummer ist zu kurz ('.$Setting->getValue().') dies stellt aber kein Problem dar');
+            } elseif(strlen($Value) == $Setting->getValue()){
+                return new Success($Value, null, false, 2, 0);
+            }
+        }
+        return $Value;
     }
 
     /**

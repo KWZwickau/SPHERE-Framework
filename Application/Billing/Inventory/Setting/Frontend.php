@@ -438,7 +438,7 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_CONSULT_NUMBER:
                     $_POST['Setting'][TblSetting::IDENT_CONSULT_NUMBER] = $tblSetting->getValue();
-                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beaternummer '
+                    $elementList[3] = new TextField('Setting['.TblSetting::IDENT_CONSULT_NUMBER.']', '', 'Beraternummer '
                     .new ToolTip(new Info(), 'Kann bis zu 7 Zeichen enthalten'));
                     break;
                 case TblSetting::IDENT_CLIENT_NUMBER:

@@ -200,7 +200,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'PaymentFromDate'     => 'Zahlung ab',
                                         'PaymentTillDate'     => 'Zahlung bis',
                                         'DebtorFrontend'      => 'Beitragszahler',
-                                        'DebtorNumber'        => 'Debitoren Nr.',
+                                        'DebtorNumberControl' => 'Debitoren Nr.',
                                         'IBANControl'         => 'IBAN Kontrolle',
                                         'BICControl'          => 'BIC',
                                         'Bank'                => 'Bank',
