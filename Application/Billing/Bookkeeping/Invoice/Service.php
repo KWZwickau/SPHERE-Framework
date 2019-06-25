@@ -356,8 +356,11 @@ class Service extends AbstractService
                 $tblPerson = $tblBasketVerification->getServiceTblPersonCauser();
                 $tblItem = $tblBasketVerification->getServiceTblItem();
 
-                // entfernen der Beiträge mit 0€
                 if($tblBasketVerification->getValue() === '0.0000'){
+                    // entfernen der Beiträge mit 0€
+                    $tblBasketVerification = false;
+                } elseif($tblBasketVerification->getQuantity() == 0) {
+                    // entfernen der Beiträge mit Anzahl 0
                     $tblBasketVerification = false;
                 } elseif($tblPerson && $tblItem) { // Entfernen aller Beiträge
                     if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
