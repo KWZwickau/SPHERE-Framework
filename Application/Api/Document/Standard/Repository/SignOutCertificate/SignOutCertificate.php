@@ -297,7 +297,7 @@ class SignOutCertificate extends AbstractDocument
             $StudentCall = 'Die Schülerin';
         }
         $Slice->addElement((new Element())
-            ->setContent($StudentCall.' hat sich mit dieser Abmeldebescheinigung bei dem nun zuständigen Berufliche
+            ->setContent($StudentCall.' hat sich mit dieser Abmeldebescheinigung bei dem nun zuständigen Beruflichen
                 Schulzentrum anzumelden.')
             ->stylePaddingTop('15px')
         );
