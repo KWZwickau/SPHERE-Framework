@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -234,6 +236,11 @@ class Data extends AbstractData
                 'Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
         }
 
+        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType',
+            TblSetting::TYPE_STRING, '', 'Notenbücher',
+            'Auswahl, welche Eltern und Schülerzugänge keinen Zugang und keine Einsicht erhalten sollen. Mehrere Eingaben Komma getrennt: GS, OS, GYM [Standard: ]'
+            , true);
+
         if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel',
             TblSetting::TYPE_INTEGER, 1))) {
             $this->updateSettingDescription($tblSetting, 'Allgemein', 'Validierung 1. Fremdsprache im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik.
@@ -397,6 +404,27 @@ class Data extends AbstractData
                 TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_STUDENT => $tblAccountStudent->getId(),
                 TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_CUSTODY => $tblAccountCustody->getId()
             ));
+    }
+
+    /**
+     * @param string $Value
+     *
+     * @return TblType[]|bool
+     */
+    public function getSchoolTypeBySettingString($Value)
+    {
+
+        $tblSchoolTypeList = array();
+        if(preg_match('!GS!is', $Value)){
+            $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
+        }
+        if(preg_match('!OS!is', $Value)){
+            $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
+        }
+        if(preg_match('!GYM!is', $Value)){
+            $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
+        }
+        return (!empty($tblSchoolTypeList) ? $tblSchoolTypeList : false);
     }
 
     /**

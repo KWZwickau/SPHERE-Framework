@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer;
 
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
@@ -77,6 +78,16 @@ class Service extends AbstractService
     public function getSettingAll($IsSystem = false)
     {
         return (new Data($this->getBinding()))->getSettingAll($IsSystem);
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return bool|TblType[]
+     */
+    public function getSchoolTypeBySettingString($Value)
+    {
+        return (new Data($this->getBinding()))->getSchoolTypeBySettingString($Value);
     }
 
     /**

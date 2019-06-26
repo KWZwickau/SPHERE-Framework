@@ -15,6 +15,16 @@ use SPHERE\System\Database\Fitting\Element;
 class TblType extends Element
 {
 
+    const IDENT_BERUFLICHES_GYMNASIUM = 'Berufliches Gymnasium';
+    const IDENT_BERUFS_FACH_SCHULE = 'Berufsfachschule';
+    const IDENT_BERUFS_SCHULE = 'Berufsschule';
+    const IDENT_FACH_OBER_SCHULE = 'Fachoberschule';
+    const IDENT_FACH_SCHULE = 'Fachschule';
+    const IDENT_GRUND_SCHULE = 'Grundschule';
+    const IDENT_GYMNASIUM = 'Gymnasium';
+    const IDENT_OBER_SCHULE = 'Mittelschule / Oberschule';
+    const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'allgemein bildende Förderschule';
+
     const ATTR_NAME = 'Name';
 
     /**
