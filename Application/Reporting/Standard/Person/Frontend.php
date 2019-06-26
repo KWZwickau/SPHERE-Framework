@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -1324,82 +1325,82 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Year
      * @param null $Division
      * @param null $Option
+     * @param null $PersonGroup
      *
      * @return Stage
      */
-    public function frontendMetaDataComparison($Person = null, $Year = null, $Division = null, $Option = null) {
+    public function frontendMetaDataComparison($Person = null, $Year = null, $Division = null, $Option = null, $PersonGroup = null) {
         $Stage = new Stage('Auswertung', 'Stammdatenabfrage');
 
         $FilterForm = $this->getStudentFilterForm();
 
-        $Result = Person::useService()->getStudentFilterResult($Person, $Year, $Division);
+        $Result = Person::useService()->getStudentFilterResult($Person, $Year, $Division, $PersonGroup);
 
-        $TableContent = Person::useService()->getStudentTableContent($Result, $Option);
+        $TableContent = Person::useService()->getStudentTableContent($Result, $Option, $PersonGroup);
 
-        $Table = new TableData($TableContent, null, array(
-            'Division' => 'Klasse',
-            'StudentNumber' => 'Schülernummer',
-            'FirstName' => 'Vorname',
-            'LastName' => 'Nachname',
-            'Gender'  => 'Geschlecht',
-            'Birthday'  => 'Geburtstag',
-            'BirthPlace'  => 'Geburtsort',
-            'Address' => 'Adresse',
-            'Insurance' => 'Krankenkasse',
-            'Religion'  => 'Religion',
-            'PhoneFixedPrivate'  => 'Festnetz (Privat)',
-            'PhoneFixedWork'  => 'Festnetz (Geschäftl.)',
-            'PhoneFixedEmergency'  => 'Festnetz (Notfall)',
-            'PhoneMobilePrivate'  => 'Mobil (Privat)',
-            'PhoneMobileWork'  => 'Mobil (Geschäftl.)',
-            'PhoneMobileEmergency'  => 'Mobil (Notfall)',
-            'Sibling_1' => 'Geschwister1',
-            'Sibling_2' => 'Geschwister2',
-            'Sibling_3' => 'Geschwister3',
+        $AddCount = 0;
 
-            'Custody_1_Salutation' => 'Sorg1 Anrede',
-            'Custody_1_Title' => 'Sorg1 Titel',
-            'Custody_1_FirstName' => 'Sorg1 Vorname',
-            'Custody_1_LastName' => 'Sorg1 Nachname',
-            'Custody_1_Address' => 'Sorg1 Adresse',
-            'Custody_1_PhoneFixedPrivate' => 'Sorg1 Festnetz (Privat)',
-            'Custody_1_PhoneFixedWork' => 'Sorg1 Festnetz (Geschäftl.)',
-            'Custody_1_PhoneFixedEmergency' => 'Sorg1 Festnetz (Notfall)',
-            'Custody_1_PhoneMobilePrivate' => 'Sorg1 Festnetz (Privat)',
-            'Custody_1_PhoneMobileWork' => 'Sorg1 Festnetz (Geschäftl.)',
-            'Custody_1_PhoneMobileEmergency' => 'Sorg1 Festnetz (Notfall)',
-            'Custody_1_Mail_Private' => 'Sorg1 Mail (Privat)',
-            'Custody_1_Mail_Work' => 'Sorg1 Mail (Geschäftl.)',
+        $TableHead = array();
+        $TableHead['Division'] = 'Klasse';
+        $TableHead['StudentNumber'] = 'Schülernummer';
+        $TableHead['FirstName'] = 'Vorname';
+        $TableHead['LastName'] = 'Nachname';
+        $TableHead['Gender'] = 'Geschlecht';
+        $TableHead['Birthday'] = 'Geburtstag';
+        $TableHead['BirthPlace'] = 'Geburtsort';
+        $TableHead['Address'] = 'Adresse';
+        $TableHead['Insurance'] = 'Krankenkasse';
+        $TableHead['Religion'] = 'Religion';
+        $TableHead['PhoneFixedPrivate'] = 'Festnetz (Privat)';
+        $TableHead['PhoneFixedWork'] = 'Festnetz (Geschäftl.)';
+        $TableHead['PhoneFixedEmergency'] = 'Festnetz (Notfall)';
+        $TableHead['PhoneMobilePrivate'] = 'Mobil (Privat)';
+        $TableHead['PhoneMobileWork'] = 'Mobil (Geschäftl.)';
+        $TableHead['PhoneMobileEmergency'] = 'Mobil (Notfall)';
+        if($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
+            $TableHead['PersonGroup'] = 'Personengruppe';
+            $AddCount = 1;
+        }
+        $TableHead['Sibling_1'] = 'Geschwister1';
+        $TableHead['Sibling_2'] = 'Geschwister2';
+        $TableHead['Sibling_3'] = 'Geschwister3';
 
-            'Custody_2_Salutation' => 'Sorg2 Anrede',
-            'Custody_2_Title' => 'Sorg2 Titel',
-            'Custody_2_FirstName' => 'Sorg2 Vorname',
-            'Custody_2_LastName' => 'Sorg2 Nachname',
-            'Custody_2_Address' => 'Sorg2 Adresse',
-            'Custody_2_PhoneFixedPrivate' => 'Sorg2 Festnetz (Privat)',
-            'Custody_2_PhoneFixedWork' => 'Sorg2 Festnetz (Geschäftl.)',
-            'Custody_2_PhoneFixedEmergency' => 'Sorg2 Festnetz (Notfall)',
-            'Custody_2_PhoneMobilePrivate' => 'Sorg2 Festnetz (Privat)',
-            'Custody_2_PhoneMobileWork' => 'Sorg2 Festnetz (Geschäftl.)',
-            'Custody_2_PhoneMobileEmergency' => 'Sorg2 Festnetz (Notfall)',
-            'Custody_2_Mail_Private' => 'Sorg2 Mail (Privat)',
-            'Custody_2_Mail_Work' => 'Sorg2 Mail (Geschäftl.)',
-        ),
+        // 3 Sorgeberechtigte
+        for($i = 1; $i <= 3 ; $i++){
+            $TableHead['Custody_'.$i.'_Salutation'] = 'Sorg'.$i.' Anrede';
+            $TableHead['Custody_'.$i.'_Title'] = 'Sorg'.$i.' Titel';
+            $TableHead['Custody_'.$i.'_FirstName'] = 'Sorg'.$i.' Vorname';
+            $TableHead['Custody_'.$i.'_LastName'] = 'Sorg'.$i.' Nachname';
+            $TableHead['Custody_'.$i.'_Address'] = 'Sorg'.$i.' Adresse';
+            $TableHead['Custody_'.$i.'_PhoneFixedPrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
+            $TableHead['Custody_'.$i.'_PhoneFixedWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
+            $TableHead['Custody_'.$i.'_PhoneFixedEmergency'] = 'Sorg'.$i.' Festnetz (Notfall)';
+            $TableHead['Custody_'.$i.'_PhoneMobilePrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
+            $TableHead['Custody_'.$i.'_PhoneMobileWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
+            $TableHead['Custody_'.$i.'_PhoneMobileEmergency'] = 'Sorg'.$i.' Festnetz (Notfall)';
+            $TableHead['Custody_'.$i.'_Mail_Private'] = 'Sorg'.$i.' Mail (Privat)';
+            $TableHead['Custody_'.$i.'_Mail_Work'] = 'Sorg'.$i.' Mail (Geschäftl.)';
+        }
+
+        $Table = new TableData($TableContent, null, $TableHead,
             array(
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                     // Sibling
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 16),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 17),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 18),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (16 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (17 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (18 + $AddCount)),
                     // Custody 1
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 21),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 22),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (21 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
                     // Custody 2
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 34),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 35),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (34 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (35 + $AddCount)),
+                    // Custody 3
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (47 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (48 + $AddCount)),
                 ),
 //                'pageLength' => -1,
 //                'paging'     => false,
@@ -1420,7 +1421,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Title('Filterung')
                             . (!empty($TableContent) ? new Primary('Herunterladen', '\Api\Reporting\Standard\Person\MetaDataComparison\Download', new Download(),
-                                        array('Person' => $Person, 'Year' => $Year, 'Division' => $Division, 'Option' => $Option))
+                                        array('Person' => $Person, 'Year' => $Year, 'Division' => $Division, 'Option' => $Option, 'PersonGroup' => $PersonGroup))
                                 .'<br /><br />' . $Table : new Warning('Keine Personen gefunden'))
                         )
                     )
@@ -1450,6 +1451,11 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $tblGroupList = Group::useService()->getGroupAll();
+
+        if(!isset($_POST['PersonGroup']['TblGroup_Id'])){
+            $_POST['PersonGroup']['TblGroup_Id'] = 1;
+        }
 
         return new Form(
             new FormGroup(array(
@@ -1478,6 +1484,11 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         , Panel::PANEL_TYPE_INFO)
                         , 4),
+                    new FormColumn(
+                        new Panel('Gruppe',
+                            new SelectBox('PersonGroup['.ViewPeopleGroupMember::TBL_GROUP_ID.']', 'Personengruppe', array('{{ Name }}' => $tblGroupList))
+                        , Panel::PANEL_TYPE_INFO)
+                    , 4)
                 )),
                 new FormRow(
                     new FormColumn(

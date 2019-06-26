@@ -100,6 +100,20 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int     $Rank
+     *
+     * @return false|TblToPerson
+     */
+    public function getPersonRelationshipCustodyByRank($Rank = 1)
+    {
+
+        if(($tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))){
+            return (new Data($this->getBinding()))->getPersonRelationshipByTypeAndRank($tblType, $Rank);
+        }
+        return false;
+    }
+
+    /**
      * @param TblToPerson[] $tblToPersonList
      *
      * @return array|TblPerson[]
