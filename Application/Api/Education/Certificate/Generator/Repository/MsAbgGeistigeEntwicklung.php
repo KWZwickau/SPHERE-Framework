@@ -140,7 +140,7 @@ class MsAbgGeistigeEntwicklung extends Certificate
                 ))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true, '30px'))
-            ->addSlice($this->getInfo('220px',
+            ->addSlice($this->getInfo('190px',
                 '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
             ));
 

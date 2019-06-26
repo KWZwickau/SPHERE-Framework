@@ -272,7 +272,9 @@ class MsAbsRs extends Certificate
         } else {
             $extendedSchoolName = '';
         }
+        $hasExtraRow = false;
         if ($showExtendedSchoolName || $extendedSchoolName != '') {
+            $hasExtraRow = true;
             if ($extendedSchoolName == '') {
                 $extendedSchoolName = '
                 {% if(Content.P' . $personId . '.Company.Data.ExtendedName) %}
@@ -339,7 +341,7 @@ class MsAbsRs extends Certificate
 //                ->styleTextColor('#999')
                 ->styleAlignCenter()
                 ->styleMarginTop('5px')
-                ->styleMarginBottom('5px')
+                ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
             );
 
         return $sliceList;

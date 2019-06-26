@@ -204,7 +204,7 @@ class MsAbg extends Certificate
                     ->addElementColumn((new Element())
                     )
                 )
-                ->styleMarginTop('440px')
+                ->styleMarginTop('410px')
             );
 
         $pageList[] = (new Page())
