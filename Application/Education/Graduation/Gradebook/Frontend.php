@@ -1434,7 +1434,7 @@ class Frontend extends FrontendScoreRule
 
         $tblPersonList = $this->getPersonListForStudent();
 
-        // blokkierte Schularten:
+        // erlaubte Schularten:
         $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
         $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
         if($tblSchoolTypeList){
@@ -1465,11 +1465,11 @@ class Frontend extends FrontendScoreRule
                     /** @var TblDivisionStudent $tblDivisionStudent */
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                         $tblDivision = $tblDivisionStudent->getTblDivision();
-                        // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen verboten werden.
+                        // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen erlaubt werden.
                         if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
                             if(($tblSchoolType = $tblLevel->getServiceTblType())){
-                                if(in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
-                                    // Klassen werden nicht angezeigt, wenn die Schulart ignoriert werden soll.
+                                if(!in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
+                                    // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
                                     continue;
                                 }
                             }

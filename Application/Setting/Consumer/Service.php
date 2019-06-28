@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
@@ -87,7 +88,26 @@ class Service extends AbstractService
      */
     public function getSchoolTypeBySettingString($Value)
     {
-        return (new Data($this->getBinding()))->getSchoolTypeBySettingString($Value);
+
+        $Value = str_replace(' ', '', $Value);
+        $ValueList = explode(',', $Value);
+        $tblSchoolTypeList = array();
+        if($ValueList){
+            foreach ($ValueList as $Number){
+                switch ($Number) {
+                    case '1':
+                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
+                    break;
+                    case '2':
+                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
+                    break;
+                    case '3':
+                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
+                    break;
+                }
+            }
+        }
+        return (!empty($tblSchoolTypeList) ? $tblSchoolTypeList : false);
     }
 
     /**

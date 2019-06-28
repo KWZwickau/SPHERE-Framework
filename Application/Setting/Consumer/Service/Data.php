@@ -3,8 +3,6 @@
 namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -238,7 +236,8 @@ class Data extends AbstractData
 
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType',
             TblSetting::TYPE_STRING, '', 'Notenbücher',
-            'Auswahl, welche Eltern und Schülerzugänge keinen Zugang und keine Einsicht erhalten sollen. Mehrere Eingaben Komma getrennt: GS, OS, GYM [Standard: ]'
+            'Eingrenzung der Schüler- und Elternzugänge nach Schulart(en). Festlegung der Zugänge mittels Zahleneingabe.
+             Mehrere Schularten sind mit Komma zu trennen. 1=GS, 2=OS, 3=GYM [Standard: ]'
             , true);
 
         if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel',
@@ -404,27 +403,6 @@ class Data extends AbstractData
                 TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_STUDENT => $tblAccountStudent->getId(),
                 TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_CUSTODY => $tblAccountCustody->getId()
             ));
-    }
-
-    /**
-     * @param string $Value
-     *
-     * @return TblType[]|bool
-     */
-    public function getSchoolTypeBySettingString($Value)
-    {
-
-        $tblSchoolTypeList = array();
-        if(preg_match('!GS!is', $Value)){
-            $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
-        }
-        if(preg_match('!OS!is', $Value)){
-            $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
-        }
-        if(preg_match('!GYM!is', $Value)){
-            $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
-        }
-        return (!empty($tblSchoolTypeList) ? $tblSchoolTypeList : false);
     }
 
     /**
