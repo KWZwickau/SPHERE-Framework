@@ -12,6 +12,14 @@ select
         -- limit 0,1
     ) TblPerson_S1_Id,
 
+    if ((select vRTP.TblToPerson_IsSingleParent
+        from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        and vRTP.TblType_Name = 'Sorgeberechtigt'
+        and vRTP.TblToPerson_Ranking = 1
+        limit 0,1
+    ), 'Ja', 'Nein') TblToPerson_IsSingleParent_S1,
+
     (select vP.TblSalutation_Salutation
         from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
         where vP.TblPerson_Id = TblPerson_S1_Id
@@ -158,6 +166,14 @@ select
         -- limit 1,1
     ) TblPerson_S2_Id,
 
+    if ((select vRTP.TblToPerson_IsSingleParent
+        from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        and vRTP.TblType_Name = 'Sorgeberechtigt'
+        and vRTP.TblToPerson_Ranking = 2
+        limit 0,1
+    ), 'Ja', 'Nein') TblToPerson_IsSingleParent_S2,
+
     (select vP.TblSalutation_Salutation
         from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
         where vP.TblPerson_Id = TblPerson_S2_Id
@@ -303,6 +319,14 @@ select
         limit 0,1
         -- limit 2,1
     ) TblPerson_S3_Id,
+
+    if ((select vRTP.TblToPerson_IsSingleParent
+        from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        and vRTP.TblType_Name = 'Sorgeberechtigt'
+        and vRTP.TblToPerson_Ranking = 3
+        limit 0,1
+    ), 'Ja', 'Nein') TblToPerson_IsSingleParent_S3,
 
     (select vP.TblSalutation_Salutation
         from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
