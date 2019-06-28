@@ -646,17 +646,19 @@ class Service extends AbstractService
      * @param TblType $tblType
      * @param string $Remark
      *
+     * @param integer|null $Ranking
      * @return bool
      */
     public function insertRelationshipToPerson(
         TblPerson $tblPersonFrom,
         TblPerson $tblPersonTo,
         TblType $tblType,
-        $Remark
+        $Remark,
+        $Ranking = null
     ) {
 
         if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-            $Remark)
+            $Remark, $Ranking)
         ) {
             return true;
         } else {
