@@ -68,11 +68,18 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param             $Description
      * @param             $IsHighlighted
      * @param TblTestType $tblTestType
+     * @param bool        $IsPartGrade
      *
      * @return null|TblGradeType
      */
-    public function createGradeType($Name, $Code, $Description, $IsHighlighted, TblTestType $tblTestType)
-    {
+    public function createGradeType(
+        $Name,
+        $Code,
+        $Description,
+        $IsHighlighted,
+        TblTestType $tblTestType,
+        $IsPartGrade = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -90,7 +97,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setHighlighted($IsHighlighted);
             $Entity->setServiceTblTestType($tblTestType);
             $Entity->setIsActive(true);
-            $Entity->setIsPartGrade(false);
+            $Entity->setIsPartGrade($IsPartGrade);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -107,6 +114,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param bool $IsHighlighted
      * @param TblTestType $tblTestType
      * @param bool $IsActive
+     * @param $IsPartGrade
      *
      * @return bool
      */
@@ -117,7 +125,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Description,
         $IsHighlighted,
         TblTestType $tblTestType,
-        $IsActive
+        $IsActive,
+        $IsPartGrade
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -132,6 +141,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setHighlighted($IsHighlighted);
             $Entity->setServiceTblTestType($tblTestType);
             $Entity->setIsActive($IsActive);
+            $Entity->setIsPartGrade($IsPartGrade);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

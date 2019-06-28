@@ -145,7 +145,8 @@ class Frontend extends FrontendScoreRule
                 $Item['Status'] = $tblGradeType->isActive()
                     ? new SuccessText(new PlusSign().' aktiv')
                     : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv');
-                $Item['Description'] = $tblGradeType->getDescription();
+                $Item['Description'] = trim($tblGradeType->getDescription()
+                    . ($tblGradeType->isPartGrade() ? new Italic(' (Teilnote)') : ''));
                 $Item['Option'] =
                     (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
                         'Id' => $tblGradeType->getId()
@@ -235,8 +236,13 @@ class Frontend extends FrontendScoreRule
                 new FormColumn(
                     new TextField('GradeType[Description]', '', 'Beschreibung'), 12
                 ),
+            )),
+            new FormRow(array(
                 new FormColumn(
-                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
+                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 3
+                ),
+                new FormColumn(
+                    new CheckBox('GradeType[IsPartGrade]', 'Teilnote (wird zu einer Note zusammengefasst)', 1), 3
                 )
             )),
         )));
@@ -279,6 +285,7 @@ class Frontend extends FrontendScoreRule
             $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
             $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->isHighlighted();
             $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
+            $Global->POST['GradeType']['IsPartGrade'] = $tblGradeType->isPartGrade();
 
             $Global->savePost();
         }
