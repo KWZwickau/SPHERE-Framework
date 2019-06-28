@@ -234,6 +234,12 @@ class Data extends AbstractData
                 'Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
         }
 
+        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType',
+            TblSetting::TYPE_STRING, '', 'Notenbücher',
+            'Eingrenzung der Schüler- und Elternzugänge nach Schulart(en). Festlegung der Zugänge mittels Zahleneingabe.
+             Mehrere Schularten sind mit Komma zu trennen. 1=GS, 2=OS, 3=GYM [Standard: ]'
+            , true);
+
         if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel',
             TblSetting::TYPE_INTEGER, 1))) {
             $this->updateSettingDescription($tblSetting, 'Allgemein', 'Validierung 1. Fremdsprache im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik.

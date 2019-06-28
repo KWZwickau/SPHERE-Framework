@@ -1441,6 +1441,17 @@ class Frontend extends FrontendScoreRule
 
         $tblPersonList = $this->getPersonListForStudent();
 
+        // erlaubte Schularten:
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+        if($tblSchoolTypeList){
+            // erzeuge eine Id Liste, wenn Schularten blokiert werden.
+            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+                $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
+            }
+        }
+
+
         $BlockedList = array();
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
         if ($tblPersonList) {
@@ -1461,6 +1472,15 @@ class Frontend extends FrontendScoreRule
                     /** @var TblDivisionStudent $tblDivisionStudent */
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                         $tblDivision = $tblDivisionStudent->getTblDivision();
+                        // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen erlaubt werden.
+                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
+                            if(($tblSchoolType = $tblLevel->getServiceTblType())){
+                                if(!in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
+                                    // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
+                                    continue;
+                                }
+                            }
+                        }
                         if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
                             $tblDisplayYearList[$tblYear->getId()] = $tblYear;
                             $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
