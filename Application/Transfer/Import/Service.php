@@ -13,6 +13,7 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -126,6 +127,26 @@ class Service
                 Mail::useService()->getTypeById(1),
                 ''
             );
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $columnName
+     * @param $RunY
+     * @param string $separator
+     */
+    public function insertGroupsByName(TblPerson $tblPerson, $columnName, $RunY, $separator = ';')
+    {
+        $groupNames = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName],
+            $RunY)));
+        if ($groupNames != '') {
+            $list = preg_split('/' . $separator . '/', $groupNames);
+            foreach ($list as $name) {
+                if ($tblGroup = Group::useService()->insertGroup(trim($name))) {
+                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                }
+            }
         }
     }
 }

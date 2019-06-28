@@ -118,4 +118,84 @@ class Frontend  extends Extension implements IFrontendInterface
 
         return $View;
     }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendPersonImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Import Bräunsdorf');
+        $View->setDescription('Mitgliederdaten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Braeunsdorf::useService()->createPersonsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendCompanyImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Import Bräunsdorf');
+        $View->setDescription('Firmendaten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Braeunsdorf::useService()->createCompaniesFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
 }

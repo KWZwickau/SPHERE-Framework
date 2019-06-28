@@ -30,6 +30,12 @@ class Braeunsdorf  implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/InterestedPerson', __NAMESPACE__ . '\Frontend::frontendInterestedPersonImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Person', __NAMESPACE__ . '\Frontend::frontendPersonImport'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Company', __NAMESPACE__ . '\Frontend::frontendCompanyImport'
+        ));
     }
 
     /**
@@ -56,6 +62,24 @@ class Braeunsdorf  implements IModuleInterface
             'Option' => new Standard(
                 '',
                 __NAMESPACE__ . '/InterestedPerson',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '03 - Mitglieder',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/Person',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '04 - Firmen',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/Company',
                 new Select()
             )
         );
