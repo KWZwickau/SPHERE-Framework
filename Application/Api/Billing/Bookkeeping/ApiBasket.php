@@ -35,7 +35,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -103,10 +102,11 @@ class ApiBasket extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param array  $Basket
+     * @param array  $ErrorHelp
      *
      * @return Pipeline
      */
-    public static function pipelineOpenAddBasketModal($Identifier = '', $Basket = array())
+    public static function pipelineOpenAddBasketModal($Identifier = '', $Basket = array(), $ErrorHelp = array())
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -116,8 +116,9 @@ class ApiBasket extends Extension implements IApiInterface
             self::API_TARGET => 'showAddBasket'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'Basket'     => $Basket
+            'Identifier'    => $Identifier,
+            'Basket'        => $Basket,
+            'ErrorHelp'       => $ErrorHelp
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -309,6 +310,12 @@ class ApiBasket extends Extension implements IApiInterface
         $FormContentLeft[] = (new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired();
         $FormContentLeft[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
 
+        if(!isset($_POST['Basket']['Creditor'])
+            && $CreditorList
+            && count($CreditorList) == 1){
+            $_POST['Basket']['Creditor'] = $CreditorList[0]->getId();
+        }
+
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
         if('' !== $BasketId){
@@ -393,7 +400,10 @@ class ApiBasket extends Extension implements IApiInterface
                         new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
                     )),
                     new Bold('Zahlungszeitraum '.new DangerText('*')),
-                    new Panel('', $PeriodRadioBox)
+                    new Panel('', $PeriodRadioBox),
+                    new Panel('Auszahlung',
+                        new CheckBox('Basket[IsCompanyCredit]', 'Auszahlung an Debitoren', 1)
+                    ),
                 ), 6),
                 new FormColumn(
                     $SaveButton
@@ -485,13 +495,20 @@ class ApiBasket extends Extension implements IApiInterface
 
     /**
      * @param string $Identifier
+     * @param array $ErrorHelp
      *
      * @return string
      */
-    public function showAddBasket($Identifier = '')
+    public function showAddBasket($Identifier = '', $ErrorHelp = array())
     {
 
-        return new Well($this->formBasket($Identifier));
+        if(!empty($ErrorHelp)){
+            $ErrorHelp = new Warning(implode('<br/>', $ErrorHelp));
+        } else {
+            $ErrorHelp = '';
+        }
+
+        return $ErrorHelp.new Well($this->formBasket($Identifier));
     }
 
     /**
@@ -517,6 +534,9 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Division'] = $Basket['Division'];
             $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
             $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
+            if(isset($Basket['IsCompanyCredit'])){
+                $Global->POST['Basket']['IsCompanyCredit'] = $Basket['IsCompanyCredit'];
+            }
             if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
@@ -534,9 +554,14 @@ class ApiBasket extends Extension implements IApiInterface
         if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
             $tblDebtorPeriodType = null;
         }
+        $IsCompanyCredit = false;
+        if(isset($Basket['IsCompanyCredit'])){
+            $IsCompanyCredit = true;
+        }
 
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['Creditor'], $tblDivision, $tblType, $tblDebtorPeriodType);
+            , $Basket['Month'], $Basket['TargetTime'], $IsCompanyCredit, $Basket['Creditor'], $tblDivision, $tblType,
+            $tblDebtorPeriodType);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){
@@ -544,9 +569,49 @@ class ApiBasket extends Extension implements IApiInterface
                 $tblBasketItemList[] = Basket::useService()->createBasketItem($tblBasket, $tblItem);
             }
         }
+        $ItemPriceFound = true;
+        $MissingItemPriceList = array('Es existieren Preis-Varianten denen für das Fälligkeitsdatum '.$Basket['TargetTime']
+            .' kein Preis hinterlegt ist.');
+        $MissingItemPriceList[] = 'Bitte stellen Sie sicher, das alle Preisvarianten der Beitragsart gepflegt sind.';
+        $MissingItemPriceList[] = '&nbsp;';
+        $MissingItemPriceList[] = 'Beitragsart - Variante';
         $isCreate = false;
         $PersonMissing = array();
         if(!empty($tblItemList)){
+
+            // Kontrolle, ob alle Varianten zum Fälligkeitsdatum ein gültigen Preis haben
+            $DateNow = new \DateTime('now');
+            /** @var TblItem $tblItemPriceControl */
+            foreach($tblItemList as $tblItemPriceControl) {
+                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItemPriceControl))){
+                    foreach($tblItemVariantList as $tblItemVariant){
+                        if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                            $IsCalculationTest = false;
+                            foreach($tblItemCalculationList as $tblItemCalculation){
+                                if($tblItemCalculation->getDateTo()
+                                    && $tblItemCalculation->getDateFrom(true) <= $DateNow
+                                    && $tblItemCalculation->getDateTo(true) >= $DateNow
+                                    || !$tblItemCalculation->getDateTo()
+                                    && $tblItemCalculation->getDateFrom(true) <= $DateNow
+                                ){
+                                    $IsCalculationTest = true;
+                                    break;
+                                }
+                            }
+                            if(!$IsCalculationTest){
+                                $MissingItemPriceList[] = $tblItemPriceControl->getName().' - '.$tblItemVariant->getName();
+                                $ItemPriceFound = false;
+                            }
+                        }
+                    }
+                }
+            }
+            // ungültige Preise hindern die Erstellung einer Abrechnung
+            if(!$ItemPriceFound){
+                Basket::useService()->destroyBasket($tblBasket);
+                return self::pipelineOpenAddBasketModal($Identifier, $Basket, $MissingItemPriceList);
+            }
+
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
                 $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType);
@@ -564,10 +629,20 @@ class ApiBasket extends Extension implements IApiInterface
         // Abrechnung nicht gefüllt
         if(!$isCreate){
             Basket::useService()->destroyBasket($tblBasket);
-            return new Warning('Abrechnung kann nicht erstellt werden. Mögliche Ursachen:'.
-            new Container('- Es wurden im Abrechnungsmonat bereits für alle ausgewählten Beitragsarten
-             und alle zutreffenden Personen eine Rechnung erstellt')
-            .new Container('- Aktuelle Filterung lässt keine Personen zur Abrechnung zu'));
+
+            $ErrorHelp[] = 'Abrechnung kann nicht erstellt werden. Mögliche Ursachen:';
+            $ErrorHelp[] = '- Es wurden im Abrechnungsmonat bereits für alle ausgewählten Beitragsarten
+                und alle zutreffenden Personen eine Rechnung erstellt';
+            $ErrorHelp[] = '- Aktuelle Filterung lässt keine Personen zur Abrechnung zu';
+            $ErrorHelp[] = '- Es stehen keine aktiven Zahlungszuweisungen für das Fälligkeitsdatum bereit.';
+
+            if(!empty($PersonMissing)){
+                $ErrorHelp[] = '&nbsp;';
+                $ErrorHelp[] = 'Folgende Zahlungszuweisungen wurden herrausgefiltert:';
+                $ErrorHelp = array_merge($ErrorHelp, $PersonMissing);
+            }
+
+            return self::pipelineOpenAddBasketModal($Identifier, $Basket, $ErrorHelp);
         }
 
         if($tblBasket){

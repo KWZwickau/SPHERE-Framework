@@ -27,6 +27,8 @@ class TblBasket extends Element
     const ATTR_NAME = 'Name';
     const ATTR_MONTH = 'Month';
     const ATTR_YEAR = 'Year';
+    const ATTR_IS_DONE = 'IsDone';
+    const ATTR_IS_COMPANY_CREDIT = 'IsCompanyCredit';
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
@@ -55,6 +57,10 @@ class TblBasket extends Element
      * @Column(type="boolean")
      */
     protected $IsDone;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCompanyCredit;
     /**
      * @Column(type="datetime")
      */
@@ -258,6 +264,7 @@ class TblBasket extends Element
 
     /**
      * @return boolean
+     * Rechnungen aus Warenkorb erstellt
      */
     public function getIsDone()
     {
@@ -270,6 +277,23 @@ class TblBasket extends Element
     public function setIsDone($IsDone)
     {
         $this->IsDone = $IsDone;
+    }
+
+    /**
+     * @return boolean
+     * Auszahlung an Beitragszahler
+     */
+    public function getIsCompanyCredit()
+    {
+        return $this->IsCompanyCredit;
+    }
+
+    /**
+     * @param boolean $IsCompanyCredit
+     */
+    public function setIsCompanyCredit($IsCompanyCredit)
+    {
+        $this->IsCompanyCredit = $IsCompanyCredit;
     }
 
     /**
@@ -439,6 +463,5 @@ class TblBasket extends Element
 
         $this->serviceTblDebtorPeriodType = ($serviceTblDebtorPeriodType ? $serviceTblDebtorPeriodType->getId() : null);
     }
-
 
 }

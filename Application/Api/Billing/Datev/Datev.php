@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Billing\Datev;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
@@ -43,9 +44,17 @@ class Datev implements IApplicationInterface, IModuleInterface
 
         if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
             if(($fileLocation = Balance::useService()->createDatevCsv($tblBasket))){
-
+                $name = $tblBasket->getName();
+                $month = $tblBasket->getMonth();
+                $year = $tblBasket->getYear();
+                $monthString = '';
+                $monthList = Invoice::useService()->getMonthList($month, $month);
+                if(!empty($monthList)){
+                    $monthString = current($monthList);
+                }
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "EXTF_".date("Y-m-d H:i:s").".csv")->__toString();
+//                    "EXTF_".date("Y-m-d H:i:s").".csv")->__toString();
+                    'EXTF_'.$name.'_'.$monthString.'_'.$year.'.csv')->__toString();
             }
         }
 

@@ -5,6 +5,7 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Annaberg\Annaberg;
 use SPHERE\Application\Transfer\Import\BadDueben\BadDueben;
+use SPHERE\Application\Transfer\Import\Braeunsdorf\Braeunsdorf;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\Dresden\Dresden;
@@ -93,6 +94,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'EWS') {
             Naundorf::registerModule();
         }
+        if ($consumerAcronym === 'EVSB') {
+            Braeunsdorf::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -133,6 +137,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'EWS') {
             $dataList = Naundorf::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EVSB') {
+            $dataList = Braeunsdorf::setLinks($dataList);
         }
 
         if(empty($dataList)){

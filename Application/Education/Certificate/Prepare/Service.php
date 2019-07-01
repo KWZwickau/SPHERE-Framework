@@ -606,16 +606,18 @@ class Service extends AbstractService
 
                             if (!empty(trim($value))) {
                                 $value = trim($value);
-                                // Zeichenbegrenzen
-                                if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
-                                    $tblCertificate, $field, !isset($array['TeamExtra'])))
-                                ) {
-                                    $value = str_replace("\n", " ", $value);
 
-                                    if (strlen($value) > $CharCount) {
-                                        $value = substr($value, 0, $CharCount);
-                                    }
-                                }
+                                // erstmal deaktivieren, es werden teilweise zuviele Zeichen abgeschnitten
+//                                // Zeichenbegrenzen
+//                                if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
+//                                    $tblCertificate, $field, !isset($array['TeamExtra'])))
+//                                ) {
+//                                    $value = str_replace("\n", " ", $value);
+//
+//                                    if (strlen($value) > $CharCount) {
+//                                        $value = substr($value, 0, $CharCount);
+//                                    }
+//                                }
 
                                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                                     $field))
@@ -3227,8 +3229,11 @@ class Service extends AbstractService
             return $form;
         }
 
-
-        $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+        if (($tblLeaveStudent = $this->getLeaveStudentBy($tblPerson, $tblDivision))) {
+            (new Data($this->getBinding()))->updateLeaveStudentCertificate($tblLeaveStudent, $tblCertificate);
+        } else {
+            $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+        }
 
         if ($tblLeaveStudent) {
             return new Success('Die Daten wurden gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -3398,6 +3403,10 @@ class Service extends AbstractService
             foreach ($tblPrepareGradeList as $tblPrepareGrade) {
                 if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
                 ) {
+                    if ($tblSubject->getAcronym() == 'EN2') {
+                        $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                    }
+
                     if (($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
                         $tblPrepareCertificate,
                         $tblPerson,
@@ -3450,6 +3459,10 @@ class Service extends AbstractService
                                 && ($tblSubject = $tblGrade->getServiceTblSubject())
                             ) {
                                 if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
+                                    if ($tblSubject->getAcronym() == 'EN2') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                                    }
+
                                     if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
                                         $tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
                                     ) {
@@ -3793,10 +3806,16 @@ class Service extends AbstractService
                                 && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
                                 && $tblPerson->getId() == $tblPersonStudent->getId()
                             ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
-                                } else {
-                                    $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                if ($tblSubject->getAcronym() == 'EN2') {
+                                    $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                                }
+
+                                if ($tblSubject) {
+                                    if ($tblSubjectGroup->isAdvancedCourse()) {
+                                        $advancedCourses[$tblSubject->getId()] = $tblSubject;
+                                    } else {
+                                        $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                    }
                                 }
                             }
                         }

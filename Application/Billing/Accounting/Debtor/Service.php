@@ -304,14 +304,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblBankAccount
      */
-    public function getBankAccountAll($Id)
+    public function getBankAccountAll()
     {
 
-        return (new Data($this->getBinding()))->getBankAccountAll($Id);
+        return (new Data($this->getBinding()))->getBankAccountAll();
     }
 
     /**
@@ -326,14 +324,21 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
      * @return false|TblDebtorSelection
      */
-    public function getDebtorSelectionAll($Id)
+    public function getDebtorSelectionAll()
     {
 
-        return (new Data($this->getBinding()))->getDebtorSelectionAll($Id);
+        return (new Data($this->getBinding()))->getDebtorSelectionAll();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDebtorSelectionCount()
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionCount();
     }
 
     /**
@@ -369,20 +374,22 @@ class Service extends AbstractService
 
         $IBAN = str_replace(' ', '', $IBAN);
         $BIC = str_replace(' ', '', $BIC);
+        $IBAN = strtoupper($IBAN);
         return (new Data($this->getBinding()))->createBankAccount($tblPerson, $BankName, $IBAN, $BIC, $Owner);
     }
 
     /**
      * @param TblPerson $tblPerson
      * @param string    $ReferenceNumber
+     * @param string    $Description
      * @param string    $ReferenceDate
      *
      * @return null|TblBankReference
      */
-    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $ReferenceDate = '')
+    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $Description = '', $ReferenceDate = '')
     {
 
-        return (new Data($this->getBinding()))->createBankReference($tblPerson, $ReferenceNumber, $ReferenceDate);
+        return (new Data($this->getBinding()))->createBankReference($tblPerson, $ReferenceNumber, $Description, $ReferenceDate);
     }
 
     /**
@@ -449,20 +456,22 @@ class Service extends AbstractService
 
         $IBAN = str_replace(' ', '', $IBAN);
         $BIC = str_replace(' ', '', $BIC);
+        $IBAN = strtoupper($IBAN);
         return (new Data($this->getBinding()))->updateBankAccount($tblBankAccount, $BankName, $IBAN, $BIC, $Owner);
     }
 
     /**
      * @param TblBankReference $tblBankReference
      * @param string           $ReferenceNumber
+     * @param string           $Description
      * @param string           $ReferenceDate
      *
      * @return bool
      */
-    public function changeBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $ReferenceDate = '')
+    public function changeBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $Description = '', $ReferenceDate = '')
     {
 
-        return (new Data($this->getBinding()))->updateBankReference($tblBankReference, $ReferenceNumber,
+        return (new Data($this->getBinding()))->updateBankReference($tblBankReference, $ReferenceNumber, $Description,
             $ReferenceDate);
     }
 

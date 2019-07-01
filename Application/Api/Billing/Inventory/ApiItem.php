@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Billing\Inventory;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
@@ -15,6 +16,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -25,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -288,7 +291,7 @@ class ApiItem extends ItemVariant implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', ApiItem::getEndpoint(), new Save());
-        if('' !== $ItemId /* && ($tblItem = Item::useService()->getItemById($ItemId)) */){
+        if('' !== $ItemId){
             $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveEditItem($Identifier, $ItemId));
         } else {
             $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveAddItem($Identifier));
@@ -319,21 +322,98 @@ class ApiItem extends ItemVariant implements IApiInterface
         }
 //        }
 
+        $InfoSepa = '';
+        $InfoDatev = '';
+        if(($tblItem = Item::useService()->getItemById($ItemId))){
+            $InfoDatev = $InfoSepa = $tblItem->getName();
+        }
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
+            if($tblSetting->getValue()){
+                $InfoSepa = $tblSetting->getValue();
+            }
+        }
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DATEV_REMARK))){
+            if($tblSetting->getValue()){
+                $InfoDatev = $tblSetting->getValue();
+            }
+        }
+
+        $FibuAccountValue = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT))){
+            $FibuAccountValue = '(Standard) '.$tblSetting->getValue();
+        }
+        $FibuToAccountValue = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_TO_ACCOUNT))){
+            $FibuToAccountValue = '(Standard) '.$tblSetting->getValue();
+        }
+
+        $Kost1 = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_1))){
+            $Kost1 = '(Standard) '.$tblSetting->getValue();
+        }
+        $Kost2 = '';
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_KOST_2))){
+            $Kost2 = '(Standard) '.$tblSetting->getValue();
+        }
+
 
         return (new Form(
-            new FormGroup(
+            new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         (new TextField('Item[Name]', 'Beitragsart', 'Beitragsart'))->setRequired()
                         , 6),
                     new FormColumn(
                         $CheckboxList
-                        , 6),
+                        , 6)
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new Ruler()
+                    )
+                ),
+                new FormRow(array(
+                    new FormColumn(new Panel('Buchungstext',
+                        array(
+                            new TextField('Item[SepaRemark]', '(Standard) '.$InfoSepa, 'SEPA Verwendungszweck &nbsp;'),
+                            new TextField('Item[DatevRemark]', '(Standard) '.$InfoDatev, 'DATEV Buchungstext &nbsp;')
+                        ), Panel::PANEL_TYPE_INFO)
+                    , 8),
+                    new FormColumn(
+                        new Panel('Freifelder für Buchungstext', array(
+                                '[GID] Gläubiger-ID',
+                                '[SN] Mandantsreferenznummer',
+                                '[BVN] Beitragsverursacher Name',
+                                '[BVV] Beitragsverursacher Vorname',
+                                '[BA] Beitragsart',
+                                '[BAM] Abrechnungszeitraum (Jahr+Monat)',
+                            )
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4),
+
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new Ruler()
+                    )
+                ),
+                new FormRow(array(
+                   new FormColumn(new TextField('Item[FibuAccount]', $FibuAccountValue, 'Fibu-Konto'), 6),
+                   new FormColumn(new TextField('Item[FibuToAccount]', $FibuToAccountValue, 'Fibu-Gegenkonto'), 6),
+                )),
+                new FormRow(array(
+                   new FormColumn(new NumberField('Item[Kost1]', $Kost1, 'Kostenstelle 1'), 6),
+                   new FormColumn(new NumberField('Item[Kost2]', $Kost2, 'Kostenstelle 2'), 6),
+                )),
+                new FormRow(array(
+                   new FormColumn(new NumberField('Item[BuKey]', $Kost1, 'BU-Schlüssel'), 6),
+                )),
+                new FormRow(array(
                     new FormColumn(
                         $SaveButton
                     )
-                ))
-            )
+                )),
+            ))
         ))->disableSubmitAction();
     }
 
@@ -404,11 +484,19 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $Item['Name'];
             $Global->POST['Group'] = $Group;
+            $Global->POST['Item']['SepaRemark'] = $Item['SepaRemark'];
+            $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
+            $Global->POST['Item']['FibuAccount'] = $Item['FibuAccount'];
+            $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
+            $Global->POST['Item']['Kost1'] = $Item['Kost1'];
+            $Global->POST['Item']['Kost2'] = $Item['Kost2'];
+            $Global->POST['Item']['BuKey'] = $Item['BuKey'];
             $Global->savePost();
             return $form;
         }
 
-        if(($tblItem = Item::useService()->createItem($Item['Name']))){
+        if(($tblItem = Item::useService()->createItem($Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
+            $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2'], $Item['BuKey']))){
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
@@ -438,21 +526,33 @@ class ApiItem extends ItemVariant implements IApiInterface
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $Item['Name'];
             $Global->POST['Group'] = $Group;
+            $Global->POST['Item']['SepaRemark'] = $Item['SepaRemark'];
+            $Global->POST['Item']['DatevRemark'] = $Item['DatevRemark'];
+            $Global->POST['Item']['FibuAccount'] = $Item['FibuAccount'];
+            $Global->POST['Item']['FibuToAccount'] = $Item['FibuToAccount'];
+            $Global->POST['Item']['Kost1'] = $Item['Kost1'];
+            $Global->POST['Item']['Kost2'] = $Item['Kost2'];
+            $Global->POST['Item']['BuKey'] = $Item['BuKey'];
             $Global->savePost();
             return $form;
         }
 
         if(($tblItem = Item::useService()->getItemById($ItemId))){
-            Item::useService()->changeItem($tblItem, $Item['Name']);
-
-            // Delete existing PersonGroup
-            //ToDO only remove not necessary Entry's
+            Item::useService()->changeItem($tblItem, $Item['Name'], '', $Item['SepaRemark'], $Item['DatevRemark'],
+                $Item['FibuAccount'], $Item['FibuToAccount'], $Item['Kost1'], $Item['Kost2'], $Item['BuKey']);
+            // entfernen überflüssiger Personengruppen-Verknüpfungen
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
-                    Item::useService()->removeItemGroup($tblItemGroup);
+                    $serviceTblGroup = $tblItemGroup->getServiceTblGroup();
+                    // Personengruppen-Verknüpfungen, die weiterhin benutzt werden, müssen nicht gelöscht werden
+                    // entfernte Personengruppen werden ebenfalls gelöscht
+                    if($serviceTblGroup && !in_array($serviceTblGroup->getId(), $Group)
+                    || !$serviceTblGroup){
+                        Item::useService()->removeItemGroup($tblItemGroup);
+                    }
                 }
             }
-
+            // Erstellen der neuen Personengruppen-Verknüpfungen
             foreach($Group as $GroupId) {
                 if(($tblGroup = Group::useService()->getGroupById($GroupId))){
                     Item::useService()->createItemGroup($tblItem, $tblGroup);
@@ -477,6 +577,12 @@ class ApiItem extends ItemVariant implements IApiInterface
         if('' !== $ItemId && ($tblItem = Item::useService()->getItemById($ItemId))){
             $Global = $this->getGlobal();
             $Global->POST['Item']['Name'] = $tblItem->getName();
+            $Global->POST['Item']['SepaRemark'] = $tblItem->getSepaRemark(true);
+            $Global->POST['Item']['DatevRemark'] = $tblItem->getDatevRemark(true);
+            $Global->POST['Item']['FibuAccount'] = $tblItem->getFibuAccount(true);
+            $Global->POST['Item']['FibuToAccount'] = $tblItem->getFibuToAccount(true);
+            $Global->POST['Item']['Kost1'] = $tblItem->getKost1(true);
+            $Global->POST['Item']['Kost2'] = $tblItem->getKost2(true);
             if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
                 foreach($tblItemGroupList as $tblItemGroup) {
                     if(($tblGroup = $tblItemGroup->getServiceTblGroup())){

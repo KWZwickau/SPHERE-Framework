@@ -286,7 +286,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
     {
 
         $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
             if($tblSetting->getValue() == 1){
                 $IsDebtorNumberNeed = true;
             }
@@ -334,7 +334,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
             $InfoDebtorNumber = '';
             $IsDebtorNumberNeed = false;
-            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
                 if($tblSetting->getValue() == 1){
                     $IsDebtorNumberNeed = true;
                 }
@@ -664,7 +664,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     ),
                     new FormColumn(
                         new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenznummer',
-                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}})' => $tblBankReferenceList))
+                            array('{{ReferenceNumber}} - (ab: {{ReferenceDate}}) {{Description}}' => $tblBankReferenceList))
                         , 6
                     )
                 )),

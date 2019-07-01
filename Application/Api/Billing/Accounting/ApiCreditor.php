@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -19,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -270,21 +272,45 @@ class ApiCreditor extends Extension implements IApiInterface
         return (new Form(
             new FormGroup(array(
                 new FormRow(
-                    new FormColumn(
-                        (new TextField('Creditor[Owner]', 'Inhaber der Bankverbindung', 'Inhaber der Bankverbindung'))->setRequired()
-                        , 6)
+                    new FormColumn(new Title('Bankverbindung:'))
                 ),
+                new FormRow(array(
+                    new FormColumn(
+                        (new TextField('Creditor[Owner]', 'Kontoinhaber', 'Kontoinhaber'))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        new TextField('Creditor[BankName]', 'Bankname', 'Bankname')
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        new TextField('Creditor[BIC]', 'BIC', 'BIC')
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new TextField('Creditor[CreditorId]', 'Gläubiger Id', 'Gläubiger Id'))->setRequired()
+                        , 6),
+//                    new FormColumn(new Ruler())
+                )),
+                new FormRow(array(
+                    new FormColumn(new Container('<br/>')),
+                    new FormColumn(new Title('Adresse:'))
+                )),
                 new FormRow(array(
                     new FormColumn(
                         (new TextField('Creditor[Street]', 'Straße', 'Straße'))->setRequired()
                         , 10),
                     new FormColumn(
-                        (new TextField('Creditor[Number]', 'Hausnummer', 'Hausnummer'))->setRequired()
+                        (new TextField('Creditor[Number]', 'Straßennummer', 'Straßennummer'))->setRequired()
                         , 2),
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        (new TextField('Creditor[Code]', 'PLZ', 'PLZ'))->setRequired()
+                        (new TextField('Creditor[Code]', 'Postleitzahl', 'Postleitzahl'))->setRequired()
                         , 2),
                     new FormColumn(
                         (new TextField('Creditor[City]', 'Stadt', 'Stadt'))->setRequired()
@@ -293,26 +319,6 @@ class ApiCreditor extends Extension implements IApiInterface
                         new TextField('Creditor[District]', 'Ortsteil', 'Ortsteil')
                         , 5),
                 )),
-                new FormRow(
-                    new FormColumn(
-                        new TextField('Creditor[BankName]', 'Bankname', 'Bankname')
-                        , 6)
-                ),
-                new FormRow(
-                    new FormColumn(
-                        new TextField('Creditor[CreditorId]', 'Gläubiger Id', 'Gläubiger Id')
-                        , 6)
-                ),
-                new FormRow(
-                    new FormColumn(
-                        (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'aa99 9999 9999 9999 9999 99'))->setRequired()
-                        , 6)
-                ),
-                new FormRow(
-                    new FormColumn(
-                        new TextField('Creditor[BIC]', 'BIC', 'BIC')
-                        , 6)
-                ),
                 new FormRow(
                     new FormColumn(
                         $SaveButton
@@ -334,7 +340,7 @@ class ApiCreditor extends Extension implements IApiInterface
         $Error = false;
         $form = $this->formCreditor($Identifier, $CreditorId);
         if(isset($Creditor['Owner']) && empty($Creditor['Owner'])){
-            $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Inhaber der Bankverbindung an');
+            $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Kontoinhaber an');
             $Error = true;
         }
         if(isset($Creditor['Street']) && empty($Creditor['Street'])){
@@ -353,7 +359,10 @@ class ApiCreditor extends Extension implements IApiInterface
             $form->setError('Creditor[City]', 'Bitte geben Sie eine Stadt an');
             $Error = true;
         }
-        if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
+        if(isset($Creditor['CreditorId']) && empty($Creditor['CreditorId'])){
+            $form->setError('Creditor[CreditorId]', 'Bitte geben Sie eine Gläubiger Id an');
+            $Error = true;
+        }if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
             $Error = true;
         }
@@ -496,7 +505,7 @@ class ApiCreditor extends Extension implements IApiInterface
 
         if($tblCreditor){
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Inhaber der Bankverbindung: ', 2),
+                new LayoutColumn('Kontoinhaber: ', 2),
                 new LayoutColumn(new Bold($tblCreditor->getOwner()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(

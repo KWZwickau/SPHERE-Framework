@@ -2088,22 +2088,18 @@ class Frontend extends FrontendScoreRule
                 if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                 ) {
-                    if (($tblGroupAll = Group::useService()->getGroupAll())) {
+                    if (($tblGroupAll = Group::useService()->getTudorGroupAll($tblPerson))) {
                         foreach ($tblGroupAll as $tblGroup) {
-                            if (!$tblGroup->isLocked() && Group::useService()->existsGroupPerson($tblGroup,
-                                    $tblPerson)
-                            ) {
-                                $divisionTable[] = array(
-                                    'Group' => $tblGroup->getName(),
-                                    'Option' => new Standard(
-                                        '', '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student', new Select(),
-                                        array(
-                                            'GroupId' => $tblGroup->getId(),
-                                        ),
-                                        'Auswählen'
-                                    )
-                                );
-                            }
+                            $divisionTable[] = array(
+                                'Group' => $tblGroup->getName(),
+                                'Option' => new Standard(
+                                    '', '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student', new Select(),
+                                    array(
+                                        'GroupId' => $tblGroup->getId(),
+                                    ),
+                                    'Auswählen'
+                                )
+                            );
                         }
                     }
                 }
@@ -2205,24 +2201,20 @@ class Frontend extends FrontendScoreRule
         $divisionTable = array();
         if ($IsGroup) {
             // tudorGroups
-            if (($tblGroupAll = Group::useService()->getGroupAll())) {
+            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
-                    if (!$tblGroup->isLocked()
-                        && $tblGroup->getTudors()
-                    ) {
-                        $divisionTable[] = array(
-                            'Year' => '',
-                            'Type' => '',
-                            'Group' => $tblGroup->getName(),
-                            'Option' => new Standard(
-                                '', '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division/Student', new Select(),
-                                array(
-                                    'GroupId' => $tblGroup->getId(),
-                                ),
-                                'Auswählen'
-                            )
-                        );
-                    }
+                    $divisionTable[] = array(
+                        'Year' => '',
+                        'Type' => '',
+                        'Group' => $tblGroup->getName(),
+                        'Option' => new Standard(
+                            '', '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division/Student', new Select(),
+                            array(
+                                'GroupId' => $tblGroup->getId(),
+                            ),
+                            'Auswählen'
+                        )
+                    );
                 }
             }
 
@@ -2982,7 +2974,7 @@ class Frontend extends FrontendScoreRule
     {
 
         $tblGroup = false;
-        $tblGroupTudor = Group::useService()->getGroupByMetaTable('TUDOR');
+        $tblGroupTudor = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR);
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
             || ($tblGroup = Group::useService()->getGroupById($GroupId))
         ) {

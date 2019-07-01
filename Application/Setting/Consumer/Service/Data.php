@@ -171,15 +171,23 @@ class Data extends AbstractData
                 'Anzeige der Zensuren im Wortlaut auf Abgangszeugnissen [Standard: Nein]', true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowParentTitle',
-            TblSetting::TYPE_BOOLEAN, '0'))) {
+            TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
-                'Anzeige der Personentitel der Eltern (Wird in Bildungsempfehlungen verwendet): [Standard: Nein]', true);
+                'Anzeige des Personentitels von Sorgeberechtigten in der Bildungsempfehlung [Standard: Ja]', true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
-                'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das): [Standard: ]');
+                'Artikel vor dem Schulnamen auf Abschlusszeugnissen und Abgangszeugnissen (z.B. das): [Standard: ]');
         }
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'AlternateSchoolName', TblSetting::TYPE_STRING,
+            '', 'Zeugnisse', 'Schulname auf Abschlusszeugnissen und Abgangszeugnissen: [Standard: ]');
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'AlternateExtendedSchoolName', TblSetting::TYPE_STRING,
+            '', 'Zeugnisse', 'Schul-Zusatz-Name auf Abschlusszeugnissen und Abgangszeugnissen: [Standard: ]');
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName', TblSetting::TYPE_BOOLEAN,
+            '', 'Zeugnisse', 'Schul-Zusatz-Name von der Institution auf Abschlusszeugnissen und Abgangszeugnissen anzeigen [Standard: Nein]'
+            , true);
+
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking',
             TblSetting::TYPE_BOOLEAN, '1'))
         ) {

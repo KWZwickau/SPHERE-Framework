@@ -310,15 +310,24 @@ class Service extends AbstractService
     /**
      * @param string $ItemName
      * @param string $Description
+     * @param string $SepaRemark
+     * @param string $DatevRemark
+     * @param string $FibuAccount
+     * @param string $FibuToAccount
+     * @param string $Kost1
+     * @param string $Kost2
+     * @param string $BuKey
      *
      * @return TblItem
      */
-    public function createItem($ItemName, $Description = '')
+    public function createItem($ItemName, $Description = '', $SepaRemark = '', $DatevRemark = '', $FibuAccount = ''
+        , $FibuToAccount = '', $Kost1 = '0', $Kost2 = '0', $BuKey = '0')
     {
 
         // ToDO Standard Einzelleistung (later choosable)
         $tblItemType = Item::useService()->getItemTypeByName(TblItemType::TYPE_SINGLE);
-        return (new Data($this->getBinding()))->createItem($tblItemType, $ItemName, $Description);
+        return (new Data($this->getBinding()))->createItem($tblItemType, $ItemName, $Description, $SepaRemark,
+            $DatevRemark, $FibuAccount, $FibuToAccount, $Kost1, $Kost2, $BuKey);
     }
 
     /**
@@ -364,14 +373,24 @@ class Service extends AbstractService
 
     /**
      * @param TblItem $tblItem
-     * @param         $ItemName
+     * @param string  $ItemName
+     * @param string  $Description
+     * @param string  $SepaRemark
+     * @param string  $DatevRemark
+     * @param string  $FibuAccount
+     * @param string  $FibuToAccount
+     * @param string  $Kost1
+     * @param string  $Kost2
+     * @param string  $BuKey
      *
      * @return string
      */
-    public function changeItem(TblItem $tblItem, $ItemName)
+    public function changeItem(TblItem $tblItem, $ItemName, $Description = '', $SepaRemark = '', $DatevRemark = '',
+        $FibuAccount = '', $FibuToAccount = '', $Kost1 = '0', $Kost2 = '0', $BuKey = '0')
     {
 
-        return (new Data($this->getBinding()))->updateItem($tblItem, $ItemName, '');
+        return (new Data($this->getBinding()))->updateItem($tblItem, $ItemName, $Description, $SepaRemark, $DatevRemark,
+            $FibuAccount, $FibuToAccount, $Kost1, $Kost2, $BuKey);
     }
 
     /**

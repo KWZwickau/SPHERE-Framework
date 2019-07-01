@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -43,10 +44,12 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
@@ -117,17 +120,22 @@ class Frontend extends Extension implements IFrontendInterface
                         $ItemArray[] = $tblItem->getName();
                     }
                     sort($ItemArray);
-                    $Item['Item'] = implode(', ', $ItemArray);
+                    $Item['Item'] = implode('<br/>', $ItemArray);
                 }
 
                 $Item['Sepa'] = '';
                 $Item['Datev'] = '';
 
+                $Item['IsCredit'] = '';
+                if($tblBasket->getIsCompanyCredit()){
+                    $Item['IsCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                }
+
                 if($tblBasket->getSepaDate()){
-                    $Item['Sepa'] = $tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')';
+                    $Item['Sepa'] = new Small($tblBasket->getSepaUser().' - ('.$tblBasket->getSepaDate().')');
                 }
                 if($tblBasket->getDatevDate()){
-                    $Item['Datev'] = $tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')';
+                    $Item['Datev'] = new Small($tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')');
                 }
                 $TypeName = '';
                 $DivisionName = '';
@@ -145,26 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Buttons = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
                         array('BasketId' => $tblBasket->getId()),
                         'Inhalt der Abrechnung');
-                    $IsSepa = false;
-                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA))){
-                        $IsSepa = $tblSetting->getValue();
-                    }
-                    if($IsSepa){
-                        if($tblBasket->getSepaDate()){
-                            $Buttons .= (new Standard('', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
-                                ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
-                        } else {
-                            $Buttons .= (new Primary('', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
-                                ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
-                        }
-                    }
-                    if($tblBasket->getDatevDate()){
-                        $Buttons .= (new Standard('', '\Api\Billing\Datev\Download', new Download(),
-                            array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
-                    } else {
-                        $Buttons .= (new Primary('', '\Api\Billing\Datev\Download', new Download(),
-                            array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
-                    }
+                    $Buttons .= $this->getDownloadButtons($tblBasket);
 
                     $Item['Option'] = $Buttons;
                 } else {
@@ -192,6 +181,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Time'       => 'Abrechnungsmonat',
                 'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
+                'IsCredit'   => 'Auszahlung',
                 'Sepa'       => 'Letzter SEPA-Download',
                 'Datev'      => 'Letzter DATEV-Download',
                 'Option'     => ''
@@ -207,6 +197,66 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             )
         );
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return string
+     */
+    private function getDownloadButtons(TblBasket $tblBasket)
+    {
+
+        $Buttons = '';
+        $IsSepa = false;
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA))){
+            $IsSepa = $tblSetting->getValue();
+        }
+        $IsDatev = false;
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV))){
+            $IsDatev = $tblSetting->getValue();
+        }
+            // credit
+        if($tblBasket->getIsCompanyCredit()){
+            if($IsSepa){
+                if($tblBasket->getDatevDate()){
+                    $Buttons .= (new Standard('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
+                } else {
+                    $Buttons .= (new Primary('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
+                }
+            }
+//            // Datev für diesen Vorgang erstmal verschoben
+//            if($tblBasket->getDatevDate()){
+//                $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
+//                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+//            } else {
+//                $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
+//                    array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+//            }
+        } else {
+            // debit
+            if($IsSepa){
+                if($tblBasket->getSepaDate()){
+                    $Buttons .= (new Standard('SEPA', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
+                        ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
+                } else {
+                    $Buttons .= (new Primary('SEPA', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
+                        ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
+                }
+            }
+            if($IsDatev){
+                if ($tblBasket->getDatevDate()){
+                    $Buttons .= (new Standard('DATEV', '\Api\Billing\Datev\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+                } else {
+                    $Buttons .= (new Primary('DATEV', '\Api\Billing\Datev\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'DATEV Download'));
+                }
+            }
+        }
+        return $Buttons;
     }
 
 
@@ -272,7 +322,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         $PanelContent = '';
         $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
             if($tblSetting->getValue() == 1){
                 $IsDebtorNumberNeed = true;
             }
@@ -413,14 +463,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $Title = 'Anzahl der Zahlungszuordnungen:';
                         break;
                     case 'DebtorNumberMiss':
-                        $Title = 'Anzahl fehlernder Debitoren-Nr.:';
+                        $Title = 'Anzahl der fehlenden Debitoren-Nr.:';
                         if($Count > 0 && $IsDebtorNumberNeed){
                             $Title = new DangerText($Title);
                             $DebtorNumberMissCount = $Count;
                         }
                         break;
                     case 'DebtorMiss':
-                        $Title = 'Anzahl fehlender Zahlungszuweisungen:';
+                        $Title = 'Anzahl der fehlenden Zahlungszuweisungen:';
                         if($Count > 0){
                             $Title = new DangerText($Title);
                             $DebtorMissCount = $Count;

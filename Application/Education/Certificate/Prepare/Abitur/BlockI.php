@@ -165,6 +165,11 @@ class BlockI extends AbstractBlock
                             $this->getScientificTable(),
                             Panel::PANEL_TYPE_PRIMARY
                         ),
+                        new Panel(
+                            'Sonstiges Aufgabenfeld',
+                            $this->getOtherTable(),
+                            Panel::PANEL_TYPE_PRIMARY
+                        ),
                     ))
                 ))
             ))
@@ -353,7 +358,6 @@ class BlockI extends AbstractBlock
         $dataList = $this->setSubjectRow($dataList, 'Russisch');
         $dataList = $this->setSubjectRow($dataList, 'Spanisch');
         $dataList = $this->setSubjectRow($dataList, 'Tschechisch');
-        $dataList = $this->setSubjectRow($dataList, '&nbsp;');
         $dataList = $this->setSubjectRow($dataList, 'Kunst');
         $dataList = $this->setSubjectRow($dataList, 'Musik');
 
@@ -405,13 +409,6 @@ class BlockI extends AbstractBlock
         $dataList = $this->setSubjectRow($dataList, 'Biologie');
         $dataList = $this->setSubjectRow($dataList, 'Chemie');
         $dataList = $this->setSubjectRow($dataList, 'Physik');
-        $dataList = $this->setSubjectRow($dataList, '&nbsp;');
-        $dataList = $this->setSubjectRow($dataList, $this->tblReligionSubject ? $this->tblReligionSubject->getName() : 'Ev./Kath. Religion/Ethik');
-        $dataList = $this->setSubjectRow($dataList, 'Sport');
-        $dataList = $this->setSubjectRow($dataList, '&nbsp;');
-        $dataList = $this->setSubjectRow($dataList, 'Astronomie');
-        $dataList = $this->setSubjectRow($dataList, 'Informatik');
-        $dataList = $this->setSubjectRow($dataList, 'Philosophie');
 
         $scientificTable = new TableData(
             $dataList,
@@ -422,5 +419,28 @@ class BlockI extends AbstractBlock
         $scientificTable->setHash('Abitur - Overview - Show - Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld');
 
         return $scientificTable;
+    }
+
+    private function getOtherTable()
+    {
+        $dataList = array();
+        $dataList = $this->setSubjectRow($dataList, $this->tblReligionSubject ? $this->tblReligionSubject->getName() : 'Ev./Kath. Religion/Ethik');
+        $dataList = $this->setSubjectRow($dataList, 'Sport');
+        if (($tblExtraSubject = Subject::useService()->getSubjectByAcronym('DSW'))) {
+            $dataList = $this->setSubjectRow($dataList, $tblExtraSubject->getName());
+        }
+        $dataList = $this->setSubjectRow($dataList, 'Astronomie');
+        $dataList = $this->setSubjectRow($dataList, 'Informatik');
+        $dataList = $this->setSubjectRow($dataList, 'Philosophie');
+
+        $otherTable = new TableData(
+            $dataList,
+            null,
+            $this->columnDefinition,
+            $this->interactive
+        );
+        $otherTable->setHash('Abitur - Overview - Show - Sonstiges Aufgabenfeld');
+
+        return $otherTable;
     }
 }

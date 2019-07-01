@@ -2,6 +2,10 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
@@ -11,7 +15,14 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -293,6 +304,33 @@ class Service extends AbstractService
     }
 
     /**
+     * @param null|int $Count
+     *
+     * @return string
+     */
+    public function getMonthName($Count = null)
+    {
+
+        $Month = '';
+        $MonthList[1] = 'Januar';
+        $MonthList[2] = 'Februar';
+        $MonthList[3] = 'März';
+        $MonthList[4] = 'April';
+        $MonthList[5] = 'Mai';
+        $MonthList[6] = 'Juni';
+        $MonthList[7] = 'Juli';
+        $MonthList[8] = 'August';
+        $MonthList[9] = 'September';
+        $MonthList[10] = 'Oktober';
+        $MonthList[11] = 'November';
+        $MonthList[12] = 'Dezember';
+        if(isset($MonthList[(int)$Count])){
+            $Month = $MonthList[(int)$Count];
+        }
+        return $Month;
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return bool|Redirect
@@ -311,15 +349,18 @@ class Service extends AbstractService
         $TargetTime = $tblBasket->getTargetTime();
         $MaxInvoiceNumber = Invoice::useService()->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
 
-        // First Look and remove existing Invoice
-        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
+        // erste Durchsicht, entfernnen vorhandener Rechnungen (gleiche Rechnungen im Abrechnungszeitraum
+        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt
         array_walk($tblBasketVerificationList,
             function(TblBasketVerification &$tblBasketVerification) use ($Month, $Year){
                 $tblPerson = $tblBasketVerification->getServiceTblPersonCauser();
                 $tblItem = $tblBasketVerification->getServiceTblItem();
 
-                // entfernen der Beiträge mit 0€
                 if($tblBasketVerification->getValue() === '0.0000'){
+                    // entfernen der Beiträge mit 0€
+                    $tblBasketVerification = false;
+                } elseif($tblBasketVerification->getQuantity() == 0) {
+                    // entfernen der Beiträge mit Anzahl 0
                     $tblBasketVerification = false;
                 } elseif($tblPerson && $tblItem) { // Entfernen aller Beiträge
                     if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
@@ -367,7 +408,12 @@ class Service extends AbstractService
                 $PersonDebtorId = $tblPersonDebtor->getId();
                 $PersonCauserId = $tblPersonCauser->getId();
 
-                $GroupString = $PersonDebtorId.'#'.$PersonCauserId;
+                $tblReferenceId = '';
+                if($tblBankReference = $tblBasketVerification->getServiceTblBankReference()){
+                    $tblReferenceId = $tblBankReference->getId();
+                }
+
+                $GroupString = $PersonDebtorId.'#'.$PersonCauserId.'#'.$tblReferenceId;
                 /** Fill InvoiceList */
                 if(!isset($DebtorInvoiceList[$GroupString])){
                     $MaxInvoiceNumber++;
@@ -398,7 +444,11 @@ class Service extends AbstractService
             /** get Invoice from BulkSave */
             $PersonDebtorId = $tblPersonDebtor->getId();
             $PersonCauserId = $tblPersonCauser->getId();
-            $GroupString = $PersonDebtorId.'#'.$PersonCauserId;
+            $tblReferenceId = '';
+            if($tblBankReference = $tblBasketVerification->getServiceTblBankReference()){
+                $tblReferenceId = $tblBankReference->getId();
+            }
+            $GroupString = $PersonDebtorId.'#'.$PersonCauserId.'#'.$tblReferenceId;
             $tblInvoice = $this->getInvoiceByIntegerAndYearAndMonth($DebtorInvoiceList[$GroupString]['Identifier'],
                 $Year, $Month);
             /** fill Invoice/ItemDebtor */
@@ -473,5 +523,329 @@ class Service extends AbstractService
 //        return new Redirect('/Billing/Bookkeeping/Invoice/View', Redirect::TIMEOUT_SUCCESS, array(
 //            'Invoice' => $Invoice
 //        ));
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     * @param $BasketName
+     * @param $ItemName
+     * @param $IsFrontend
+     *
+     * @return array
+     */
+    public function getInvoiceCauserList(
+        $Year,
+        $Month,
+        $BasketName,
+        $ItemName,
+        $IsFrontend
+    ) {
+        $TableContent = array();
+        if (($tblInvoiceList = $this->getInvoiceByYearAndMonth($Year, $Month, $BasketName))) {
+            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent, $ItemName, $IsFrontend){
+                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
+                $item['BasketName'] = $tblInvoice->getBasketName();
+//                $item['TargetTime'] = $tblInvoice->getTargetTime();
+                //ToDO Person aus Service oder fester string?
+                $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
+                $item['CompanyCredit'] = '';
+                if(($tblBasket = $tblInvoice->getServiceTblBasket())){
+                    if($tblBasket->getIsCompanyCredit()){
+                        $item['CompanyCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                    }
+                }
+
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+                        // Beitragsart filtern
+                        if ($ItemName != ''
+                            && strtolower($tblInvoiceItemDebtor->getName()) != strtolower($ItemName)
+                        ) {
+                            continue;
+                        }
+
+                        $item['DebtorPerson'] = '';
+                        $item['Item'] = '';
+                        $item['ItemQuantity'] = '';
+                        $item['ItemPrice'] = 0;
+                        $item['ItemSumPrice'] = 0;
+
+                        $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                        $item['Item'] = $tblInvoiceItemDebtor->getName();
+                        $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
+                        $item['ItemPrice'] = $tblInvoiceItemDebtor->getValue();
+                        $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
+                        $item['PaymentType'] = $tblInvoiceItemDebtor->getServiceTblPaymentType()
+                            ? $tblInvoiceItemDebtor->getServiceTblPaymentType()->getName() : '';
+
+                        if($IsFrontend) {
+                            $CheckBox = (new CheckBox('IsPaid', ' ',
+                                $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
+                                ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
+                            if (!$tblInvoiceItemDebtor->getIsPaid()) {
+                                $CheckBox->setChecked();
+                            }
+
+                            $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox,
+                                $tblInvoiceItemDebtor->getId());
+                        }
+
+//                        $item['Option'] = '';
+                        // convert to Frontend
+                        $item['ItemPrice'] = str_replace('.',',', number_format($item['ItemPrice'], 2) . ($IsFrontend ? ' €' : ''));
+                        $item['ItemSumPrice'] = str_replace('.',',', number_format($item['ItemSumPrice'], 2) . ($IsFrontend ? ' €' : ''));
+                        array_push($TableContent, $item);
+                    }
+                }
+            });
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     * @param $BasketName
+     * @param $ItemName
+     *
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
+     */
+    public function createInvoiceCauserListExcel(
+        $Year,
+        $Month,
+        $BasketName,
+        $ItemName
+    ) {
+        $resultList =  $this->getInvoiceCauserList($Year, $Month, $BasketName, $ItemName, false);
+        if(!empty($resultList)){
+            // nach Beitragsverursacher sortieren
+            foreach ($resultList as $key => $value) {
+                $causerName[$key] = strtoupper($value['CauserPerson']);
+            }
+            array_multisort($causerName, SORT_NATURAL, $resultList);
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $row = 0;
+            $column = 0;
+
+            $export->setValue($export->getCell($column++, $row), 'Beitragsverursacher');
+            $export->setValue($export->getCell($column++, $row), 'Beitragsarten');
+            $export->setValue($export->getCell($column++, $row), 'Beitragszahler');
+            $export->setValue($export->getCell($column++, $row), 'Name der Abrechnung');
+            $export->setValue($export->getCell($column++, $row), 'Abrechnungszeitraum');
+            $export->setValue($export->getCell($column++, $row), 'Rechnungsnummer');
+            $export->setValue($export->getCell($column++, $row), 'Zahlungsart');
+            $export->setValue($export->getCell($column++, $row), 'Menge');
+            $export->setValue($export->getCell($column++, $row), 'Einzelpreis');
+            $export->setValue($export->getCell($column++, $row), 'Gesamtpreis');
+            $export->setValue($export->getCell($column, $row), 'Auszahlung');
+
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+            foreach($resultList as $result) {
+                $column = 0;
+                $row++;
+
+                $export->setValue($export->getCell($column++, $row), $result['CauserPerson']);
+                $export->setValue($export->getCell($column++, $row), $result['Item']);
+                $export->setValue($export->getCell($column++, $row), $result['DebtorPerson']);
+                $export->setValue($export->getCell($column++, $row), $result['BasketName']);
+                $export->setValue($export->getCell($column++, $row), $result['Time']);
+                $export->setValue($export->getCell($column++, $row), $result['InvoiceNumber']);
+                $export->setValue($export->getCell($column++, $row), $result['PaymentType']);
+                $export->setValue($export->getCell($column++, $row), $result['ItemQuantity']);
+                $export->setValue($export->getCell($column++, $row), $result['ItemPrice']);
+                $export->setValue($export->getCell($column++, $row), $result['ItemSumPrice']);
+                $export->setValue($export->getCell($column, $row), ($result['CompanyCredit'] ? 'Ja' : ''));
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     * @param $BasketName
+     * @param $IsFrontend
+     *
+     * @return array
+     */
+    public function getInvoiceDebtorList(
+        $Year,
+        $Month,
+        $BasketName,
+        $IsFrontend
+    ) {
+        $TableContent = array();
+        if(($tblInvoiceList = $this->getInvoiceByYearAndMonth($Year, $Month, $BasketName))){
+            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent, $IsFrontend){
+                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
+                $item['TargetTime'] = $tblInvoice->getTargetTime();
+                $item['BasketName'] = $tblInvoice->getBasketName();
+                $item['CauserPerson'] = '';
+                if($tblPersonCauser = $tblInvoice->getServiceTblPersonCauser()){
+                    $item['CauserPerson'] = $tblPersonCauser->getLastFirstName();
+                }
+                $item['DebtorPerson'] = '';
+                $item['DebtorNumber'] = '';
+                $item['CompanyCredit'] = '';
+                if(($tblBasket = $tblInvoice->getServiceTblBasket())){
+                    if($tblBasket->getIsCompanyCredit()){
+                        $item['CompanyCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                    }
+                }
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                    $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
+                    $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                    $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
+                    $ItemList = array();
+                    $PaymentList = array();
+                    $ItemPrice = 0;
+                    $itemsForExcel = array();
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+                        if (($tblPaymentType =$tblInvoiceItemDebtor->getServiceTblPaymentType())) {
+                            $PaymentList[$tblPaymentType->getId()] = $tblPaymentType->getName();
+                        }
+                        $price = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
+                        $ItemPrice += $price;
+                        $ItemList[] = $tblInvoiceItemDebtor->getName() . ': '
+                            . str_replace('.',',', number_format($price, 2)) . ' €';
+                        $itemsForExcel[] = array(
+                            'Name' => $tblInvoiceItemDebtor->getName(),
+                            'DisplayPrice' => str_replace('.',',', number_format($price, 2)),
+                            'Price' => $price
+                        );
+                    }
+                    $item['PaymentType'] = implode(', ', $PaymentList);
+                    // convert to Frontend
+                    $ItemString = implode(',<br>', $ItemList);
+                    $item['DisplaySumPrice'] = str_replace('.',',', number_format($ItemPrice, 2))
+                        . ($IsFrontend ? ' €&nbsp;&nbsp;&nbsp;' . (new ToolTip(new Info(), $ItemString))->enableHtml() : '');
+                    $item['SumPrice'] = number_format($ItemPrice, 2);
+                    $item['ItemsForExcel'] = $itemsForExcel;
+                }
+//                $item['Option'] = '';
+
+                array_push($TableContent, $item);
+            });
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     * @param $BasketName
+     *
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
+     */
+    public function createInvoiceDebtorListExcel(
+        $Year,
+        $Month,
+        $BasketName
+    ) {
+        $resultList =  $this->getInvoiceDebtorList(
+            $Year,
+            $Month,
+            $BasketName,
+            false
+        );
+        if(!empty($resultList)){
+            $extraHeaderList = array();
+            $sum = array();
+            $sum['Total'] = 0;
+            // nach Beitragszahler sortieren
+            foreach ($resultList as $key => $value) {
+                $debtorName[$key] = strtoupper($value['DebtorPerson']);
+
+                if (isset($value['ItemsForExcel'])) {
+                    foreach ($value['ItemsForExcel'] as $subValue) {
+                        if (!in_array($subValue['Name'], $extraHeaderList)) {
+                            $extraHeaderList[] = $subValue['Name'];
+                        }
+                    }
+                }
+            }
+            array_multisort($debtorName, SORT_NATURAL, $resultList);
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $row = 0;
+            $column = 0;
+
+            $export->setValue($export->getCell($column++, $row), 'Beitragszahler');
+            $export->setValue($export->getCell($column++, $row), 'Debitoren-Nr.');
+            $export->setValue($export->getCell($column++, $row), 'Name der Abrechnung');
+            $export->setValue($export->getCell($column++, $row), 'Beitragsverursacher');
+            $export->setValue($export->getCell($column++, $row), 'Abrechnungszeitraum');
+            $export->setValue($export->getCell($column++, $row), 'Fälligkeitsdatum');
+            $export->setValue($export->getCell($column++, $row), 'Rechnungsnummer');
+            $export->setValue($export->getCell($column++, $row), 'Zahlungsart');
+            $export->setValue($export->getCell($column++, $row), 'Auszahlung');
+            $export->setValue($export->getCell($column++, $row), 'Gesamtbetrag');
+            foreach ($extraHeaderList as $item) {
+                $export->setValue($export->getCell($column++, $row), $item);
+                $sum[$item] = 0;
+            }
+
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+            foreach($resultList as $result) {
+                $column = 0;
+                $row++;
+
+                $export->setValue($export->getCell($column++, $row), $result['DebtorPerson']);
+                $export->setValue($export->getCell($column++, $row), $result['DebtorNumber']);
+                $export->setValue($export->getCell($column++, $row), $result['BasketName']);
+                $export->setValue($export->getCell($column++, $row), $result['CauserPerson']);
+                $export->setValue($export->getCell($column++, $row), $result['Time']);
+                $export->setValue($export->getCell($column++, $row), $result['TargetTime']);
+                $export->setValue($export->getCell($column++, $row), $result['InvoiceNumber']);
+                $export->setValue($export->getCell($column++, $row), $result['PaymentType']);
+                $export->setValue($export->getCell($column++, $row), ($result['CompanyCredit'] ? 'Ja' : ''));
+                $export->setValue($export->getCell($column++, $row), $result['DisplaySumPrice']);
+
+                $sum['Total'] += $result['SumPrice'];
+
+                foreach ($extraHeaderList as $header) {
+                    if (isset($result['ItemsForExcel'])) {
+                         foreach ($result['ItemsForExcel'] as $subItem) {
+                             if ($subItem['Name'] == $header) {
+                                 $export->setValue($export->getCell($column, $row), $subItem['DisplayPrice']);
+                                 $sum[$header] +=  $subItem['Price'];
+                             }
+                         }
+                    }
+                    $column++;
+                }
+            }
+
+            // Aufsummierung
+            $column = 8;
+            $row++;
+            $export->setValue($export->getCell($column++, $row), 'Summe');
+            $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum['Total'], 2)));
+            foreach ($extraHeaderList as $headerItem) {
+                $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum[$headerItem], 2)));
+            }
+            $export->setStyle($export->getCell(7, $row), $export->getCell($column - 1, $row))->setFontBold();
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+            return $fileLocation;
+        }
+
+        return false;
     }
 }

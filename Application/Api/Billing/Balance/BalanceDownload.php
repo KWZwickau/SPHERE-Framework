@@ -25,13 +25,6 @@ class BalanceDownload implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Balance/Print/Download', __NAMESPACE__.'\BalanceDownload::downloadBalanceList'
         ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Balance/MonthOverView/Download', __NAMESPACE__.'\BalanceDownload::downloadMonthOverView'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Balance/YearOverView/Download', __NAMESPACE__.'\BalanceDownload::downloadYearOverView'
-        ));
-
     }
 
     /**
@@ -81,38 +74,4 @@ class BalanceDownload implements IModuleInterface
 
         return false;
     }
-
-    /**
-     * @param string $Year
-     * @param string $Month
-     *
-     * @return bool|string
-     */
-    public function downloadMonthOverView($Year = '', $Month = '')
-    {
-
-        if(($fileLocation = Balance::useService()->createMonthOverViewExcel($Year, $Month))){
-            $MonthList = Invoice::useService()->getMonthList();
-            $Month = $MonthList[$Month];
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                'Monatsübersicht-'.$Month.'.xlsx')->__toString();
-        }
-        return false;
-    }
-
-    /**
-     * @param string $Year
-     *
-     * @return bool|string
-     */
-    public function downloadYearOverView($Year = '')
-    {
-
-        if(($fileLocation = Balance::useService()->createYearOverViewExcel($Year))){
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                'Jahresübersicht-'.$Year.'.xlsx')->__toString();
-        }
-        return false;
-    }
-
 }

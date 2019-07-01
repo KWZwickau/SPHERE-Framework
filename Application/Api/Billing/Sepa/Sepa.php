@@ -30,6 +30,11 @@ class Sepa implements IModuleInterface
             __CLASS__.'::downloadSepa'
         ));
 
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Credit/Download',
+            __CLASS__.'::downloadSepaCredit'
+        ));
+
     }
 
     /**
@@ -67,6 +72,7 @@ class Sepa implements IModuleInterface
             $directDebit = Balance::useService()->createSepaContent($tblBasket, $CheckboxList);
         }
 
+        $name = $tblBasket->getName();
         $month = $tblBasket->getMonth();
         $year = $tblBasket->getYear();
         $monthString = '';
@@ -78,12 +84,44 @@ class Sepa implements IModuleInterface
         if($directDebit){
             // Retrieve the resulting XML
             header('Content-type: text/xml');
-            header('Content-Disposition: attachment; filename="Abrechnung_'.$monthString.'_'.$year.'.xml"');
+            header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.'.xml"');
             return $directDebit->asXML();
         } else {
             return new Warning('XML Datei enthält keine Sepa-Lastschrift');
         }
+    }
 
+    /**
+     * @param string $BasketId
+     *
+     * @return string
+     */
+    public function downloadSepaCredit($BasketId = '')
+    {
+
+        $tblBasket = Basket::useService()->getBasketById($BasketId);
+        $customerCredit = false;
+        if($tblBasket){
+            $customerCredit = Balance::useService()->createSepaCreditContent($tblBasket);
+        }
+
+        $name = $tblBasket->getName();
+        $month = $tblBasket->getMonth();
+        $year = $tblBasket->getYear();
+        $monthString = '';
+        $monthList = Invoice::useService()->getMonthList($month, $month);
+        if(!empty($monthList)){
+            $monthString = current($monthList);
+        }
+
+        if($customerCredit){
+            // Retrieve the resulting XML
+            header('Content-type: text/xml');
+            header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.'.xml"');
+            return $customerCredit->asXML();
+        } else {
+            return new Warning('XML Datei enthält keine Sepa-Lastschrift');
+        }
     }
 
 

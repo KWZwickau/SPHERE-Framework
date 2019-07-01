@@ -258,18 +258,43 @@ class ApiSetting extends Extension implements IApiInterface
 
         switch($Category){
             case TblSetting::CATEGORY_REGULAR:
-                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 7);
-                Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
-                $IsDebtorNumberNeed = (isset($Setting[TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, $IsDebtorNumberNeed);
-                $IsAutoDebtorNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
-                $IsAutoReferenceNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, $IsAutoReferenceNumber);
+                // aktuell leer
             break;
             case TblSetting::CATEGORY_SEPA:
                 $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
                 Setting::useService()->createSetting(TblSetting::IDENT_IS_SEPA, $IsSepaAccountNeed);
+                $IsAutoReferenceNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, $IsAutoReferenceNumber);
+                $SepaRemark = (isset($Setting[TblSetting::IDENT_SEPA_REMARK]) ? $Setting[TblSetting::IDENT_SEPA_REMARK]: '');
+                Setting::useService()->createSetting(TblSetting::IDENT_SEPA_REMARK, $SepaRemark);
+                $SepaFee = (isset($Setting[TblSetting::IDENT_SEPA_FEE]) ? $Setting[TblSetting::IDENT_SEPA_FEE]: '');
+                Setting::useService()->createSetting(TblSetting::IDENT_SEPA_FEE, $SepaFee);
+            break;
+            case TblSetting::CATEGORY_DATEV:
+                $IsDatev = (isset($Setting[TblSetting::IDENT_IS_DATEV]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_DATEV, $IsDatev);
+                $DebtorNumberCount = (isset($Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT]) ? $Setting[TblSetting::IDENT_DEBTOR_NUMBER_COUNT] : 5);
+                Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, $DebtorNumberCount);
+                $ConsultNumber = (isset($Setting[TblSetting::IDENT_CONSULT_NUMBER]) ? $Setting[TblSetting::IDENT_CONSULT_NUMBER] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_CONSULT_NUMBER, $ConsultNumber);
+                $ClientNumber = (isset($Setting[TblSetting::IDENT_CLIENT_NUMBER]) ? $Setting[TblSetting::IDENT_CLIENT_NUMBER] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_CLIENT_NUMBER, $ClientNumber);
+                $ProperAccountLength = (isset($Setting[TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH]) ? $Setting[TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH] : 8);
+                Setting::useService()->createSetting(TblSetting::IDENT_PROPER_ACCOUNT_NUMBER_LENGTH, $ProperAccountLength);
+                $IsAutoDebtorNumber = (isset($Setting[TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, $IsAutoDebtorNumber);
+                $DatevRemark = (isset($Setting[TblSetting::IDENT_DATEV_REMARK]) ? $Setting[TblSetting::IDENT_DATEV_REMARK] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_DATEV_REMARK, $DatevRemark);
+                $FibuAccount = (isset($Setting[TblSetting::IDENT_FIBU_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_ACCOUNT] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_FIBU_ACCOUNT, $FibuAccount);
+                $FibuToAccount = (isset($Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT] : '');
+                Setting::useService()->createSetting(TblSetting::IDENT_FIBU_TO_ACCOUNT, $FibuToAccount);
+                $Kost1 = (isset($Setting[TblSetting::IDENT_KOST_1]) ? $Setting[TblSetting::IDENT_KOST_1] : '0');
+                Setting::useService()->createSetting(TblSetting::IDENT_KOST_1, $Kost1);
+                $Kost2 = (isset($Setting[TblSetting::IDENT_KOST_2]) ? $Setting[TblSetting::IDENT_KOST_2] : '0');
+                Setting::useService()->createSetting(TblSetting::IDENT_KOST_2, $Kost2);
+                $BuKey = (isset($Setting[TblSetting::IDENT_BU_KEY]) ? $Setting[TblSetting::IDENT_BU_KEY] : '0');
+                Setting::useService()->createSetting(TblSetting::IDENT_BU_KEY, $BuKey);
             break;
         }
 

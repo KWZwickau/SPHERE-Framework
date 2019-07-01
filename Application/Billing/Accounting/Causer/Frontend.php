@@ -163,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
                 $IsDebtorNumberNeed = false;
-                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
                     if($tblSetting->getValue() == 1){
                         $IsDebtorNumberNeed = true;
                     }
@@ -208,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Beitragszahler: Keine Bankdaten hinterlegt'));
                                     if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
                                         $BankStatus = new ToolTip(new DangerText(new Info()),
-                                            'Beitragszahler: Mandantsreferenznummer fehlt');
+                                            'Beitragszahler: Mandatsreferenznummer fehlt');
                                     }
                                     if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                                         $BankStatus = new ToolTip(new SuccessText(new Info()), 'Beitragszahler OK');
@@ -361,7 +361,7 @@ class Frontend extends Extension implements IFrontendInterface
         $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
         $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummer',
             ApiBankReference::receiverPanelContent($this->getReferenceContent($PersonId)).
-            (new Link('Mandantsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
+            (new Link('Mandatsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
                 ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenAddReferenceModal('addBankReference', $PersonId)),
             Panel::PANEL_TYPE_INFO),
             3);
@@ -394,9 +394,9 @@ class Frontend extends Extension implements IFrontendInterface
 
 
         $Stage->setContent(
-            ApiBankReference::receiverModal('Hinzufügen einer Mandantsreferenznummer', 'addBankReference')
-            .ApiBankReference::receiverModal('Bearbeiten der Mandantsreferenznummer', 'editBankReference')
-            .ApiBankReference::receiverModal('Entfernen der Mandantsreferenznummer', 'deleteBankReference')
+            ApiBankReference::receiverModal('Hinzufügen einer Mandatsreferenznummer', 'addBankReference')
+            .ApiBankReference::receiverModal('Bearbeiten der Mandatsreferenznummer', 'editBankReference')
+            .ApiBankReference::receiverModal('Entfernen der Mandatsreferenznummer', 'deleteBankReference')
             .ApiDebtorSelection::receiverModal('Hinzufügen der Beitragszahler', 'addDebtorSelection')
             .ApiDebtorSelection::receiverModal('Bearbeiten der Beitragszahler', 'editDebtorSelection')
             .ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
@@ -424,13 +424,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $NumberList = array();
                 foreach($tblReferenceList as $tblReference) {
                     //ToDO bearbeiten/löschen deaktivieren, wenn sie bereits benutzt werden
-                    $NumberList[] = $tblReference->getReferenceNumber().' '.new ToolTip(new Info().'&nbsp;&nbsp;'
-                            , 'Gültig ab: '.$tblReference->getReferenceDate()).' '
-                        .(new Link('', ApiBankReference::getEndpoint(), new Pencil()))
+                    $Description = '';
+                    if($tblReference->getDescription()){
+                        $Description = '<br/>'.$tblReference->getDescription();
+                    }
+                    $NumberList[] = $tblReference->getReferenceNumber().' '.(new ToolTip(new Info().'&nbsp;&nbsp;'
+                            , htmlspecialchars('Gültig ab: '.$tblReference->getReferenceDate()).' '.$Description))->enableHtml()
+                        .(new Link('', ApiBankReference::getEndpoint(), new Pencil(), array(), 'Mandatsreferenznummer bearbeiten'))
                             ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenEditReferenceModal('editBankReference',
                                 $PersonId, $tblReference->getId()))
                         .' | '
-                        .(new Link(new DangerText(new Disable()), ApiBankReference::getEndpoint()))
+                        .(new Link(new DangerText(new Disable()), ApiBankReference::getEndpoint(), null , array(), 'Mandatsreferenznummer entfernen'))
                             ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenDeleteReferenceModal('deleteBankReference',
                                 $PersonId, $tblReference->getId()));
                 }
@@ -463,7 +467,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                     $PaymentType = 'Zahlungsart: ';
                     $BankAccount = 'Bank: ';
-                    $Reference = 'Mandantsreferenznummer: ';
+                    $Reference = 'Mandatsreferenznummer: ';
                     $Debtor = 'Bezahler: ';
                     $PeriodPayType = 'Zahlungszeitraum: ';
                     $FromDate = 'Gültig ab: ';
@@ -488,11 +492,11 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $OptionButtons = new PullRight(
-                        (new Link('', '', new Pencil()))
+                        (new Link('', '', new Pencil(), array(), 'Beitragszahler bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenEditDebtorSelectionModal(
                                 'editDebtorSelection', $PersonId, $ItemId, $tblDebtorSelection->getId()))
                         .' | '
-                        .(new Link(new DangerText(new Disable()), ''))
+                        .(new Link(new DangerText(new Disable()), 'Beitragszahler entfernen'))
                             ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenDeleteDebtorSelectionModal(
                                 'deleteDebtorSelection', $PersonId, $ItemId, $tblDebtorSelection->getId()))
                     );

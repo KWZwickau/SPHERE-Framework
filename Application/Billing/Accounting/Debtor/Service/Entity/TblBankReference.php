@@ -19,6 +19,7 @@ class TblBankReference extends Element
 
     const ATTR_REFERENCE_NUMBER = 'ReferenceNumber';
     const ATTR_REFERENCE_DATE = 'ReferenceDate';
+    const ATTR_DESCRIPTION = 'Description';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
@@ -29,6 +30,10 @@ class TblBankReference extends Element
      * @Column(type="datetime")
      */
     protected $ReferenceDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
     /**
      * @Column(type="bigint")
      */
@@ -78,6 +83,24 @@ class TblBankReference extends Element
     {
 
         $this->ReferenceDate = $ReferenceDate;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 
     /**

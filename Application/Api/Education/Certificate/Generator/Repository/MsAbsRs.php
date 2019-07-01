@@ -191,7 +191,7 @@ class MsAbsRs extends Certificate
             ->addSlice($this->getDateLine($personId))
             ///////
             ->addSlice($this->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('50px',
+            ->addSlice($this->getInfo('40px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );
@@ -204,6 +204,19 @@ class MsAbsRs extends Certificate
 
         $sliceList = array();
 
+        // SSW-164 Schulname aus den Mandanteneinstellungen verwenden
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'AlternateSchoolName'))
+            && ($value = trim($tblSetting->getValue()))
+        ) {
+            $schoolName = $value;
+        } else {
+            $schoolName = '{% if(Content.P' . $personId . '.Company.Data.Name) %}
+                                {{ Content.P' . $personId . '.Company.Data.Name }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}';
+        }
+
         // Artikel vor dem Schulnamen
         if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName'))
@@ -215,11 +228,7 @@ class MsAbsRs extends Certificate
                         ->setContent('hat ' . $tblSetting->getValue())
                         , '9%')
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                        ->setContent($schoolName)
                         ->styleBorderBottom('1px')
                         ->styleAlignCenter()
                     )
@@ -236,11 +245,7 @@ class MsAbsRs extends Certificate
                         ->setContent('hat')
                         , '5%')
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                        ->setContent($schoolName)
                         ->styleBorderBottom('1px')
                         ->styleAlignCenter()
                     )
@@ -250,6 +255,42 @@ class MsAbsRs extends Certificate
                         , '5%')
                 )
                 ->styleMarginTop('35px');
+        }
+
+        // Schul-Zusatz
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName'))
+            && ($value = trim($tblSetting->getValue()))
+        ) {
+           $showExtendedSchoolName = true;
+        } else {
+            $showExtendedSchoolName = false;
+        }
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'AlternateExtendedSchoolName'))
+            && ($value = trim($tblSetting->getValue()))
+        ) {
+            $extendedSchoolName = $value;
+        } else {
+            $extendedSchoolName = '';
+        }
+        $hasExtraRow = false;
+        if ($showExtendedSchoolName || $extendedSchoolName != '') {
+            $hasExtraRow = true;
+            if ($extendedSchoolName == '') {
+                $extendedSchoolName = '
+                {% if(Content.P' . $personId . '.Company.Data.ExtendedName) %}
+                    {{ Content.P' . $personId . '.Company.Data.ExtendedName }}
+                {% else %}
+                    &nbsp;
+                {% endif %}';
+            }
+            $sliceList[] = (new Slice())
+                ->addElement(
+                    (new Element())
+                        ->setContent($extendedSchoolName)
+                        ->styleBorderBottom('1px')
+                        ->styleAlignCenter()
+                )
+                ->styleMarginTop('10px');
         }
 
         $sliceList[] = (new Slice())
@@ -300,7 +341,7 @@ class MsAbsRs extends Certificate
 //                ->styleTextColor('#999')
                 ->styleAlignCenter()
                 ->styleMarginTop('5px')
-                ->styleMarginBottom('5px')
+                ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
             );
 
         return $sliceList;

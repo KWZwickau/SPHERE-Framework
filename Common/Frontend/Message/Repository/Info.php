@@ -21,8 +21,10 @@ class Info extends Extension implements IMessageInterface
      * @param string         $Content
      * @param IIconInterface $Icon
      * @param bool           $Toggle
+     * @param string         $Padding
+     * @param string         $MarginBottom
      */
-    public function __construct($Content, IIconInterface $Icon = null, $Toggle = false)
+    public function __construct($Content, IIconInterface $Icon = null, $Toggle = false, $Padding = '15', $MarginBottom = '18')
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Message.twig');
@@ -33,6 +35,8 @@ class Info extends Extension implements IMessageInterface
         }
         $this->Template->setVariable('Hash', md5(uniqid(__METHOD__, true)));
         $this->Template->setVariable('Toggle', $Toggle);
+        $this->Template->setVariable('Padding', $Padding);
+        $this->Template->setVariable('MarginBottom', $MarginBottom);
     }
 
     /**

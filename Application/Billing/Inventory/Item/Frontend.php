@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -41,7 +43,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendItem()
     {
 
-        $Stage = new Stage('Beitragsart', 'Übersicht');
+        $Stage = new Stage('Beitragsarten', 'Übersicht');
         $Stage->addButton((new Primary('Beitragsart hinzufügen', ApiItem::getEndpoint(), new Plus()))
             ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddItemModal('addItem')));
 
@@ -92,6 +94,77 @@ class Frontend extends Extension implements IFrontendInterface
                             ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteItemModal('deleteItem',
                                 $tblItem->getId()));
                 }
+//                $Item['Name'] .= new WellReadOnly(
+//                    new Layout(new LayoutGroup(array(
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                'Fibu-Konto: '.new Bold(($tblItem->getFibuAccount(true) ? $tblItem->getFibuAccount(true) : $tblItem->getFibuAccount().' (Standard)'))
+//                            , 6),
+//                            new LayoutColumn(
+//                                'Fibu-Gegenkonto: '.new Bold(($tblItem->getFibuToAccount(true) ? $tblItem->getFibuToAccount(true) : $tblItem->getFibuToAccount().' (Standard)'))
+//                            , 6),
+//                        )),
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                'Kostenstelle 1: '.new Bold(($tblItem->getKost1(true) ? $tblItem->getKost1(true) : $tblItem->getKost1().' (Standard)'))
+//                            , 6),
+//                            new LayoutColumn(
+//                                'Kostenstelle 2: '.new Bold(($tblItem->getKost2(true) ? $tblItem->getKost2(true) : $tblItem->getKost2().' (Standard)'))
+//                            , 6),
+//                        )),
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                'BU-Schlüssel: '.new Bold(($tblItem->getBuKey(true) ? $tblItem->getBuKey(true) : $tblItem->getBuKey().' (Standard)'))
+//                            , 6),
+//                        ))
+//                    )))
+//                );
+                $left = 5;
+                $right = 7;
+                $Item['Name'] .= new WellReadOnly(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Fibu-Konto:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getFibuAccount(true) ? $tblItem->getFibuAccount(true) : new Muted('('.$tblItem->getFibuAccount().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Fibu-Gegenkonto:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getFibuToAccount(true) ? $tblItem->getFibuToAccount(true) : new Muted('('.$tblItem->getFibuToAccount().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Kostenstelle 1:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getKost1(true) ? $tblItem->getKost1(true) : new Muted('('.$tblItem->getKost1().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'Kostenstelle 2:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getKost2(true) ? $tblItem->getKost2(true) : new Muted('('.$tblItem->getKost2().')')))
+                            , $right),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                'BU-Schlüssel:'
+                            , $left),
+                            new LayoutColumn(
+                                new Bold(($tblItem->getBuKey(true) ? $tblItem->getBuKey(true) : new Muted('('.$tblItem->getBuKey().')')))
+                            , $right),
+                        ))
+                    )))
+                );
 
                 $Item['PersonGroup'] = '';
 //                $Item['ItemType'] = $tblItem->getTblItemType()->getName();
@@ -115,11 +188,11 @@ class Frontend extends Extension implements IFrontendInterface
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
                     foreach($tblItemVariantList as $tblItemVariant) {
                         $Row = $tblItemVariant->getName().
-                            (new Link('', ApiItem::getEndpoint(), new Pencil()))
+                            (new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Preisvariante bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditVariantModal('editVariant',
                                     $tblItem->getId(), $tblItemVariant->getId()))
                             .'|'.
-                            (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
+                            (new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Preisvariante'))
                                 ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteVariantModal('deleteVariant',
                                     $tblItemVariant->getId()))
                             .($tblItemVariant->getDescription() ? '<br/>'.$tblItemVariant->getDescription() : '');
@@ -149,11 +222,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         ? ' - '.$tblItemCalculation->getDateTo()
                                         : '')
                                     : '');
-                                $Option = (new Link('', ApiItem::getEndpoint(), new Pencil()))
+                                $Option = (new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Preis bearbeiten'))
                                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditCalculationModal('editCalculation',
                                             $tblItemVariant->getId(), $tblItemCalculation->getId()))
                                     .'|'.
-                                    (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
+                                    (new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(), 'Löschen der Preise'))
                                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation',
                                             $tblItemCalculation->getId()));
 

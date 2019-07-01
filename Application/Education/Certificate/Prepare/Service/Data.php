@@ -1548,6 +1548,34 @@ class Data extends AbstractData
 
     /**
      * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblCertificate $tblCertificate
+     *
+     * @return bool
+     */
+    public function updateLeaveStudentCertificate(
+        TblLeaveStudent $tblLeaveStudent,
+        TblCertificate $tblCertificate
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblLeaveStudent $Entity */
+        $Entity = $Manager->getEntityById('TblLeaveStudent', $tblLeaveStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblCertificate($tblCertificate);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
      * @param TblSubject $tblSubject
      *
      * @return false|TblLeaveGrade

@@ -297,13 +297,13 @@ class SignOutCertificate extends AbstractDocument
             $StudentCall = 'Die Schülerin';
         }
         $Slice->addElement((new Element())
-            ->setContent($StudentCall.' hat sich mit dieser Abmeldebescheinigung bei dem nun zuständigen Berufliche
+            ->setContent($StudentCall.' hat sich mit dieser Abmeldebescheinigung bei dem nun zuständigen Beruflichen
                 Schulzentrum anzumelden.')
             ->stylePaddingTop('15px')
         );
         $Slice->addElement((new Element())
             ->setContent('Gemäß § 61 des Schulgesetzes für den Freistaat Sachsen ist die vorsätzliche oder fahrlässige
-                Verletzung der Berufsschulpflicht eine Ordnungswiedrigkeit, die mit einer Geldbuße geahndet werden kann.')
+                Verletzung der Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.')
             ->stylePaddingTop('15px')
         );
         $Slice->addElement((new Element())

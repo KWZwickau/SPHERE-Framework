@@ -573,7 +573,7 @@ class Creator extends Extension
             }
 
             if (!empty($PriceList)) {
-                $Data['CompanyAddress'] = $Data['CompanyStreet'] . ' ' . $Data['CompanyCity']
+                $Data['CompanyAddress'] = $Data['CompanyStreet'] . '<br/>' . $Data['CompanyCity']
                     . ($Data['CompanyDistrict'] ? '  OT ' . $Data['CompanyDistrict'] : '');
 
                 $template = new Billing($tblItem, $tblDocument, $Data);

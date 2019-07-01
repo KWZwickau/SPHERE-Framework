@@ -239,7 +239,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $form = new Form(new FormGroup(array(
             new FormRow(new FormColumn(array(
-                new TextField('Data[Subject]', 'z.B. Schulgeldbescheinigung für das Kalenderjahr [Beitragsjahr]', 'Betreff'),
+                new TextField('Data[Subject]', 'z.B. Schulgeldbescheinigung für das Kalenderjahr [Jahr]', 'Betreff'),
                 new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 17)
             )))
         )));
@@ -275,8 +275,10 @@ class Frontend extends Extension implements IFrontendInterface
     public function getFreeFields()
     {
         return array(
+            '[Jahr]',
+            '[Zeitraum von]',
+            '[Zeitraum bis]',
             '[Beitragsart]',
-            '[Beitragsjahr]',
             '[Beitragssumme]',
             '[Beitragszahler Anrede]',
             '[Beitragszahler Vorname]',
@@ -284,8 +286,6 @@ class Frontend extends Extension implements IFrontendInterface
             '[Beitragsverursacher Anrede]',
             '[Beitragsverursacher Vorname]',
             '[Beitragsverursacher Nachname]',
-            '[Zeitraum von]',
-            '[Zeitraum bis]',
             '[Datum]',
             '[Ort]',
             '[Trägername]',

@@ -734,4 +734,48 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->restoreMember($tblMember);
     }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return TblGroup[]
+     */
+    public function getTudorGroupAll(TblPerson $tblPerson = null)
+    {
+        $list = array();
+        if (($tblStudentGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+            && ($tblTudorGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+            && ($tblGroupList = $this->getGroupAll())
+        ) {
+            foreach ($tblGroupList as $tblGroup) {
+                if (!$tblGroup->isLocked()) {
+                    if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
+                        continue;
+                    }
+
+                    if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))) {
+                        $isAdded = false;
+                        foreach ($tblPersonList as $tblMember) {
+                            if (($hasTudor = $this->existsGroupPerson($tblTudorGroup, $tblMember))) {
+                                $isAdded = true;
+                            }
+
+                            if (!$this->existsGroupPerson($tblStudentGroup, $tblMember)
+                                && !$hasTudor
+                            ) {
+                                $isAdded = false;
+                                break;
+                            }
+                        }
+
+                        if ($isAdded) {
+                            $list[] = $tblGroup;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $list;
+    }
 }

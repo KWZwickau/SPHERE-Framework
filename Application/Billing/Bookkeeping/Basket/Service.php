@@ -229,15 +229,18 @@ class Service extends AbstractService
      * @param string              $Year
      * @param string              $Month
      * @param string              $TargetTime
+     * @param bool                $IsCompanyCredit
      * @param string              $CreditorId
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
      * @param TblDebtorPeriodType $tblDebtorPeriodType
      *
      * @return TblBasket
+     * @throws \Exception
      */
     public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '',
-        $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null, TblDebtorPeriodType $tblDebtorPeriodType = null)
+        $IsCompanyCredit = false, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
+        TblDebtorPeriodType $tblDebtorPeriodType = null)
     {
 
         if($TargetTime){
@@ -255,7 +258,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
         return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime,
-            $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
+            $IsCompanyCredit, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
     }
 
     /**

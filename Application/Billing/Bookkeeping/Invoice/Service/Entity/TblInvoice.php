@@ -159,9 +159,11 @@ class TblInvoice extends Element
     }
 
     /**
+     * @param string $Format
+     *
      * @return bool|string
      */
-    public function getTargetTime()
+    public function getTargetTime($Format = 'd.m.Y')
     {
 
         if(null === $this->TargetTime){
@@ -170,7 +172,7 @@ class TblInvoice extends Element
         /** @var \DateTime $InvoiceDate */
         $TargetDate = $this->TargetTime;
         if($TargetDate instanceof \DateTime){
-            return $TargetDate->format('d.m.Y');
+            return $TargetDate->format($Format);
         } else {
             return (string)$TargetDate;
         }

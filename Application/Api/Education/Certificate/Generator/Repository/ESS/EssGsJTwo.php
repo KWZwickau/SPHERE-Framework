@@ -22,6 +22,9 @@ class EssGsJTwo extends Certificate
     const TEXT_SIZE_SMALL = '8pt';
     const TEXT_FAMILY = 'MyriadPro';
 
+    const TEXT_SIZE_RATING = '10pt';
+    const LINE_HEIGHT_RATING = '85%';
+
     /**
      * @return array
      */
@@ -29,7 +32,7 @@ class EssGsJTwo extends Certificate
     {
         return array(
             1 => "wird nach Klasse 3 versetzt",
-            2 => "wird nicht versetzt"
+            2 => "wiederholt freiwillig die Klassenstufe 2"
         );
     }
 
@@ -145,8 +148,8 @@ class EssGsJTwo extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('90%')
+                        ->styleTextSize(self::TEXT_SIZE_RATING)
+                        ->styleLineHeight(self::LINE_HEIGHT_RATING)
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleMarginTop('25px')
@@ -178,8 +181,8 @@ class EssGsJTwo extends Certificate
                         {% else %}
                             &nbsp;
                         {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('90%')
+                        ->styleTextSize(self::TEXT_SIZE_RATING)
+                        ->styleLineHeight(self::LINE_HEIGHT_RATING)
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleHeight('235px')
@@ -202,7 +205,7 @@ class EssGsJTwo extends Certificate
                         {% else %}
                               &nbsp;
                         {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleTextSize(self::TEXT_SIZE_RATING)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '75%'

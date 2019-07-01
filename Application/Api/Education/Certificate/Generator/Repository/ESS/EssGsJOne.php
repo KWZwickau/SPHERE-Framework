@@ -29,7 +29,7 @@ class EssGsJOne extends Certificate
     {
         return array(
             1 => "wird nach Klasse 2 versetzt",
-            2 => "wird nicht versetzt"
+            2 => "wiederholt freiwillig die Klassenstufe 1"
         );
     }
 
