@@ -121,6 +121,8 @@ abstract class Certificate extends Extension
             }
         }
 
+        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
+
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
         if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; margin-top: 0.9cm !important; margin-bottom: 0.9cm !important; }';
@@ -133,14 +135,12 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
         } elseif (strpos(get_class($this), 'RadebeulOs') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
-
         } elseif (strpos(get_class($this), 'EzshKurshalbjahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
-
-        } elseif (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
-            && $tblConsumer->getAcronym() == 'CSW'
-        ) {
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
             $InjectStyle = 'body { margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
+            $InjectStyle = 'body { margin-bottom: -0.5cm !important; }';
         } else {
             $InjectStyle = '';
         }
