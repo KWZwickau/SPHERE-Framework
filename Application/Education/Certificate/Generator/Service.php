@@ -455,7 +455,7 @@ class Service extends AbstractService
             'Content.Input.DateConsulting'     => 'Datum der Bildungsberatung',
             'Content.Input.Transfer'           => 'Versetzungsvermerk',
             'Content.Input.IndividualTransfer' => 'Versetzungsvermerk',
-            'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
+            'Content.Input.TeamExtra'          => 'Teilnahme an zusätzlichen schulischen Veranstaltungen',
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
             'Content.Input.Arrangement'        => 'Besonderes Engagement',

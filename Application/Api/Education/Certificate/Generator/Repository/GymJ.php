@@ -52,17 +52,12 @@ class GymJ extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Einschätzung:')
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                        ->setContent('Einschätzung: {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
                                     {{ Content.P' . $personId . '.Input.Rating|nl2br }}
                                 {% else %}
-                                    &nbsp;
+                                    ---
                                 {% endif %}')
-                        ->styleHeight('25px')
+                        ->styleHeight('35px')
                     )
                 )
                 ->styleMarginTop('5px')
@@ -93,7 +88,7 @@ class GymJ extends Certificate
                 ->styleMarginTop('5px')
             )
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '30px', '5px'))
+            ->addSlice($this->getDescriptionContent($personId, '35px', '5px'))
             ->addSlice($this->getTransfer($personId, '2px'))
             ->addSlice($this->getDateLine($personId, '10px'))
             ->addSlice($this->getSignPart($personId, true))
