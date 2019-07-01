@@ -12,7 +12,7 @@ select
 
     if ((select vRTP.TblToPerson_IsSingleParent
         from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vP.TblPerson_Authorized_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
         and vRTP.TblType_Name like 'Bevollm%chtigt'
         limit 0,1
     ), 'Ja', 'Nein') TblToPerson_IsSingleParent_Bev,
