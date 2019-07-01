@@ -1669,7 +1669,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson,
                                 $tblPrepareStudent,
                                 $tblCertificate,
-                                $hasTeamExtra
+                                &$hasTeamExtra
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
