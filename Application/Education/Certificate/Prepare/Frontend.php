@@ -1678,7 +1678,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     unset($Identifier[0]);
                                 }
 
-
                                 $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
 
                                 $dataFieldName = str_replace('Content[Input]', 'Data[' . $tblPrepareStudent->getId() . ']',
