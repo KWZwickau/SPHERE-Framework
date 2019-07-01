@@ -217,10 +217,10 @@ class CheHjInfoGs extends Certificate
                                     &nbsp;
                                 {% endif %}')
                         ->styleHeight('180px')
-                        ->styleTextSize('11pt')
+                        ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
-                ->styleMarginTop('5px')
+                ->styleMarginTop('10px')
             )
 //                ->addSliceArray($this->setRemarkBackgroundLines(11))
             ->addSlice((new Slice())
@@ -318,7 +318,7 @@ class CheHjInfoGs extends Certificate
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
                         ->styleTextSize('9.5px')
                     )
-                )->styleMarginTop('10px')
+                )->styleMarginTop('5px')
 
             );
     }

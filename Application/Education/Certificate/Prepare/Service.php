@@ -901,8 +901,14 @@ class Service extends AbstractService
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                             . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue() . '.';
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
-                        $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
-                            . ' ' . $tblPrepareInformation->getValue();
+                        // SSWHD-262
+                        if ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
+                            $text = '';
+                        } else {
+                            $text = $tblPerson->getFirstSecondName() . ' ';
+                        }
+
+                        $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $text . $tblPrepareInformation->getValue();
                     } elseif ($isSupportLearningCertificate && $tblPrepareInformation->getField() == 'Support') {
                         $support = $tblPrepareInformation->getValue();
                     } else {

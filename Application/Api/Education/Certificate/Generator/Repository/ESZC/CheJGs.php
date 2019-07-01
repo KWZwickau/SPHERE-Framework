@@ -161,8 +161,8 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleTextSize('11pt')
-                        ->styleHeight('105px')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleHeight('100px')
                     )
                 )
                 ->styleMarginTop('10px')
@@ -237,10 +237,10 @@ class CheJGs extends Certificate
                                     &nbsp;
                                 {% endif %}')
                         ->styleHeight('90px')
-                        ->styleTextSize('11pt')
+                        ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
-                ->styleMarginTop('5px')
+                ->styleMarginTop('10px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
