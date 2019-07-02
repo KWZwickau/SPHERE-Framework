@@ -70,6 +70,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                     && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                     && $tblPrepareStudent->getServiceTblCertificate()
+                    && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                    && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivisionItem, $tblPerson))
+                    && (!$tblDivisionStudent->isInActive())
                 ) {
                     if (!isset($prepareList[$tblPrepare->getId()])) {
                         $prepareList[$tblPrepare->getId()] = $tblPrepare;
@@ -110,6 +113,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                                         && $tblPrepareStudent->getServiceTblCertificate()
                                         && !$tblPrepareStudent->isPrinted()
+                                        && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                                        && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivisionItem, $tblPerson))
+                                        && (!$tblDivisionStudent->isInActive())
                                     ) {
                                         if (!isset($prepareList[$tblPrepare->getId()])) {
                                             $prepareList[$tblPrepare->getId()] = $tblPrepare;
@@ -263,6 +269,8 @@ class Frontend extends Extension implements IFrontendInterface
                         && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                         && $tblPrepareStudent->getServiceTblCertificate()
                         && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                        && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivisionItem, $tblPerson))
+                        && (!$tblDivisionStudent->isInActive())
                     ) {
                         if (isset($divisionList[$tblDivisionItem->getId()]) && !isset($prepareList[$tblPrepare->getId()])) {
                             $prepareList[$tblPrepare->getId()] = $tblPrepare;
@@ -288,6 +296,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                                                 && $tblPrepareStudent->getServiceTblCertificate()
                                                 && !$tblPrepareStudent->isPrinted()
+                                                && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivisionItem, $tblPerson))
+                                                && (!$tblDivisionStudent->isInActive())
                                             ) {
                                                 if (!isset($prepareList[$tblPrepare->getId()])) {
                                                     $prepareList[$tblPrepare->getId()] = $tblPrepare;
