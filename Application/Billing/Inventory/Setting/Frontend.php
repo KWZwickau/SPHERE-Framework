@@ -497,7 +497,7 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
                 case TblSetting::IDENT_BU_KEY:
                     $_POST['Setting'][TblSetting::IDENT_BU_KEY] = $tblSetting->getValue();
-                    $elementList[11] = new NumberField('Setting['.TblSetting::IDENT_BU_KEY.']', '', 'Kostenstelle 2 '
+                    $elementList[11] = new NumberField('Setting['.TblSetting::IDENT_BU_KEY.']', '', 'BU-Schlüssel '
                         .new ToolTip(new Info(), 'Diese Vorgabe wird für alle Beitragsarten als Standardwert verwendet.
                                  Individuelle Einstellungen können an der Beitragsart vorgenommen werden.'));
                 break;
