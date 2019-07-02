@@ -788,9 +788,10 @@ class Creator extends Extension
                 }
             }
 
-            // mergen aller hinzugefügten PDF-Datein
-            $PdfMerger->mergePdf($MergeFile);
             if(!empty($FileList)){
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+
                 // aufräumen der Temp-Files
                 /** @var FilePointer $File */
                 foreach($FileList as $File){
