@@ -2658,97 +2658,112 @@ class Service extends Extension
                             }
                         }
                     }
+                    $tblRelationshipCustodyList = array();
+                    if(($tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))){
+                        $tblRelationshipCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                            $tblType);
+                    }
 
-                    for($i = 1; $i <= 3; $i++){
-                        $tblRelationshipCustody = Relationship::useService()->getPersonRelationshipCustodyByRank($i);
-                        if($tblRelationshipCustody
-                        && ($tblPersonCustody = $tblRelationshipCustody->getServiceTblPersonFrom())){
-                            $DataPerson['Custody_'.$i.'_Salutation'] = $tblPersonCustody->getSalutation();
-                            $DataPerson['Custody_'.$i.'_Title'] = $tblPersonCustody->getTitle();
-                            $DataPerson['Custody_'.$i.'_FirstName'] = $tblPersonCustody->getFirstName();
-                            if ($tblPersonCustody->getSecondName()) {
-                                $DataPerson['Custody_'.$i.'_FirstName'] .= ' '.$tblPersonCustody->getSecondName();
-                            }
-                            $DataPerson['Custody_'.$i.'_LastName'] = $tblPersonCustody->getLastName();
-
-                            if (($tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody))) {
-                                $DataPerson['Custody_'.$i.'_Address'] = $tblAddressCustody->getGuiString();
-                                if (($tblCityCustody = $tblAddressCustody->getTblCity())) {
-                                    $DataPerson['Custody_'.$i.'_Street'] = $tblAddressCustody->getStreetName();
-                                    $DataPerson['Custody_'.$i.'_HouseNumber'] = $tblAddressCustody->getStreetNumber();
-                                    $DataPerson['Custody_'.$i.'_CityCode'] = $tblCityCustody->getCode();
-                                    $DataPerson['Custody_'.$i.'_City'] = $tblCityCustody->getName();
-                                    $DataPerson['Custody_'.$i.'_District'] = $tblCityCustody->getDisplayDistrict();
+                    if(!empty($tblRelationshipCustodyList)){
+                        for($i = 1; $i <= 3; $i++) {
+                            $tblRelationshipCustody = false;
+                            foreach($tblRelationshipCustodyList as $tblRelationshipCustodyControl) {
+                                if($tblRelationshipCustodyControl->getRanking() == $i || $i == 1
+                                    && $tblRelationshipCustodyControl->getRanking() === null){
+                                    $tblRelationshipCustody = $tblRelationshipCustodyControl;
+                                    break;
                                 }
                             }
 
-                            if (($tblPhoneAllCustody = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))) {
-                                foreach ($tblPhoneAllCustody as $tblToPersonCustody) {
-                                    /** @var TblToPerson $tblToPersonCustody */
-                                    if (($tblPhoneTypeCustody = $tblToPersonCustody->getTblType())
-                                        && ($PhoneDescriptionCustody = $tblPhoneTypeCustody->getDescription())
-                                        && ($PhoneNameCustody = $tblPhoneTypeCustody->getName())
-                                        && ($tblPhoneCustody = $tblToPersonCustody->getTblPhone())) {
-                                        if ($PhoneDescriptionCustody == 'Festnetz') {
-                                            switch ($PhoneNameCustody) {
-                                                case 'Privat':
-                                                    if (!empty($DataPerson['Custody_'.$i.'_PhoneFixedPrivate'])) {
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] .= ', ';
-                                                    }
-                                                    $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
-                                                    . (!empty($tblToPersonCustody->getRemark()) ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
-                                                    break;
-                                                case 'Geschäftlich':
-                                                    if (!empty($DataPerson['Custody_'.$i.'_PhoneFixedWork'])) {
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedWork'] .= ', ';
-                                                    }
-                                                    $DataPerson['Custody_'.$i.'_PhoneFixedWork'] .= $tblPhoneCustody->getNumber()
-                                                        . (!empty($tblToPersonCustody->getRemark()) ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
-                                                    break;
-                                                case 'Notfall':
-                                                    if (!empty($DataPerson['Custody_'.$i.'_PhoneFixedEmergency'])) {
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] .= ', ';
-                                                    }
-                                                    $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] .=  $tblPhoneCustody->getNumber()
-                                                        . (!empty($tblToPersonCustody->getRemark()) ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
-                                                    break;
-                                            }
-                                        } elseif ($PhoneDescriptionCustody == 'Mobil') {
-                                            switch ($PhoneNameCustody) {
-                                                case 'Privat':
-                                                    if (!empty($DataPerson['Custody_'.$i.'_PhoneMobilePrivate'])) {
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] .= ', ';
-                                                    }
-                                                    $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] .= $tblPhoneCustody->getNumber()
-                                                        . (!empty($tblToPersonCustody->getRemark()) ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
-                                                    break;
-                                                case 'Geschäftlich':
-                                                    if (!empty($DataPerson['Custody_'.$i.'_PhoneMobileWork'])) {
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobileWork'] .= ', ';
-                                                    }
-                                                    $DataPerson['Custody_'.$i.'_PhoneMobileWork'] .= $tblPhoneCustody->getNumber()
-                                                        . (!empty($tblToPersonCustody->getRemark()) ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
-                                                    break;
-                                                case 'Notfall':
-                                                    if (!empty($DataPerson['Custody_'.$i.'_PhoneMobileEmergency'])) {
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] = ', ';
-                                                    }
-                                                    $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] .= $tblPhoneCustody->getNumber()
-                                                        . (!empty($tblToPersonCustody->getRemark()) ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
-                                                    break;
+                            if($tblRelationshipCustody
+                                && ($tblPersonCustody = $tblRelationshipCustody->getServiceTblPersonFrom())){
+                                $DataPerson['Custody_'.$i.'_Salutation'] = $tblPersonCustody->getSalutation();
+                                $DataPerson['Custody_'.$i.'_Title'] = $tblPersonCustody->getTitle();
+                                $DataPerson['Custody_'.$i.'_FirstName'] = $tblPersonCustody->getFirstName();
+                                if($tblPersonCustody->getSecondName()){
+                                    $DataPerson['Custody_'.$i.'_FirstName'] .= ' '.$tblPersonCustody->getSecondName();
+                                }
+                                $DataPerson['Custody_'.$i.'_LastName'] = $tblPersonCustody->getLastName();
+
+                                if(($tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody))){
+                                    $DataPerson['Custody_'.$i.'_Address'] = $tblAddressCustody->getGuiString();
+                                    if(($tblCityCustody = $tblAddressCustody->getTblCity())){
+                                        $DataPerson['Custody_'.$i.'_Street'] = $tblAddressCustody->getStreetName();
+                                        $DataPerson['Custody_'.$i.'_HouseNumber'] = $tblAddressCustody->getStreetNumber();
+                                        $DataPerson['Custody_'.$i.'_CityCode'] = $tblCityCustody->getCode();
+                                        $DataPerson['Custody_'.$i.'_City'] = $tblCityCustody->getName();
+                                        $DataPerson['Custody_'.$i.'_District'] = $tblCityCustody->getDisplayDistrict();
+                                    }
+                                }
+
+                                if(($tblPhoneAllCustody = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))){
+                                    foreach($tblPhoneAllCustody as $tblToPersonCustody) {
+                                        /** @var TblToPerson $tblToPersonCustody */
+                                        if(($tblPhoneTypeCustody = $tblToPersonCustody->getTblType())
+                                            && ($PhoneDescriptionCustody = $tblPhoneTypeCustody->getDescription())
+                                            && ($PhoneNameCustody = $tblPhoneTypeCustody->getName())
+                                            && ($tblPhoneCustody = $tblToPersonCustody->getTblPhone())){
+                                            if($PhoneDescriptionCustody == 'Festnetz'){
+                                                switch($PhoneNameCustody) {
+                                                    case 'Privat':
+                                                        if(!empty($DataPerson['Custody_'.$i.'_PhoneFixedPrivate'])){
+                                                            $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] .= ', ';
+                                                        }
+                                                        $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
+                                                            .(!empty($tblToPersonCustody->getRemark()) ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                                        break;
+                                                    case 'Geschäftlich':
+                                                        if(!empty($DataPerson['Custody_'.$i.'_PhoneFixedWork'])){
+                                                            $DataPerson['Custody_'.$i.'_PhoneFixedWork'] .= ', ';
+                                                        }
+                                                        $DataPerson['Custody_'.$i.'_PhoneFixedWork'] .= $tblPhoneCustody->getNumber()
+                                                            .(!empty($tblToPersonCustody->getRemark()) ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                                        break;
+                                                    case 'Notfall':
+                                                        if(!empty($DataPerson['Custody_'.$i.'_PhoneFixedEmergency'])){
+                                                            $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] .= ', ';
+                                                        }
+                                                        $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] .= $tblPhoneCustody->getNumber()
+                                                            .(!empty($tblToPersonCustody->getRemark()) ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                                        break;
+                                                }
+                                            } elseif($PhoneDescriptionCustody == 'Mobil') {
+                                                switch($PhoneNameCustody) {
+                                                    case 'Privat':
+                                                        if(!empty($DataPerson['Custody_'.$i.'_PhoneMobilePrivate'])){
+                                                            $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] .= ', ';
+                                                        }
+                                                        $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] .= $tblPhoneCustody->getNumber()
+                                                            .(!empty($tblToPersonCustody->getRemark()) ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                                        break;
+                                                    case 'Geschäftlich':
+                                                        if(!empty($DataPerson['Custody_'.$i.'_PhoneMobileWork'])){
+                                                            $DataPerson['Custody_'.$i.'_PhoneMobileWork'] .= ', ';
+                                                        }
+                                                        $DataPerson['Custody_'.$i.'_PhoneMobileWork'] .= $tblPhoneCustody->getNumber()
+                                                            .(!empty($tblToPersonCustody->getRemark()) ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                                        break;
+                                                    case 'Notfall':
+                                                        if(!empty($DataPerson['Custody_'.$i.'_PhoneMobileEmergency'])){
+                                                            $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] = ', ';
+                                                        }
+                                                        $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] .= $tblPhoneCustody->getNumber()
+                                                            .(!empty($tblToPersonCustody->getRemark()) ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                                        break;
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            if (($tblMailAllCustody = Mail::useService()->getMailAllByPerson($tblPersonCustody))) {
-                                foreach ($tblMailAllCustody as $tblToPersonMailCustody) {
-                                    if (($tblTypeMailCustody = $tblToPersonMailCustody->getTblType())
-                                        && ($tblMailCustody = $tblToPersonMailCustody->getTblMail())) {
-                                        if ($tblTypeMailCustody->getName() == 'Privat') {
-                                            $DataPerson['Custody_'.$i.'_Mail_Private'] = $tblMailCustody->getAddress();
-                                        } elseif ($tblTypeMailCustody->getName() == 'Geschäftlich') {
-                                            $DataPerson['Custody_'.$i.'_Mail_Work'] = $tblMailCustody->getAddress();
+                                if(($tblMailAllCustody = Mail::useService()->getMailAllByPerson($tblPersonCustody))){
+                                    foreach($tblMailAllCustody as $tblToPersonMailCustody) {
+                                        if(($tblTypeMailCustody = $tblToPersonMailCustody->getTblType())
+                                            && ($tblMailCustody = $tblToPersonMailCustody->getTblMail())){
+                                            if($tblTypeMailCustody->getName() == 'Privat'){
+                                                $DataPerson['Custody_'.$i.'_Mail_Private'] = $tblMailCustody->getAddress();
+                                            } elseif($tblTypeMailCustody->getName() == 'Geschäftlich') {
+                                                $DataPerson['Custody_'.$i.'_Mail_Work'] = $tblMailCustody->getAddress();
+                                            }
                                         }
                                     }
                                 }
