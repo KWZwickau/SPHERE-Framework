@@ -65,11 +65,15 @@ class Sepa implements IModuleInterface
         if(isset($Invoice['CheckboxList'])){
             $CheckboxList = $Invoice['CheckboxList'];
         }
+        $FeeList = array();
+        if(isset($Invoice['Fee'])){
+            $FeeList = $Invoice['Fee'];
+        }
         $BasketId = $Invoice['BasketId'];
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         $directDebit = false;
         if($tblBasket){
-            $directDebit = Balance::useService()->createSepaContent($tblBasket, $CheckboxList);
+            $directDebit = Balance::useService()->createSepaContent($tblBasket, $CheckboxList, $FeeList);
         }
 
         $name = $tblBasket->getName();

@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -89,11 +90,19 @@ class ApiSepa extends Extension implements IApiInterface
 
         if(Basket::useService()->getBasketById($BasketId)){
             $TableContent = array();
+
+            $Value = 0;
+            if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))){
+                $Value = $Setting->getValue();
+            }
+
+            $FeeFieldList = array();
             if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid())){
-                array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
+                array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent, &$FeeFieldList){
                     $CauserName = '';
                     $InvoiceTime = '';
                     $InvoiceNumber = '';
+                    $FeeFieldList[] = $tblInvoiceItemDebtor->getId();
                     if(($tblInvoice = $tblInvoiceItemDebtor->getTblInvoice())){
                         $InvoiceNumber = $tblInvoice->getInvoiceNumber();
                         $CauserName = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
@@ -101,20 +110,22 @@ class ApiSepa extends Extension implements IApiInterface
                     }
 
                     $item['Option'] = new CheckBox('Invoice[CheckboxList][]', '&nbsp;', $tblInvoiceItemDebtor->getId());
+                    $item['Fee'] = new TextField('Invoice[Fee]['.$tblInvoiceItemDebtor->getId().']', '', '');
                     $item['InvoiceNumber'] = $InvoiceNumber;
                     $item['CauserName'] = $CauserName;
                     $item['InvoiceTime'] = $InvoiceTime;
                     $item['Name'] = $tblInvoiceItemDebtor->getName();
-                    $Price = $tblInvoiceItemDebtor->getSummaryPrice();
-                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))
-                        && $tblSetting->getValue()){
-                        $Value = str_replace(',', '.', $tblSetting->getValue());
-                        $Value = round($Value, 2);
-                        $Price = $Value + (float)$tblInvoiceItemDebtor->getSummaryPriceInt();
-                        $Price = $tblInvoiceItemDebtor->getSummaryPrice().' + '.$Value.' € ('.$Price.' €)';
-                    }
-                    $Price = str_replace('.', ',', $Price);
-                    $item['SummaryPrice'] = $Price;
+//                    $Price = $tblInvoiceItemDebtor->getSummaryPrice();
+//                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))
+//                        && $tblSetting->getValue()){
+//                        $Value = str_replace(',', '.', $tblSetting->getValue());
+//                        $Value = round($Value, 2);
+//                        $Price = $Value + (float)$tblInvoiceItemDebtor->getSummaryPriceInt();
+//                        $Price = $tblInvoiceItemDebtor->getSummaryPrice().' + '.$Value.' € ('.$Price.' €)';
+//                    }
+//                    $Price = str_replace('.', ',', $Price);
+//                    $item['SummaryPrice'] = $Price;
+                    $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
                     $item['Owner'] = $tblInvoiceItemDebtor->getOwner();
                     // Es werden nur Sepa-Lastschriften zur Verfügung gestellt
                     if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())
@@ -122,6 +133,12 @@ class ApiSepa extends Extension implements IApiInterface
                         array_push($TableContent, $item);
                     }
                 });
+            }
+            // set Post
+            if(!empty($FeeFieldList)){
+                foreach($FeeFieldList as $FeeId){
+                    $_POST['Invoice']['Fee'][$FeeId] = $Value;
+                }
             }
 
         } else {
@@ -135,6 +152,7 @@ class ApiSepa extends Extension implements IApiInterface
             $FormColumnTable = new FormColumn(
                 new TableData($TableContent, null, array(
                     'Option' => 'Erneut',
+                    'Fee' => 'Gebühr',
                     'InvoiceNumber' => 'R.Nr.',
                     'CauserName' => 'Beitragsverursacher',
                     'InvoiceTime' => 'Abr. Monat',

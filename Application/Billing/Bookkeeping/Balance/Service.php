@@ -817,10 +817,11 @@ class Service extends AbstractService
     /**
      * @param TblBasket $tblBasket
      * @param array     $CheckboxList
+     * @param array     $FeeList
      *
      * @return bool|CustomerDirectDebitFacade
      */
-    public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array())
+    public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array(), $FeeList = array())
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
@@ -937,10 +938,15 @@ class Service extends AbstractService
                 foreach($CheckboxList as $tblInvoiceItemDebtorId){
                     $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($tblInvoiceItemDebtorId);
                     if($tblInvoiceItemDebtor){
+                        $Fee = 0;
+                        if(isset($FeeList[$tblInvoiceItemDebtorId])){
+                            $Fee = $FeeList[$tblInvoiceItemDebtorId];
+                        }
+
                         $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
                         $PaymentId = $tblInvoice->getInvoiceNumber().'-';
                         $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
-                        $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true);
+                        $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true, $Fee);
                     }
                 }
             }
@@ -1028,8 +1034,10 @@ class Service extends AbstractService
      * @param array                     $tblInvoiceItemDebtorList
      * @param string                    $PaymentId
      * @param bool                      $doPaidInvoice
+     * @param int                       $Fee
      */
-    private function addTransfer(CustomerDirectDebitFacade $directDebit, $tblInvoiceItemDebtorList, $PaymentId, $doPaidInvoice = false)
+    private function addTransfer(CustomerDirectDebitFacade $directDebit, $tblInvoiceItemDebtorList, $PaymentId,
+        $doPaidInvoice = false, $Fee = 0)
     {
 
         /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
@@ -1054,12 +1062,9 @@ class Service extends AbstractService
 
             $Price = $tblInvoiceItemDebtor->getSummaryPriceInt();
             if($doPaidInvoice){
-                if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))
-                    && $tblSetting->getValue()){
-                    $Value = str_replace(',', '.', $tblSetting->getValue());
-                    $Value = round($Value, 2);
-                    $Price = (float)$tblInvoiceItemDebtor->getSummaryPriceInt() + $Value;
-                }
+                $Fee = str_replace(',', '.', $Fee);
+                $Fee = round($Fee, 2);
+                $Price = (float)$tblInvoiceItemDebtor->getSummaryPriceInt() + $Fee;
             }
 
             // create a payment, it's possible to create multiple payments,
