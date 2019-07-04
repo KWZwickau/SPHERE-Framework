@@ -145,7 +145,7 @@ class ApiSepa extends Extension implements IApiInterface
                         $InvoiceTime = $tblInvoice->getYear().'.'.$tblInvoice->getMonth();
                     }
 
-                    $item['Option'] = new CheckBox('Invoice[CheckboxList][]', '&nbsp;', $tblInvoiceItemDebtor->getId());
+                    $item['Option'] = (new CheckBox('Invoice[CheckboxList][]', '&nbsp;', $tblInvoiceItemDebtor->getId()))->setTabIndex(999);
                     $item['Fee'] = (new TextField('Invoice[Fee]['.$tblInvoiceItemDebtor->getId().']', '', ''))
                     ->ajaxPipelineOnKeyUp(self::pipelineUpdateEndPrice(
                         (float)$tblInvoiceItemDebtor->getSummaryPriceInt(), $tblInvoiceItemDebtor->getId()
@@ -201,7 +201,15 @@ class ApiSepa extends Extension implements IApiInterface
                     'SummaryPrice' => 'Preis',
                     'EndPrice' => 'Gesamtpreis',
                     'Owner' => 'Beitragszahler',
-                ), null)
+                ), // null
+                    array(
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+//                        "responsive" => false,
+                    )
+                )
             );
             $form = new Form(
                 new FormGroup(

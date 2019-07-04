@@ -935,20 +935,73 @@ class Service extends AbstractService
 
             // Bearbeitung der Offenen Posten
             if(!empty($CheckboxList)){
+                $combinedOpenItemDebtorList = array();
                 foreach($CheckboxList as $tblInvoiceItemDebtorId){
                     $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($tblInvoiceItemDebtorId);
                     if($tblInvoiceItemDebtor){
-                        $Fee = 0;
-                        if(isset($FeeList[$tblInvoiceItemDebtorId])){
-                            $Fee = $FeeList[$tblInvoiceItemDebtorId];
-                        }
-
                         $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
                         $PaymentId = $tblInvoice->getInvoiceNumber().'-';
-                        $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
-                        $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true, $Fee);
+                        $Ref = $tblInvoiceItemDebtor->getBankReference();
+
+                        // Offene posten ignorieren
+                        if(!$tblInvoiceItemDebtor->getIsPaid()){
+                            continue;
+                        }
+
+                        // Sum Price and Fee
+                        $Price = $tblInvoiceItemDebtor->getSummaryPriceInt();
+                        if(isset($FeeList[$tblInvoiceItemDebtorId])){
+                            $Fee = $FeeList[$tblInvoiceItemDebtorId];
+                            $Fee = round(str_replace(',', '.', $Fee), 2);
+                            $Price = (float)$tblInvoiceItemDebtor->getSummaryPriceInt() + $Fee;
+                        }
+
+                        $item[$Ref]['PaymentId'] = $PaymentId;
+                        if(!isset($item[$Ref]['ReferenceDate'])){
+                            $item[$Ref]['ReferenceDate'] = '';
+                            if(($tblBankReference = $tblInvoiceItemDebtor->getServiceTblBankReference())){
+                                $item[$Ref]['ReferenceDate'] = $tblBankReference->getReferenceDate();
+                            }
+                            if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getSepaRemark());
+                            } else {
+                                $item[$Ref]['BookingText'] = $tblInvoiceItemDebtor->getName();
+                            }
+                            $item[$Ref]['Price'] = $Price;
+                            $item[$Ref]['IBAN'] = $tblInvoiceItemDebtor->getIBAN();
+                            $item[$Ref]['BIC'] = $tblInvoiceItemDebtor->getBIC();
+                            $item[$Ref]['Owner'] = $tblInvoiceItemDebtor->getOwner();
+                            $item[$Ref]['BankReference'] = $Ref;
+                            $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
+                            $item[$Ref]['tblInvoice'] = $tblInvoice;
+
+                        } else {
+                            if(isset($item[$Ref]['ItemName'])){
+                                $item[$Ref]['ItemName'] .= ', '.$tblInvoiceItemDebtor->getName();
+                            } else {
+                                $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
+                            }
+
+                            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
+                                // allgemeinen Buchungstext verwenden
+                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $item[$Ref]['ItemName']);
+                            }
+                            if(isset($item[$Ref]['ItemName'])){
+                                $item[$Ref]['Price'] = (float)$item[$Ref]['Price'] + $Price;
+                            } else {
+                                $item[$Ref]['Price'] = $tblInvoiceItemDebtor->getSummaryPriceInt();
+                            }
+                        }
+                        array_push($combinedOpenItemDebtorList, $item);
+
+//                        $this->addTransfer($directDebit, array($tblInvoiceItemDebtor), $PaymentId, true, $Fee);
                     }
                 }
+
+                foreach($combinedOpenItemDebtorList as $Ref){
+                    $this->addPaymentInfo($directDebit, $Ref['tblInvoice'], $Ref['PaymentId'], $tblInvoiceCreditor);
+                }
+                $this->addCombinedTransfer($directDebit, $combinedOpenItemDebtorList);
             }
         }
 
