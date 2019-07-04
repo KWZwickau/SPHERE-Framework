@@ -11,6 +11,7 @@ use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
@@ -43,19 +44,30 @@ class ApiSepa extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('showOpenInvoice');
+        $Dispatcher->registerMethod('showEndPrice');
 
         return $Dispatcher->callMethod($Method);
     }
 
     /**
-     * @param string $Header
-     *
      * @return ModalReceiver
      */
     public static function receiverModal()
     {
 
         return (new ModalReceiver(null, new Close()))->setIdentifier('SepaModal');
+    }
+
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return InlineReceiver
+     */
+    public static function receiverEndPrice($Content = '', $Identifier = '')
+    {
+
+        return (new InlineReceiver($Content))->setIdentifier('EndPrice'.$Identifier);
     }
 
     /**
@@ -81,6 +93,30 @@ class ApiSepa extends Extension implements IApiInterface
     }
 
     /**
+     * @param float  $SumPrice
+     * @param string $Identifier
+     *
+     * @return Pipeline
+     */
+    public static function pipelineUpdateEndPrice($SumPrice, $Identifier = '')
+    {
+
+        $Receiver = self::receiverEndPrice('', $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'showEndPrice'
+        ));
+        $Emitter->setPostPayload(array(
+            'SumPrice' => $SumPrice,
+            'Identifier' => $Identifier
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
      * @param string $BasketId
      *
      * @return string
@@ -98,7 +134,7 @@ class ApiSepa extends Extension implements IApiInterface
 
             $FeeFieldList = array();
             if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid())){
-                array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent, &$FeeFieldList){
+                array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent, &$FeeFieldList, $Value){
                     $CauserName = '';
                     $InvoiceTime = '';
                     $InvoiceNumber = '';
@@ -110,7 +146,10 @@ class ApiSepa extends Extension implements IApiInterface
                     }
 
                     $item['Option'] = new CheckBox('Invoice[CheckboxList][]', '&nbsp;', $tblInvoiceItemDebtor->getId());
-                    $item['Fee'] = new TextField('Invoice[Fee]['.$tblInvoiceItemDebtor->getId().']', '', '');
+                    $item['Fee'] = (new TextField('Invoice[Fee]['.$tblInvoiceItemDebtor->getId().']', '', ''))
+                    ->ajaxPipelineOnKeyUp(self::pipelineUpdateEndPrice(
+                        (float)$tblInvoiceItemDebtor->getSummaryPriceInt(), $tblInvoiceItemDebtor->getId()
+                    ));
                     $item['InvoiceNumber'] = $InvoiceNumber;
                     $item['CauserName'] = $CauserName;
                     $item['InvoiceTime'] = $InvoiceTime;
@@ -126,6 +165,8 @@ class ApiSepa extends Extension implements IApiInterface
 //                    $Price = str_replace('.', ',', $Price);
 //                    $item['SummaryPrice'] = $Price;
                     $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                    $EndPrice = round((float)$tblInvoiceItemDebtor->getSummaryPriceInt() + (float)$Value, 2).' €';
+                    $item['EndPrice'] = self::receiverEndPrice($EndPrice, $tblInvoiceItemDebtor->getId());
                     $item['Owner'] = $tblInvoiceItemDebtor->getOwner();
                     // Es werden nur Sepa-Lastschriften zur Verfügung gestellt
                     if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())
@@ -158,6 +199,7 @@ class ApiSepa extends Extension implements IApiInterface
                     'InvoiceTime' => 'Abr. Monat',
                     'Name' => 'Beitragsart',
                     'SummaryPrice' => 'Preis',
+                    'EndPrice' => 'Gesamtpreis',
                     'Owner' => 'Beitragszahler',
                 ), null)
             );
@@ -194,5 +236,24 @@ class ApiSepa extends Extension implements IApiInterface
 
         return
             new Title('Offene Posten').$Warning.$toggleCheckbox.$form;
+    }
+
+    /**
+     * @param float  $SumPrice
+     * @param string $Identifier
+     * @param array  $Invoice
+     *
+     * @return string
+     */
+    public function showEndPrice($SumPrice, $Identifier = '', $Invoice = array())
+    {
+
+        $EndPrice = $SumPrice;
+        if(isset($Invoice['Fee'][$Identifier])){
+            $Fee = str_replace(',', '.', $Invoice['Fee'][$Identifier]);
+            $EndPrice = round($SumPrice + $Fee, 2);
+        }
+
+        return $EndPrice.' €';
     }
 }
