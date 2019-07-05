@@ -130,6 +130,7 @@ class ApiSepa extends Extension implements IApiInterface
             $Value = 0;
             if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_FEE))){
                 $Value = $Setting->getValue();
+                $Value = str_replace(',', '.', $Value);
             }
 
             $FeeFieldList = array();
@@ -165,7 +166,9 @@ class ApiSepa extends Extension implements IApiInterface
 //                    $Price = str_replace('.', ',', $Price);
 //                    $item['SummaryPrice'] = $Price;
                     $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
-                    $EndPrice = round((float)$tblInvoiceItemDebtor->getSummaryPriceInt() + (float)$Value, 2).' €';
+                    $EndPrice = round((float)$tblInvoiceItemDebtor->getSummaryPriceInt() + (float)$Value, 2);
+                    $EndPrice = number_format($EndPrice, 2, '.', '');
+                    $EndPrice .= ' €';
                     $item['EndPrice'] = self::receiverEndPrice($EndPrice, $tblInvoiceItemDebtor->getId());
                     $item['Owner'] = $tblInvoiceItemDebtor->getOwner();
                     // Es werden nur Sepa-Lastschriften zur Verfügung gestellt
@@ -260,6 +263,7 @@ class ApiSepa extends Extension implements IApiInterface
         if(isset($Invoice['Fee'][$Identifier])){
             $Fee = str_replace(',', '.', $Invoice['Fee'][$Identifier]);
             $EndPrice = round($SumPrice + $Fee, 2);
+            $EndPrice = number_format($EndPrice, 2, '.', '');
         }
 
         return $EndPrice.' €';
