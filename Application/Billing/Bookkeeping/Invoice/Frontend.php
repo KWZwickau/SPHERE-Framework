@@ -80,6 +80,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'DebtorNumber'    => 'Debitoren-Nr.',
                             'BasketName'      => 'Name der Abrechnung',
                             'CauserPerson'    => 'Beitragsverursacher',
+                            'CauserIdent'     => 'Schülernummer',
                             'Time'            => 'Abrechnungszeitraum',
                             'TargetTime'      => 'Fälligkeitsdatum',
                             'InvoiceNumber'   => 'Rechnungsnummer',
@@ -95,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             'order'      => array(
 //                            array(1, 'desc'),
-                                array(6, 'desc')
+                                array(7, 'desc')
                             ),
                             'responsive' => false,
                         ))
@@ -158,6 +159,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
                                 'CauserPerson'  => 'Beitragsverursacher',
+                                'CauserIdent'     => 'Schülernummer',
                                 'Item'          => 'Beitragsarten',
                                 'DebtorPerson'  => 'Beitragszahler',
                                 'BasketName'    => 'Name der Abrechnung',
