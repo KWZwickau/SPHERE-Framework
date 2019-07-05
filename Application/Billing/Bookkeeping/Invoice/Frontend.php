@@ -4,11 +4,9 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -245,44 +243,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Offene Posten', 'Übersicht');
-        $TableContent = array();
-        if($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid()){
-            array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
-                    $item['DebtorPerson'] = '';
-                    $item['Item'] = $tblInvoiceItemDebtor->getName();
-                    $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
-                    $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
-                    $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
-                    $item['InvoiceNumber'] = '';
-                    $item['CauserPerson'] = '';
-                    $item['Time'] = '';
-                    $item['BasketName'] = '';
-                    if($tblInvoiceItemDebtor->getDebtorPerson()){
-                        $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
-                    }
-                    if($tblInvoice = $tblInvoiceItemDebtor->getTblInvoice()){
-                        $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                        $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
-                        $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
-                        $item['BasketName'] = $tblInvoice->getBasketName();
-                    }
-                    $CheckBox = (new CheckBox('IsPaid', ' ',
-                        $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
-                        ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
-                    if (!$tblInvoiceItemDebtor->getIsPaid()) {
-                        $CheckBox->setChecked();
-                    }
-
-                    $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox,
-                        $tblInvoiceItemDebtor->getId());
-
-                    array_push($TableContent, $item);
-                });
-        }
+        $TableContent = Invoice::useService()->getInvoiceUpPaidList();
 
         $Stage->setContent(ApiInvoiceIsPaid::receiverService()
             .new Layout(
-            new LayoutGroup(
+            new LayoutGroup(array(
+                empty($TableContent) ? null : new LayoutRow(new LayoutColumn(
+                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Billing/Invoice/UnPaid/Download',
+                        new Download())
+                )),
                 new LayoutRow(
                     new LayoutColumn(
                         new TableData($TableContent, null, array(
@@ -310,7 +279,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     )
                 )
-            )
+            ))
         ));
 
         return $Stage;
