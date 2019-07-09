@@ -133,7 +133,6 @@ class Service extends AbstractService
             Import::useService()->destroyImport();
         }
 
-
         //ToDO Aufräumen wenn es gar nicht mehr gebraucht wird
         // Wird noch eine Ausgabe benötigt? Ausgabe aller importierten Daten würde einfach riesig und unübersichtlich
         // werden, zumal das in der Tabelle davor schon ersichtlich gemacht wurde.

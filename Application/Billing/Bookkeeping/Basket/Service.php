@@ -229,6 +229,7 @@ class Service extends AbstractService
      * @param string              $Year
      * @param string              $Month
      * @param string              $TargetTime
+     * @param string              $BillTime
      * @param bool                $IsCompanyCredit
      * @param string              $CreditorId
      * @param TblDivision|null    $tblDivision
@@ -238,7 +239,7 @@ class Service extends AbstractService
      * @return TblBasket
      * @throws \Exception
      */
-    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '',
+    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $BillTime = '',
         $IsCompanyCredit = false, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
         TblDebtorPeriodType $tblDebtorPeriodType = null)
     {
@@ -249,6 +250,12 @@ class Service extends AbstractService
             // now if no input (fallback)
             $TargetTime = new \DateTime();
         }
+        if($BillTime){
+            $BillTime = new \DateTime($BillTime);
+        } else {
+            $BillTime = null;
+        }
+
         // 0 (nicht Ausgewählt) or false to null
         $tblCreditor = false;
         if($CreditorId !== '0'){
@@ -257,7 +264,7 @@ class Service extends AbstractService
         if(!$tblCreditor){
             $tblCreditor = null;
         }
-        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime,
+        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $BillTime,
             $IsCompanyCredit, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
     }
 
@@ -537,15 +544,22 @@ class Service extends AbstractService
      * @param string    $Name
      * @param string    $Description
      * @param string    $TargetTime
+     * @param string    $BillTime
      * @param string    $CreditorId
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $CreditorId = '')
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $BillTime, $CreditorId = '')
     {
 
         // String to DateTime object
         $TargetTime = new \DateTime($TargetTime);
+        if($BillTime){
+            $BillTime = new \DateTime($BillTime);
+        } else {
+            $BillTime = null;
+        }
+
         // 0 (nicht Ausgewählt) or false to null
         $tblCreditor = false;
         if($CreditorId !== '0'){
@@ -555,7 +569,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $tblCreditor);
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $BillTime, $tblCreditor);
     }
 
     /**

@@ -488,9 +488,9 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             // Auswahl des Trennzeichen's
             $export->setDelimiter(';');
-            $YearBegin = $tblBasket->getTargetYear().'0101';
-            $BookingFrom = $tblBasket->getTargetYearMonth();
-            $BookingTo = $tblBasket->getTargetYearMonth(true);
+            $YearBegin = $tblBasket->getBillYear().'0101';
+            $BookingFrom = $tblBasket->getBillYearMonth();
+            $BookingTo = $tblBasket->getBillYearMonth(true);
 
             $ConsultNumber = '1';
             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_CONSULT_NUMBER))){
@@ -692,7 +692,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("6", $row), $FibuAccount);// Fibu-Konto
                         $export->setValue($export->getCell("7", $row), $FibuToAccount);// Fibu-Gegenkonto (ohne BU-Schlüssel)
                         $export->setValue($export->getCell("8", $row), $BuKey);// BU-Schlüssel 3(Umsatzsteuer) oder 9
-                        $export->setValue($export->getCell("9", $row), $tblInvoice->getTargetTime('dm'));// Belegdatum Format? (3108)
+                        $export->setValue($export->getCell("9", $row), $tblInvoice->getBillTime('dm'));// Belegdatum Format? (3108)
                         $export->setValue($export->getCell("10", $row), $tblInvoice->getInvoiceNumber());// Belegfeld 1
                         $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                         $export->setValue($export->getCell("12", $row), '');// Skonto

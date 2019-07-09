@@ -346,7 +346,16 @@ class Service extends AbstractService
         $DebtorInvoiceList = array();
         $Month = $tblBasket->getMonth();
         $Year = $tblBasket->getYear();
-        $TargetTime = $tblBasket->getTargetTime();
+        if(($TargetTime = $tblBasket->getTargetTime())){
+            $TargetTime = new \DateTime($TargetTime);
+        } else {
+            $TargetTime = null;
+        }
+        if(($BillTime = $tblBasket->getBillTime())){
+            $BillTime = new \DateTime($BillTime);
+        } else {
+            $BillTime = null;
+        }
         $MaxInvoiceNumber = Invoice::useService()->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
 
         // erste Durchsicht, entfernnen vorhandener Rechnungen (gleiche Rechnungen im Abrechnungszeitraum
@@ -425,7 +434,7 @@ class Service extends AbstractService
 
         if(!empty($DebtorInvoiceList)){
             // Erstellen aller Rechnungen im Bulk
-            (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime,
+            (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime, $BillTime,
                 $tblBasket);
         }
 

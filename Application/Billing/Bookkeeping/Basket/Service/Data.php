@@ -330,6 +330,7 @@ class Data extends AbstractData
      * @param string              $Year
      * @param string              $Month
      * @param \DateTime           $TargetTime
+     * @param \DateTime|null      $BillTime
      * @param bool                $IsCompanyCredit
      * @param TblCreditor|null    $tblCreditor
      * @param TblDivision|null    $tblDivision
@@ -344,6 +345,7 @@ class Data extends AbstractData
         $Year,
         $Month,
         $TargetTime,
+        $BillTime,
         $IsCompanyCredit = false,
         TblCreditor $tblCreditor = null,
         TblDivision $tblDivision = null,
@@ -365,6 +367,7 @@ class Data extends AbstractData
             $Entity->setYear($Year);
             $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
+            $Entity->setBillTime($BillTime);
             $Entity->setIsDone(false);
             $Entity->setIsCompanyCredit($IsCompanyCredit);
             $Entity->setServiceTblCreditor($tblCreditor);
@@ -413,6 +416,7 @@ class Data extends AbstractData
      * @param string           $Name
      * @param string           $Description
      * @param /DateTime        $TargetTime
+     * @param /DateTime|null   $BillTime
      * @param TblCreditor|null $tblCreditor
      *
      * @return bool
@@ -422,6 +426,7 @@ class Data extends AbstractData
         $Name,
         $Description,
         $TargetTime,
+        $BillTime,
         TblCreditor $tblCreditor = null
     ){
 
@@ -434,6 +439,7 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setTargetTime($TargetTime);
+            $Entity->setBillTime($BillTime);
             $Entity->setServiceTblCreditor($tblCreditor);
 
             $Manager->saveEntity($Entity);
