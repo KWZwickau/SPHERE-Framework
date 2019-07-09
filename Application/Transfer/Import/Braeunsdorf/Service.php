@@ -889,7 +889,12 @@ class Service
                         if ($firstName !== '' && $lastName !== '') {
                             // Address
                             $cityName = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
-                            $cityCode = trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY)));
+                            $cityCode = str_pad(
+                                trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                5,
+                                "0",
+                                STR_PAD_LEFT
+                            );
                             $cityDistrict = trim($Document->getValue($Document->getCell($Location['Ortsteil'], $RunY)));;
 
                             $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -931,15 +936,17 @@ class Service
                             if ($tblPerson) {
                                 $importService->insertGroupsByName($tblPerson, 'Gruppe', $RunY, ';');
 
-                                Address::useService()->insertAddressToPerson(
-                                    $tblPerson,
-                                    $streetName,
-                                    $streetNumber,
-                                    $cityCode,
-                                    $cityName,
-                                    $cityDistrict,
-                                    ''
-                                );
+                                if (!$tblPerson->fetchMainAddress()) {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson,
+                                        $streetName,
+                                        $streetNumber,
+                                        $cityCode,
+                                        $cityName,
+                                        $cityDistrict,
+                                        ''
+                                    );
+                                }
 
                                 $importService->insertPrivatePhone($tblPerson, 'Telefon privat', $RunY);
                                 $importService->insertPrivatePhone($tblPerson, 'Handy', $RunY);
