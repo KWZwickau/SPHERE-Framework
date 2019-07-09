@@ -32,6 +32,9 @@ class InvoiceDownload implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Debtor/Download', __NAMESPACE__.'\InvoiceDownload::downloadInvoiceDebtorList'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/UnPaid/Download', __NAMESPACE__.'\InvoiceDownload::downloadInvoiceUpPaidList'
+        ));
     }
 
     /**
@@ -91,6 +94,18 @@ class InvoiceDownload implements IModuleInterface
                 'Rechnungsliste-Beitragszahler-' . $Year . '-' . $Month
                 . ($BasketName == '' ? '' : '-' . $BasketName)
                 . '.xlsx')->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function downloadInvoiceUpPaidList() {
+        if(($fileLocation = Invoice::useService()->createInvoiceUpPaidListExcel())){
+            $Date = new \DateTime();
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'OffenePosten.'.$Date->format('d-m-Y').'.xlsx')->__toString();
         }
         return false;
     }
