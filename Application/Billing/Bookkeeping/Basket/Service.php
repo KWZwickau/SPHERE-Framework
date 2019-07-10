@@ -17,6 +17,7 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -400,6 +401,11 @@ class Service extends AbstractService
                         } else {
                             $Item['Debtor'] = $tblDebtorSelection->getServiceTblPersonDebtor()->getId();
                         }
+                        if(!$tblDebtorSelection->getServiceTblItemVariant()){
+                            $Item['ItemVariant'] = null;
+                        } else {
+                            $Item['ItemVariant'] = $tblDebtorSelection->getServiceTblItemVariant()->getId();
+                        }
                         // insert payment from DebtorSelection
                         if(!$tblDebtorSelection->getTblBankAccount()){
                             $Item['BankAccount'] = null;
@@ -458,6 +464,7 @@ class Service extends AbstractService
                     // entry without DebtorSelection
                     $Item['Causer'] = $tblPerson->getId();
                     $Item['Debtor'] = '';
+                    $Item['ItemVariant'] = null;
                     $Item['BankAccount'] = null;
                     $Item['BankReference'] = null;
                     $Item['PaymentType'] = null;
@@ -654,6 +661,7 @@ class Service extends AbstractService
      * @param TblPerson             $tblPersonDebtor
      * @param TblPaymentType        $tblPaymentType
      * @param string                $Value
+     * @param TblItemVariant|null   $tblItemVariant
      * @param TblBankAccount|null   $tblBankAccount
      * @param TblBankReference|null $tblBankReference
      *
@@ -664,6 +672,7 @@ class Service extends AbstractService
         TblPerson $tblPersonDebtor,
         TblPaymentType $tblPaymentType,
         $Value = '0',
+        TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
 
@@ -671,7 +680,7 @@ class Service extends AbstractService
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
-            $tblPaymentType, $Value, $tblBankAccount, $tblBankReference);
+            $tblPaymentType, $Value, $tblItemVariant, $tblBankAccount, $tblBankReference);
     }
 
     /**

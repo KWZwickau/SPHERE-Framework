@@ -95,6 +95,7 @@ class Setup extends AbstractSetup
         if(!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')){
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
+        $this->createColumn($Table, 'serviceTblItemVariant', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);

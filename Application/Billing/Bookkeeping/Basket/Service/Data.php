@@ -14,7 +14,9 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
@@ -198,6 +200,7 @@ class Data extends AbstractData
      * @param float                   $Price
      * @param TblPerson               $tblPersonCauser
      * @param TblPerson|null          $tblPersonDebtor
+     * @param TblItemVariant|null     $tblItemVariant
      * @param TblBankAccount|null     $tblBankAccount
      * @param TblBankReference|null   $tblBankReference
      * @param TblPaymentType|null     $tblPaymentType
@@ -211,6 +214,7 @@ class Data extends AbstractData
         $Price,
         TblPerson $tblPersonCauser,
         TblPerson $tblPersonDebtor = null,
+        TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null,
         TblPaymentType $tblPaymentType = null,
@@ -239,6 +243,7 @@ class Data extends AbstractData
             $Entity->setTblBasket($tblBasket);
             $Entity->setServiceTblPersonCauser($tblPersonCauser);
             $Entity->setServiceTblPersonDebtor($tblPersonDebtor);
+            $Entity->setServiceTblItemVariant($tblItemVariant);
             $Entity->setServiceTblBankAccount($tblBankAccount);
             $Entity->setServiceTblBankReference($tblBankReference);
             $Entity->setServiceTblPaymentType($tblPaymentType);
@@ -275,6 +280,7 @@ class Data extends AbstractData
             foreach($DebtorDataArray as $Item) {
                 $PersonCauserId = $Item['Causer'];
                 $PersonDebtorId = $Item['Debtor'];
+                $ItemVariantId = $Item['ItemVariant'];
                 $BankAccountId = $Item['BankAccount'];
                 $BankReferenceId = $Item['BankReference'];
                 $PaymentTypeId = $Item['PaymentType'];
@@ -303,6 +309,7 @@ class Data extends AbstractData
                     if($PersonDebtorId){
                         $Entity->setServiceTblPersonDebtor(Person::useService()->getPersonById($PersonDebtorId));
                     }
+                    $Entity->setServiceTblItemVariant(null === $ItemVariantId ? null : Item::useService()->getItemVariantById($ItemVariantId));
                     $Entity->setServiceTblBankAccount(null === $BankAccountId ? null : Debtor::useService()->getBankAccountById($BankAccountId));
                     $Entity->setServiceTblBankReference(null === $BankReferenceId ? null : Debtor::useService()->getBankReferenceById($BankReferenceId));
                     if($PaymentTypeId){
@@ -576,7 +583,12 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblBasketVerification', $tblBasketVerification->getId());
         $Protocol = clone $Entity;
         if(null !== $Entity){
+
+            if(!($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                $tblItemVariant = null;
+            }
             $Entity->setServiceTblDebtorSelection($tblDebtorSelection);
+            $Entity->setServiceTblItemVariant($tblItemVariant);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -591,6 +603,7 @@ class Data extends AbstractData
      * @param TblPerson             $tblPersonDebtor
      * @param TblPaymentType        $tblPaymentType
      * @param string                $Value
+     * @param TblItemVariant|null   $tblItemVariant
      * @param TblBankAccount|null   $tblBankAccount
      * @param TblBankReference|null $tblBankReference
      *
@@ -601,6 +614,7 @@ class Data extends AbstractData
         TblPerson $tblPersonDebtor,
         TblPaymentType $tblPaymentType,
         $Value = '0',
+        TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
     ){
@@ -616,6 +630,7 @@ class Data extends AbstractData
             $Entity->setServiceTblBankAccount($tblBankAccount);
             $Entity->setServiceTblBankReference($tblBankReference);
             $Entity->setValue($Value);
+            $Entity->setServiceTblItemVariant($tblItemVariant);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
