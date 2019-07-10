@@ -5,6 +5,7 @@ use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Diary\Diary;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
@@ -59,6 +61,7 @@ class ClassRegister implements IApplicationInterface
     {
 
         Absence::registerModule();
+        Diary::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassenbuch'))
@@ -433,6 +436,12 @@ class ClassRegister implements IApplicationInterface
             );
             $buttonList[] = new Standard(
                 'Klassenliste (Auswertung)', '/Education/ClassRegister/DivisionList', new EyeOpen(), array(
+                    'DivisionId' => $tblDivision->getId(),
+                    'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
+                )
+            );
+            $buttonList[] = new Standard(
+                'pädagogisches Tagebuch', '/Education/ClassRegister/Diary', new Listing(), array(
                     'DivisionId' => $tblDivision->getId(),
                     'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                 )
