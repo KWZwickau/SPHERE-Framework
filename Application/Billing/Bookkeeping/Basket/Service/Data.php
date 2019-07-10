@@ -94,12 +94,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $IsArchive
+     *
      * @return bool|TblBasket[]
      */
-    public function getBasketAll()
+    public function getBasketAll($IsArchive = false)
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket');
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', array(
+            TblBasket::ATTR_IS_ARCHIVE => $IsArchive
+        ));
     }
 
     /**
@@ -376,6 +380,7 @@ class Data extends AbstractData
             $Entity->setTargetTime($TargetTime);
             $Entity->setBillTime($BillTime);
             $Entity->setIsDone(false);
+            $Entity->setIsArchive(false);
             $Entity->setIsCompanyCredit($IsCompanyCredit);
             $Entity->setServiceTblCreditor($tblCreditor);
             $Entity->setServiceTblDivision($tblDivision);
@@ -476,6 +481,33 @@ class Data extends AbstractData
         if(null !== $Entity){
             $Entity->setName($tblBasket->getName());
             $Entity->setIsDone($IsDone);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param bool      $IsArchive
+     *
+     * @return bool
+     */
+    public function updateBasketArchive(TblBasket $tblBasket, $IsArchive = true)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setName($tblBasket->getName());
+            $Entity->setIsArchive($IsArchive);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

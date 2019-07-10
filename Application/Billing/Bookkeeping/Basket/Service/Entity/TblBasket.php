@@ -28,6 +28,7 @@ class TblBasket extends Element
     const ATTR_MONTH = 'Month';
     const ATTR_YEAR = 'Year';
     const ATTR_IS_DONE = 'IsDone';
+    const ATTR_IS_ARCHIVE = 'IsArchive';
     const ATTR_IS_COMPANY_CREDIT = 'IsCompanyCredit';
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
@@ -61,6 +62,10 @@ class TblBasket extends Element
      * @Column(type="boolean")
      */
     protected $IsDone;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsArchive;
     /**
      * @Column(type="boolean")
      */
@@ -318,6 +323,22 @@ class TblBasket extends Element
     public function setIsDone($IsDone)
     {
         $this->IsDone = $IsDone;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsArchive()
+    {
+        return $this->IsArchive;
+    }
+
+    /**
+     * @param boolean $IsArchive
+     */
+    public function setIsArchive($IsArchive)
+    {
+        $this->IsArchive = $IsArchive;
     }
 
     /**

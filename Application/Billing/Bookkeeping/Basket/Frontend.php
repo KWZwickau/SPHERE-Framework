@@ -23,6 +23,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -64,19 +66,43 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
+     * @param bool $IsArchive
+     *
      * @return Stage
      */
-    public function frontendBasketList()
+    public function frontendBasketList($IsArchive = false)
     {
 
+        if($IsArchive){
+            $Stage = new Stage('Archiv', 'Abrechnung');
+            $Stage->setMessage('Zeigt alle archivierten Abrechnungen an');
+
+            $Stage->addButton(new Standard('Aktuelle Abrechnungen', '/Billing/Bookkeeping/Basket', new Listing()));
+            $Stage->setContent(
+                ApiBasket::receiverService('')
+                .new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ApiBasket::receiverContent($this->getBasketTable($IsArchive))
+                            )
+                        )
+                    )
+                )
+            );
+            return $Stage;
+        }
+
         $Stage = new Stage('Abrechnung', 'Übersicht');
-        $Stage->setMessage('Zeigt alle vorhandenen Abrechnungen an');
+        $Stage->setMessage('Zeigt alle aktiven Abrechnungen an');
 
         $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus()))
             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket')));
+        $Stage->addButton(new Standard('Archiv', '/Billing/Bookkeeping/Basket', new FolderClosed(), array('IsArchive' => true)));
 
         $Stage->setContent(
-            ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
+            ApiBasket::receiverService('')
+            .ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
             .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
             .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
             .ApiSepa::receiverModal()
@@ -84,7 +110,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            ApiBasket::receiverContent($this->getBasketTable())
+                            ApiBasket::receiverContent($this->getBasketTable($IsArchive))
                         )
                     )
                 )
@@ -95,15 +121,24 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsArchive
+     *
      * @return TableData
      */
-    public function getBasketTable()
+    public function getBasketTable($IsArchive = false)
     {
 
-        $tblBasketAll = Basket::useService()->getBasketAll();
+        // kommt manchmal als string
+        if($IsArchive == 'false' || $IsArchive === false){
+            $IsArchive = false;
+        } else {
+            $IsArchive = true;
+        }
+
+        $tblBasketAll = Basket::useService()->getBasketAll($IsArchive);
         $TableContent = array();
         if(!empty($tblBasketAll)){
-            array_walk($tblBasketAll, function(TblBasket &$tblBasket) use (&$TableContent){
+            array_walk($tblBasketAll, function(TblBasket &$tblBasket) use (&$TableContent, $IsArchive){
 
                 $Item['Number'] = $tblBasket->getId();
                 $Item['Name'] = $tblBasket->getName().' '.new Muted(new Small($tblBasket->getDescription()));
@@ -153,8 +188,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $Buttons = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
                         array('BasketId' => $tblBasket->getId()),
                         'Inhalt der Abrechnung');
-                    $Buttons .= $this->getDownloadButtons($tblBasket);
-
+                    if(!$IsArchive){
+                        $Buttons .= $this->getDownloadButtons($tblBasket);
+                        $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new FolderClosed(), array(), 'Abrechnung in das Archiv schieben'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
+                    } else {
+                        $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new Repeat(), array(), 'Abrechnung aus dem Archiv holen'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
+                    }
                     $Item['Option'] = $Buttons;
                 } else {
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
@@ -168,6 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
                                 $tblBasket->getId()));
                 }
+
 
                 array_push($TableContent, $Item);
             });
@@ -272,13 +314,17 @@ class Frontend extends Extension implements IFrontendInterface
         ini_set('memory_limit', '-1');
         $Stage = new Stage('Abrechnung', 'Inhalt');
 
-        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-
         $PanelHead = $Time = $TargetTime = '';
         if($tblBasket = Basket::useService()->getBasketById($BasketId)){
             $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
             $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
             $TargetTime = $tblBasket->getTargetTime();
+
+            if($tblBasket->getIsArchive()){
+                $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft(), array('IsArchive' => $tblBasket->getIsArchive())));
+            } else {
+                $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+            }
         }
 
         $Stage->setContent(

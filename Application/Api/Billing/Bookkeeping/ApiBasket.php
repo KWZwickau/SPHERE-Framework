@@ -21,6 +21,7 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -74,6 +75,7 @@ class ApiBasket extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditBasket');
         $Dispatcher->registerMethod('showDeleteBasket');
         $Dispatcher->registerMethod('deleteBasket');
+        $Dispatcher->registerMethod('setArchiveBasket');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -99,6 +101,17 @@ class ApiBasket extends Extension implements IApiInterface
     {
 
         return (new BlockReceiver($Content))->setIdentifier('BlockBasketTableContent');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return InlineReceiver
+     */
+    public static function receiverService($Content = '')
+    {
+
+        return (new InlineReceiver($Content))->setIdentifier('ServiceBasket');
     }
 
     /**
@@ -252,15 +265,44 @@ class ApiBasket extends Extension implements IApiInterface
     }
 
     /**
+     * @param int|string $BasketId
+     * @param bool       $IsArchive
+     *
      * @return Pipeline
      */
-    public static function pipelineRefreshTable()
+    public static function pipelineBasketArchive($BasketId = '', $IsArchive = false)
+    {
+
+        $Receiver = self::receiverService();
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'setArchiveBasket'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketId'  => $BasketId,
+            'IsArchive' => $IsArchive,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param bool $IsArchive
+     *
+     * @return Pipeline
+     */
+    public static function pipelineRefreshTable($IsArchive = false)
     {
         $Pipeline = new Pipeline();
         // reload the whole Table
         $Emitter = new ServerEmitter(self::receiverContent(''), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getBasketTable'
+        ));
+        $Emitter->setPostPayload(array(
+            'IsArchive' => $IsArchive
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
@@ -285,12 +327,14 @@ class ApiBasket extends Extension implements IApiInterface
     }
 
     /**
+     * @param bool $IsArchive
+     *
      * @return string
      */
-    public function getBasketTable()
+    public function getBasketTable($IsArchive = false)
     {
 
-        return Basket::useFrontend()->getBasketTable();
+        return Basket::useFrontend()->getBasketTable($IsArchive);
     }
 
     /**
@@ -817,5 +861,29 @@ class ApiBasket extends Extension implements IApiInterface
             return new Success('Abrechnung wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier);
         }
         return new Danger('Abrechnung konnte nicht entfernt werden');
+    }
+
+    /**
+     * @param string $BasketId
+     * @param bool   $IsArchive
+     *
+     * @return string
+     */
+    public function setArchiveBasket($BasketId = '', $IsArchive = false)
+    {
+
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
+            // Wert kommt als String an
+            if('false' == $IsArchive){
+                $IsArchiveOposite = true;
+            } else {
+                $IsArchiveOposite = false;
+            }
+            Basket::useService()->updateBasketArchive($tblBasket, $IsArchiveOposite);
+
+            // Variable Archiv ist ein String, deswegen gleich das gegenteil vom ermittelten boolean
+            return self::pipelineRefreshTable($IsArchive);
+        }
+        return '';
     }
 }

@@ -108,10 +108,10 @@ class Service extends AbstractService
     /**
      * @return bool|TblBasket[]
      */
-    public function getBasketAll()
+    public function getBasketAll($IsArchive = false)
     {
 
-        return (new Data($this->getBinding()))->getBasketAll();
+        return (new Data($this->getBinding()))->getBasketAll($IsArchive);
     }
 
     /**
@@ -589,6 +589,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateBasketDone($tblBasket, $IsDone);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param bool      $IsArchive
+     *
+     * @return bool
+     */
+    public function updateBasketArchive(TblBasket $tblBasket, $IsArchive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateBasketArchive($tblBasket, $IsArchive);
     }
 
     /**
