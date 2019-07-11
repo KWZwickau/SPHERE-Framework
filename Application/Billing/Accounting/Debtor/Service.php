@@ -270,6 +270,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionFindTestByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionFindTestByItem($tblItem);
+    }
+
+    /**
      * @param TblPerson $tblPersonCauser
      * @param TblItem   $tblItem
      *
