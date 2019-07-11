@@ -111,6 +111,26 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDiary $tblDiary
+     *
+     * @return bool
+     */
+    public function destroyDiary(TblDiary $tblDiary)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblDiary $Entity */
+        $Entity = $Manager->getEntityById('TblDiary', $tblDiary->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDiary

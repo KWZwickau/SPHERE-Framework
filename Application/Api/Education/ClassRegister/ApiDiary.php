@@ -15,13 +15,19 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -53,6 +59,9 @@ class ApiDiary extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openEditDiaryModal');
         $Dispatcher->registerMethod('saveEditDiaryModal');
+
+        $Dispatcher->registerMethod('openDeleteDiaryModal');
+        $Dispatcher->registerMethod('saveDeleteDiaryModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -192,6 +201,48 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $DiaryId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteDiaryModal($DiaryId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteDiaryModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DiaryId' => $DiaryId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DiaryId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteDiarySave($DiaryId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteDiaryModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DiaryId' => $DiaryId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
      * @param $DivisionId
      *
      * @return Danger|TableData
@@ -317,6 +368,66 @@ class ApiDiary extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $DiaryId
+     *
+     * @return string
+     */
+    public function openDeleteDiaryModal($DiaryId)
+    {
+
+        if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
+            return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Eintrag löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diesen Eintrag wirklich löschen?',
+                                array(
+                                    $tblDiary->getDate(),
+                                    $tblDiary->getSubject(),
+                                    $tblDiary->getContent()
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteDiarySave($DiaryId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param $DiaryId
+     *
+     * @return Danger|string
+     */
+    public function saveDeleteDiaryModal($DiaryId)
+    {
+
+        if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
+            return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivision = $tblDiary->getServiceTblDivision())) {
+            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
+        }
+
+        if (Diary::useService()->destroyDiary($tblDiary)) {
+            return new Success('Der Eintrag wurde erfolgreich gelöscht.')
+                . self::pipelineLoadDiaryContent($tblDivision->getId())
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der Eintrag konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }

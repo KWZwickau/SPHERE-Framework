@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -222,6 +223,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Editor' => $displayPerson,
                     'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
                     'Subject' => $tblDiary->getSubject(),
+                    // todo Zeilenumbrüche berücksichtigen
                     'Content' => $tblDiary->getContent(),
                     'Options' =>
                         (new Standard(
@@ -231,6 +233,13 @@ class Frontend extends Extension implements IFrontendInterface
                             array(),
                             'Bearbeiten'
                         ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
+                        . (new Standard(
+                            '',
+                            ApiDiary::getEndpoint(),
+                            new Remove(),
+                            array(),
+                            'Löschen'
+                        ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
                 );
             }
         }

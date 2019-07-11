@@ -192,4 +192,20 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @param TblDiary $tblDiary
+     *
+     * @return bool
+     */
+    public function destroyDiary(TblDiary $tblDiary)
+    {
+        if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+            foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                (new Data($this->getBinding()))->removeDiaryStudent($tblDiaryStudent);
+            }
+        }
+
+        return (new Data($this->getBinding()))->destroyDiary($tblDiary);
+    }
 }
