@@ -53,54 +53,8 @@ class Frontend extends Extension implements IFrontendInterface
             ));
 
             $tblYear = $tblDivision->getServiceTblYear();
-            // todo verknüpfte Klassen
-            $dataList = array();
-            if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision))) {
-                foreach ($tblDiaryList as $tblDiary) {
-                    $displayPerson = '';
-                    if (($tblPerson = $tblDiary->getServiceTblPerson())) {
-                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
-                            && ($acronym = $tblTeacher->getAcronym())
-                        ) {
-                            $displayPerson = $acronym;
-                        } else {
-                            $displayPerson = $tblPerson->getLastName();
-                        }
-                    }
 
-                    $dataList[] = array(
-                        'Date' => $tblDiary->getDate(),
-                        'Location' => $tblDiary->getLocation(),
-                        'Editor' => $displayPerson,
-                        'PersonList' => '',
-                        'Subject' => $tblDiary->getSubject(),
-                        'Content' => $tblDiary->getContent(),
-                    );
-                }
-            }
-
-            $tableData = new TableData(
-                $dataList,
-                null,
-                array(
-                    'Date' => 'Datum',
-                    'Location' => 'Ort',
-                    'Editor' => 'Verfasser',
-                    'PersonList' => 'Schüler',
-                    'Subject' => 'Titel',
-                    'Content' => 'Bemerkungen',
-                ),
-                array(
-                    'order' => array(
-                        array(0, 'desc')
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'de_date', 'targets' => 0),
-                    ),
-                    'responsive' => false
-                )
-            );
-
+            $receiver = ApiDiary::receiverBlock($this->loadDiaryTable($tblDivision), 'DiaryContent');
 
             $stage->setContent(
                 new Layout(array(
@@ -130,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenCreateDiaryModal($tblDivision->getId()))
                             ),
                             new LayoutColumn(
-                                $tableData
+                                $receiver
                             )
                         ))
                     ))
@@ -163,16 +117,26 @@ class Frontend extends Extension implements IFrontendInterface
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
-//                $Global->POST['Address'] = $tblDiary->getTblMail()->getAddress();
-//                $Global->POST['Type']['Type'] = $tblDiary->getTblType()->getId();
-//                $Global->POST['Type']['Remark'] = $tblDiary->getRemark();
+                $Global->POST['Data']['Date'] = $tblDiary->getDate();
+                $Global->POST['Data']['Location'] = $tblDiary->getLocation();
+                $Global->POST['Data']['Subject'] = $tblDiary->getSubject();
+                $Global->POST['Data']['Content'] = $tblDiary->getContent();
+
+                if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+                    foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                        if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
+                            $Global->POST['Data']['Students'][$tblPersonItem->getId()] = 1;
+                        }
+                    }
+                }
+
                 $Global->savePost();
             }
         }
 
         if ($DiaryId) {
-            $saveButton = (new Primary('Speichern', ApiDiary::getEndpoint(), new Save()));
-//                ->ajaxPipelineOnClick(ApiDiary::pipelineEditDiarySave($DivisionId, $DiaryId));
+            $saveButton = (new Primary('Speichern', ApiDiary::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDiary::pipelineEditDiarySave($DiaryId));
         } else {
             $saveButton = (new Primary('Speichern', ApiDiary::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDiary::pipelineCreateDiarySave($tblDivision->getId()));
@@ -182,7 +146,7 @@ class Frontend extends Extension implements IFrontendInterface
         $columns = array();
         if (($tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
             foreach($tblDivisionStudentList as $tblPerson) {
-                $columns[] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']' ,$tblPerson->getLastFirstName(), 1), 4);
+                $columns[] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']', $tblPerson->getLastFirstName(), 1), 4);
             }
         }
 
@@ -216,5 +180,83 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ))->disableSubmitAction();
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return TableData
+     */
+    public function loadDiaryTable(TblDivision $tblDivision)
+    {
+        // todo verknüpfte Klassen
+        // todo einträge von Klassengewechselten Schülern innerhalb eines Schuljahres
+        $dataList = array();
+        if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision))) {
+            foreach ($tblDiaryList as $tblDiary) {
+                $displayPerson = '';
+                if (($tblPerson = $tblDiary->getServiceTblPerson())) {
+                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                        && ($acronym = $tblTeacher->getAcronym())
+                    ) {
+                        $displayPerson = $acronym;
+                    } else {
+                        $displayPerson = $tblPerson->getLastName();
+                    }
+                }
+
+                $personList = array();
+                if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+                    foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                        if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
+                            $personList[] = $tblPersonItem->getLastFirstName();
+                        }
+                    }
+                }
+
+                $dataList[] = array(
+                    'Date' => $tblDiary->getDate(),
+                    'Division' => $tblDivision->getDisplayName()
+                        . (($tblYear = $tblDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : ''),
+                    'Location' => $tblDiary->getLocation(),
+                    'Editor' => $displayPerson,
+                    'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
+                    'Subject' => $tblDiary->getSubject(),
+                    'Content' => $tblDiary->getContent(),
+                    'Options' =>
+                        (new Standard(
+                            '',
+                            ApiDiary::getEndpoint(),
+                            new Edit(),
+                            array(),
+                            'Bearbeiten'
+                        ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
+                );
+            }
+        }
+
+        return new TableData(
+            $dataList,
+            null,
+            array(
+                'Date' => 'Datum',
+                'Division' => 'Klasse',
+                'Location' => 'Ort',
+                'Editor' => 'Verfasser',
+                'PersonList' => 'Schüler',
+                'Subject' => 'Titel',
+                'Content' => 'Bemerkungen',
+                'Options' => ' '
+            ),
+            array(
+                'order' => array(
+                    array(0, 'desc')
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 0),
+                ),
+                'responsive' => false
+            )
+        );
     }
 }

@@ -64,6 +64,53 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDiary $tblDiary
+     * @param $Subject
+     * @param $Content
+     * @param $Date
+     * @param $Location
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return bool
+     */
+    public function updateDiary(
+        TblDiary $tblDiary,
+        $Subject,
+        $Content,
+        $Date,
+        $Location,
+        TblPerson $tblPerson,
+        TblYear $tblYear,
+        TblDivision $tblDivision = null,
+        TblGroup $tblGroup = null
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblDiary $Entity */
+        $Entity = $Manager->getEntityById('TblDiary', $tblDiary->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setSubject($Subject);
+            $Entity->setContent($Content);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setLocation($Location);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblYear($tblYear);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblGroup($tblGroup);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDiary
@@ -121,5 +168,25 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDiaryStudent $tblDiaryStudent
+     *
+     * @return bool
+     */
+    public function removeDiaryStudent(TblDiaryStudent $tblDiaryStudent)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblDiaryStudent $Entity */
+        $Entity = $Manager->getEntityById('TblDiaryStudent', $tblDiaryStudent->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

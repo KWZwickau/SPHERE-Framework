@@ -47,7 +47,7 @@ class Service extends AbstractService
      */
     public function getDiaryById($Id)
     {
-        return (new Data($this->getBinding()))->getDiaryAllByDivision($Id);
+        return (new Data($this->getBinding()))->getDiaryById($Id);
     }
 
     /**
@@ -134,6 +134,60 @@ class Service extends AbstractService
 
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDiary $tblDiary
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateDiary(TblDiary $tblDiary, $Data)
+    {
+        $tblPerson = false;
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))
+        ) {
+            $tblPerson = $tblPersonAllByAccount[0];
+        }
+
+        if ($tblPerson
+            && ($tblDivision = $tblDiary->getServiceTblDivision())
+            && ($tblYear = $tblDivision->getServiceTblYear())
+        ) {
+            (new Data($this->getBinding()))->updateDiary(
+                $tblDiary,
+                $Data['Subject'],
+                $Data['Content'],
+                $Data['Date'],
+                $Data['Location'],
+                $tblPerson,
+                $tblYear,
+                $tblDivision
+            );
+
+            if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+                foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                    if (($tblPersonRemove = $tblDiaryStudent->getServiceTblPerson())
+                        && !isset($Data['Students'][$tblPersonRemove->getId()])
+                    ) {
+                        (new Data($this->getBinding()))->removeDiaryStudent($tblDiaryStudent);
+                    }
+                }
+            }
+
+            if (isset($Data['Students'])) {
+                foreach($Data['Students'] as $personId => $value) {
+                    if (($tblPersonAdd = Person::useService()->getPersonById($personId))) {
+                        (new Data($this->getBinding()))->addDiaryStudent($tblDiary, $tblPersonAdd);
+                    }
+                }
+            }
+
+            return true;
         }
 
         return false;
