@@ -4,8 +4,11 @@ namespace SPHERE\Application\Education\ClassRegister\Diary;
 
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -13,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -30,7 +34,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
-
 /**
  * Class Frontend
  *
@@ -40,8 +43,7 @@ class Frontend extends Extension implements IFrontendInterface
 {
     public function frontendDiary(
         $DivisionId = null,
-        $BasicRoute = '/Education/ClassRegister/Teacher',
-        $Data = null
+        $BasicRoute = '/Education/ClassRegister/Teacher'
     ) {
         $stage = new Stage('Klassenbuch', 'pädagogisches Tagebuch');
         if ($tblDivision = Division::useService()->getDivisionById($DivisionId)) {
@@ -86,7 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Editor' => 'Verfasser',
                     'PersonList' => 'Schüler',
                     'Subject' => 'Titel',
-                    'Content' => 'Bemerkung',
+                    'Content' => 'Bemerkungen',
                 ),
                 array(
                     'order' => array(
@@ -147,7 +149,14 @@ class Frontend extends Extension implements IFrontendInterface
         return $stage;
     }
 
-    public function formDiary($DivisionId, $DiaryId = null, $setPost = false)
+    /**
+     * @param TblDivision $tblDivision
+     * @param null $DiaryId
+     * @param bool $setPost
+     *
+     * @return Form
+     */
+    public function formDiary(TblDivision $tblDivision, $DiaryId = null, $setPost = false)
     {
 
         if ($DiaryId && ($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
@@ -165,25 +174,42 @@ class Frontend extends Extension implements IFrontendInterface
             $saveButton = (new Primary('Speichern', ApiDiary::getEndpoint(), new Save()));
 //                ->ajaxPipelineOnClick(ApiDiary::pipelineEditDiarySave($DivisionId, $DiaryId));
         } else {
-            $saveButton = (new Primary('Speichern', ApiDiary::getEndpoint(), new Save()));
-//                ->ajaxPipelineOnClick(ApiDiary::pipelineCreateDiarySave($DivisionId));
+            $saveButton = (new Primary('Speichern', ApiDiary::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDiary::pipelineCreateDiarySave($tblDivision->getId()));
+        }
+
+        // todo deaktivierte ausgewählte Schüler hinzufügen
+        $columns = array();
+        if (($tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+            foreach($tblDivisionStudentList as $tblPerson) {
+                $columns[] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']' ,$tblPerson->getLastFirstName(), 1), 4);
+            }
         }
 
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new DatePicker('Data[Date]', '', 'Datum', new Calendar())
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
                     , 6),
                     new FormColumn(
-                        new TextField('Data[Subject]', '', 'Titel')
+                        new TextField('Data[Location]', '', 'Ort')
                     , 6),
-//                    new FormColumn(
-//                        new Panel('Sonstiges',
-//                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-//                            , Panel::PANEL_TYPE_INFO
-//                        ), 6
-//                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Subject]', 'Titel', 'Titel', new Calendar())
+                    ),
+                )),
+                new FormRow(
+                    $columns
+                ),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextArea('Data[Content]', 'Bemerkungen', 'Bemerkungen', new Edit())
+                    ),
+                )),
+                new FormRow(array(
                     new FormColumn(
                         $saveButton
                     )

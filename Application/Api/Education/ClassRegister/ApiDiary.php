@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -48,7 +49,7 @@ class ApiDiary extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadDiaryContent');
 
         $Dispatcher->registerMethod('openCreateDiaryModal');
-//        $Dispatcher->registerMethod('saveCreateDiaryModal');
+        $Dispatcher->registerMethod('saveCreateDiaryModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -86,11 +87,11 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param int $DivisionId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadDiaryContent($PersonId)
+    public static function pipelineLoadDiaryContent($DivisionId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DiaryContent'), self::getEndpoint());
@@ -98,7 +99,7 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'loadDiaryContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'DivisionId' => $DivisionId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -125,11 +126,38 @@ class ApiDiary extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @param $DivisionId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateDiarySave($DivisionId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateDiaryModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
     public function loadDiaryContent()
     {
         return '';
     }
 
+    /**
+     * @param $DivisionId
+     *
+     * @return Danger|string
+     */
     public function openCreateDiaryModal($DivisionId)
     {
 
@@ -137,9 +165,16 @@ class ApiDiary extends Extension implements IApiInterface
             return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getDiaryModal(Diary::useFrontend()->formDiary($DivisionId), $tblDivision);
+        return $this->getDiaryModal(Diary::useFrontend()->formDiary($tblDivision), $tblDivision);
     }
 
+    /**
+     * @param $form
+     * @param TblDivision $tblDivision
+     * @param null $DiaryId
+     *
+     * @return string
+     */
     private function getDiaryModal($form, TblDivision $tblDivision,  $DiaryId = null)
     {
         if ($DiaryId) {
@@ -160,5 +195,32 @@ class ApiDiary extends Extension implements IApiInterface
                         )
                     ))
             );
+    }
+
+    /**
+     * @param $DivisionId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveCreateDiaryModal($DivisionId, $Data)
+    {
+
+        if (!($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Diary::useService()->checkFormDiary($tblDivision, $Data))) {
+            // display Errors on form
+            return $this->getDiaryModal($form, $tblDivision);
+        }
+
+        if (Diary::useService()->createDiary($tblDivision, $Data)) {
+            return new Success('Der Eintrag wurde erfolgreich gespeichert.')
+                . self::pipelineLoadDiaryContent($DivisionId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
     }
 }

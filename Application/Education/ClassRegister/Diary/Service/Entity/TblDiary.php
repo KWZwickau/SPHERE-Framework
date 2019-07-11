@@ -210,7 +210,7 @@ class TblDiary extends Element
     /**
      * @param null|TblGroup $serviceTblGroup
      */
-    public function setServiceTblGroup(TblGroup $serviceTblGroup)
+    public function setServiceTblGroup(TblGroup $serviceTblGroup = null)
     {
 
         $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());

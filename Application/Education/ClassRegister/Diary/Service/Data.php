@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Diary\Service;
 
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
+use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -33,7 +34,7 @@ class Data extends AbstractData
      *
      * @return TblDiary
      */
-    public function createAbsence(
+    public function createDiary(
         $Subject,
         $Content,
         $Date,
@@ -82,5 +83,43 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
             TblDiary::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
         ));
+    }
+
+    /**
+     * @param TblDiary $tblDiary
+     *
+     * @return false|TblDiaryStudent[]
+     */
+    public function getDiaryStudentAllByDiary(TblDiary $tblDiary)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiaryStudent', array(
+            TblDiaryStudent::ATTR_TBL_DIARY => $tblDiary->getId()
+        ));
+    }
+
+    /**
+     * @param TblDiary $tblDiary
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDiaryStudent
+     */
+    public function addDiaryStudent(TblDiary $tblDiary, TblPerson $tblPerson)
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblDiaryStudent')
+            ->findOneBy(array(
+                TblDiaryStudent::ATTR_TBL_DIARY => $tblDiary->getId(),
+                TblDiaryStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDiaryStudent();
+            $Entity->setTblDiary($tblDiary);
+            $Entity->setServiceTblPerson($tblPerson);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

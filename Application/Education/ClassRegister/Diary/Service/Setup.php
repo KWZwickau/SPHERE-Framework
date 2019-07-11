@@ -26,7 +26,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableDiary($Schema);
+        $tblDiary = $this->setTableDiary($Schema);
+        $this->setTableDiaryStudent($Schema, $tblDiary);
 
         /**
          * Migration & Protocol
@@ -51,6 +52,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblDiary');
+
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
@@ -59,6 +61,23 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'Location', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblDiary
+     *
+     * @return Table
+     */
+    private function setTableDiaryStudent(Schema &$Schema, Table $tblDiary)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblDiaryStudent');
+
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+
+        $this->createForeignKey($Table, $tblDiary);
 
         return $Table;
     }
