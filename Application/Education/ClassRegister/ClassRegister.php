@@ -440,12 +440,18 @@ class ClassRegister implements IApplicationInterface
                     'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                 )
             );
-            $buttonList[] = new Standard(
-                'pädagogisches Tagebuch', '/Education/ClassRegister/Diary', new Listing(), array(
-                    'DivisionId' => $tblDivision->getId(),
-                    'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
-                )
-            );
+            // todo
+            // nur Klassenlehrer und Schuleitung, Problem Verwaltung
+//            if (!$isTeacher
+//                || ($isTeacher)
+//            ) {
+                $buttonList[] = new Standard(
+                    'pädagogisches Tagebuch', '/Education/ClassRegister/Diary', new Listing(), array(
+                        'DivisionId' => $tblDivision->getId(),
+                        'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
+                    )
+                );
+//            }
             $buttonList[] = new Standard('Download Klassenliste Krankenakte'
                 , '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', new Download(), array(
                     'DivisionId' => $tblDivision->getId()

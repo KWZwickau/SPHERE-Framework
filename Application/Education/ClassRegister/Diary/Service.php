@@ -9,6 +9,7 @@ use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStud
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -259,5 +260,24 @@ class Service extends AbstractService
     private function getDiaryDivisionByDivision(TblDivision $tblDivision)
     {
         return (new Data($this->getBinding()))->getDiaryDivisionByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDiary[]|bool
+     */
+    public function getDiaryAllByStudent(TblPerson $tblPerson)
+    {
+        $resultList = array();
+        if (($tblDiaryStudentList = (new Data($this->getBinding()))->getDiaryStudentAllByStudent($tblPerson))) {
+            foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                if (($tblDiary = $tblDiaryStudent->getTblDiary())) {
+                    $resultList[$tblDiary->getId()] = $tblDiary;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 }

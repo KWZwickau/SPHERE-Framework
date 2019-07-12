@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Diary;
 
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -113,7 +115,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function formDiary(TblDivision $tblDivision, $DiaryId = null, $setPost = false)
     {
-
+        $setStudents = array();
         if ($DiaryId && ($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
@@ -127,6 +129,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblDiaryStudentList as $tblDiaryStudent) {
                         if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
                             $Global->POST['Data']['Students'][$tblPersonItem->getId()] = 1;
+                            $setStudents[$tblPersonItem->getId()] = $tblPersonItem;
                         }
                     }
                 }
@@ -143,11 +146,20 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiDiary::pipelineCreateDiarySave($tblDivision->getId()));
         }
 
-        // todo deaktivierte ausgewählte Schüler hinzufügen
         $columns = array();
         if (($tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
             foreach($tblDivisionStudentList as $tblPerson) {
-                $columns[] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']', $tblPerson->getLastFirstName(), 1), 4);
+                $columns[$tblPerson->getId()] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']',
+                    $tblPerson->getLastFirstName(), 1), 4);
+            }
+        }
+        // deaktivierte ausgewählte Schüler hinzufügen
+        if (!empty($setStudents)) {
+            foreach ($setStudents as $personId => $tblStudent) {
+                if (!isset($columns[$personId])) {
+                    $columns[$tblStudent->getId()] = new FormColumn(new CheckBox('Data[Students][' . $tblStudent->getId() . ']',
+                        new Strikethrough($tblStudent->getLastFirstName()), 1), 4);
+                }
             }
         }
 
@@ -190,57 +202,22 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadDiaryTable(TblDivision $tblDivision)
     {
-        // todo einträge von Klassengewechselten Schülern innerhalb eines Schuljahres
         $dataList = array();
         if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, true))) {
             foreach ($tblDiaryList as $tblDiary) {
-                if (($tblDisplayDivision = $tblDiary->getServiceTblDivision())) {
-                    $displayPerson = '';
-                    if (($tblPerson = $tblDiary->getServiceTblPerson())) {
-                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
-                            && ($acronym = $tblTeacher->getAcronym())
-                        ) {
-                            $displayPerson = $acronym;
-                        } else {
-                            $displayPerson = $tblPerson->getLastName();
+                $dataList[$tblDiary->getId()] = $this->setDiaryItem($tblDiary);
+            }
+        }
+
+        // zusätzliche Schülereintrage (z.B. vom Klassenwechsel)
+        if (($tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+            foreach ($tblDivisionStudentList as $tblStudent) {
+                if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblStudent))) {
+                    foreach ($tblDiaryListByStudent as $item) {
+                        if (!isset($dataList[$item->getId()])) {
+                            $dataList[$item->getId()] = $this->setDiaryItem($item);
                         }
                     }
-
-                    $personList = array();
-                    if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
-                        foreach ($tblDiaryStudentList as $tblDiaryStudent) {
-                            if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
-                                $personList[] = $tblPersonItem->getLastFirstName();
-                            }
-                        }
-                    }
-
-                    $dataList[] = array(
-                        'Date' => $tblDiary->getDate(),
-                        'Division' => $tblDisplayDivision->getDisplayName()
-                            . (($tblYear = $tblDisplayDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : ''),
-                        'Location' => $tblDiary->getLocation(),
-                        'Editor' => $displayPerson,
-                        'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
-                        'Subject' => $tblDiary->getSubject(),
-                        // todo Zeilenumbrüche berücksichtigen
-                        'Content' => $tblDiary->getContent(),
-                        'Options' =>
-                            (new Standard(
-                                '',
-                                ApiDiary::getEndpoint(),
-                                new Edit(),
-                                array(),
-                                'Bearbeiten'
-                            ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
-                            . (new Standard(
-                                '',
-                                ApiDiary::getEndpoint(),
-                                new Remove(),
-                                array(),
-                                'Löschen'
-                            ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
-                    );
                 }
             }
         }
@@ -268,5 +245,64 @@ class Frontend extends Extension implements IFrontendInterface
                 'responsive' => false
             )
         );
+    }
+
+    /**
+     * @param TblDiary $tblDiary
+     *
+     * @return array
+     */
+    private function setDiaryItem(TblDiary $tblDiary)
+    {
+        if (($tblDivision = $tblDiary->getServiceTblDivision())) {
+            $displayPerson = '';
+            if (($tblPerson = $tblDiary->getServiceTblPerson())) {
+                if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                    && ($acronym = $tblTeacher->getAcronym())
+                ) {
+                    $displayPerson = $acronym;
+                } else {
+                    $displayPerson = $tblPerson->getLastName();
+                }
+            }
+
+            $personList = array();
+            if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+                foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                    if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
+                        $personList[] = $tblPersonItem->getLastFirstName();
+                    }
+                }
+            }
+
+            return array(
+                'Date' => $tblDiary->getDate(),
+                'Division' => $tblDivision->getDisplayName()
+                    . (($tblYear = $tblDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : ''),
+                'Location' => $tblDiary->getLocation(),
+                'Editor' => $displayPerson,
+                'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
+                'Subject' => $tblDiary->getSubject(),
+                // Zeilenumbrüche berücksichtigen
+                'Content' => str_replace("\n", '<br>', $tblDiary->getContent()),
+                'Options' =>
+                    (new Standard(
+                        '',
+                        ApiDiary::getEndpoint(),
+                        new Edit(),
+                        array(),
+                        'Bearbeiten'
+                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
+                    . (new Standard(
+                        '',
+                        ApiDiary::getEndpoint(),
+                        new Remove(),
+                        array(),
+                        'Löschen'
+                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
+            );
+        }
+
+        return array();
     }
 }

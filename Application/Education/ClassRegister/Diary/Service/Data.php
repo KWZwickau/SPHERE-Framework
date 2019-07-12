@@ -166,6 +166,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDiaryStudent[]
+     */
+    public function getDiaryStudentAllByStudent(TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiaryStudent', array(
+            TblDiaryStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
+    /**
      * @param TblDiary $tblDiary
      * @param TblPerson $tblPerson
      *
