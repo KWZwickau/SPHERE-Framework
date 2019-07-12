@@ -32,10 +32,13 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Frontend
@@ -203,45 +206,52 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadDiaryTable(TblDivision $tblDivision)
     {
         $dataList = array();
+        $diaryList = array();
+
+        // Klasseneinträge inklusive der Einträge der verkünften Vorgänger-Klassen
         if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, true))) {
             foreach ($tblDiaryList as $tblDiary) {
-                $dataList[$tblDiary->getId()] = $this->setDiaryItem($tblDiary);
+                $diaryList[$tblDiary->getId()] = $tblDiary;
             }
         }
-
         // zusätzliche Schülereintrage (z.B. vom Klassenwechsel)
         if (($tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
             foreach ($tblDivisionStudentList as $tblStudent) {
                 if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblStudent))) {
                     foreach ($tblDiaryListByStudent as $item) {
-                        if (!isset($dataList[$item->getId()])) {
-                            $dataList[$item->getId()] = $this->setDiaryItem($item);
+                        if (!isset($diaryList[$item->getId()])) {
+                            $diaryList[$item->getId()] = $item;
                         }
                     }
                 }
             }
+        }
+        // sortieren nach Datum
+        $diaryList = $this->getSorter($diaryList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
+        $count = 0;
+        /** @var TblDiary $tblDiaryItem */
+        foreach ($diaryList as $tblDiaryItem) {
+            $count++;
+            $dataList[] = $this->setDiaryItem($tblDiaryItem, $count);
         }
 
         return new TableData(
             $dataList,
             null,
             array(
-                'Date' => 'Datum',
-                'Division' => 'Klasse',
-                'Location' => 'Ort',
-                'Editor' => 'Verfasser',
+                'Number' => '#',
+                'Information' => 'Information',
                 'PersonList' => 'Schüler',
-                'Subject' => 'Titel',
-                'Content' => 'Bemerkungen',
+                'Content' => 'Inhalt',
                 'Options' => ' '
             ),
             array(
                 'order' => array(
-                    array(0, 'desc')
+                    array(0, 'asc')
                 ),
-                'columnDefs' => array(
-                    array('type' => 'de_date', 'targets' => 0),
-                ),
+//                'columnDefs' => array(
+//                    array('type' => 'de_date', 'targets' => 0),
+//                ),
                 'responsive' => false
             )
         );
@@ -249,10 +259,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblDiary $tblDiary
+     * @param int $count
      *
      * @return array
      */
-    private function setDiaryItem(TblDiary $tblDiary)
+    private function setDiaryItem(TblDiary $tblDiary, &$count)
     {
         if (($tblDivision = $tblDiary->getServiceTblDivision())) {
             $displayPerson = '';
@@ -276,15 +287,17 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             return array(
-                'Date' => $tblDiary->getDate(),
-                'Division' => $tblDivision->getDisplayName()
-                    . (($tblYear = $tblDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : ''),
-                'Location' => $tblDiary->getLocation(),
-                'Editor' => $displayPerson,
-                'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
-                'Subject' => $tblDiary->getSubject(),
-                // Zeilenumbrüche berücksichtigen
-                'Content' => str_replace("\n", '<br>', $tblDiary->getContent()),
+                'Number' => $count,
+                'Information' => $tblDiary->getDate()
+                    . '<br>' . $tblDivision->getDisplayName()
+                    . (($tblYear = $tblDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : '')
+                    . (($location = $tblDiary->getLocation()) ? '<br>' . $location : '')
+                    . '<br>' . $displayPerson,
+                'PersonList' => empty($personList) ? '' : implode('<br>', $personList),
+                'Content' => new Bold($tblDiary->getSubject())
+                    . '<br><br>'
+                    // Zeilenumbrüche berücksichtigen
+                    . str_replace("\n", '<br>', $tblDiary->getContent()),
                 'Options' =>
                     (new Standard(
                         '',
