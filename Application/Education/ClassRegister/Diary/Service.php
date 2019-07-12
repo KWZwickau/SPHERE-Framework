@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Diary;
 
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
+use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryDivision;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -52,12 +53,42 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withPredecessorDivision
      *
      * @return false|TblDiary[]
      */
-    public function getDiaryAllByDivision(TblDivision $tblDivision)
+    public function getDiaryAllByDivision(TblDivision $tblDivision, $withPredecessorDivision = false)
     {
-        return (new Data($this->getBinding()))->getDiaryAllByDivision($tblDivision);
+        if ($withPredecessorDivision) {
+            $divisionList = array();
+            $resultList = array();
+            $this->getPredecessorDivisionList($tblDivision, $divisionList);
+            /** @var TblDivision $tblDivisionItem */
+            foreach ($divisionList as $tblDivisionItem) {
+                if (($list = $this->getDiaryAllByDivision($tblDivisionItem, false))) {
+                    $resultList = array_merge($resultList, $list);
+                }
+            }
+
+            return $resultList;
+        } else {
+            return (new Data($this->getBinding()))->getDiaryAllByDivision($tblDivision);
+        }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param $resultList
+     */
+    private function getPredecessorDivisionList(TblDivision $tblDivision, &$resultList) {
+        $resultList[$tblDivision->getId()] = $tblDivision;
+        if (($tblDiaryDivisionList = $this->getDiaryDivisionByDivision($tblDivision))) {
+            foreach ($tblDiaryDivisionList as $tblDiaryDivision) {
+                if (($tblPredecessorDivision = $tblDiaryDivision->getServiceTblPredecessorDivision())) {
+                    $this->getPredecessorDivisionList($tblPredecessorDivision, $resultList);
+                }
+            }
+        }
     }
 
     /**
@@ -207,5 +238,26 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->destroyDiary($tblDiary);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblDivision $tblPredecessorDivision
+     *
+     * @return TblDiaryDivision
+     */
+    public function addDiaryDivision(TblDivision $tblDivision, TblDivision $tblPredecessorDivision)
+    {
+        return (new Data($this->getBinding()))->addDiaryDivision($tblDivision, $tblPredecessorDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDiaryDivision[]
+     */
+    private function getDiaryDivisionByDivision(TblDivision $tblDivision)
+    {
+        return (new Data($this->getBinding()))->getDiaryDivisionByDivision($tblDivision);
     }
 }

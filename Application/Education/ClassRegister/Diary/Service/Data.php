@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Diary\Service;
 
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
+use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryDivision;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -208,5 +209,43 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDiaryDivision[]
+     */
+    public function getDiaryDivisionByDivision(TblDivision $tblDivision)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiaryDivision', array(
+            TblDiaryDivision::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblDivision $tblPredecessorDivision
+     *
+     * @return TblDiaryDivision
+     */
+    public function addDiaryDivision(TblDivision $tblDivision, TblDivision $tblPredecessorDivision)
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblDiaryDivision')
+            ->findOneBy(array(
+                TblDiaryDivision::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                TblDiaryDivision::ATTR_SERVICE_TBL_PREDECESSOR_DIVISION => $tblPredecessorDivision->getId(),
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDiaryDivision();
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblPredecessorDivision($tblPredecessorDivision);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

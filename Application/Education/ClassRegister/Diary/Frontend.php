@@ -190,57 +190,58 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadDiaryTable(TblDivision $tblDivision)
     {
-        // todo verknüpfte Klassen
         // todo einträge von Klassengewechselten Schülern innerhalb eines Schuljahres
         $dataList = array();
-        if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision))) {
+        if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, true))) {
             foreach ($tblDiaryList as $tblDiary) {
-                $displayPerson = '';
-                if (($tblPerson = $tblDiary->getServiceTblPerson())) {
-                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
-                        && ($acronym = $tblTeacher->getAcronym())
-                    ) {
-                        $displayPerson = $acronym;
-                    } else {
-                        $displayPerson = $tblPerson->getLastName();
-                    }
-                }
-
-                $personList = array();
-                if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
-                    foreach ($tblDiaryStudentList as $tblDiaryStudent) {
-                        if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
-                            $personList[] = $tblPersonItem->getLastFirstName();
+                if (($tblDisplayDivision = $tblDiary->getServiceTblDivision())) {
+                    $displayPerson = '';
+                    if (($tblPerson = $tblDiary->getServiceTblPerson())) {
+                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                            && ($acronym = $tblTeacher->getAcronym())
+                        ) {
+                            $displayPerson = $acronym;
+                        } else {
+                            $displayPerson = $tblPerson->getLastName();
                         }
                     }
-                }
 
-                $dataList[] = array(
-                    'Date' => $tblDiary->getDate(),
-                    'Division' => $tblDivision->getDisplayName()
-                        . (($tblYear = $tblDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : ''),
-                    'Location' => $tblDiary->getLocation(),
-                    'Editor' => $displayPerson,
-                    'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
-                    'Subject' => $tblDiary->getSubject(),
-                    // todo Zeilenumbrüche berücksichtigen
-                    'Content' => $tblDiary->getContent(),
-                    'Options' =>
-                        (new Standard(
-                            '',
-                            ApiDiary::getEndpoint(),
-                            new Edit(),
-                            array(),
-                            'Bearbeiten'
-                        ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
-                        . (new Standard(
-                            '',
-                            ApiDiary::getEndpoint(),
-                            new Remove(),
-                            array(),
-                            'Löschen'
-                        ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
-                );
+                    $personList = array();
+                    if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+                        foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                            if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
+                                $personList[] = $tblPersonItem->getLastFirstName();
+                            }
+                        }
+                    }
+
+                    $dataList[] = array(
+                        'Date' => $tblDiary->getDate(),
+                        'Division' => $tblDisplayDivision->getDisplayName()
+                            . (($tblYear = $tblDisplayDivision->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : ''),
+                        'Location' => $tblDiary->getLocation(),
+                        'Editor' => $displayPerson,
+                        'PersonList' => empty($personList) ? '' : implode(' | ', $personList),
+                        'Subject' => $tblDiary->getSubject(),
+                        // todo Zeilenumbrüche berücksichtigen
+                        'Content' => $tblDiary->getContent(),
+                        'Options' =>
+                            (new Standard(
+                                '',
+                                ApiDiary::getEndpoint(),
+                                new Edit(),
+                                array(),
+                                'Bearbeiten'
+                            ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
+                            . (new Standard(
+                                '',
+                                ApiDiary::getEndpoint(),
+                                new Remove(),
+                                array(),
+                                'Löschen'
+                            ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
+                    );
+                }
             }
         }
 

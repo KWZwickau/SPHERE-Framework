@@ -28,6 +28,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblDiary = $this->setTableDiary($Schema);
         $this->setTableDiaryStudent($Schema, $tblDiary);
+        $this->setTableDiaryDivision($Schema);
 
         /**
          * Migration & Protocol
@@ -78,6 +79,21 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
 
         $this->createForeignKey($Table, $tblDiary);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableDiaryDivision(Schema &$Schema)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblDiaryDivision');
+
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblPredecessorDivision', self::FIELD_TYPE_BIGINT);
 
         return $Table;
     }
