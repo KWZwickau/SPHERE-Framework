@@ -4,9 +4,13 @@
 namespace SPHERE\Application\Billing\Inventory\Import;
 
 
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -83,6 +87,15 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Importvorbereitung / Daten importieren');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Import', new ChevronLeft()));
 
+        $tblItemList = array();
+        if(($tblItemAll = Item::useService()->getItemAll())){
+            array_walk($tblItemAll, function(TblItem $tblItem) use (&$tblItemList){
+                if(!Debtor::useService()->getDebtorSelectionFindTestByItem($tblItem)){
+                    $tblItemList[] = $tblItem;
+                }
+            });
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -94,7 +107,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormColumn(
                                             new Panel('Import',
                                                 array(
-                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
+                                                    (new SelectBox('Item', 'Beitragsart', array('{{ Name }}' => $tblItemList)))
+                                                        ->setRequired()
+                                                    .(new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
                                                         .new ToolTip(new InfoIcon(), 'Fakturierung Import.xlsx')
                                                         , null, array('showPreview' => false)))->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
@@ -115,17 +130,22 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null|UploadedFile $File
+     * @param string            $Item
      *
      * @return Stage|string
      */
-    public function frontendUpload(UploadedFile $File = null)
+    public function frontendUpload(UploadedFile $File = null, $Item = '')
     {
 
         $Stage = new Stage('Fakturierung Grunddaten', 'importieren');
 
         if ($File && !$File->getError()
             && (strtolower($File->getClientOriginalExtension()) == 'xlsx')
+            && $Item
         ){
+            if(($tblItem = Item::useService()->getItemById($Item))){
+                $Item = $tblItem->getName();
+            }
 
             // remove existing import
             Import::useService()->destroyImport();
@@ -167,7 +187,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // add import
-            $Gateway = new ImportGateway($Payload->getRealPath(), $Control);
+            $Gateway = new ImportGateway($Payload->getRealPath(), $Control, $Item);
 
             $ImportList = $Gateway->getImportList();
             if ($ImportList){
@@ -181,7 +201,6 @@ class Frontend extends Extension implements IFrontendInterface
                 der Schulsoftware korrekt hinterlegt sind.'));
             }
 
-            // view up to 5 divisions
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
@@ -227,8 +246,21 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            return $Stage->setContent(new Warning('Ungültige Dateiendung!'))
-                .new Redirect('/Billing/Inventory/Import', Redirect::TIMEOUT_ERROR);
+            if($Item){
+                return $Stage->setContent(new Warning('Ungültige Dateiendung!'))
+                    .new Redirect('/Billing/Inventory/Import/Prepare', Redirect::TIMEOUT_ERROR);
+            } else {
+                if($File && !$File->getError()
+                    && (strtolower($File->getClientOriginalExtension()) == 'xlsx')){
+                    return $Stage->setContent(new Warning('Bitte füllen Sie die Beitragsart aus.'))
+                        .new Redirect('/Billing/Inventory/Import/Prepare', Redirect::TIMEOUT_ERROR);
+                } else {
+                    return $Stage->setContent(new Warning('Bitte füllen Sie die Beitragsart aus.')
+                        .new Warning('Ungültige Dateiendung!'))
+                        .new Redirect('/Billing/Inventory/Import/Prepare', Redirect::TIMEOUT_ERROR);
+                }
+            }
+
         }
 
         return $Stage;

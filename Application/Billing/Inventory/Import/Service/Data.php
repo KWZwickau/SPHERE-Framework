@@ -39,13 +39,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param            $ImportList
+     * @param array $ImportList
      *
      * @return bool
      */
-    public function createImportBulk(
-        $ImportList
-    ) {
+    public function createImportBulk($ImportList)
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {

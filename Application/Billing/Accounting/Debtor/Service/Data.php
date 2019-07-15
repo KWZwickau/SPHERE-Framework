@@ -213,6 +213,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionFindTestByItem(TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDebtorSelection',
+            array(
+                TblDebtorSelection::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+            ));
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblItem   $tblItem
      *
