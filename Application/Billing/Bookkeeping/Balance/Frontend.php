@@ -256,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            (new SelectBox('Balance[Item]', 'Beitragsart',
 //                            array('{{ Name }}' => $tblItemAll)))->setRequired(), 3),
                         new FormColumn(
-                            new Panel(new Bold('Bietragsarten '.new DangerText('*')),
+                            new Panel(new Bold('Beitragsarten '.new DangerText('*')),
                                 $CheckboxItemList, Panel::PANEL_TYPE_INFO)
                         ),
                     )),

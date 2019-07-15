@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -88,8 +89,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                            'Option' => '',
                         ), array(
                             'columnDefs' => array(
-                                array('type' => 'natural', 'targets' => array(1, 6)),
-                                array('type' => 'de_date', 'targets' => array(5)),
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,3)),
+                                array('type' => 'natural', 'targets' => array(1,4,7)),
+                                array('type' => 'de_date', 'targets' => array(6)),
 //                                array("orderable" => false, "targets"   => -1),
                             ),
                             'order'      => array(
@@ -157,7 +159,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
                                 'CauserPerson'  => 'Beitragsverursacher',
-                                'CauserIdent'     => 'Schülernummer',
+                                'CauserIdent'   => 'Schülernummer',
                                 'Item'          => 'Beitragsarten',
                                 'DebtorPerson'  => 'Beitragszahler',
                                 'BasketName'    => 'Name der Abrechnung',
@@ -172,13 +174,14 @@ class Frontend extends Extension implements IFrontendInterface
 //                                'Option' => '',
                             ), array(
                                 'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => array(0,1, 2, 3, 4, 5, 6)),
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,3)),
+                                    array('type' => 'natural', 'targets' => array(1,6)),
 //                                    array('type' => 'de_date', 'targets' => array(2)),
                                     array("orderable" => false, "targets" => -1),
                                 ),
                                 'order'      => array(
 //                            array(1, 'desc'),
-                                    array(5, 'desc')
+                                    array(6, 'desc')
                                 ),
                                 'responsive' => false,
                             ))

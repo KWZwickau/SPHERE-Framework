@@ -708,7 +708,7 @@ class ApiBasket extends Extension implements IApiInterface
 
             if(!empty($PersonMissing)){
                 $ErrorHelp[] = '&nbsp;';
-                $ErrorHelp[] = 'Folgende Zahlungszuweisungen wurden herrausgefiltert:';
+                $ErrorHelp[] = 'Folgende Zahlungszuweisungen wurden herausgefiltert:';
                 $ErrorHelp = array_merge($ErrorHelp, $PersonMissing);
             }
 
