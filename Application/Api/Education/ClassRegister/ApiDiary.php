@@ -4,7 +4,7 @@ namespace SPHERE\Application\Api\Education\ClassRegister;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Education\ClassRegister\Diary\Diary;
+use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -99,11 +99,12 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $DivisionId
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadDiaryContent($DivisionId)
+    public static function pipelineLoadDiaryContent($DivisionId = null, $GroupId = null)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DiaryContent'), self::getEndpoint());
@@ -111,7 +112,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'loadDiaryContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -249,6 +251,7 @@ class ApiDiary extends Extension implements IApiInterface
      */
     public function loadDiaryContent($DivisionId)
     {
+        // todo
         if (!($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
         }

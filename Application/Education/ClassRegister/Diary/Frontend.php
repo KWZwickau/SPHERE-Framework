@@ -3,10 +3,19 @@
 namespace SPHERE\Application\Education\ClassRegister\Diary;
 
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
+use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -22,8 +31,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -33,6 +44,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -47,15 +59,317 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
+    const BASE_ROUTE = '/Education/Diary';
+
+    /**
+     * @return Stage
+     */
+    public function frontendSelectDivision()
+    {
+        $hasHeadmasterRight = Access::useService()->hasAuthorization(self::BASE_ROUTE . '/Headmaster');
+        $hasTeacherRight = Access::useService()->hasAuthorization(self::BASE_ROUTE . '/Teacher');
+
+        if ($hasHeadmasterRight) {
+            if ($hasTeacherRight) {
+                return $this->frontendTeacherSelectDivision();
+            } else {
+                return $this->frontendHeadmasterSelectDivision();
+            }
+        } else {
+            return $this->frontendTeacherSelectDivision();
+        }
+    }
+
+    /**
+     * @param bool $IsAllYears
+     * @param bool $IsGroup
+     * @param null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendTeacherSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
+    {
+
+        $Stage = new Stage('pädagogisches Tagebuch', 'Klasse auswählen');
+        $this->setHeaderButtonList($Stage, View::TEACHER);
+
+        $tblPerson = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
+        }
+
+        $buttonList = Prepare::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher',
+            $IsAllYears, $IsGroup, $YearId, $tblYear, false);
+
+        $table = false;
+        $divisionTable = array();
+        if ($tblPerson) {
+            if ($IsGroup) {
+                if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
+                ) {
+                    if (($tblGroupAll = Group::useService()->getTudorGroupAll($tblPerson))) {
+                        foreach ($tblGroupAll as $tblGroup) {
+                            $divisionTable[] = array(
+                                'Group' => $tblGroup->getName(),
+                                'Option' => new Standard(
+                                    '', self::BASE_ROUTE . '/Selected', new Select(),
+                                    array(
+                                        'GroupId' => $tblGroup->getId(),
+                                        'BasicRoute' => self::BASE_ROUTE . '/Teacher'
+                                    ),
+                                    'Auswählen'
+                                )
+                            );
+                        }
+                    }
+                }
+
+                $table = new TableData($divisionTable, null, array(
+                    'Group' => 'Gruppe',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 0)
+                    ),
+                ));
+            } else {
+                if (($tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
+                    foreach ($tblDivisionList as $tblDivisionTeacher) {
+                        $tblDivision = $tblDivisionTeacher->getTblDivision();
+
+                        // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                        /** @var TblYear $tblYear */
+                        if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                            && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                        ) {
+                            continue;
+                        }
+
+                        $divisionTable[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Option' => new Standard(
+                                '',  self::BASE_ROUTE . '/Selected', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'BasicRoute' => self::BASE_ROUTE . '/Teacher'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
+                }
+
+                $table = new TableData($divisionTable, null, array(
+                    'Year' => 'Schuljahr',
+                    'Type' => 'Schulart',
+                    'Division' => 'Klasse',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'asc'),
+                        array('2', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 2)
+                    ),
+                ));
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        $table
+                            ? new LayoutColumn(array($table))
+                            : null
+                    ))
+                ), new Title(new Select() . ' Auswahl'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param bool $IsAllYears
+     * @param bool $IsGroup
+     * @param null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
+    {
+
+        $Stage = new Stage('pädagogisches Tagebuch', 'Klasse auswählen');
+        $this->setHeaderButtonList($Stage, View::HEADMASTER);
+
+        $tblDivisionList = Division::useService()->getDivisionAll();
+
+        $buttonList = Prepare::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
+            $IsAllYears, $IsGroup, $YearId, $tblYear);
+
+        $divisionTable = array();
+        if ($IsGroup) {
+            // tudorGroups
+            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
+                foreach ($tblGroupAll as $tblGroup) {
+                    $divisionTable[] = array(
+                        'Group' => $tblGroup->getName(),
+                        'Option' => new Standard(
+                            '', self::BASE_ROUTE . '/Selected', new Select(),
+                            array(
+                                'GroupId' => $tblGroup->getId(),
+                                'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
+                            ),
+                            'Auswählen'
+                        )
+                    );
+                }
+            }
+
+            $table = new TableData($divisionTable, null, array(
+                'Group' => 'Gruppe',
+                'Option' => ''
+            ), array(
+                'order' => array(
+                    array('0', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 0)
+                ),
+            ));
+        } else {
+            if ($tblDivisionList) {
+                foreach ($tblDivisionList as $tblDivision) {
+                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                    /** @var TblYear $tblYear */
+                    if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                        && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                    ) {
+                        continue;
+                    }
+
+                    if ($tblDivision) {
+                        $divisionTable[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Option' => new Standard(
+                                '', self::BASE_ROUTE . '/Selected', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
+                }
+            }
+
+            $table = new TableData($divisionTable, null, array(
+                'Year' => 'Schuljahr',
+                'Type' => 'Schulart',
+                'Division' => 'Klasse',
+                'Option' => ''
+            ), array(
+                'order' => array(
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                    array('2', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 2)
+                ),
+            ));
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        new LayoutColumn($table)
+                    ))
+                ), new Title(new Select() . ' Auswahl'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param Stage $Stage
+     * @param int $view
+     */
+    private function setHeaderButtonList(Stage $Stage, $view)
+    {
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Diary/Teacher');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Diary/Headmaster');
+
+        $countRights = 0;
+        if ($hasTeacherRight) {
+            $countRights++;
+        }
+        if ($hasHeadmasterRight) {
+            $countRights++;
+        }
+
+        if ($countRights > 1) {
+            if ($hasTeacherRight) {
+                if ($view == View::TEACHER) {
+                    $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
+                        self::BASE_ROUTE . '/Teacher', new Edit()));
+                } else {
+                    $Stage->addButton(new Standard('Ansicht: Lehrer',
+                        self::BASE_ROUTE . '/Teacher'));
+                }
+            }
+            if ($hasHeadmasterRight) {
+                if ($view == View::HEADMASTER) {
+                    $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Leitung')),
+                        self::BASE_ROUTE . '/Headmaster', new Edit()));
+                } else {
+                    $Stage->addButton(new Standard('Ansicht: Leitung',
+                        self::BASE_ROUTE . '/Headmaster'));
+                }
+            }
+        }
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
     public function frontendDiary(
         $DivisionId = null,
-        $BasicRoute = '/Education/ClassRegister/Teacher'
+        $GroupId = null,
+        $BasicRoute = '/Education/Diary/Teacher'
     ) {
         $stage = new Stage('Klassenbuch', 'pädagogisches Tagebuch');
-        if ($tblDivision = Division::useService()->getDivisionById($DivisionId)) {
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $stage->addButton(new Standard(
-                'Zurück', $BasicRoute . '/Selected', new ChevronLeft(),
-                array('DivisionId' => $tblDivision->getId())
+                'Zurück', $BasicRoute, new ChevronLeft()
             ));
 
             $tblYear = $tblDivision->getServiceTblYear();
@@ -96,13 +410,61 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 ))
             );
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft()
+            ));
+
+            if (($tblYearList = Term::useService()->getYearByNow())) {
+                $tblYear = reset($tblYearList);
+            } else {
+                $tblYear = false;
+            }
+
+
+            $receiver = ApiDiary::receiverBlock($this->loadDiaryTable($tblDivision), 'DiaryContent');
+
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Gruppe',
+                                    $tblGroup->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                                , 6),
+                            new LayoutColumn(
+                                new Panel(
+                                    'Schuljahr',
+                                    $tblYear ? $tblYear->getDisplayName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                                , 6),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                ApiDiary::receiverModal()
+                                . (new Primary(
+                                    new Plus() . ' Eintrag hinzufügen',
+                                    ApiDiary::getEndpoint()
+                                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenCreateDiaryModal($tblDivision->getId()))
+                            ),
+                            new LayoutColumn(
+                                $receiver
+                            )
+                        ))
+                    ))
+                ))
+            );
 
         } else {
             $stage->addButton(new Standard(
                 'Zurück', $BasicRoute, new ChevronLeft()
             ));
 
-            return new Danger('Klasse nicht gefunden', new Exclamation())
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
                 . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
