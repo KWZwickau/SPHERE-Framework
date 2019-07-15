@@ -83,6 +83,38 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Year
+     * @param $MonthFrom
+     * @param $MonthTo
+     *
+     * @return array|bool
+     */
+    public function getPersonIdListByInvoiceTime($Year, $MonthFrom, $MonthTo)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblInvoice = new TblInvoice();
+        $tblInvoiceItemDebtor = new TblInvoiceItemDebtor();
+
+        $query = $queryBuilder->select('i.serviceTblPersonCauser as PersonCauserId')
+            ->from($tblInvoice->getEntityFullName(), 'i')
+            ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',
+                'WITH', 'iid.tblInvoice = i.Id')
+            ->where($queryBuilder->expr()->eq('i.Year', '?1'))
+            ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
+//            ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))
+            ->setParameter(1, $Year)
+            ->setParameter(2, $MonthFrom)
+            ->setParameter(3, $MonthTo)
+//            ->setParameter(4, $tblItem->getId())
+            ->groupBy('i.serviceTblPersonCauser')
+            ->getQuery();
+        $PersonIdList = $query->getResult();
+
+        return !empty($PersonIdList) ? $PersonIdList : false;
+    }
+
+    /**
      * @param TblItem $tblItem
      * @param string  $Year
      * @param string  $MonthFrom
