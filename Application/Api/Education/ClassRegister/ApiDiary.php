@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -121,11 +122,12 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $DivisionId
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateDiaryModal($DivisionId)
+    public static function pipelineOpenCreateDiaryModal($DivisionId = null, $GroupId = null)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -133,7 +135,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'openCreateDiaryModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -141,11 +144,12 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
-     * @param $DivisionId
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineCreateDiarySave($DivisionId)
+    public static function pipelineCreateDiarySave($DivisionId = null, $GroupId = null)
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -153,7 +157,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreateDiaryModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -245,32 +250,39 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
-     * @param $DivisionId
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
      *
      * @return Danger|TableData
      */
-    public function loadDiaryContent($DivisionId)
+    public function loadDiaryContent($DivisionId = null, $GroupId = null)
     {
-        // todo
-        if (!($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        return Diary::useFrontend()->loadDiaryTable($tblDivision);
+        return Diary::useFrontend()->loadDiaryTable($tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null);
     }
 
     /**
-     * @param $DivisionId
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
      *
      * @return Danger|string
      */
-    public function openCreateDiaryModal($DivisionId)
+    public function openCreateDiaryModal($DivisionId = null, $GroupId = null)
     {
-        if (!($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getDiaryModal(Diary::useFrontend()->formDiary($tblDivision));
+        return $this->getDiaryModal(Diary::useFrontend()->formDiary($tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null));
     }
 
     /**
@@ -302,25 +314,29 @@ class ApiDiary extends Extension implements IApiInterface
     }
 
     /**
-     * @param $DivisionId
-     * @param $Data
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     * @param array $Data
      *
      * @return Danger|string
      */
-    public function saveCreateDiaryModal($DivisionId, $Data)
+    public function saveCreateDiaryModal($DivisionId = null, $GroupId = null, $Data = null)
     {
-        if (!($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Diary::useService()->checkFormDiary($tblDivision, $Data))) {
+        if (($form = Diary::useService()->checkFormDiary($Data, $tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null))) {
             // display Errors on form
             return $this->getDiaryModal($form);
         }
 
-        if (Diary::useService()->createDiary($tblDivision, $Data)) {
+        if (Diary::useService()->createDiary($Data, $tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null)) {
             return new Success('Der Eintrag wurde erfolgreich gespeichert.')
-                . self::pipelineLoadDiaryContent($DivisionId)
+                . self::pipelineLoadDiaryContent($DivisionId, $GroupId)
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -337,11 +353,12 @@ class ApiDiary extends Extension implements IApiInterface
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
         }
-        if (!($tblDivision = $tblDiary->getServiceTblDivision())) {
-            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
-        }
+        $tblDivision = $tblDiary->getServiceTblDivision();
+        $tblGroup = $tblDiary->getServiceTblGroup();
 
-        return $this->getDiaryModal(Diary::useFrontend()->formDiary($tblDivision, $DiaryId, true), $DiaryId);
+        return $this->getDiaryModal(Diary::useFrontend()->formDiary(
+            $tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null, $DiaryId, true
+        ), $DiaryId);
     }
 
     /**
@@ -352,22 +369,20 @@ class ApiDiary extends Extension implements IApiInterface
      */
     public function saveEditDiaryModal($DiaryId, $Data)
     {
-
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
         }
-        if (!($tblDivision = $tblDiary->getServiceTblDivision())) {
-            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
-        }
+        $tblDivision = $tblDiary->getServiceTblDivision();
+        $tblGroup = $tblDiary->getServiceTblGroup();
 
-        if (($form = Diary::useService()->checkFormDiary($tblDivision, $Data, $tblDiary))) {
+        if (($form = Diary::useService()->checkFormDiary($Data, $tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null, $tblDiary))) {
             // display Errors on form
             return $this->getDiaryModal($form, $DiaryId);
         }
 
         if (Diary::useService()->updateDiary($tblDiary, $Data)) {
             return new Success('Der Eintrag wurde erfolgreich gespeichert.')
-                . self::pipelineLoadDiaryContent($tblDivision->getId())
+                . self::pipelineLoadDiaryContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null)
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -381,7 +396,6 @@ class ApiDiary extends Extension implements IApiInterface
      */
     public function openDeleteDiaryModal($DiaryId)
     {
-
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
         }
@@ -417,17 +431,15 @@ class ApiDiary extends Extension implements IApiInterface
      */
     public function saveDeleteDiaryModal($DiaryId)
     {
-
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
         }
-        if (!($tblDivision = $tblDiary->getServiceTblDivision())) {
-            return new Danger('Die Klasse wurde nicht gefunden', new Exclamation());
-        }
+        $tblDivision = $tblDiary->getServiceTblDivision();
+        $tblGroup = $tblDiary->getServiceTblGroup();
 
         if (Diary::useService()->destroyDiary($tblDiary)) {
             return new Success('Der Eintrag wurde erfolgreich gelöscht.')
-                . self::pipelineLoadDiaryContent($tblDivision->getId())
+                . self::pipelineLoadDiaryContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null)
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gelöscht werden.') . self::pipelineClose();

@@ -41,7 +41,7 @@ class Data extends AbstractData
         $Date,
         $Location,
         TblPerson $tblPerson,
-        TblYear $tblYear,
+        TblYear $tblYear = null,
         TblDivision $tblDivision = null,
         TblGroup $tblGroup = null
     ) {
@@ -84,7 +84,7 @@ class Data extends AbstractData
         $Date,
         $Location,
         TblPerson $tblPerson,
-        TblYear $tblYear,
+        TblYear $tblYear = null,
         TblDivision $tblDivision = null,
         TblGroup $tblGroup = null
     ) {
@@ -150,6 +150,18 @@ class Data extends AbstractData
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
             TblDiary::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+        ));
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return false|TblGroup[]
+     */
+    public function getDiaryAllByGroup(TblGroup $tblGroup)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
+            TblDiary::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
         ));
     }
 

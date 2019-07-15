@@ -9,6 +9,8 @@ use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStud
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Setup;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -79,6 +81,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblGroup $tblGroup
+     *
+     * @return false|TblGroup[]
+     */
+    public function getDiaryAllByGroup(TblGroup $tblGroup)
+    {
+        return (new Data($this->getBinding()))->getDiaryAllByGroup($tblGroup);
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param $resultList
      */
@@ -104,20 +116,24 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
      * @param $Data
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
      * @param TblDiary|null $tblDiary
      *
      * @return bool|Form
      */
     public function checkFormDiary(
-        TblDivision $tblDivision,
         $Data,
+        TblDivision $tblDivision = null,
+        TblGroup $tblGroup = null,
         TblDiary $tblDiary = null
     ) {
         $error = false;
 
-        $form = Diary::useFrontend()->formDiary($tblDivision, $tblDiary ? $tblDiary->getId() : null);
+        $form = Diary::useFrontend()->formDiary(
+            $tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null, $tblDiary ? $tblDiary->getId() : null
+        );
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
@@ -129,12 +145,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
      * @param $Data
+     * @param TblDivision $tblDivision
+     * @param TblGroup|null $tblGroup
      *
      * @return bool
      */
-    public function createDiary(TblDivision $tblDivision, $Data)
+    public function createDiary($Data, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
     {
         $tblPerson = false;
         if (($tblAccount = Account::useService()->getAccountBySession())
@@ -143,17 +160,28 @@ class Service extends AbstractService
             $tblPerson = $tblPersonAllByAccount[0];
         }
 
-        if ($tblPerson
-            && ($tblYear = $tblDivision->getServiceTblYear())
-        ) {
+        if ($tblPerson) {
+            if ($tblDivision) {
+                $tblYear = $tblDivision->getServiceTblYear();
+            } elseif ($tblGroup) {
+                if (($tblYearList = Term::useService()->getYearByNow())) {
+                    $tblYear = reset($tblYearList);
+                } else {
+                    $tblYear = false;
+                }
+            } else {
+                $tblYear = false;
+            }
+
             $tblDiary = (new Data($this->getBinding()))->createDiary(
                 $Data['Subject'],
                 $Data['Content'],
                 $Data['Date'],
                 $Data['Location'],
                 $tblPerson,
-                $tblYear,
-                $tblDivision
+                $tblYear ? $tblYear : null,
+                $tblDivision ? $tblDivision : null,
+                $tblGroup ? $tblGroup : null
             );
 
             if ($tblDiary) {
@@ -187,10 +215,11 @@ class Service extends AbstractService
             $tblPerson = $tblPersonAllByAccount[0];
         }
 
-        if ($tblPerson
-            && ($tblDivision = $tblDiary->getServiceTblDivision())
-            && ($tblYear = $tblDivision->getServiceTblYear())
-        ) {
+        if ($tblPerson) {
+            $tblDivision = $tblDiary->getServiceTblDivision();
+            $tblGroup = $tblDiary->getServiceTblGroup();
+            $tblYear = $tblDiary->getServiceTblYear();
+
             (new Data($this->getBinding()))->updateDiary(
                 $tblDiary,
                 $Data['Subject'],
@@ -198,8 +227,9 @@ class Service extends AbstractService
                 $Data['Date'],
                 $Data['Location'],
                 $tblPerson,
-                $tblYear,
-                $tblDivision
+                $tblYear ? $tblYear : null,
+                $tblDivision ? $tblDivision : null,
+                $tblGroup ? $tblGroup : null
             );
 
             if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
