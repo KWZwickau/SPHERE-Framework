@@ -7,6 +7,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\Billing\Billing;
+use SPHERE\Application\Api\Document\Standard\Repository\Billing\DocumentWarning;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
@@ -20,6 +21,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchoo
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Generator\Repository\Frame;
@@ -30,6 +33,8 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -125,7 +130,7 @@ class Creator extends Extension
      * @return Stage|string
      */
     public static function createMultiGradebookOverviewPdf($DivisionId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE
-        , $Redirect)
+        , $Redirect = true)
     {
 
         // Warteseite
@@ -652,5 +657,97 @@ class Creator extends Extension
         }
 
         return new Stage('Belegdruck', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param array $Data
+     * @param bool  $Redirect
+     *
+     * @return Display|Stage|string
+     */
+    public static function createBillingDocumentWarningPdf($Data = array(), $Redirect = true)
+    {
+
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/BillingDocumentWarning/Create',
+                array(
+                    'Data' => $Data,
+                    'Redirect'  => 0
+                )
+            );
+        }
+
+        if(isset($Data['InvoiceItemDebtorId'])
+            && ($tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($Data['InvoiceItemDebtorId']))
+            && ($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())
+            && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentByName(TblDocument::IDENT_MAHNBELEG, true))
+        ){
+
+            $Data['CompanyName'] = '';
+            $Data['CompanyExtendedName'] = '';
+            $Data['CompanyDistrict'] = '';
+            $Data['CompanyStreet'] = '';
+            $Data['CompanyCity'] = '';
+            $Data['Location'] = '';
+
+            if (($tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll())) {
+                /** @var TblResponsibility $tblResponsibility */
+                $tblResponsibility = reset($tblResponsibilityAll);
+                if (($tblCompany = $tblResponsibility->getServiceTblCompany())) {
+                    $Data['CompanyName'] = $tblCompany->getName();
+                    $Data['CompanyExtendedName'] = $tblCompany->getExtendedName();
+                    if (($tblAddress = $tblCompany->fetchMainAddress())
+                        && ($tblCity = $tblAddress->getTblCity())
+                    ) {
+                        $Data['CompanyDistrict'] = $tblCity->getDistrict();
+                        $Data['CompanyStreet'] = $tblAddress->getStreetName() . ' ' . $tblAddress->getStreetNumber();
+                        $Data['CompanyCity'] = $tblCity->getCode() . ' ' . $tblCity->getName();
+                        $Data['Location'] = $tblCity->getName();
+                    }
+                }
+            }
+            $tblPersonDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor();
+            $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
+            $tblPersonCauser = $tblInvoice->getServiceTblPersonCauser();
+
+            $InvoiceNumber = $tblInvoice->getInvoiceNumber();
+            $Data['InvoiceNumber'] = $InvoiceNumber;
+            $Data['BillTime'] = $tblInvoice->getBillTime('Y/m');
+            $Data['BillName'] = $tblInvoice->getBasketName();
+            $Data['Count'] = $tblInvoiceItemDebtor->getQuantity();
+            $Data['Price'] = $tblInvoiceItemDebtor->getPriceString();
+            $Data['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+            $Data['TargetTime'] = $tblInvoice->getTargetTime();
+
+            $Data['CompanyAddress'] = $Data['CompanyStreet'] . '<br/>' . $Data['CompanyCity']
+                . ($Data['CompanyDistrict'] ? '  OT ' . $Data['CompanyDistrict'] : '');
+
+            // Text aus Vorlage füllen
+            $tblDocumentInformationList = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentInformationAllByDocument($tblDocument);
+            foreach($tblDocumentInformationList as $tblDocumentInformation){
+                $Data[$tblDocumentInformation->getField()] = $tblDocumentInformation->getValue();
+            }
+
+            $template = new DocumentWarning($tblItem, $Data);
+
+            ini_set('memory_limit', '1G');
+            $Content = $template->createSingleDocument($tblPersonDebtor, $tblPersonCauser);
+
+            // Create Tmp
+            $File = Storage::createFilePointer('pdf');
+
+            // build before const is set (picture)
+            /** @var DomPdf $Document */
+            $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+            $Document->setContent($Content);
+            $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+            $FileName = 'Mahnung_' .$InvoiceNumber. date("Y-m-d").".pdf";
+
+            return FileSystem::getStream($File->getRealPath(), $FileName)->__toString();
+        }
+
+        return new Stage('Mahnung', 'Konnte nicht erstellt werden.');
     }
 }

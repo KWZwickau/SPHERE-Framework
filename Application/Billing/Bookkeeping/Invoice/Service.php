@@ -20,8 +20,10 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -926,6 +928,10 @@ class Service extends AbstractService
                 if (!$tblInvoiceItemDebtor->getIsPaid()) {
                     $CheckBox->setChecked();
                 }
+
+                $CheckBox = $CheckBox.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
+                    new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
+                        , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY));
 
                 $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox,
                     $tblInvoiceItemDebtor->getId());

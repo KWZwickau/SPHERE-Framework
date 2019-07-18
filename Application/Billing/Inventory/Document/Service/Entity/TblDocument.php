@@ -22,6 +22,11 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDocument extends Element
 {
 
+    const ATTR_NAME = 'Name';
+    const ATTR_IS_WARNING = 'IsWarning';
+
+    const IDENT_MAHNBELEG = 'Mahnbeleg';
+
     /**
      * @Column(type="string")
      */
@@ -31,6 +36,11 @@ class TblDocument extends Element
      * @Column(type="text")
      */
     protected $Description;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsWarning;
 
     /**
      * @return string
@@ -66,5 +76,21 @@ class TblDocument extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsWarning()
+    {
+        return $this->IsWarning;
+    }
+
+    /**
+     * @param bool $IsWarning
+     */
+    public function setIsWarning($IsWarning = false)
+    {
+        $this->IsWarning = $IsWarning;
     }
 }

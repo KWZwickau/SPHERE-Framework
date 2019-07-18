@@ -10,6 +10,8 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\System\Extension\Extension;
 
 class ApiInvoiceIsPaid extends Extension implements IApiInterface
@@ -108,6 +110,10 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
             if(!$tblInvoiceItemDebtor->getIsPaid()){
                 $content->setChecked();
             }
+
+            $content = $content.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
+                new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
+                , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY));
         }
         return $content;
     }
