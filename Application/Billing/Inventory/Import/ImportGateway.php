@@ -16,11 +16,14 @@ use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -36,6 +39,8 @@ class ImportGateway extends AbstractConverter
     private $ImportList = array();
     private $ErrorCount = 0;
     private $IsError = false;
+    private $IsIgnore = false;
+    private $ItemName = '';
 
     /**
      * @return array
@@ -69,15 +74,23 @@ class ImportGateway extends AbstractConverter
         $this->IsError = true;
     }
 
+    private function addIgnore()
+    {
+
+        $this->IsIgnore = true;
+    }
+
     /**
      * LectureshipGateway constructor.
      *
      * @param string        $File SpUnterricht.csv
      * @param ImportControl $Control
+     * @param string        $Item
      */
-    public function __construct($File, ImportControl $Control)
+    public function __construct($File, ImportControl $Control, $Item = '')
     {
         $this->loadFile($File);
+        $this->ItemName = $Item;
 
         $ColumnList = $Control->getScanResult();
 
@@ -140,10 +153,12 @@ class ImportGateway extends AbstractConverter
      */
     public function runConvert($Row)
     {
+
         $Result = array();
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
+
 
         // Default Error Value
         $this->IsError = false;
@@ -240,11 +255,20 @@ class ImportGateway extends AbstractConverter
         }
         $Result['ValueFrontend'] = $ValueFrontend;
         if($this->IsError){
-            $Result['IsError'] = new Center(new DangerText(new Disable()));
+            $Result['IsError'] = '<span hidden>1</span>'.new Center(new DangerText(new Disable()));
+        } elseif($this->IsIgnore) {
+            $Result['IsError'] = '<span hidden>0</span>'.new Center(new ToolTip(new InfoText(new Minus()), 'Zeile wird nicht importiert'));
         }
 
-        $this->ImportList[] = $ImportRow;
+        // Import wird nur für die richtigen Beitragsarten vorgenommen
+        if($Result['Item'] == $this->ItemName){
+            $this->ImportList[] = $ImportRow;
+        }
         $this->ResultList[] = $Result;
+
+        $this->IsIgnore = false;
+
+
     }
 
     /**
@@ -404,12 +428,11 @@ class ImportGateway extends AbstractConverter
     protected function sanitizeItem($Value)
     {
 
-        $tblItem = Item::useService()->getItemByName($Value);
-        if($tblItem){
+        if(($tblItem = Item::useService()->getItemByName($Value)) && $Value == $this->ItemName){
             $Message = new Success($Value, null, false, 2, 0);
         } else {
-            $this->addErrorCount();
-            $Message = new ToolTip(new Danger($Value, null, false, 2, 0), 'Beitragsart wurde nicht gefunden!');
+            $Message = new ToolTip(new Info($Value, null, false, 2, 0), 'Beitragsart wird nicht importiert');
+            $this->addIgnore();
         }
 
         return $Message;

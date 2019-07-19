@@ -58,6 +58,7 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblDocument');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'IsWarning', self::FIELD_TYPE_BOOLEAN, false, false);
 
         return $Table;
     }

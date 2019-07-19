@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.03.2019
- * Time: 09:39
- */
 
-namespace SPHERE\Application\Billing\Inventory\Document\Service\Entity;
+namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -16,31 +10,27 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblDocument")
+ * @Table(name="tblBasketType")
  * @Cache(usage="READ_ONLY")
  */
-class TblDocument extends Element
+class TblBasketType extends Element
 {
 
     const ATTR_NAME = 'Name';
-    const ATTR_IS_WARNING = 'IsWarning';
+    const ATTR_DESCRIPTION = 'Description';
 
-    const IDENT_MAHNBELEG = 'Mahnbeleg';
+    const IDENT_ABRECHNUNG = 'Abrechnung';
+    const IDENT_AUSZAHLUNG = 'Auszahlung';
+    const IDENT_GUTSCHRIFT = 'Gutschrift';
 
     /**
      * @Column(type="string")
      */
     protected $Name;
-
     /**
      * @Column(type="text")
      */
     protected $Description;
-
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsWarning;
 
     /**
      * @return string
@@ -78,19 +68,4 @@ class TblDocument extends Element
         $this->Description = $Description;
     }
 
-    /**
-     * @return bool
-     */
-    public function getIsWarning()
-    {
-        return $this->IsWarning;
-    }
-
-    /**
-     * @param bool $IsWarning
-     */
-    public function setIsWarning($IsWarning = false)
-    {
-        $this->IsWarning = $IsWarning;
-    }
 }

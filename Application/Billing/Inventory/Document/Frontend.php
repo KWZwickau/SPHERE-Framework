@@ -92,13 +92,25 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
-
-                $contentTable[] = array(
-                    'Name' => $tblDocument->getName(),
-                    'Description' => $tblDocument->getDescription(),
-                    'Items' => implode(', ', $items),
-                    'Options' =>
-                        (new Standard(
+                if($tblDocument->getIsWarning()){
+                    $Option =(new Standard(
+                            '', '',
+                            new Edit())
+                        )->setDisabled()
+                        .(new Standard(
+                            '',
+                            '/Billing/Inventory/Document/EditInformation',
+                            new ListingTable(),
+                            array('DocumentId' => $tblDocument->getId()),
+                            'Inhalt des Belegs bearbeiten'
+                        ))
+                        .(new Standard(
+                            '', '',
+                            new Remove())
+                        )->setDisabled();
+                    $items = array('Alle');
+                } else {
+                    $Option = (new Standard(
                             '',
                             ApiDocument::getEndpoint(),
                             new Edit(),
@@ -118,7 +130,15 @@ class Frontend extends Extension implements IFrontendInterface
                             new Remove(),
                             array(),
                             'Löschen'
-                        ))->ajaxPipelineOnClick(ApiDocument::pipelineOpenDeleteDocumentModal($tblDocument->getId()))
+                        ))->ajaxPipelineOnClick(ApiDocument::pipelineOpenDeleteDocumentModal($tblDocument->getId()));
+                }
+
+                $contentTable[] = array(
+                    'Name' => $tblDocument->getName(),
+                    'Description' => $tblDocument->getDescription(),
+                    'Items' => implode(', ', $items),
+                    'Options' => $Option
+
                 );
             }
 
@@ -245,7 +265,11 @@ class Frontend extends Extension implements IFrontendInterface
         )));
         $form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
 
-        $freeFields = $this->getFreeFields();
+        $StandardPlaceholder = true;
+        if($tblDocument->getIsWarning()){
+            $StandardPlaceholder = false;
+        }
+        $freeFields = $this->getFreeFields($StandardPlaceholder);
 
         $Stage->setContent(new Layout(new LayoutGroup(array(
             new LayoutRow(array(
@@ -270,16 +294,42 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $StandardPlaceholder
+     *
      * @return array
      */
-    public function getFreeFields()
+    public function getFreeFields($StandardPlaceholder = true)
     {
+
+        if($StandardPlaceholder){
+            return array(
+                '[Jahr]',
+                '[Zeitraum von]',
+                '[Zeitraum bis]',
+                '[Beitragsart]',
+                '[Beitragssumme]',
+                '[Beitragszahler Anrede]',
+                '[Beitragszahler Vorname]',
+                '[Beitragszahler Nachname]',
+                '[Beitragsverursacher Anrede]',
+                '[Beitragsverursacher Vorname]',
+                '[Beitragsverursacher Nachname]',
+                '[Datum]',
+                '[Ort]',
+                '[Trägername]',
+                '[Trägerzusatz]',
+                '[Trägeradresse]'
+            );
+        }
         return array(
-            '[Jahr]',
-            '[Zeitraum von]',
-            '[Zeitraum bis]',
+            '[Rechnungsnummer]',
+            '[Abrechnungszeitraum]',
+            '[Name der Abrechnung]',
+            '[Fälligkeit]',
             '[Beitragsart]',
-            '[Beitragssumme]',
+            '[Anzahl]',
+            '[Einzelpreis]',
+            '[Gesamtpreis]',
             '[Beitragszahler Anrede]',
             '[Beitragszahler Vorname]',
             '[Beitragszahler Nachname]',

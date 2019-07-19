@@ -543,12 +543,6 @@ class ApiBasketVerification extends Extension implements IApiInterface
 //                }
 //            }
         }
-
-        //get First Variant to Select
-        $PostVariantId = '-1';
-        if(!isset($_POST['DebtorSelection']['Variant'])){
-            $_POST['DebtorSelection']['Variant'] = $PostVariantId;
-        }
         $RadioBoxListVariant = array();
         $PersonDebtorList = array();
         $SelectBoxDebtorList = array();
@@ -557,6 +551,16 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $ItemName = '';
         $PersonTitle = '';
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+
+            if(($tblItemVariant = $tblBasketVerification->getServiceTblItemVariant())){
+                $PostVariantId = $tblItemVariant->getId();
+            } else {
+                //get First Variant to Select
+                $PostVariantId = '-1';
+            }
+            if(!isset($_POST['DebtorSelection']['Variant'])){
+                $_POST['DebtorSelection']['Variant'] = $PostVariantId;
+            }
 
             $tblItem = $tblBasketVerification->getServiceTblItem();
             $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
@@ -828,12 +832,14 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
                     $Value = $tblItemCalculation->getValue(true);
                 }
+            } else {
+                $tblItemVariant = null;
             }
             // switch false to null
             ($tblBankAccount === false ? $tblBankAccount = null : '');
             ($tblBankReference === false ? $tblBankReference = null : '');
             if(Basket::useService()->changeBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
-                $tblPaymentType, $Value, $tblBankAccount, $tblBankReference)){
+                $tblPaymentType, $Value, $tblItemVariant, $tblBankAccount, $tblBankReference)){
                 // Add Person to PaymentGroup
                 if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
                     Group::useService()->addGroupPerson($tblGroup, $tblPersonDebtor);
