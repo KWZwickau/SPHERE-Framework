@@ -143,6 +143,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                $Item['CreateDate'] = $tblBasket->getCreateDate();
 
                 $Item['TimeTarget'] = $tblBasket->getTargetTime();
+                $Item['TimeBill'] = $tblBasket->getBillTime();
                 $Item['Time'] = $tblBasket->getYear().'.'.$tblBasket->getMonth(true);
 
                 $Item['Item'] = '';
@@ -219,6 +220,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Name'       => 'Name',
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
+                'TimeBill'   => 'Rechnungsdatum',
                 'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
                 'BasketType' => 'Typ',
@@ -312,11 +314,12 @@ class Frontend extends Extension implements IFrontendInterface
         ini_set('memory_limit', '-1');
         $Stage = new Stage('Abrechnung', 'Inhalt');
 
-        $PanelHead = $Time = $TargetTime = '';
+        $PanelHead = $Time = $TargetTime = $BillTime = '';
         if($tblBasket = Basket::useService()->getBasketById($BasketId)){
             $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
             $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
             $TargetTime = $tblBasket->getTargetTime();
+            $BillTime = $tblBasket->getBillTime();
 
             if($tblBasket->getIsArchive()){
                 $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft(), array('IsArchive' => $tblBasket->getIsArchive())));
@@ -336,8 +339,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('', new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(new InfoText('<span style="font-size: large">'.$PanelHead.'</span>'),
                                     6),
-                                new LayoutColumn('Abrechnungszeitraum: '.$Time, 3),
-                                new LayoutColumn('Fälligkeitsdatum: '.$TargetTime, 3),
+                                new LayoutColumn('Rechnungsdatum:'.new Container($BillTime), 2),
+                                new LayoutColumn('Abrechnungszeitraum:'.new Container($Time), 2),
+                                new LayoutColumn('Fälligkeitsdatum:'.new Container($TargetTime), 2),
                             )))), Panel::PANEL_TYPE_INFO)
                         )
                     )
