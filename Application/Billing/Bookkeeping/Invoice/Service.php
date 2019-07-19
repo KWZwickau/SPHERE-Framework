@@ -929,7 +929,7 @@ class Service extends AbstractService
                 }
                 $CheckBox = (new CheckBox('IsPaid', ' ',
                     $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
-                    ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
+                    ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId(), 'true'));
                 if (!$tblInvoiceItemDebtor->getIsPaid()) {
                     $CheckBox->setChecked();
                 }

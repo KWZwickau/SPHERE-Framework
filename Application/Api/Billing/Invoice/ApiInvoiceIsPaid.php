@@ -54,10 +54,11 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
 
     /**
      * @param string $InvoiceItemDebtorId
+     * @param string $IsDocumentWarning
      *
      * @return Pipeline
      */
-    public static function pipelineChangeIsPaid($InvoiceItemDebtorId = '')
+    public static function pipelineChangeIsPaid($InvoiceItemDebtorId = '', $IsDocumentWarning = 'false')
     {
         $Pipeline = new Pipeline(false);
         // reload the whole Table
@@ -66,7 +67,8 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
             self::API_TARGET => 'changeIsPaid'
         ));
         $Emitter->setPostPayload(array(
-            'InvoiceItemDebtorId' => $InvoiceItemDebtorId
+            'InvoiceItemDebtorId' => $InvoiceItemDebtorId,
+            'IsDocumentWarning'   => $IsDocumentWarning
         ));
         $Emitter->setLoadingMessage('Speichern erfolgreich!');
         $Pipeline->appendEmitter($Emitter);
@@ -75,10 +77,11 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
 
     /**
      * @param string $InvoiceItemDebtorId
+     * @param string $IsDocumentWarning
      *
      * @return Pipeline
      */
-    public static function pipelineReloadIsPaid($InvoiceItemDebtorId = '')
+    public static function pipelineReloadIsPaid($InvoiceItemDebtorId = '', $IsDocumentWarning = 'false')
     {
         $Pipeline = new Pipeline(false);
         // reload the whole Table
@@ -88,7 +91,8 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
         ));
 
         $Emitter->setPostPayload(array(
-            'InvoiceItemDebtorId' => $InvoiceItemDebtorId
+            'InvoiceItemDebtorId' => $InvoiceItemDebtorId,
+            'IsDocumentWarning' => $IsDocumentWarning
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
@@ -96,34 +100,39 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
 
     /**
      * @param string $InvoiceItemDebtorId
+     * @param string   $IsDocumentWarning
      *
      * @return CheckBox|string
      */
-    public function getColumnContent($InvoiceItemDebtorId = '')
+    public function getColumnContent($InvoiceItemDebtorId = '', $IsDocumentWarning = 'false')
     {
 
         $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($InvoiceItemDebtorId);
         $content = '';
         if($tblInvoiceItemDebtor){
             $content = (new CheckBox('IsPaid', ' ', $InvoiceItemDebtorId))->ajaxPipelineOnClick(
-                self::pipelineChangeIsPaid($InvoiceItemDebtorId));
+                self::pipelineChangeIsPaid($InvoiceItemDebtorId, $IsDocumentWarning));
             if(!$tblInvoiceItemDebtor->getIsPaid()){
                 $content->setChecked();
             }
 
-            $content = $content.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
-                new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
-                , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY));
+            // Mahnung nur bei Offenen Posten
+            if($IsDocumentWarning !== 'false'){
+                $content = $content.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
+                        new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
+                        , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY));
+            }
         }
         return $content;
     }
 
     /**
-     * @param $InvoiceItemDebtorId
+     * @param string $InvoiceItemDebtorId
+     * @param string $IsDocumentWarning
      *
      * @return string
      */
-    public function changeIsPaid($InvoiceItemDebtorId)
+    public function changeIsPaid($InvoiceItemDebtorId, $IsDocumentWarning = 'false')
     {
 
         $tblInvoiceItemDebtor = Invoice::useService()->getInvoiceItemDebtorById($InvoiceItemDebtorId);
@@ -131,6 +140,6 @@ class ApiInvoiceIsPaid extends Extension implements IApiInterface
             Invoice::useService()->changeInvoiceItemDebtorIsPaid($tblInvoiceItemDebtor,
                 !$tblInvoiceItemDebtor->getIsPaid());
         }
-        return self::pipelineReloadIsPaid($InvoiceItemDebtorId);
+        return self::pipelineReloadIsPaid($InvoiceItemDebtorId, $IsDocumentWarning);
     }
 }
