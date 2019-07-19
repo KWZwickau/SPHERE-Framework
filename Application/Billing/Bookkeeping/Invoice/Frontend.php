@@ -84,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'TargetTime'      => 'Fälligkeitsdatum',
                             'InvoiceNumber'   => 'Rechnungsnummer',
                             'PaymentType'     => 'Zahlungsart',
-                            'CompanyCredit'   => 'Auszahlung',
+                            'BasketType'      => 'Typ',
                             'DisplaySumPrice' => 'Gesamtbetrag',
 //                            'Option' => '',
                         ), array(
@@ -169,7 +169,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'ItemQuantity'  => 'Menge',
                                 'ItemPrice'     => new ToolTip('EP', 'Einzelpreis'),
                                 'ItemSumPrice'  => new ToolTip('GP', 'Gesamtpreis'),
-                                'CompanyCredit' => 'Auszahlung',
+                                'BasketType'    => 'Typ',
                                 'IsPaid'        => 'Offene Posten',
 //                                'Option' => '',
                             ), array(

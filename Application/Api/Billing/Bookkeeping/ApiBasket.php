@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -445,6 +446,8 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             }
 
+            $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_AUSZAHLUNG);
+
             $Content = (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
                     new Panel('Abrechnung', $FormContentLeft)
@@ -458,7 +461,7 @@ class ApiBasket extends Extension implements IApiInterface
                     new Bold('Zahlungszeitraum '.new DangerText('*')),
                     new Panel('', $PeriodRadioBox),
                     new Panel('Auszahlung',
-                        new CheckBox('Basket[IsCompanyCredit]', 'Auszahlung an Debitoren', 1)
+                        new CheckBox('Basket[BasketTypeId]', 'Auszahlung an Debitoren', $tblBasketType->getId())
                     ),
                 ), 6),
                 new FormColumn(
@@ -600,8 +603,8 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Division'] = (isset($Basket['Division']) ? $Basket['Division'] : '');
             $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
             $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
-            if(isset($Basket['IsCompanyCredit'])){
-                $Global->POST['Basket']['IsCompanyCredit'] = $Basket['IsCompanyCredit'];
+            if(isset($Basket['BasketTypeId'])){
+                $Global->POST['Basket']['BasketTypeId'] = $Basket['BasketTypeId'];
             }
             if(isset($Basket['Description']) && !empty($Basket['Description'])){
                 foreach($Basket['Item'] as $ItemId) {
@@ -624,13 +627,14 @@ class ApiBasket extends Extension implements IApiInterface
         if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
             $tblDebtorPeriodType = null;
         }
-        $IsCompanyCredit = false;
-        if(isset($Basket['IsCompanyCredit'])){
-            $IsCompanyCredit = true;
+        if(isset($Basket['BasketTypeId'])){
+            $tblBasketType = Basket::useService()->getBasketTypeById($Basket['BasketTypeId']);
+        } else {
+            $tblBasketType = Basket::useService()->getBasketTypeById(1);
         }
 
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $IsCompanyCredit, $Basket['Creditor'], $tblDivision, $tblType,
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivision, $tblType,
             $tblDebtorPeriodType);
         $tblItemList = array();
         foreach($Basket['Item'] as $ItemId) {

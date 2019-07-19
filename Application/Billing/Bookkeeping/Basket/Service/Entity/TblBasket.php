@@ -10,6 +10,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -29,7 +30,7 @@ class TblBasket extends Element
     const ATTR_YEAR = 'Year';
     const ATTR_IS_DONE = 'IsDone';
     const ATTR_IS_ARCHIVE = 'IsArchive';
-    const ATTR_IS_COMPANY_CREDIT = 'IsCompanyCredit';
+    const ATTR_TBL_BASKET_TYPE = 'tblBasketType';
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
@@ -67,9 +68,9 @@ class TblBasket extends Element
      */
     protected $IsArchive;
     /**
-     * @Column(type="boolean")
+     * @Column(type="bigint")
      */
-    protected $IsCompanyCredit;
+    protected $tblBasketType;
     /**
      * @Column(type="datetime")
      */
@@ -342,20 +343,20 @@ class TblBasket extends Element
     }
 
     /**
-     * @return boolean
-     * Auszahlung an Beitragszahler
+     * @return bool|TblBasket
      */
-    public function getIsCompanyCredit()
+    public function getTblBasketType()
     {
-        return $this->IsCompanyCredit;
+
+        return Basket::useService()->getBasketTypeById($this->tblBasketType);
     }
 
     /**
-     * @param boolean $IsCompanyCredit
+     * @param TblBasketType $tblBasketType
      */
-    public function setIsCompanyCredit($IsCompanyCredit)
+    public function setTblBasketType(TblBasketType $tblBasketType)
     {
-        $this->IsCompanyCredit = $IsCompanyCredit;
+        $this->tblBasketType = $tblBasketType->getId();
     }
 
     /**

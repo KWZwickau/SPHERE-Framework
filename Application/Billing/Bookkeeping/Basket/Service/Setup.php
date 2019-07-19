@@ -27,6 +27,7 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
+        $this->setTableBasketType($Schema);
         $tblBasket = $this->setTableBasket($Schema);
         $this->setTableBasketItem($Schema, $tblBasket);
         $this->setTblBasketVerification($Schema, $tblBasket);
@@ -48,6 +49,20 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
+    private function setTableBasketType(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblBasketType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
     private function setTableBasket(Schema &$Schema)
     {
 
@@ -60,7 +75,6 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'BillTime', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'IsDone', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsArchive', self::FIELD_TYPE_BOOLEAN, false, false);
-        $this->createColumn($Table, 'IsCompanyCredit', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'SepaDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'SepaUser', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'DatevDate', self::FIELD_TYPE_DATETIME, true);
@@ -69,6 +83,9 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblDebtorPeriodType', self::FIELD_TYPE_BIGINT, true, 1);
+        $this->createColumn($Table, 'tblBasketType', self::FIELD_TYPE_BIGINT, false, 1);
+        // Update vorhandener Daten deswegen ist kein Fremdschlüssel mehr möglich
+//        $this->getConnection()->addForeignKey($Table, $tblBasketType);
 
         return $Table;
     }

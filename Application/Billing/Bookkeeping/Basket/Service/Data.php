@@ -13,6 +13,7 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -35,6 +36,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createBasketType(TblBasketType::IDENT_ABRECHNUNG, '');
+        $this->createBasketType(TblBasketType::IDENT_AUSZAHLUNG, '');
+        $this->createBasketType(TblBasketType::IDENT_GUTSCHRIFT, '');
     }
 
     /**
@@ -46,6 +50,17 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasket
+     */
+    public function getBasketTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketType', $Id);
     }
 
     /**
@@ -69,6 +84,19 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblBasketVerification', $Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return bool|TblBasketType
+     */
+    public function getBasketTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketType', array(
+            TblBasketType::ATTR_NAME => $Name
+        ));
     }
 
     /**
@@ -196,6 +224,34 @@ class Data extends AbstractData
             array(TblBasketVerification::ATTR_TBL_BASKET => $tblBasket->getId()));
 
         return $Count;
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblBasketType
+     */
+    public function createBasketType(
+        $Name,
+        $Description
+    ){
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblBasketType')->findOneBy(array(
+            TblBasketType::ATTR_NAME  => $Name,
+        ));
+
+        if(null === $Entity){
+            $Entity = new TblBasketType();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
@@ -342,7 +398,7 @@ class Data extends AbstractData
      * @param string              $Month
      * @param \DateTime           $TargetTime
      * @param \DateTime|null      $BillTime
-     * @param bool                $IsCompanyCredit
+     * @param TblBasketType       $tblBasketType
      * @param TblCreditor|null    $tblCreditor
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
@@ -357,7 +413,7 @@ class Data extends AbstractData
         $Month,
         $TargetTime,
         $BillTime,
-        $IsCompanyCredit = false,
+        $tblBasketType,
         TblCreditor $tblCreditor = null,
         TblDivision $tblDivision = null,
         TblType $tblType = null,
@@ -381,7 +437,7 @@ class Data extends AbstractData
             $Entity->setBillTime($BillTime);
             $Entity->setIsDone(false);
             $Entity->setIsArchive(false);
-            $Entity->setIsCompanyCredit($IsCompanyCredit);
+            $Entity->setTblBasketType($tblBasketType);
             $Entity->setServiceTblCreditor($tblCreditor);
             $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblType($tblType);

@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
@@ -68,6 +69,28 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasketType
+     */
+    public function getBasketTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBasketTypeById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasketType
+     */
+    public function getBasketTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getBasketTypeByName($Name);
     }
 
     /**
@@ -231,7 +254,7 @@ class Service extends AbstractService
      * @param string              $Month
      * @param string              $TargetTime
      * @param string              $BillTime
-     * @param bool                $IsCompanyCredit
+     * @param TblBasketType|null  $tblBasketType
      * @param string              $CreditorId
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
@@ -241,7 +264,7 @@ class Service extends AbstractService
      * @throws \Exception
      */
     public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $BillTime = '',
-        $IsCompanyCredit = false, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
+        TblBasketType $tblBasketType = null, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
         TblDebtorPeriodType $tblDebtorPeriodType = null)
     {
 
@@ -266,7 +289,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
         return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $BillTime,
-            $IsCompanyCredit, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
+            $tblBasketType, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
     }
 
     /**

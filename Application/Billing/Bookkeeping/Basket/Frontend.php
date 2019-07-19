@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
@@ -29,7 +30,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
-use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -46,12 +46,10 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
@@ -161,9 +159,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Sepa'] = '';
                 $Item['Datev'] = '';
 
-                $Item['IsCredit'] = '';
-                if($tblBasket->getIsCompanyCredit()){
-                    $Item['IsCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                $Item['BasketType'] = '';
+                if(($tblBasketType = $tblBasket->getTblBasketType())){
+                    $Item['BasketType'] = $tblBasketType->getName();
                 }
 
                 if($tblBasket->getSepaDate()){
@@ -223,7 +221,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Time'       => 'Abrechnungsmonat',
                 'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
-                'IsCredit'   => 'Auszahlung',
+                'BasketType' => 'Typ',
                 'Sepa'       => 'Letzter SEPA-Download',
                 'Datev'      => 'Letzter DATEV-Download',
                 'Option'     => ''
@@ -259,7 +257,7 @@ class Frontend extends Extension implements IFrontendInterface
             $IsDatev = $tblSetting->getValue();
         }
             // credit
-        if($tblBasket->getIsCompanyCredit()){
+        if(($tblBasketType = $tblBasket->getTblBasketType()) && $tblBasketType->getName() == TblBasketType::IDENT_AUSZAHLUNG){
             if($IsSepa){
                 if($tblBasket->getDatevDate()){
                     $Buttons .= (new Standard('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
