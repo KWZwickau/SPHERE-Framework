@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
@@ -23,11 +24,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
-use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -44,12 +46,10 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
@@ -64,19 +64,43 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
+     * @param bool $IsArchive
+     *
      * @return Stage
      */
-    public function frontendBasketList()
+    public function frontendBasketList($IsArchive = false)
     {
 
+        if($IsArchive){
+            $Stage = new Stage('Archiv', 'Abrechnung');
+            $Stage->setMessage('Zeigt alle archivierten Abrechnungen an');
+
+            $Stage->addButton(new Standard('Aktuelle Abrechnungen', '/Billing/Bookkeeping/Basket', new Listing()));
+            $Stage->setContent(
+                ApiBasket::receiverService('')
+                .new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ApiBasket::receiverContent($this->getBasketTable($IsArchive))
+                            )
+                        )
+                    )
+                )
+            );
+            return $Stage;
+        }
+
         $Stage = new Stage('Abrechnung', 'Übersicht');
-        $Stage->setMessage('Zeigt alle vorhandenen Abrechnungen an');
+        $Stage->setMessage('Zeigt alle aktiven Abrechnungen an');
 
         $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus()))
             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket')));
+        $Stage->addButton(new Standard('Archiv', '/Billing/Bookkeeping/Basket', new FolderClosed(), array('IsArchive' => true)));
 
         $Stage->setContent(
-            ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
+            ApiBasket::receiverService('')
+            .ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
             .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
             .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
             .ApiSepa::receiverModal()
@@ -84,7 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            ApiBasket::receiverContent($this->getBasketTable())
+                            ApiBasket::receiverContent($this->getBasketTable($IsArchive))
                         )
                     )
                 )
@@ -95,21 +119,31 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsArchive
+     *
      * @return TableData
      */
-    public function getBasketTable()
+    public function getBasketTable($IsArchive = false)
     {
 
-        $tblBasketAll = Basket::useService()->getBasketAll();
+        // kommt manchmal als string
+        if($IsArchive == 'false' || $IsArchive === false){
+            $IsArchive = false;
+        } else {
+            $IsArchive = true;
+        }
+
+        $tblBasketAll = Basket::useService()->getBasketAll($IsArchive);
         $TableContent = array();
         if(!empty($tblBasketAll)){
-            array_walk($tblBasketAll, function(TblBasket &$tblBasket) use (&$TableContent){
+            array_walk($tblBasketAll, function(TblBasket &$tblBasket) use (&$TableContent, $IsArchive){
 
                 $Item['Number'] = $tblBasket->getId();
                 $Item['Name'] = $tblBasket->getName().' '.new Muted(new Small($tblBasket->getDescription()));
 //                $Item['CreateDate'] = $tblBasket->getCreateDate();
 
                 $Item['TimeTarget'] = $tblBasket->getTargetTime();
+                $Item['TimeBill'] = $tblBasket->getBillTime();
                 $Item['Time'] = $tblBasket->getYear().'.'.$tblBasket->getMonth(true);
 
                 $Item['Item'] = '';
@@ -126,9 +160,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Sepa'] = '';
                 $Item['Datev'] = '';
 
-                $Item['IsCredit'] = '';
-                if($tblBasket->getIsCompanyCredit()){
-                    $Item['IsCredit'] = new Center(new SuccessText(new SuccessIcon()));
+                $Item['BasketType'] = '';
+                if(($tblBasketType = $tblBasket->getTblBasketType())){
+                    $Item['BasketType'] = $tblBasketType->getName();
                 }
 
                 if($tblBasket->getSepaDate()){
@@ -153,8 +187,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $Buttons = new Standard('', __NAMESPACE__.'/View', new EyeOpen(),
                         array('BasketId' => $tblBasket->getId()),
                         'Inhalt der Abrechnung');
-                    $Buttons .= $this->getDownloadButtons($tblBasket);
-
+                    if(!$IsArchive){
+                        $Buttons .= $this->getDownloadButtons($tblBasket);
+                        $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new FolderClosed(), array(), 'Abrechnung in das Archiv schieben'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
+                    } else {
+                        $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new Repeat(), array(), 'Abrechnung aus dem Archiv holen'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
+                    }
                     $Item['Option'] = $Buttons;
                 } else {
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
@@ -169,6 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblBasket->getId()));
                 }
 
+
                 array_push($TableContent, $Item);
             });
         }
@@ -179,9 +220,10 @@ class Frontend extends Extension implements IFrontendInterface
                 'Name'       => 'Name',
                 'TimeTarget' => 'Fälligkeit',
                 'Time'       => 'Abrechnungsmonat',
+                'TimeBill'   => 'Rechnungsdatum',
                 'Filter'     => 'Filter',
                 'Item'       => 'Beitragsart(en)',
-                'IsCredit'   => 'Auszahlung',
+                'BasketType' => 'Typ',
                 'Sepa'       => 'Letzter SEPA-Download',
                 'Datev'      => 'Letzter DATEV-Download',
                 'Option'     => ''
@@ -217,7 +259,7 @@ class Frontend extends Extension implements IFrontendInterface
             $IsDatev = $tblSetting->getValue();
         }
             // credit
-        if($tblBasket->getIsCompanyCredit()){
+        if(($tblBasketType = $tblBasket->getTblBasketType()) && $tblBasketType->getName() == TblBasketType::IDENT_AUSZAHLUNG){
             if($IsSepa){
                 if($tblBasket->getDatevDate()){
                     $Buttons .= (new Standard('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
@@ -272,13 +314,18 @@ class Frontend extends Extension implements IFrontendInterface
         ini_set('memory_limit', '-1');
         $Stage = new Stage('Abrechnung', 'Inhalt');
 
-        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-
-        $PanelHead = $Time = $TargetTime = '';
+        $PanelHead = $Time = $TargetTime = $BillTime = '';
         if($tblBasket = Basket::useService()->getBasketById($BasketId)){
             $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
             $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
             $TargetTime = $tblBasket->getTargetTime();
+            $BillTime = $tblBasket->getBillTime();
+
+            if($tblBasket->getIsArchive()){
+                $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft(), array('IsArchive' => $tblBasket->getIsArchive())));
+            } else {
+                $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+            }
         }
 
         $Stage->setContent(
@@ -292,8 +339,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('', new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(new InfoText('<span style="font-size: large">'.$PanelHead.'</span>'),
                                     6),
-                                new LayoutColumn('Abrechnungszeitraum: '.$Time, 3),
-                                new LayoutColumn('Fälligkeitsdatum: '.$TargetTime, 3),
+                                new LayoutColumn('Rechnungsdatum:'.new Container($BillTime), 2),
+                                new LayoutColumn('Abrechnungszeitraum:'.new Container($Time), 2),
+                                new LayoutColumn('Fälligkeitsdatum:'.new Container($TargetTime), 2),
                             )))), Panel::PANEL_TYPE_INFO)
                         )
                     )
@@ -385,7 +433,7 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $DebtorMiss++;
                     }
-                    $Item['PersonDebtorFail'] = ApiBasketVerification::receiverWarning($DebtorWarningContent, $tblBasketVerification->getId());
+                    $Item['PersonDebtorFail'] = ($DebtorWarningContent ? '<span hidden> 1 </span>' : '').ApiBasketVerification::receiverWarning($DebtorWarningContent, $tblBasketVerification->getId());
 
                     if(($tblItem = $tblBasketVerification->getServiceTblItem())){
                         $Item['Item'] = $tblItem->getName();

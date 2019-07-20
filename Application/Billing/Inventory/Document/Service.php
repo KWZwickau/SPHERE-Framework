@@ -57,6 +57,18 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getDocumentById($Id);
     }
+
+    /**
+     * @param      $Name
+     * @param bool $IsWarning
+     *
+     * @return false|TblDocument
+     */
+    public function getDocumentByName($Name, $IsWarning = false)
+    {
+        return (new Data($this->getBinding()))->getDocumentByName($Name, $IsWarning);
+    }
+
     /**
      * @return false|TblDocument[]
      */

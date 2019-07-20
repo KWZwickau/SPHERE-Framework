@@ -287,7 +287,7 @@ class Data extends AbstractData
     public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
             TblPerson::ATTR_FIRST_NAME => $FirstName,
             TblPerson::ATTR_LAST_NAME  => $LastName
         ));

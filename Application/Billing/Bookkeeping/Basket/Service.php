@@ -12,11 +12,13 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -70,6 +72,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblBasketType
+     */
+    public function getBasketTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBasketTypeById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasketType
+     */
+    public function getBasketTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getBasketTypeByName($Name);
+    }
+
+    /**
      * @param string      $Name
      * @param string|bool $Month
      * @param string|bool $Year
@@ -107,10 +131,10 @@ class Service extends AbstractService
     /**
      * @return bool|TblBasket[]
      */
-    public function getBasketAll()
+    public function getBasketAll($IsArchive = false)
     {
 
-        return (new Data($this->getBinding()))->getBasketAll();
+        return (new Data($this->getBinding()))->getBasketAll($IsArchive);
     }
 
     /**
@@ -229,7 +253,8 @@ class Service extends AbstractService
      * @param string              $Year
      * @param string              $Month
      * @param string              $TargetTime
-     * @param bool                $IsCompanyCredit
+     * @param string              $BillTime
+     * @param TblBasketType|null  $tblBasketType
      * @param string              $CreditorId
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
@@ -238,8 +263,8 @@ class Service extends AbstractService
      * @return TblBasket
      * @throws \Exception
      */
-    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '',
-        $IsCompanyCredit = false, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
+    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $BillTime = '',
+        TblBasketType $tblBasketType = null, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
         TblDebtorPeriodType $tblDebtorPeriodType = null)
     {
 
@@ -249,6 +274,12 @@ class Service extends AbstractService
             // now if no input (fallback)
             $TargetTime = new \DateTime();
         }
+        if($BillTime){
+            $BillTime = new \DateTime($BillTime);
+        } else {
+            $BillTime = null;
+        }
+
         // 0 (nicht Ausgewählt) or false to null
         $tblCreditor = false;
         if($CreditorId !== '0'){
@@ -257,8 +288,8 @@ class Service extends AbstractService
         if(!$tblCreditor){
             $tblCreditor = null;
         }
-        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime,
-            $IsCompanyCredit, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
+        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $BillTime,
+            $tblBasketType, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
     }
 
     /**
@@ -393,6 +424,11 @@ class Service extends AbstractService
                         } else {
                             $Item['Debtor'] = $tblDebtorSelection->getServiceTblPersonDebtor()->getId();
                         }
+                        if(!$tblDebtorSelection->getServiceTblItemVariant()){
+                            $Item['ItemVariant'] = null;
+                        } else {
+                            $Item['ItemVariant'] = $tblDebtorSelection->getServiceTblItemVariant()->getId();
+                        }
                         // insert payment from DebtorSelection
                         if(!$tblDebtorSelection->getTblBankAccount()){
                             $Item['BankAccount'] = null;
@@ -451,6 +487,7 @@ class Service extends AbstractService
                     // entry without DebtorSelection
                     $Item['Causer'] = $tblPerson->getId();
                     $Item['Debtor'] = '';
+                    $Item['ItemVariant'] = null;
                     $Item['BankAccount'] = null;
                     $Item['BankReference'] = null;
                     $Item['PaymentType'] = null;
@@ -537,15 +574,22 @@ class Service extends AbstractService
      * @param string    $Name
      * @param string    $Description
      * @param string    $TargetTime
+     * @param string    $BillTime
      * @param string    $CreditorId
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $CreditorId = '')
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $BillTime, $CreditorId = '')
     {
 
         // String to DateTime object
         $TargetTime = new \DateTime($TargetTime);
+        if($BillTime){
+            $BillTime = new \DateTime($BillTime);
+        } else {
+            $BillTime = null;
+        }
+
         // 0 (nicht Ausgewählt) or false to null
         $tblCreditor = false;
         if($CreditorId !== '0'){
@@ -555,7 +599,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $tblCreditor);
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $BillTime, $tblCreditor);
     }
 
     /**
@@ -568,6 +612,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateBasketDone($tblBasket, $IsDone);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param bool      $IsArchive
+     *
+     * @return bool
+     */
+    public function updateBasketArchive(TblBasket $tblBasket, $IsArchive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateBasketArchive($tblBasket, $IsArchive);
     }
 
     /**
@@ -640,6 +696,7 @@ class Service extends AbstractService
      * @param TblPerson             $tblPersonDebtor
      * @param TblPaymentType        $tblPaymentType
      * @param string                $Value
+     * @param TblItemVariant|null   $tblItemVariant
      * @param TblBankAccount|null   $tblBankAccount
      * @param TblBankReference|null $tblBankReference
      *
@@ -650,6 +707,7 @@ class Service extends AbstractService
         TblPerson $tblPersonDebtor,
         TblPaymentType $tblPaymentType,
         $Value = '0',
+        TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
 
@@ -657,7 +715,7 @@ class Service extends AbstractService
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
-            $tblPaymentType, $Value, $tblBankAccount, $tblBankReference);
+            $tblPaymentType, $Value, $tblItemVariant, $tblBankAccount, $tblBankReference);
     }
 
     /**

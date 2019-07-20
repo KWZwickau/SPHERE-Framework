@@ -391,9 +391,10 @@ class Service extends AbstractService
         if (( $persons = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName) )
         ) {
             foreach ($persons as $person) {
-                if (( $addresses = Address::useService()->getAddressAllByPerson($person) )) {
+                if (( $addresses = Address::useService()->getAddressAllByPerson($person, true) )) {
                     if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
                         $exists = $person;
+                        break;
                     }
                 }
             }

@@ -413,20 +413,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblType $tblType
-     * @param int     $Rank
-     *
-     * @return false|TblToPerson
-     */
-    public function getPersonRelationshipByTypeAndRank(TblType $tblType, $Rank = 1)
-    {
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
-             TblToPerson::ATTR_TBL_TYPE => $tblType->getId(),
-             TblToPerson::ATTR_RANKING => $Rank
-        ));
-    }
-
-    /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
      * @param bool $isForced

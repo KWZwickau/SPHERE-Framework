@@ -259,7 +259,8 @@ class Data extends AbstractData
      * @param string             $IntegerNumber
      * @param string             $Month
      * @param string             $Year
-     * @param string             $TargetTime
+     * @param \DateTime          $TargetTime
+     * @param \DateTime|null     $BillTime
      * @param TblPerson          $tblPerson
      * @param TblInvoiceCreditor $tblInvoiceCreditor
      * @param TblBasket          $tblBasket
@@ -271,6 +272,7 @@ class Data extends AbstractData
         $Month,
         $Year,
         $TargetTime,
+        $BillTime,
         TblPerson $tblPerson,
         TblInvoiceCreditor $tblInvoiceCreditor,
         TblBasket $tblBasket
@@ -291,7 +293,8 @@ class Data extends AbstractData
             $Entity->setIntegerNumber($IntegerNumber);
             $Entity->setMonth($Month);
             $Entity->setYear($Year);
-            $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
+            $Entity->setTargetTime($TargetTime);
+            $Entity->setBillTime($BillTime);
             $Entity->setFirstName($tblPerson->getFirstName());
             $Entity->setLastName($tblPerson->getLastName());
             $Entity->setServiceTblPersonCauser($tblPerson);
@@ -307,15 +310,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array     $InvoiceList
-     * @param string    $Month
-     * @param string    $Year
-     * @param string    $TargetTime
-     * @param TblBasket $tblBasket
+     * @param array          $InvoiceList
+     * @param string         $Month
+     * @param string         $Year
+     * @param \DateTime      $TargetTime
+     * @param \DateTime|null $BillTime
+     * @param TblBasket      $tblBasket
      *
      * @return bool
      */
-    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime, TblBasket $tblBasket)
+    public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime, $BillTime, TblBasket $tblBasket)
     {
         //ToDO $InvoiceNumberLength from Setting?
         $InvoiceNumberLength = 5;
@@ -338,7 +342,8 @@ class Data extends AbstractData
                     $Entity->setIntegerNumber($IntegerNumber);
                     $Entity->setMonth($Month);
                     $Entity->setYear($Year);
-                    $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
+                    $Entity->setTargetTime($TargetTime);
+                    $Entity->setBillTime($BillTime);
                     $Entity->setFirstName($tblPerson->getFirstName());
                     $Entity->setLastName($tblPerson->getLastName());
                     $Entity->setBasketName($tblBasket->getName());

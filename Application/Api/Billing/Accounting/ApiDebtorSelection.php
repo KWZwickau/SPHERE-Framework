@@ -913,9 +913,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                                 $ItemPrice = $tblItemCalculation->getValue();
                             }
                         }
+                        if(!$tblItemVariant){
+                            $tblItemVariant = null;
+                        }
 
                         Basket::useService()->changeBasketVerificationDebtor($tblBasketVerification, $tblPerson,
-                            $tblPaymentType, $ItemPrice, ($tblBankAccount ? $tblBankAccount : null),
+                            $tblPaymentType, $ItemPrice, $tblItemVariant, ($tblBankAccount ? $tblBankAccount : null),
                             ($tblBankReference ? $tblBankReference : null));
                     }
                 }

@@ -58,6 +58,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/BillingDocument/Create', 'SPHERE\Application\Api\Document\Creator::createBillingDocumentPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/BillingDocumentWarning/Create', 'SPHERE\Application\Api\Document\Creator::createBillingDocumentWarningPdf'
+        ));
     }
 
     /**

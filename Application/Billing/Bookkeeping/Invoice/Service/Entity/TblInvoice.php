@@ -53,6 +53,10 @@ class TblInvoice extends Element
      */
     protected $TargetTime;
     /**
+     * @Column(type="datetime")
+     */
+    protected $BillTime;
+    /**
      * @Column(type="string")
      */
     protected $FirstName;
@@ -185,6 +189,44 @@ class TblInvoice extends Element
     {
 
         $this->TargetTime = $Date;
+    }
+
+    /**
+     * @param string $Format
+     *
+     * @return bool|string
+     */
+    public function getBillTime($Format = 'd.m.Y')
+    {
+
+        // Rechnungs Jahr
+        if(null !== $this->BillTime){
+            /** @var \DateTime $BillTime */
+            $BillTime = $this->BillTime;
+            if($BillTime instanceof \DateTime){
+                return $BillTime->format($Format);
+            }
+        }
+        // Fälligkeits Jahr
+        if(null !== $this->TargetTime){
+            /** @var \DateTime $TargetTime */
+            $TargetTime = $this->TargetTime;
+            if($TargetTime instanceof \DateTime){
+                return $TargetTime->format($Format);
+            }
+        }
+
+        // aktuelles Datum
+        return (new \DateTime())->format($Format);
+    }
+
+    /**
+     * @param \DateTime|null $Date
+     */
+    public function setBillTime(\DateTime $Date = null)
+    {
+
+        $this->BillTime = $Date;
     }
 
     /**

@@ -13,8 +13,11 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
@@ -33,6 +36,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createBasketType(TblBasketType::IDENT_ABRECHNUNG, '');
+        $this->createBasketType(TblBasketType::IDENT_AUSZAHLUNG, '');
+        $this->createBasketType(TblBasketType::IDENT_GUTSCHRIFT, '');
     }
 
     /**
@@ -44,6 +50,17 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasket
+     */
+    public function getBasketTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketType', $Id);
     }
 
     /**
@@ -70,6 +87,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return bool|TblBasketType
+     */
+    public function getBasketTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketType', array(
+            TblBasketType::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
      * @param string      $Name
      * @param string|bool $Month
      * @param string|bool $Year
@@ -92,12 +122,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $IsArchive
+     *
      * @return bool|TblBasket[]
      */
-    public function getBasketAll()
+    public function getBasketAll($IsArchive = false)
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket');
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', array(
+            TblBasket::ATTR_IS_ARCHIVE => $IsArchive
+        ));
     }
 
     /**
@@ -193,11 +227,40 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblBasketType
+     */
+    public function createBasketType(
+        $Name,
+        $Description
+    ){
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblBasketType')->findOneBy(array(
+            TblBasketType::ATTR_NAME  => $Name,
+        ));
+
+        if(null === $Entity){
+            $Entity = new TblBasketType();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @param TblBasket               $tblBasket
      * @param TblItem                 $tblItem
      * @param float                   $Price
      * @param TblPerson               $tblPersonCauser
      * @param TblPerson|null          $tblPersonDebtor
+     * @param TblItemVariant|null     $tblItemVariant
      * @param TblBankAccount|null     $tblBankAccount
      * @param TblBankReference|null   $tblBankReference
      * @param TblPaymentType|null     $tblPaymentType
@@ -211,6 +274,7 @@ class Data extends AbstractData
         $Price,
         TblPerson $tblPersonCauser,
         TblPerson $tblPersonDebtor = null,
+        TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null,
         TblPaymentType $tblPaymentType = null,
@@ -239,6 +303,7 @@ class Data extends AbstractData
             $Entity->setTblBasket($tblBasket);
             $Entity->setServiceTblPersonCauser($tblPersonCauser);
             $Entity->setServiceTblPersonDebtor($tblPersonDebtor);
+            $Entity->setServiceTblItemVariant($tblItemVariant);
             $Entity->setServiceTblBankAccount($tblBankAccount);
             $Entity->setServiceTblBankReference($tblBankReference);
             $Entity->setServiceTblPaymentType($tblPaymentType);
@@ -275,6 +340,7 @@ class Data extends AbstractData
             foreach($DebtorDataArray as $Item) {
                 $PersonCauserId = $Item['Causer'];
                 $PersonDebtorId = $Item['Debtor'];
+                $ItemVariantId = $Item['ItemVariant'];
                 $BankAccountId = $Item['BankAccount'];
                 $BankReferenceId = $Item['BankReference'];
                 $PaymentTypeId = $Item['PaymentType'];
@@ -303,6 +369,7 @@ class Data extends AbstractData
                     if($PersonDebtorId){
                         $Entity->setServiceTblPersonDebtor(Person::useService()->getPersonById($PersonDebtorId));
                     }
+                    $Entity->setServiceTblItemVariant(null === $ItemVariantId ? null : Item::useService()->getItemVariantById($ItemVariantId));
                     $Entity->setServiceTblBankAccount(null === $BankAccountId ? null : Debtor::useService()->getBankAccountById($BankAccountId));
                     $Entity->setServiceTblBankReference(null === $BankReferenceId ? null : Debtor::useService()->getBankReferenceById($BankReferenceId));
                     if($PaymentTypeId){
@@ -330,7 +397,8 @@ class Data extends AbstractData
      * @param string              $Year
      * @param string              $Month
      * @param \DateTime           $TargetTime
-     * @param bool                $IsCompanyCredit
+     * @param \DateTime|null      $BillTime
+     * @param TblBasketType       $tblBasketType
      * @param TblCreditor|null    $tblCreditor
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
@@ -344,7 +412,8 @@ class Data extends AbstractData
         $Year,
         $Month,
         $TargetTime,
-        $IsCompanyCredit = false,
+        $BillTime,
+        $tblBasketType,
         TblCreditor $tblCreditor = null,
         TblDivision $tblDivision = null,
         TblType $tblType = null,
@@ -365,8 +434,10 @@ class Data extends AbstractData
             $Entity->setYear($Year);
             $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
+            $Entity->setBillTime($BillTime);
             $Entity->setIsDone(false);
-            $Entity->setIsCompanyCredit($IsCompanyCredit);
+            $Entity->setIsArchive(false);
+            $Entity->setTblBasketType($tblBasketType);
             $Entity->setServiceTblCreditor($tblCreditor);
             $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblType($tblType);
@@ -413,6 +484,7 @@ class Data extends AbstractData
      * @param string           $Name
      * @param string           $Description
      * @param /DateTime        $TargetTime
+     * @param /DateTime|null   $BillTime
      * @param TblCreditor|null $tblCreditor
      *
      * @return bool
@@ -422,6 +494,7 @@ class Data extends AbstractData
         $Name,
         $Description,
         $TargetTime,
+        $BillTime,
         TblCreditor $tblCreditor = null
     ){
 
@@ -434,6 +507,7 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setTargetTime($TargetTime);
+            $Entity->setBillTime($BillTime);
             $Entity->setServiceTblCreditor($tblCreditor);
 
             $Manager->saveEntity($Entity);
@@ -463,6 +537,33 @@ class Data extends AbstractData
         if(null !== $Entity){
             $Entity->setName($tblBasket->getName());
             $Entity->setIsDone($IsDone);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param bool      $IsArchive
+     *
+     * @return bool
+     */
+    public function updateBasketArchive(TblBasket $tblBasket, $IsArchive = true)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setName($tblBasket->getName());
+            $Entity->setIsArchive($IsArchive);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
@@ -570,7 +671,12 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblBasketVerification', $tblBasketVerification->getId());
         $Protocol = clone $Entity;
         if(null !== $Entity){
+
+            if(!($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                $tblItemVariant = null;
+            }
             $Entity->setServiceTblDebtorSelection($tblDebtorSelection);
+            $Entity->setServiceTblItemVariant($tblItemVariant);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -585,6 +691,7 @@ class Data extends AbstractData
      * @param TblPerson             $tblPersonDebtor
      * @param TblPaymentType        $tblPaymentType
      * @param string                $Value
+     * @param TblItemVariant|null   $tblItemVariant
      * @param TblBankAccount|null   $tblBankAccount
      * @param TblBankReference|null $tblBankReference
      *
@@ -595,6 +702,7 @@ class Data extends AbstractData
         TblPerson $tblPersonDebtor,
         TblPaymentType $tblPaymentType,
         $Value = '0',
+        TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
     ){
@@ -610,6 +718,7 @@ class Data extends AbstractData
             $Entity->setServiceTblBankAccount($tblBankAccount);
             $Entity->setServiceTblBankReference($tblBankReference);
             $Entity->setValue($Value);
+            $Entity->setServiceTblItemVariant($tblItemVariant);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

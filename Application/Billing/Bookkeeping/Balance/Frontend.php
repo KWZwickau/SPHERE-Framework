@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -53,6 +54,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -81,10 +84,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Belegdruck', 'Serienbrief');
 
-        // Vorauswahl für Schulgeld deaktiviert SSW-537
-//        if(!isset($_POST['Balance']['Item']) && ($tblItem = Item::useService()->getItemByName('Schulgeld'))){
-//            $_POST['Balance']['Item'] = $tblItem->getId();
-//        }
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
@@ -98,15 +97,55 @@ class Frontend extends Extension implements IFrontendInterface
         // Standard Download
         $Download = (new PrimaryLink('Herunterladen', '', new Download()))->setDisabled();
         $tableContent = array();
-        if(!empty($Balance)){
 
-            if(($tblItem = Item::useService()->getItemById($Balance['Item']))){
-                $PriceList = Balance::useService()->getPriceListByItemAndYear($tblItem, $Balance['Year'],
-                    $Balance['From'], $Balance['To'], $Balance['Division']);
-                $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
+        $tblItemList = array();
+        if(isset($Balance['ItemList'])){
+            foreach($Balance['ItemList'] as $ItemId){
+                $tblItemList[] = Item::useService()->getItemById($ItemId);
+            }
+        }
+
+        if(!empty($Balance) && !empty($tblItemList)){
+            if(!isset($Balance['Division'])){
+                $Balance['Division'] = '';
+            }
+
+            // ToDO später sollen andere Personenlisten auswählbar werden (Personengruppen / Einzelperson)
+            if($Balance['Division'] && ( $tblDivision = Division::useService()->getDivisionById($Balance['Division']))){
+                // Pesronenliste aus der Klasse:
+                $tblPersonList = Division::useService()->getPersonAllByDivisionList(array($tblDivision));
+            } else {
+                // Personenliste, wenn keine Klasse gewählt wurde:
+                $tblPersonList = Balance::useService()->getPersonListByInvoiceTime($Balance['Year'],
+                    $Balance['From'], $Balance['To']);
+            }
+
+            $ItemIdString = '';
+            /** @var TblItem $tblItem */
+            foreach($tblItemList as $tblItemDownload){
+                if($ItemIdString === ''){
+                    $ItemIdString = $tblItemDownload->getId();
+                } else {
+                    $ItemIdString .= ','.$tblItemDownload->getId();
+                }
+            }
+            if($tblPersonList){
+                $PriceList = array();
+                foreach($tblPersonList as $tblPerson){
+                    /** @var TblItem $tblItem */
+                    foreach($tblItemList as $tblItem){
+                        // Rechnungen zusammengefasst (je Beitragsart)
+                        $PriceList = Balance::useService()->getPriceListByItemAndPerson($tblItem, $Balance['Year'],
+                            $Balance['From'], $Balance['To'], $tblPerson, $PriceList);
+                    }
+                }
+                // Summe der einzelnen Beiträge erstellen
+                $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
+                //
+                $tableContent = Balance::useService()->getTableContentByItemPriceList($PriceList);
                 $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                     new Download(), array(
-                        'ItemId'     => $tblItem->getId(),
+                        'ItemIdString' => $ItemIdString,
                         'Year'       => $Balance['Year'],
                         'From'       => $Balance['From'],
                         'To'         => $Balance['To'],
@@ -119,16 +158,23 @@ class Frontend extends Extension implements IFrontendInterface
         $Space = '<div style="height: 100px;"></div>';
         if(empty($Balance)){
             $Table = new Info('Bitte benutzen Sie die Filterung');
+        } elseif(empty($tblItemList)) {
+            $Table = new Info('Bitte wählen Sie mindestens eine Beitragsart aus');
         } else {
             $Table = new Warning('Keine Ergebnisse gefunden');
         }
-        if(!empty($tableContent)){
-            $Table = new TableData($tableContent, null, array(
-                'Debtor' => 'Beitragszahler',
-                'Causer' => 'Beitragsverursacher',
-                'Value'  => 'Summe',
-                'Info'  => 'Anmerkung',
-            ), array(
+
+        if(!empty($tableContent) && $tblItemList){
+
+            $TableHead['Debtor'] = 'Beitragszahler Test';
+            $TableHead['Causer'] = 'Beitragsverursacher';
+            foreach($tblItemList as $tblItem){
+                $TableHead['Id'.$tblItem->getId()] = $tblItem->getName();
+            }
+            $TableHead['Summary'] = 'Gesamt';
+            $TableHead['Info'] = new EyeOpen();
+
+            $Table = new TableData($tableContent, null, $TableHead, array(
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),
                     array('type' => 'natural', 'targets' => array(2)),
@@ -185,6 +231,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivisionList = array();
             }
         }
+
+        $CheckboxItemList = array();
+        if($tblItemAll){
+            foreach($tblItemAll as $tblItem){
+                $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+            }
+        }
+
         return new Well(
             new Title('Filterung für Belegdruck', '').
             new Form(
@@ -198,8 +252,13 @@ class Frontend extends Extension implements IFrontendInterface
                             , array( '{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true, null), 3),
                     )),
                     new FormRow(array(
-                        new FormColumn((new SelectBox('Balance[Item]', 'Beitragsart',
-                            array('{{ Name }}' => $tblItemAll)))->setRequired(), 3),
+//                        new FormColumn(
+//                            (new SelectBox('Balance[Item]', 'Beitragsart',
+//                            array('{{ Name }}' => $tblItemAll)))->setRequired(), 3),
+                        new FormColumn(
+                            new Panel(new Bold('Beitragsarten '.new DangerText('*')),
+                                $CheckboxItemList, Panel::PANEL_TYPE_INFO)
+                        ),
                     )),
                     new FormRow(
                         new FormColumn(new Primary('Filtern', new Filter()))

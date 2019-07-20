@@ -28,6 +28,25 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        // Mahnbeleg wird nur angelegt, wenn es ihn noch nicht gibt.
+        if(!$this->getDocumentByName(TblDocument::IDENT_MAHNBELEG, true)){
+            $tblDocument = $this->createDocument('Mahnbeleg', 'Ausgabe für offene Posten', true);
+            $this->createDocumentInformation($tblDocument, 'Subject', 'Zahlungserinnerung zur Rechnung Nr. [Rechnungsnummer] vom [Fälligkeit]');
+            $this->createDocumentInformation($tblDocument, 'Content', 'Sehr geehrte(r) [Beitragszahler Anrede] [Beitragszahler Nachname],
+            
+bei der oben aufgeführten Rechnung konnten wir leider noch keinen Zahlungseingang feststellen.
+
+Sicherlich handelt es sich nur um ein Versehen. Wir haben dem Schreiben eine Kopie der Rechnung [Rechnungsnummer] beigefügt.
+
+Bitte überweisen Sie den fälligen Betrag ohne Abzüge auf unser Bankkonto.
+
+Falls Sie zwischenzeitlich die Zahlung veranlasst haben, bitten wir Sie, dieses Schreiben als gegenstandslos zu betrachten.
+    
+Mit freundlichen Grüßen
+            
+[Trägername]
+[Trägerzusatz]');
+        }
     }
 
     /**
@@ -41,6 +60,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Name
+     * @param bool   $IsWarning
+     *
+     * @return false|TblDocument
+     */
+    public function getDocumentByName($Name = '', $IsWarning = false)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDocument', array(
+            TblDocument::ATTR_NAME => $Name,
+            TblDocument::ATTR_IS_WARNING => $IsWarning
+        ));
+    }
+
+    /**
      * @return false|TblDocument[]
      */
     public function getDocumentAll()
@@ -49,18 +82,20 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
-     * @param $Description
+     * @param      $Name
+     * @param      $Description
+     * @param bool $IsWarning
      *
      * @return TblDocument
      */
-    public function createDocument($Name, $Description)
+    public function createDocument($Name, $Description, $IsWarning = false)
     {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblDocument();
         $Entity->setName($Name);
         $Entity->setDescription($Description);
+        $Entity->setIsWarning($IsWarning);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

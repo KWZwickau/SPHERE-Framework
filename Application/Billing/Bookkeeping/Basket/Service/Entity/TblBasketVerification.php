@@ -14,6 +14,7 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -39,6 +40,10 @@ class TblBasketVerification extends Element
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Value;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblItemVariant;
     /**
      * @Column(type="integer")
      */
@@ -97,6 +102,28 @@ class TblBasketVerification extends Element
     {
 
         $this->Value = $Value;
+    }
+
+    /**
+     * @return bool|TblItemVariant
+     */
+    public function getServiceTblItemVariant()
+    {
+
+        if(null === $this->serviceTblItemVariant){
+            return false;
+        } else {
+            return Item::useService()->getItemVariantById($this->serviceTblItemVariant);
+        }
+    }
+
+    /**
+     * @param null|TblItemVariant $tblItemVariant
+     */
+    public function setServiceTblItemVariant(TblItemVariant $tblItemVariant = null)
+    {
+
+        $this->serviceTblItemVariant = (null === $tblItemVariant ? null : $tblItemVariant->getId());
     }
 
     /**

@@ -10,6 +10,7 @@ use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -28,7 +29,8 @@ class TblBasket extends Element
     const ATTR_MONTH = 'Month';
     const ATTR_YEAR = 'Year';
     const ATTR_IS_DONE = 'IsDone';
-    const ATTR_IS_COMPANY_CREDIT = 'IsCompanyCredit';
+    const ATTR_IS_ARCHIVE = 'IsArchive';
+    const ATTR_TBL_BASKET_TYPE = 'tblBasketType';
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
@@ -54,13 +56,21 @@ class TblBasket extends Element
      */
     protected $TargetTime;
     /**
+     * @Column(type="datetime")
+     */
+    protected $BillTime;
+    /**
      * @Column(type="boolean")
      */
     protected $IsDone;
     /**
      * @Column(type="boolean")
      */
-    protected $IsCompanyCredit;
+    protected $IsArchive;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblBasketType;
     /**
      * @Column(type="datetime")
      */
@@ -191,75 +201,112 @@ class TblBasket extends Element
     }
 
     /**
-     * @return string
+     * @param null|\DateTime $TargetTime
      */
-    public function getTargetTimeDatev()
+    public function setTargetTime(\DateTime $TargetTime = null)
     {
-
-        if(null === $this->TargetTime){
-            return false;
-        }
-        /** @var \DateTime $TargetTime */
-        $TargetTime = $this->TargetTime;
-        if($TargetTime instanceof \DateTime){
-            return $TargetTime->format('Ymd');
-        } else {
-            return (string)$TargetTime;
-        }
+        $this->TargetTime = $TargetTime;
     }
 
     /**
      * @return string
      */
-    public function getTargetYear()
+    public function getBillTime()
     {
 
-        if(null === $this->TargetTime){
+        if(null === $this->BillTime){
             return false;
         }
-        /** @var \DateTime $TargetTime */
-        $TargetTime = $this->TargetTime;
-        if($TargetTime instanceof \DateTime){
-            return $TargetTime->format('Y');
+        /** @var \DateTime $BillTime */
+        $BillTime = $this->BillTime;
+        if($BillTime instanceof \DateTime){
+            return $BillTime->format('d.m.Y');
+        } else {
+            return (string)$BillTime;
         }
+    }
+
+    /**
+     * @param null|\DateTime $BillTime
+     */
+    public function setBillTime(\DateTime $BillTime = null)
+    {
+        $this->BillTime = $BillTime;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBillYear()
+    {
+
+        // Rechnungs Jahr
+        if(null !== $this->BillTime){
+            /** @var \DateTime $BillTime */
+            $BillTime = $this->BillTime;
+            if($BillTime instanceof \DateTime){
+                return $BillTime->format('Y');
+            }
+        }
+        // Fälligkeits Jahr
+        if(null !== $this->TargetTime){
+            /** @var \DateTime $TargetTime */
+            $TargetTime = $this->TargetTime;
+            if($TargetTime instanceof \DateTime){
+                return $TargetTime->format('Y');
+            }
+        }
+
+        // aktuelles Datum
         return (new \DateTime())->format('Y');
     }
 
     /**
      * @return string
      */
-    public function getTargetYearMonth($IsMaxMonthDay = false)
+    public function getBillYearMonth($IsMaxMonthDay = false)
     {
 
-        if(null === $this->TargetTime){
-            return false;
-        }
-        /** @var \DateTime $TargetTime */
-        $TargetTime = $this->TargetTime;
-        if($TargetTime instanceof \DateTime){
-            if($IsMaxMonthDay){
-                $TimeLong = mktime(null, null, null, $TargetTime->format('m'), $TargetTime->format('d'), $TargetTime->format('Y'));
-                $Day = date('t', $TimeLong);
-                return $TargetTime->format('Ym').$Day;
-            } else {
-                return $TargetTime->format('Ym').'01';
+        if(null !== $this->BillTime){
+            /** @var \DateTime $BillTime */
+            $BillTime = $this->BillTime;
+            if($BillTime instanceof \DateTime){
+                if($IsMaxMonthDay){
+                    $TimeLong = mktime(null, null, null, $BillTime->format('m'), $BillTime->format('d'), $BillTime->format('Y'));
+                    $Day = date('t', $TimeLong);
+                    return $BillTime->format('Ym').$Day;
+                } else {
+                    return $BillTime->format('Ym').'01';
+                }
             }
         }
-        if($IsMaxMonthDay){
-            $TimeLong = mktime(null, null, null, (new \DateTime())->format('m'), (new \DateTime())->format('d'), (new \DateTime())->format('Y'));
-            $Day = date('t', $TimeLong);
-            return $TargetTime->format('Ym').$Day;
-        } else {
-            return (new \DateTime())->format('Ym').'01';
+        // Wird die Einstellung "Datev Pflichtfelder" erst im nachhinein getätigt, ist es möglich,
+        // das kein Rechnungsdatum hinterlegt ist. Für diesen Fall wird das Fälligkeitsdatum gezogen.
+        if(null !== $this->TargetTime){
+            /** @var \DateTime $TargetTime */
+            $TargetTime = $this->TargetTime;
+            if ($TargetTime instanceof \DateTime){
+                if ($IsMaxMonthDay){
+                    $TimeLong = mktime(null, null, null, $TargetTime->format('m'), $TargetTime->format('d'),
+                        $TargetTime->format('Y'));
+                    $Day = date('t', $TimeLong);
+                    return $TargetTime->format('Ym').$Day;
+                } else {
+                    return $TargetTime->format('Ym').'01';
+                }
+            }
         }
-    }
 
-    /**
-     * @param null|\DateTime $TargetTime
-     */
-    public function setTargetTime(\DateTime $TargetTime = null)
-    {
-        $this->TargetTime = $TargetTime;
+        // Fallback aktuelles Datum
+        // Fehlendes Rechnungsdatum, fehlende Fälligkeit -> aktuelles Datum
+        $Now = new \DateTime();
+        if($IsMaxMonthDay){
+            $TimeLong = mktime(null, null, null, $Now->format('m'), $Now->format('d'), $Now->format('Y'));
+            $Day = date('t', $TimeLong);
+            return $Now->format('Ym').$Day;
+        } else {
+            return $Now->format('Ym').'01';
+        }
     }
 
     /**
@@ -281,19 +328,35 @@ class TblBasket extends Element
 
     /**
      * @return boolean
-     * Auszahlung an Beitragszahler
      */
-    public function getIsCompanyCredit()
+    public function getIsArchive()
     {
-        return $this->IsCompanyCredit;
+        return $this->IsArchive;
     }
 
     /**
-     * @param boolean $IsCompanyCredit
+     * @param boolean $IsArchive
      */
-    public function setIsCompanyCredit($IsCompanyCredit)
+    public function setIsArchive($IsArchive)
     {
-        $this->IsCompanyCredit = $IsCompanyCredit;
+        $this->IsArchive = $IsArchive;
+    }
+
+    /**
+     * @return bool|TblBasket
+     */
+    public function getTblBasketType()
+    {
+
+        return Basket::useService()->getBasketTypeById($this->tblBasketType);
+    }
+
+    /**
+     * @param TblBasketType $tblBasketType
+     */
+    public function setTblBasketType(TblBasketType $tblBasketType)
+    {
+        $this->tblBasketType = $tblBasketType->getId();
     }
 
     /**

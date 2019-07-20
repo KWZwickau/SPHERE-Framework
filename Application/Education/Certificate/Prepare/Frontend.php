@@ -1669,7 +1669,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson,
                                 $tblPrepareStudent,
                                 $tblCertificate,
-                                $hasTeamExtra
+                                &$hasTeamExtra
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -1677,7 +1677,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 if (isset($Identifier[0])) {
                                     unset($Identifier[0]);
                                 }
-
 
                                 $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
 
