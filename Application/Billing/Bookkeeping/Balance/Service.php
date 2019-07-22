@@ -435,14 +435,14 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
-            foreach($tblItemList as $tblItem){
-                $export->setValue($export->getCell($column++, $row), $tblItem->getName());
-            }
-            $export->setValue($export->getCell($column++, $row), "Gesamt");
             $export->setValue($export->getCell($column++, $row), "Straße");
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Stadt");
-            $export->setValue($export->getCell($column, $row), "Ortsteil");
+            $export->setValue($export->getCell($column++, $row), "Ortsteil");
+            foreach($tblItemList as $tblItem){
+                $export->setValue($export->getCell($column++, $row), $tblItem->getName());
+            }
+            $export->setValue($export->getCell($column, $row), "Gesamt");
 
             foreach($PersonList as $PersonData) {
                 $column = 0;
@@ -454,6 +454,12 @@ class Service extends AbstractService
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserFirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserLastName']);
+
+                $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Code']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['City']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['District']);
+
                 foreach($tblItemList as $tblItem){
                     if(isset($PersonData['Id'.$tblItem->getId()])){
                         $export->setValue($export->getCell($column++, $row), $PersonData['Id'.$tblItem->getId()]);
@@ -461,12 +467,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell($column++, $row), '');
                     }
                 }
-                $export->setValue($export->getCell($column++, $row), $PersonData['Summary']);
-
-                $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['Code']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['City']);
-                $export->setValue($export->getCell($column, $row), $PersonData['District']);
+                $export->setValue($export->getCell($column, $row), $PersonData['Summary']);
             }
 
             //Column width
