@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
@@ -367,6 +368,14 @@ class Frontend extends Extension implements IFrontendInterface
         $BasicRoute = '/Education/Diary/Teacher'
     ) {
         $stage = new Stage('Klassenbuch', 'pädagogisches Tagebuch');
+
+        $tblPerson = false;
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))
+        ) {
+            $tblPerson = $tblPersonAllByAccount[0];
+        }
+
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $stage->addButton(new Standard(
                 'Zurück', $BasicRoute, new ChevronLeft()
@@ -397,11 +406,16 @@ class Frontend extends Extension implements IFrontendInterface
                         )),
                         new LayoutRow(array(
                             new LayoutColumn(
-                                ApiDiary::receiverModal()
-                                . (new Primary(
-                                    new Plus() . ' Eintrag hinzufügen',
-                                    ApiDiary::getEndpoint()
-                                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenCreateDiaryModal($tblDivision->getId(), null))
+                                $tblPerson
+                                    ? ApiDiary::receiverModal()
+                                    . (new Primary(
+                                        new Plus() . ' Eintrag hinzufügen',
+                                        ApiDiary::getEndpoint()
+                                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenCreateDiaryModal($tblDivision->getId(),
+                                        null))
+                                    : new Warning('Für Ihren Account ist keine Person ausgewählt. 
+                                    Sie können keine neuen Einträge zum pädagogischen Tagebuch hinzufügen',
+                                    new Exclamation())
                             ),
                             new LayoutColumn(
                                 $receiver
@@ -486,7 +500,8 @@ class Frontend extends Extension implements IFrontendInterface
             if ($setPost) {
                 $Global = $this->getGlobal();
                 $Global->POST['Data']['Date'] = $tblDiary->getDate();
-                $Global->POST['Data']['Location'] = $tblDiary->getLocation();
+                // im Chrome automatisches autocomplete von Ländern (welche im Browser eingetragen wurden, Formulardaten)
+                $Global->POST['Data']['Place'] = $tblDiary->getLocation();
                 $Global->POST['Data']['Subject'] = $tblDiary->getSubject();
                 $Global->POST['Data']['Content'] = $tblDiary->getContent();
 
@@ -548,7 +563,7 @@ class Frontend extends Extension implements IFrontendInterface
                         (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
                     , 6),
                     new FormColumn(
-                        new TextField('Data[Location]', '', 'Ort')
+                        new TextField('Data[Place]', '', 'Ort')
                     , 6),
                 )),
                 new FormRow(array(
