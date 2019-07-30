@@ -104,6 +104,7 @@ class Billing
      * @param $CauserSalutation
      * @param $CauserFirstName
      * @param $CauserLastName
+     * @param $Birthday
      * @param $From
      * @param $To
      * @param $Date
@@ -125,6 +126,7 @@ class Billing
         $CauserSalutation,
         $CauserFirstName,
         $CauserLastName,
+        $Birthday,
         $From,
         $To,
         $Date,
@@ -144,6 +146,7 @@ class Billing
         $Text = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Text);
         $Text = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Text);
         $Text = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Text);
+        $Text = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Text);
         $Text = str_replace('[Datum]', $Date, $Text);
         $Text = str_replace('[Ort]', $Location, $Text);
         $Text = str_replace('[Trägername]', $CompanyName, $Text);
@@ -188,6 +191,15 @@ class Billing
         $CauserFirstName = $tblPersonCauser->getFirstSecondName();
         $CauserLastName = $tblPersonCauser->getLastName();
 
+        $Birthday = '...';
+        if(($tblCommon = $tblPersonCauser->getCommon())){
+            if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
+                $Birthday = $tblCommonBirthDates->getBirthday();
+            }
+        }
+
+
+
         $Subject = $this->setPlaceholders(
             $Subject,
             $ItemName,
@@ -199,6 +211,7 @@ class Billing
             $CauserSalutation,
             $CauserFirstName,
             $CauserLastName,
+            $Birthday,
             $From,
             $To,
             $Date,
@@ -219,6 +232,7 @@ class Billing
             $CauserSalutation,
             $CauserFirstName,
             $CauserLastName,
+            $Birthday,
             $From,
             $To,
             $Date,
