@@ -190,6 +190,12 @@ class Billing
         $CauserSalutation = $tblPersonCauser->getSalutation();
         $CauserFirstName = $tblPersonCauser->getFirstSecondName();
         $CauserLastName = $tblPersonCauser->getLastName();
+        $Birthday = '';
+        if(($tblCommon = $tblPersonCauser->getCommon())){
+            if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
+                $Birthday = $tblCommonBirthDates->getBirthday();
+            }
+        }
 
         // Umgang mit nicht gefüllten Werten
         $ItemName = $this->setEmptyString($ItemName);
@@ -199,13 +205,7 @@ class Billing
         $CauserSalutation = $this->setEmptyString($CauserSalutation);
         $CauserFirstName = $this->setEmptyString($CauserFirstName);
         $CauserLastName = $this->setEmptyString($CauserLastName);
-
-        $Birthday = '...';
-        if(($tblCommon = $tblPersonCauser->getCommon())){
-            if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
-                $Birthday = $tblCommonBirthDates->getBirthday();
-            }
-        }
+        $Birthday = $this->setEmptyString($Birthday);
 
 
 
