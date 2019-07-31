@@ -105,12 +105,34 @@ class DocumentWarning
         $SummaryPrice = $Data['SummaryPrice'];
 
         $ItemName = $this->tblItem->getName();
-        $DebtorSalutation = isset($Data['SalutationFamily']) ? 'Familie' : $tblPersonDebtor->getSalutation();
+        $DebtorSalutation = $tblPersonDebtor->getSalutation();
         $DebtorFirstName = $tblPersonDebtor->getFirstSecondName();
         $DebtorLastName = $tblPersonDebtor->getLastName();
         $CauserSalutation = $tblPersonCauser->getSalutation();
         $CauserFirstName = $tblPersonCauser->getFirstSecondName();
         $CauserLastName = $tblPersonCauser->getLastName();
+
+        $InvoiceNumber = $this->setEmptyString($InvoiceNumber);
+        $TargetTime = $this->setEmptyString($TargetTime);
+        $CompanyName = $this->setEmptyString($CompanyName);
+        $CompanyExtendedName = $this->setEmptyString($CompanyExtendedName);
+        $CompanyAddress = $this->setEmptyString($CompanyAddress);
+        $Subject = $this->setEmptyString($Subject);
+        $Content = $this->setEmptyString($Content);
+        $Date = $this->setEmptyString($Date);
+        $Location = $this->setEmptyString($Location);
+        $BillTime = $this->setEmptyString($BillTime);
+        $BillName = $this->setEmptyString($BillName);
+        $Count = $this->setEmptyString($Count);
+        $Price = $this->setEmptyString($Price);
+        $SummaryPrice = $this->setEmptyString($SummaryPrice);
+        $ItemName = $this->setEmptyString($ItemName);
+        $DebtorSalutation = $this->setEmptyString($DebtorSalutation);
+        $DebtorFirstName = $this->setEmptyString($DebtorFirstName);
+        $DebtorLastName = $this->setEmptyString($DebtorLastName);
+        $CauserSalutation = $this->setEmptyString($CauserSalutation);
+        $CauserFirstName = $this->setEmptyString($CauserFirstName);
+        $CauserLastName = $this->setEmptyString($CauserLastName);
 
         $Subject = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Subject);
         $Subject = str_replace('[Abrechnungszeitraum]', $BillTime, $Subject);
@@ -210,6 +232,20 @@ class DocumentWarning
                     )
                 )
             );
+    }
+
+    /**
+     * @param string $Value
+     *
+     * @return string
+     */
+    private function setEmptyString($Value = '')
+    {
+
+        if($Value === ''){
+            return '...';
+        }
+        return $Value;
     }
 
     /**
