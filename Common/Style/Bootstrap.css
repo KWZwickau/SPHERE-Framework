@@ -1348,14 +1348,14 @@ a.text-info:focus {
   color: #245269;
 }
 .text-warning {
-  color: #8a6d3b;
+  color: #ad852c;
 }
 a.text-warning:hover,
 a.text-warning:focus {
   color: #66512c;
 }
 .text-danger {
-  color: #a94442;
+  color: #f1483a;
 }
 a.text-danger:hover,
 a.text-danger:focus {
