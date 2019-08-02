@@ -671,7 +671,7 @@ class Frontend extends Extension implements IFrontendInterface
                             (new Standard('',
                                 '/Education/Graduation/Evaluation/Task/Teacher/Grades',
                                 new Equalizer(),
-                                array('Id' => $tblTask->getId()),
+                                array('Id' => $tblTask->getId(), 'IsAllYears' => $IsAllYears),
                                 'Zensurenübersicht')
                             )
                     );
@@ -3557,10 +3557,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $DivisionId
+     * @param null $IsAllYears
      *
      * @return Stage|string
      */
-    public function frontendDivisionTeacherTaskGrades($Id = null, $DivisionId = null)
+    public function frontendDivisionTeacherTaskGrades($Id = null, $DivisionId = null, $IsAllYears = null)
     {
 
         $Stage = new Stage('Notenauftrag', 'Zensurenübersicht');
@@ -3575,12 +3576,14 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if ($error) {
             return $Stage . new Danger('Notenauftrag nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Task/Teacher', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/Education/Graduation/Evaluation/Task/Teacher', Redirect::TIMEOUT_ERROR, array(
+                    'IsAllYears' => $IsAllYears
+                ));
         }
 
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Teacher',
-                new ChevronLeft()
+                new ChevronLeft(), array('IsAllYears' => $IsAllYears)
             )
         );
 
