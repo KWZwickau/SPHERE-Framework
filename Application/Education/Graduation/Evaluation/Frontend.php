@@ -759,22 +759,22 @@ class Frontend extends Extension implements IFrontendInterface
                         'Option' => ($hasEdit ? (new Standard('',
                                 '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
                                 new Edit(),
-                                array('Id' => $tblTask->getId()),
+                                array('Id' => $tblTask->getId(), 'IsAllYears' => $IsAllYears),
                                 'Bearbeiten')) : '')
                             . ($tblTask->isLocked() ? null : new Standard('',
                                 '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
-                                array('Id' => $tblTask->getId()),
+                                array('Id' => $tblTask->getId(), 'IsAllYears' => $IsAllYears),
                                 'Löschen'))
                             . (new Standard('',
                                 '/Education/Graduation/Evaluation/Task/Headmaster/Division',
                                 new Listing(),
-                                array('Id' => $tblTask->getId()),
+                                array('Id' => $tblTask->getId(), 'IsAllYears' => $IsAllYears),
                                 'Klassen zuordnen')
                             )
                             . (new Standard('',
                                 '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
                                 new Equalizer(),
-                                array('Id' => $tblTask->getId()),
+                                array('Id' => $tblTask->getId(), 'IsAllYears' => $IsAllYears),
                                 'Zensurenübersicht')
                             ),
                     );
@@ -2720,10 +2720,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $Task
+     * @param null $IsAllYears
      *
      * @return Stage|string
      */
-    public function frontendHeadmasterTaskEdit($Id = null, $Task = null)
+    public function frontendHeadmasterTaskEdit($Id = null, $Task = null, $IsAllYears = null)
     {
 
         $Stage = new Stage('Notenauftrag', 'Bearbeiten');
@@ -2742,8 +2743,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->addButton(
-            new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster',
-                new ChevronLeft())
+            new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster', new ChevronLeft(), array(
+                'IsAllYears' => $IsAllYears
+            ))
         );
 
         $Global = $this->getGlobal();
@@ -2794,10 +2796,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $Data
+     * @param null $IsAllYears
      *
      * @return Stage|string
      */
-    public function frontendHeadmasterTaskDivision($Id = null, $Data = null)
+    public function frontendHeadmasterTaskDivision($Id = null, $Data = null, $IsAllYears = null)
     {
 
         $Stage = new Stage('Notenauftrag', 'Klassen zuordnen');
@@ -2813,12 +2816,15 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if ($error) {
             return $Stage . new Danger('Notenauftrag nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR, array(
+                    'IsAllYears' => $IsAllYears
+                ));
         }
 
         $Stage->addButton(
-            new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster',
-                new ChevronLeft())
+            new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster', new ChevronLeft(), array(
+                'IsAllYears' => $IsAllYears
+            ))
         );
 
 
@@ -3004,10 +3010,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $DivisionId
+     * @param null $IsAllYears
      *
      * @return Stage|string
      */
-    public function frontendHeadmasterTaskGrades($Id = null, $DivisionId = null)
+    public function frontendHeadmasterTaskGrades($Id = null, $DivisionId = null, $IsAllYears = null)
     {
         $Stage = new Stage('Notenauftrag', 'Zensurenübersicht');
 
@@ -3021,13 +3028,15 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if ($error) {
             return $Stage . new Danger('Notenauftrag nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR, array(
+                    'IsAllYears' => $IsAllYears
+                ));
         }
 
-        $tblYear = $tblTask->getServiceTblYear();
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster',
-                new ChevronLeft(), array('YearId' => $tblYear ? $tblYear->getId(): 0))
+                new ChevronLeft(), array('IsAllYears' => $IsAllYears)
+            )
         );
 
         $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
@@ -3051,7 +3060,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Edit(),
                             array(
                                 'Id' => $Id,
-                                'DivisionId' => $tblDivision->getId()
+                                'DivisionId' => $tblDivision->getId(),
+                                'IsAllYears' => $IsAllYears
                             )
                         );
                     } else {
@@ -3061,7 +3071,8 @@ class Frontend extends Extension implements IFrontendInterface
                             null,
                             array(
                                 'Id' => $Id,
-                                'DivisionId' => $tblDivision->getId()
+                                'DivisionId' => $tblDivision->getId(),
+                                'IsAllYears' => $IsAllYears
                             )
                         );
                     }
@@ -3567,10 +3578,10 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Task/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
-        $tblYear = $tblTask->getServiceTblYear();
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Teacher',
-                new ChevronLeft(), array('YearId' => $tblYear ? $tblYear->getId(): 0))
+                new ChevronLeft()
+            )
         );
 
         $tblPerson = false;
@@ -3780,25 +3791,31 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param bool|false $Confirm
+     * @param null $IsAllYears
      *
      * @return Stage|string
      */
     public function frontendHeadmasterTaskDestroy(
         $Id = null,
-        $Confirm = false
+        $Confirm = false,
+        $IsAllYears = null
     ) {
 
         $Stage = new Stage('Notenauftrag', 'Löschen');
 
         if (!Evaluation::useService()->getTaskById($Id)) {
             return $Stage . new Danger('Notenauftrag nicht gefunden nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR, array(
+                    'IsAllYears' => $IsAllYears
+                ));
         }
 
         $tblTask = Evaluation::useService()->getTaskById($Id);
         if ($tblTask) {
             $Stage->addButton(
-                new Standard('Zur&uuml;ck', '/Education/Graduation/Evaluation/Task/Headmaster', new ChevronLeft())
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Evaluation/Task/Headmaster', new ChevronLeft(), array(
+                    'IsAllYears' => $IsAllYears
+                ))
             );
 
             if (!$Confirm) {
@@ -3815,10 +3832,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_DANGER,
                                     new Standard(
                                         'Ja', '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Ok(),
-                                        array('Id' => $Id, 'Confirm' => true)
+                                        array('Id' => $Id, 'Confirm' => true, 'IsAllYears' => $IsAllYears)
                                     )
                                     . new Standard(
-                                        'Nein', '/Education/Graduation/Evaluation/Task/Headmaster', new Disable())
+                                        'Nein', '/Education/Graduation/Evaluation/Task/Headmaster', new Disable(), array(
+                                        'IsAllYears' => $IsAllYears
+                                    ))
                                 )
                             )
                         )
@@ -3833,14 +3852,18 @@ class Frontend extends Extension implements IFrontendInterface
                                     . ' Der Notenauftrag wurde gelöscht')
                                 : new Danger(new Ban() . ' Der Notenauftrag konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS)
+                            new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS, array(
+                                'IsAllYears' => $IsAllYears
+                            ))
                         )))
                     )))
                 );
             }
         } else {
             return $Stage . new Danger('Notenauftrag nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR, array(
+                    'IsAllYears' => $IsAllYears
+                ));
         }
 
         return $Stage;
