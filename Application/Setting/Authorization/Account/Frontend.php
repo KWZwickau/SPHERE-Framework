@@ -119,6 +119,10 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         });
                         $tblAuthorizationAll = array_filter($tblAuthorizationAll);
+
+                        if ($tblAuthorizationAll) {
+                            sort($tblAuthorizationAll);
+                        }
                     }
 
                     $tblAccount = array(
