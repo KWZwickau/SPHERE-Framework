@@ -4089,22 +4089,22 @@ class Frontend extends Extension implements IFrontendInterface
                         null, array('YearId' => $tblYearItem->getId())));
                 }
             }
-
-            // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
-            // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
-            if ($HasAllYears) {
-                if ($IsAllYears) {
-                    $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
-                        $Route, new Edit(), array('IsAllYears' => true)));
-                } else {
-                    $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
-                        array('IsAllYears' => true)));
-                }
-            }
-
-            // Abstandszeile
-            $buttonList[] = new Container('&nbsp;');
         }
+
+        // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+        // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+        if ($HasAllYears) {
+            if ($IsAllYears) {
+                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                    $Route, new Edit(), array('IsAllYears' => true)));
+            } else {
+                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                    array('IsAllYears' => true)));
+            }
+        }
+
+        // Abstandszeile
+        $buttonList[] = new Container('&nbsp;');
 
         return $buttonList;
     }
