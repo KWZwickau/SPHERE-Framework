@@ -111,6 +111,12 @@ class DocumentWarning
         $CauserSalutation = $tblPersonCauser->getSalutation();
         $CauserFirstName = $tblPersonCauser->getFirstSecondName();
         $CauserLastName = $tblPersonCauser->getLastName();
+        $Birthday = '';
+        if(($tblCommon = $tblPersonCauser->getCommon())){
+            if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
+                $Birthday = $tblCommonBirthDates->getBirthday();
+            }
+        }
 
         $InvoiceNumber = $this->setEmptyString($InvoiceNumber);
         $TargetTime = $this->setEmptyString($TargetTime);
@@ -133,6 +139,7 @@ class DocumentWarning
         $CauserSalutation = $this->setEmptyString($CauserSalutation);
         $CauserFirstName = $this->setEmptyString($CauserFirstName);
         $CauserLastName = $this->setEmptyString($CauserLastName);
+        $Birthday = $this->setEmptyString($Birthday);
 
         $Subject = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Subject);
         $Subject = str_replace('[Abrechnungszeitraum]', $BillTime, $Subject);
@@ -148,6 +155,7 @@ class DocumentWarning
         $Subject = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Subject);
         $Subject = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Subject);
         $Subject = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Subject);
+        $Subject = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Subject);
         $Subject = str_replace('[Datum]', $Date, $Subject);
         $Subject = str_replace('[Ort]', $Location, $Subject);
         $Subject = str_replace('[Trägername]', $CompanyName, $Subject);
@@ -168,6 +176,7 @@ class DocumentWarning
         $Content = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Content);
         $Content = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Content);
         $Content = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Content);
+        $Content = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Content);
         $Content = str_replace('[Datum]', $Date, $Content);
         $Content = str_replace('[Ort]', $Location, $Content);
         $Content = str_replace('[Trägername]', $CompanyName, $Content);
