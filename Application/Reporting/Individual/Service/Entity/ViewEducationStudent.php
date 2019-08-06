@@ -27,6 +27,8 @@ class ViewEducationStudent extends AbstractView
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
 
+    const TBL_DIVISION_DISPLAY = 'TblDivision_Display';
+
     const TBL_TYPE_NAME = 'TblType_Name';
     const TBL_TYPE_DESCRIPTION = 'TblType_Description';
 
@@ -54,6 +56,10 @@ class ViewEducationStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivision_Display;
     /**
      * @Column(type="string")
      */
@@ -104,6 +110,7 @@ class ViewEducationStudent extends AbstractView
     {
 
         //NameDefinition
+        $this->setNameDefinition(self::TBL_DIVISION_DISPLAY, 'Bildung: Klassen');
         $this->setNameDefinition(self::TBL_LEVEL_ID, 'Bildung: Klassenstufe');
 //        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Bildung: Klassenstufe');
         $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Bildung: Stufen Beschreibung');
@@ -117,6 +124,7 @@ class ViewEducationStudent extends AbstractView
         //GroupDefinition
         $this->setGroupDefinition('Klasse', array(
             self::TBL_TYPE_NAME,
+            self::TBL_DIVISION_DISPLAY,
             self::TBL_LEVEL_ID,
             self::TBL_DIVISION_NAME,
             self::TBL_DIVISION_DESCRIPTION,
