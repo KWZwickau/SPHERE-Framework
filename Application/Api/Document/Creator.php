@@ -35,6 +35,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
+use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -339,9 +340,6 @@ class Creator extends Extension
             if ($DocumentName == 'AccidentReport') {
                 $Document = new AccidentReport($Data);
             }
-            if ($DocumentName == 'PasswordChange') {
-                $Document = new PasswordChange($Data);
-            }
 
             if ($Document) {
                 $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
@@ -474,6 +472,41 @@ class Creator extends Extension
         }
 
         return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param array  $Data
+     * @param string $paperOrientation
+     *
+     * @return Stage|string
+     */
+    public static function createChangePasswordPdf($Data, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    {
+        if (!empty($Data)
+        ) {
+
+            if(isset($Data['UserAccountId']) && ($tblUserAccount = Account::useService()->getUserAccountById($Data['UserAccountId']))){
+                if($tblUserAccount->getType() == 'CUSTODY'){
+                    $IdentifierString = 'Sorgeberechtigte';
+                } else {
+                    $IdentifierString = 'Schüler';
+                }
+            } else {
+                $IdentifierString = 'KEIN_TYP';
+            }
+
+            $Document = new PasswordChange($Data);
+
+            $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
+
+            $Time = new \DateTime();
+            $Time = $Time->format('d_m_Y-h_i_s');
+            $FileName = $Document->getName().'-'.$IdentifierString.'-'.$Time.".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
     }
 
     /**

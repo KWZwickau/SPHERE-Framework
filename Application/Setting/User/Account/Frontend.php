@@ -815,13 +815,13 @@ class Frontend extends Extension implements IFrontendInterface
                             'Id'   => $tblUserAccount->getId(),
                             'Path' => '/Setting/User/Account/Student/Show'
                         )
-                        , 'Passwort neu erzeugen')
+                        , 'Neues Passwort generieren')
                     .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
                         array(
                             'Id'   => $tblUserAccount->getId(),
                             'Path' => '/Setting/User/Account/Student/Show'
                         )
-                        , 'Passwort Zurücksetzten')
+                        , 'Passwort zurücksetzen')
                     .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
                         array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
@@ -923,13 +923,13 @@ class Frontend extends Extension implements IFrontendInterface
                             'Path' => '/Setting/User/Account/Custody/Show',
                             'IsParent' => true
                         )
-                        , 'Passwort neu erzeugen')
+                        , 'Neues Passwort generieren')
                     .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
                         array(
                             'Id'   => $tblUserAccount->getId(),
                             'Path' => '/Setting/User/Account/Custody/Show'
                         )
-                        , 'Passwort Zurücksetzten')
+                        , 'Passwort zurücksetzen')
                     .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
                         array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
@@ -1128,7 +1128,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPasswordGeneration($Id = null, $Path = '/Setting/User', $IsParent = false, $Data = null)
     {
 
-        $Stage = new Stage('Benutzer Passwort', 'neu Erzeugen');
+        $Stage = new Stage('Account Passwort', 'neu generieren');
         if ($Id) {
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {
@@ -1163,13 +1163,11 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-//                    new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
                         new Well(
                             Account::useService()->generatePdfControl(
                                 $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $tblUserAccount, $Data,
                                 '\Api\Document\Standard\MultiPassword\Create')
                         ),
-//                        Panel::PANEL_TYPE_DANGER)
                     )
                 ))))
             );
@@ -1334,15 +1332,15 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Name der Schule',array(
-                            new TextField('Data[CompanyName]', '', 'Name'),
+                            (new TextField('Data[CompanyName]', '', 'Name'))->setRequired(),
                             new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
                         ),Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
                         new Panel('Adressinformation der Schule',array(
                             new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
-                            new TextField('Data[CompanyStreet]', '', 'Straße'),
-                            new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
+                            (new TextField('Data[CompanyStreet]', '', 'Straße'))->setRequired(),
+                            (new TextField('Data[CompanyCity]', '', 'PLZ / Ort'))->setRequired(),
                         ),Panel::PANEL_TYPE_INFO)
                         , 6),
                 )),
@@ -1354,19 +1352,19 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Kontaktinformation',array(
-                            new TextField('Data[Phone]', '', 'Telefon'),
+                            (new TextField('Data[Phone]', '', 'Telefon'))->setRequired(),
                             new TextField('Data[Fax]', '', 'Fax'),
                         ),Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
                         new Panel('Internet Präsenz',array(
-                            new TextField('Data[Mail]', '', 'E-Mail'),
+                            (new TextField('Data[Mail]', '', 'E-Mail'))->setRequired(),
                             new TextField('Data[Web]', '', 'Internet')
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
                         new Panel('Ort, Datum', array(
                             new TextField('Data[Place]', '', 'Ort'),
-                            new TextField('Data[Date]', '', 'Datum')
+                                (new TextField('Data[Date]', '', 'Datum'))->setRequired()
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),
@@ -1385,7 +1383,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendResetAccount($Id = null, $Confirm = false, $Path = '/Setting/User')
     {
 
-        $Stage = new Stage('Benutzer Passwort', 'Zurücksetzen');
+        $Stage = new Stage('Account Passwort', 'zurücksetzen');
         if ($Id) {
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {

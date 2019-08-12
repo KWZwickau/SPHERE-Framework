@@ -157,7 +157,7 @@ class PasswordChange extends AbstractDocument
     public function getName()
     {
 
-        return 'PasswortÄnderungPDF';
+        return 'Passwort-Schulsoftware';
     }
 
     /**
