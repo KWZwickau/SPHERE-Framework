@@ -1451,6 +1451,12 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        // Schuljahre Anzeigen ab:
+        $startYear = '';
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView');
+        if($tblSetting){
+            $startYear = $tblSetting->getValue();
+        }
 
         $BlockedList = array();
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
@@ -1482,8 +1488,11 @@ class Frontend extends FrontendScoreRule
                             }
                         }
                         if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
-                            $tblDisplayYearList[$tblYear->getId()] = $tblYear;
-                            $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                            // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
+                            if($tblYear->getYear() >= $startYear){
+                                $tblDisplayYearList[$tblYear->getId()] = $tblYear;
+                                $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                            }
                         }
                     }
                 }

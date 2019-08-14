@@ -233,6 +233,12 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
                 'Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
         }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige der Noten in der Eltern/Schüler-Übersicht ab folgenden Schuljahr (z.B. 2019/20).
+                Wenn leer werden Noten aller Schuljahre angezeigt [Standard: ]', true);
+        }
 
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType',
             TblSetting::TYPE_STRING, '', 'Notenbücher',
