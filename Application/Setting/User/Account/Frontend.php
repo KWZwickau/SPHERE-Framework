@@ -19,6 +19,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -318,7 +319,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $Division
      *
      * @return array
-     * @throws \Exception
      */
     private function getStudentFilterResult($Person, $Year, $Division)
     {
@@ -533,11 +533,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Person
      * @param null $Year
      * @param null $Division
+     * @param null $TypeId
      *
      * @return Stage
-     * @throws \Exception
      */
-    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null)
+    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null, $TypeId = null)
     {
         $Stage = new Stage('Sorgeberechtigten-Accounts', 'Erstellen');
 
@@ -545,7 +545,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Result = $this->getStudentFilterResult($Person, $Year, $Division);
         $MaxResult = 800;
-        $TableContent = $this->getCustodyTableContent($Result, $MaxResult);
+        $TableContent = $this->getCustodyTableContent($Result, $MaxResult, $TypeId);
 
         // erlaubte Schularten:
         $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
@@ -560,6 +560,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Table = new TableData($TableContent, null, array(
             'Check'   => 'Auswahl',
             'Name'    => 'Name',
+            'Type'    => 'Beziehung-Typ',
             'Address' => 'Adresse',
             'Option'  => '',
         ),
@@ -659,6 +660,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $TypeList = $this->getRelationshipList();
 
         return new Form(
             new FormGroup(array(
@@ -674,7 +676,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Schulart',
                                 array('Name' => Type::useService()->getTypeAll()))
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+                        , 3),
                     new FormColumn(
                         new Panel('Klasse', array(
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
@@ -682,12 +684,18 @@ class Frontend extends Extension implements IFrontendInterface
                             new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
                                 'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+                        , 3),
+                    new FormColumn(
+                        new Panel('Beziehungstyp', array(
+                            new SelectBox('TypeId', 'Beziehungstyp',
+                                array('{{ Name }}' => $TypeList))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 3),
                     new FormColumn(
                         new Panel('Filter-Information', new Info('Das Filterlimit beträgt 800 Personen')
                             .new Info('Es werden nur Personen ohne Account abgebildet')
                             , Panel::PANEL_TYPE_INFO)
-                        , 4),
+                        , 3),
                 )),
                 new FormRow(
                     new FormColumn(
@@ -699,13 +707,33 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return TblType[]
+     */
+    private function getRelationshipList()
+    {
+
+        $TypeList = array();
+        $TypeNameList = array(
+            TblType::IDENTIFIER_GUARDIAN,       // Sorgeberechtigt
+            TblType::IDENTIFIER_AUTHORIZED,     // Bevollmächtigt
+            TblType::IDENTIFIER_GUARDIAN_SHIP   // Vormund
+        );
+        foreach($TypeNameList as $TypeName){
+            if(($tblType = Relationship::useService()->getTypeByName($TypeName))){
+                $TypeList[] = $tblType;
+            }
+        }
+        return $TypeList;
+    }
+
+    /**
      * @param array $Result
      * @param int   $MaxResult
+     * @param null  $TypeId
      *
      * @return array
-     * @throws \Exception
      */
-    public function getCustodyTableContent($Result, $MaxResult = 800)
+    public function getCustodyTableContent($Result, $MaxResult = 800, $TypeId = null)
     {
 
         $SearchResult = array();
@@ -719,6 +747,12 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
                     $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
                 }
+            }
+
+            if(($tblType = Relationship::useService()->getTypeById($TypeId))){
+                $tblTypeList[] = $tblType;
+            } else {
+                $tblTypeList = $this->getRelationshipList();
             }
 
             $countRow = 0;
@@ -737,49 +771,51 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblSchoolTypeList && $tblDivision) {
                     // $DataPerson['Division'] = $tblDivision->getDisplayName();
                     if(($tblLevel = $tblDivision->getTblLevel())){
-                        if(($tblType = $tblLevel->getServiceTblType()) && !in_array($tblType->getId(), $tblSchoolTypeList)){
+                        if(($tblTypeLevel = $tblLevel->getServiceTblType()) && !in_array($tblTypeLevel->getId(), $tblSchoolTypeList)){
                             // Schüler Überspringen
                             continue;
                         }
                     }
                 }
 
-                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonStudent);
-                if ($tblToPersonList) {
-                    foreach ($tblToPersonList as $tblToPerson) {
-                        $tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-                        $tblPerson = $tblToPerson->getServiceTblPersonFrom();
-                        if ($tblToPerson->getTblType() && $tblToPerson->getTblType()->getId() == $tblType->getId()) {
+                foreach($tblTypeList as $tblType) {
+                    $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonStudent, $tblType);
+                    if ($tblToPersonList){
+                        foreach ($tblToPersonList as $tblToPerson) {
+                            $tblPerson = $tblToPerson->getServiceTblPersonFrom();
+                            if ($tblToPerson->getTblType() && $tblToPerson->getTblType()->getId() == $tblType->getId()){
 
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Name'] = false;
-                            $DataPerson['Check'] = '';
+                                /** @noinspection PhpUndefinedFieldInspection */
+                                $DataPerson['Name'] = false;
+                                $DataPerson['Check'] = '';
+                                $DataPerson['Type'] = $tblType->getName();
 
-                            $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                            $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
+                                $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
+                                $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
-                            if ($tblPerson) {
-                                $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                                    $tblPerson->getId()
-                                    , array($tblPerson->getId())))->setChecked();
-                                $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            }
+                                if ($tblPerson){
+                                    $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
+                                        $tblPerson->getId()
+                                        , array($tblPerson->getId())))->setChecked();
+                                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                                }
 
-                            // ignor Person with existing Accounts (By Person)
-                            if (!AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
-                                // ignore duplicated Person
-                                if (!array_key_exists($tblPerson->getId(), $SearchResult)) {
-                                    if ($countRow >= $MaxResult) {
-                                        break;
+                                // ignor Person with existing Accounts (By Person)
+                                if (!AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)){
+                                    // ignore duplicated Person
+                                    if (!array_key_exists($tblPerson->getId(), $SearchResult)){
+                                        if ($countRow >= $MaxResult){
+                                            break;
+                                        }
+                                        $countRow++;
+                                        $SearchResult[$tblPerson->getId()] = $DataPerson;
                                     }
-                                    $countRow++;
-                                    $SearchResult[$tblPerson->getId()] = $DataPerson;
                                 }
                             }
                         }
-                    }
-                    if ($countRow >= $MaxResult) {
-                        break;
+                        if ($countRow >= $MaxResult){
+                            break;
+                        }
                     }
                 }
             }
