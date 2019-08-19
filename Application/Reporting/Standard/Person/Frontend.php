@@ -1525,6 +1525,7 @@ class Frontend extends Extension implements IFrontendInterface
         $datePicker = new DatePicker('Data[Date]', '', 'Datum', new Calendar());
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
+        $groupTextField = new TextField('Data[GroupName]', '', 'oder Gruppe');
         $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
 
         $stage->setContent(
@@ -1535,18 +1536,21 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout (new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    $datePicker, 4
+                                    $datePicker, 3
                                 ),
                                 new LayoutColumn(
-                                    $typeSelectBox, 4
+                                    $typeSelectBox, 3
                                 ),
                                 new LayoutColumn(
-                                    $divisionTextField, 4
+                                    $divisionTextField, 3
+                                ),
+                                new LayoutColumn(
+                                    $groupTextField, 3
                                 ),
                             )),
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    $button, 4
+                                    $button
                                 ),
                             ))
                         ))),

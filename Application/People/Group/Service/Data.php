@@ -553,4 +553,28 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param string $Name
+     *
+     * @return false|TblGroup[]
+     */
+    public function getGroupListLike($Name)
+    {
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $and = $queryBuilder->expr()->andX();
+        $and->add($queryBuilder->expr()->like('t.Name', '?1'));
+        $and->add($queryBuilder->expr()->isNull('t.EntityRemove'));
+        $queryBuilder->setParameter(1, '%' . $Name . '%');
+
+        $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblGroup', 't')
+            ->where($and);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+
+        return $result;
+    }
 }
