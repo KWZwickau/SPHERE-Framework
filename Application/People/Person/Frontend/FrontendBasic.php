@@ -379,16 +379,18 @@ class FrontendBasic extends FrontendReadOnly
             ->setTabIndex(2);
         $lastNameInput = (new TextField('Person[LastName]', 'Nachname', 'Nachname'))->setRequired()
             ->setTabIndex(3);
+        $salutationSelectBox = (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
+            new Conversation()))->setTabIndex(1);
         if ($isCreate) {
             $firstNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
             $lastNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
+            $salutationSelectBox->ajaxPipelineOnChange(ApiPersonEdit::pipelineChangeSelectedGender());
         }
 
         return new FormRow(array(
             new FormColumn(
                 new Panel('Anrede', array(
-                    (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-                        new Conversation()))->setTabIndex(1)->ajaxPipelineOnChange(ApiPersonEdit::pipelineChangeSelectedGender()),
+                    $salutationSelectBox,
                     (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
                         new Conversation()))->setTabIndex(4),
                 ), Panel::PANEL_TYPE_INFO), 2),
