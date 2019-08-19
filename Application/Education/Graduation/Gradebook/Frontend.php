@@ -1455,7 +1455,9 @@ class Frontend extends FrontendScoreRule
         $startYear = '';
         $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView');
         if($tblSetting){
-            $startYear = $tblSetting->getValue();
+            $YearTempId = $tblSetting->getValue();
+            $tblYearTemp = Term::useService()->getYearById($YearTempId);
+            $startYear = ($tblYearTemp->getYear() ? $tblYearTemp->getYear() : $tblYearTemp->getName());
         }
 
         $BlockedList = array();
