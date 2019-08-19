@@ -118,20 +118,21 @@ class Lectureship extends Import implements IFrontendInterface
             $tblYearAll = array();
         }
 
-        // try to POST tblYear if YearByNow exist
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $tblYear = false;
-            // last Entity should be the first created year
-            foreach ($tblYearList as $tblYearEntity) {
-                $tblYear = $tblYearEntity;
-            }
-            if ($tblYear) {
-                $Global = $this->getGlobal();
-                $Global->POST['tblYear'] = $tblYear->getId();
-                $Global->savePost();
-            }
-        }
+        // pre fill deactivated #696
+//        // try to POST tblYear if YearByNow exist
+//        $tblYearList = Term::useService()->getYearByNow();
+//        if ($tblYearList) {
+//            $tblYear = false;
+//            // last Entity should be the first created year
+//            foreach ($tblYearList as $tblYearEntity) {
+//                $tblYear = $tblYearEntity;
+//            }
+//            if ($tblYear) {
+//                $Global = $this->getGlobal();
+//                $Global->POST['tblYear'] = $tblYear->getId();
+//                $Global->savePost();
+//            }
+//        }
 
         $tblUntisImportLectureshipList = Import::useService()->getUntisImportLectureshipAll(true);
 
