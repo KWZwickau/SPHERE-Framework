@@ -8,6 +8,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -15,6 +16,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -116,20 +118,21 @@ class Lectureship extends Import implements IFrontendInterface
             $tblYearAll = array();
         }
 
-        // try to POST tblYear if YearByNow exist
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $tblYear = false;
-            // last Entity should be the first created year
-            foreach ($tblYearList as $tblYearEntity) {
-                $tblYear = $tblYearEntity;
-            }
-            if ($tblYear) {
-                $Global = $this->getGlobal();
-                $Global->POST['tblYear'] = $tblYear->getId();
-                $Global->savePost();
-            }
-        }
+        // pre fill deactivated #696
+//        // try to POST tblYear if YearByNow exist
+//        $tblYearList = Term::useService()->getYearByNow();
+//        if ($tblYearList) {
+//            $tblYear = false;
+//            // last Entity should be the first created year
+//            foreach ($tblYearList as $tblYearEntity) {
+//                $tblYear = $tblYearEntity;
+//            }
+//            if ($tblYear) {
+//                $Global = $this->getGlobal();
+//                $Global->POST['tblYear'] = $tblYear->getId();
+//                $Global->savePost();
+//            }
+//        }
 
         $tblUntisImportLectureshipList = Import::useService()->getUntisImportLectureshipAll(true);
 
@@ -142,7 +145,7 @@ class Lectureship extends Import implements IFrontendInterface
                             , 6, array(LayoutColumn::GRID_OPTION_HIDDEN_SM)
                         )),
                     new LayoutRow(
-                        new LayoutColumn(new Well(array(
+                        new LayoutColumn(new Well(
                             new Form(
                                 new FormGroup(array(
                                     new FormRow(
@@ -152,7 +155,7 @@ class Lectureship extends Import implements IFrontendInterface
                                                     ( new SelectBox('tblYear', 'Schuljahr auswählen', array(
                                                         '{{ Year }} {{ Description }}' => $tblYearAll
                                                     )) )->setRequired(),
-                                                    ( new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null, array('showPreview' => false)) )->setRequired()
+                                                    ( new FileUpload('File', 'Datei auswählen', 'Datei auswählen '.new ToolTip(new InfoIcon(), 'GPU002.txt'), null, array('showPreview' => false)) )->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
                                     ),
@@ -160,7 +163,7 @@ class Lectureship extends Import implements IFrontendInterface
                                 new Primary('Hochladen und Voransicht', new Upload()),
                                 new Link\Route(__NAMESPACE__.'/Lectureship')
                             )
-                        )), 6)
+                        ), 6)
                     )
                 ), new TitleLayout('Lehraufträge', 'importieren'))
             )
