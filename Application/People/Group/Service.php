@@ -778,4 +778,14 @@ class Service extends AbstractService
 
         return $list;
     }
+
+    /**
+     * @param string $Name
+     *
+     * @return false|TblGroup[]
+     */
+    public function getGroupListLike($Name)
+    {
+        return (new Data($this->getBinding()))->getGroupListLike($Name);
+    }
 }

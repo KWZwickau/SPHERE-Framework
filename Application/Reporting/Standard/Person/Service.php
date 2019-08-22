@@ -3267,10 +3267,11 @@ class Service extends Extension
      * @param \DateTime $dateTime
      * @param null $Type
      * @param string $DivisionName
+     * @param string $GroupName
      *
      * @return bool|FilePointer
      */
-    public function createAbsenceListExcel(\DateTime $dateTime, $Type = null, $DivisionName = '')
+    public function createAbsenceListExcel(\DateTime $dateTime, $Type = null, $DivisionName = '', $GroupName = '')
     {
 
         if ($Type != null) {
@@ -3279,10 +3280,19 @@ class Service extends Extension
             $tblType = false;
         }
 
+        $isGroup = false;
         if ($DivisionName != '') {
             $divisionList = Division::useService()->getDivisionAllByName($DivisionName);
             if (!empty($divisionList)) {
                 $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
+            } else {
+                $absenceList = array();
+            }
+        } elseif ($GroupName != '') {
+            $isGroup = true;
+            $groupList = Group::useService()->getGroupListLike($GroupName);
+            if (!empty($groupList)) {
+                $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, array(), $groupList);
             } else {
                 $absenceList = array();
             }
@@ -3301,7 +3311,7 @@ class Service extends Extension
             $column = 0;
             $row = 1;
             $export->setValue($export->getCell($column++, $row), "Schulart");
-            $export->setValue($export->getCell($column++, $row), "Klasse");
+            $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
             $export->setValue($export->getCell($column++, $row), "Schüler");
             $export->setValue($export->getCell($column++, $row), "Zeitraum");
             $export->setValue($export->getCell($column++, $row), "Status");
@@ -3316,7 +3326,7 @@ class Service extends Extension
                 $column = 0;
 
                 $export->setValue($export->getCell($column++, $row), $absence['Type']);
-                $export->setValue($export->getCell($column++, $row), $absence['Division']);
+                $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
                 $export->setValue($export->getCell($column++, $row), $absence['Person']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
                 $export->setValue($export->getCell($column++, $row), $absence['Status']);
