@@ -64,7 +64,7 @@ class Data extends AbstractData
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
                 'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo) hinterlegt werden.
-                Höhe des Bildes (Maximal 140px): [Standard: 120px]');
+                Höhe des Bildes (Maximal 120px): [Standard: 120px]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
             TblSetting::TYPE_STRING, ''))) {

@@ -205,10 +205,7 @@ class PasswordChange extends AbstractDocument
 //            ->styleTextSize('8pt')
 //        );
         $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['PersonSalutation'])
-        );
-        $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['PersonFirstLastName'])
+            ->setContent($this->FieldValue['PersonSalutation'].' '.$this->FieldValue['PersonFirstLastName'])
         );
         if($this->FieldValue['District']){
             $Slice->addElement((new Element())
@@ -778,10 +775,9 @@ class PasswordChange extends AbstractDocument
                     ->addElementColumn(
                         $this->getPicturePasswordChange()
                             ->styleAlignCenter()
-                            ->stylePaddingTop('15px')
                         , '50%')
                 )
-                ->styleHeight('150px')
+                ->styleHeight('120px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
