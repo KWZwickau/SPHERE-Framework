@@ -1837,7 +1837,7 @@ class Data extends AbstractData
     ) {
 
         $resultList = array();
-        $tempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        $tempList = $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblDivisionSubject',
             array(
                 TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),

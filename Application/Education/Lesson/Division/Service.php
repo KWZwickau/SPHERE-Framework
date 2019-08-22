@@ -1350,7 +1350,7 @@ class Service extends AbstractService
         if ($tblDivisionSubjectList) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                 $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
-                if ($tblSubjectGroup && $tblSubjectGroup->getName() === $Name) {
+                if ($tblSubjectGroup && $tblSubjectGroup->getName() == $Name) {
                     return $tblSubjectGroup;
                 }
             }
