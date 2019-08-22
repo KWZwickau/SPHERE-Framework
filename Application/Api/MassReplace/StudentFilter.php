@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -181,8 +182,7 @@ class StudentFilter extends Extension
                                 )),
                                 new FormRow(
                                     new FormColumn(
-                                        (new Primary('Ändern', ApiMassReplace::getEndpoint(),
-                                            null,
+                                        (new Primary('Speichern', ApiMassReplace::getEndpoint(), new Save(),
                                             $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineSave($Field))
                                     )
                                 )
