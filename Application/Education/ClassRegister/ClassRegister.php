@@ -496,6 +496,7 @@ class ClassRegister implements IApplicationInterface
                                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                                 array('width' => '1%', 'targets' => 2),
                                             ),
+                                            'responsive' => false
                                         )
                                         : array(
                                         'ExtensionRowReorder' => array(
@@ -510,6 +511,7 @@ class ClassRegister implements IApplicationInterface
                                             array('width' => '1%', 'targets' => 2),
                                             array('width' => '60px', 'targets' => -1),
                                         ),
+                                        'responsive' => false
                                     )
                                 )
                             ))
