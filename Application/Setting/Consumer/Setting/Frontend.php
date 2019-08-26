@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\Consumer\Setting;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -108,6 +109,10 @@ class Frontend extends Extension implements IFrontendInterface
                 } elseif ($tblSetting->getIdentifier() == 'GenderOfS1') {
                     $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' =>
                         Common::useService()->getCommonGenderAll()
+                    ));
+                } elseif ($tblSetting->getIdentifier() == 'YearOfUserView') {
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Year }}' =>
+                        Term::useService()->getYearAll()
                     ));
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $field = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);

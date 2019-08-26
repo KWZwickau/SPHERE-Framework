@@ -64,7 +64,7 @@ class Data extends AbstractData
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
                 'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo) hinterlegt werden.
-                Höhe des Bildes (Maximal 140px): [Standard: 120px]');
+                Höhe des Bildes (Maximal 120px): [Standard: 120px]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
             TblSetting::TYPE_STRING, ''))) {
@@ -233,6 +233,18 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
                 'Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
         }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige der Noten in der Eltern/Schüler-Übersicht ab folgenden Schuljahr (z.B. 2019/20).
+                Wenn leer werden Noten aller Schuljahre angezeigt [Standard: ]', true);
+        }
+
+        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType',
+            TblSetting::TYPE_STRING, '', 'Notenbücher',
+            'Eingrenzung der Schüler- und Elternzugänge nach Schulart(en). Festlegung der Zugänge mittels Zahleneingabe.
+             Mehrere Schularten sind mit Komma zu trennen. 1=GS, 2=OS, 3=GYM [Standard: ]'
+            , true);
 
         if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel',
             TblSetting::TYPE_INTEGER, 1))) {

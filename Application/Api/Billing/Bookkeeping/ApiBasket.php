@@ -14,6 +14,7 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
@@ -423,6 +424,9 @@ class ApiBasket extends Extension implements IApiInterface
                 if(!($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
                     $tblDivisionList = array();
                 }
+            }
+            if(empty($tblDivisionList)){
+                $tblDivisionList[] = new TblDivision();
             }
             $tblTypeList = array();
             if(($tblSchoolList = School::useService()->getSchoolAll())){

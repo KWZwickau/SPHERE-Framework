@@ -164,18 +164,7 @@ class Standard extends Extension implements IModuleInterface
                 $Post
             );
         }
-        return Creator::createDataPdf($Data, 'PasswordChange', Creator::PAPERORIENTATION_PORTRAIT);
-    }
-
-    /**
-     * @param array $Data
-     *
-     * @return \SPHERE\Common\Window\Stage|string
-     */
-    public static function createPasswordCreatePdf($Data = array())
-    {
-
-        return Creator::createDataPdf($Data, 'PasswordCreate', Creator::PAPERORIENTATION_PORTRAIT);
+        return Creator::createChangePasswordPdf($Data, Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**

@@ -316,6 +316,44 @@ class Service extends AbstractService
      */
     public function updatePersonService(TblPerson $tblPerson, $Person)
     {
+        // SSw-699 Bearbeitung Stammdaten (Anrede -> automatisches Geschlecht)
+        $updateGender = false;
+        $salutationId = ($tblSalutationOld = $tblPerson->getTblSalutation()) ? $tblSalutationOld->getId() : 0;
+        if ($Person['Salutation']
+            && $salutationId != $Person['Salutation']
+        ) {
+            if (($tblSalutationNew = $this->getSalutationById($Person['Salutation']))
+                && ($tblCommon = $tblPerson->getCommon())
+                && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+            ) {
+                if ($tblSalutationNew->getSalutation() == 'Herr') {
+                    if (!($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                        || ($tblCommonGender
+                            && $tblCommonGender->getName() != 'Männlich')
+                    ) {
+                        $updateGender = Common::useService()->getCommonGenderByName('Männlich');
+                    }
+                } elseif ($tblSalutationNew->getSalutation() == 'Frau') {
+                    if (!($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                        || ($tblCommonGender
+                            && $tblCommonGender->getName() != 'Weiblich')
+                    ) {
+                        $updateGender = Common::useService()->getCommonGenderByName('Weiblich');
+                    }
+                }
+
+                // ChangeGender
+                if ($updateGender) {
+                    Common::useService()->updateCommonBirthDates(
+                        $tblCommonBirthDates,
+                        $tblCommonBirthDates->getBirthday(),
+                        $tblCommonBirthDates->getBirthplace(),
+                        $updateGender->getId()
+                    );
+                }
+            }
+        }
+
         if ((new Data($this->getBinding()))->updatePerson($tblPerson, $Person['Salutation'], $Person['Title'],
             $Person['FirstName'], $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName'])
         ) {

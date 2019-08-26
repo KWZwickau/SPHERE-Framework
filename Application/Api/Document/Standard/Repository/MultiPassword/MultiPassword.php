@@ -147,11 +147,17 @@ class MultiPassword extends AbstractDocument
 
         $UserAccountList = Account::useService()->getUserAccountByTime(new \DateTime($this->FieldValue['GroupByTime']));
         if($UserAccountList){
-            $ListIdentifierString = $UserAccountList[0]->getId();
+            if($UserAccountList[0]->getType() == 'CUSTODY'){
+                $ListIdentifierString = 'Sorgeberechtigte';
+            } else {
+                $ListIdentifierString = 'Schüler';
+            }
         } else {
             $ListIdentifierString = $this->FieldValue['tblAccountList'][0];
         }
-        return 'PasswortPDF-'.$ListIdentifierString.'-Liste_'.$this->FieldValue['GroupByCount'];
+        $Time = new \DateTime();
+        $Time = $Time->format('d_m_Y-h_i_s');
+        return 'Zugang-Schulsoftware-'.$ListIdentifierString.'-Liste_'.$this->FieldValue['GroupByCount'].'_'.$Time;
     }
 
     /**

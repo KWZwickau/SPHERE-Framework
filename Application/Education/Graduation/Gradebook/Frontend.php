@@ -145,7 +145,8 @@ class Frontend extends FrontendScoreRule
                 $Item['Status'] = $tblGradeType->isActive()
                     ? new SuccessText(new PlusSign().' aktiv')
                     : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv');
-                $Item['Description'] = $tblGradeType->getDescription();
+                $Item['Description'] = trim($tblGradeType->getDescription()
+                    . ($tblGradeType->isPartGrade() ? new Italic(' (Teilnote)') : ''));
                 $Item['Option'] =
                     (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
                         'Id' => $tblGradeType->getId()
@@ -235,8 +236,13 @@ class Frontend extends FrontendScoreRule
                 new FormColumn(
                     new TextField('GradeType[Description]', '', 'Beschreibung'), 12
                 ),
+            )),
+            new FormRow(array(
                 new FormColumn(
-                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
+                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 3
+                ),
+                new FormColumn(
+                    new CheckBox('GradeType[IsPartGrade]', 'Teilnote (wird zu einer Note zusammengefasst)', 1), 3
                 )
             )),
         )));
@@ -279,6 +285,7 @@ class Frontend extends FrontendScoreRule
             $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
             $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->isHighlighted();
             $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
+            $Global->POST['GradeType']['IsPartGrade'] = $tblGradeType->isPartGrade();
 
             $Global->savePost();
         }
@@ -1434,6 +1441,26 @@ class Frontend extends FrontendScoreRule
 
         $tblPersonList = $this->getPersonListForStudent();
 
+        // erlaubte Schularten:
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+        if($tblSchoolTypeList){
+            // erzeuge eine Id Liste, wenn Schularten blokiert werden.
+            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+                $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
+            }
+        }
+
+        // Schuljahre Anzeigen ab:
+        $startYear = '';
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView');
+        if($tblSetting){
+            $YearTempId = $tblSetting->getValue();
+            if ($YearTempId && ($tblYearTemp = Term::useService()->getYearById($YearTempId))){
+                $startYear = ($tblYearTemp->getYear() ? $tblYearTemp->getYear() : $tblYearTemp->getName());
+            }
+        }
+
         $BlockedList = array();
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
         if ($tblPersonList) {
@@ -1454,9 +1481,21 @@ class Frontend extends FrontendScoreRule
                     /** @var TblDivisionStudent $tblDivisionStudent */
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                         $tblDivision = $tblDivisionStudent->getTblDivision();
+                        // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen erlaubt werden.
+                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
+                            if(($tblSchoolType = $tblLevel->getServiceTblType())){
+                                if(!in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
+                                    // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
+                                    continue;
+                                }
+                            }
+                        }
                         if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
-                            $tblDisplayYearList[$tblYear->getId()] = $tblYear;
-                            $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                            // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
+                            if($tblYear->getYear() >= $startYear){
+                                $tblDisplayYearList[$tblYear->getId()] = $tblYear;
+                                $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                            }
                         }
                     }
                 }

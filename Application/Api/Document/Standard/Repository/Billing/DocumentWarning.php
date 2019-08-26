@@ -105,12 +105,41 @@ class DocumentWarning
         $SummaryPrice = $Data['SummaryPrice'];
 
         $ItemName = $this->tblItem->getName();
-        $DebtorSalutation = isset($Data['SalutationFamily']) ? 'Familie' : $tblPersonDebtor->getSalutation();
+        $DebtorSalutation = $tblPersonDebtor->getSalutation();
         $DebtorFirstName = $tblPersonDebtor->getFirstSecondName();
         $DebtorLastName = $tblPersonDebtor->getLastName();
         $CauserSalutation = $tblPersonCauser->getSalutation();
         $CauserFirstName = $tblPersonCauser->getFirstSecondName();
         $CauserLastName = $tblPersonCauser->getLastName();
+        $Birthday = '';
+        if(($tblCommon = $tblPersonCauser->getCommon())){
+            if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
+                $Birthday = $tblCommonBirthDates->getBirthday();
+            }
+        }
+
+        $InvoiceNumber = $this->setEmptyString($InvoiceNumber);
+        $TargetTime = $this->setEmptyString($TargetTime);
+        $CompanyName = $this->setEmptyString($CompanyName);
+        $CompanyExtendedName = $this->setEmptyString($CompanyExtendedName);
+        $CompanyAddress = $this->setEmptyString($CompanyAddress);
+        $Subject = $this->setEmptyString($Subject);
+        $Content = $this->setEmptyString($Content);
+        $Date = $this->setEmptyString($Date);
+        $Location = $this->setEmptyString($Location);
+        $BillTime = $this->setEmptyString($BillTime);
+        $BillName = $this->setEmptyString($BillName);
+        $Count = $this->setEmptyString($Count);
+        $Price = $this->setEmptyString($Price);
+        $SummaryPrice = $this->setEmptyString($SummaryPrice);
+        $ItemName = $this->setEmptyString($ItemName);
+        $DebtorSalutation = $this->setEmptyString($DebtorSalutation);
+        $DebtorFirstName = $this->setEmptyString($DebtorFirstName);
+        $DebtorLastName = $this->setEmptyString($DebtorLastName);
+        $CauserSalutation = $this->setEmptyString($CauserSalutation);
+        $CauserFirstName = $this->setEmptyString($CauserFirstName);
+        $CauserLastName = $this->setEmptyString($CauserLastName);
+        $Birthday = $this->setEmptyString($Birthday);
 
         $Subject = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Subject);
         $Subject = str_replace('[Abrechnungszeitraum]', $BillTime, $Subject);
@@ -126,6 +155,7 @@ class DocumentWarning
         $Subject = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Subject);
         $Subject = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Subject);
         $Subject = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Subject);
+        $Subject = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Subject);
         $Subject = str_replace('[Datum]', $Date, $Subject);
         $Subject = str_replace('[Ort]', $Location, $Subject);
         $Subject = str_replace('[Trägername]', $CompanyName, $Subject);
@@ -146,6 +176,7 @@ class DocumentWarning
         $Content = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Content);
         $Content = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Content);
         $Content = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Content);
+        $Content = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Content);
         $Content = str_replace('[Datum]', $Date, $Content);
         $Content = str_replace('[Ort]', $Location, $Content);
         $Content = str_replace('[Trägername]', $CompanyName, $Content);
@@ -157,11 +188,34 @@ class DocumentWarning
             ->addSlice($this->getAddressSlice($CompanyName, $CompanyExtendedName, $CompanyAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-//                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
-                    ->setContent($Location . ', den ' . $Date)
+                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
                     ->styleTextSize(self::TEXT_SIZE)
                     ->styleAlignRight()
                     ->styleMarginTop('50px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent($Subject)
+                    ->styleTextSize('18px')
+                    ->styleTextBold()
+                    ->styleMarginTop('20px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent(nl2br($Content))
+                    ->styleTextSize(self::TEXT_SIZE)
+                    ->styleAlignJustify()
+                    ->styleMarginTop('25px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
+                    ->setContent($Location . ', den ' . $Date)
+                    ->styleTextSize(self::TEXT_SIZE)
+                    ->styleAlignRight()
                 )
             )
             ->addSlice((new Slice())
@@ -186,23 +240,21 @@ class DocumentWarning
                         , '21%'
                     )
                 )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent($Subject)
-                    ->styleTextSize('18px')
-                    ->styleTextBold()
-                    ->styleMarginTop('20px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent(nl2br($Content))
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignJustify()
-                    ->styleMarginTop('25px')
-                )
             );
+    }
+
+    /**
+     * @param string $Value
+     *
+     * @return string
+     */
+    private function setEmptyString($Value = '')
+    {
+
+        if($Value === ''){
+            return '...';
+        }
+        return $Value;
     }
 
     /**

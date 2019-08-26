@@ -310,20 +310,19 @@ class LectureshipGateway extends AbstractConverter
      */
     protected function MatchDivision($Value, &$LevelName, &$DivisionName)
     {
-        if (preg_match('!^(.*?)\s([a-zA-Z]*?)$!is', $Value, $Match)) {
+        // EVAMTL (5 OS)
+        if (preg_match('!^([0-9]*?) ([a-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^([a-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
-            $DivisionName = $Match[1];
-            $LevelName = $Match[2];
-        } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
-            $DivisionName = null;
-            $LevelName = $Match[1];
-        } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
-            $DivisionName = $Match[1];
-            $LevelName = null;
         }
-
+        // ESBD (5-1) -> bei uns 51
+          elseif (preg_match('!^([0-9]*?)(-[0-9]*?)$!is', $Value, $Match)) {
+            $LevelName = $Match[1] ;
+            $DivisionName = substr($Match[2], 1); // Minus entfernen
+        } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
+            $LevelName = $Match[1];
+            $DivisionName = null;
+        }
     }
 
     /**

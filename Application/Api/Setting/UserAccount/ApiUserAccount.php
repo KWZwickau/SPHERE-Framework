@@ -436,7 +436,7 @@ class ApiUserAccount extends Extension implements IApiInterface
                         new Panel('Adresse der Schule',array(
                             new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
                             (new TextField('Data[CompanyStreet]', '', 'Straße'))->setRequired(),
-                            (new TextField('Data[CompanyCity]', '', 'PLZ/Ort'))->setRequired(),
+                            (new TextField('Data[CompanyCity]', '', 'PLZ / Ort'))->setRequired(),
                         ),Panel::PANEL_TYPE_INFO)
                         , 6),
                 )),
