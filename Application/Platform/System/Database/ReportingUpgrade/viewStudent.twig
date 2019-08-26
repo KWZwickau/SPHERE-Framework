@@ -28,7 +28,6 @@ SELECT DISTINCT
     vGS.TblStudentLiberationSportType_Name
 
     from SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudent vGS
-        JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudentTransfer vGST ON vGST.TblStudent_Id = vGS.TblStudent_Id
         JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
 
     where vG.TblGroup_MetaTable = 'STUDENT'
