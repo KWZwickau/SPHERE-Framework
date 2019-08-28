@@ -130,17 +130,22 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $table = new TableData($divisionTable, null, array(
-                    'Group' => 'Gruppe',
-                    'Option' => ''
-                ), array(
-                    'order' => array(
-                        array('0', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 0)
-                    ),
-                ));
+                if (empty($divisionTable)) {
+                    $table = new Warning('Das pädagogisches Tagebuch steht 
+                        nur Klassenlehrern und Tudoren zur Verfügung.', new Exclamation());
+                } else {
+                    $table = new TableData($divisionTable, null, array(
+                        'Group' => 'Gruppe',
+                        'Option' => ''
+                    ), array(
+                        'order' => array(
+                            array('0', 'asc'),
+                        ),
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0)
+                        ),
+                    ));
+                }
             } else {
                 if (($tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
                     foreach ($tblDivisionList as $tblDivisionTeacher) {
@@ -170,21 +175,26 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $table = new TableData($divisionTable, null, array(
-                    'Year' => 'Schuljahr',
-                    'Type' => 'Schulart',
-                    'Division' => 'Klasse',
-                    'Option' => ''
-                ), array(
-                    'order' => array(
-                        array('0', 'desc'),
-                        array('1', 'asc'),
-                        array('2', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 2)
-                    ),
-                ));
+                if (empty($divisionTable)) {
+                    $table = new Warning('Das pädagogisches Tagebuch steht 
+                        nur Klassenlehrern und Tudoren zur Verfügung.', new Exclamation());
+                } else {
+                    $table = new TableData($divisionTable, null, array(
+                        'Year' => 'Schuljahr',
+                        'Type' => 'Schulart',
+                        'Division' => 'Klasse',
+                        'Option' => ''
+                    ), array(
+                        'order' => array(
+                            array('0', 'desc'),
+                            array('1', 'asc'),
+                            array('2', 'asc'),
+                        ),
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 2)
+                        ),
+                    ));
+                }
             }
         }
 
@@ -417,6 +427,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     Sie können keine neuen Einträge zum pädagogischen Tagebuch hinzufügen',
                                     new Exclamation())
                             ),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                '&nbsp;'
+                            )
+                        )),
+                        new LayoutRow(array(
                             new LayoutColumn(
                                 $receiver
                             )
@@ -464,6 +481,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     ApiDiary::getEndpoint()
                                 ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenCreateDiaryModal(null, $tblGroup->getId()))
                             ),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                '&nbsp;'
+                            )
+                        )),
+                        new LayoutRow(array(
                             new LayoutColumn(
                                 $receiver
                             )
@@ -697,8 +721,7 @@ class Frontend extends Extension implements IFrontendInterface
                 . (($location = $tblDiary->getLocation()) ? '<br>' . $location : '')
                 . '<br>' . $displayPerson,
             'PersonList' => empty($personList) ? '' : implode('<br>', $personList),
-            'Content' => new Bold($tblDiary->getSubject())
-                . '<br><br>'
+            'Content' => (($subject = $tblDiary->getSubject()) ? new Bold($tblDiary->getSubject()) . '<br><br>' : '')
                 // Zeilenumbrüche berücksichtigen
                 . str_replace("\n", '<br>', $tblDiary->getContent()),
             'Options' =>
