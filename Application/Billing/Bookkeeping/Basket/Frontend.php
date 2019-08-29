@@ -94,14 +94,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Zeigt alle aktiven Abrechnungen an');
 
         $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus()))
-            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket')));
+            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_ABRECHNUNG)));
+        $Stage->addButton((new Primary('Auszahlung hinzufügen', '#', new Plus()))
+            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_AUSZAHLUNG)));
+        $Stage->addButton((new Primary('Gutschrift hinzufügen', '#', new Plus()))
+            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_GUTSCHRIFT)));
         $Stage->addButton(new Standard('Archiv', '/Billing/Bookkeeping/Basket', new FolderClosed(), array('IsArchive' => true)));
 
         $Stage->setContent(
             ApiBasket::receiverService('')
-            .ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
-            .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
-            .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
+            .ApiBasket::receiverModal('Erstellung', 'addBasket')
+            .ApiBasket::receiverModal('Bearbeitung', 'editBasket')
+            .ApiBasket::receiverModal('Entfernen', 'deleteBasket')
             .ApiSepa::receiverModal()
             .new Layout(
                 new LayoutGroup(
@@ -196,9 +200,13 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $Item['Option'] = $Buttons;
                 } else {
+                    $BasketTypeName = TblBasketType::IDENT_AUSZAHLUNG;
+                    if(($tblBasketType = $tblBasket->getTblBasketType())){
+                        $BasketTypeName = $tblBasketType->getName();
+                    }
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
                             'Abrechnung bearbeiten'))
-                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket',
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket', $BasketTypeName,
                                 $tblBasket->getId()))
                         .new Primary('', __NAMESPACE__.'/View', new CogWheels(),
                             array('BasketId' => $tblBasket->getId()),

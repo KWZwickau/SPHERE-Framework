@@ -259,13 +259,15 @@ class Service extends AbstractService
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
      * @param TblDebtorPeriodType $tblDebtorPeriodType
+     * @param string              $FibuAccount
+     * @param string              $FibuToAccount
      *
      * @return TblBasket
      * @throws \Exception
      */
     public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $BillTime = '',
         TblBasketType $tblBasketType = null, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
-        TblDebtorPeriodType $tblDebtorPeriodType = null)
+        TblDebtorPeriodType $tblDebtorPeriodType = null, $FibuAccount = '', $FibuToAccount = '')
     {
 
         if($TargetTime){
@@ -289,7 +291,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
         return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $BillTime,
-            $tblBasketType, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType);
+            $tblBasketType, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType, $FibuAccount, $FibuToAccount);
     }
 
     /**
@@ -576,10 +578,13 @@ class Service extends AbstractService
      * @param string    $TargetTime
      * @param string    $BillTime
      * @param string    $CreditorId
+     * @param string    $FibuAccount
+     * @param string    $FibuToAccount
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $BillTime, $CreditorId = '')
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $TargetTime, $BillTime, $CreditorId = '',
+        $FibuAccount = '', $FibuToAccount = '')
     {
 
         // String to DateTime object
@@ -599,7 +604,8 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $BillTime, $tblCreditor);
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $TargetTime, $BillTime,
+            $tblCreditor, $FibuAccount, $FibuToAccount);
     }
 
     /**

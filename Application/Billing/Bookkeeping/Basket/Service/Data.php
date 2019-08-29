@@ -403,6 +403,8 @@ class Data extends AbstractData
      * @param TblDivision|null    $tblDivision
      * @param TblType|null        $tblType
      * @param TblDebtorPeriodType $tblDebtorPeriodType
+     * @param string              $FibuAccount
+     * @param string              $FibuToAccount
      *
      * @return TblBasket
      */
@@ -417,7 +419,9 @@ class Data extends AbstractData
         TblCreditor $tblCreditor = null,
         TblDivision $tblDivision = null,
         TblType $tblType = null,
-        TblDebtorPeriodType $tblDebtorPeriodType = null
+        TblDebtorPeriodType $tblDebtorPeriodType = null,
+        $FibuAccount = '',
+        $FibuToAccount = ''
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -442,6 +446,8 @@ class Data extends AbstractData
             $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblType($tblType);
             $Entity->setServiceTblDebtorPeriodType($tblDebtorPeriodType);
+            $Entity->setFibuAccount($FibuAccount);
+            $Entity->setFibuToAccount($FibuToAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -483,9 +489,11 @@ class Data extends AbstractData
      * @param TblBasket        $tblBasket
      * @param string           $Name
      * @param string           $Description
-     * @param /DateTime        $TargetTime
-     * @param /DateTime|null   $BillTime
+     * @param \DateTime|null   $TargetTime
+     * @param \DateTime|null   $BillTime
      * @param TblCreditor|null $tblCreditor
+     * @param string           $FibuAccount
+     * @param string           $FibuToAccount
      *
      * @return bool
      */
@@ -495,7 +503,9 @@ class Data extends AbstractData
         $Description,
         $TargetTime,
         $BillTime,
-        TblCreditor $tblCreditor = null
+        TblCreditor $tblCreditor = null,
+        $FibuAccount = '',
+        $FibuToAccount = ''
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -509,6 +519,8 @@ class Data extends AbstractData
             $Entity->setTargetTime($TargetTime);
             $Entity->setBillTime($BillTime);
             $Entity->setServiceTblCreditor($tblCreditor);
+            $Entity->setFibuAccount($FibuAccount);
+            $Entity->setFibuToAccount($FibuToAccount);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
