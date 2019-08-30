@@ -338,6 +338,7 @@ class Frontend extends Extension implements IFrontendInterface
             '[Beitragsverursacher Vorname]',
             '[Beitragsverursacher Nachname]',
             '[Beitragsverursacher Geburtstag]',
+            '[Schülernummer]',
             '[Datum]',
             '[Ort]',
             '[Trägername]',
