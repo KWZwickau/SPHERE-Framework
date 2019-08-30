@@ -1539,7 +1539,7 @@ class Service extends Extension
             $export->setValue($export->getCell(2, 1), "Adresse");
             $export->setValue($export->getCell(3, 1), "Telefonnummer");
             $export->setValue($export->getCell(4, 1), "Gr");
-            $export->setValue($export->getCell(5, 1), "NK/P/FR");
+            $export->setValue($export->getCell(5, 1), "WB/P/FR");
             $export->setValue($export->getCell(6, 1), "BG");
             $export->setValue($export->getCell(7, 1), "WF");
             // Header bold
@@ -1703,7 +1703,7 @@ class Service extends Extension
 
             if (!empty($orientationList)) {
                 $Row += 2;
-                $export->setValue($export->getCell(0, $Row), 'Neigungskurse/Profile');
+                $export->setValue($export->getCell(0, $Row), 'Wahlbereiche/Profile');
                 foreach ($orientationList as $orientation => $count) {
                     $Row++;
                     $export->setValue($export->getCell(0, $Row), $orientation . ':');
