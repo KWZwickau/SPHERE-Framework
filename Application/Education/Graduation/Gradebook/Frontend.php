@@ -2631,6 +2631,12 @@ class Frontend extends FrontendScoreRule
                     $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                     if ($tblDivisionSubjectList) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            // Fächer ohne Benotung ignorieren
+                            if (!$tblDivisionSubject->getHasGrading()) {
+                                continue;
+                            }
+
+                            $yearGradeList = array();
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject()) && $tblDivisionSubject->getTblDivision()) {
                                 $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                                     $tblDivisionSubject->getTblDivision(),
@@ -2670,8 +2676,6 @@ class Frontend extends FrontendScoreRule
                                             } else {
                                                 $tblTaskList = false;
                                             }
-
-                                            $yearGradeList = array();
 
                                             /**@var TblPeriod $tblPeriod **/
                                             foreach ($tblPeriodList as $tblPeriod) {
@@ -2919,7 +2923,7 @@ class Frontend extends FrontendScoreRule
                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                             $tblScoreRule ? $tblScoreRule : null, null,
                                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                            false, false, empty($yearGradeList) ? false : $yearGradeList
+                                            false, false, $yearGradeList
                                         );
 
                                         if (is_array($average)) {

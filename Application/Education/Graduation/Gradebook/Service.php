@@ -732,7 +732,7 @@ class Service extends ServiceScoreRule
     ) {
 
         // bei übergebener Notenliste diese verwenden
-        if (!$tblGradeList) {
+        if ($tblGradeList === false) {
             $tblGradeList = $this->getGradesByStudent(
                 $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
             );
