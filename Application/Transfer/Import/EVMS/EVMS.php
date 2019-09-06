@@ -21,6 +21,9 @@ class EVMS  implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Student', __NAMESPACE__ . '\Frontend::frontendStudentImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
+        ));
     }
 
     /**
@@ -38,6 +41,16 @@ class EVMS  implements IModuleInterface
             'Option' => new Standard(
                 '',
                 __NAMESPACE__ . '/Student',
+                new Select()
+            )
+        );
+
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '02 - Lehrer',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/Staff',
                 new Select()
             )
         );

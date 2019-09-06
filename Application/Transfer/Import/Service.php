@@ -130,6 +130,24 @@ class Service
 
     /**
      * @param TblPerson $tblPerson
+     * @param string $columnName
+     * @param integer $RunY
+     */
+    public function insertBusinessMail($tblPerson, $columnName, $RunY)
+    {
+        $mailAddress = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($mailAddress != '') {
+            Mail::useService()->insertMailToPerson(
+                $tblPerson,
+                $mailAddress,
+                Mail::useService()->getTypeById(2),
+                ''
+            );
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param $columnName
      * @param $RunY
      * @param string $separator
