@@ -266,7 +266,7 @@ class Data extends AbstractData
      * @param TblPaymentType|null     $tblPaymentType
      * @param TblDebtorSelection|null $tblDebtorSelection
      *
-     * @return object|TblBasketVerification|null
+     * @return TblBasketVerification
      */
     public function createBasketVerification(
         TblBasket $tblBasket,
@@ -658,6 +658,31 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if(null !== $Entity){
             $Entity->setQuantity($Quantity);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     * @param string                $Price
+     *
+     * @return bool
+     */
+    public function changeBasketVerificationInPrice(TblBasketVerification $tblBasketVerification, $Price)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasketVerification $Entity */
+        $Entity = $Manager->getEntityById('TblBasketVerification', $tblBasketVerification->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setValue($Price);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

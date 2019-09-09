@@ -336,12 +336,36 @@ class Service extends AbstractService
             foreach($tblGroupList as $tblGroup) {
                 if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
                     foreach($tblPersonFromGroup as $tblPersonFrom) {
-                        $tblPersonList[] = $tblPersonFrom;
+                        $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
                     }
                 }
             }
         }
         return (!empty($tblPersonList) ? $tblPersonList : false);
+    }
+
+    /**
+     * @param TblBasket          $tblBasket
+     * @param TblDebtorSelection $tblDebtorSelection
+     * @param float              $Value
+     *
+     * @return TblBasketVerification
+     */
+    public function createBasketVerification(TblBasket $tblBasket, TblDebtorSelection $tblDebtorSelection, $Value = 0.00)
+    {
+
+        $tblItem = $tblDebtorSelection->getServiceTblItem();
+        $tblPersonCauser = $tblDebtorSelection->getServiceTblPersonCauser();
+        $tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor();
+        if(!($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
+            $tblBankAccount = null;
+        }
+        if(!($tblBankReference = $tblDebtorSelection->getTblBankReference())){
+            $tblBankReference = null;
+        }
+        $tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType();
+        return (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblItem, $Value, $tblPersonCauser
+            , $tblPersonDebtor, null, $tblBankAccount, $tblBankReference, $tblPaymentType, $tblDebtorSelection);
     }
 
     /**
@@ -682,6 +706,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateBasketVerificationInQuantity($tblBasketVerification, $Quantity);
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     * @param string                $Price
+     *
+     * @return bool
+     */
+    public function changeBasketVerificationInPrice(TblBasketVerification $tblBasketVerification, $Price)
+    {
+
+        return (new Data($this->getBinding()))->changeBasketVerificationInPrice($tblBasketVerification, $Price);
     }
 
     /**
