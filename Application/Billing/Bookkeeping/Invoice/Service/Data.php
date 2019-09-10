@@ -152,18 +152,22 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Year
+     * @param TblPerson $tblPersonCauser
+     * @param string    $Year
+     * @param string    $Month
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByYear($Year = '')
+    public function getInvoiceAllByPersonCauserAndTime(TblPerson $tblPersonCauser, $Year = '', $Month = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblInvoice|null $Entity */
         return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
             array(
-                TblInvoice::ATTR_YEAR => $Year
+                TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser,
+                TblInvoice::ATTR_YEAR => $Year,
+                TblInvoice::ATTR_MONTH => $Month
             ));
     }
 

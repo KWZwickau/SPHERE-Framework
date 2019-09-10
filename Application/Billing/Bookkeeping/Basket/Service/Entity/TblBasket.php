@@ -355,7 +355,7 @@ class TblBasket extends Element
     }
 
     /**
-     * @return bool|TblBasket
+     * @return bool|TblBasketType
      */
     public function getTblBasketType()
     {

@@ -438,10 +438,10 @@ class Service extends AbstractService
                             $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
                         }
                         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
-                        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
+                        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
                             $tblBasket->getYear(), $tblBasket->getMonth())){
                             // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
-                            $PersonExclude[$tblPerson->getId()][] = 'Rechnung für '.$tblItem->getName().' diesen Monat
+                            $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' diesen Monat
                             ('.$tblBasket->getMonth(true).'.'.$tblBasket->getYear().') bereits erstellt';
                             continue;
                         }
@@ -505,7 +505,7 @@ class Service extends AbstractService
                 } else {
                     $Error = false;
                     // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
-                    if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
+                    if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
                         $tblBasket->getYear(), $tblBasket->getMonth())){
                         // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
                         $Error = true;

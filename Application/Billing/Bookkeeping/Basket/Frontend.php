@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
@@ -53,7 +54,6 @@ use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
@@ -706,8 +706,8 @@ class Frontend extends Extension implements IFrontendInterface
         $ButtonHeader = new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn($AddPersonButton, 2),
             new LayoutColumn(
-                new WarningText('Es sind keine Einträge zur Abrechnung vorhanden. Bitte fügen sie Personen hinzu,
-                 die eine Gutschrift für die Beitragsart '.$ItemName.' erhalten sollen.')
+                new Warning(' Es sind keine Einträge zur Abrechnung vorhanden. Bitte fügen sie Personen hinzu,
+                 die eine Gutschrift für die Beitragsart '.$ItemName.' erhalten sollen.', new WarningIcon(), false, 4, 0)
             , 10)
         ))));
         if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){

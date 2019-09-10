@@ -16,7 +16,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -350,9 +349,6 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
                 new TextField('Price', '', 'Betrag der Gutschrift', new Search())
             , 4),
             new FormColumn(
-                new CheckBox('KeepOpen', 'Fenster bei Speicherung geöffnet lassen (Schnellere Bearbeiung)', 1)
-            ),
-            new FormColumn(
                 self::receiverSearch('', 'SearchPerson')
             ),
         ))));
@@ -382,6 +378,8 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
     {
 
         if ($Search != '' && strlen($Search) > 2) {
+            // Kommen entfernen (Copy Paste überbleibsel)
+            $Search = str_replace(',', '', $Search);
             if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
                 $tableData = array();
                 array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$tableData, $BasketId){
@@ -459,11 +457,10 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
      * @param string $BasketId
      * @param string $DebtorSelection
      * @param string $Price
-     * @param string $KeepOpen
      *
      * @return string
      */
-    public function addDebtorSelection($Identifier = '', $BasketId = '', $DebtorSelection = '', $Price = '', $KeepOpen = '')
+    public function addDebtorSelection($Identifier = '', $BasketId = '', $DebtorSelection = '', $Price = '')
     {
 
         $tblBasket = Basket::useService()->getBasketById($BasketId);
@@ -471,15 +468,9 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         $PriceCorrection = round(str_replace(',', '.', $Price), 2);
         $tblBasketVerification = Basket::useService()->createBasketVerification($tblBasket, $tblDebtorSelection, $PriceCorrection);
         if($tblBasketVerification){
-            if($KeepOpen === ''){
-                return self::pipelineReloadTable($tblBasket->getId(), $Identifier);
-            } else {
-                // schließt das Modal nicht
-                $Identifier = false;
-                return self::pipelineReloadTable($tblBasket->getId(), $Identifier);
-            }
-
-
+            // schließt das Modal nicht
+            $Identifier = false;
+            return self::pipelineReloadTable($tblBasket->getId(), $Identifier);
         }
         return '';
     }
