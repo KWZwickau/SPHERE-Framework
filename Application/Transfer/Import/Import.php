@@ -9,6 +9,7 @@ use SPHERE\Application\Transfer\Import\Braeunsdorf\Braeunsdorf;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\Dresden\Dresden;
+use SPHERE\Application\Transfer\Import\EVMS\EVMS;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
@@ -97,6 +98,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'EVSB') {
             Braeunsdorf::registerModule();
         }
+        if ($consumerAcronym === 'EVMS') {
+            EVMS::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -140,6 +144,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'EVSB') {
             $dataList = Braeunsdorf::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EVMS') {
+            $dataList = EVMS::setLinks($dataList);
         }
 
         if(empty($dataList)){
