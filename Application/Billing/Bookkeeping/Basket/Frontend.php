@@ -634,7 +634,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Gutschrift', 'Inhalt');
 
         $PanelHead = $Time = $TargetTime = $BillTime = $ItemName = '';
-        if($tblBasket = Basket::useService()->getBasketById($BasketId)){
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
             $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
             $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
             $TargetTime = $tblBasket->getTargetTime();
