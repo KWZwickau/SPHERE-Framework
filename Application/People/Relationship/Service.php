@@ -338,6 +338,28 @@ class Service extends AbstractService
             }
         }
 
+        // SSw-718 Prüfung ob es die Beziehung zu dieser Person bereits existiert
+        if ($tblPersonGuardian
+            && $tblPersonChild
+            && $tblType
+            && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonGuardian, $tblType))
+        ) {
+            foreach ($tblRelationshipList as $tblRelationship) {
+                // aktuelle Beziehung ignorieren
+                if ($tblToPerson && $tblToPerson->getId() == $tblRelationship->getId()) {
+                    continue;
+                }
+
+                if (($tblPersonRelationshipTo = $tblRelationship->getServiceTblPersonTo())
+                    && $tblPersonRelationshipTo->getId() == $tblPersonChild->getId()
+                ) {
+                    $error = true;
+                    $messageOptions = new Danger('Diese Personenbeziehung existiert bereits, bitte wählen Sie eine andere Person aus.',
+                        new Exclamation());
+                }
+            }
+        }
+
         $form = Relationship::useFrontend()->formRelationshipToPerson(
             $tblPerson->getId(),
             $tblToPerson ? $tblToPerson->getId() : null,
