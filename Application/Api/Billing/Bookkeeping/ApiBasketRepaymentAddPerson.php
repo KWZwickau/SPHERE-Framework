@@ -342,7 +342,7 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
 
         return new Form(new FormGroup(new FormRow(array(
             new FormColumn(
-                (new TextField('Search', '', 'Suche', new Search()))
+                (new TextField('Search', '', 'Beitragsverursacher suchen', new Search()))
                     ->ajaxPipelineOnKeyUp(self::pipelineSearch($Identifier, 'SearchPerson', $BasketId))
             , 8),
             new FormColumn(
@@ -387,7 +387,7 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
                     $item['FirstName'] = $tblPerson->getFirstSecondName();
                     $item['LastName'] = $tblPerson->getLastName();
                     $item['Address'] = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : '';
-                    $item['DebtorSelection'] = new Warning('Kein Beitragszahler (zur Bietragsart)', null, false, 2, 0);
+                    $item['DebtorSelection'] = new Warning('Kein Beitragszahler (zur Beitragsart)', null, false, 2, 0);
                     $IsDebtorSelection = false;
                     if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
                         // Es kann nur eine Beitragsart hinterlegt sein
@@ -428,7 +428,7 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
                         'LastName' => 'Nachname',
                         'FirstName' => 'Vorname',
                         'Address' => 'Adresse',
-                        'DebtorSelection' => 'Zahlungszuweisung',
+                        'DebtorSelection' => 'Beitragszahler',
                     ),
                     array(
                         'order' => array(

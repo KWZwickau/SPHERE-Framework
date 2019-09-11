@@ -699,7 +699,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         //Default
-        $AddPersonButton = (new Primary('Person hinzufügen', ApiBasketRepaymentAddPerson::getEndpoint(), new Plus()))
+        $AddPersonButton = (new Primary('Beitragsverursacher hinzufügen', ApiBasketRepaymentAddPerson::getEndpoint(), new Plus()))
             ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenAddPersonModal('AddRepayment', $tblBasket->getId()))
             // hinzufügen von Platz zwischen Button und Tabelle
         .new Container('&nbsp;');
