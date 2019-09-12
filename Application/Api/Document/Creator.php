@@ -21,6 +21,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchoo
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -592,17 +594,21 @@ class Creator extends Extension
             && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($Data['Document']))
         ) {
             if (isset($Data['PersonId']) && ($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
+                $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
                 $PriceList = Balance::useService()->getPriceListByPerson(
                     $tblItem,
                     $Data['Year'],
                     $Data['From'],
                     $Data['To'],
-                    $tblPerson
+                    $tblPerson,
+                    $tblBasketType
                 );
             } else {
+                $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
                 $PriceList = Balance::useService()->getPriceListByItemAndYear(
                     $tblItem,
                     $Data['Year'],
+                    $tblBasketType,
                     $Data['From'],
                     $Data['To'],
                     isset($Data['Division']) ? $Data['Division'] : '0',

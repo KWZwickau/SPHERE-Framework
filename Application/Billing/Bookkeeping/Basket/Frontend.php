@@ -700,18 +700,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         //Default
         $AddPersonButton = (new Primary('Beitragsverursacher hinzufügen', ApiBasketRepaymentAddPerson::getEndpoint(), new Plus()))
-            ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenAddPersonModal('AddRepayment', $tblBasket->getId()))
-            // hinzufügen von Platz zwischen Button und Tabelle
-        .new Container('&nbsp;');
-        $ButtonHeader = new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn($AddPersonButton, 2),
-            new LayoutColumn(
+            ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenAddPersonModal('AddRepayment', $tblBasket->getId()));
+        $ButtonHeader = new Layout(new LayoutGroup(array(
+            new LayoutRow(new LayoutColumn(
+                $AddPersonButton
+            , 2)),
+            new LayoutRow(new LayoutColumn(
                 new Warning(' Es sind keine Einträge zur Abrechnung vorhanden. Bitte fügen sie Personen hinzu,
-                 die eine Gutschrift für die Beitragsart '.$ItemName.' erhalten sollen.', new WarningIcon(), false, 4, 0)
-            , 10)
-        ))));
+                 die eine Gutschrift für die Beitragsart '.$ItemName.' erhalten sollen.', new WarningIcon())
+            ))
+        )));
+        // hinzufügen von Platz zwischen Button und Tabelle (ohne Warnung)
+        $AddPersonButton .= new Container('&nbsp;');
         if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
-            array_walk($tblBasketVerificationList,
+                array_walk($tblBasketVerificationList,
                 function(TblBasketVerification $tblBasketVerification) use (
                     &$TableContent,
                     $tblBasket

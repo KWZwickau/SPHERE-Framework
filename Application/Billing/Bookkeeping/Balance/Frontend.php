@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use SPHERE\Application\Api\Billing\Inventory\ApiDocument;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Document;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -176,9 +178,15 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach($tblPersonList as $tblPerson){
                     /** @var TblItem $tblItem */
                     foreach($tblItemList as $tblItem){
+                        if(isset($Balance['BasketType'])){
+                            $tblBasketType = Basket::useService()->getBasketTypeById($Balance['BasketType']);
+                        }
+                        if(!isset($tblBasketType) || !$tblBasketType){
+                            $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                        }
                         // Rechnungen zusammengefasst (je Beitragsart)
                         $PriceList = Balance::useService()->getPriceListByItemAndPerson($tblItem, $Balance['Year'],
-                            $Balance['From'], $Balance['To'], $tblPerson, $PriceList);
+                            $Balance['From'], $Balance['To'], $tblPerson, $tblBasketType, $PriceList);
                     }
                 }
                 // Summe der einzelnen Beiträge erstellen
@@ -193,6 +201,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'From'       => $Balance['From'],
                             'To'         => $Balance['To'],
                             'DivisionId' => $Balance['Division'],
+                            'BasketTypeId' => $Balance['BasketType'],
                         ));
                 } elseif($tblGroup) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
@@ -202,6 +211,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'From'       => $Balance['From'],
                             'To'         => $Balance['To'],
                             'GroupId' => $Balance['Group'],
+                            'BasketTypeId' => $Balance['BasketType'],
                         ));
                 } elseif($tblPerson) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
@@ -211,6 +221,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'From'       => $Balance['From'],
                             'To'         => $Balance['To'],
                             'PersonId' => $Balance['PersonId'],
+                            'BasketTypeId' => $Balance['BasketType'],
                         ));
                 }
             }
@@ -338,18 +349,22 @@ class Frontend extends Extension implements IFrontendInterface
                     $PriceList = array();
                     if (isset($Balance['Search'])) {
                         if ($tblPerson) {
+                            $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
                             $PriceList = Balance::useService()->getPriceListByPerson(
                                 $tblItem,
                                 $Balance['Year'],
                                 $Balance['From'],
                                 $Balance['To'],
-                                $tblPerson
+                                $tblPerson,
+                                $tblBasketType
                             );
                         }
                     } else {
+                        $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
                         $PriceList = Balance::useService()->getPriceListByItemAndYear(
                             $tblItem,
                             $Balance['Year'],
+                            $tblBasketType,
                             $Balance['From'],
                             $Balance['To'],
                             $tblDivision ? $tblDivision->getId() : '0',
@@ -459,10 +474,17 @@ class Frontend extends Extension implements IFrontendInterface
                         $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
                     }
                 }
-                $ItemSelect = new FormColumn(
+                $BasketTypeSelect = array(
+                    '1' => 'Abrechnung',
+                    '3' => 'Gutschrift');
+                $ItemSelect = array(new FormColumn(
                     new Panel(new Bold('Beitragsarten '.new DangerText('*')),
                         $CheckboxItemList, Panel::PANEL_TYPE_INFO)
-                , 6);
+                    , 6),
+                    new FormColumn(
+                        new Panel(new Bold('Variantenauswahl'), new SelectBox('Balance[BasketType]', '', $BasketTypeSelect)
+                        ,Panel::PANEL_TYPE_INFO)
+                    , 6));
             }
 
             $tblYear = false;
@@ -521,9 +543,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     null), 3),
                                 new FormColumn($selectBox, 3),
                             )),
-                            new FormRow(array(
-                                $ItemSelect,
-                            )),
+                            new FormRow(
+                                $ItemSelect
+                            ),
                             new FormRow(
                                 new FormColumn(new Primary('Filtern', new Filter()))
                             )
@@ -541,7 +563,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem)),
                                         Panel::PANEL_TYPE_PRIMARY
                                     )
-                                )
+                                , 3)
                             ),
                             new FormRow(array(
                                 new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),

@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -102,11 +104,9 @@ class Data extends AbstractData
                 'WITH', 'iid.tblInvoice = i.Id')
             ->where($queryBuilder->expr()->eq('i.Year', '?1'))
             ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
-//            ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))
             ->setParameter(1, $Year)
             ->setParameter(2, $MonthFrom)
             ->setParameter(3, $MonthTo)
-//            ->setParameter(4, $tblItem->getId())
             ->groupBy('i.serviceTblPersonCauser')
             ->getQuery();
         $PersonIdList = $query->getResult();
@@ -115,32 +115,40 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItem $tblItem
-     * @param string  $Year
-     * @param string  $MonthFrom
-     * @param string  $MonthTo
+     * @param TblItem       $tblItem
+     * @param string        $Year
+     * @param TblBasketType $tblBasketType
+     * @param string        $MonthFrom
+     * @param string        $MonthTo
      *
      * @return array|bool
      */
-    public function getPriceList(TblItem $tblItem, $Year, $MonthFrom, $MonthTo)
+    public function getPriceList(TblItem $tblItem, $Year, TblBasketType $tblBasketType, $MonthFrom, $MonthTo)
     {
         $Manager = $this->getConnection()->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
         $tblInvoice = new TblInvoice();
         $tblInvoiceItemDebtor = new TblInvoiceItemDebtor();
+        $tblBasket = new TblBasket();
 
         $query = $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
              iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId')
             ->from($tblInvoice->getEntityFullName(), 'i')
             ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',
                 'WITH', 'iid.tblInvoice = i.Id')
+            ->leftJoin($tblBasket->getEntityFullName(), 'b',
+                'WITH', 'b.Id = i.serviceTblBasket')
+            ->leftJoin($tblBasketType->getEntityFullName(), 'bt',
+                'WITH', 'bt.Id = b.tblBasketType')
             ->where($queryBuilder->expr()->eq('i.Year', '?1'))
             ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
             ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))
+            ->andWhere($queryBuilder->expr()->eq('bt.Id', '?5'))
             ->setParameter(1, $Year)
             ->setParameter(2, $MonthFrom)
             ->setParameter(3, $MonthTo)
             ->setParameter(4, $tblItem->getId())
+            ->setParameter(5, $tblBasketType->getId())
             ->getQuery();
 
         $PriceList = $query->getResult();
@@ -149,35 +157,44 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItem $tblItem
-     * @param string $Year
-     * @param string $MonthFrom
-     * @param string $MonthTo
-     * @param TblPerson $tblPerson
+     * @param TblItem       $tblItem
+     * @param string        $Year
+     * @param string        $MonthFrom
+     * @param string        $MonthTo
+     * @param TblPerson     $tblPerson
+     * @param TblBasketType $tblBasketType
      *
      * @return array|bool
      */
-    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson)
+    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson,
+        TblBasketType $tblBasketType)
     {
         $Manager = $this->getConnection()->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
         $tblInvoice = new TblInvoice();
         $tblInvoiceItemDebtor = new TblInvoiceItemDebtor();
+        $tblBasket = new TblBasket();
 
         $query = $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
              iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId')
             ->from($tblInvoice->getEntityFullName(), 'i')
             ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',
                 'WITH', 'iid.tblInvoice = i.Id')
+            ->leftJoin($tblBasket->getEntityFullName(), 'b',
+                'WITH', 'b.Id = i.serviceTblBasket')
+            ->leftJoin($tblBasketType->getEntityFullName(), 'bt',
+                'WITH', 'bt.Id = b.tblBasketType')
             ->where($queryBuilder->expr()->eq('i.Year', '?1'))
             ->andWhere($queryBuilder->expr()->between('i.Month', '?2', '?3'))
             ->andWhere($queryBuilder->expr()->eq('iid.serviceTblItem', '?4'))
             ->andWhere($queryBuilder->expr()->eq('i.serviceTblPersonCauser', '?5'))
+            ->andWhere($queryBuilder->expr()->eq('bt.Id', '?6'))
             ->setParameter(1, $Year)
             ->setParameter(2, $MonthFrom)
             ->setParameter(3, $MonthTo)
             ->setParameter(4, $tblItem->getId())
             ->setParameter(5, $tblPerson->getId())
+            ->setParameter(6, $tblBasketType->getId())
             ->getQuery();
 
         $PriceList = $query->getResult();
