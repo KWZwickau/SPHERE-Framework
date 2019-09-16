@@ -1,4 +1,4 @@
-SELECT
+SELECT distinct
 
 -- PersonId to match with all View's // tblToPerson
     tTP.serviceTblPerson AS TblPerson_Id,
@@ -7,10 +7,19 @@ SELECT
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description,
 -- tblPhone
-    tP.Number AS TblPhone_Number
+    (SELECT
+        group_concat(
+            concat(
+                tPtemp.Number
+            ) separator ', \n'
+        )
+        FROM ContactPhone_{{ ConsumerAcronym }}.tblToPerson as tTPtemp
+        left join ContactPhone_{{ ConsumerAcronym }}.tblPhone as tPtemp on tPtemp.Id = tTPtemp.tblPhone
+        where tTPtemp.serviceTblPerson = tTP.serviceTblPerson
+        and tTPtemp.tblType = tT.Id
+    ) AS TblPhone_Number
 
 FROM ContactPhone_{{ ConsumerAcronym }}.tblToPerson tTP
     LEFT JOIN ContactPhone_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
-    LEFT JOIN ContactPhone_{{ ConsumerAcronym }}.tblPhone tP ON tP.Id = tTP.tblPhone
 
 WHERE tTP.EntityRemove IS NULL

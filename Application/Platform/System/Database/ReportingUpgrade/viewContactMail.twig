@@ -1,4 +1,4 @@
-SELECT
+SELECT distinct
 
 -- PersonId to match with all View's // tblToPerson
     tTP.serviceTblPerson AS TblPerson_Id,
@@ -7,10 +7,20 @@ SELECT
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description,
 -- tblMail
-    tM.Address AS TblMail_Address
+    -- tM.Address AS TblMail_Address
+    (SELECT
+        group_concat(
+            concat(
+                tMtemp.Address
+            ) separator '; \n'
+        )
+        FROM ContactMail_{{ ConsumerAcronym }}.tblToPerson as tTPtemp
+        left join ContactMail_{{ ConsumerAcronym }}.tblMail as tMtemp on tMtemp.Id = tTPtemp.tblMail
+        where tTPtemp.serviceTblPerson = tTP.serviceTblPerson
+        and tTPtemp.tblType = tT.Id
+    ) AS TblMail_Address
 
 FROM ContactMail_{{ ConsumerAcronym }}.tblToPerson tTP
     LEFT JOIN ContactMail_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
-    LEFT JOIN ContactMail_{{ ConsumerAcronym }}.tblMail tM ON tM.Id = tTP.tblMail
 
 WHERE tTP.EntityRemove IS NULL

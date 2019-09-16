@@ -365,7 +365,7 @@ SELECT
         FROM PeopleMeta_{{ ConsumerAcronym }}.tblCommon tC
 			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
         WHERE tC.serviceTblPerson = TblPerson_S1_Id
-    ) TblPerson_Birthday_S1,
+    ) TblPerson_Birthday_S3,
 
     -- Address
     (SELECT vCA.TblAddress_StreetName
