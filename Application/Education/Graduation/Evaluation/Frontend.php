@@ -1370,7 +1370,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         // nur Zensuren-Typen, welche bei der hinterlegten Berechnungsvorschrift hinterlegt sind
         if ($tblScoreRule) {
-            $tblGradeTypeList = $tblScoreRule->getGradeTypesAll();
+            // SSW-747 keine Zensuren-Typen bei dieser Berechnungsvorschrift verfügbar
+            if (!($tblGradeTypeList = $tblScoreRule->getGradeTypesAll())) {
+                $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+            }
         } else {
             $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
         }
