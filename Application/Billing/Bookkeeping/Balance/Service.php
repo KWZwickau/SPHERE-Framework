@@ -17,6 +17,7 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceCreditor;
@@ -123,25 +124,27 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblItem $tblItem
-     * @param string $Year
-     * @param string $MonthFrom
-     * @param string $MonthTo
-     * @param string $DivisionId*
-     * @param string $GroupId
+     * @param TblItem       $tblItem
+     * @param string        $Year
+     * @param TblBasketType $tblBasketType
+     * @param string        $MonthFrom
+     * @param string        $MonthTo
+     * @param string        $DivisionId
+     * @param string        $GroupId
      *
      * @return array
      */
     public function getPriceListByItemAndYear(
         TblItem $tblItem,
         $Year,
+        TblBasketType $tblBasketType,
         $MonthFrom = '1',
         $MonthTo = '12',
         $DivisionId = '0',
         $GroupId = '0'
     ){
         $PriceList = array();
-        $ResultList = $this->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
+        $ResultList = $this->getPriceList($tblItem, $Year, $tblBasketType, $MonthFrom, $MonthTo);
         if($ResultList){
             foreach($ResultList as $Key => $RowContent) {
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
@@ -483,32 +486,35 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblItem      $tblItem
-     * @param string       $Year
-     * @param string       $MonthFrom
-     * @param string       $MonthTo
+     * @param TblItem       $tblItem
+     * @param string        $Year
+     * @param TblBasketType $tblBasketType
+     * @param string        $MonthFrom
+     * @param string        $MonthTo
      *
      * @return array|bool
      */
-    public function getPriceList(TblItem $tblItem, $Year, $MonthFrom, $MonthTo)
+    public function getPriceList(TblItem $tblItem, $Year, TblBasketType $tblBasketType, $MonthFrom, $MonthTo)
     {
 
-        return (new Data($this->getBinding()))->getPriceList($tblItem, $Year, $MonthFrom, $MonthTo);
+        return (new Data($this->getBinding()))->getPriceList($tblItem, $Year, $tblBasketType, $MonthFrom, $MonthTo);
     }
 
     /**
-     * @param TblItem   $tblItem
-     * @param string    $Year
-     * @param string    $MonthFrom
-     * @param string    $MonthTo
-     * @param TblPerson $tblPerson
-     * @param array     $PriceList
+     * @param TblItem       $tblItem
+     * @param string        $Year
+     * @param string        $MonthFrom
+     * @param string        $MonthTo
+     * @param TblPerson     $tblPerson
+     * @param TblBasketType $tblBasketType
+     * @param array         $PriceList
      *
      * @return array
      */
-    public function getPriceListByItemAndPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson, $PriceList = array())
+    public function getPriceListByItemAndPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson,
+        TblBasketType $tblBasketType, $PriceList = array())
     {
-        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson);
+        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson, $tblBasketType);
         if($ResultList){
             foreach($ResultList as $Key => $RowContent) {
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
@@ -547,17 +553,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblItem $tblItem
-     * @param string $Year
-     * @param string $MonthFrom
-     * @param string $MonthTo
-     * @param TblPerson $tblPerson
+     * @param TblItem       $tblItem
+     * @param string        $Year
+     * @param string        $MonthFrom
+     * @param string        $MonthTo
+     * @param TblPerson     $tblPerson
+     * @param TblBasketType $tblBasketType
      *
      * @return array|bool
      */
-    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson)
+    public function getPriceListByPerson(TblItem $tblItem, $Year, $MonthFrom, $MonthTo, TblPerson $tblPerson, TblBasketType $tblBasketType)
     {
-        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson);
+        $ResultList = (new Data($this->getBinding()))->getPriceListByPerson($tblItem, $Year, $MonthFrom, $MonthTo, $tblPerson, $tblBasketType);
         $PriceList = array();
         if($ResultList){
             foreach($ResultList as $Key => $RowContent) {

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
+use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketRepaymentAddPerson;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
@@ -25,6 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -34,6 +36,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -43,6 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
@@ -94,14 +98,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Zeigt alle aktiven Abrechnungen an');
 
         $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus()))
-            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket')));
+            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_ABRECHNUNG)));
+        $Stage->addButton((new Primary('Auszahlung hinzufügen', '#', new Plus()))
+            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_AUSZAHLUNG)));
+        $Stage->addButton((new Primary('Gutschrift hinzufügen', '#', new Plus()))
+            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_GUTSCHRIFT)));
         $Stage->addButton(new Standard('Archiv', '/Billing/Bookkeeping/Basket', new FolderClosed(), array('IsArchive' => true)));
 
         $Stage->setContent(
             ApiBasket::receiverService('')
-            .ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
-            .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
-            .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
+            .ApiBasket::receiverModal('Erstellung', 'addBasket')
+            .ApiBasket::receiverModal('Bearbeitung', 'editBasket')
+            .ApiBasket::receiverModal('Entfernen', 'deleteBasket')
             .ApiSepa::receiverModal()
             .new Layout(
                 new LayoutGroup(
@@ -196,18 +204,28 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $Item['Option'] = $Buttons;
                 } else {
+                    $BasketTypeName = TblBasketType::IDENT_AUSZAHLUNG;
+                    if(($tblBasketType = $tblBasket->getTblBasketType())){
+                        $BasketTypeName = $tblBasketType->getName();
+                    }
+                    $EditButton = new Primary('', __NAMESPACE__.'/View', new CogWheels(),
+                        array('BasketId' => $tblBasket->getId()),
+                        'Erstellung der Abrechnung');
+                    if($tblBasket->getTblBasketType()->getName() == TblBasketType::IDENT_GUTSCHRIFT){
+                        $EditButton = new Primary('', __NAMESPACE__.'/ViewRepayment', new CogWheels(),
+                            array('BasketId' => $tblBasket->getId()),
+                            'Erstellung der Abrechnung');
+                    }
+
                     $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
                             'Abrechnung bearbeiten'))
-                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket',
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket', $BasketTypeName,
                                 $tblBasket->getId()))
-                        .new Primary('', __NAMESPACE__.'/View', new CogWheels(),
-                            array('BasketId' => $tblBasket->getId()),
-                            'Erstellung der Abrechnung')
+                        .$EditButton
                         .(new Standard('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
                                 $tblBasket->getId()));
                 }
-
 
                 array_push($TableContent, $Item);
             });
@@ -324,6 +342,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft(), array('IsArchive' => $tblBasket->getIsArchive())));
             } else {
                 $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+            }
+            if(($tblBasketType = $tblBasket->getTblBasketType())){
+                // Update Title
+                $Stage->setTitle($tblBasketType->getName());
             }
         }
 
@@ -585,6 +607,191 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     array('type' => 'natural', 'targets' => array(4, 6)),
                                     array("orderable" => false, "targets" => array(5, -1)),
+                                ),
+                                'order'      => array(
+                                    array(1, 'desc'),
+                                    array(0, 'asc')
+                                ),
+                                // First column should not be with Tabindex
+                                // solve the problem with responsive false
+                                "responsive" => false,
+                            )
+                        )
+                    ),
+                ))
+            )
+        );
+    }
+
+    /**
+     * @param null $BasketId
+     *
+     * @return Stage
+     */
+    public function frontendBasketViewRepayment($BasketId = null)
+    {
+
+        $Stage = new Stage('Gutschrift', 'Inhalt');
+
+        $PanelHead = $Time = $TargetTime = $BillTime = $ItemName = '';
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
+            $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
+            $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
+            $TargetTime = $tblBasket->getTargetTime();
+            $BillTime = $tblBasket->getBillTime();
+            // Kann nur eine Beitragsart beinhalten
+            if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))){
+                $tblBasketItem = current($tblBasketItemList);
+                if(($tblItem = $tblBasketItem->getServiceTblItem())){
+                    $ItemName = $tblItem->getName();
+                }
+            }
+
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        }
+
+        $Stage->setContent(
+            ApiBasketRepaymentAddPerson::receiverModal('Gutschrift hinzufügen', 'AddRepayment')
+            .ApiBasketRepaymentAddPerson::receiverModal('Entfernen einer Zahlung', 'deleteDebtorSelection')
+            .ApiBasketRepaymentAddPerson::receiverService()
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('', new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(new InfoText('<span style="font-size: large">'.$PanelHead.' ( '.$ItemName.' )</span>'),
+                                    6),
+                                new LayoutColumn('Rechnungsdatum:'.new Container($BillTime), 2),
+                                new LayoutColumn('Abrechnungszeitraum:'.new Container($Time), 2),
+                                new LayoutColumn('Fälligkeitsdatum:'.new Container($TargetTime), 2),
+                            )))), Panel::PANEL_TYPE_INFO)
+                        )
+                    )
+                )
+            )
+            .ApiBasketRepaymentAddPerson::receiverTableLayout($this->getBasketVerificationRepaymentLayout($BasketId))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $BasketId
+     *
+     * @return Layout|string
+     */
+    public function getBasketVerificationRepaymentLayout($BasketId = null)
+    {
+
+        $tblBasket = Basket::useService()->getBasketById($BasketId);
+        if(!$tblBasket){
+            return new Danger('Abrechnung(Gutschrift) wurde nicht gefunden')
+                .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        $TableContent = array();
+        $ItemName = new DangerText(new Bold('Beitragsart nicht gefunden!'));
+        // Es kann nur ein Item verknüpft sein
+        if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))){
+            $tblBasketItem = current($tblBasketItemList);
+            if(($tblItem = $tblBasketItem->getServiceTblItem())){
+                $ItemName = new Bold($tblItem->getName());
+            }
+        }
+
+        //Default
+        $AddPersonButton = (new Primary('Beitragsverursacher hinzufügen', ApiBasketRepaymentAddPerson::getEndpoint(), new Plus()))
+            ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenAddPersonModal('AddRepayment', $tblBasket->getId()));
+        $ButtonHeader = new Layout(new LayoutGroup(array(
+            new LayoutRow(new LayoutColumn(
+                $AddPersonButton
+            , 2)),
+            new LayoutRow(new LayoutColumn(
+                new Warning(' Es sind keine Einträge zur Abrechnung vorhanden. Bitte fügen sie Personen hinzu,
+                 die eine Gutschrift für die Beitragsart '.$ItemName.' erhalten sollen.', new WarningIcon())
+            ))
+        )));
+        // hinzufügen von Platz zwischen Button und Tabelle (ohne Warnung)
+        $AddPersonButton .= new Container('&nbsp;');
+        if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
+                array_walk($tblBasketVerificationList,
+                function(TblBasketVerification $tblBasketVerification) use (
+                    &$TableContent,
+                    $tblBasket
+                ){
+
+                    $_POST['Price'][$tblBasketVerification->getId()] = $tblBasketVerification->getValue(true);
+                    $Item['PersonCauser'] = $Item['PersonDebtor'] = '';
+                    $Item['Item'] = '';
+                    $Item['Price'] = ApiBasketRepaymentAddPerson::receiverItemPrice(
+                        new Form(new FormGroup(new FormRow(new FormColumn(
+                        (new TextField('Price['.$tblBasketVerification->getId().']'))
+                            ->ajaxPipelineOnChange(ApiBasketRepaymentAddPerson::pipelineChangePrice($tblBasketVerification->getId()))
+                        )))), $tblBasketVerification->getId());
+                    if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
+                        $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
+                    }
+                    if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
+                        $BankInfo = 'Keine Bankinforamtion gefunden!';
+                        if(($tblBankAccount = $tblBasketVerification->getServiceTblBankAccount())){
+                            $BankInfo = $tblBankAccount->getOwner().'<br/>'.$tblBankAccount->getBankName().'<br/>'.$tblBankAccount->getIBANFrontend();
+                        }
+                        $Item['PersonDebtor'] = $tblPersonDebtor->getLastFirstName().' '.
+                            (new ToolTip(new InfoIcon(), htmlspecialchars($BankInfo)))->enableHtml();
+                    }
+
+                    if(($tblItem = $tblBasketVerification->getServiceTblItem())){
+                        $Item['Item'] = $tblItem->getName();
+                    }
+
+                    if($tblBasket->getIsDone()){
+                        $Item['Option'] = '';
+                    } else {
+                        $Item['Option'] = (new Standard(new DangerText(new Disable()),
+                            ApiBasketRepaymentAddPerson::getEndpoint()
+                            // Tooltip aus Abrechnungen deaktiviert, hat wohl einen Grund gehabt.
+//                            , null, array(), 'Gutschrift entfernen'
+                        ))
+                            ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenDeleteDebtorSelectionModal('deleteDebtorSelection',
+                                $tblBasketVerification->getId()));
+                    }
+
+                    array_push($TableContent, $Item);
+                });
+
+            $ButtonInvoice = new Primary('Abrechnung starten', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+                , null, array('BasketId' => $BasketId));
+
+            $ButtonHeader = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    $AddPersonButton
+                    , 10),
+                new LayoutColumn(
+                    new PullRight($ButtonInvoice)
+                    , 2)
+            ))));
+        }
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $ButtonHeader
+                    ),
+                    new LayoutColumn(
+                        new TableData($TableContent, null,
+                            array(
+                                'PersonCauser'     => 'Beitragsverursacher',
+//                                'PersonDebtorFail' => 'Fehler',
+                                'PersonDebtor'     => 'Beitragszahler',
+                                'Item'             => 'Beitragsart',
+                                'Price'            => 'Gutschrift',
+                                'Option'           => ''
+                            ), array(
+                                'columnDefs' => array(
+                                    array('type'    => Consumer::useService()->getGermanSortBySetting(),
+                                          'targets' => array(0, 2)
+                                    ),
+                                    array('type' => 'natural', 'targets' => array(4)),
+                                    array("orderable" => false, "targets" => array(-1)),
                                 ),
                                 'order'      => array(
                                     array(1, 'desc'),
