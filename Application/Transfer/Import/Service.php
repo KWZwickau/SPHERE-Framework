@@ -77,18 +77,18 @@ class Service
      * @param TblPerson $tblPerson
      * @param string $columnName
      * @param integer $RunY
+     * @param string $Remark
      */
-    public function insertPrivatePhone($tblPerson, $columnName, $RunY)
+    public function insertPrivatePhone($tblPerson, $columnName, $RunY, $Remark = '')
     {
-        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName],
-            $RunY)));
+        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
         if ($phoneNumber != '') {
             $tblType = Phone::useService()->getTypeById(1);
             if (0 === strpos($phoneNumber, '01')) {
                 $tblType = Phone::useService()->getTypeById(2);
             }
 
-            Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, '');
+            Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, $Remark);
         }
     }
 
@@ -99,8 +99,7 @@ class Service
      */
     public function insertBusinessPhone($tblPerson, $columnName, $RunY)
     {
-        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName],
-            $RunY)));
+        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
         if ($phoneNumber != '') {
             $tblType = Phone::useService()->getTypeById(3);
             if (0 === strpos($phoneNumber, '01')) {
@@ -118,13 +117,30 @@ class Service
      */
     public function insertPrivateMail($tblPerson, $columnName, $RunY)
     {
-        $mailAddress = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName],
-            $RunY)));
+        $mailAddress = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
         if ($mailAddress != '') {
             Mail::useService()->insertMailToPerson(
                 $tblPerson,
                 $mailAddress,
                 Mail::useService()->getTypeById(1),
+                ''
+            );
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columnName
+     * @param integer $RunY
+     */
+    public function insertBusinessMail($tblPerson, $columnName, $RunY)
+    {
+        $mailAddress = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($mailAddress != '') {
+            Mail::useService()->insertMailToPerson(
+                $tblPerson,
+                $mailAddress,
+                Mail::useService()->getTypeById(2),
                 ''
             );
         }
@@ -138,8 +154,7 @@ class Service
      */
     public function insertGroupsByName(TblPerson $tblPerson, $columnName, $RunY, $separator = ';')
     {
-        $groupNames = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName],
-            $RunY)));
+        $groupNames = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
         if ($groupNames != '') {
             $list = preg_split('/' . $separator . '/', $groupNames);
             foreach ($list as $name) {
@@ -148,5 +163,50 @@ class Service
                 }
             }
         }
+    }
+
+    /**
+     * @param $columnName
+     * @param $RunY
+     *
+     * @return array
+     */
+    public function splitStreet($columnName, $RunY)
+    {
+        $streetName = '';
+        $streetNumber = '';
+        $street = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($street != '') {
+            if (preg_match_all('!\d+!', $street, $matches)) {
+                $pos = strpos($street, $matches[0][0]);
+                if ($pos !== null) {
+                    $streetName = trim(substr($street, 0, $pos));
+                    $streetNumber = trim(substr($street, $pos));
+                }
+            }
+        }
+
+        return array($streetName, $streetNumber);
+    }
+
+    /**
+     * @param $columnName
+     * @param $RunY
+     *
+     * @return string
+     */
+    public function formatZipCode($columnName, $RunY)
+    {
+        $code = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($code) {
+            return str_pad(
+                $code,
+                5,
+                "0",
+                STR_PAD_LEFT
+            );
+        }
+
+        return '';
     }
 }
