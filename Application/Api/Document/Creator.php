@@ -688,7 +688,7 @@ class Creator extends Extension
                     }
                 }
 
-                $FileName = 'Belegdruck_' . $tblItem->getName() . ($isList ? '_Liste_' . ($list + 1) : '') . '_' . date("Y-m-d") . ".pdf";
+                $FileName = 'Bescheinigung_' . $tblItem->getName() . ($isList ? '_Liste_' . ($list + 1) : '') . '_' . date("Y-m-d") . ".pdf";
 
                 return FileSystem::getStream(
                     $MergeFile->getRealPath(),
@@ -697,7 +697,7 @@ class Creator extends Extension
             }
         }
 
-        return new Stage('Belegdruck', 'Konnte nicht erstellt werden.');
+        return new Stage('Bescheinigung', 'Konnte nicht erstellt werden.');
     }
 
     /**

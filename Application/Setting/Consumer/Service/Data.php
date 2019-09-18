@@ -89,12 +89,12 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'Billing_PictureAddress',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für den Belegdruck der Fakturierung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
+                'Für den Bescheinigung der Fakturierung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'Billing_PictureHeight',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Dokumente',
-                'Für den Belegdruck der Fakturierung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 150px): [Standard: 90px]');
+                'Für den Bescheinigung der Fakturierung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 150px): [Standard: 90px]');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName',
             TblSetting::TYPE_BOOLEAN, '1'))) {
@@ -310,10 +310,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param      $Cluster
-     * @param      $Application
-     * @param null $Module
-     * @param      $Identifier
+     * @param        $Cluster
+     * @param        $Application
+     * @param null   $Module
+     * @param string $Identifier
      *
      * @return false|TblSetting
      */
@@ -321,7 +321,7 @@ class Data extends AbstractData
         $Cluster,
         $Application,
         $Module = null,
-        $Identifier
+        $Identifier = ''
     ) {
 
         return $this->getCachedEntityBy(

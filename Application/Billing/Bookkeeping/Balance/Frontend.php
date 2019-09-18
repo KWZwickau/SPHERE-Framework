@@ -78,14 +78,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBalance()
     {
 
-        $Stage = new Stage('Dashboard', 'Belegdruck');
+        $Stage = new Stage('Dashboard', 'Druck');
         return $Stage;
     }
 
     public function frontendBalanceExcel($Balance = array())
     {
 
-        $Stage = new Stage('Belegdruck', 'Serienbrief');
+        $Stage = new Stage('Bescheinigung', 'Serienbrief');
 
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
@@ -293,7 +293,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBalancePdf($Balance = array())
     {
 
-        $Stage = new Stage('Belegdruck', 'PDF');
+        $Stage = new Stage('Bescheinigung', 'PDF');
         if(!isset($Balance['Year'])){
             $Now = new \DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
@@ -422,7 +422,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $Table .= new Well($this->getPdfForm($tblItem, $tblDocumentList, $countPdfs, $Balance));
                 } else {
-                    $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist kein Beleg eingestellt.', new Exclamation());
+                    $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist keine Bescheinigung eingestellt.', new Exclamation());
                 }
             }
             $Space = '';
@@ -431,7 +431,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(new Layout(
             new LayoutGroup(array(
                 new LayoutRow(
-                    new LayoutColumn(new Well(new Title('Filterung für Belegdruck', '') . $filterBlock))
+                    new LayoutColumn(new Well(new Title('Filterung für Bescheinigung', '') . $filterBlock))
                 ),
                 new LayoutRow(
                     new LayoutColumn($Table)
@@ -762,7 +762,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Belegs')
+                    new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen der Bescheinigung')
                     , 12)
             )),
             new FormRow(array(
@@ -802,7 +802,7 @@ class Frontend extends Extension implements IFrontendInterface
             $content = array();
             for ($i = 1; $i <= $countLists; $i++) {
                 $Data['List'] = $i;
-                $content[] = new SelectBoxItem($i, $i . '. Liste aus ' . ($i == $countLists && $modulo > 0 ? $modulo : self::MAX_PDF_PAGES) . ' Belegen');
+                $content[] = new SelectBoxItem($i, $i . '. Liste aus ' . ($i == $countLists && $modulo > 0 ? $modulo : self::MAX_PDF_PAGES) . ' Bescheinigungen');
             }
 
             return new Form(
@@ -875,16 +875,16 @@ class Frontend extends Extension implements IFrontendInterface
         $global->savePost();
 
         return new Panel(
-            'Beleg',
+            'Bescheinigung',
             array(
-                (new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)))
+                (new SelectBox('Data[Document]', 'Bescheinigung', array('{{ Name }}' => $tblDocumentList)))
                     ->ajaxPipelineOnChange(ApiDocument::pipelineLoadDocumentContent($tblItem->getId(), $Location,
                         $Date)),
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(array(
                         new TextField('Data[Subject]',
                             'z.B. Schulgeldbescheinigung für das Kalenderjahr [Jahr]', 'Betreff'),
-                        new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 20)
+                        new TextArea('Data[Content]', 'Inhalt der Bescheinigung', 'Inhalt', null, 20)
                     ), 9),
                     new LayoutColumn(new Panel('Platzhalter', Document::useFrontend()->getFreeFields(),
                         Panel::PANEL_TYPE_INFO), 3)
