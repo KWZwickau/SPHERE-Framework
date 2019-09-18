@@ -27,9 +27,9 @@ SELECT
 			) SEPARATOR ', \n'
 		)
 -- follow content is merged (select result)
-	FROM PeopleMeta_REF.tblStudentAgreement tSA
-		LEFT JOIN PeopleMeta_REF.tblStudentAgreementType tSAT ON tSAT.Id = tSA.tblStudentAgreementType
-		LEFT JOIN PeopleMeta_REF.tblStudentAgreementCategory tSAC ON tSAC.Id = tSAT.tblStudentAgreementCategory
+	FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudentAgreement tSA
+		LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentAgreementType tSAT ON tSAT.Id = tSA.tblStudentAgreementType
+		LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentAgreementCategory tSAC ON tSAC.Id = tSAT.tblStudentAgreementCategory
 	WHERE tSAC.Name LIKE '%Foto%'
 		AND tSA.tblStudent = tS.Id
 		AND tSAT.Name IS NOT NULL
@@ -41,28 +41,28 @@ SELECT
 				tSAT.Name
 			) SEPARATOR ', \n'
 		)
-	FROM PeopleMeta_REF.tblStudentAgreement tSA
-		LEFT JOIN PeopleMeta_REF.tblStudentAgreementType tSAT ON tSAT.Id = tSA.tblStudentAgreementType
-		LEFT JOIN PeopleMeta_REF.tblStudentAgreementCategory tSAC ON tSAC.Id = tSAT.tblStudentAgreementCategory
+	FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudentAgreement tSA
+		LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentAgreementType tSAT ON tSAT.Id = tSA.tblStudentAgreementType
+		LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentAgreementCategory tSAC ON tSAC.Id = tSAT.tblStudentAgreementCategory
 	WHERE tSAC.Name LIKE '%Namentliche%'
 		AND tSA.tblStudent = tS.Id
 		AND tSAT.Name IS NOT NULL
         AND tSA.EntityRemove IS NULL
 	) TblStudent_NameAgreement,
 	(SELECT tSLT.Name
-	FROM PeopleMeta_REF.tblStudentLiberation tSL
-		LEFT JOIN PeopleMeta_REF.tblStudentLiberationType tSLT ON tSLT.Id = tSL.tblStudentLiberationType
-		LEFT JOIN PeopleMeta_REF.tblStudentLiberationCategory tSLC ON tSLC.Id = tSLT.tblStudentLiberationCategory
+	FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudentLiberation tSL
+		LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentLiberationType tSLT ON tSLT.Id = tSL.tblStudentLiberationType
+		LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentLiberationCategory tSLC ON tSLC.Id = tSLT.tblStudentLiberationCategory
 	WHERE tSLC.Name LIKE 'Sportbefreiung'
 		AND tSL.tblStudent = tS.Id
         AND tSL.EntityRemove IS NULL
 		LIMIT 1
 	) TblStudentLiberationSportType_Name
 
-FROM PeopleMeta_REF.tblStudent tS
-	LEFT JOIN PeopleMeta_REF.tblStudentBaptism tSB ON tSB.Id = tS.tblStudentBaptism
-	LEFT JOIN PeopleMeta_REF.tblStudentLocker tSL ON tSL.Id = tS.tblStudentLocker
-	LEFT JOIN PeopleMeta_REF.tblStudentMedicalRecord tSMR ON tSMR.Id = tS.tblStudentMedicalRecord
-	LEFT JOIN PeopleMeta_REF.tblStudentTransport tST ON tST.Id = tS.tblStudentTransport
+FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS
+	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentBaptism tSB ON tSB.Id = tS.tblStudentBaptism
+	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentLocker tSL ON tSL.Id = tS.tblStudentLocker
+	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentMedicalRecord tSMR ON tSMR.Id = tS.tblStudentMedicalRecord
+	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransport tST ON tST.Id = tS.tblStudentTransport
 
 WHERE tS.EntityRemove IS NULL

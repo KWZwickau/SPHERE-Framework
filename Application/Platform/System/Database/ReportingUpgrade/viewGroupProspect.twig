@@ -15,14 +15,14 @@ SELECT DISTINCT
 -- TblProspect
     tP.Remark AS TblProspect_Remark
 
-FROM PeopleGroup_REF.tblMember tM
-	LEFT JOIN PeopleGroup_REF.tblGroup tG ON tG.Id = tM.TblGroup
+FROM PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
+	LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.TblGroup
 		AND tG.EntityRemove IS NULL
-    LEFT JOIN PeopleMeta_REF.tblProspect tP ON tP.serviceTblPerson = tM.serviceTblPerson
-    LEFT JOIN PeopleMeta_REF.tblProspectAppointment tPA ON tPA.Id = tP.tblProspectAppointment
-    LEFT JOIN PeopleMeta_REF.tblProspectReservation tPR ON tPR.Id = tP.tblProspectReservation
-    LEFT JOIN EducationSchoolType_REF.tblType tTA ON tTA.Id = tPR.serviceTblTypeOptionA
-    LEFT JOIN EducationSchoolType_REF.tblType tTB ON tTB.Id = tPR.serviceTblTypeOptionB
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblProspect tP ON tP.serviceTblPerson = tM.serviceTblPerson
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblProspectAppointment tPA ON tPA.Id = tP.tblProspectAppointment
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblProspectReservation tPR ON tPR.Id = tP.tblProspectReservation
+    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tTA ON tTA.Id = tPR.serviceTblTypeOptionA
+    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tTB ON tTB.Id = tPR.serviceTblTypeOptionB
 
 WHERE tG.MetaTable = 'PROSPECT'
 	AND tM.EntityRemove IS NULL
