@@ -105,19 +105,22 @@ class BalanceDownload implements IModuleInterface
                 foreach($tblPersonList as $tblPerson){
                     /** @var TblItem $tblItem */
                     foreach($tblItemList as $tblItem){
-                        if('' !== $BasketTypeId){
-                            // Auswahl aus Selectbox
-                            $tblBasketType = Basket::useService()->getBasketTypeById($BasketTypeId);
-                        }
-                        if(!isset($tblBasketType) || !$tblBasketType){
+                        if('' === $BasketTypeId){
                             // Standard
                             $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                            $BasketTypeId = $tblBasketType->getId();
                         }
                         // Rechnungen zusammengefasst (je Beitragsart)
                         $PriceList = Balance::useService()->getPriceListByItemAndPerson($tblItem, $Year,
-                            $From, $To, $tblPerson, $tblBasketType, $PriceList);
+                            $From, $To, $tblPerson, $BasketTypeId, $PriceList);
 
-                        if($BasketTypeName == ''){
+                        if('-1' == $BasketTypeId){
+                            $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                        }
+                        if(!isset($tblBasketType)){
+                            $tblBasketType = Basket::useService()->getBasketTypeById($BasketTypeId);
+                        }
+                        if($tblBasketType){
                             $BasketTypeName = $tblBasketType->getName();
                         }
                     }
