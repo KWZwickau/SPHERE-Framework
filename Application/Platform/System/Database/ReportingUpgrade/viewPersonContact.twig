@@ -104,7 +104,7 @@ SELECT
             -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
             ' ',
             vCP.TblToPerson_Remark
-            ) separator '<br/>'
+            ) separator ' - \n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
     ) TblPhone_Number,
@@ -118,7 +118,7 @@ SELECT
             -- case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end, doesn't work if searched
             ' ',
             vCM.TblToPerson_Remark
-            ) separator '<br/>'
+            ) separator ';\n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         where tP.Id = vCM.TblPerson_Id
     ) TblMail_Address,

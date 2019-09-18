@@ -115,7 +115,7 @@ select
             ': ',
             vCP.TblPhone_Number,
             vCP.TblToPerson_Remark
-            ) separator ' - \n\r'
+            ) separator ' - \n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_Authorized_Id
     ) TblPhone_Number_Bev,
@@ -128,7 +128,7 @@ select
             vCM.TblMail_Address,
             case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
             vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_Authorized_Id
     ) TblMail_Address_Bev,
