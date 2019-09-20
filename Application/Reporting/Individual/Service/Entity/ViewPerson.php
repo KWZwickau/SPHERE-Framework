@@ -39,6 +39,9 @@ class ViewPerson extends AbstractView
     const TBL_PERSON_CALL_NAME = 'TblPerson_CallName';
     const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
     const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
+    // Special Column #SSW-704
+    const TBL_PERSON_FIRST_LAST_NAME = 'TblPerson_FirstLastName';
+    const TBL_PERSON_LAST_FIRST_NAME = 'TblPerson_LastFirstName';
 
     const TBL_GROUP_GROUP_LIST = 'TblGroup_GroupList';
 
@@ -99,6 +102,14 @@ class ViewPerson extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_FirstLastName;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_LastFirstName;
+    /**
+     * @Column(type="string")
+     */
     protected $TblGroup_GroupList;
     /**
      * @Column(type="string")
@@ -146,6 +157,9 @@ class ViewPerson extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Person: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Person: Geburtsname');
 
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_LAST_NAME, 'Person: Vorname Nachname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_FIRST_NAME, 'Person: Nachname Vorname');
+
         $this->setNameDefinition(self::TBL_GROUP_GROUP_LIST, 'Person: Gruppenliste');
 
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Person: Geburtstag');
@@ -165,6 +179,8 @@ class ViewPerson extends AbstractView
             self::TBL_PERSON_SECOND_NAME,
             self::TBL_PERSON_CALL_NAME,
             self::TBL_PERSON_LAST_NAME,
+            self::TBL_PERSON_FIRST_LAST_NAME,
+            self::TBL_PERSON_LAST_FIRST_NAME,
 //            self::TBL_PERSON_BIRTH_NAME,
         ));
         $this->setGroupDefinition('Personendaten', array(
@@ -180,7 +196,8 @@ class ViewPerson extends AbstractView
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
-//        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_FIRST_LAST_NAME);
+        $this->setDisableDefinition(self::TBL_PERSON_LAST_FIRST_NAME);
     }
 
     /**

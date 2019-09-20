@@ -8,6 +8,18 @@ SELECT
     tP.SecondName AS TblPerson_SecondName,
     tP.CallName AS TblPerson_CallName,
     tP.BirthName AS TblPerson_BirthName,
+    concat(
+        tP.FirstName, ' ',
+        tP.SecondName,
+        IF(tP.SecondName = '', ' ', ''),
+        tP.LastName
+    ) as TblPerson_FirstLastName,
+    concat(
+        tP.LastName, ' ',
+        tP.FirstName,
+        IF(tP.SecondName = '', ' ', ''),
+        tP.SecondName
+    ) as TblPerson_LastFirstName,
     tP.EntityRemove AS TblPerson_EntityRemove,
 -- tblType
     tS.Salutation AS TblSalutation_Salutation,
@@ -29,17 +41,17 @@ SELECT
             concat(tG.Name)
             separator ', '
         )
-    from PeopleGroup_REF.tblMember tM
-        LEFT JOIN PeopleGroup_REF.tblGroup tG ON tG.Id = tM.tblGroup
+    from PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
+        LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.tblGroup
 	where tM.serviceTblPerson = tP.Id
         and tG.Name != 'Alle'
     ) TblGroup_GroupList
 
-FROM PeoplePerson_REF.tblPerson tP
-    LEFT JOIN PeoplePerson_REF.tblSalutation tS ON tS.Id = tP.tblSalutation
-    LEFT JOIN PeopleMeta_REF.tblCommon tC ON tC.serviceTblPerson = tP.Id
-    LEFT JOIN PeopleMeta_REF.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
-    LEFT JOIN PeopleMeta_REF.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
-    LEFT JOIN PeopleMeta_REF.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
+FROM PeoplePerson_{{ ConsumerAcronym }}.tblPerson tP
+    LEFT JOIN PeoplePerson_{{ ConsumerAcronym }}.tblSalutation tS ON tS.Id = tP.tblSalutation
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommon tC ON tC.serviceTblPerson = tP.Id
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
 
 WHERE tP.EntityRemove IS NULL

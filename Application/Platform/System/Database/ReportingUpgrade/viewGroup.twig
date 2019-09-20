@@ -9,8 +9,8 @@ SELECT
     tG.Remark AS TblGroup_Remark,
     tG.MetaTable AS TblGroup_MetaTable
 
-FROM PeopleGroup_REF.tblMember tM
-    LEFT JOIN PeopleGroup_REF.tblGroup tG ON tG.Id = tM.TblGroup
+FROM PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
+    LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.TblGroup
         AND tG.EntityRemove IS NULL
 
 WHERE tM.EntityRemove IS NULL
