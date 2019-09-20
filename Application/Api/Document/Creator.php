@@ -21,8 +21,6 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchoo
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
-use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
-use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -594,21 +592,23 @@ class Creator extends Extension
             && ($tblDocument = \SPHERE\Application\Billing\Inventory\Document\Document::useService()->getDocumentById($Data['Document']))
         ) {
             if (isset($Data['PersonId']) && ($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
-                $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
-                $PriceList = Balance::useService()->getPriceListByPerson(
+                $BasketTypeId = $Data['BasketType'];
+                $PriceList = Balance::useService()->getPriceListByItemAndPerson(
                     $tblItem,
                     $Data['Year'],
                     $Data['From'],
                     $Data['To'],
                     $tblPerson,
-                    $tblBasketType
+                    $BasketTypeId
                 );
+                // Summe berechnen
+                $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
             } else {
-                $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                $BasketTypeId = $Data['BasketType'];
                 $PriceList = Balance::useService()->getPriceListByItemAndYear(
                     $tblItem,
                     $Data['Year'],
-                    $tblBasketType,
+                    $BasketTypeId,
                     $Data['From'],
                     $Data['To'],
                     isset($Data['Division']) ? $Data['Division'] : '0',
@@ -635,40 +635,42 @@ class Creator extends Extension
                 }
                 foreach($PriceList as $DebtorId => $CauserList) {
                     if (($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))) {
-                        foreach ($CauserList as $CauserId => $Value) {
-                            if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))) {
-                                $countPdfs++;
-                                // nur die Pdfs der ausgewählten Liste herunterladen
-                                if ($isList) {
-                                    $maxPdfPages = Balance::useFrontend()->getMaxPdfPages();
-                                    if ($countPdfs > $maxPdfPages * $list && $countPdfs <= $maxPdfPages * ($list + 1)) {
-                                        // werden hinzugefügt
-                                    } else {
-                                        continue;
+                        foreach ($CauserList as $CauserId => $ItemList) {
+                            foreach ($ItemList as $ItemId => $Value) {
+                                if (($tblPersonCauser = Person::useService()->getPersonById($CauserId))){
+                                    $countPdfs++;
+                                    // nur die Pdfs der ausgewählten Liste herunterladen
+                                    if ($isList){
+                                        $maxPdfPages = Balance::useFrontend()->getMaxPdfPages();
+                                        if ($countPdfs > $maxPdfPages * $list && $countPdfs <= $maxPdfPages * ($list + 1)){
+                                            // werden hinzugefügt
+                                        } else {
+                                            continue;
+                                        }
                                     }
-                                }
 
-                                if (isset($Value['Sum'])) {
-                                    $TotalPrice = number_format($Value['Sum'], 2, ',', '.') . ' €';
-                                } else {
-                                    $TotalPrice = '0,00 €';
-                                }
+                                    if (isset($Value['Sum'])){
+                                        $TotalPrice = number_format($Value['Sum'], 2, ',', '.').' €';
+                                    } else {
+                                        $TotalPrice = '0,00 €';
+                                    }
 
-                                $Content = $template->createSingleDocument(
-                                    $tblPersonDebtor, $tblPersonCauser, $TotalPrice
-                                );
-                                // Create Tmp
-                                $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
-                                $clone[] = clone $File;
-                                // build before const is set (picture)
-                                /** @var DomPdf $Document */
-                                $Document = PdfDocument::getPdfDocument($File->getFileLocation());
-                                $Document->setContent($Content);
-                                $Document->saveFile(new FileParameter($File->getFileLocation()));
-                                // hinzufügen für das mergen
-                                $PdfMerger->addPDF($File);
-                                // speichern der Files zum nachträglichem bereinigen
-                                $FileList[] = $File;
+                                    $Content = $template->createSingleDocument(
+                                        $tblPersonDebtor, $tblPersonCauser, $TotalPrice
+                                    );
+                                    // Create Tmp
+                                    $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
+                                    $clone[] = clone $File;
+                                    // build before const is set (picture)
+                                    /** @var DomPdf $Document */
+                                    $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+                                    $Document->setContent($Content);
+                                    $Document->saveFile(new FileParameter($File->getFileLocation()));
+                                    // hinzufügen für das mergen
+                                    $PdfMerger->addPDF($File);
+                                    // speichern der Files zum nachträglichem bereinigen
+                                    $FileList[] = $File;
+                                }
                             }
                         }
                     }
@@ -686,7 +688,7 @@ class Creator extends Extension
                     }
                 }
 
-                $FileName = 'Belegdruck_' . $tblItem->getName() . ($isList ? '_Liste_' . ($list + 1) : '') . '_' . date("Y-m-d") . ".pdf";
+                $FileName = 'Bescheinigung_' . $tblItem->getName() . ($isList ? '_Liste_' . ($list + 1) : '') . '_' . date("Y-m-d") . ".pdf";
 
                 return FileSystem::getStream(
                     $MergeFile->getRealPath(),
@@ -695,7 +697,7 @@ class Creator extends Extension
             }
         }
 
-        return new Stage('Belegdruck', 'Konnte nicht erstellt werden.');
+        return new Stage('Bescheinigung', 'Konnte nicht erstellt werden.');
     }
 
     /**
