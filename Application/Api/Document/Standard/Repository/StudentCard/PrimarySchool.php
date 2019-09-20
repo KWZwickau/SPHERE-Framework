@@ -658,7 +658,13 @@ class PrimarySchool extends AbstractStudentCard
                         , '25%')
                     ->addSliceColumn((new Slice())
                         ->addSection((new Section())
-                            ->addSliceColumn($this->setCheckBox(), '4%')
+                            ->addSliceColumn($this->setCheckBox(
+                                '{% if(Content.Student.School.Education.Recommendation.OS is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            ), '4%')
                             ->addElementColumn((new Element())
                                 ->setContent('Mittelschule')
                                 ->styleTextSize($InputText)
@@ -668,7 +674,13 @@ class PrimarySchool extends AbstractStudentCard
                                 , '21%')
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->setCheckBox(), '4%')
+                            ->addSliceColumn($this->setCheckBox(
+                                '{% if(Content.Student.School.Education.Recommendation.GYM is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            ), '4%')
                             ->addElementColumn((new Element())
                                 ->setContent('Gymnasium')
                                 ->styleTextSize($InputText)
