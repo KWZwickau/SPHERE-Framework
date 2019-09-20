@@ -755,6 +755,16 @@ class Service extends AbstractService
 
     ){
 
+        // nicht benötigte Informationen entfernen
+        switch($tblPaymentType->getName()){
+            case 'Bar':
+                $tblBankAccount = null;
+                $tblBankReference = null;
+                break;
+            case 'SEPA-Überweisung':
+                $tblBankReference = null;
+        }
+
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
             $tblPaymentType, $Value, $tblItemVariant, $tblBankAccount, $tblBankReference);

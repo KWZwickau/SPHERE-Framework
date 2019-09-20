@@ -815,10 +815,13 @@ class ApiBasketVerification extends Extension implements IApiInterface
         if($DebtorSelection['Variant'] == '-1'){
             $Value = $ItemPrice = $DebtorSelection['Price'];
         }
-        if($tblPaymentType && $tblPaymentType->getName() != 'SEPA-Lastschrift'){
+        if($tblPaymentType && $tblPaymentType->getName() == 'Bar'){
             $tblBankAccount = false;
             $tblBankReference = false;
-        } else {
+        } elseif($tblPaymentType->getName() == 'SEPA-Überweisung') {
+            $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
+            $tblBankReference = false;
+        } elseif($tblPaymentType->getName() == 'SEPA-Lastschrift') {
             $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
             $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
         }
