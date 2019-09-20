@@ -706,7 +706,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $AddPersonButton
             , 2)),
             new LayoutRow(new LayoutColumn(
-                new Warning(' Es sind keine Einträge zur Abrechnung vorhanden. Bitte fügen sie Personen hinzu,
+                new Warning(' Bitte fügen sie Personen hinzu,
                  die eine Gutschrift für die Beitragsart '.$ItemName.' erhalten sollen.', new WarningIcon())
             ))
         )));
