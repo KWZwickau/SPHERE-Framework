@@ -10,6 +10,8 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -193,8 +195,8 @@ abstract class AbstractDocument
     private function allocateStudent(&$Data)
     {
 
-        if ($this->getTblPerson()) {
-            if (($tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($this->getTblPerson()))) {
+        if (($tblPerson = $this->getTblPerson())) {
+            if (($tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
                 foreach ($tblDivisionList as $tblDivision) {
                     if (!$tblDivision->getTblLevel()->getIsChecked()) {
                         $Data['Student']['Division']['Name'] = $tblDivision->getDisplayName();
@@ -203,7 +205,7 @@ abstract class AbstractDocument
                 }
             }
 
-            if (($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))) {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
 
                 $Data['Student']['Identifier'] = $tblStudent->getIdentifierComplete();
 
@@ -224,6 +226,26 @@ abstract class AbstractDocument
                             if ($tblStudentSchoolEnrollmentType->getIdentifier() == 'REGULAR') {
                                 $Data['Student']['School']['Enrollment']['Regular'] = 'X';
                             }
+                        }
+                    }
+                }
+
+                // Bildungsempfehlung für Oberschule/Gymnasium
+                if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BeGs'))
+                    && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPerson($tblPerson, $tblCertificate ))
+                ) {
+                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                        if ($tblPrepareStudent->isPrinted()
+                            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'SchoolType'))
+                        ) {
+                            if (strpos($tblPrepareInformation->getValue(), 'Oberschule') !== false) {
+                                $Data['Student']['School']['Education']['Recommendation']['OS'] = 'X';
+                            } else {
+                                $Data['Student']['School']['Education']['Recommendation']['GYM'] = 'X';
+                            }
+
+                            break;
                         }
                     }
                 }
