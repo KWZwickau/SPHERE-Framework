@@ -803,10 +803,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         if($DebtorSelection['Variant'] == '-1'){
             $ItemPrice = $DebtorSelection['Price'];
         }
-        if($tblPaymentType && $tblPaymentType->getName() != 'SEPA-Lastschrift'){
+        if($tblPaymentType && $tblPaymentType->getName() == 'Bar'){
             $tblBankAccount = false;
             $tblBankReference = false;
-        } else {
+        } elseif($tblPaymentType->getName() == 'SEPA-Überweisung') {
+            $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
+            $tblBankReference = false;
+        } elseif($tblPaymentType->getName() == 'SEPA-Lastschrift') {
             $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
             $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
         }
@@ -884,7 +887,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $ItemPrice = $DebtorSelection['Price'];
         }
 
-        if(!isset($DebtorSelection['BankAccount']) || $DebtorSelection['BankAccount'] == '-1'){
+        if($tblPaymentType && $tblPaymentType->getName() == 'Bar' || $DebtorSelection['BankAccount'] == '-1'){
             $tblBankAccount = false;
             $tblBankReference = false;
         } else {
@@ -899,6 +902,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
                 Group::useService()->addGroupPerson($tblGroup, $tblPerson);
             }
+
             $IsChange = Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
                 $tblDebtorPeriodType, $FromDate, $ToDate, ($tblItemVariant ? $tblItemVariant : null), $ItemPrice,
                 ($tblBankAccount ? $tblBankAccount : null), ($tblBankReference ? $tblBankReference : null)
