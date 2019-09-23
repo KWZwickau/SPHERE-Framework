@@ -36,7 +36,7 @@ abstract class CmsStyle extends Certificate
                     ->styleTextSize('30px')
                     ->stylePaddingTop('20px')
                     , '33%')
-                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
+                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS.jpg',
                     'auto', $PictureHeight.'px'))
                     ->styleAlignCenter()
                     , '34%')
@@ -49,7 +49,7 @@ abstract class CmsStyle extends Certificate
             $Header = (new Slice)->addSection((new Section())
                 ->addElementColumn((new Element())
                     , '33%')
-                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
+                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS.jpg',
                     'auto', $PictureHeight.'px'))
                     ->styleAlignCenter()
                     , '34%')

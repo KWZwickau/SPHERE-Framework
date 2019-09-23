@@ -25,7 +25,7 @@ abstract class EsrlStyle extends Certificate
     {
 
         $PictureSection = (new Section())
-            ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/ESRL_Zeugnis_Logo.jpg',
+            ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/ESRL.jpg',
                 'auto', $PictureHeight))
                 , '60%')
 //                    ->addElementColumn((new Element()), '25%')

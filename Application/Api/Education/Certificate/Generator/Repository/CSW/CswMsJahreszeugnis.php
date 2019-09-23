@@ -54,7 +54,7 @@ class CswMsJahreszeugnis extends Certificate
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                     )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_Logo_EOK_100x100.jpg',
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg',
                         'auto', $pictureHeight))->styleAlignRight()
                         , '25%')
                 );
@@ -62,7 +62,7 @@ class CswMsJahreszeugnis extends Certificate
             $Header = (new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element()), '75%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_Logo_EOK_100x100.jpg',
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg',
                         'auto', $pictureHeight))->styleAlignRight()
                         , '25%')
                 );

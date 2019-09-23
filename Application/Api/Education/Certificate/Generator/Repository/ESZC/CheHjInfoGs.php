@@ -32,9 +32,6 @@ class CheHjInfoGs extends Certificate
         if ($this->isSample()) {
             $Header = (new Slice())
                 ->addSection((new Section())
-//                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ChemnitzLogo.jpg',
-//                        '60px', '60px'))
-//                        , '25%')
                     ->addElementColumn((new Element()), '25%')
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
@@ -48,9 +45,6 @@ class CheHjInfoGs extends Certificate
         } else {
             $Header = (new Slice())
                 ->addSection((new Section())
-//                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ChemnitzLogo.jpg',
-//                        '60px', '60px'))
-//                        , '25%')
                     ->addElementColumn((new Element()), '25%')
                     ->addElementColumn((new Element()))
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
