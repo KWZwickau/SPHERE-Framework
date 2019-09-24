@@ -368,8 +368,13 @@ class ClassRegister implements IApplicationInterface
                     } else {
                         $MedicalRecord = '';
                     }
-                    $Agreement = (new Standard('', ApiAgreementReadOnly::getEndpoint(), new EyeOpen()))
-                        ->ajaxPipelineOnClick(ApiAgreementReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    if ($tblStudent
+                        && Student::useService()->getStudentAgreementAllByStudent($tblStudent)){
+                        $Agreement = (new Standard('', ApiAgreementReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiAgreementReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    } else {
+                        $Agreement = '';
+                    }
 
                     $studentTable[] = array(
                         'Number'        => (count($studentTable) + 1),
