@@ -979,7 +979,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Birthplace'   => 'Geburtsort',
                                 'Address'      => 'Adresse',
                                 'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt'),
+                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; V=Vormund'),
                                 'Mail'         => 'E-Mail',
 
                             ),
