@@ -2944,7 +2944,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 !empty($personList)
                                     ? new Well(Prepare::useService()->updatePrepareSetSigner($form,
                                     $tblPrepare, $tblGroup ? $tblGroup : null, $Data, $Route))
-                                    : new Warning('Für diese Klasse sind keine Klassenlehrer/Mentoren/Tudoren vorhanden.')
+                                    : new Warning('Für diese Klasse sind keine Klassenlehrer/Mentoren/Tutoren vorhanden.')
                             )),
                         ))
                     ))
