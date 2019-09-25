@@ -1970,6 +1970,11 @@ class Frontend extends Extension implements IFrontendInterface
                 , array('Id' => $tblSerialLetter->getId()));
         }
 
+        $PanelButtonContent = new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn($Buttons, 5),
+            new LayoutColumn(new WarningMessage('Die automatische Adresszuordnung erfolgt nur bei Personen, wo noch keine Serienbrief Adresse zugewiesen wurde.'), 7)
+        ))));
+
         $TableShow =
             new TableData($TableContent, null, array(
                     'Name'          => 'Name',
@@ -2018,7 +2023,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         ), 6),
                                         new LayoutColumn(array(
                                                 new Title('Adressauswahl', 'Automatik'),
-                                                new Panel('Adressen von untenstehenden Personen', $Buttons
+                                                new Panel('Adressen von untenstehenden Personen', $PanelButtonContent
                                                     , Panel::PANEL_TYPE_INFO))
                                             , 6)
                                     ))
