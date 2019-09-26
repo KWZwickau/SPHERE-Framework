@@ -1971,8 +1971,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $PanelButtonContent = new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn($Buttons, 5),
-            new LayoutColumn(new WarningMessage('Die automatische Adresszuordnung erfolgt nur bei Personen, wo noch keine Serienbrief Adresse zugewiesen wurde.'), 7)
+            new LayoutColumn(implode('<br/><br/>',$Buttons), 5),
+            new LayoutColumn(new WarningMessage('Die automatische Adresszuordnung erfolgt nur bei Personen, bei denen noch keine Serienbrief-Adresse zugewiesen wurde.'), 7)
         ))));
 
         $TableShow =
