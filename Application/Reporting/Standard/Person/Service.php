@@ -18,6 +18,7 @@ use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -3343,6 +3344,136 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(25);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $tblPersonList
+     *
+     * @return array
+     */
+    public function createClubList()
+    {
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CLUB));
+        $TableContent = array();
+        if (!empty($tblPersonList)) {
+
+            if(($tblYear = Term::useService()->getYearByNow())){
+                $tblYear = current($tblYear);
+            }
+//            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblYear) {
+                $IsOneRow = true;
+                $Item['Number'] = '';
+                $Item['Title'] = $tblPerson->getTitle();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
+                /** @var TblYear $tblYear */
+                $Item['Year'] = $tblYear->getYear();
+
+                if(($tblClub = Club::useService()->getClubByPerson($tblPerson))){
+                    $Item['Number'] = $tblClub->getIdentifier();
+                }
+
+                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                    foreach($tblToPersonList as $tblToPerson){
+                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                        $Item['StudentFirstName'] = $tblPersonStudent->getFirstSecondName();
+                        $Item['StudentLastName'] = $tblPersonStudent->getLastName();
+                        $Item['activeDivision'] = '';
+                        $Item['individualPersonGroup'] = '';
+                        if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){
+                            $Item['activeDivision'] = $tblDivision->getDisplayName();
+                        }
+                        $PersonGroupList = array();
+                        if(($tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPersonStudent))){
+                            foreach($tblPersonGroupList as $tblPersonGroup){
+                                // nur individuelle Personengruppen
+                                if(!$tblPersonGroup->getMetaTable()){
+                                    $PersonGroupList[] = $tblPersonGroup->getName();
+                                }
+                            }
+                        }
+                        if(!empty($PersonGroupList)){
+                            $Item['individualPersonGroup'] = implode(', ', $PersonGroupList);
+                        }
+                        // Jeder Schüler bekommt eigene Spalte (Vereinsmitglied steht mehrmals da)
+                        // Nur Schüler aufnehmen, die eine aktuelle Klasse besitzen
+                        if($Item['activeDivision']){
+                            array_push($TableContent, $Item);
+                            $IsOneRow = false;
+                        }
+
+                    }
+                }
+                // Wurde keine Zeile Erzeugt, so steht das Vereinsmitglied ohne weitere Informationen da.
+                if($IsOneRow){
+                    $Item['Year'] = '';
+                    $Item['StudentFirstName'] = '';
+                    $Item['StudentLastName'] = '';
+                    $Item['activeDivision'] = '';
+                    $Item['individualPersonGroup'] = '';
+                    array_push($TableContent, $Item);
+                }
+            });
+        }
+
+        $Number = array();
+        $Name = array();
+        foreach ($TableContent as $key => $row) {
+            $Number[$key] = $row['Number'];
+            $Name[$key] = $row['LastName'];
+        }
+        array_multisort($Number, SORT_ASC, $Name, SORT_ASC, $TableContent);
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $PersonList
+     *
+     * @return bool|FilePointer
+     */
+    public function createClubListExcel($PersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell(0, 0), "Mitgliedsnummer");
+            $export->setValue($export->getCell(1, 0), "Titel");
+            $export->setValue($export->getCell(2, 0), "Name");
+            $export->setValue($export->getCell(3, 0), "Vorname");
+            $export->setValue($export->getCell(4, 0), "Schüler Name");
+            $export->setValue($export->getCell(5, 0), "Schüler Vorname");
+            $export->setValue($export->getCell(6, 0), "Schuljahr");
+            $export->setValue($export->getCell(7, 0), "Klasse");
+            $export->setValue($export->getCell(8, 0), "Personengruppen");
+
+            $Row = 1;
+            foreach ($PersonList as $PersonData) {
+
+                $export->setValue($export->getCell(0, $Row), $PersonData['Number']);
+                $export->setValue($export->getCell(1, $Row), $PersonData['Title']);
+                $export->setValue($export->getCell(2, $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell(3, $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell(4, $Row), $PersonData['StudentLastName']);
+                $export->setValue($export->getCell(5, $Row), $PersonData['StudentFirstName']);
+                $export->setValue($export->getCell(6, $Row), $PersonData['Year']);
+                $export->setValue($export->getCell(7, $Row), $PersonData['activeDivision']);
+                $export->setValue($export->getCell(8, $Row), $PersonData['individualPersonGroup']);
+                $Row++;
+            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

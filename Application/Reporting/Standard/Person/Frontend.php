@@ -1563,4 +1563,59 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $stage;
     }
+
+    /**
+     * @return Stage
+     */
+    public function frontendClub()
+    {
+
+        $Stage = new Stage('Auswertung', 'Fördervereinsmitgliedschaft');
+        $PersonList = Person::useService()->createClubList();
+        if ($PersonList) {
+            $Stage->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Standard/Person/ClubList/Download', new Download())
+            );
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'Number'                => 'Mitgliedsnummer',
+                                    'Title'                 => 'Titel',
+                                    'LastName'              => 'Name',
+                                    'FirstName'             => 'Vorname',
+                                    'StudentLastName'       => 'Schüler Name',
+                                    'StudentFirstName'      => 'Schüler Vorname',
+                                    'Year'                  => 'Schuljahr',
+                                    'activeDivision'        => 'Klasse',
+                                    'individualPersonGroup' => 'Personengruppen',
+                                ),
+                                array(
+                                    'order' => array(
+                                        array(0, 'asc'),
+                                        array(2, 'asc')
+                                    ),
+                                    "pageLength" => -1,
+                                    "responsive" => false,
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(2, 3, 5, 6)),
+                                    ),
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
 }

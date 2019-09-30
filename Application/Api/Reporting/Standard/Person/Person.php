@@ -282,4 +282,21 @@ class Person
 
         return false;
     }
+
+    /**
+     * @return string|bool
+     */
+    public function downloadClubList()
+    {
+
+        $PersonList = ReportingPerson::useService()->createClubList();
+        if ($PersonList) {
+            $fileLocation = ReportingPerson::useService()->createClubListExcel($PersonList);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Fördervereinsmitgliedschaft ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return false;
+    }
 }
