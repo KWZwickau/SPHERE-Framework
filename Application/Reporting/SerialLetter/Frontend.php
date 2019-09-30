@@ -177,17 +177,17 @@ class Frontend extends Extension implements IFrontendInterface
                         .
                         ( $tblFilterCategory
                             ? ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
-                                array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Addressen auswählen') )
+                                array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Adressen auswählen') )
                             : ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
-                                array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
+                                array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen') )
                         )
                         .( $tblFilterCategory
                             ? ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
                                 array('Id' => $tblSerialLetter->getId(), 'Control' => true),
-                                'Addressliste für Serienbriefe anzeigen und herunterladen') )
+                                'Adressliste für Serienbriefe anzeigen und herunterladen') )
                             : ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
                                 array('Id' => $tblSerialLetter->getId()),
-                                'Addressliste für Serienbriefe anzeigen und herunterladen') )
+                                'Adressliste für Serienbriefe anzeigen und herunterladen') )
                         );
                 }
 
@@ -406,9 +406,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-        $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+        $Stage->addButton(new Standard('Adressliste', '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
-            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+            'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
         $FormSerialLetter = (new SerialLetterForm())->formSerialLetter()
             ->appendFormButton(new Primary('Speichern', new Save()))
@@ -807,9 +807,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-        $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+        $Stage->addButton(new Standard('Adressliste', '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
-            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+            'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
         $Filter = false;
         // No Filter Detected
@@ -1628,9 +1628,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard(new Bold(new Info('Adressen Auswahl')), '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-        $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+        $Stage->addButton(new Standard('Adressliste', '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
-            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+            'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
         $TableContent = array();
         $tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter);
@@ -1778,9 +1778,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard(new Bold(new Info('Adressen Auswahl')), '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-        $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+        $Stage->addButton(new Standard('Adressliste', '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
-            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+            'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
 
@@ -2202,9 +2202,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-        $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+        $Stage->addButton(new Standard('Adressliste', '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
-            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+            'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
         $tblPerson = Person::useService()->getPersonById($PersonId);
         if (!$tblPerson) {
@@ -2456,7 +2456,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(array(
-                                new Title(new Listing().' Addressen', 'Auswahl')
+                                new Title(new Listing().' Adressen', 'Auswahl')
                             , new Layout(
                                     new LayoutGroup(
                                         new LayoutRow(array(
@@ -2484,7 +2484,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Title(new Listing().'  Addressen', 'Auswahl')
+                                new Title(new Listing().'  Adressen', 'Auswahl')
                                 , 12),
                             new LayoutColumn(
                                 new Panel('Serienbrief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter
@@ -2547,9 +2547,9 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
                 array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-            $Stage->addButton(new Standard(new Bold(new Info('Addressliste')), '/Reporting/SerialLetter/Export', new View(),
+            $Stage->addButton(new Standard(new Bold(new Info('Adressliste')), '/Reporting/SerialLetter/Export', new View(),
                 array('Id' => $tblSerialLetter->getId()),
-                'Addressliste für Serienbriefe anzeigen und herunterladen'));
+                'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
             $dataList = array();
             $columnList = array(
@@ -2903,9 +2903,9 @@ class Frontend extends Extension implements IFrontendInterface
             array('Id' => $tblSerialLetter->getId()), 'Aktuelle Filterung anzeigen'));
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-        $Stage->addButton(new Standard(new Bold(new Info('Addressliste')), '/Reporting/SerialLetter/Export', new View(),
+        $Stage->addButton(new Standard(new Bold(new Info('Adressliste')), '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
-            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+            'Adressliste für Serienbriefe anzeigen und herunterladen'));
 
         $TableContent = array();
         $columnList = array(

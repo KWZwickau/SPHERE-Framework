@@ -482,7 +482,7 @@ class ClassRegister implements IApplicationInterface
                                     'MedicalRecord' => 'Krankenakte',
                                     'Agreement'     => 'Einverständnis',
                                     'Gender'        => 'Geschlecht',
-                                    'Address'       => 'Addresse',
+                                    'Address'       => 'Adresse',
                                     'Birthday'      => 'Geburtsdatum',
                                     'Course'        => 'Bildungsgang',
                                     'Absence'       => 'Fehlzeiten (E, U)',
