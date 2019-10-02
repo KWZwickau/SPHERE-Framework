@@ -53,7 +53,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
-use SPHERE\Common\Frontend\Text\Repository\Success as SuccessTet;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -395,8 +394,7 @@ class ApiBasket extends Extension implements IApiInterface
             // zusatzinhalt nur bei Gutschriften
             $rightForm = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))));
             if($Type == TblBasketType::IDENT_GUTSCHRIFT){
-                $IsAdd = false;
-                $rightForm = $this->getRightFormColumn($Type, $IsAdd);
+                $rightForm = $this->getRightFormColumn($Type);
             }
 
             $Content = (new Form(new FormGroup(new FormRow(array(
@@ -452,12 +450,9 @@ class ApiBasket extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $Type
-     * @param bool   $IsAdd
-     *
      * @return array
      */
-    private function getRightFormColumn($Type, $IsAdd = true)
+    private function getRightFormColumn($Type)
     {
         if($Type == TblBasketType::IDENT_GUTSCHRIFT){
             $Account = '(Standard) ';
@@ -468,18 +463,12 @@ class ApiBasket extends Extension implements IApiInterface
             if(($tblSettingToAccount = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_TO_ACCOUNT))){
                 $ToAccount .= $tblSettingToAccount->getValue();
             }
-            $tblItemList = Item::useService()->getItemAll();
-            $SelectBox = new SuccessTet('');
-            if($IsAdd){
-                $SelectBox = new SelectBox('Basket[Item]', 'Beitragsart', array('{{ Name }}' => $tblItemList));
-            }
 
-            return array(
-                new Panel('Fibu'.new DangerText('*'), array(
-                    new TextField('Basket[FibuAccount]', $Account, 'Konto'),
-                    new TextField('Basket[FibuToAccount]', $ToAccount, 'Gegenkonto'),
-                    $SelectBox
-                ), Panel::PANEL_TYPE_INFO));
+            return array(new Panel('Fibu'.new DangerText('*'), array(
+                new TextField('Basket[FibuAccount]', $Account, 'Konto'),
+                new TextField('Basket[FibuToAccount]', $ToAccount, 'Gegenkonto'),
+            ), Panel::PANEL_TYPE_INFO));
+
         } else {
             $CheckboxList = '';
             if(($tblItemList = Item::useService()->getItemAll())){
@@ -607,11 +596,6 @@ class ApiBasket extends Extension implements IApiInterface
             $Warning[] = 'Es wird mindestens eine Beitragsart benötigt';
             $Error = true;
         }
-        // Gutschrift mit Selectbox (eine)
-        if($BasketId == '' && $Basket['Item'] === '0'){
-            $form->setError('Basket[Item]', 'Es wird eine Beitragsart benötigt');
-            $Error = true;
-        }
 
         $WarningText = '';
         if(!empty($Warning)){
@@ -666,23 +650,13 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
             $Global->POST['Basket']['BillTime'] = $Basket['BillTime'];
             $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
-            switch ($Type){
-                case TblBasketType::IDENT_ABRECHNUNG:
-                case TblBasketType::IDENT_AUSZAHLUNG:
-                    $Global->POST['Basket']['Division'] = (isset($Basket['Division']) ? $Basket['Division'] : '');
-                    $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
-                    $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
-                    if(isset($Basket['Item']) && is_array($Basket['Item'])){
-                        foreach($Basket['Item'] as $ItemId) {
-                                $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
-                        }
-                    }
-                break;
-                case TblBasketType::IDENT_GUTSCHRIFT:
-                    $Global->POST['Basket']['Item'] = $Basket['Item'];
-                    $Global->POST['Basket']['FibuAccount'] = $Basket['FibuAccount'];
-                    $Global->POST['Basket']['FibuToAccount'] = $Basket['FibuToAccount'];
-                break;
+            $Global->POST['Basket']['Division'] = (isset($Basket['Division']) ? $Basket['Division'] : '');
+            $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
+            $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
+            if(isset($Basket['Item']) && is_array($Basket['Item'])){
+                foreach($Basket['Item'] as $ItemId) {
+                    $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
+                }
             }
             $Global->savePost();
             return $form;
@@ -690,50 +664,29 @@ class ApiBasket extends Extension implements IApiInterface
 
         $tblBasketType = Basket::useService()->getBasketTypeByName($Type);
 
-        if($Type == TblBasketType::IDENT_GUTSCHRIFT){
 
-            $FibuAccount = $FibuToAccount = '';
-            // Fibu Daten durch Eingaben (wenn getätigt) füllen sonnst wird der Standard Wert gezogen.
-            if(isset($Basket['FibuAccount']) && $Basket['FibuAccount']) {
-                $FibuAccount = $Basket['FibuAccount'];
-            }
-            if(isset($Basket['FibuToAccount']) && $Basket['FibuToAccount']) {
-                $FibuToAccount = $Basket['FibuToAccount'];
-            }
-            $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-                , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], null, null,
-                null, $FibuAccount, $FibuToAccount);
-        } else {
-            if(!isset($Basket['Division'])
-                || !$Basket['Division']
-                || !($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
-                $tblDivision = null;
-            }
-            if(!isset($Basket['SchoolType'])
-                || !$Basket['SchoolType']
-                || !($tblType = Type::useService()->getTypeById($Basket['SchoolType']))){
-                $tblType = null;
-            }
-            if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
-                $tblDebtorPeriodType = null;
-            }
-            $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-                , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivision, $tblType,
-                $tblDebtorPeriodType);
+        if(!isset($Basket['Division'])
+            || !$Basket['Division']
+            || !($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
+            $tblDivision = null;
         }
+        if(!isset($Basket['SchoolType'])
+            || !$Basket['SchoolType']
+            || !($tblType = Type::useService()->getTypeById($Basket['SchoolType']))){
+            $tblType = null;
+        }
+        if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
+            $tblDebtorPeriodType = null;
+        }
+        $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivision, $tblType,
+            $tblDebtorPeriodType);
 
-        $tblItemList = array();
-        if($Type == TblBasketType::IDENT_GUTSCHRIFT){
-            $tblItem = Item::useService()->getItemById($Basket['Item']);
-            if($tblItem){
+
+        foreach($Basket['Item'] as $ItemId) {
+            if(($tblItem = Item::useService()->getItemById($ItemId))){
+                $tblItemList[] = $tblItem;
                 Basket::useService()->createBasketItem($tblBasket, $tblItem);
-            }
-        } else {
-            foreach($Basket['Item'] as $ItemId) {
-                if(($tblItem = Item::useService()->getItemById($ItemId))){
-                    $tblItemList[] = $tblItem;
-                    Basket::useService()->createBasketItem($tblBasket, $tblItem);
-                }
             }
         }
 
@@ -745,10 +698,6 @@ class ApiBasket extends Extension implements IApiInterface
         $MissingItemPriceList[] = 'Beitragsart - Variante';
         $isCreate = false;
         $PersonMissing = array();
-        if($Type == TblBasketType::IDENT_GUTSCHRIFT){
-            // Gutschriften sind ohne Zahlungszuweisungen fertig
-            return new Success('Abrechnung erfolgreich angelegt').self::pipelineCloseModal($Identifier);
-        }
         if(!empty($tblItemList)){
 
             // Kontrolle, ob alle Varianten zum Fälligkeitsdatum ein gültigen Preis haben
