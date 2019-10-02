@@ -132,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if (empty($divisionTable)) {
                     $table = new Warning('Das pädagogisches Tagebuch steht 
-                        nur Klassenlehrern und Tudoren zur Verfügung.', new Exclamation());
+                        nur Klassenlehrern und Tutoren zur Verfügung.', new Exclamation());
                 } else {
                     $table = new TableData($divisionTable, null, array(
                         'Group' => 'Gruppe',
@@ -177,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if (empty($divisionTable)) {
                     $table = new Warning('Das pädagogisches Tagebuch steht 
-                        nur Klassenlehrern und Tudoren zur Verfügung.', new Exclamation());
+                        nur Klassenlehrern und Tutoren zur Verfügung.', new Exclamation());
                 } else {
                     $table = new TableData($divisionTable, null, array(
                         'Year' => 'Schuljahr',
