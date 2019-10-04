@@ -726,7 +726,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Price'] = ApiBasketRepaymentAddPerson::receiverItemPrice(
                         new Form(new FormGroup(new FormRow(new FormColumn(
                         (new TextField('Price['.$tblBasketVerification->getId().']'))
-                            ->ajaxPipelineOnChange(ApiBasketRepaymentAddPerson::pipelineChangePrice($tblBasketVerification->getId()))
+                            ->ajaxPipelineOnChange(ApiBasketRepaymentAddPerson::pipelineCheckPrice($tblBasketVerification->getId()))
                         )))), $tblBasketVerification->getId());
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
