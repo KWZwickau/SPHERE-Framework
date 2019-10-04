@@ -99,7 +99,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
              * Wahlfächer
              */
             $electiveRows = array();
-            for ($i = 1; $i < 4; $i++)
+            for ($i = 1; $i < 5; $i++)
             {
                 $electiveRows[] =
                     new LayoutRow(array(
@@ -307,7 +307,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                             ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                     ), 3),
                     new FormColumn(array(
-                        $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3,
+                        $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 4,
                             ($tblStudent ? $tblStudent : null), $Year,
                             $Division, $tblPerson),
                     ), 3),
