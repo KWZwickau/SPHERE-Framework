@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
+use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketRepayment;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketRepaymentAddPerson;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
@@ -97,12 +98,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Abrechnung', 'Übersicht');
         $Stage->setMessage('Zeigt alle aktiven Abrechnungen an');
 
-        $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus()))
+        $Stage->addButton((new Primary('Abrechnung hinzufügen', ApiBasket::getEndpoint(), new Plus()))
             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_ABRECHNUNG)));
-        $Stage->addButton((new Primary('Auszahlung hinzufügen', '#', new Plus()))
+        $Stage->addButton((new Primary('Auszahlung hinzufügen', ApiBasket::getEndpoint(), new Plus()))
             ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_AUSZAHLUNG)));
-        $Stage->addButton((new Primary('Gutschrift hinzufügen', '#', new Plus()))
-            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_GUTSCHRIFT)));
+        $Stage->addButton((new Primary('Gutschrift hinzufügen', ApiBasketRepayment::getEndpoint(), new Plus()))
+            ->ajaxPipelineOnClick(ApiBasketRepayment::pipelineOpenAddBasketModal('addBasket', TblBasketType::IDENT_GUTSCHRIFT)));
         $Stage->addButton(new Standard('Archiv', '/Billing/Bookkeeping/Basket', new FolderClosed(), array('IsArchive' => true)));
 
         $Stage->setContent(
@@ -725,7 +726,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Price'] = ApiBasketRepaymentAddPerson::receiverItemPrice(
                         new Form(new FormGroup(new FormRow(new FormColumn(
                         (new TextField('Price['.$tblBasketVerification->getId().']'))
-                            ->ajaxPipelineOnChange(ApiBasketRepaymentAddPerson::pipelineChangePrice($tblBasketVerification->getId()))
+                            ->ajaxPipelineOnChange(ApiBasketRepaymentAddPerson::pipelineCheckPrice($tblBasketVerification->getId()))
                         )))), $tblBasketVerification->getId());
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();

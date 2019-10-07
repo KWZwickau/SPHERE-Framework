@@ -65,6 +65,7 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         $Dispatcher->registerMethod('getTableLayout');
 
         // Item Price
+        $Dispatcher->registerMethod('checkItemPrice');
         $Dispatcher->registerMethod('changeItemPrice');
 
         // remove Entry
@@ -251,10 +252,9 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'BasketId' => $BasketId
+            'BasketId' => $BasketId,
         ));
-        $Pipeline->setSuccessMessage('Gutschrift erfolgreich hinzugefügt!');
-        $Pipeline->setLoadingMessage('Gutschrift erfolgreich hinzugefügt!');
+        $Pipeline->setLoadingMessage('Gutschrift hinzufügen');
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -265,7 +265,30 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineChangePrice($BasketVerificationId = '')
+    public static function pipelineCheckPrice($BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverService();
+        $Pipeline = new Pipeline(false);
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'checkItemPrice'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     * @param string $ItemPrice
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangePrice($BasketVerificationId = '', $ItemPrice = '')
     {
 
         $Receiver = self::receiverService();
@@ -275,7 +298,8 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
             self::API_TARGET => 'changeItemPrice'
         ));
         $Emitter->setPostPayload(array(
-            'BasketVerificationId' => $BasketVerificationId
+            'BasketVerificationId' => $BasketVerificationId,
+            'ItemPrice' => $ItemPrice
         ));
         $Emitter->setLoadingMessage('Speichern erfolgreich!');
         $Pipeline->appendEmitter($Emitter);
@@ -339,6 +363,10 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
      */
     public function showSearchModal($Identifier = '', $BasketId = '')
     {
+        // prefill price
+//        if(!isset($_POST['Price'])){
+//            $_POST['Price'] = 1;
+//        }
 
         return new Form(new FormGroup(new FormRow(array(
             new FormColumn(
@@ -346,7 +374,8 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
                     ->ajaxPipelineOnKeyUp(self::pipelineSearch($Identifier, 'SearchPerson', $BasketId))
             , 8),
             new FormColumn(
-                new TextField('Price', '', 'Betrag der Gutschrift', new Search())
+                (new TextField('Price', '', 'Betrag der Gutschrift', new Search()))
+                    ->ajaxPipelineOnKeyUp(self::pipelineSearch($Identifier, 'SearchPerson', $BasketId))
             , 4),
             new FormColumn(
                 self::receiverSearch('', 'SearchPerson')
@@ -357,27 +386,29 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $Search
+     * @param string $Price
      * @param string $BasketId
      *
      * @return string
      */
-    public function showSearch($Identifier = '', $Search = '', $BasketId = '')
+    public function showSearch($Identifier = '', $Search = '', $Price = '', $BasketId = '')
     {
 
-        return self::loadPersonSearch($Identifier, $Search, $BasketId);
+        return self::loadPersonSearch($Identifier, $Search, $Price, $BasketId);
     }
 
     /**
      * @param string $Identifier
      * @param string $Search
+     * @param string $Price
      * @param string $BasketId
      *
      * @return Warning|string
      */
-    private static function loadPersonSearch($Identifier = '',$Search = '', $BasketId = '')
+    private static function loadPersonSearch($Identifier = '',$Search = '', $Price = '', $BasketId = '')
     {
 
-        if ($Search != '' && strlen($Search) > 2) {
+        if ($Search != '' && strlen($Search) > 2 && $Price > 0) {
             // Kommen entfernen (Copy Paste überbleibsel)
             $Search = str_replace(',', '', $Search);
             if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
@@ -446,19 +477,21 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
             } else {
                 $warning = new Warning('Es wurden keine entsprechenden Personen gefunden.', new Ban());
             }
-        } else {
+        } elseif($Search == '' || strlen($Search) <= 2) {
             $warning = new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        } elseif($Price <= 0) {
+            $warning = new Warning('Bitte geben Sie einen Betrag für die Gutschrift ein.', new Exclamation());
         }
         return $warning;
     }
 
     /**
-     * @param string $Identifier
-     * @param string $BasketId
-     * @param string $DebtorSelection
-     * @param string $Price
+     * @param string        $Identifier
+     * @param string        $BasketId
+     * @param string        $DebtorSelection
+     * @param string        $Price
      *
-     * @return string
+     * @return Pipeline|string
      */
     public function addDebtorSelection($Identifier = '', $BasketId = '', $DebtorSelection = '', $Price = '')
     {
@@ -466,27 +499,39 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         $tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelection);
         $PriceCorrection = round(str_replace(',', '.', $Price), 2);
-        $tblBasketVerification = Basket::useService()->createBasketVerification($tblBasket, $tblDebtorSelection, $PriceCorrection);
-        if($tblBasketVerification){
-            // schließt das Modal nicht
-            $Identifier = false;
-            return self::pipelineReloadTable($tblBasket->getId(), $Identifier);
+        if($PriceCorrection > 0){
+            $tblBasketVerification = Basket::useService()->createBasketVerification($tblBasket, $tblDebtorSelection, $PriceCorrection);
+            if($tblBasketVerification){
+                // schließt das Modal nicht
+                $Identifier = false;
+                return self::pipelineReloadTable($tblBasket->getId(), $Identifier);
+            } else {
+                return self::pipelineReloadTable($tblBasket->getId(), $Identifier);
+            }
+        }
+        return '';
+    }
+
+    public function checkItemPrice($BasketVerificationId = '', $Price = array())
+    {
+
+        $ItemPrice = str_replace(',', '.', str_replace('-', '', $Price[$BasketVerificationId]));
+        if($ItemPrice && is_numeric($ItemPrice)){
+            return self::pipelineChangePrice($BasketVerificationId, $ItemPrice);
+//                Basket::useService()->changeBasketVerificationInPrice($tblBasketVerification, $Price);
         }
         return '';
     }
 
     /**
      * @param string $BasketVerificationId
-     * @param array  $Price
+     * @param string $ItemPrice
      */
-    public function changeItemPrice($BasketVerificationId = '', $Price = array())
+    public function changeItemPrice($BasketVerificationId = '', $ItemPrice = '')
     {
 
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
-            $Price = str_replace(',', '.', str_replace('-', '', $Price[$BasketVerificationId]));
-            if($Price && is_numeric($Price) || '0' === $Price){
-                Basket::useService()->changeBasketVerificationInPrice($tblBasketVerification, $Price);
-            }
+            Basket::useService()->changeBasketVerificationInPrice($tblBasketVerification, $ItemPrice);
         }
     }
 
