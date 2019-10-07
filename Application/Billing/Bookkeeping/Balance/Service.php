@@ -564,6 +564,18 @@ class Service extends AbstractService
         if(!$tblInvoiceList){
             return false;
         }
+        $direction = 'S';
+        if(($tblBasketType = $tblBasket->getTblBasketType())){
+            switch ($tblBasketType->getName()) {
+                case TblBasketType::IDENT_ABRECHNUNG:
+                    $direction = 'S';
+                    break;
+                case TblBasketType::IDENT_AUSZAHLUNG:
+                case TblBasketType::IDENT_GUTSCHRIFT:
+                    $direction = 'H';
+                    break;
+            }
+        }
 
         if ($tblInvoiceList) {
             $now = new \DateTime();
@@ -771,7 +783,7 @@ class Service extends AbstractService
 
                         $row++;
                         $export->setValue($export->getCell("0", $row), $Summary);// Umsatz
-                        $export->setValue($export->getCell("1", $row), 'S');// Soll / Haben Kennzeichen
+                        $export->setValue($export->getCell("1", $row), $direction);// Soll / Haben Kennzeichen
                         $export->setValue($export->getCell("2", $row), 'EUR');// Dreistelliger ISO-Code der Währung
                         $export->setValue($export->getCell("3", $row), '');// Kurs (Test: utf8_decode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
                         $export->setValue($export->getCell("4", $row), '');// Basisumsatz
