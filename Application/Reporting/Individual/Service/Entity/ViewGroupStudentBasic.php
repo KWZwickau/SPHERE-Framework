@@ -74,7 +74,7 @@ class ViewGroupStudentBasic extends AbstractView
 
 //        //NameDefinition
         $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Grunddaten: Schülernummer');
-        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Grunddaten: Schulpflicht beginn');
+        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Grunddaten: Schulpflichtbeginn');
         $this->setNameDefinition(self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND, 'Grunddaten: Migrationshintergrund');
         $this->setNameDefinition(self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS, 'Grunddaten: Besucht Vorbereitungsklasse für Migranten');
 
