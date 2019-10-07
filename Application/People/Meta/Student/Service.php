@@ -18,6 +18,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
@@ -932,9 +933,8 @@ class Service extends Support
      *
      * @return bool|TblStudentMedicalRecord
      */
-    public function getStudentMedicalRecordById(
-        $Id
-    ) {
+    public function getStudentMedicalRecordById($Id)
+    {
 
         return (new Data($this->getBinding()))->getStudentMedicalRecordById($Id);
     }
@@ -942,11 +942,30 @@ class Service extends Support
     /**
      * @param int $Id
      *
+     * @return bool|TblStudentInsuranceState
+     */
+    public function getStudentInsuranceStateById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getStudentInsuranceStateById($Id);
+    }
+
+    /**
+     * @return bool|TblStudentInsuranceState[]
+     */
+    public function getStudentInsuranceStateAll()
+    {
+
+        return (new Data($this->getBinding()))->getStudentInsuranceStateAll();
+    }
+
+    /**
+     * @param int $Id
+     *
      * @return bool|TblStudentBaptism
      */
-    public function getStudentBaptismById(
-        $Id
-    ) {
+    public function getStudentBaptismById($Id)
+    {
 
         return (new Data($this->getBinding()))->getStudentBaptismById($Id);
     }

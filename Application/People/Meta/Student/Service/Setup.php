@@ -49,6 +49,7 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
+        $this->setTableStudentInsuranceState($Schema);
         $tblStudentMedicalRecord = $this->setTableStudentMedicalRecord($Schema);
         $tblStudentTransport = $this->setTableStudentTransport($Schema);
         $tblStudentBilling = $this->setTableStudentBilling($Schema);
@@ -170,6 +171,21 @@ class Setup extends AbstractSetup
         return $this->getConnection()->getProtocol($Simulate);
     }
 
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentInsuranceState(Schema &$Schema)
+    {
+        $Table = $this->createTable($Schema, 'tblStudentInsuranceState');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+
+        return $Table;
+    }
+
     /**
      * @param Schema $Schema
      *
@@ -190,6 +206,8 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'InsuranceState')) {
             $Table->addColumn('InsuranceState', 'bigint');
+//        } else {
+//            $Table->renameColumn('InsuranceState', 'tblStudentInsuranceState');
         }
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Insurance')) {
             $Table->addColumn('Insurance', 'string');
