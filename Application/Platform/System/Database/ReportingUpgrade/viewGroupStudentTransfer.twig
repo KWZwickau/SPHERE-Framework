@@ -47,6 +47,14 @@ SELECT
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblStudentTransferEnrollment_Remark,
+    (select distinct
+        tSSET.Name AS tblStudentSchoolEnrollmentType_Name
+    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
+        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSchoolEnrollmentType tSSET ON tSSET.Id = tST.tblStudentSchoolEnrollmentType
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ENROLLMENT'
+    ) AS TblStudentSchoolEnrollmentType_Name,
 
     -- Company Abgebende Schule
     (select
