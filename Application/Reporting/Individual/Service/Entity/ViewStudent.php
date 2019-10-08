@@ -29,7 +29,7 @@ class ViewStudent extends AbstractView
     // Krankenakte
     const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
     const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
-    const TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE = 'TblStudentMedicalRecord_InsuranceState';
+    const TBL_STUDENT_INSURANCE_STATE_NAME = 'TblStudentInsuranceState_Name';
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
     // Taufe
     const TBL_STUDENT_BAPTISM_LOCATION = 'TblStudentBaptism_Location';
@@ -105,7 +105,7 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblStudentMedicalRecord_InsuranceState;
+    protected $TblStudentInsuranceState_Name;
     /**
      * @Column(type="string")
      */
@@ -157,7 +157,7 @@ class ViewStudent extends AbstractView
 
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Allgemeines: Krankheiten / Allergien');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Allgemeines: Medikamente');
-        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE, 'Allgemeines: Versicherungsstatus');
+        $this->setNameDefinition(self::TBL_STUDENT_INSURANCE_STATE_NAME, 'Allgemeines: Versicherungsstatus');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Allgemeines: Krankenkasse');
 
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_ROUTE, 'Allgemeines: Buslinie');
@@ -182,7 +182,7 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_BAPTISM_DATE,
             self::TBL_STUDENT_MEDICAL_RECORD_DISEASE,
             self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION,
-            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE,
+            self::TBL_STUDENT_INSURANCE_STATE_NAME,
             self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
             self::TBL_STUDENT_TRANSPORT_ROUTE,
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
