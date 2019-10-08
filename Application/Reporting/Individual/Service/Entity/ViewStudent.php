@@ -27,6 +27,7 @@ class ViewStudent extends AbstractView
 
     const SIBLINGS_COUNT = 'Sibling_Count';
     // Krankenakte
+    const TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR = 'TblStudentMedicalRecord_AttendingDoctor';
     const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
     const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
     const TBL_STUDENT_INSURANCE_STATE_NAME = 'TblStudentInsuranceState_Name';
@@ -97,6 +98,10 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblStudentMedicalRecord_AttendingDoctor;
+    /**
+     * @Column(type="string")
+     */
     protected $TblStudentMedicalRecord_Disease;
     /**
      * @Column(type="string")
@@ -155,6 +160,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_LOCATION, 'Allgemeines: Schließfach Standort');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Allgemeines: Schließfach Schlüssel Nummer');
 
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR, 'Allgemeines: Behandelnder Arzt');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Allgemeines: Krankheiten / Allergien');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Allgemeines: Medikamente');
         $this->setNameDefinition(self::TBL_STUDENT_INSURANCE_STATE_NAME, 'Allgemeines: Versicherungsstatus');
@@ -180,6 +186,7 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_LOCKER_KEY_NUMBER,
             self::TBL_STUDENT_BAPTISM_LOCATION,
             self::TBL_STUDENT_BAPTISM_DATE,
+            self::TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR,
             self::TBL_STUDENT_MEDICAL_RECORD_DISEASE,
             self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION,
             self::TBL_STUDENT_INSURANCE_STATE_NAME,
