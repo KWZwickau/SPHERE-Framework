@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -440,24 +441,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         if(!isset($_POST['DebtorSelection']['DebtorPeriodTypeId'])){
             $_POST['DebtorSelection']['DebtorPeriodTypeId'] = $tblDebtorPeriodTypeMonth->getId();
         }
-        // no BankAccount available
-        if(!isset($_POST['DebtorSelection']['BankAccount'])){
-            $_POST['DebtorSelection']['BankAccount'] = '-1';
-        }
 
-        $RadioBoxListBankAccount = self::getBankAccountRadioBoxList($PersonDebtorList);
 
         $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPerson);
-        if($tblBankReferenceList){
-            // Post first entry if PaymentType = SEPA-Lastschrift
-            if(isset($_POST['DebtorSelection']['PaymentType'])
-                && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
-                && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
-                if(!isset($_POST['DebtorSelection']['BankReference'])){
-                    $_POST['DebtorSelection']['BankReference'] = $tblBankReferenceList[0]->getId();
-                }
-            }
-        }
+        self::getBankAccountPost($PersonDebtorList, $tblBankReferenceList);
+        $RadioBoxListBankAccount = self::getBankAccountRadioBoxList($PersonDebtorList);
+
 
         return (new Form(
             new FormGroup(array(
@@ -618,6 +607,55 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         return array('SelectBoxDebtorList' => $SelectBoxDebtorList,
                      'PersonDebtorList' => (isset($PersonDebtorList) ? $PersonDebtorList : false));
+    }
+
+    /**
+     * @param bool|TblPerson[] $PersonDebtorList
+     * @param bool|TblBankReference[] $tblBankReferenceList
+     */
+    public static function getBankAccountPost($PersonDebtorList, $tblBankReferenceList)
+    {
+
+        // no BankAccount available
+        if(!isset($_POST['DebtorSelection']['BankAccount'])){
+            $_POST['DebtorSelection']['BankAccount'] = '-1';
+        }
+
+        // füllung nur, wenn kein Zahlungstyp vorhanden ist (Neu)
+        if(!isset($_POST['DebtorSelection']['PaymentType'])){
+            $BankAccountCount = 0;
+            $BankAccountIdList = array();
+            // suchen möglicher Konten
+            if(!empty($PersonDebtorList)){
+                /** @var TblPerson $PersonDebtor */
+                foreach($PersonDebtorList as $PersonDebtor) {
+                    if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($PersonDebtor))){
+                        $BankAccountCount += count($tblBankAccountList);
+                        foreach($tblBankAccountList as $tblBankAccount){
+                            $BankAccountIdList[] = $tblBankAccount->getId();
+                        }
+                    }
+                }
+            }
+
+            // bei vorhandenem Bankkonto wird Sepa-Lastschrift vorgeschlagen
+            if($BankAccountCount > 0){
+                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
+                $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
+
+                // Wenn es nur ein Konto gibt, wird dieses als Standard vorausgewählt
+                if(!empty($BankAccountIdList) && count($BankAccountIdList) == 1){
+                    $_POST['DebtorSelection']['BankAccount'] = current($BankAccountIdList);
+
+                    // trage die Bankreferenz ein, wenn nur eine vorhanden ist und es genau ein Konto gibt
+                    if(!empty($tblBankReferenceList)){
+                        $_POST['DebtorSelection']['BankReference'] = current($tblBankReferenceList)->getId();
+                    }
+                }
+            }
+        }
+
+//        return $RadioBoxListBankAccount;
     }
 
     /**
