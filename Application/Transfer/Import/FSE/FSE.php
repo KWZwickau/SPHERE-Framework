@@ -27,6 +27,9 @@ class FSE  implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Company', __NAMESPACE__ . '\Frontend::frontendCompanyImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Student', __NAMESPACE__ . '\Frontend::frontendStudentImport'
+        ));
     }
 
     /**
@@ -61,6 +64,16 @@ class FSE  implements IModuleInterface
         $DataList[] = array(
             'Consumer' => $consumer,
             'Name' => '03 - Schulen',
+            'Option' => new Standard(
+                '',
+                __NAMESPACE__ . '/Company',
+                new Select()
+            )
+        );
+
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name' => '04 - Schülerdaten',
             'Option' => new Standard(
                 '',
                 __NAMESPACE__ . '/Company',
