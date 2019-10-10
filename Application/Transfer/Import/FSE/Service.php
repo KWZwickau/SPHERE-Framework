@@ -5,6 +5,7 @@ namespace SPHERE\Application\Transfer\Import\FSE;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -364,7 +365,6 @@ class Service
 
                         $status = trim($Document->getValue($Document->getCell($Location['Status'], $RunY)));
                         if ($status == 9) {
-                            // todo Companies
                             $title = trim($Document->getValue($Document->getCell($Location['Titel'], $RunY)));
                             $name = ($title !== '' ? $title . ' ' : '')
                                 . ($lastName !== '' ? $lastName . ' ' : '');
@@ -535,6 +535,205 @@ class Service
                     return
                         new Success('Es wurden ' . $countMembers . ' Personen erfolgreich angelegt.')
                         . new Success('Es wurden ' . $countCompanies . ' Firmen erfolgreich angelegt.')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    return new Warning(json_encode($Location)) . new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile $File
+     *
+     * @return IFormInterface|Danger|string
+     */
+    public function createCompaniesFromFile(IFormInterface $Form = null, UploadedFile $File = null)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Schulname' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'Adresse' => null,
+                    'OT' => null,
+                    'Anrede' => null,
+                    'Nachname' => null,
+                    'Vorname' => null,
+                    'Telefon' => null,
+                    'Fax' => null
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                $tblGroupCommon = CompanyGroup::useService()->getGroupByMetaTable('COMMON');
+                $tblGroupSchool = CompanyGroup::useService()->getGroupByMetaTable('SCHOOL');
+
+                $tblTypeCommon = Relationship::useService()->getTypeByName('Allgemein');
+
+                $groupArray[] = Group::useService()->getGroupByMetaTable('COMMON');
+                $groupArray[] = Group::useService()->getGroupByMetaTable('COMPANY_CONTACT');
+
+                $importService = new ImportService($Location, $Document);
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countNewCompany = 0;
+                    $countEditCompany = 0;
+                    $error = array();
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $name = trim($Document->getValue($Document->getCell($Location['Schulname'], $RunY)));
+                        if ($name != '') {
+                            if (($tblCompany = Company::useService()->insertCompany($name))) {
+                                $countNewCompany++;
+
+                                CompanyGroup::useService()->addGroupCompany(
+                                    $tblGroupCommon,
+                                    $tblCompany
+                                );
+                                CompanyGroup::useService()->addGroupCompany(
+                                    $tblGroupSchool,
+                                    $tblCompany
+                                );
+                            }
+
+                            if ($tblCompany) {
+                                // Address
+                                $cityName = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
+                                $cityCode = $importService->formatZipCode('PLZ', $RunY);
+                                $cityDistrict = trim($Document->getValue($Document->getCell($Location['OT'], $RunY)));;
+
+                                list($streetName, $streetNumber) = $importService->splitStreet('Adresse', $RunY);
+
+                                Address::useService()->insertAddressToCompany(
+                                    $tblCompany,
+                                    $streetName,
+                                    $streetNumber,
+                                    $cityCode,
+                                    $cityName,
+                                    $cityDistrict,
+                                    ''
+                                );
+
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon'],
+                                        $RunY)))) != ''
+                                ) {
+                                    $tblType = Phone::useService()->getTypeById(3);
+                                    if (0 === strpos($Number, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(4);
+                                    }
+                                    Phone::useService()->insertPhoneToCompany
+                                    (
+                                        $tblCompany,
+                                        $Number,
+                                        $tblType,
+                                        ''
+                                    );
+                                }
+
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Fax'],
+                                        $RunY)))) != ''
+                                ) {
+                                    $tblType = Phone::useService()->getTypeById(8);
+                                    Phone::useService()->insertPhoneToCompany
+                                    (
+                                        $tblCompany,
+                                        $Number,
+                                        $tblType,
+                                        ''
+                                    );
+                                }
+                            }
+
+                            $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                            $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
+                            if ($firstName !== '' && $lastName !== '') {
+                                $tblPersonExits = Person::useService()->getPersonByName($firstName, $lastName);
+                                if ($tblPersonExits) {
+                                    $error[] = 'Zeile: ' . ($RunY + 1)
+                                        . ' (' . $lastName . ', ' . $firstName . ') '
+                                        . ' Der Ansprechpartner wurde nicht angelegt, da schon eine Person mit gleichen Namen existiert.';
+
+                                    $tblPerson = $tblPersonExits;
+                                } else {
+                                    $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'], $RunY)));
+                                    if ($salutation == 'Herr' || $salutation == 'Herrn') {
+                                        $tblSalutation = Person::useService()->getSalutationById(1);
+                                    } elseif ($salutation == 'Frau') {
+                                        $tblSalutation = Person::useService()->getSalutationById(2);
+                                    } else {
+                                        $tblSalutation = false;
+                                    }
+
+                                    $tblPerson = Person::useService()->insertPerson(
+                                        $tblSalutation ? $tblSalutation : null,
+                                        '',
+                                        $firstName,
+                                        '',
+                                        $lastName,
+                                        $groupArray
+                                    );
+                                }
+
+                                if ($tblPerson) {
+                                    Relationship::useService()->addCompanyRelationshipToPerson(
+                                        $tblCompany,
+                                        $tblPerson,
+                                        $tblTypeCommon
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    return
+                        new Success('Es wurden ' . $countNewCompany . ' Firmen erfolgreich angelegt.')
+                        . new Success('Es wurden ' . $countEditCompany . ' Firmen erfolgreich umbenannt.')
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(
                                 'Fehler',

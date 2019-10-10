@@ -117,4 +117,49 @@ class Frontend  extends Extension implements IFrontendInterface
 
         return $View;
     }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendCompanyImport($File = null)
+    {
+
+        $View = new Stage('Import FSE', '03 - Schulen');
+        $View->addButton(
+            new Standard(
+                'Zurück',
+                '/Transfer/Import',
+                new ChevronLeft()
+            )
+        );
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                FSE::useService()->createCompaniesFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
 }
