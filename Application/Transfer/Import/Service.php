@@ -83,10 +83,30 @@ class Service
     {
         $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
         if ($phoneNumber != '') {
+            if (0 === strpos($phoneNumber, '1')) {
+                $phoneNumber = '0' . $phoneNumber;
+            }
+
             $tblType = Phone::useService()->getTypeById(1);
             if (0 === strpos($phoneNumber, '01')) {
                 $tblType = Phone::useService()->getTypeById(2);
             }
+
+            Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, $Remark);
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columnName
+     * @param integer $RunY
+     * @param string $Remark
+     */
+    public function insertPrivateFax($tblPerson, $columnName, $RunY, $Remark = '')
+    {
+        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($phoneNumber != '') {
+            $tblType = Phone::useService()->getTypeById(7);
 
             Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, $Remark);
         }
@@ -187,6 +207,27 @@ class Service
         }
 
         return array($streetName, $streetNumber);
+    }
+
+    /**
+     * @param $columnName
+     * @param $RunY
+     *
+     * @return array
+     */
+    public function splitCity($columnName, $RunY)
+    {
+        $cityDistrict = '';
+        $cityName = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($cityName != '') {
+            $pos = strpos($cityName, " OT ");
+            if ($pos !== false) {
+                $cityDistrict = trim(substr($cityName, $pos + 4));
+                $cityName = trim(substr($cityName, 0, $pos));
+            }
+        }
+
+        return array($cityName, $cityDistrict);
     }
 
     /**
