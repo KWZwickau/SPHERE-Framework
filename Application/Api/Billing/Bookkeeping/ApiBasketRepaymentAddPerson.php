@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Billing\Bookkeeping;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -27,8 +28,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -41,6 +45,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -65,6 +70,7 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         $Dispatcher->registerMethod('getTableLayout');
 
         // Item Price
+        $Dispatcher->registerMethod('showItemPrice');
         $Dispatcher->registerMethod('checkItemPrice');
         $Dispatcher->registerMethod('changeItemPrice');
 
@@ -172,20 +178,6 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
     }
 
     /**
-     * @param $BasketVerificationId
-     *
-     * @return string
-     */
-    public function getItemPrice($BasketVerificationId)
-    {
-
-        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
-            return $tblBasketVerification->getPrice();
-        }
-        return '';
-    }
-
-    /**
      * @param string $Identifier
      * @param string $BasketId
      *
@@ -225,10 +217,10 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'showSearch'
         ));
-        $Emitter->setPostPayload(array(
-            'Identifier'       => $Identifier,
-            'BasketId'         => $BasketId,
-        ));
+        $PostArray = $_POST;
+        $PostArray['Identifier'] = $Identifier;
+        $PostArray['BasketId'] = $BasketId;
+        $Emitter->setPostPayload($PostArray);
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -265,11 +257,33 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineCheckPrice($BasketVerificationId = '')
+    public static function pipelineOpenItemPrice($BasketVerificationId = '')
     {
 
-        $Receiver = self::receiverService();
-        $Pipeline = new Pipeline(false);
+        $Receiver = self::receiverModal('', 'ItemPrice');
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'showItemPrice'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCheckItemPrice($BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverModal('', 'ItemPrice');
+        $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'checkItemPrice'
@@ -284,14 +298,14 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
 
     /**
      * @param string $BasketVerificationId
-     * @param string $ItemPrice
+     * @param string $Price
      *
      * @return Pipeline
      */
-    public static function pipelineChangePrice($BasketVerificationId = '', $ItemPrice = '')
+    public static function pipelineChangePrice($BasketVerificationId = '', $Price = '')
     {
 
-        $Receiver = self::receiverService();
+        $Receiver = self::receiverItemPrice('', $BasketVerificationId);
         $Pipeline = new Pipeline(false);
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
@@ -299,10 +313,12 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'BasketVerificationId' => $BasketVerificationId,
-            'ItemPrice' => $ItemPrice
+            'Price'                => $Price,
         ));
         $Emitter->setLoadingMessage('Speichern erfolgreich!');
         $Pipeline->appendEmitter($Emitter);
+
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal('', 'ItemPrice')))->getEmitter());
 
         return $Pipeline;
     }
@@ -364,9 +380,9 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
     public function showSearchModal($Identifier = '', $BasketId = '')
     {
         // prefill price
-//        if(!isset($_POST['Price'])){
-//            $_POST['Price'] = 1;
-//        }
+        if(!isset($_POST['Price'])){
+            $_POST['Price'] = 1;
+        }
 
         return new Form(new FormGroup(new FormRow(array(
             new FormColumn(
@@ -480,6 +496,7 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         } elseif($Search == '' || strlen($Search) <= 2) {
             $warning = new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
         } elseif($Price <= 0) {
+
             $warning = new Warning('Bitte geben Sie einen Betrag für die Gutschrift ein.', new Exclamation());
         }
         return $warning;
@@ -512,27 +529,77 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         return '';
     }
 
-    public function checkItemPrice($BasketVerificationId = '', $Price = array())
+    /**
+     * @param string $BasketVerificationId
+     * @param string $Warning
+     *
+     * @return Well
+     */
+    public function showItemPrice($BasketVerificationId = '', $Warning = '')
     {
 
-        $ItemPrice = str_replace(',', '.', str_replace('-', '', $Price[$BasketVerificationId]));
-        if($ItemPrice && is_numeric($ItemPrice)){
-            return self::pipelineChangePrice($BasketVerificationId, $ItemPrice);
-//                Basket::useService()->changeBasketVerificationInPrice($tblBasketVerification, $Price);
+        $Causer = 'Beitragsverursacher nicht gefunden';
+        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            if(!isset($_POST['Price'])){
+                $_POST['Price'] = $tblBasketVerification->getValue(true);
+            }
+            if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
+                $Causer = 'Beitragsverursacher: '.new Bold($tblPersonCauser->getLastFirstName());
+            }
+
+
         }
-        return '';
+
+        $form = new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel($Causer, array(new TextField('Price', '', 'Betrag der Gutschrift')), Panel::PANEL_TYPE_INFO)
+            ),
+            new FormColumn(
+                (new Primary('Speichern', self::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(self::pipelineCheckItemPrice($BasketVerificationId))
+            )
+        ))));
+        $form->disableSubmitAction();
+        if($Warning != ''){
+            $form->setError('Price', $Warning);
+        }
+
+        return new Well($form);
     }
 
     /**
      * @param string $BasketVerificationId
-     * @param string $ItemPrice
+     * @param string $Price
+     *
+     * @return string
      */
-    public function changeItemPrice($BasketVerificationId = '', $ItemPrice = '')
+    public function checkItemPrice($BasketVerificationId = '', $Price = '')
+    {
+
+        $Price = round((float)trim(str_replace(',', '.', $Price)), 2);
+        if($Price <= 0){
+            $Warning = 'Eingabe muss eine Zahl und größer als 0,00 sein';
+            return self::showItemPrice($BasketVerificationId, $Warning);
+        }
+        return new Success('Die Eingabe wurde erfolgreich gespeichert')
+            .self::pipelineChangePrice($BasketVerificationId, $Price);
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     * @param string $Price
+     *
+     * @return string
+     */
+    public function changeItemPrice($BasketVerificationId = '', $Price = '')
     {
 
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
-            Basket::useService()->changeBasketVerificationInPrice($tblBasketVerification, $ItemPrice);
+            Basket::useService()->changeBasketVerificationInPrice($tblBasketVerification, $Price);
+            $Price = Balance::useService()->getPriceString($Price);
+            return $Price;
         }
+        return new WarningText(new WarningIcon());
     }
 
     /**
