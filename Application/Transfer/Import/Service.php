@@ -116,8 +116,9 @@ class Service
      * @param TblPerson $tblPerson
      * @param string $columnName
      * @param integer $RunY
+     * @param string $Remark
      */
-    public function insertBusinessPhone($tblPerson, $columnName, $RunY)
+    public function insertBusinessPhone($tblPerson, $columnName, $RunY, $Remark = '')
     {
         $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
         if ($phoneNumber != '') {
@@ -126,7 +127,7 @@ class Service
                 $tblType = Phone::useService()->getTypeById(4);
             }
 
-            Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, '');
+            Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, $Remark);
         }
     }
 

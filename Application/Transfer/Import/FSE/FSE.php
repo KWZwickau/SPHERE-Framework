@@ -76,7 +76,7 @@ class FSE  implements IModuleInterface
             'Name' => '04 - Schülerdaten',
             'Option' => new Standard(
                 '',
-                __NAMESPACE__ . '/Company',
+                __NAMESPACE__ . '/Student',
                 new Select()
             )
         );

@@ -15,6 +15,7 @@ use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
+use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -894,7 +895,7 @@ class Service
 
                             Group::useService()->addGroupPerson($tblGroupToAdd, $tblPerson);
 
-                            $religion = trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY)));
+                            $religion = trim($Document->getValue($Document->getCell($Location['Religion'], $RunY)));
                             if ($religion == '1') {
                                 $religion = 'Religion';
                             } elseif ($religion == '2') {
@@ -903,14 +904,14 @@ class Service
                                 $religion = '';
                             }
 
-                            $remark = trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY)));
+                            $remark = trim($Document->getValue($Document->getCell($Location['Besonderheiten'], $RunY)));
                             if ($remark !== '') {
                                 $remark = 'Besonderheiten: ' . $remark;
                             }
 
                             $insuranceName = trim($Document->getValue($Document->getCell($Location['Versichertenname'], $RunY)));
                             if ($insuranceName !== '') {
-                                $remark = ($remark ? " \n" : '') . 'Versichertenname: ' . $insuranceName;
+                                $remark = ($remark ? $remark . " \n"  : '') . 'Versichertenname: ' . $insuranceName;
                             }
 
                             if (($tblCommon = $tblPerson->getCommon())) {
@@ -920,7 +921,7 @@ class Service
                                         $tblCommonBirthDates,
                                         $tblCommonBirthDates->getBirthday(),
                                         trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
-                                        $tblCommonBirthDates->getTblCommonGender()
+                                        $tblCommonBirthDates->getTblCommonGender() ? $tblCommonBirthDates->getTblCommonGender()->getId() : 0
                                     );
                                 }
                                 if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
@@ -932,18 +933,6 @@ class Service
                                         ''
                                     );
                                 }
-                            } else {
-                                Common::useService()->insertMeta(
-                                    $tblPerson,
-                                    '',
-                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
-                                    '',
-                                    trim($Document->getValue($Document->getCell($Location['Staatsangeh'], $RunY))),
-                                    $religion,
-                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
-                                    '',
-                                    $remark
-                                );
                             }
 
                             $level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'], $RunY)));
@@ -1017,6 +1006,85 @@ class Service
                                     ''
                                 );
                             }
+
+                            // Mutter
+                            $motherId = trim($Document->getValue($Document->getCell($Location['A_ID_Mutter'], $RunY)));
+                            if (($tblPersonMother = Person::useService()->getPersonByImportId($motherId))) {
+                                Group::useService()->addGroupPerson($tblGroupCustody, $tblPersonMother);
+                                Relationship::useService()->insertRelationshipToPerson(
+                                    $tblPersonMother,
+                                    $tblPerson,
+                                    $tblRelationshipTypeCustody,
+                                    '',
+                                    $genderSetting == 'Weiblich' ? 1 : 2
+                                );
+
+                                if (($tblCommon = $tblPersonMother->getCommon())) {
+                                    if (($tblCommonBirthDates  = $tblCommon->getTblCommonBirthDates())) {
+                                        Common::useService()->updateCommonBirthDates(
+                                            $tblCommonBirthDates,
+                                            $tblCommonBirthDates->getBirthday(),
+                                            $tblCommonBirthDates->getBirthplace(),
+                                            2
+                                        );
+                                    }
+                                }
+
+                                Custody::useService()->insertMeta(
+                                    $tblPersonMother,
+                                    trim($Document->getValue($Document->getCell($Location['Taetigkeit_Mutter'], $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Firma_Mutter'], $RunY))),
+                                    ''
+                                );
+
+                                $importService->insertPrivatePhone($tblPersonMother, 'Tel_d_Mutter', $RunY, '');
+                            } else {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter mit der ID=' . $motherId . ' wurde nicht gefunden';
+                            }
+
+                            // Vater
+                            $fatherId = trim($Document->getValue($Document->getCell($Location['A_ID_Vater'], $RunY)));
+                            if (($tblPersonFather = Person::useService()->getPersonByImportId($fatherId))) {
+                                Group::useService()->addGroupPerson($tblGroupCustody, $tblPersonFather);
+                                Relationship::useService()->insertRelationshipToPerson(
+                                    $tblPersonFather,
+                                    $tblPerson,
+                                    $tblRelationshipTypeCustody,
+                                    '',
+                                    $genderSetting == 'Weiblich' ? 2 : 1
+                                );
+
+                                if (($tblCommon = $tblPersonFather->getCommon())) {
+                                    if (($tblCommonBirthDates  = $tblCommon->getTblCommonBirthDates())) {
+                                        Common::useService()->updateCommonBirthDates(
+                                            $tblCommonBirthDates,
+                                            $tblCommonBirthDates->getBirthday(),
+                                            $tblCommonBirthDates->getBirthplace(),
+                                            1
+                                        );
+                                    }
+                                }
+
+                                Custody::useService()->insertMeta(
+                                    $tblPersonFather,
+                                    trim($Document->getValue($Document->getCell($Location['Taetigkeit_Vater'], $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Firma_Vater'], $RunY))),
+                                    ''
+                                );
+
+                                $importService->insertPrivatePhone($tblPersonFather, 'Tel_d_Vater', $RunY, '');
+                            } else {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater mit der ID=' . $fatherId . ' wurde nicht gefunden';
+                            }
+
+                            $importService->insertPrivatePhone($tblPerson, 'Tel_er_privat', $RunY);
+                            $importService->insertBusinessPhone($tblPerson, 'Tel_er_tag', $RunY,
+                                trim($Document->getValue($Document->getCell($Location['Tel_tag_wer'], $RunY)))
+                            );
+                            $importService->insertPrivatePhone($tblPerson, 'Tel_er_mobil', $RunY,
+                                trim($Document->getValue($Document->getCell($Location['Tel_mobil_wer'], $RunY)))
+                            );
+                            $importService->insertPrivatePhone($tblPerson, 'Tel_er_sonst', $RunY, 'Sonstige');
                         } else {
                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler mit der ID=' . $studentId . ' wurde nicht gefunden';
                         }
