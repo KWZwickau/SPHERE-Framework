@@ -461,7 +461,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
-                        (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
+                        (new SelectBox('DebtorSelection[Debtor]', 'Beitragszahler',
                             $SelectBoxDebtorList, null, true, null))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
@@ -526,22 +526,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     private static function getDebtorNumberByPerson(TblPerson $tblPerson)
     {
 
-        $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
-            if($tblSetting->getValue() == 1){
-                $IsDebtorNumberNeed = true;
-            }
-        }
         $DeborNumber = '';
-        if($IsDebtorNumberNeed){
-            $DeborNumber = '(keine Debitoren-Nr.)';
-        }
-        // change warning if necessary to "not in PaymentGroup"
-        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
-            if(!Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
-                $DeborNumber = '(kein Bezahler)';
-            }
-        }
         if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))){
             $DebtorNumberList = array();
             foreach($tblDebtorNumberList as $tblDebtorNumber) {
@@ -556,18 +541,56 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param TblPerson $tblPerson
      *
+     * @return string
+     */
+    private static function getDebtorMissingNumber(TblPerson $tblPerson)
+    {
+
+        $IsDebtorNumberNeed = false;
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
+            if($tblSetting->getValue() == 1){
+                $IsDebtorNumberNeed = true;
+            }
+        }
+        $DeborNumber = '';
+        if($IsDebtorNumberNeed){
+            $DeborNumber = '(keine Debitoren-Nr. hinterlegt)';
+        }
+
+        // noch nicht hinterlegte Beitagszahler erhalten keinen Warntext mehr
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+            if(!Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
+                $DeborNumber = '';
+            }
+        }
+        return $DeborNumber;
+    }
+
+//    private static function
+
+    /**
+     * @param TblPerson $tblPerson
+     *
      * @return array array('SelectBoxDebtorList' => SelectBoxContent[]; 'PersonDebtorList' => TblPerson[])
      */
     public static function getSelectBoxDebtor(TblPerson $tblPerson)
     {
 
+        $SelectBoxFirstDebtorList = array('0' => 'Nicht ausgewählt');
+        $SelectBoxDebtorList = array();
         if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
             if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType))){
                 foreach($tblRelationshipList as $tblRelationship) {
                     if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
                         $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
-                        $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        if($DeborNumber){
+                            // Steht am Anfang, wenn es eine Debitorennummer gibt
+                            $SelectBoxFirstDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        } else {
+                            $DeborNumber = self::getDebtorMissingNumber($tblPersonRel);
+                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        }
                         $PersonDebtorList[] = $tblPersonRel;
                     }
                 }
@@ -579,7 +602,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 foreach($tblRelationshipList as $tblRelationship) {
                     if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
                         $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
-                        $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        if($DeborNumber){
+                            $SelectBoxFirstDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        } else {
+                            $DeborNumber = self::getDebtorMissingNumber($tblPersonRel);
+                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        }
                         $PersonDebtorList[] = $tblPersonRel;
                     }
                 }
@@ -591,7 +619,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 foreach($tblRelationshipList as $tblRelationship) {
                     if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
                         $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
-                        $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        if($DeborNumber){
+                            $SelectBoxFirstDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        } else {
+                            $DeborNumber = self::getDebtorMissingNumber($tblPersonRel);
+                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        }
                         $PersonDebtorList[] = $tblPersonRel;
                     }
                 }
@@ -600,8 +633,25 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         // Beitragsverursacher steht immer am Schluss
 
         $DeborNumber = self::getDebtorNumberByPerson($tblPerson);
+        if($DeborNumber){
+            $SelectBoxFirstDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
+        } else {
+            $DeborNumber = self::getDebtorMissingNumber($tblPerson);
+            $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
+        }
+
+        if(count($SelectBoxFirstDebtorList) == 2 && !isset($_POST['DebtorSelection']['Debtor'])){
+            $keyList = array_keys($SelectBoxFirstDebtorList);
+            end($keyList);
+            $_POST['DebtorSelection']['Debtor'] = current($keyList);
+        }
+
+        // Array Sortierung
+        foreach($SelectBoxDebtorList as $PersonId => $SelectBoxDebtor){
+            $SelectBoxFirstDebtorList[$PersonId] = $SelectBoxDebtor;
+        }
             // $SelectBoxDebtorList => Personen, die zur Auswahl als Debitor stehen
-        $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
+        $SelectBoxDebtorList = $SelectBoxFirstDebtorList;
             // $PersonDebtorList = Personen von denen Kontoinformationen geholt werden
         $PersonDebtorList[] = $tblPerson;
 
@@ -740,7 +790,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             }
         }
         if(isset($DebtorSelection['Debtor']) && empty($DebtorSelection['Debtor'])){
-            $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Bezahler an');
+            $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Beitragszahler an');
             $Error = true;
         }
         if(isset($DebtorSelection['FromDate']) && empty($DebtorSelection['FromDate'])){

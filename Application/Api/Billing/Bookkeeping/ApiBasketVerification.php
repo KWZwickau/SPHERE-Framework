@@ -637,7 +637,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
-                        (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
+                        (new SelectBox('DebtorSelection[Debtor]', 'Beitragszahler',
                             $SelectBoxDebtorList, null, true, null))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
@@ -720,7 +720,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             }
         }
         if(isset($DebtorSelection['Debtor']) && empty($DebtorSelection['Debtor'])){
-            $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Bezahler an');
+            $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Beitragszahler an');
             $Error = true;
         }
 
