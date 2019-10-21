@@ -924,8 +924,10 @@ class Frontend extends FrontendScoreRule
 
         $errorRowList = array();
 
+        $YearString = '';
         $tblYear = $tblDivision->getServiceTblYear();
         if ($tblYear) {
+            $YearString = $tblYear->getYear();
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
         } else {
             $tblPeriodList = false;
@@ -1023,7 +1025,7 @@ class Frontend extends FrontendScoreRule
                         $columnDefinition['Period' . $tblPeriod->getId()] = "";
                     }
 
-                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
+                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216; '.substr($tblPeriod->getDisplayName(), 0, 1).'. HJ';
                     $count++;
                     if (isset($MinimumGradeCountSortedList[$countPeriod])) {
                         /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
@@ -1309,6 +1311,7 @@ class Frontend extends FrontendScoreRule
                                     ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
                                     ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
                                         ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                    'Schuljahr: '.$YearString,
                                     'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
                                         ? $tblDivisionSubject->getTblSubjectGroup() : null
