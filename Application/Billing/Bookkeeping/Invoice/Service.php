@@ -701,7 +701,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $result['ItemQuantity']);
                 $export->setValue($export->getCell($column++, $row), $result['ItemPrice']);
                 $export->setValue($export->getCell($column++, $row), $result['ItemSumPrice']);
-                $export->setValue($export->getCell($column, $row), $result['BasketTyp']);
+                $export->setValue($export->getCell($column, $row), $result['BasketType']);
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -863,7 +863,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $result['BillTime']);
                 $export->setValue($export->getCell($column++, $row), $result['InvoiceNumber']);
                 $export->setValue($export->getCell($column++, $row), $result['PaymentType']);
-                $export->setValue($export->getCell($column++, $row), $result['BasketTyp']);
+                $export->setValue($export->getCell($column++, $row), $result['BasketType']);
                 $export->setValue($export->getCell($column++, $row), $result['DisplaySumPrice']);
 
                 $sum['Total'] += $result['SumPrice'];
