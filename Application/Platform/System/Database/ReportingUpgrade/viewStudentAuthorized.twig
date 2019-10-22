@@ -82,7 +82,7 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City_Bev,
+    ) TblCity_Name_Bev,
 
     (select vCA.TblCity_District
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA

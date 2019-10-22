@@ -83,7 +83,7 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_S1_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City_S1,
+    ) TblCity_Name_S1,
 
     (select vCA.TblCity_District
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
@@ -231,7 +231,7 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_S2_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City_S2,
+    ) TblCity_Name_S2,
 
     (select vCA.TblCity_District
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
@@ -385,7 +385,7 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_S3_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City_S3,
+    ) TblCity_Name_S3,
 
     (select vCA.TblCity_District
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
