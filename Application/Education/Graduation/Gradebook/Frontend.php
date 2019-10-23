@@ -835,7 +835,7 @@ class Frontend extends FrontendScoreRule
         Stage $Stage,
         TblDivisionSubject $tblDivisionSubject,
         $BasicRoute,
-        $BackwardInfo
+        $BackwardInfo = false
     ) {
 
         $linkArray = array();
@@ -1383,9 +1383,8 @@ class Frontend extends FrontendScoreRule
      *
      * @return Stage|string
      */
-    public function frontendHeadmasterSelectedGradeBook(
-        $DivisionSubjectId = null, $BackwardInfo = false
-    ) {
+    public function frontendHeadmasterSelectedGradeBook($DivisionSubjectId = null, $BackwardInfo = false)
+    {
 
         $Stage = new Stage('Notenbuch', 'Anzeigen');
 
