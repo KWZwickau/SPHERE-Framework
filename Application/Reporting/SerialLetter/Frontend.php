@@ -1654,7 +1654,7 @@ class Frontend extends Extension implements IFrontendInterface
             if($tblCompany){
                 $Item['CompanyName'] = $tblCompany->getDisplayName();
                 if(($tblAddress = Address::useService()->getAddressByCompany($tblCompany))){
-                    $Item['Address'] = $tblAddress->getGuiTwoRowString();
+                    $Item['Address'] = $tblAddress->getGuiTwoRowString(false);
                 }
             }
 
