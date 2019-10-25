@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -117,11 +118,9 @@ class Service
                     $error = array();
 
                     $tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON');
-                    $tblGroupClub = Group::useService()->getGroupByMetaTable('CLUB');
 
                     $groups = array(
-                        0 => $tblGroupCommon,
-                        1 => $tblGroupClub,
+                        0 => $tblGroupCommon
                     );
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
@@ -171,6 +170,17 @@ class Service
                                     $birthday = '';
                                 }
 
+                                $remark = '';
+                                $day1 = trim($Document->getValue($Document->getCell($Location['Antragsdatum'], $RunY)));
+                                if ($day1 !== '' && $day1 !== '0000-00-00') {
+                                    try {
+                                        $applicationDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day1));
+                                        $remark = 'Antragsdatum: ' . $applicationDate;
+                                    } catch (\Exception $ex) {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Antragsdatum: ' . $ex->getMessage();
+                                    }
+                                }
+
                                 Common::useService()->insertMeta(
                                     $tblPerson,
                                     $birthday,
@@ -180,7 +190,7 @@ class Service
                                     '',
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
                                     '',
-                                    ''
+                                    $remark
                                 );
 
                                 // Address
@@ -196,47 +206,6 @@ class Service
                                     );
                                 } else {
                                     $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse ist nicht vollständig.';
-                                }
-
-                                // Club
-                                $applicationDate = '';
-                                $day1 = trim($Document->getValue($Document->getCell($Location['Antragsdatum'], $RunY)));
-                                if ($day1 !== '' && $day1 !== '0000-00-00') {
-                                    try {
-                                        $applicationDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day1));
-                                    } catch (\Exception $ex) {
-                                        $applicationDate = '';
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Antragsdatum: ' . $ex->getMessage();
-                                    }
-                                }
-
-                                $entryDate = '';
-                                $day2 = trim($Document->getValue($Document->getCell($Location['Aufnahmedatum'], $RunY)));
-                                if ($day2 !== '' && $day2 !== '0000-00-00') {
-                                    try {
-                                        $entryDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day2));
-                                    } catch (\Exception $ex) {
-                                        $entryDate = '';
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Aufnahmedatum: ' . $ex->getMessage();
-                                    }
-
-                                }
-
-                                if ($applicationDate !== '' or $entryDate !== '')
-                                {
-                                    if ($applicationDate !== '') {
-                                        $remark = 'Antragsdatum: ' . $applicationDate;
-                                    } else {
-                                        $remark = '';
-                                    }
-
-                                    Club::useService()->insertMeta(
-                                        $tblPerson,
-                                        '',
-                                        $entryDate,
-                                        '',
-                                        $remark
-                                    );
                                 }
 
                                 // Contact
@@ -349,13 +318,13 @@ class Service
                     $error = array();
 
                     $tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON');
-                    $tblGroupClub = Group::useService()->getGroupByMetaTable('CLUB');
+                    $tblGroupStaff = Group::useService()->getGroupByMetaTable('STAFF');
 
                     $tblCompanyGroupCommon = CompanyGroup::useService()->getGroupByMetaTable('COMMON');
 
                     $groupsPerson = array(
                         0 => $tblGroupCommon,
-                        1 => $tblGroupClub,
+                        1 => $tblGroupStaff,
                     );
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
@@ -904,9 +873,14 @@ class Service
                                 $religion = '';
                             }
 
-                            $remark = trim($Document->getValue($Document->getCell($Location['Besonderheiten'], $RunY)));
-                            if ($remark !== '') {
-                                $remark = 'Besonderheiten: ' . $remark;
+                            $remark = '';
+                            if (($tblCommon = $tblPerson->getCommon())) {
+                                $remark = $tblCommon->getRemark();
+                            }
+
+                            $special = trim($Document->getValue($Document->getCell($Location['Besonderheiten'], $RunY)));
+                            if ($special !== '') {
+                                $remark = ($remark ? $remark . " \n"  : '') . 'Besonderheiten: ' . $special;
                             }
 
                             $insuranceName = trim($Document->getValue($Document->getCell($Location['Versichertenname'], $RunY)));
@@ -914,7 +888,7 @@ class Service
                                 $remark = ($remark ? $remark . " \n"  : '') . 'Versichertenname: ' . $insuranceName;
                             }
 
-                            if (($tblCommon = $tblPerson->getCommon())) {
+                            if (($tblCommon)) {
                                 Common::useService()->updateCommon($tblCommon, $remark);
                                 if (($tblCommonBirthDates  = $tblCommon->getTblCommonBirthDates())) {
                                     Common::useService()->updateCommonBirthDates(
@@ -928,7 +902,7 @@ class Service
                                     Common::useService()->updateCommonInformation(
                                         $tblCommonInformation,
                                         trim($Document->getValue($Document->getCell($Location['Staatsangeh'], $RunY))),
-                                        $religion,
+                                        '',
                                         TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
                                         ''
                                     );
@@ -1005,6 +979,24 @@ class Service
                                     $arriveDate,
                                     ''
                                 );
+
+                                if ($religion != ''){
+                                    if ($religion == 'Ethik') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
+                                    } elseif ($religion == 'Religion') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('RE/E');
+                                    } else {
+                                        $tblSubject = false;
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Fach-Religion nicht gefunden: ' . $religion;
+                                    }
+
+                                    if ($tblSubject
+                                        && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'))
+                                        && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1'))
+                                    ) {
+                                        Student::useService()->addStudentSubject($tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking, $tblSubject);
+                                    }
+                                }
                             }
 
                             // Mutter
@@ -1018,6 +1010,9 @@ class Service
                                     '',
                                     $genderSetting == 'Weiblich' ? 1 : 2
                                 );
+
+                                // Anrede
+                                Person::useService()->updateSalutation($tblPersonMother, Person::useService()->getSalutationByName('Frau'));
 
                                 if (($tblCommon = $tblPersonMother->getCommon())) {
                                     if (($tblCommonBirthDates  = $tblCommon->getTblCommonBirthDates())) {
@@ -1053,6 +1048,9 @@ class Service
                                     '',
                                     $genderSetting == 'Weiblich' ? 2 : 1
                                 );
+
+                                // Anrede
+                                Person::useService()->updateSalutation($tblPersonFather, Person::useService()->getSalutationByName('Herr'));
 
                                 if (($tblCommon = $tblPersonFather->getCommon())) {
                                     if (($tblCommonBirthDates  = $tblCommon->getTblCommonBirthDates())) {
