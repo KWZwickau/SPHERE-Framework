@@ -116,7 +116,7 @@ select
             ': ',
             vCP.TblPhone_Number,
             vCP.TblToPerson_Remark
-            ) separator ' - \n\r'
+            ) separator ' - \n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_S1_Id
     ) TblPhone_Number_S1,
@@ -129,7 +129,7 @@ select
             vCM.TblMail_Address,
             case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
             vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_S1_Id
     ) TblMail_Address_S1,
@@ -264,7 +264,7 @@ select
             ': ',
             vCP.TblPhone_Number,
             vCP.TblToPerson_Remark
-            ) separator ' - \n\r'
+            ) separator ' - \n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_S2_Id
     ) TblPhone_Number_S2,
@@ -277,7 +277,7 @@ select
             vCM.TblMail_Address,
             case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
             vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_S2_Id
     ) TblMail_Address_S2,
@@ -418,7 +418,7 @@ select
             ': ',
             vCP.TblPhone_Number,
             vCP.TblToPerson_Remark
-            ) separator ' - \n\r'
+            ) separator ' - \n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_S3_Id
     ) TblPhone_Number_S3,
@@ -431,7 +431,7 @@ select
             vCM.TblMail_Address,
             case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
             vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_S3_Id
     ) TblMail_Address_S3,

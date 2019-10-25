@@ -118,7 +118,7 @@ SELECT
                 vCP.TblPhone_Number,
                 ' - ',
                 vCP.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) FROM SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S1_Id
     ) TblPhone_Number_S1,
@@ -131,7 +131,7 @@ SELECT
                 vCM.TblMail_Address,
                 case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
                 vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) FROM SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         WHERE vCM.TblPerson_Id = TblPerson_S1_Id
     ) TblMail_Address_S1,
@@ -268,7 +268,7 @@ SELECT
                 vCP.TblPhone_Number,
                 ' - ',
                 vCP.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) FROM SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S2_Id
     ) TblPhone_Number_S2,
@@ -281,7 +281,7 @@ SELECT
                 vCM.TblMail_Address,
                 case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
                 vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) FROM SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         WHERE vCM.TblPerson_Id = TblPerson_S2_Id
     ) TblMail_Address_S2,
@@ -424,7 +424,7 @@ SELECT
                 vCP.TblPhone_Number,
                 ' - ',
                 vCP.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) FROM SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S3_Id
     ) TblPhone_Number_S3,
@@ -437,7 +437,7 @@ SELECT
                 vCM.TblMail_Address,
                 case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
                 vCM.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator '\n'
         ) FROM SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
         WHERE vCM.TblPerson_Id = TblPerson_S3_Id
     ) TblMail_Address_S3,
