@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education;
 use SPHERE\Application\Api\Education\Certificate\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
@@ -30,6 +31,7 @@ class Education implements IApplicationInterface
         Certificate::registerModule();
         ClassRegister::registerModule();
         ApiDiary::registerApi();
+        ApiSortDivision::registerApi();
         Prepare::registerModule();
         SubjectSelect::registerApi();
         StudentSelect::registerApi();
