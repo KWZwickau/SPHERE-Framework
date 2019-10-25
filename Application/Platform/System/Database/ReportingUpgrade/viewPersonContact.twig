@@ -17,7 +17,7 @@ SELECT
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City,
+    ) TblCity_Name,
 
     (select vCA.TblCity_District from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
@@ -63,7 +63,7 @@ SELECT
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
-    ) TblCity_City2,
+    ) TblCity_Name2,
 
     (select vCA.TblCity_District from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id

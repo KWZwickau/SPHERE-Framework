@@ -263,6 +263,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCommonInformation $tblCommonInformation
+     * @param string               $Nationality
+     * @param string               $Denomination
+     * @param int                  $IsAssistance
+     * @param string               $AssistanceActivity
+     *
+     * @return bool
+     */
+    public function updateCommonInformation(
+        TblCommonInformation $tblCommonInformation,
+        $Nationality,
+        $Denomination,
+        $IsAssistance,
+        $AssistanceActivity
+    ) {
+        return (new Data($this->getBinding()))->updateCommonInformation($tblCommonInformation, $Nationality, $Denomination, $IsAssistance, $AssistanceActivity);
+    }
+
+    /**
      * @param TblCommon $tblCommon
      * @param bool $IsSoftRemove
      *

@@ -1,6 +1,11 @@
 SELECT
 
 -- PersonId to match with all View's // tblToPerson
+    -- EntityManager requiere Id, EntityCreate, EntityUpdate, EntityRemove
+    tTP.Id AS Id,
+    tTP.EntityCreate AS EntityCreate,
+    tTP.EntityUpdate AS EntityUpdate,
+    tTP.EntityRemove AS EntityRemove,
     tTP.serviceTblPerson AS TblPerson_Id,
     tTP.Remark AS TblToPerson_Remark,
 -- tblType

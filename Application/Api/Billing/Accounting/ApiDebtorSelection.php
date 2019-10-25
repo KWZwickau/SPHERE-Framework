@@ -484,8 +484,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         array(
-                            (new DatePicker('DebtorSelection[FromDate]', '', 'Gültig ab'))->setRequired(),
-                            new DatePicker('DebtorSelection[ToDate]', '', 'Gültig bis')
+                            (new DatePicker('DebtorSelection[FromDate]', '', 'Beitragspflicht ab'))->setRequired(),
+                            new DatePicker('DebtorSelection[ToDate]', '', 'Beitragspflicht bis')
                         )
                         , 6
                     ),
