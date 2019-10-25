@@ -235,6 +235,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|ViewPeopleMetaCommon[]
+     */
+    public function getViewPeopleMetaCommonAll()
+    {
+
+        return (new Data($this->getBinding()))->getViewPeopleMetaCommonAll();
+    }
+
+    /**
      * @param TblCommon $tblCommon
      * @param string $Remark
      *
