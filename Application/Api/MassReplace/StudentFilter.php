@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -168,7 +169,7 @@ class StudentFilter extends Extension
                             new FormGroup(array(
                                 new FormRow(array(
                                     new FormColumn(
-                                        new Panel('Weitere Personen:',
+                                        new Panel('Weitere Personen ('.new Bold(count($TableContent)).' nach Filterung):',
                                             (!empty($TableContent)
                                                 ? new ToggleCheckbox('Alle wählen/abwählen', $Table).$Table
                                                 : new Warning('Keine Personen gefunden '.
