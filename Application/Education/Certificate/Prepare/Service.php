@@ -983,77 +983,69 @@ class Service extends AbstractService
         if ($tblPersonSigner) {
             $divisionTeacherDescription = 'Klassenlehrer';
 
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if ($tblConsumer
-                && $tblConsumer->getAcronym() == 'EVSR'
-                && $isDivisionTeacherAvailable
-            ) {
-                $firstName = $tblPersonSigner->getFirstName();
-                if (strlen($firstName) > 1) {
-                    $firstName = substr($firstName, 0, 1) . '.';
+            if($isDivisionTeacherAvailable){
+                $ConsumerAcronym = '';
+                $tblConsumer = Consumer::useService()->getConsumerBySession();
+                if($tblConsumer){
+                    $ConsumerAcronym = $tblConsumer->getAcronym();
                 }
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
-                    . $tblPersonSigner->getLastName();
-            } elseif ($tblConsumer
-                && $tblConsumer->getAcronym() == 'ESZC'
-                && $isDivisionTeacherAvailable
-            ) {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
-                    . " " . $tblPersonSigner->getLastName());
-            } elseif ($tblConsumer
-                && $tblConsumer->getAcronym() == 'EVSC'
-                && $isDivisionTeacherAvailable
-            ) {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
-                    . " " . $tblPersonSigner->getLastName());
-                $divisionTeacherDescription = 'Klassenleiter';
-            } elseif ($tblConsumer
-                && $tblConsumer->getAcronym() == 'EGE'
-                && $isDivisionTeacherAvailable
-            ) {
-                $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                if ($tblLevel
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
-                    && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
-                    && ($level = intval($tblLevel->getName()))
-                    && $level < 9
-                ) {
-                    $divisionTeacherDescription = 'Gruppenleiter';
-                }
-            } elseif ($tblConsumer
-                && $tblConsumer->getAcronym() == 'EVAMTL'
-                && $isDivisionTeacherAvailable
-            ) {
-                $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                if ($tblLevel
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
-                    && $tblSchoolType->getName() != 'Grundschule'
-                ){
-                    $divisionTeacherDescription = 'Mentor';
-                }
-            } elseif ($tblConsumer
-                && $tblConsumer->getAcronym() == 'CSW'
-                && $isDivisionTeacherAvailable
-            ) {
-                if ($tblLevel
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
-                    && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
-                ) {
-                    $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName()
-                        . ' ' . $tblPersonSigner->getLastName();
-                } else {
-                    $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                }
-            } elseif ($tblConsumer
-                && $tblConsumer->getAcronym() == 'FESH'
-                && $isDivisionTeacherAvailable
-            ) {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
-                    . " " . $tblPersonSigner->getLastName());
-            }
-            else {
-                if ($isDivisionTeacherAvailable) {
-                    $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                switch ($ConsumerAcronym) {
+                    case 'EVSR':
+                        $firstName = $tblPersonSigner->getFirstName();
+                        if (strlen($firstName) > 1) {
+                            $firstName = substr($firstName, 0, 1) . '.';
+                        }
+                        $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
+                            . $tblPersonSigner->getLastName();
+                    break;
+                    case 'ESZC':
+                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
+                            . " " . $tblPersonSigner->getLastName());
+                    break;
+                    case 'EVSC':
+                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                            . " " . $tblPersonSigner->getLastName());
+                        $divisionTeacherDescription = 'Klassenleiter';
+                    break;
+                    case 'EGE':
+                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                        if ($tblLevel
+                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                            && ($level = intval($tblLevel->getName()))
+                            && $level < 9
+                        ) {
+                            $divisionTeacherDescription = 'Gruppenleiter';
+                        }
+                    break;
+                    case 'EVAMTL':
+                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                        if ($tblLevel
+                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                            && $tblSchoolType->getName() != 'Grundschule'
+                        ){
+                            $divisionTeacherDescription = 'Mentor';
+                        }
+                    break;
+                    case 'CSW':
+                        if ($tblLevel
+                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                        ) {
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName()
+                                . ' ' . $tblPersonSigner->getLastName();
+                        } else {
+                            $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                        }
+                    break;
+                    case 'FESH':
+                    case 'ESS':
+                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                            . " " . $tblPersonSigner->getLastName());
+                    break;
+                    default:
+                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                    break;
                 }
             }
 
