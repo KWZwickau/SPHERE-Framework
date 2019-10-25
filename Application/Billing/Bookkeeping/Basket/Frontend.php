@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketRepaymentAddPerson;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
@@ -661,8 +662,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            ApiBasketRepaymentAddPerson::receiverModal('Gutschrift hinzufügen', 'AddRepayment')
-            .ApiBasketRepaymentAddPerson::receiverModal('Entfernen einer Zahlung', 'deleteDebtorSelection')
+            ApiBasketRepaymentAddPerson::receiverModal('Gutschrift für '.$ItemName.' hinzufügen', 'AddRepayment')
+            .ApiBasketRepaymentAddPerson::receiverModal('Gutschrift für '.$ItemName.' festlegen', 'ItemPrice')
+            .ApiBasketRepaymentAddPerson::receiverModal('Entfernen einer Gutschrift', 'deleteDebtorSelection')
             .ApiBasketRepaymentAddPerson::receiverService()
             .new Layout(
                 new LayoutGroup(
@@ -729,14 +731,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblBasket
                 ){
 
-                    $_POST['Price'][$tblBasketVerification->getId()] = $tblBasketVerification->getValue(true);
                     $Item['PersonCauser'] = $Item['PersonDebtor'] = '';
                     $Item['Item'] = '';
                     $Item['Price'] = ApiBasketRepaymentAddPerson::receiverItemPrice(
-                        new Form(new FormGroup(new FormRow(new FormColumn(
-                        (new TextField('Price['.$tblBasketVerification->getId().']'))
-                            ->ajaxPipelineOnChange(ApiBasketRepaymentAddPerson::pipelineCheckPrice($tblBasketVerification->getId()))
-                        )))), $tblBasketVerification->getId());
+                        Balance::useService()->getPriceString($tblBasketVerification->getValue()),
+                        $tblBasketVerification->getId());
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
                     }
@@ -756,7 +755,11 @@ class Frontend extends Extension implements IFrontendInterface
                     if($tblBasket->getIsDone()){
                         $Item['Option'] = '';
                     } else {
-                        $Item['Option'] = (new Standard(new DangerText(new Disable()),
+                        $Item['Option'] = // Edit Button
+                            (new Standard('', ApiBasketRepaymentAddPerson::getEndpoint(), new Edit()))
+                                ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenItemPrice($tblBasketVerification->getid()))
+                            // Remove Button
+                            .(new Standard(new DangerText(new Disable()),
                             ApiBasketRepaymentAddPerson::getEndpoint()
                             // Tooltip aus Abrechnungen deaktiviert, hat wohl einen Grund gehabt.
 //                            , null, array(), 'Gutschrift entfernen'
