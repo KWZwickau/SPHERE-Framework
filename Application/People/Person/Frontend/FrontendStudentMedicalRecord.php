@@ -9,7 +9,6 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -66,7 +65,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 $disease = $tblStudentMedicalRecord->getDisease();
                 $medication = $tblStudentMedicalRecord->getMedication();
                 $attendingDoctor = $tblStudentMedicalRecord->getAttendingDoctor();
-                $insuranceState = $tblStudentMedicalRecord->getDisplayInsuranceState();
+                $insuranceState = $tblStudentMedicalRecord->getInsuranceState();
                 $insurance = $tblStudentMedicalRecord->getInsurance();
             } else {
                 $disease = '';
@@ -158,6 +157,8 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
     private function getEditStudentMedicalRecordForm(TblPerson $tblPerson = null)
     {
 
+        $tblStudentInsuranceState = Student::useService()->getStudentInsuranceStateAll();
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -170,7 +171,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                     new FormColumn(array(
                         new TextField('Meta[MedicalRecord][AttendingDoctor]', 'Name', 'Behandelnder Arzt',
                             new Stethoscope()),
-                        new SelectBox('Meta[MedicalRecord][Insurance][State]', 'Versicherungsstatus', TblStudentMedicalRecord::getInsuranceStateArray(), new Lock()),
+                        new SelectBox('Meta[MedicalRecord][Insurance][State]', 'Versicherungsstatus', array( '{{ Name }}' => $tblStudentInsuranceState), new Lock()),
                         new AutoCompleter('Meta[MedicalRecord][Insurance][Company]', 'Krankenkasse', 'Krankenkasse', array(), new Shield())
                     ), 4),
                 )),

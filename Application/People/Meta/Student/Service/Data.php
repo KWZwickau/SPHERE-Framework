@@ -5,6 +5,7 @@ use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
@@ -176,6 +177,12 @@ class Data extends Support
 
     public function setupDatabaseContent()
     {
+
+        $this->createStudentInsuranceState('Pflicht');
+        $this->createStudentInsuranceState('Freiwillig');
+        $this->createStudentInsuranceState('Privat');
+        $this->createStudentInsuranceState('Familie Vater');
+        $this->createStudentInsuranceState('Familie Mutter');
 
         $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
             'Foto des Schülers',
@@ -365,6 +372,30 @@ class Data extends Support
     }
 
     /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblStudentInsuranceState
+     */
+    public function createStudentInsuranceState($Name = '', $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentInsuranceState')->findOneBy(array(
+            TblStudentInsuranceState::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentInsuranceState();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @param string $Disease
      * @param string $Medication
      * @param string $AttendingDoctor
@@ -477,6 +508,30 @@ class Data extends Support
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentMedicalRecord', $Id
+        );
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentMedicalRecord
+     */
+    public function getStudentInsuranceStateById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentInsuranceState', $Id
+        );
+    }
+
+    /**
+     * @return bool|TblStudentMedicalRecord[]
+     */
+    public function getStudentInsuranceStateAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentInsuranceState'
         );
     }
 

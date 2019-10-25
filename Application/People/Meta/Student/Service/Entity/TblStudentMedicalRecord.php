@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -16,6 +17,7 @@ class TblStudentMedicalRecord extends Element
 {
 
     const ATTR_ATTENDING_DOCTOR = 'AttendingDoctor';
+    const ATTR_INSURANCE_STATE = 'InsuranceState';
 
     /**
      * @Column(type="text")
@@ -93,21 +95,25 @@ class TblStudentMedicalRecord extends Element
     }
 
     /**
-     * @return int
+     * @return string
      */
     public function getInsuranceState()
     {
 
-        return $this->InsuranceState;
+        $value = '';
+        if(($tblStudentInsuranceState = Student::useService()->getStudentInsuranceStateById($this->InsuranceState))){
+            $value = $tblStudentInsuranceState->getName();
+        }
+        return $value;
     }
 
     /**
-     * @param int $InsuranceState
+     * @param int $tblStudentInsuranceStateId
      */
-    public function setInsuranceState($InsuranceState)
+    public function setInsuranceState($tblStudentInsuranceStateId = 0)
     {
 
-        $this->InsuranceState = $InsuranceState;
+        $this->InsuranceState = $tblStudentInsuranceStateId;
     }
 
     /**
@@ -126,35 +132,5 @@ class TblStudentMedicalRecord extends Element
     {
 
         $this->Insurance = $Insurance;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDisplayInsuranceState()
-    {
-
-        $result = '';
-        switch ($this->getInsuranceState()) {
-            case 1:  $result = 'Pflicht'; break;
-            case 2:  $result = 'Freiwillig'; break;
-            case 3:  $result = 'Privat'; break;
-            case 4:  $result =' Familie Vater'; break;
-            case 5:  $result = 'Familie Mutter'; break;
-        }
-
-        return $result;
-    }
-
-    public static function getInsuranceStateArray()
-    {
-        return array(
-            0 => '',
-            1 => 'Pflicht',
-            2 => 'Freiwillig',
-            3 => 'Privat',
-            4 => 'Familie Vater',
-            5 => 'Familie Mutter',
-        );
     }
 }

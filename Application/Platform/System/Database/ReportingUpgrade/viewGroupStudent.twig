@@ -11,9 +11,10 @@ SELECT
 	tSL.LockerLocation AS TblStudentLocker_LockerLocation,
 	tSL.KeyNumber AS TblStudentLocker_KeyNumber,
 -- tblStudentMedicalRecord
+    tSMR.AttendingDoctor AS TblStudentMedicalRecord_AttendingDoctor,
 	tSMR.Disease AS TblStudentMedicalRecord_Disease,
 	tSMR.Medication AS TblStudentMedicalRecord_Medication,
-	tSMR.InsuranceState AS TblStudentMedicalRecord_InsuranceState,
+	tSIS.Name AS TblStudentInsuranceState_Name,
 	tSMR.Insurance AS TblStudentMedicalRecord_Insurance,
 -- tblStudentTransport
 	tST.Route AS TblStudentTransport_Route,
@@ -63,6 +64,7 @@ FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS
 	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentBaptism tSB ON tSB.Id = tS.tblStudentBaptism
 	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentLocker tSL ON tSL.Id = tS.tblStudentLocker
 	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentMedicalRecord tSMR ON tSMR.Id = tS.tblStudentMedicalRecord
+	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentInsuranceState tSIS ON tSIS.Id = tSMR.InsuranceState
 	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransport tST ON tST.Id = tS.tblStudentTransport
 
 WHERE tS.EntityRemove IS NULL
