@@ -4018,7 +4018,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if ($tblSubjectGroup) {
+        if ($tblDivisionSubject && $tblSubjectGroup) {
             $tblSubjectStudentAll = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if ($tblSubjectStudentAll) {
                 $count = 0;
