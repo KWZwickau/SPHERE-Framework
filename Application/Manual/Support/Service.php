@@ -70,7 +70,7 @@ class Service extends Extension
                 foreach($ArrayExeption as &$ExeptionMessage){
                     switch ($ExeptionMessage){
                         case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
-                            $ExeptionMessage = 'Der Angang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
                             break;
                         case 'The uploaded file was not sent with a POST request':
                             $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
