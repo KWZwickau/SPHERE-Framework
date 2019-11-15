@@ -1251,16 +1251,32 @@ abstract class Certificate extends Extension
      */
     public function getDescriptionContent($personId, $Height = '150px', $MarginTop = '0px')
     {
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
         $DescriptionSlice = (new Slice());
-        $DescriptionSlice->addElement((new Element())
-            ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+        if($tblSetting && $tblSetting->getValue()){
+            $DescriptionSlice->addElement((new Element())
+                ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
                         {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                     {% else %}
                         &nbsp;
                     {% endif %}')
-            ->styleHeight($Height)
-            ->styleMarginTop($MarginTop)
-        );
+                ->styleHeight($Height)
+                ->styleMarginTop($MarginTop)
+                ->styleAlignJustify()
+            );
+        } else {
+            $DescriptionSlice->addElement((new Element())
+                ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+                ->styleHeight($Height)
+                ->styleMarginTop($MarginTop)
+            );
+        }
         return $DescriptionSlice;
     }
 

@@ -196,6 +196,14 @@ class Data extends AbstractData
                 true);
         }
 
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify', // "Blocksatz"
+            TblSetting::TYPE_BOOLEAN, '1'))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'die Schülereinschätzung als Blocksatz dargestellen [Standard: Ja]',
+                false);
+        }
+
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook',
             'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
