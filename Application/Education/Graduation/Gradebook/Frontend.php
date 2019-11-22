@@ -494,6 +494,14 @@ class Frontend extends FrontendScoreRule
             $studentViewLinkButton = false;
         }
 
+        $BackwardInfo = false;
+        if($IsAllYears){
+            $BackwardInfo = 'IsAllYears';
+        }
+        if($YearId){
+            $BackwardInfo = $YearId;
+        }
+
         if (!empty($divisionSubjectList)) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
@@ -518,7 +526,8 @@ class Frontend extends FrontendScoreRule
                                             '', '/Education/Graduation/Gradebook/Gradebook/Teacher/Selected',
                                             new Select(),
                                             array(
-                                                'DivisionSubjectId' => $subValue
+                                                'DivisionSubjectId' => $subValue,
+                                                'BackwardInfo' => $BackwardInfo
                                             ),
                                             'Auswählen'
                                         )
@@ -537,7 +546,8 @@ class Frontend extends FrontendScoreRule
                                     'Option' => new Standard(
                                         '', '/Education/Graduation/Gradebook/Gradebook/Teacher/Selected', new Select(),
                                         array(
-                                            'DivisionSubjectId' => $value
+                                            'DivisionSubjectId' => $value,
+                                            'BackwardInfo' => $BackwardInfo
                                         ),
                                         'Auswählen'
                                     )
@@ -668,6 +678,14 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        $BackwardInfo = false;
+        if($IsAllYears){
+            $BackwardInfo = 'IsAllYears';
+        }
+        if($YearId){
+            $BackwardInfo = $YearId;
+        }
+
         if (!empty($divisionSubjectList)) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
@@ -692,7 +710,8 @@ class Frontend extends FrontendScoreRule
                                             '', '/Education/Graduation/Gradebook/Gradebook/Headmaster/Selected',
                                             new Select(),
                                             array(
-                                                'DivisionSubjectId' => $subValue
+                                                'DivisionSubjectId' => $subValue,
+                                                'BackwardInfo' => $BackwardInfo
                                             ),
                                             'Auswählen'
                                         )
@@ -712,7 +731,8 @@ class Frontend extends FrontendScoreRule
                                         '', '/Education/Graduation/Gradebook/Gradebook/Headmaster/Selected',
                                         new Select(),
                                         array(
-                                            'DivisionSubjectId' => $value
+                                            'DivisionSubjectId' => $value,
+                                            'BackwardInfo' => $BackwardInfo
                                         ),
                                         'Auswählen'
                                     )
@@ -783,10 +803,11 @@ class Frontend extends FrontendScoreRule
 
     /**
      * @param null $DivisionSubjectId
+     * @param bool|string $BackwardInfo
      *
      * @return Stage|string
      */
-    public function frontendTeacherSelectedGradebook($DivisionSubjectId = null)
+    public function frontendTeacherSelectedGradebook($DivisionSubjectId = null, $BackwardInfo = false)
     {
 
         $Stage = new Stage('Notenbuch', 'Anzeigen');
@@ -797,24 +818,34 @@ class Frontend extends FrontendScoreRule
         }
 
         $this->contentSelectedGradeBook($Stage, $tblDivisionSubject,
-            '/Education/Graduation/Gradebook/Gradebook/Teacher');
+            '/Education/Graduation/Gradebook/Gradebook/Teacher', $BackwardInfo);
 
         return $Stage;
     }
 
     /**
-     * @param Stage $Stage
+     * @param Stage              $Stage
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param $BasicRoute
+     * @param string             $BasicRoute
+     * @param bool|string         $BackwardInfo
+     *
      * @return Stage
      */
     private function contentSelectedGradeBook(
         Stage $Stage,
         TblDivisionSubject $tblDivisionSubject,
-        $BasicRoute
+        $BasicRoute,
+        $BackwardInfo = false
     ) {
 
-        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), array()));
+        $linkArray = array();
+        if($BackwardInfo == 'IsAllYears'){
+            $linkArray = array('IsAllYears' => 1);
+        } elseif($BackwardInfo){
+            $linkArray = array('YearId' => $BackwardInfo);
+        }
+
+        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), $linkArray));
         $Stage->addButton(
             new External(
                 'Notenbuch herunterladen',
@@ -924,8 +955,10 @@ class Frontend extends FrontendScoreRule
 
         $errorRowList = array();
 
+        $YearString = '';
         $tblYear = $tblDivision->getServiceTblYear();
         if ($tblYear) {
+            $YearString = $tblYear->getYear();
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
         } else {
             $tblPeriodList = false;
@@ -1023,7 +1056,7 @@ class Frontend extends FrontendScoreRule
                         $columnDefinition['Period' . $tblPeriod->getId()] = "";
                     }
 
-                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
+                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216; '.substr($tblPeriod->getDisplayName(), 0, 1).'. HJ';
                     $count++;
                     if (isset($MinimumGradeCountSortedList[$countPeriod])) {
                         /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
@@ -1305,10 +1338,11 @@ class Frontend extends FrontendScoreRule
                             new Panel(
                                 'Fach-Klasse',
                                 array(
-                                    'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                                    'Klasse: ' . $tblDivision->getDisplayName() . ' - ' .
                                     ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
                                     ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
                                         ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                    'Schuljahr: '.$YearString,
                                     'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
                                         ? $tblDivisionSubject->getTblSubjectGroup() : null
@@ -1344,13 +1378,13 @@ class Frontend extends FrontendScoreRule
     }
 
     /**
-     * @param null $DivisionSubjectId
+     * @param null        $DivisionSubjectId
+     * @param bool|string $BackwardInfo
      *
      * @return Stage|string
      */
-    public function frontendHeadmasterSelectedGradeBook(
-        $DivisionSubjectId = null
-    ) {
+    public function frontendHeadmasterSelectedGradeBook($DivisionSubjectId = null, $BackwardInfo = false)
+    {
 
         $Stage = new Stage('Notenbuch', 'Anzeigen');
 
@@ -1360,7 +1394,7 @@ class Frontend extends FrontendScoreRule
         }
 
         $this->contentSelectedGradeBook($Stage, $tblDivisionSubject,
-            '/Education/Graduation/Gradebook/Gradebook/Headmaster');
+            '/Education/Graduation/Gradebook/Gradebook/Headmaster', $BackwardInfo);
 
         return $Stage;
     }
