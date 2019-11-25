@@ -313,11 +313,10 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblLevel|null    $tblLevel
      * @param TblDivision|null $tblDivision
-     * @param bool             $future
      *
      * @return Form
      */
-    public function formLevelDivision(TblLevel $tblLevel = null, TblDivision $tblDivision = null, $future = false)
+    public function formLevelDivision(TblLevel $tblLevel = null, TblDivision $tblDivision = null)
     {
 
         $tblLevelAll = Division::useService()->getLevelAll();
@@ -339,25 +338,12 @@ class Frontend extends Extension implements IFrontendInterface
             //$Global->POST['Division']['Year'] = ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getId() : 0 );
             $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
-
-            if (!$tblLevel) {
-                $Global->POST['Level']['Check'] = true;
-            } else {
-                if ($future && $tblLevel->getIsChecked()) {
-                    $Global->POST['Level']['Check'] = true;
-                }
-            }
-
             $Global->savePost();
         }
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
 
-//        if ($future) {
-//            $tblYearAll = Term::useService()->getYearAllFutureYears(1);
-//        } else {
         $tblYearAll = Term::useService()->getYearAllSinceYears(0);
-//        }
 
         return new Form(
             new FormGroup(array(
@@ -368,9 +354,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 new SelectBox('Level[Type]', 'Schulart', array(
                                     '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                                 ), new Education()),
-                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
-                                    'Level[Name]'
-                                )),
                                 new AutoCompleter('Level[Name]', 'Klassenstufe (Nummer)', 'z.B: 5', $acNameAll,
                                     new Pencil()),
                             ), Panel::PANEL_TYPE_INFO
@@ -381,7 +364,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 new SelectBox('Division[Year]', 'Schuljahr', array(
                                     '{{ Year }} {{ Description }}' => $tblYearAll
                                 ), new Education()),
-                                '&nbsp;',
                                 new AutoCompleter('Division[Name]', 'Klassengruppe (Name)', 'z.B: Alpha', $acNameAll,
                                     new Pencil())
                             ), Panel::PANEL_TYPE_INFO
@@ -2383,7 +2365,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(new Well(
                             Division::useService()->copyDivision(
-                                $this->formLevelDivision($tblLevel, $tblDivision, true)
+                                $this->formLevelDivision($tblLevel, $tblDivision)
                                     ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblDivision, $Level, $Division, $copyDiary
