@@ -998,11 +998,17 @@ class Frontend extends FrontendScoreRule
         $countPeriod = 0;
         $countMinimumGradeCount = 1;
         $TestCount = 0;
+        // Positionsermittlung
+        $DisplayStudentNameCount = false;
+        if($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount')){
+            $DisplayStudentNameCount = $tblSetting->getValue();
+        }
 
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
             /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
+                $PeriodWithExtraName = false;
                 $count = 0;
                 if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
                     $count++;
@@ -1020,6 +1026,10 @@ class Frontend extends FrontendScoreRule
                     );
                     if ($tblTestList) {
                         $TestCount += count($tblTestList);
+                        // wird der Name erneut angezeigt muss auch der richtige 2.te Header breiter werden.
+                        if($DisplayStudentNameCount && $DisplayStudentNameCount <= $TestCount){
+                            $PeriodWithExtraName = true;
+                        }
 
                         $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
@@ -1067,6 +1077,10 @@ class Frontend extends FrontendScoreRule
                             $columnDefinition['MinimumGradeCount' . $tblMinimumGradeCount->getId()] = '#' . $countMinimumGradeCount++;
                             $count++;
                         }
+                    }
+                    // Anpassung des zweiten Headers
+                    if($PeriodWithExtraName){
+                        $count++;
                     }
                     $periodListCount[$tblPeriod->getId()] = $count;
                 }
@@ -1292,11 +1306,7 @@ class Frontend extends FrontendScoreRule
             $dataList[] = $data;
         }
 
-        $DisplayStudentNameCount = false;
-        if($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount')){
-            $DisplayStudentNameCount = $tblSetting->getValue();
-        }
-        // Anzeige des Namen's nur bei mehr als $Value Tests
+        // Anzeige des Namen's nur bei mehr als "AddNameRowAtCount" Tests
         if($DisplayStudentNameCount && $DisplayStudentNameCount <= $TestCount){
             $columnDefinition = $this->addStudentNameColumn($columnDefinition, 4);
         }
