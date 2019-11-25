@@ -997,6 +997,8 @@ class Frontend extends FrontendScoreRule
         }
         $countPeriod = 0;
         $countMinimumGradeCount = 1;
+        $TestCount = 0;
+
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
             /** @var TblPeriod $tblPeriod */
@@ -1017,6 +1019,7 @@ class Frontend extends FrontendScoreRule
                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                     );
                     if ($tblTestList) {
+                        $TestCount += count($tblTestList);
 
                         $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
@@ -1086,7 +1089,6 @@ class Frontend extends FrontendScoreRule
         }
 
         $averages = array();
-
         // Tabellen-Inhalt erstellen
         if ($tblStudentList) {
             $studentCount = 0;
@@ -1098,7 +1100,7 @@ class Frontend extends FrontendScoreRule
                 $data = array();
                 $number = $studentCount % 5 == 0 ? new Bold($studentCount) : $studentCount;
                 $data['Number'] = $isStrikeThrough ? new Strikethrough($number) : $number;
-                $data['Student'] = $isStrikeThrough
+                $data['againStudent'] = $data['Student'] = $isStrikeThrough
                     ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -1290,6 +1292,16 @@ class Frontend extends FrontendScoreRule
             $dataList[] = $data;
         }
 
+        $DisplayStudentNameCount = false;
+        if($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount')){
+            $DisplayStudentNameCount = $tblSetting->getValue();
+        }
+        // Anzeige des Namen's nur bei mehr als $Value Tests
+        if($DisplayStudentNameCount && $DisplayStudentNameCount <= $TestCount){
+            $columnDefinition = $this->addStudentNameColumn($columnDefinition, 4);
+        }
+
+
         $tableData = new TableData(
             $dataList, null, $columnDefinition,
             array(
@@ -1375,6 +1387,37 @@ class Frontend extends FrontendScoreRule
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param array $tempColumnDefinition
+     * need "againStudent" in TableData to Display
+     * @param int $preCount
+     *
+     * @return array
+     */
+    private function addStudentNameColumn($tempColumnDefinition = array(), $preCount = 4)
+    {
+
+        // Ohne Einstellung wird der Name nicht erscheinen
+        $DisplayStudentNameCount = -1;
+        if($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount')){
+            $DisplayStudentNameCount = $tblSetting->getValue();
+            if($DisplayStudentNameCount >= 1){
+                $DisplayStudentNameCount += $preCount;
+            }
+        }
+        if($DisplayStudentNameCount != -1){
+            foreach($tempColumnDefinition as $Key => $Definition){
+                $DisplayStudentNameCount--;
+                if($DisplayStudentNameCount == 0){
+                    $columnDefinition['againStudent'] = 'Schüler';
+                }
+                $columnDefinition[$Key] = $Definition;
+            }
+        }
+
+        return ( !empty($columnDefinition) ? $columnDefinition : $tempColumnDefinition);
     }
 
     /**
