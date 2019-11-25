@@ -207,7 +207,7 @@ class Service extends Support
      * @param string   $Disease
      * @param string   $Medication
      * @param string   $Insurance
-     * @param int|null $InsuranceState
+     * @param int      $InsuranceState
      * @param string   $AttendingDoctor
      *
      * @return TblStudentMedicalRecord
@@ -948,6 +948,16 @@ class Service extends Support
     {
 
         return (new Data($this->getBinding()))->getStudentInsuranceStateById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentInsuranceState
+     */
+    public function  getStudentInsuranceStateByName($Name)
+    {
+        return (new Data($this->getBinding()))->getStudentInsuranceStateByName($Name);
     }
 
     /**
