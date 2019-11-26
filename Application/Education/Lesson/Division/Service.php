@@ -170,13 +170,8 @@ class Service extends AbstractService
             $Error = true;
         }
 
-        // Group
-        if (isset($Division['Name']) && empty($Division['Name']) && isset($Level['Check'])) {
-            $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
-            $Error = true;
-        }
         // Level
-        if (!isset($Level['Check']) && isset($Level['Name'])) {
+        if (isset($Level['Name'])) {
             if (is_numeric($Level['Name'])) {
                 $position = strpos($Level['Name'], '0');
                 if ($position === 0) {
@@ -189,28 +184,11 @@ class Service extends AbstractService
             }
         }
 
-        // Level
-        if (!$Error) {
-            $tblLevel = null;
-            if (!isset($Level['Check'])) {
-                if (isset($Level['Name']) && empty($Level['Name'])) {
-                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an <br/>');
-                    $Error = true;
-                } else {
-                    $tblType = Type::useService()->getTypeById($Level['Type']);
-                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
-                }
-            } else {
-                if ($tblType = Type::useService()->getTypeById($Level['Type'])) {
-                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, '', '', $Level['Check']);
-                }
-            }
-        } else {
-            return $Form;
-        }
-
         // Create
         if (!$Error) {
+            // Level
+            $tblType = Type::useService()->getTypeById($Level['Type']);
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
 
             if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
             ) {
@@ -1869,14 +1847,8 @@ class Service extends AbstractService
             $Error = true;
         }
 
-        // Group
-        if (isset($Division['Name']) && empty($Division['Name']) && isset($Level['Check'])) {
-            $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
-            $Error = true;
-        }
-
         // Level
-        if (!isset($Level['Check']) && isset($Level['Name'])) {
+        if (isset($Level['Name'])) {
             if (is_numeric($Level['Name'])) {
                 $position = strpos($Level['Name'], '0');
                 if ($position === 0) {
@@ -1887,26 +1859,15 @@ class Service extends AbstractService
                 $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
                 $Error = true;
             }
+        } else {
+            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
+            $Error = true;
         }
 
         // Level
         if (!$Error) {
-            $tblLevel = null;
-            if (!isset($Level['Check'])) {
-                if (isset($Level['Name']) && empty($Level['Name'])) {
-                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an <br/>');
-                    $Error = true;
-                } else {
-                    $tblType = Type::useService()->getTypeById($Level['Type']);
-                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
-                }
-            } else {
-                if ($tblType = Type::useService()->getTypeById($Level['Type'])) {
-                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, '', '', $Level['Check']);
-                }
-            }
-        } else {
-            return $Form;
+            $tblType = Type::useService()->getTypeById($Level['Type']);
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
         }
 
         // Create

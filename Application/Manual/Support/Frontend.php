@@ -77,7 +77,8 @@ class Frontend extends Extension implements IFrontendInterface
                             (new TextArea('Ticket[Body]', 'Meine Frage oder mein Problem',
                                 'Inhalt der Nachricht', new Quote()))->setRequired(),
                             new TextField('Ticket[CallBackNumber]', 'Vorwahl/Telefonnummer', 'Rückrufnummer', new Phone()),
-                            new FileUpload('Attachment', 'z.B. ein Screenshot', 'Optionaler Datei-Anhang', null, array(
+                            new FileUpload('Attachment', 'z.B. ein Screenshot', 'Optionaler Datei-Anhang
+                            (max: '.ini_get('upload_max_filesize').'B)', null, array(
                                 'showPreview' => false
                             )),
                         ), Panel::PANEL_TYPE_INFO,
