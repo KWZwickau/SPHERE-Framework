@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -84,9 +85,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPlatform()
     {
         $Global = $this->getGlobal();
-        $this->getDebugger()->screenDump($Global);
-        $this->getDebugger()->screenDump($_REQUEST);
-        $this->getDebugger()->screenDump($_FILES);
+//        $this->getDebugger()->screenDump($Global);
+//        $this->getDebugger()->screenDump($_REQUEST);
+//        $this->getDebugger()->screenDump($_FILES);
 
         $Stage = new Stage('Test', 'Frontend');
 
@@ -104,13 +105,18 @@ class Frontend extends Extension implements IFrontendInterface
             new External('Link', 'http://www.google.de')
         );
 
-        $D1 = new TblDivision();
-        $D1->setName('A');
-        $D1->setId(1);
-        $D2 = new TblDivision();
-        $D2->setName('B');
-        $D2->setId(2);
-        $Check = array($D1, $D2);
+        $D1 = new TblDivision();$D1->setName('A');$D1->setId(1);
+        $D2 = new TblDivision();$D2->setName('B');$D2->setId(2);
+        $D3 = new TblDivision();$D3->setName('C');$D3->setId(3);
+        $D4 = new TblDivision();$D4->setName('D');$D4->setId(4);
+        $D5 = new TblDivision();$D5->setName('E');$D5->setId(5);
+        $D6 = new TblDivision();$D6->setName('F');$D6->setId(6);
+        $D7 = new TblDivision();$D7->setName('G');$D7->setId(7);
+        $D8 = new TblDivision();$D8->setName('H');$D8->setId(8);
+
+        $Check = array($D1, $D2, $D3, $D4, $D5, $D6, $D7, $D8);
+        $Check2 = array($D1, $D2, $D3, $D4, $D5, $D6, $D7);
+        $Check3 = array($D1, $D2);
 
         $IconList = array();
         if (false !== ( $Path = realpath(__DIR__.'/../../../../Common/Frontend/Icon/Repository') )) {
@@ -207,12 +213,18 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new FormRow(array(
                         new FormColumn(array(
-                            new SelectBox('SelectBox1', 'SelectBox - Bootstrap Default',
-                                array('0' => 'A', '2' => '1', '3' => '2', '4' => '3')
-                            ),
-                            (new SelectBox('SelectBox2', 'SelectBox - jQuery Select2',
-                                array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                            (new SelectBox('SelectBox1', 'SelectBox - Bootstrap',
+                                array('0' => 'A', '2' => '1', '3' => '2', '4' => '3'), new Select()
+                            ))->configureLibrary( SelectBox::LIBRARY_SELECTER ),
+                            (new SelectBox('SelectBox2', 'SelectBox2 - Lang (ab 7 Einträge) - Default',
+                                array('{{ Id }}{{ Name }} nochmal {{ Name }} "Twig test"' => $Check)
                             ))->configureLibrary( SelectBox::LIBRARY_SELECT2 ),
+                            (new SelectBox('SelectBox3', 'SelectBox2 - Kurz',
+                                array('{{ Id }}{{ Name }} nochmal {{ Name }} "Twig test"' => $Check2)
+                            ))->configureLibrary( SelectBox::LIBRARY_SELECT2 ),
+                            (new SelectBox('SelectBox4', 'SelectBox2 - Filter bei weniger Einträgen aktivieren',
+                                array('{{ Id }}{{ Name }} nochmal {{ Name }} "Twig test"' => $Check3)
+                            ))->setMinimumResultForSerach(3),
                         ), 3),
                         new FormColumn(
                             new TextArea('TextArea', 'TextArea', 'TextArea')
