@@ -3453,4 +3453,30 @@ abstract class Certificate extends Extension
             )
             ->styleHeight('24px');
     }
+
+    /**
+     * @param        $personId
+     * @param string $MarginTop
+     * @param string $FontSize
+     *
+     * @return Slice $Slice
+     */
+    public function getCourse($personId, $MarginTop = '15px', $FontSize = '14px')
+    {
+
+        $Slice = (new Slice())
+            ->addElement((new Element())
+                ->setContent('
+                    {% if(Content.P' . $personId . '.Student.Course.Degree is not empty) %}
+                        nahm am Unterricht der Schulart Mittelschule mit dem Ziel des
+                        {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
+                    {% else %}
+                        nahm am Unterricht der Schulart Mittelschule teil.
+                    {% endif %}'
+                )
+                ->styleMarginTop($MarginTop)
+                ->styleTextSize($FontSize)
+            );
+        return $Slice;
+    }
 }
