@@ -6,6 +6,7 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 
@@ -71,6 +72,7 @@ abstract class Transfer extends Agreement
      * @param                        $TransferDate
      * @param                        $Remark
      * @param TblCompany|null $tblStateCompany
+     * @param TblStudentSchoolEnrollmentType|null $tblStudentSchoolEnrollmentType
      */
     public function insertStudentTransfer(
         TblStudent $tblStudent,
@@ -80,7 +82,8 @@ abstract class Transfer extends Agreement
         TblCourse $tblCourse = null,
         $TransferDate,
         $Remark,
-        TblCompany $tblStateCompany = null
+        TblCompany $tblStateCompany = null,
+        TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType = null
     ) {
 
         $tblStudentTransfer = $this->getStudentTransferByType(
@@ -97,7 +100,8 @@ abstract class Transfer extends Agreement
                 $tblType,
                 $tblCourse,
                 $TransferDate,
-                $Remark
+                $Remark,
+                $tblStudentSchoolEnrollmentType
             );
         } else {
             (new Data($this->getBinding()))->createStudentTransfer(
@@ -108,7 +112,8 @@ abstract class Transfer extends Agreement
                 $tblType,
                 $tblCourse,
                 $TransferDate,
-                $Remark
+                $Remark,
+                $tblStudentSchoolEnrollmentType
             );
         }
     }

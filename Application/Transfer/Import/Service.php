@@ -14,6 +14,9 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -126,6 +129,22 @@ class Service
             if (0 === strpos($phoneNumber, '01')) {
                 $tblType = Phone::useService()->getTypeById(4);
             }
+
+            Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, $Remark);
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columnName
+     * @param integer $RunY
+     * @param string $Remark
+     */
+    public function insertBusinessFax($tblPerson, $columnName, $RunY, $Remark = '')
+    {
+        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($phoneNumber != '') {
+            $tblType = Phone::useService()->getTypeById(8);
 
             Phone::useService()->insertPhoneToPerson($tblPerson, $phoneNumber, $tblType, $Remark);
         }
@@ -250,5 +269,23 @@ class Service
         }
 
         return '';
+    }
+
+    /**
+     * @param $columnName
+     * @param $RunY
+     * @param TblStudent $tblStudent
+     * @param TblStudentAgreementCategory $tblStudentAgreementCategory
+     */
+    public function setStudentAgreement($columnName, $RunY, TblStudent $tblStudent,  TblStudentAgreementCategory $tblStudentAgreementCategory)
+    {
+        $agreement = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($agreement == 'ja') {
+            if (($tblStudentAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory))) {
+                foreach ($tblStudentAgreementTypeList as $tblStudentAgreementType) {
+                    Student::useService()->insertStudentAgreement($tblStudent, $tblStudentAgreementType);
+                }
+            }
+        }
     }
 }

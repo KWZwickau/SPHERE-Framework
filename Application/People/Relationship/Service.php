@@ -667,8 +667,9 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonTo
      * @param TblType $tblType
      * @param string $Remark
-     *
      * @param integer|null $Ranking
+     * @param bool $IsSingleParent
+     *
      * @return bool
      */
     public function insertRelationshipToPerson(
@@ -676,11 +677,12 @@ class Service extends AbstractService
         TblPerson $tblPersonTo,
         TblType $tblType,
         $Remark,
-        $Ranking = null
+        $Ranking = null,
+        $IsSingleParent = false
     ) {
 
         if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-            $Remark, $Ranking)
+            $Remark, $Ranking, $IsSingleParent)
         ) {
             return true;
         } else {

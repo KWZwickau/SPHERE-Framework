@@ -414,6 +414,10 @@ class Data extends Support
 
         $Manager = $this->getConnection()->getEntityManager();
 
+        if ($InsuranceState === null || $InsuranceState === '') {
+            $InsuranceState = 0;
+        }
+
         $Entity = new TblStudentMedicalRecord();
         $Entity->setDisease($Disease);
         $Entity->setMedication($Medication);
@@ -521,6 +525,19 @@ class Data extends Support
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentInsuranceState', $Id
+        );
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentInsuranceState
+     */
+    public function  getStudentInsuranceStateByName($Name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentInsuranceState', array(
+                TblStudentInsuranceState::ATTR_NAME => $Name
+            )
         );
     }
 

@@ -9,6 +9,7 @@ use SPHERE\Application\Transfer\Import\Braeunsdorf\Braeunsdorf;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\Dresden\Dresden;
+use SPHERE\Application\Transfer\Import\EMSP\EMSP;
 use SPHERE\Application\Transfer\Import\EVMS\EVMS;
 use SPHERE\Application\Transfer\Import\FSE\FSE;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
@@ -105,6 +106,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'FSE') {
             FSE::registerModule();
         }
+        if ($consumerAcronym === 'EMSP') {
+            EMSP::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -154,6 +158,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'FSE') {
             $dataList = FSE::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EMSP') {
+            $dataList = EMSP::setLinks($dataList);
         }
 
         if(empty($dataList)){
