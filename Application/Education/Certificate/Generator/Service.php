@@ -335,6 +335,22 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getCertificateTypeAll();
     }
 
+
+
+    /**
+     * @param null|TblConsumer $tblConsumer
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return bool|Service\Entity\TblCertificate[]
+     */
+    public function getCertificateAllByConsumerAndCertificateType(
+        TblConsumer $tblConsumer = null,
+        TblCertificateType $tblCertificateType = null
+    ) {
+
+        return (new Data($this->getBinding()))->getCertificateAllByConsumerAndCertificateType($tblConsumer, $tblCertificateType);
+    }
+
     /**
      * @param null|TblConsumer $tblConsumer
      * @param TblCertificateType $tblCertificateType

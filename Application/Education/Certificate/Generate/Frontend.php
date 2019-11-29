@@ -19,6 +19,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -852,13 +853,17 @@ class Frontend extends Extension
                             $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
                         }
 
+                        $tblCertificateAllByType = array();
                         if ($tblCertificateType) {
-                            $tblCertificateAllByType = Generator::useService()->getCertificateAllByType($tblCertificateType);
-                            if (!$tblCertificateAllByType) {
-                                $tblCertificateAllByType = array();
+                            $tblConsumer = Consumer::useService()->getConsumerBySession(null);
+                            $tblCertificateAllStandard = Generator::useService()->getCertificateAllByConsumerAndCertificateType(null, $tblCertificateType);
+                            $tblCertificateAllConsumer = Generator::useService()->getCertificateAllByConsumerAndCertificateType($tblConsumer, $tblCertificateType);
+                            if ($tblCertificateAllConsumer) {
+                                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllConsumer);
                             }
-                        } else {
-                            $tblCertificateAllByType = array();
+                            if ($tblCertificateAllStandard) {
+                                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllStandard);
+                            }
                         }
                         $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
                             '',
