@@ -3610,7 +3610,7 @@ class Data extends AbstractData
                 // declare active Consumer
                 $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('CSW');
                 if ($tblConsumerCertificate) {
-                    $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6',
+                    $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-9',
                         'CSW\CswMsHalbjahresinformation', $tblConsumerCertificate);
                     if ($tblCertificate) {
                         if ($tblSchoolTypeSecondary) {
@@ -3665,7 +3665,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
                     }
 
-                    $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6',
+                    $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-9',
                         'CSW\CswMsJahreszeugnis', $tblConsumerCertificate);
                     if ($tblCertificate) {
                         if ($tblSchoolTypeSecondary) {
