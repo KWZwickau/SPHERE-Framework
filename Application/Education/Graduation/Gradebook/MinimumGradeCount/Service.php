@@ -330,7 +330,7 @@ abstract class Service extends AbstractService
             if ($tblGradeList) {
                 /** @var TblGrade $tblGrade */
                 foreach ($tblGradeList as $tblGrade) {
-                    if ($tblGrade->getGrade()
+                    if ($tblGrade->getGrade() !== ""
                         && $tblGrade->getServiceTblTest()
                         && ($tblGradeTypeItem = $tblGrade->getTblGradeType())
                     ) {
