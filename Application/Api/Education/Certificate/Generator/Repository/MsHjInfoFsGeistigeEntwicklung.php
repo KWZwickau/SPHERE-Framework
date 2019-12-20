@@ -44,16 +44,7 @@ class MsHjInfoFsGeistigeEntwicklung extends Certificate
             ->addSlice($this->getCertificateHead('Halbjahresinformation der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Inklusive Unterrichtung¹: {% if(Content.P' . $personId . '.Input.Support is not empty) %}
-                            {{ Content.P' . $personId . '.Input.Support|nl2br }}
-                        {% else %}
-                            ---
-                        {% endif %}')
-                    ->styleHeight('540px')
-                    ->styleMarginTop('20px')
-                ))
+            ->addSlice($this->getSupportContent($personId, '540px', '20px', 'Inklusive Unterrichtung¹: '))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())

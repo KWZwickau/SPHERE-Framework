@@ -1247,21 +1247,91 @@ abstract class Certificate extends Extension
      * @param $personId
      * @param string $Height
      * @param string $MarginTop
+     * @param string $PreRemark
+     * @param string|bool $TextSize
      * @return Slice
      */
-    public function getDescriptionContent($personId, $Height = '150px', $MarginTop = '0px')
+    public function getDescriptionContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '', $TextSize = false)
     {
-        $DescriptionSlice = (new Slice());
-        $DescriptionSlice->addElement((new Element())
-            ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        $Element->setContent($PreRemark.
+                    '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
                         {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                     {% else %}
                         &nbsp;
                     {% endif %}')
             ->styleHeight($Height)
-            ->styleMarginTop($MarginTop)
-        );
-        return $DescriptionSlice;
+            ->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+        if($TextSize){
+            $Element->styleTextSize($TextSize);
+        }
+
+        return (new Slice())->addElement($Element);
+    }
+
+    /**
+     * @param $personId
+     * @param string $Height
+     * @param string $MarginTop
+     * @param string $PreRemark
+     * @return Slice
+     */
+    public function getSupportContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '')
+    {
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        $Element->setContent($PreRemark.
+                    '{% if(Content.P' . $personId . '.Input.Support is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Support|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+            ->styleHeight($Height)
+            ->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+
+        return (new Slice())->addElement($Element);
+    }
+
+    /**
+     * @param $personId
+     * @param string $Height
+     * @param string $MarginTop
+     * @param string $PreRemark
+     * @return Slice
+     */
+    public function getRatingContent($personId, $Height = '50px', $MarginTop = '15px', $PreRemark = 'Einschätzung: ')
+    {
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        $Element->setContent($PreRemark.'
+                {% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Rating|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleHeight($Height)
+            ->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+
+        return (new Slice())->addElement($Element);
     }
 
     /**

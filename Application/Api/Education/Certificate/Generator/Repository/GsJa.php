@@ -4,7 +4,6 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
@@ -49,23 +48,12 @@ class GsJa extends Certificate
                 ->addSlice($this->getStudentName($personId))
                 ->addSlice($this->getGradeLanes($personId))
                 ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Einschätzung:')
-                        )
-                    )
-                    ->addSection(( new Section() )
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Rating }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleHeight('110px')
-                        )
+                    ->addElement((new Element())
+                        ->setContent('Einschätzung:')
                     )
                     ->styleMarginTop('15px')
                 )
+                ->addSlice($this->getRatingContent($personId, '110px', '0px', ''))
                 ->addSlice((new Slice())
                     ->addElement(( new Element() )
                         ->setContent('Leistungen in den einzelnen Fächern:')
