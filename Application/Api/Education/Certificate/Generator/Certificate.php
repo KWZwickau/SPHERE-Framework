@@ -145,6 +145,30 @@ abstract class Certificate extends Extension
             $InjectStyle = '';
         }
 
+        // Standardzeugnisse mit Breiteneinstellung
+        $tblCertificateList = \SPHERE\Application\Education\Certificate\Generator\Generator::useService()->getCertificateAllByConsumer();
+        // Ausnahmen:
+        $exeptCertificate = array('BeSOFS', 'BeGs');
+        foreach($tblCertificateList as &$tblCertificate){
+            $tblCertificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'.$tblCertificate->getCertificate();
+            if(in_array($tblCertificate, $exeptCertificate)){
+                $tblCertificate = false;
+            }
+        }
+        $tblCertificateList = array_filter($tblCertificateList);
+        if(in_array(get_class($this), $tblCertificateList)){
+            // breiter (Standard)
+            $InjectStyle = 'body { margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+
+            $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
+            if($tblSetting && $tblSetting->getValue() == 2){
+                // breit
+                $InjectStyle = 'body { margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+            } elseif($tblSetting && $tblSetting->getValue() == 1) {
+                $InjectStyle = '';
+            }
+        }
+
         return (new Frame($InjectStyle))->addDocument($document);
     }
 

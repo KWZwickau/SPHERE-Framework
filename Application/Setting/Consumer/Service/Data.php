@@ -124,6 +124,9 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate', TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2. Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'DocumentBorder', TblSetting::TYPE_INTEGER, '3'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Zeugnisse erhalten einen Rand (1 kleiner Rand, 2 mittlerer Rand, 3 breiter Rand): [3]');
+        }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
@@ -187,7 +190,6 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName', TblSetting::TYPE_BOOLEAN,
             '', 'Zeugnisse', 'Schul-Zusatz-Name von der Institution auf Abschlusszeugnissen und Abgangszeugnissen anzeigen [Standard: Nein]'
             , true);
-
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking',
             TblSetting::TYPE_BOOLEAN, '1'))
         ) {
