@@ -219,7 +219,7 @@ class Data extends AbstractData
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview', TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
-                'Anzeige der geplanten Großen Noten (fettmarkiert, z.B. Klassenarbeiten) in der Notenübersicht für Schüler/Eltern und in der Schülerübersicht [Ja]', true);
+                'Anzeige der geplanten Großen Noten (fettmarkiert, z.B. Klassenarbeiten) in der Notenübersicht für Schüler/Eltern und in der Schülerübersicht [Standard: Ja]', true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted',
             TblSetting::TYPE_BOOLEAN, '0'))) {
@@ -249,11 +249,14 @@ class Data extends AbstractData
                 'Anzeige der Noten in der Eltern/Schüler-Übersicht ab folgenden Schuljahr (z.B. 2019/20).
                 Wenn leer werden Noten aller Schuljahre angezeigt [Standard: ]', true);
         }
-
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType',
             TblSetting::TYPE_STRING, '', 'Notenbücher',
             'Eingrenzung der Schüler- und Elternzugänge nach Schulart(en). Festlegung der Zugänge mittels Zahleneingabe.
              Mehrere Schularten sind mit Komma zu trennen. 1=GS, 2=OS, 3=GYM [Standard: ]'
+            , true);
+        $this->createSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount',
+            TblSetting::TYPE_INTEGER, 10, 'Notenbücher',
+            'Anzeige zusätzliche Namensspalte im Notenbuch bei mehr als (Anzahl) Noten im gesamten Schuljahr [Standard: 10]'
             , true);
 
         if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel',
