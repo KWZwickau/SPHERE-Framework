@@ -33,6 +33,7 @@ class Setup extends AbstractSetup
         $this->setTableCertificateLevel($Schema, $tblCertificate);
         $this->setTableCertificateField($Schema, $tblCertificate);
         $this->setTableCertificateReferenceForLanguages($Schema, $tblCertificate);
+        $this->setTableCertificateInformation($Schema, $tblCertificate);
 
         /**
          * Migration & Protocol
@@ -214,6 +215,26 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'AfterAdvancedCourse', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($Table, $tblCertificate, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblCertificate
+     *
+     * @return Table
+     */
+    private function setTableCertificateInformation(Schema &$Schema, Table $tblCertificate)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblCertificateInformation');
+        $this->createColumn($Table, 'FieldName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Page', self::FIELD_TYPE_INTEGER);
+
+        $this->createForeignKey($Table, $tblCertificate, true);
+        $this->createIndex($Table, array('FieldName', 'tblCertificate'));
+        $this->createIndex($Table, array('Page', 'tblCertificate'));
 
         return $Table;
     }
