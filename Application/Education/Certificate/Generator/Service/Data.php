@@ -3841,7 +3841,91 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
             }
 
-            // Grundschule Grumbach
+            /*
+             * Grundschule Grumbach
+             */
+            $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
+                'CSW\CswGsOneHjInfo', $tblConsumerCertificate);
+            if ($tblCertificate) {
+                if ($tblSchoolTypePrimary) {
+                    $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
+                    if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                }
+                // Begrenzung des Bemerkungsfeld
+                // erste Klasse nicht, wegen Enter
+//            $FieldName = 'Remark';
+//            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $this->createCertificateField($tblCertificate, $FieldName, 4000);
+//            }
+
+                $this->createCertificateInformation($tblCertificate, 'StudentLetter', 2);
+            }
+
+            $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'CSW\CswGsJOne', $tblConsumerCertificate);
+            if ($tblCertificate) {
+                if ($tblSchoolTypePrimary) {
+                    $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                    if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                }
+                // Begrenzung des Bemerkungsfeld
+                // erste Klasse nicht, wegen Enter
+//            $FieldName = 'Remark';
+//            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $this->createCertificateField($tblCertificate, $FieldName, 4000);
+//            }
+
+                $this->createCertificateInformation($tblCertificate, 'StudentLetter', 2);
+            }
+
+            $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', '', 'CSW\CswGsHjInfo', $tblConsumerCertificate);
+            if ($tblCertificate) {
+                if ($tblSchoolTypePrimary) {
+                    $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
+                    if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                }
+                // Begrenzung des Bemerkungsfeld
+                $FieldName = 'Remark';
+                if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                    $this->createCertificateField($tblCertificate, $FieldName, 1200);
+                }
+
+                $this->createCertificateInformation($tblCertificate, 'StudentLetter', 2);
+            }
+            if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                $this->setCertificateGradeAllStandard($tblCertificate);
+            }
+            if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+                $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+                $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+                $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+
+                $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
+                $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
+            }
+
             $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', '', 'CSW\CswGsJ', $tblConsumerCertificate);
             if ($tblCertificate) {
                 if ($tblSchoolTypePrimary) {
