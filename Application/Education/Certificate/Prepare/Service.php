@@ -544,6 +544,7 @@ class Service extends AbstractService
      * @param string $Route
      * @param array $Data
      * @param array $CertificateList
+     * @param null|integer $nextPage
      *
      * @return IFormInterface|string
      */
@@ -553,7 +554,8 @@ class Service extends AbstractService
         TblGroup $tblGroup = null,
         $Route,
         $Data,
-        $CertificateList
+        $CertificateList,
+        $nextPage = null
     ) {
 
         /**
@@ -615,7 +617,7 @@ class Service extends AbstractService
                                 $value = $Certificate->selectValuesTransfer()[$value];
                             }
 
-                            if (!empty(trim($value))) {
+                            if (trim($value) != '') {
                                 $value = trim($value);
 
                                 // erstmal deaktivieren, es werden teilweise zuviele Zeichen abgeschnitten
@@ -655,12 +657,26 @@ class Service extends AbstractService
             }
         }
 
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
-            . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
-                'PrepareId' => $tblPrepare->getId(),
-                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                'Route' => $Route
-            ));
+        if ($nextPage == null) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                    'Route' => $Route
+                ));
+        } else {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Setting',
+                    Redirect::TIMEOUT_SUCCESS,
+                   array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup : null,
+                        'Route' => $Route,
+                        'IsNotGradeType' => true,
+                        'Page' => $nextPage
+                    )
+                );
+        }
     }
 
     /**
@@ -4594,5 +4610,64 @@ class Service extends AbstractService
                 'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
                 'DivisionId' => $tblDivision ? $tblDivision->getId() : 0
             ));
+    }
+
+    /**
+     * @param $tblPrepareList
+     * @param $tblGroup
+     *
+     * @return array
+     */
+    public function getCertificateInformationPages($tblPrepareList, $tblGroup)
+    {
+        $tblCertificateList = $this->getCertificateListByPrepareList($tblPrepareList, $tblGroup);
+
+        $informationPageList = array();
+        $pageList = array();
+        /** @var TblCertificate $tblCertificate */
+        foreach ($tblCertificateList as $tblCertificate) {
+            if (($tblCertificateInformationList = Generator::useService()->getCertificateInformationListByCertificate($tblCertificate))) {
+                foreach ($tblCertificateInformationList as $tblCertificateInformation) {
+                    $page = $tblCertificateInformation->getPage();
+                    if ($page > 1) {
+                        $informationPageList[$tblCertificate->getId()][$page][$tblCertificateInformation->getFieldName()] = $tblCertificateInformation->getFieldName();
+                        $pageList[$page] = $page;
+                    }
+                }
+            }
+        }
+
+        return array($informationPageList, $pageList);
+    }
+
+    /**
+     * @param $tblPrepareList
+     * @param $tblGroup
+     *
+     * @return TblCertificate[]
+     */
+    private function getCertificateListByPrepareList(
+        $tblPrepareList,
+        $tblGroup
+    ) {
+        $tblCertificateList = array();
+        /** @var TblPrepareCertificate $tblPrepare */
+        foreach ($tblPrepareList as $tblPrepare) {
+            if (($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
+            ) {
+                foreach ($tblStudentList as $tblPerson) {
+                    if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                        ) {
+                            $tblCertificateList[$tblCertificate->getId()] = $tblCertificate;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $tblCertificateList;
     }
 }
