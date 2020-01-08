@@ -17,6 +17,7 @@ use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
 use SPHERE\Application\Transfer\Import\LebensweltZwenkau\Zwenkau;
 use SPHERE\Application\Transfer\Import\Meerane\Meerane;
+use SPHERE\Application\Transfer\Import\MLS\MLS;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
 use SPHERE\Application\Transfer\Import\Naundorf\Naundorf;
 use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
@@ -109,6 +110,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'EMSP') {
             EMSP::registerModule();
         }
+        if ($consumerAcronym === 'MLS') {
+            MLS::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -161,6 +165,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'EMSP') {
             $dataList = EMSP::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'MLS') {
+            $dataList = MLS::setLinks($dataList);
         }
 
         if(empty($dataList)){
