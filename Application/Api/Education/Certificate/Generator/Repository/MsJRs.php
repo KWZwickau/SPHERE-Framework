@@ -36,7 +36,7 @@ class MsJRs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         return (new Page())
             ->addSlice(
@@ -53,16 +53,17 @@ class MsJRs extends Certificate
                     ->styleMarginTop('8px')
                 )
             )
-            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getGradeLanesSmall($personId))
             ->addSlice($this->getRatingContent($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('15px')
+                    ->styleMarginBottom('5px')
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes(
+            ->addSlice($this->getSubjectLanesSmall(
                 $personId,
                 true,
                 array(),
@@ -70,15 +71,15 @@ class MsJRs extends Certificate
                 false,
                 false,
                 true
-            )->styleHeight('290px'))
+            )->styleHeight('220px'))
 //            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
             ->addSlice($this->getDescriptionContent($personId, '70px', '8px'))
             ->addSlice($this->getTransfer($personId, '13px'))
-            ->addSlice($this->getDateLine($personId, '15px'))
-            ->addSlice($this->getSignPart($personId, true, '15px'))
-            ->addSlice($this->getParentSign('15px'))
-            ->addSlice($this->getInfo('15px',
+            ->addSlice($this->getDateLine($personId))
+            ->addSlice($this->getSignPart($personId))
+            ->addSlice($this->getParentSign())
+            ->addSlice($this->getInfo('4px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                     (6 = ungenügend nur bei der Bewertung der Leistungen)')

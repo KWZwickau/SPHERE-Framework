@@ -34,7 +34,7 @@ class MsJFsGeistigeEntwicklung extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         return (new Page())
             ->addSlice(
@@ -44,7 +44,7 @@ class MsJFsGeistigeEntwicklung extends Certificate
             ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getSupportContent($personId, '540px', '20px', 'Inklusive Unterrichtung¹: '))
+            ->addSlice($this->getSupportContent($personId, '480px', '20px', 'Inklusive Unterrichtung¹: '))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -73,7 +73,7 @@ class MsJFsGeistigeEntwicklung extends Certificate
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('45px',
+            ->addSlice($this->getInfo('14px',
                 '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
             ));
     }

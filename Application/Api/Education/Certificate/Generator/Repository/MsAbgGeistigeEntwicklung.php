@@ -34,7 +34,7 @@ class MsAbgGeistigeEntwicklung extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         $pageList[] = (new Page())
             ->addSlice($Header)
@@ -130,7 +130,7 @@ class MsAbgGeistigeEntwicklung extends Certificate
             ->addSlice($this->getSupportContent($personId, '200px', '55px', 'Inklusive Unterrichtung¹: '))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true, '30px'))
-            ->addSlice($this->getInfo('190px',
+            ->addSlice($this->getInfo('187px',
                 '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
             ));
 

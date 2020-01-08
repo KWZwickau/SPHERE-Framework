@@ -44,7 +44,7 @@ class MsJFsLernen extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         return (new Page())
             ->addSlice(
@@ -61,16 +61,17 @@ class MsJFsLernen extends Certificate
                     ->styleMarginTop('8px')
                 )
             )
-            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getGradeLanesSmall($personId))
             ->addSlice($this->getRatingContent($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('15px')
+                    ->styleMarginBottom('5px')
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes(
+            ->addSlice($this->getSubjectLanesSmall(
                 $personId,
                 true,
                 array(),
@@ -78,12 +79,12 @@ class MsJFsLernen extends Certificate
                 false,
                 false,
                 true
-            )->styleHeight('290px'))
+            )->styleHeight('220px'))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '70px', '8px'))
+            ->addSlice($this->getDescriptionContent($personId, '72px', '15px'))
             ->addSlice($this->getTransfer($personId, '13px'))
             ->addSlice($this->getDateLine($personId, '15px'))
-            ->addSlice($this->getSignPart($personId, true, '15px'))
+            ->addSlice($this->getSignPart($personId, true, '25px'))
             ->addSlice($this->getParentSign('15px'))
             ->addSlice($this->getInfo('15px',
                 'Notenerläuterung:',
