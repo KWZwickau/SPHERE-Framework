@@ -106,14 +106,14 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
-                'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert 
-                nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Adresse des Bildes: [Standard: ]');
+                'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo Maximalmaße 100 x 250.
+                Adresse des Bildes: [Standard: ]');
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeight',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
-                'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert 
-                nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Höhe des Bildes: [Standard: ]');
+                'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo Maximalmaße 100 x 250. Das Bild
+                ist ohne Einstellung 66px Hoch, wie das Sachsenlogo. Höhe des Bildes: [Standard: ]');
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate', TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: []');
@@ -124,8 +124,12 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate', TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2. Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
         }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'DocumentBorder', TblSetting::TYPE_INTEGER, '3'))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Zeugnisse erhalten einen Rand (1 kleiner Rand, 2 mittlerer Rand, 3 breiter Rand): [3]');
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'DocumentBorder', TblSetting::TYPE_INTEGER, '2'))) {
+
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Festlegung der seitlichen Ränder für Zeugnisse
+            mittels Zahleneingabe (1=mittlerer Rand, 2=breiter Rand): [Standard: 2]');
+            // ToDO first upload DB update (delete after done on DEMO) and reupload correct
+            $this->updateSetting($tblSetting, '2');
         }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {

@@ -62,7 +62,7 @@ class GymAbitur extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         $this->setCourses($tblPerson);
 
@@ -213,7 +213,7 @@ class GymAbitur extends Certificate
                     ->setContent('ZEUGNIS')
                     ->styleTextSize('27px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('22%')
+                    ->styleMarginTop('146px')
                     ->styleTextBold()
                 )
             )

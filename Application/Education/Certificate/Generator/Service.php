@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateInformation;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateReferenceForLanguages;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
@@ -445,9 +446,26 @@ class Service extends AbstractService
             'Content.Input.BellSubject'        => 'TextField',
             'Content.Input.PerformanceGroup'   => 'TextField',
             'Content.Input.Arrangement'        => 'TextArea',
-            'Content.Input.Support'        => 'TextArea',
-            'Content.Input.DivisionName' => 'TextField'
+            'Content.Input.Support'            => 'TextArea',
+            'Content.Input.DivisionName'       => 'TextField',
+            'Content.Input.StudentLetter'      => 'TextArea'
         );
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormFieldKeyList()
+    {
+        $formFieldList = $this->getFormField();
+        $list = array();
+        foreach ($formFieldList as $key => $formField) {
+            $tempArray = explode('.', $key);
+            $tempValue = end($tempArray);
+            $list[$tempValue] = $tempValue;
+        }
+
+        return $list;
     }
 
     /**
@@ -475,8 +493,9 @@ class Service extends AbstractService
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
             'Content.Input.Arrangement'        => 'Besonderes Engagement',
-            'Content.Input.Support'        => 'Inklusive Unterrichtung',
-            'Content.Input.DivisionName' => 'Klasse'
+            'Content.Input.Support'            => 'Inklusive Unterrichtung',
+            'Content.Input.DivisionName'       => 'Klasse',
+            'Content.Input.StudentLetter'      => 'Schülerbrief'
         );
     }
 
@@ -646,5 +665,29 @@ class Service extends AbstractService
         }
 
         return $reference;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $fieldName
+     *
+     * @return false|TblCertificateInformation
+     */
+    public function getCertificateInformationByField(
+        TblCertificate $tblCertificate,
+        $fieldName
+    ) {
+        return (new Data($this->getBinding()))->getCertificateInformationByField($tblCertificate, $fieldName);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|TblCertificateInformation[]
+     */
+    public function getCertificateInformationListByCertificate(
+        TblCertificate $tblCertificate
+    ) {
+        return (new Data($this->getBinding()))->getCertificateInformationListByCertificate($tblCertificate);
     }
 }
