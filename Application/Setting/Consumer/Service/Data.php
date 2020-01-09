@@ -128,8 +128,6 @@ class Data extends AbstractData
 
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Festlegung der seitlichen Ränder für Zeugnisse
             mittels Zahleneingabe (1=mittlerer Rand, 2=breiter Rand): [Standard: 2]');
-            // ToDO first upload DB update (delete after done on DEMO) and reupload correct
-            $this->updateSetting($tblSetting, '2');
         }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {
