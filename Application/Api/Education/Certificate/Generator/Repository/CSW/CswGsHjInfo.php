@@ -3,8 +3,9 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GsHjInformation;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -21,12 +22,39 @@ class CswGsHjInfo extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
-        $pageList = array();
-        $pageList[] = (new GsHjInformation(
-            $this->getTblDivision() ? $this->getTblDivision() : null,
-            $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null,
-            $this->isSample()
-        ))->buildPages($tblPerson);
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $Header = $this->getHead($this->isSample());
+
+        $pageList[] = (new Page())
+            ->addSlice(
+                $Header
+            )
+            ->addSlice($this->getSchoolName($personId))
+            ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule'))
+            ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
+            ->addSlice($this->getStudentName($personId))
+            ->addSlice($this->getGradeLanesSmall($personId))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Leistungen in den einzelnen Fächern:')
+                    ->styleMarginTop('15px')
+                    ->styleMarginBottom('5px')
+                    ->styleTextBold()
+                )
+            )
+            ->addSlice($this->getSubjectLanesSmall($personId)
+                ->styleHeight('126px'))
+            ->addSlice($this->getDescriptionHead($personId, true))
+            ->addSlice($this->getDescriptionContent($personId, '200px', '5px'))
+            ->addSlice($this->getDateLine($personId))
+            ->addSlice($this->getSignPart($personId, false))
+            ->addSlice($this->getParentSign())
+            ->addSlice($this->getInfo('90px',
+                'Notenerläuterung:',
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
+                (6 = ungenügend nur bei der Bewertung der Leistungen)')
+
+            );
 
         $pageList[] = CswGsStyle::buildSecondPage($tblPerson);
 
