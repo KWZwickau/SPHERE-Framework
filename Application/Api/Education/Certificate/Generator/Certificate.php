@@ -139,6 +139,14 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
             $InjectStyle = 'body { margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
+            // Grundschule muss ebenfalls gezogen werden
+            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+            $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
+            if($tblSetting && $tblSetting->getValue() == 1){
+                // normal
+                $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+            }
         } else {
             $InjectStyle = '';
         }
