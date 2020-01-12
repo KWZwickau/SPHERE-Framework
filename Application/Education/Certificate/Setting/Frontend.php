@@ -290,7 +290,7 @@ class Frontend extends Extension implements IFrontendInterface
 //            $tblTemplateAll = Generator::useService()->getTemplateAll();
 //        } else {
         // holt alle ohne Mandant
-            $tblTemplateAll = Generator::useService()->getTemplateAllByConsumer(null);
+        $tblTemplateAll = Generator::useService()->getTemplateAllByConsumer(null);
 //        }
         if ($tblConsumer) {
             if (!$tblTemplateAll){

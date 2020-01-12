@@ -39,9 +39,25 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
         $this->setCourses($tblPerson);
 
+        $pageList[] = $this->getPageOne($tblPerson);
+        $pageList[] = $this->getPageTwo($personId);
+
+        return $pageList;
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Page
+     */
+    public function getPageOne(TblPerson $tblPerson = null)
+    {
+
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
         return (new Page())
-            ->addSlice($this->getEsbdHeadSlice('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
-            ->addSlice($this->getCertificateHead('Kurshalbjahreszeugnis', '5px'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getCertificateHeadConsumer('Kurshalbjahreszeugnis', '5px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -80,7 +96,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                               {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleAlignCenter()
-                        ->styleBorderBottom()
+                        ->styleBorderBottom('1px', '#29948E')
                     )
                 )->styleMarginTop('10px')
             )
@@ -153,18 +169,16 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
                 )
                 ->styleMarginTop('10px')
             )
-            ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getOwnSignPart($personId))
-            ->addSlice($this->getParentSign())
-            ->addSlice($this->setPointsOverview('10px'))
-            ->addSlice($this->getInfo('11px',
+            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getOwnSignPartConsumer($personId))
+            ->addSlice($this->getParentSignConsumer())
+            ->addSlice($this->setPointsOverview('0px'))
+            ->addSlice($this->getInfoConsumer('11px',
                 '¹ &nbsp;&nbsp;&nbsp;&nbsp; Bei Fächern, die nicht belegt wurden, ist das betreffende Feld zu sperren.',
                 '² &nbsp;&nbsp;&nbsp;&nbsp; für Schüler der vertieften Ausbildung nach § 4 der Schulordnung Gymnasien Abiturprüfung'
             //,'³ &nbsp;&nbsp;&nbsp;&nbsp; Nichtzutreffendes ist zu streichen.  '
             ))
-            ->addSlice((new Slice())->addElement(
-                ($this->getEsbdBottomLine()))
-            );
+            ->addSlice($this->getBottomLineConsumer('10px'));
     }
 
     /**
@@ -635,5 +649,31 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
             );
 
         return $SignSlice;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Page
+     */
+    public function getPageTwo($personId)
+    {
+
+        return (new Page())
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('DIALOGUS')
+                    ->styleTextSize('28pt')
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleMarginTop('5px')
+                )
+            )
+//            ->addSlice($this->getCertificateHead('Halbjahreszeugnis der Oberschule', '5px'))
+            ->addSlice($this->getDivisionAndYear($personId, '10px', '1. Schulhalbjahr'))
+            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSliceArray($this->getSecondPageDescription($personId))
+            ->addSlice($this->getBottomLineConsumer('42px'));
     }
 }
