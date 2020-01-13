@@ -449,6 +449,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => array(1, 2)),
                                         ),
+                                        "responsive" => false
                                     )
                                 )
                             )
@@ -474,6 +475,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => array(1, 2)),
                                         ),
+                                        "responsive" => false
                                     )
                                 )
                             )
