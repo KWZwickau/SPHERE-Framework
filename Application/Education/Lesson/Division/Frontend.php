@@ -269,7 +269,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Year'        => 'Schuljahr',
                                     'Period'      => 'Zeitraum',
-                                    'SchoolType'  => 'Schultyp',
+                                    'SchoolType'  => 'Schulart',
                                     'ClassGroup'  => 'Schulklasse',
                                     'Description' => 'Beschreibung',
                                     'StudentList' => 'Schüler',

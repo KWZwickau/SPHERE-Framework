@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Library\NumberToWord\NumberToWord;
 
 /**
  * Class Billing
@@ -110,32 +111,17 @@ class Billing
      *
      * @return string
      */
-    private function setPlaceholders(
-        $Text,
-        $ItemName,
-        $Year,
-        $TotalPrice,
-        $DebtorSalutation,
-        $DebtorFirstName,
-        $DebtorLastName,
-        $CauserSalutation,
-        $CauserFirstName,
-        $CauserLastName,
-        $Birthday,
-        $From,
-        $To,
-        $Date,
-        $Location,
-        $CompanyName,
-        $CompanyExtendedName,
-        $CompanyAddress,
-        $StudentIdentifier
-    ) {
+    private function setPlaceholders($Text, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
+        $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
+    {
         $Text = str_replace('[Jahr]', $Year, $Text);
         $Text = str_replace('[Zeitraum von]', $From, $Text);
         $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Beitragsart]', $ItemName, $Text);
         $Text = str_replace('[Beitragssumme]', $TotalPrice, $Text);
+        $TotalPrice2Word = NumberToWord::float2Text($TotalPrice, true);
+        $Text = str_replace('[Beitragssumme als Wort]', $TotalPrice2Word, $Text);
         $Text = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Text);
         $Text = str_replace('[Beitragszahler Vorname]', $DebtorFirstName, $Text);
         $Text = str_replace('[Beitragszahler Nachname]', $DebtorLastName, $Text);
@@ -210,49 +196,13 @@ class Billing
 
 
 
-        $Subject = $this->setPlaceholders(
-            $Subject,
-            $ItemName,
-            $Year,
-            $TotalPrice,
-            $DebtorSalutation,
-            $DebtorFirstName,
-            $DebtorLastName,
-            $CauserSalutation,
-            $CauserFirstName,
-            $CauserLastName,
-            $Birthday,
-            $From,
-            $To,
-            $Date,
-            $Location,
-            $CompanyName,
-            $CompanyExtendedName,
-            $CompanyAddress,
-            $StudentIdentifier
-        );
+        $Subject = $this->setPlaceholders($Subject, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+            $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
+            $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
-        $Content = $this->setPlaceholders(
-            $Content,
-            $ItemName,
-            $Year,
-            $TotalPrice,
-            $DebtorSalutation,
-            $DebtorFirstName,
-            $DebtorLastName,
-            $CauserSalutation,
-            $CauserFirstName,
-            $CauserLastName,
-            $Birthday,
-            $From,
-            $To,
-            $Date,
-            $Location,
-            $CompanyName,
-            $CompanyExtendedName,
-            $CompanyAddress,
-            $StudentIdentifier
-        );
+        $Content = $this->setPlaceholders($Content, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+            $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
+            $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
         return (new Page())
             ->addSlice($this->getHeaderSlice('150px'))

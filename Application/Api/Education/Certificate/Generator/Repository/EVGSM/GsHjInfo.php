@@ -33,7 +33,7 @@ class GsHjInfo extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample(), false);
 
         return (new Page())
             ->addSlice(

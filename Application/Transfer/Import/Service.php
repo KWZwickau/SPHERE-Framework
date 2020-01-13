@@ -103,6 +103,38 @@ class Service
      * @param TblPerson $tblPerson
      * @param string $columnName
      * @param integer $RunY
+     * @param string $Separator
+     */
+    public function insertPrivatePhoneWithSeparator($tblPerson, $columnName, $RunY, $Separator = ';')
+    {
+        $phoneNumber = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($phoneNumber != '') {
+            if ($Separator != '' && (strpos($phoneNumber, $Separator) !== false)) {
+                $array = preg_split('/' . $Separator . '/', $phoneNumber);
+            } else {
+                $array = array(0 => $phoneNumber);
+            }
+
+            foreach ($array as $item) {
+                $number = trim($item);
+                if (0 === strpos($number, '1')) {
+                    $number = '0' . $number;
+                }
+
+                $tblType = Phone::useService()->getTypeById(1);
+                if (0 === strpos($number, '01')) {
+                    $tblType = Phone::useService()->getTypeById(2);
+                }
+
+                Phone::useService()->insertPhoneToPerson($tblPerson, $number, $tblType, '');
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columnName
+     * @param integer $RunY
      * @param string $Remark
      */
     public function insertPrivateFax($tblPerson, $columnName, $RunY, $Remark = '')
@@ -287,5 +319,27 @@ class Service
                 }
             }
         }
+    }
+
+    /**
+     * @param $columnName
+     * @param $RunY
+     *
+     * @return array
+     */
+    public function splitPersonName($columnName, $RunY)
+    {
+        $firstName = '';
+        $lastName = '';
+        $name = trim($this->Document->getValue($this->Document->getCell($this->Location[$columnName], $RunY)));
+        if ($name != '') {
+            $split = preg_split('/ /', $name);
+            if (is_array($split)) {
+                $lastName = end($split);
+                $firstName = trim(str_replace($lastName, '', $name));
+            }
+        }
+
+        return array($firstName, $lastName);
     }
 }
