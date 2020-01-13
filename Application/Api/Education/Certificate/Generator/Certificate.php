@@ -2480,10 +2480,12 @@ abstract class Certificate extends Extension
      * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
+     * @param bool $IsSmall
+     * @param bool $IsFootnoteShowed
      *
      * @return Slice
      */
-    public function getProfileStandardNew($personId, $TextSize = '14px', $IsGradeUnderlined = false, $IsSmall = false)
+    public function getProfileStandardNew($personId, $TextSize = '14px', $IsGradeUnderlined = false, $IsSmall = false, $IsFootnoteShowed = true)
     {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -2725,11 +2727,11 @@ abstract class Certificate extends Extension
         $section = new Section();
         $section
             ->addElementColumn((new Element())
-                ->setContent('besuchtes schulspezifisches Profil¹')
+                ->setContent('besuchtes schulspezifisches Profil' . ($IsFootnoteShowed ? '¹' : ''))
                 ->styleTextSize('11px')
                 , '52%')
             ->addElementColumn((new Element())
-                ->setContent('3. Fremdsprache (ab Klassenstufe 8)¹')
+                ->setContent('3. Fremdsprache (ab Klassenstufe 8)' . ($IsFootnoteShowed ? '¹' : ''))
                 ->styleTextSize('11px')
             );
         $sectionList[] = $section;
