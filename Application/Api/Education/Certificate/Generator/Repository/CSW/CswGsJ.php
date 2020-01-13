@@ -35,12 +35,9 @@ class CswGsJ extends Certificate
     public function buildPages(TblPerson $tblPerson = null)
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-        $Header = $this->getHead($this->isSample());
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice(CswGsStyle::getHeader($this->isSample()))
             ->addSlice($this->getSchoolName($personId))
             ->addSlice($this->getCertificateHead('Jahreszeugnis der Grundschule'))
             ->addSlice($this->getDivisionAndYear($personId))
