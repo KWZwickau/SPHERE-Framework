@@ -139,7 +139,7 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
         } elseif (strpos(get_class($this), 'EzshKurshalbjahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'EVGSM' && strpos(get_class($this), 'GsHjInfo') !== false) {
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'EVGSM' && (strpos(get_class($this), 'GsHjInfo') !== false || strpos(get_class($this), 'GsJ') !== false)) {
             $isWidth = true;
 //            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
