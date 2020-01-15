@@ -61,7 +61,7 @@ class GymJ extends Certificate
             ->addSlice($this->getSubjectLanesSmall($personId, true, array('Lane' => 1, 'Rank' => 3))
                 ->styleHeight('220px')
             )
-            ->addSlice($this->getProfileStandardNew($personId))
+            ->addSlice($this->getProfileStandardNew($personId, '14px', false, true))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
