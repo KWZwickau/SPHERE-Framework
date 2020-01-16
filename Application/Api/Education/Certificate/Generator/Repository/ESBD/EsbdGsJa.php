@@ -37,11 +37,12 @@ class EsbdGsJa extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice($this->getEsbdHeadSlice('Evangelisches Schulzentrum Bad Düben - Grundschule'))
-            ->addSlice($this->getCertificateHead('Jahreszeugnis der Grundschule', '5px'))
-            ->addSlice($this->getDivisionAndYear($personId))
-            ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
+            ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Grundschule', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId))
+            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSlice($this->getGradeLanes($personId, '14px', false, '5px'))
+            ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -69,18 +70,16 @@ class EsbdGsJa extends EsbdStyle
             )
             ->addSlice($this->getSubjectLanes($personId)
                 ->styleHeight('165px'))
-            ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '130px', '5px'))
-            ->addSlice($this->getTransfer($personId))
-            ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, true))
-            ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('18px',
+            ->addSlice($this->getDescriptionHeadConsumer($personId, true))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '111px', '5px'))
+            ->addSlice($this->getTransferConsumer($personId))
+            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getSignPartConsumer($personId))
+            ->addSlice($this->getParentSignConsumer())
+            ->addSlice($this->getInfoConsumer('18px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
             (6 = ungenügend nur bei der Bewertung der Leistungen)'))
-            ->addSlice((new Slice())->addElement(
-                ($this->getEsbdBottomLine()))
-            );
+            ->addSlice($this->getBottomLineConsumer());
     }
 }

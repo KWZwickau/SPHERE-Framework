@@ -4062,7 +4062,8 @@ class Data extends AbstractData
                 }
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
 
@@ -4119,7 +4120,8 @@ class Data extends AbstractData
                 }
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
 
@@ -4176,9 +4178,14 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 600);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -4215,9 +4222,14 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 600);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -4274,9 +4286,14 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 300);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -4300,7 +4317,7 @@ class Data extends AbstractData
 
             // OS
 
-            $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-9', 'ESBD\EsbdMsHjInfo', $tblConsumerCertificate);
+            $tblCertificate = $this->createCertificate('Oberschule Halbjahresinformation', 'Klasse 5-9', 'ESBD\EsbdMsHjInfo', $tblConsumerCertificate);
             if ($tblCertificate) {
                 if ($tblSchoolTypeSecondary) {
                     $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary, null, true);
@@ -4327,9 +4344,14 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 700);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -4351,7 +4373,7 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'INF', 2, 8);
             }
 
-            $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Klasse 9/10', 'ESBD\EsbdMsHj', $tblConsumerCertificate);
+            $tblCertificate = $this->createCertificate('Oberschule Halbjahreszeugnis', 'Klasse 9/10', 'ESBD\EsbdMsHj', $tblConsumerCertificate);
             if ($tblCertificate) {
                 if ($tblSchoolTypeSecondary) {
                     $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary, null, true);
@@ -4366,9 +4388,14 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 700);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -4390,7 +4417,7 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'INF', 2, 8);
             }
 
-            $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'ESBD\EsbdMsJ');
+            $tblCertificate = $this->createCertificate('Oberschule Jahreszeugnis', 'Klasse 5 - 9', 'ESBD\EsbdMsJ', $tblConsumerCertificate);
             if ($tblCertificate) {
                 if ($tblSchoolTypeSecondary) {
                     $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
@@ -4422,9 +4449,14 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 300);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                $this->setCertificateGradeAllStandard($tblCertificate);
+                $this->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+//                $this->setCertificateGradeAllStandard($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -4448,7 +4480,7 @@ class Data extends AbstractData
 
             // Kurshalbjahreszeugnis
 
-            $tblCertificate = $this->createCertificate('Gymnasium Kurshalbjahreszeugnis', '', 'ESBD\EsbdGymKurshalbjahreszeugnis');
+            $tblCertificate = $this->createCertificate('Gymnasium Kurshalbjahreszeugnis', '', 'ESBD\EsbdGymKurshalbjahreszeugnis', $tblConsumerCertificate);
             if ($tblCertificate) {
                 if ($tblSchoolTypeGym && $tblCertificateTypeMidTermCourse) {
                     $this->updateCertificate($tblCertificate, $tblCertificateTypeMidTermCourse, $tblSchoolTypeGym,
@@ -4459,6 +4491,10 @@ class Data extends AbstractData
                 if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                     $this->createCertificateField($tblCertificate, $FieldName, 270);
                 }
+
+                // Seite 2
+                // Begrenzung der Dialoge
+                $this->setESBDSecondPageLength($tblCertificate);
             }
             if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                 $row = 1;
@@ -4488,6 +4524,29 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'ETH', $row, 7, false);
                 $this->setCertificateSubject($tblCertificate, 'SPO', $row, 8);
             }
+        }
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     */
+    private function setESBDSecondPageLength(TblCertificate $tblCertificate)
+    {
+
+        $FieldNameYou = 'DialoguesWithYou';
+        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldNameYou)) {
+            $this->createCertificateInformation($tblCertificate, $FieldNameYou, 2);
+            $this->createCertificateField($tblCertificate, $FieldNameYou, 1200);
+        }
+        $FieldNameParent = 'DialoguesWithParent';
+        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldNameParent)) {
+            $this->createCertificateInformation($tblCertificate, $FieldNameParent, 2);
+            $this->createCertificateField($tblCertificate, $FieldNameParent, 1200);
+        }
+        $FieldNameUs = 'DialoguesWithUs';
+        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldNameUs)) {
+            $this->createCertificateInformation($tblCertificate, $FieldNameUs, 2);
+            $this->createCertificateField($tblCertificate, $FieldNameUs, 1200);
         }
     }
 
@@ -4919,11 +4978,19 @@ class Data extends AbstractData
         $IsEssential = true
     ) {
 
-        // Chemnitz abweichende Fächer
-        if ($SubjectAcronym == 'DE' || $SubjectAcronym == 'D') {
+        // abweichende Fächer
+        if ($SubjectAcronym == 'DE' || $SubjectAcronym == 'D' || $SubjectAcronym == 'DEU') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('DE');
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('D');
+            }
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('DEU');
+            }
+        } elseif ($SubjectAcronym == 'EN' || $SubjectAcronym == 'ENG') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('ENG');
             }
         } elseif ($SubjectAcronym == 'BI' || $SubjectAcronym == 'BIO') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('BIO');

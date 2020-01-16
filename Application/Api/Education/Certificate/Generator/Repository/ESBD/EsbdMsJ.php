@@ -28,7 +28,7 @@ class EsbdMsJ extends EsbdStyle
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
+     * @return Page[]
      * @internal param bool $IsSample
      *
      */
@@ -37,13 +37,28 @@ class EsbdMsJ extends EsbdStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        $pageList[] = $this->getPageOne($personId);
+        $pageList[] = $this->getPageTwo($personId);
+
+        return $pageList;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Page
+     */
+    public function getPageOne($personId)
+    {
+
         return (new Page())
-            ->addSlice($this->getEsbdHeadSlice('Evangelisches Schulzentrum Bad Düben - Oberschule'))
-            ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule', '5px'))
-            ->addSlice($this->getDivisionAndYear($personId, '20px'))
-            ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getEsbdCourse($personId))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Oberschule', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '20px'))
+            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSlice($this->getCourseConsumer($personId))
             ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -74,18 +89,42 @@ class EsbdMsJ extends EsbdStyle
                 true
             )->styleHeight('290px'))
 //            ->addSlice($this->getOrientationStandard($personId))
-            ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '70px', '8px'))
-            ->addSlice($this->getTransfer($personId, '13px'))
-            ->addSlice($this->getDateLine($personId, '15px'))
-            ->addSlice($this->getSignPart($personId, true, '15px'))
-            ->addSlice($this->getParentSign('15px'))
-            ->addSlice($this->getInfo('26px',
+            ->addSlice($this->getDescriptionHeadConsumer($personId, true))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '70px', '8px'))
+            ->addSlice($this->getTransferConsumer($personId, '13px'))
+            ->addSlice($this->getDateLineConsumer($personId, '15px'))
+            ->addSlice($this->getSignPartConsumer($personId, true, '15px'))
+            ->addSlice($this->getParentSignConsumer('13px'))
+            ->addSlice($this->getInfoConsumer('0px',
                 'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
                 (6 = ungenügend nur bei der Bewertung der Leistungen)'))
-            ->addSlice((new Slice())->addElement(
-                ($this->getEsbdBottomLine()))
-            );
+            ->addSlice($this->getBottomLineConsumer());
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Page
+     */
+    public function getPageTwo($personId)
+    {
+
+        return (new Page())
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('DIALOGUS')
+                    ->styleTextSize('28pt')
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleMarginTop('5px')
+                )
+            )
+//            ->addSlice($this->getCertificateHead('Halbjahreszeugnis der Oberschule', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
+            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSliceArray($this->getSecondPageDescription($personId))
+            ->addSlice($this->getBottomLineConsumer('42px'));
     }
 }

@@ -37,12 +37,26 @@ class EsbdGymJ extends EsbdStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        $pageList[] = $this->getPageOne($personId);
+        $pageList[] = $this->getPageTwo($personId);
+
+        return $pageList;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Page
+     */
+    public function getPageOne($personId)
+    {
         return (new Page())
-            ->addSlice($this->getEsbdHeadSlice('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
-            ->addSlice($this->getCertificateHead('Jahreszeugnis des Gymnasiums', '5px'))
-            ->addSlice($this->getDivisionAndYear($personId))
-            ->addSlice($this->getStudentName($personId))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis des Gymnasiums', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId))
+            ->addSlice($this->getStudentNameConsumer($personId))
             ->addSlice($this->getGradeLanes($personId, '14px', false, '0px'))
+            ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -81,13 +95,13 @@ class EsbdGymJ extends EsbdStyle
                 )
                 ->styleMarginTop('5px')
             )
-            ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '35px', '5px'))
-            ->addSlice($this->getTransfer($personId, '2px'))
-            ->addSlice($this->getDateLine($personId, '10px'))
-            ->addSlice($this->getSignPart($personId, true))
-            ->addSlice($this->getParentSign('33px'))
-            ->addSlice($this->getInfo('7px',
+            ->addSlice($this->getDescriptionHeadConsumer($personId, true, '5px'))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '35px'))
+            ->addSlice($this->getTransferConsumer($personId, '2px'))
+            ->addSlice($this->getDateLineConsumer($personId, '10px'))
+            ->addSlice($this->getSignPartConsumer($personId))
+            ->addSlice($this->getParentSignConsumer('33px'))
+            ->addSlice($this->getInfoConsumer('2px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',
@@ -95,8 +109,32 @@ class EsbdGymJ extends EsbdStyle
                     dritten Fremdsprache ist anstelle des Profils die Fremdsprache anzugeben.',
                 '² &nbsp;&nbsp;&nbsp; gemäß § 30 Absatz 11 der Schulordnung Gymnasien Abiturprüfung'
             ))
-            ->addSlice((new Slice())->addElement(
-                ($this->getEsbdBottomLine()))
-            );
+            ->addSlice($this->getBottomLineConsumer('7px'));
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Page
+     */
+    public function getPageTwo($personId)
+    {
+
+        return (new Page())
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('DIALOGUS')
+                    ->styleTextSize('28pt')
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleMarginTop('5px')
+                )
+            )
+//            ->addSlice($this->getCertificateHead('Halbjahreszeugnis der Oberschule', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
+            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSliceArray($this->getSecondPageDescription($personId))
+            ->addSlice($this->getBottomLineConsumer('42px'));
     }
 }

@@ -234,7 +234,12 @@ class Setup extends AbstractSetup
 
         $this->createForeignKey($Table, $tblCertificate, true);
         $this->createIndex($Table, array('FieldName', 'tblCertificate'));
-        $this->createIndex($Table, array('Page', 'tblCertificate'));
+        // wrong
+//        $this->createIndex($Table, array('Page', 'tblCertificate'));
+        //ToDO remove after Update on Live / Demo
+        $this->removeIndex($Table, array('Page', 'tblCertificate'));
+        // correct
+        $this->createIndex($Table, array('Page', 'tblCertificate'), false);
 
         return $Table;
     }

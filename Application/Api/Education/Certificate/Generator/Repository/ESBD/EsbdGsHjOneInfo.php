@@ -26,11 +26,11 @@ class EsbdGsHjOneInfo extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice($this->getEsbdHeadSlice('Evangelisches Schulzentrum Bad Düben - Grundschule'))
-            ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule', '5px'))
-            ->addSlice($this->getDivisionAndYear($personId, '15px'))
-            ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getDescriptionContent($personId, '600px', '20px'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
+            ->addSlice($this->getCertificateHeadConsumer('Halbjahresinformation der Grundschule', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', '1. Schulhalbjahr'))
+            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '580px', '20px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -56,11 +56,9 @@ class EsbdGsHjOneInfo extends EsbdStyle
                 )
                 ->styleMarginTop('15px')
             )
-            ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, false))
-            ->addSlice($this->getParentSign())
-            ->addSlice((new Slice())->addElement(
-                ($this->getEsbdBottomLine()))
-            );
+            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getSignPartConsumer($personId, false))
+            ->addSlice($this->getParentSignConsumer())
+            ->addSlice($this->getBottomLineConsumer());
     }
 }
