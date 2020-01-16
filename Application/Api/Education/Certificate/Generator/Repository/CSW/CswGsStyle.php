@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
@@ -14,6 +15,42 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
  */
 class CswGsStyle
 {
+    /**
+     * @param $IsSample
+     *
+     * @return Slice
+     */
+    public static function getHeader($IsSample)
+    {
+        $height = '66px';
+        $width = '214px';
+
+        $slice = new Slice();
+        $section = new Section();
+
+        // Individually Logo
+        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_GS.jpg', 'auto', $height)), '39%');
+
+        // Sample
+        if($IsSample){
+            $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
+        } else {
+            $section->addElementColumn((new Element()), '22%');
+        }
+
+        // Standard Logo
+        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+            $width, $height))
+            ->styleAlignRight()
+            , '39%');
+
+        $slice->stylePaddingTop('24px');
+        $slice->styleHeight('100px');
+        $slice->addSection($section);
+
+        return $slice;
+    }
+
     public static function buildSecondPage(TblPerson $tblPerson = null)
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
@@ -36,6 +73,8 @@ class CswGsStyle
                             &nbsp;
                         {% endif %}')
                     ->styleAlignRight()
+                    ->styleFontFamily('AndikaNewBasic')
+                    ->styleHeight('11pt')
                     ->styleMarginTop('50px')
                 )
             )
@@ -46,6 +85,9 @@ class CswGsStyle
                         {% else %}
                             &nbsp;
                         {% endif %}')
+                    ->styleFontFamily('AndikaNewBasic')
+                    ->styleHeight('11pt')
+                    ->styleLineHeight('90%')
                     ->styleMarginTop('20px')
                 )
             );
