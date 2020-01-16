@@ -107,7 +107,7 @@ class Data extends AbstractData
             if ($tblConsumer->getAcronym() == 'EVGSM') {
                 $this->setCertificateEVGSM($tblSchoolTypePrimary, $tblCertificateTypeHalfYear, $tblCertificateTypeYear);
             }
-            if ($tblConsumer->getAcronym() == 'EVGSM') { //  || $tblConsumer->getAcronym() == 'REF' // local Test
+            if ($tblConsumer->getAcronym() == 'ESBD') { //  || $tblConsumer->getAcronym() == 'REF' // local Test
                 $this->setCertificateESBD($tblSchoolTypePrimary, $tblSchoolTypeGym, $tblSchoolTypeSecondary,
                     $tblCertificateTypeHalfYear, $tblCertificateTypeYear, $tblCertificateTypeMidTermCourse);
             }
