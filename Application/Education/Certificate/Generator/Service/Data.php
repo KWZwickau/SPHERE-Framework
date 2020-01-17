@@ -233,10 +233,10 @@ class Data extends AbstractData
                 IDataEVGSM::setCertificateIndividually($this);
             }
             if ($tblConsumer->getAcronym() == 'ESBD') { //  || $tblConsumer->getAcronym() == 'REF' // local Test
-                IDataESBD::setCertificateIndividuell($this);
+                IDataESBD::setCertificateIndividually($this);
             }
             if ($tblConsumer->getAcronym() == 'FELS') {
-                IDataFELS::setCertificateIndividuell($this);
+                IDataFELS::setCertificateIndividually($this);
             }
         }
     }

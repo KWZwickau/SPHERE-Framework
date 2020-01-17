@@ -9,7 +9,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 class IDataFELS
 {
 
-    public static function setCertificateIndividuell(Data $Data)
+    public static function setCertificateIndividually(Data $Data)
     {
 
         $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('FELS');

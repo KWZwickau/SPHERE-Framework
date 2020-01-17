@@ -10,7 +10,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 class IDataESBD
 {
 
-    public static function setCertificateIndividuell(Data $Data)
+    public static function setCertificateIndividually(Data $Data)
     {
 
         $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESBD');
