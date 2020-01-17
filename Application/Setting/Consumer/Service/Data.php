@@ -127,7 +127,7 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'DocumentBorder', TblSetting::TYPE_INTEGER, '2'))) {
 
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Festlegung der seitlichen Ränder für Zeugnisse
-            mittels Zahleneingabe (1=mittlerer Rand, 2=breiter Rand): [Standard: 2]');
+            mittels Zahleneingabe (1=mittlerer Rand, 2=breiter Rand): [Standard: 2]', true);
         }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {
