@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEZSH;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFELS;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFESH;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateField;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
@@ -192,9 +193,14 @@ class Data extends AbstractData
 
         //ToDO
         // Installation über Bildung->Zeugnisse->Einstellung->Auswahl
-//        SDataPrimary::setCertificatePrimaryStandard($this);
-//        SDataSecondary::setCertificateSecondaryStandard($this);
-//        SDataGym::setCertificateSecondaryStandard($this);
+//        SDataPrimary::setCertificateStandard($this);
+//        SDataSecondary::setCertificateStandard($this);
+//        SDataGym::setCertificateStandard($this);
+        // ToDo Mandant einfügen
+        if(false){
+            SDataBerufsschule::setCertificateStandard($this);
+        }
+
 
         $this->setCertificateGradeInformation($tblConsumer);
 
