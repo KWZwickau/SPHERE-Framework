@@ -796,4 +796,36 @@ abstract class EsbdStyle extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
+    public function getMissingConsumer($personId)
+    {
+        return (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Fehltage entschuldigt:')
+                    , '22%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Missing }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent('Fehltage unentschuldigt:')
+                    , '25%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                )
+            )
+            ->styleMarginTop('15px');
+    }
 }
