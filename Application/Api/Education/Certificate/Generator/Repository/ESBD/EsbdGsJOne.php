@@ -29,7 +29,7 @@ class EsbdGsJOne extends EsbdStyle
             ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId))
-            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSlice($this->getStudentNameConsumer($personId, true))
             ->addSlice($this->getDescriptionContentConsumer($personId, '580px', '20px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())

@@ -25,11 +25,14 @@ class EsbdGsHjOneInfo extends EsbdStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        // standard ist Arial und Schriftgröße: 10,5
+        // Geburtstag neben den Namen
+
         return (new Page())
             ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
             ->addSlice($this->getCertificateHeadConsumer('Halbjahresinformation der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', '1. Schulhalbjahr'))
-            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSlice($this->getStudentNameConsumer($personId, true))
             ->addSlice($this->getDescriptionContentConsumer($personId, '580px', '20px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())

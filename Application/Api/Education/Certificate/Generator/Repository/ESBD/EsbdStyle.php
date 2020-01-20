@@ -143,22 +143,48 @@ abstract class EsbdStyle extends Certificate
 
     /**
      * @param $personId
+     * @param bool $withBirthday
      *
      * @return Slice
      */
-    protected function getStudentNameConsumer($personId)
+    protected function getStudentNameConsumer($personId, $withBirthday = false)
     {
         $StudentSlice = (new Slice());
-        $StudentSlice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Vorname und Name:')
-                , '21%')
-            ->addElementColumn((new Element())
-                ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+        if ($withBirthday) {
+            $StudentSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Vorname und Name:')
+                    , '21%')
+                ->addElementColumn((new Element())
+                    ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                               {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                ->styleBorderBottom('1px', self::COLOR_GREEN)
-                , '79%')
-        )->styleMarginTop('5px');
+                    ->styleBorderBottom('1px', self::COLOR_GREEN)
+                    , '41%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                , '10%')
+                ->addElementColumn((new Element())
+                    ->setContent('Geburtsdatum:')
+                    , '15%')
+                ->addElementColumn((new Element())
+                    ->setContent('{{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }}')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', self::COLOR_GREEN)
+                    , '13%')
+            )->styleMarginTop('5px');
+        } else {
+            $StudentSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Vorname und Name:')
+                    , '21%')
+                ->addElementColumn((new Element())
+                    ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                              {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                    ->styleBorderBottom('1px', self::COLOR_GREEN)
+                    , '79%')
+            )->styleMarginTop('5px');
+        }
+
         return $StudentSlice;
     }
 

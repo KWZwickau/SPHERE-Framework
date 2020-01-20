@@ -40,18 +40,12 @@ class EsbdGsJa extends EsbdStyle
             ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId))
-            ->addSlice($this->getStudentNameConsumer($personId))
+            ->addSlice($this->getStudentNameConsumer($personId, true))
             ->addSlice($this->getGradeLanes($personId, '14px', false, '5px'))
-            ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Einschätzung:')
-                    )
-                )
                 ->addSection(( new Section() )
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                        ->setContent('Einschätzung: {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
                                 {{ Content.P' . $personId . '.Input.Rating }}
                             {% else %}
                                 &nbsp;
