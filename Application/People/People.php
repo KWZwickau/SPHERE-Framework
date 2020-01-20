@@ -134,6 +134,13 @@ class People implements IClusterInterface
                 $TblDivisionList = Division::useService()->getDivisionByYear($tblYear);
                 if ($TblDivisionList) {
                     foreach ($TblDivisionList as $tblDivision) {
+                        // SSW-834 jahrgangsübergreifende nicht mitzählen, ansonsten werden Schüler doppelt gezählt
+                        if (($tblLevel = $tblDivision->getTblLevel())
+                            && ($tblLevel->getIsChecked())
+                        ) {
+                            continue;
+                        }
+
                         $schoolType = $tblDivision->getTypeName();
                         $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                         if (isset($StudentCountBySchoolType[$schoolType])) {
