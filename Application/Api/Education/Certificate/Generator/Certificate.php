@@ -4008,10 +4008,9 @@ abstract class Certificate extends Extension
             ->addElement((new Element())
                 ->setContent('
                     {% if(Content.P' . $personId . '.Student.Course.Degree is not empty) %}
-                        nahm am Unterricht der Schulart Mittelschule mit dem Ziel des
-                        {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
+                        nahm am Unterricht mit dem Ziel des {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
                     {% else %}
-                        nahm am Unterricht der Schulart Mittelschule teil.
+                        &nbsp;
                     {% endif %}'
                 )
                 ->styleMarginTop($MarginTop)

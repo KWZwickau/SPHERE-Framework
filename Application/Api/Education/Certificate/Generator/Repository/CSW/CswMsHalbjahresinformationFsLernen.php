@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 19.01.2018
- * Time: 13:24
- */
+
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW;
 
@@ -15,11 +10,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CswMsHalbjahresinformation
+ * Class CswMsHalbjahresinformationFsLernen
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW
  */
-class CswMsHalbjahresinformation extends Certificate
+class CswMsHalbjahresinformationFsLernen extends Certificate
 {
 
     /**
@@ -38,7 +33,13 @@ class CswMsHalbjahresinformation extends Certificate
             ->addSlice($this->getCertificateHead('Halbjahresinformation der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getCourse($personId, '8px', '12px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('nahm am Unterricht mit dem Ziel des Abschlusses im Förderschwerpunkt Lernen teil.')
+                    ->styleTextSize('12px')
+                    ->styleMarginTop('8px')
+                )
+            )
             ->addSlice($this->getGradeLanes($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -48,16 +49,16 @@ class CswMsHalbjahresinformation extends Certificate
                 )
             )
             ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
-            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '85px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '130px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('25px',
+            ->addSlice($this->getInfo('35px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
-                    (6 = ungenügend nur bei der Bewertung der Leistungen)')
-            );
+                    (6 = ungenügend nur bei der Bewertung der Leistungen)',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+            ));
     }
 }

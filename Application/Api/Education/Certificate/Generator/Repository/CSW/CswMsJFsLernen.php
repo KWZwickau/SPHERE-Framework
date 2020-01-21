@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 11.06.2018
- * Time: 09:20
- */
+
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW;
 
@@ -16,11 +11,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CswMsJahreszeugnis
+ * Class CswMsJFsLernen
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW
  */
-class CswMsJahreszeugnis extends Certificate
+class CswMsJFsLernen extends Certificate
 {
     /**
      * @return array
@@ -50,7 +45,13 @@ class CswMsJahreszeugnis extends Certificate
             ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px'))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getCourse($personId, '8px', '12px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('nahm am Unterricht mit dem Ziel des Abschlusses im Förderschwerpunkt Lernen teil.')
+                    ->styleTextSize('12px')
+                    ->styleMarginTop('8px')
+                )
+            )
             ->addSlice($this->getGradeLanes($personId))
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -75,9 +76,8 @@ class CswMsJahreszeugnis extends Certificate
             ->addSlice($this->getSubjectLanes($personId)
                 ->styleHeight('250px')
             )
-            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '55px', '8px'))
+            ->addSlice($this->getDescriptionContent($personId, '110px', '8px'))
             ->addSlice($this->getTransfer($personId, '13px'))
             ->addSlice($this->getDateLine($personId, '10px'))
             ->addSlice($this->getSignPart($personId, true, '25px'))
@@ -85,7 +85,8 @@ class CswMsJahreszeugnis extends Certificate
             ->addSlice($this->getInfo('3px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
-                (6 = ungenügend nur bei der Bewertung der Leistungen)')
-        );
+                (6 = ungenügend nur bei der Bewertung der Leistungen)',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+            ));
     }
 }

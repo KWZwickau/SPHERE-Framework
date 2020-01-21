@@ -20,6 +20,8 @@ class IDataCSW
             self::setCswGsJOne($Data, $tblConsumerCertificate);
             self::setCswGsHjInfo($Data, $tblConsumerCertificate);
             self::setCswGsJ($Data, $tblConsumerCertificate);
+            self::setCswMsHalbjahresinformationFsLernen($Data, $tblConsumerCertificate);
+            self::setCswMsJFsLernen($Data, $tblConsumerCertificate);
         }
 
     }
@@ -310,6 +312,94 @@ class IDataCSW
             $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
             $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 3);
             $Data->setCertificateSubject($tblCertificate, 'WE', 2, 4);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setCswMsHalbjahresinformationFsLernen(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahresinformation', 'Förderschwerpunkt Lernen',
+            'CSW\CswMsHalbjahresinformationFsLernen', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
+                    null, true, true);
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 700);
+            }
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6);
+            $Data->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setCswMsJFsLernen(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Mittelschule Jahreszeugnis', 'Förderschwerpunkt Lernen',
+            'CSW\CswMsJFsLernen', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(),
+                    null, false, true);
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 700);
+            }
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6);
+            $Data->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
         }
     }
 }
