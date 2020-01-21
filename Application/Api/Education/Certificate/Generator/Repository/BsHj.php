@@ -38,8 +38,17 @@ class BsHj extends Certificate
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId))
-            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbozogener Bereich (Fortsetzung)', 10, true))
+            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbozogener Bereich (Fortsetzung)', 10, true, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId))
+            ->addSlice($this->getPraktika($personId))
+            ->addSlice($this->getDescriptionBsContent($personId))
+            ->addSlice((new Slice())->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop('300px')
+            ))
+            ->addSlice($this->getBottomInformation($personId))
+            ->addSlice($this->getBsInfo('20px',
+                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6),'))
         ;
 
         return $pageList;
@@ -76,8 +85,9 @@ class BsHj extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('22px')
             ->styleHeight('50px')
-            ->stylePaddingTop('20px')
+//            ->stylePaddingTop('20px')
         );
+        $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
         $Slice->addElement((new Element())
             ->setContent($CertificateName)
             ->styleAlignCenter()
@@ -272,7 +282,7 @@ class BsHj extends Certificate
         return $Slice;
     }
 
-    private function getSubjectLineBase($personId, $Title = '&nbsp;', $Length = 10, $isPageTwo = false)
+    private function getSubjectLineBase($personId, $Title = '&nbsp;', $Length = 10, $isPageTwo = false, $Height = 'auto')
     {
         $Slice = (new Slice());
 
@@ -328,6 +338,9 @@ class BsHj extends Certificate
             $TextSize = '14px';
 
             $countLF = 1;
+            if($isPageTwo){
+                $countLF = $Length + 1;
+            }
             foreach ($SubjectList as $Subject) {
                 // Jedes Fach auf separate Zeile
                 $SubjectSection = (new Section());
@@ -358,6 +371,7 @@ class BsHj extends Certificate
                 $Slice->addSection($SubjectSection);
             }
         }
+        $Slice->styleHeight($Height);
 
         return $Slice;
     }
@@ -390,7 +404,7 @@ class BsHj extends Certificate
         return $Slice;
     }
 
-    private function getSubjectLineChosen($personId)
+    private function getSubjectLineChosen($personId, $Height = '130px')
     {
         $Slice = (new Slice());
 
@@ -413,11 +427,20 @@ class BsHj extends Certificate
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
                     if($tblCertificateSubject->getRanking() >= 15) {
+
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                             $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
                                 = $tblSubject->getAcronym();
                             $SubjectStructure[$RankingString.$LaneString]['SubjectName']
                                 = $tblSubject->getName();
+                        } else {
+                            // Grade Missing, But Subject Essential => Add Subject to Certificate
+                            if ($tblCertificateSubject->isEssential()){
+                                $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
+                                    = $tblSubject->getAcronym();
+                                $SubjectStructure[$RankingString.$LaneString]['SubjectName']
+                                    = $tblSubject->getName();
+                            }
                         }
                     }
                 }
@@ -434,13 +457,12 @@ class BsHj extends Certificate
             }
 
             $TextSize = '14px';
-            $countLF = 11;
             foreach ($SubjectList as $Subject) {
                 // Jedes Fach auf separate Zeile
                 $SubjectSection = (new Section());
 
                 $SubjectSection->addElementColumn((new Element())
-                    ->setContent('LF'.$countLF++.' '.$Subject['SubjectName'])
+                    ->setContent($Subject['SubjectName'])
                     ->stylePaddingTop()
                     ->styleMarginTop('10px')
                     ->stylePaddingBottom('1px')
@@ -465,7 +487,185 @@ class BsHj extends Certificate
                 $Slice->addSection($SubjectSection);
             }
         }
+        $Slice->styleHeight($Height);
 
+        return $Slice;
+    }
+
+    private function getPraktika($personId)
+    {
+
+        $Slice = new Slice();
+        $Slice->styleBorderAll('1px', '#000', 'dotted');
+        $Slice->styleMarginTop('30px');
+        $Slice->stylePaddingTop('10px');
+        $Slice->stylePaddingBottom('10px');
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer: 20 Wochen)')
+                ->stylePaddingLeft('5px')
+                , '91%'
+            )
+            ->addElementColumn((new Element())      //ToDO richtiges Acronym auswählen
+                ->setContent('{% if(Content.P'.$personId.'.Grade.Data["DEU"] is not empty) %}
+                             {{ Content.P'.$personId.'.Grade.Data["DEU"] }}
+                         {% else %}
+                             &ndash;
+                         {% endif %}')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('2px')
+                , '9%'
+            )
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                //ToDO Einsatzgebiet 1 aus Variable | Dauer 1 aus Variable
+                ->setContent('<b>Var1</b> (Dauer X Wochen)')
+                ->stylePaddingTop('10px')
+                ->stylePaddingLeft('5px')
+            )
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                //ToDO Einsatzgebiet 2 aus Variable | Dauer 2 aus Variable
+                ->setContent('<b>Var2</b> (Dauer X Wochen)')
+                ->stylePaddingTop('10px')
+                ->stylePaddingLeft('5px')
+                , '60%'
+            )
+            ->addElementColumn((new Element())
+                //ToDO Dauer Summe aus 1,2 und 3
+                ->setContent('Dauer gesamt: X Wochen')
+                ->stylePaddingTop('10px')
+                ->styleAlignRight()
+                ->stylePaddingRight('15px')
+                , '40%'
+            )
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                //ToDO Einsatzgebiet 3 aus Variable | Dauer 3 aus Variable
+                ->setContent('<b>Var3</b> (Dauer X Wochen)')
+                ->stylePaddingTop('10px')
+                ->stylePaddingLeft('5px')
+            )
+        );
+
+        return $Slice;
+    }
+
+    private function getDescriptionBsContent($personId)
+    {
+
+        $Slice = new Slice();
+
+        $Slice->styleMarginTop('20px');
+        $Slice->stylePaddingTop('5px');
+        $Slice->styleHeight('55px');
+        $Slice->styleBorderAll('1px', '#000', 'dotted');
+
+        $Slice->addElement((new Element())
+            ->setContent('Bemerkungen:')
+            ->styleTextUnderline()
+            ->stylePaddingLeft('5px')
+        );
+        $Slice->addElement((new Element())
+            ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+            ->stylePaddingLeft('5px')
+        );
+
+        return $Slice;
+    }
+
+    private function getBottomInformation($personId)
+    {
+
+        $Slice = new Slice();
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}'
+                )
+                ->styleAlignCenter()
+                , '60%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderBottom()
+                , '40%'
+            )
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Ort, Datum')
+                ->styleAlignCenter()
+                ->styleTextSize('10px')
+                , '60%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                        {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                    {% else %}
+                        Klassenlehrer/in
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleTextSize('10px')
+                , '40%'
+            )
+        );
+
+        $Slice->addElement((new Element())
+            ->setContent('&nbsp;')
+            ->styleHeight('30px')
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Zur Kenntnis genommen:')
+                , '30%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                , '70%'
+            )
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                , '30%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Eltern')
+                ->styleTextSize('10px')
+                ->styleAlignCenter()
+                , '70%'
+            )
+        );
+        return $Slice;
+    }
+
+    private function getBsInfo($PaddingTop = '20px', $Content = '')
+    {
+        $Slice = new Slice();
+        $Slice->stylePaddingTop($PaddingTop);
+        $Slice->addElement((new Element())
+                ->setContent($Content)
+                ->styleTextSize('9.5px')
+        );
         return $Slice;
     }
 }

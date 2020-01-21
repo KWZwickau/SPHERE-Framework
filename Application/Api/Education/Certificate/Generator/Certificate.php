@@ -408,6 +408,45 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $IsSample
+     *
+     * @return Section
+     */
+    protected function getIndividuallyLogo($IsSample)
+    {
+
+        $picturePath = $this->getUsedPicture();
+        $IndividuallyLogoHeight = $this->getPictureHeight();
+
+//        $Head = new Slice();
+        $Section = new Section();
+
+        // Sample
+        if($IsSample){
+            $Section->addElementColumn((new Element\Sample())
+                ->styleTextSize('30px')
+                ->styleHeight('0px')
+                , '27%');
+        } else {
+            $Section->addElementColumn((new Element()), '27%');
+        }
+
+        $Section->addElementColumn((new Element()), '46%');
+
+        // Individually Logo
+        if ($picturePath != '') {
+            $Section->addElementColumn((new Element\Image($picturePath, 'auto', $IndividuallyLogoHeight))
+                ->styleAlignCenter()
+                ->styleHeight('0px')
+                , '27%');
+        } else {
+            $Section->addElementColumn((new Element()), '27%');
+        }
+
+        return $Section;
+    }
+
+    /**
      * @param bool   $IsSample
      * @param bool   $isBigLogo
      *
@@ -3941,20 +3980,22 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param string $StandardHeight
+     *
      * @return string
      */
-    private function getPictureHeight()
+    private function getPictureHeight($StandardHeight = '66px')
     {
 
         $value = '';
 
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+        if (($tblSetting = Consumer::useService()->getSetting(
             'Education', 'Certificate', 'Generate', 'PictureHeight'))
         ) {
             $value = $tblSetting->getValue();
         }
 
-        return $value ? $value : '66px';
+        return $value ? $value : $StandardHeight;
     }
 
     /**

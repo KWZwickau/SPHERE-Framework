@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Lesson\Division\Division;
 
 class SDataBerufsschule
@@ -30,12 +31,23 @@ class SDataBerufsschule
                     }
                 }
             }
-            // Begrenzung des Bemerkungsfeld
-            // erste Klasse nicht, wegen Enter
-//            $FieldName = 'Remark';
-//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                $Data->createCertificateField($tblCertificate, $FieldName, 4000);
-//            }
+            // Begrenzung Eingabefelder
+
+            self::setSecondPageVariable($Data, $tblCertificate);
+        }
+    }
+
+    /**
+     * @param Data           $Data
+     * @param TblCertificate $tblCertificate
+     */
+    private static function setSecondPageVariable(Data $Data, TblCertificate $tblCertificate)
+    {
+        // Begrenzung Remark
+        $Var = 'Remark';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+            $Data->createCertificateField($tblCertificate, $Var, 200);
         }
     }
 }
