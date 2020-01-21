@@ -620,7 +620,7 @@ class IDataCMS
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Remark';
             if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $Data->createCertificateField($tblCertificate, $FieldName, 500);
+                $Data->createCertificateField($tblCertificate, $FieldName, 700);
             }
             // Kopfnoten
             if (!$Data->getCertificateGradeAll($tblCertificate)){
@@ -683,7 +683,7 @@ class IDataCMS
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Remark';
             if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $Data->createCertificateField($tblCertificate, $FieldName, 1600);
+                $Data->createCertificateField($tblCertificate, $FieldName, 1800);
             }
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'SecondRemark';
