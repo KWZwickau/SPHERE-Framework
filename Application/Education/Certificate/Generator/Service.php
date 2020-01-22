@@ -451,7 +451,15 @@ class Service extends AbstractService
             'Content.Input.StudentLetter'       => 'TextArea',
             'Content.Input.DialoguesWithYou'    => 'TextArea',
             'Content.Input.DialoguesWithParent' => 'TextArea',
-            'Content.Input.DialoguesWithUs'     => 'TextArea'
+            'Content.Input.DialoguesWithUs'     => 'TextArea',
+            // Berufsschule
+            'Content.Input.BsDestination'       => 'TextField',
+            'Content.Input.Operation1'          => 'TextField',
+            'Content.Input.OperationTime1'      => 'TextField',
+            'Content.Input.Operation2'          => 'TextField',
+            'Content.Input.OperationTime2'      => 'TextField',
+            'Content.Input.Operation3'          => 'TextField',
+            'Content.Input.OperationTime3'      => 'TextField'
         );
     }
 
@@ -501,7 +509,15 @@ class Service extends AbstractService
             'Content.Input.StudentLetter'       => 'Schülerbrief',
             'Content.Input.DialoguesWithYou'    => 'Im Dialog mit dir',
             'Content.Input.DialoguesWithParent' => 'Im Dialog mit deinen Eltern',
-            'Content.Input.DialoguesWithUs'     => 'Im Dialog mit uns'
+            'Content.Input.DialoguesWithUs'     => 'Im Dialog mit uns',
+            // Berufsschule
+            'Content.Input.BsDestination'       => 'Berufsfachschule für ...',
+            'Content.Input.Operation1'          => 'Einsatzgebiet 1',
+            'Content.Input.OperationTime1'      => 'Einsatzgebiet Dauer in Wochen 1',
+            'Content.Input.Operation2'          => 'Einsatzgebiet 2',
+            'Content.Input.OperationTime2'      => 'Einsatzgebiet Dauer in Wochen 2',
+            'Content.Input.Operation3'          => 'Einsatzgebiet 3',
+            'Content.Input.OperationTime3'      => 'Einsatzgebiet Dauer in Wochen 3'
         );
     }
 

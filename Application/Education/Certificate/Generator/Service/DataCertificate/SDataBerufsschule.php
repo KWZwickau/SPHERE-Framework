@@ -49,5 +49,35 @@ class SDataBerufsschule
             $Data->createCertificateInformation($tblCertificate, $Var, 2);
             $Data->createCertificateField($tblCertificate, $Var, 200);
         }
+
+        $Var = 'Operation1';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+        }
+
+        $Var = 'OperationTime1';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+        }
+
+        $Var = 'Operation2';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+        }
+
+        $Var = 'OperationTime2';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+        }
+
+        $Var = 'Operation3';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+        }
+
+        $Var = 'OperationTime3';
+        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+            $Data->createCertificateInformation($tblCertificate, $Var, 2);
+        }
     }
 }

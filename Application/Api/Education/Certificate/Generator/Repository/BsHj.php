@@ -44,7 +44,7 @@ class BsHj extends Certificate
             ->addSlice($this->getDescriptionBsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('300px')
+                ->stylePaddingTop('240px')
             ))
             ->addSlice($this->getBottomInformation($personId))
             ->addSlice($this->getBsInfo('20px',
@@ -94,7 +94,9 @@ class BsHj extends Certificate
             ->styleTextSize('30px')
         );
         $Slice->addElement((new Element())
-            ->setContent('der Berufsschule für ')   //ToDO Eingabe Variable
+            ->setContent('der Berufsschule für {% if(Content.P' . $personId . '.Input.BsDestination is not empty) %}
+                        {{ Content.P' . $personId . '.Input.BsDestination }}
+                    {% endif %}')
             ->stylePaddingTop('4px')
             ->styleAlignCenter()
             ->styleTextSize('22px')
@@ -304,7 +306,7 @@ class BsHj extends Certificate
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
-                    if($tblCertificateSubject->getRanking() >= 5 && $tblCertificateSubject->getRanking() < 15){
+                    if($tblCertificateSubject->getRanking() >= 5 && $tblCertificateSubject->getRanking() < 13){
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])){
                             $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
                                 = $tblSubject->getAcronym();
@@ -426,7 +428,7 @@ class BsHj extends Certificate
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
-                    if($tblCertificateSubject->getRanking() >= 15) {
+                    if($tblCertificateSubject->getRanking() >= 13) {
 
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                             $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
@@ -507,8 +509,8 @@ class BsHj extends Certificate
                 , '91%'
             )
             ->addElementColumn((new Element())      //ToDO richtiges Acronym auswählen
-                ->setContent('{% if(Content.P'.$personId.'.Grade.Data["DEU"] is not empty) %}
-                             {{ Content.P'.$personId.'.Grade.Data["DEU"] }}
+                ->setContent('{% if(Content.P'.$personId.'.Grade.Data["PRAK"] is not empty) %}
+                             {{ Content.P'.$personId.'.Grade.Data["PRAK"] }}
                          {% else %}
                              &ndash;
                          {% endif %}')
@@ -522,8 +524,17 @@ class BsHj extends Certificate
 
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                //ToDO Einsatzgebiet 1 aus Variable | Dauer 1 aus Variable
-                ->setContent('<b>Var1</b> (Dauer X Wochen)')
+                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation1 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Operation1 }}
+                    {% else %}
+                        < EINSATZGEBIETE >
+                    {% endif %}</b> (Dauer 
+                     {% if(Content.P' . $personId . '.Input.OperationTime1 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.OperationTime1 }}
+                    {% else %}
+                        X
+                    {% endif %}
+                     Wochen)')
                 ->stylePaddingTop('10px')
                 ->stylePaddingLeft('5px')
             )
@@ -532,14 +543,24 @@ class BsHj extends Certificate
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 //ToDO Einsatzgebiet 2 aus Variable | Dauer 2 aus Variable
-                ->setContent('<b>Var2</b> (Dauer X Wochen)')
+                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation2 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Operation2 }}
+                    {% else %}
+                        < EINSATZGEBIETE >
+                    {% endif %}</b> (Dauer 
+                     {% if(Content.P' . $personId . '.Input.OperationTime2 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.OperationTime2 }}
+                    {% else %}
+                        X
+                    {% endif %}
+                     Wochen)')
                 ->stylePaddingTop('10px')
                 ->stylePaddingLeft('5px')
                 , '60%'
             )
             ->addElementColumn((new Element())
                 //ToDO Dauer Summe aus 1,2 und 3
-                ->setContent('Dauer gesamt: X Wochen')
+                ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1 + Content.P' . $personId . '.Input.OperationTime2 + Content.P' . $personId . '.Input.OperationTime3 }} Wochen')
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
                 ->stylePaddingRight('15px')
@@ -550,7 +571,17 @@ class BsHj extends Certificate
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 //ToDO Einsatzgebiet 3 aus Variable | Dauer 3 aus Variable
-                ->setContent('<b>Var3</b> (Dauer X Wochen)')
+                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation3 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Operation3 }}
+                    {% else %}
+                        < EINSATZGEBIETE >
+                    {% endif %}</b> (Dauer 
+                     {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.OperationTime3 }}
+                    {% else %}
+                        X
+                    {% endif %}
+                     Wochen)')
                 ->stylePaddingTop('10px')
                 ->stylePaddingLeft('5px')
             )
