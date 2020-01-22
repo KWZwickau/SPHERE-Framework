@@ -2101,6 +2101,10 @@ abstract class Certificate extends Extension
     protected function getGradeLanesSmall($personId, $TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '10px')
     {
 
+        $TextSizeSmall = '8.5px';
+        $paddingTopShrinking = '5px';
+        $paddingBottomShrinking = '6px';
+
         $GradeSlice = (new Slice());
 
         $tblCertificateGradeAll = Generator::useService()->getCertificateGradeAll($this->getCertificateEntity());
@@ -2162,10 +2166,28 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop('1px')
-                        ->stylePaddingBottom('1px')
+                        ->stylePaddingTop(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 1px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                               ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 1px
+                             {% endif %}'
+                        )
                         ->styleMarginTop('4px')
-                        ->styleTextSize($TextSize)
+                        ->styleTextSize(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
                         , '9%');
                 }
 

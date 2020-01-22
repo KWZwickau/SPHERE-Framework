@@ -892,6 +892,28 @@ class Service extends AbstractService
             $Content['P' . $personId]['Division']['Data']['Teacher'] = $tblPersonSigner->getFullName();
         }
 
+        $tblCertificate = false;
+        $isGradeVerbal = false;
+        if ($tblPrepareStudent) {
+            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+            if ($tblCertificate) {
+                $isGradeVerbal = $tblCertificate->getIsGradeVerbal();
+            }
+        }
+
+        if ($tblPrepare
+            && ($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+            && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+            && ($tblSetting = ConsumerSetting::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+            && $tblSetting->getValue()
+        ) {
+            $isGradeVerbalOnDiploma = true;
+        } else {
+            $isGradeVerbalOnDiploma = false;
+        }
+
         // zusätzliche Informationen
         if ($tblPrepare) {
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
@@ -899,7 +921,7 @@ class Service extends AbstractService
 
             // Spezialfall für Förderzeugnisse Lernen
             $isSupportLearningCertificate = false;
-            if (($tblPrepareStudent && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate()))) {
+            if ($tblPrepareStudent && $tblCertificate) {
                 if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
                     $isSupportLearningCertificate = true;
                 }
@@ -1110,16 +1132,9 @@ class Service extends AbstractService
             if ($tblPrepareGradeBehaviorList) {
                 foreach ($tblPrepareGradeBehaviorList as $tblPrepareGrade) {
                     if ($tblPrepareGrade->getServiceTblGradeType()) {
-                        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'EVSR'
-                            && $tblGenerateCertificate
-                            && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                            && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
-                            && ($tblSetting = ConsumerSetting::useService()->getSetting(
-                                'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
-                            && $tblSetting->getValue()
-                        ) {
-                            $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());;
+                        if ($isGradeVerbal) {
+                            $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
+                            $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblGradeType()->getCode()] = true;
                         } else {
                             $grade = $tblPrepareGrade->getGrade();
                         }
@@ -1159,10 +1174,7 @@ class Service extends AbstractService
                     ) {
                         foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                             if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                                if (($tblSetting = ConsumerSetting::useService()->getSetting(
-                                        'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
-                                    && $tblSetting->getValue()
-                                ) {
+                                if ($isGradeVerbalOnDiploma) {
                                     $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                 } else {
@@ -1191,27 +1203,21 @@ class Service extends AbstractService
                                 // keine Tendenzen auf Zeugnissen
                                 $withTrend = true;
                                 if ($tblPrepareStudent
-                                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                    && $tblCertificate
                                     && !$tblCertificate->isInformation()
                                 ) {
                                     $withTrend = false;
                                 }
 
-                                // Radebeul Zensuren im Wortlaut
-                                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                    && $tblConsumer->getAcronym() == 'EVSR'
-                                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                                    && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
-                                    && ($tblSetting = ConsumerSetting::useService()->getSetting(
-                                        'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
-                                    && $tblSetting->getValue()
-                                ) {
+                                // Zensuren im Wortlaut
+                                if ($isGradeVerbal) {
                                     if ($tblGradeItem->getTblGradeText()) {
                                         $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
                                             = $tblGradeItem->getTblGradeText()->getName();
                                     } else {
                                         $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
                                             = $this->getVerbalGrade($tblGradeItem->getGrade());
+                                        $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
                                     }
                                 } else {
                                     $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
@@ -1238,23 +1244,12 @@ class Service extends AbstractService
                 if ($tblPrepareGradeSubjectList) {
                     foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
                         if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
-                            if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                                && ($tblSetting = ConsumerSetting::useService()->getSetting(
-                                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
-                                && $tblSetting->getValue()
-                            ) {
+                            if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
-                            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                && $tblConsumer->getAcronym() == 'EVSR'
-                                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                                && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
-                                && ($tblSetting = ConsumerSetting::useService()->getSetting(
-                                    'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
-                                && $tblSetting->getValue()
-                            ) {
-                                $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());;
+                            } elseif ($isGradeVerbal) {
+                                $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
+                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                             } else {
                                 // bei Zeugnistext als Note Schriftgröße verkleinern
                                 if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())
@@ -1279,10 +1274,7 @@ class Service extends AbstractService
             ) {
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                     if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                        if (($tblSetting = ConsumerSetting::useService()->getSetting(
-                                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
-                            && $tblSetting->getValue()
-                        ) {
+                        if ($isGradeVerbalOnDiploma) {
                             $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
                             $Content['P' . $personId]['AdditionalGrade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                         } else {
@@ -1319,21 +1311,15 @@ class Service extends AbstractService
         }
 
         if ($tblPrepareStudent) {
-            // Notendurchschnitt der angegebenen Fächer für Bildungsempfehlung
-            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                && $tblCertificate->getName() == 'Bildungsempfehlung'
-            ) {
+            if ($tblCertificate && $tblCertificate->getName() == 'Bildungsempfehlung') {
+                // Notendurchschnitt der angegebenen Fächer für Bildungsempfehlung
                 $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
                 if ($average) {
                     $Content['P' . $personId]['Grade']['Data']['Average'] = number_format($average, 1, ',', '.');
                     //str_replace('.', ',', $average);
                 }
-            }
 
-            // Notendurchschnitt aller anderen Fächer für Bildungsempfehlung
-            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                && $tblCertificate->getName() == 'Bildungsempfehlung'
-            ) {
+                // Notendurchschnitt aller anderen Fächer für Bildungsempfehlung
                 $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
                 if ($average) {
                     $Content['P' . $personId]['Grade']['Data']['AverageOthers'] = number_format($average, 1, ',', '.');
