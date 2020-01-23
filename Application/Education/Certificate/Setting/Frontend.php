@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Star;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\Success as SuccessLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -474,6 +476,60 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    public function frontendImplement()
+    {
+
+        $Stage = new Stage('Einstellungen', 'Zeugnisvorlagen installieren');
+        $Stage = self::setSettingMenue($Stage, '');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Title('Auswahl'))
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_PRIMARY, 'Zeugnisse Grundschule', 'GsJa')
+                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ')
+                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ')
+                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSSCHULE, 'Zeugnisse Berufsschule', 'BsHj')
+                        )
+                    ))
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param string $Type
+     * @param string $Name
+     * @param string $CertificateClass
+     *
+     * @return Standard|SuccessLink
+     */
+    private function getCertificateInstallButton($Type, $Name, $CertificateClass)
+    {
+
+        $Button = new Standard($Name, '/Education/Certificate/Setting/ImplementCertificate',
+            new Save(), array('Type' => $Type));
+        // Installation schon vorhanden? Test an einem Zeugnis
+        if(Generator::useService()->getCertificateByCertificateClassName($CertificateClass)){
+            $Button = new SuccessLink($Name,'/Education/Certificate/Setting/ImplementCertificate',
+                new Ok(), array('Type' => $Type),
+                'Erneut Installieren (eventuell fehlende/neue ergänzen)');
+        }
+        return $Button;
+    }
+
+    public function frontendImplementCertificate($Type = '')
+    {
+
+        return Generator::useService()->insertCertificate($Type);
+    }
+
     public function frontendDashboard()
     {
 
@@ -501,6 +557,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard($Route == 'Approval' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Approval', null, null,
             'Automatische Freigaben setzen'));
+
+        $text = 'Zeugnisvorlagen installieren';
+        $Stage->addButton(new Standard($Route == 'Implement' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Implement', null, null,
+            'Standardzeugnisse hinzufügen'));
 
         return $Stage;
     }

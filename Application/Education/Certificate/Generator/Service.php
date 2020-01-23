@@ -268,6 +268,22 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Type
+     *
+     * @return string
+     */
+    public function insertCertificate($Type = '')
+    {
+
+        if((new Data($this->getBinding()))->insertCertificate($Type)){
+            return new Success('Installation der Zeugnisvorlagen erfolgreich!').
+                new Redirect('/Education/Certificate/Setting/Implement', Redirect::TIMEOUT_SUCCESS);
+        }
+        return new Danger('Installation der Zeugnisvorlagen ist fehlgeschlagen').
+            new Redirect('/Education/Certificate/Setting/Implement', Redirect::TIMEOUT_ERROR);
+    }
+
+    /**
      * @param TblCertificate $tblCertificate
      * @param int $LaneIndex
      * @param int $LaneRanking
