@@ -37,8 +37,8 @@ class MsJ extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice(FelsStyle::getHeader($this->isSample()))
-            ->addSlice($this->getSchoolName($personId))
+            ->addSlice(FelsStyle::getHeader($this->isSample(), 'Oberschule'))
+//            ->addSlice($this->getSchoolName($personId))
             ->addSlice($this->getCertificateHead('Leistungsübersicht der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px'))
             ->addSlice($this->getStudentName($personId))
@@ -69,12 +69,12 @@ class MsJ extends Certificate
                 true
             )->styleHeight('220px'))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '70px', '8px'))
+            ->addSlice($this->getDescriptionContent($personId, '120px', '8px'))
             ->addSlice($this->getTransfer($personId, '13px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('4px',
+            ->addSlice($this->getInfo('20px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                 (6 = ungenügend nur bei der Bewertung der Leistungen)')

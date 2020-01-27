@@ -12,28 +12,57 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
  */
 class FelsStyle
 {
+    const TEXT_COLOR = '#0094CC';
+
     /**
      * @param $IsSample
+     * @param $schoolTypeName
      *
      * @return Slice
      */
-    public static function getHeader($IsSample)
+    public static function getHeader($IsSample, $schoolTypeName)
     {
-        $section = new Section();
-        $section->addElementColumn((new Element()), '39%');
+        $slice =
+            (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Freies Evangelisches Limbacher Schulzentrum')
+                        ->styleTextBold()
+                        ->styleTextSize('22px')
+                        ->styleTextColor(self::TEXT_COLOR)
+                        ->styleMarginTop('20px')
+                    )
+                );
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element())
+//                        ->setContent($schoolTypeName)
+//                        ->styleTextBold()
+//                        ->styleTextSize('22px')
+//                        ->styleMarginTop('5px')
+//                        ->styleTextColor(self::TEXT_COLOR)
+//                    )
+//                );
         // Sample
         if($IsSample){
-            $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
-        } else {
-            $section->addElementColumn((new Element()), '22%');
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn((new Element\Sample())
+                        ->styleTextSize('30px')
+                        ->styleMarginTop('5px')
+                    )
+                );
         }
+
+        $section = new Section();
+        $section->addSliceColumn($slice, '75%');
+
         $section
-            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/FELS.jpg', 'auto', '66px'))->styleAlignRight(), '39%');
+            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/FELS.jpg', 'auto', '66px'))->styleAlignRight(), '25%');
 
         return
             (new Slice())
                 ->addSection($section)
                 ->stylePaddingTop('24px')
-                ->styleHeight('100px');
+                ->styleHeight('80px');
     }
 }

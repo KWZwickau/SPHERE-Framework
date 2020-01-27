@@ -26,8 +26,8 @@ class MsHjInfo extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice(FelsStyle::getHeader($this->isSample()))
-            ->addSlice($this->getSchoolName($personId))
+            ->addSlice(FelsStyle::getHeader($this->isSample(), 'Oberschule'))
+//            ->addSlice($this->getSchoolName($personId))
             ->addSlice($this->getCertificateHead('Halbjahres-Leistungsübersicht der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
@@ -57,7 +57,7 @@ class MsHjInfo extends Certificate
                 true
             )->styleHeight('220px'))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '118px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '178px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())

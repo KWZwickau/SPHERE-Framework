@@ -38,12 +38,12 @@ class GymJ extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice(FelsStyle::getHeader($this->isSample()))
-            ->addSlice($this->getSchoolName($personId))
+            ->addSlice(FelsStyle::getHeader($this->isSample(), 'Gymnasium'))
+//            ->addSlice($this->getSchoolName($personId))
             ->addSlice($this->getCertificateHead('Leistungsübersicht des Gymnasiums'))
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getGradeLanesSmall($personId, '14px', false, '5px'))
+            ->addSlice($this->getGradeLanesSmall($personId))
             ->addSlice($this->getRatingContent($personId, '35px', '5px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -72,12 +72,12 @@ class GymJ extends Certificate
                 ->styleMarginTop('5px')
             )
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '55px', '5px'))
+            ->addSlice($this->getDescriptionContent($personId, '100px', '5px'))
             ->addSlice($this->getTransfer($personId, '2px'))
             ->addSlice($this->getDateLine($personId, '10px'))
             ->addSlice($this->getSignPart($personId, true))
             ->addSlice($this->getParentSign('33px'))
-            ->addSlice($this->getInfo('2px',
+            ->addSlice($this->getInfo('20px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'
