@@ -57,23 +57,38 @@ abstract class EsbdStyle extends Certificate
                 , '26%');
         }
 
-        $SectionSchoolName
-            ->addElementColumn((new Element())
-                ->setContent('Name der Schule:')
-                ->styleMarginTop('20px')
-                , '18%')
-            ->addElementColumn((new Element())
-                ->setContent($SchoolName)
-                ->styleBorderBottom('1px', self::COLOR_GREEN)
-                ->styleAlignCenter()
-                ->styleMarginTop('20px')
-                , '64%')
-            ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                ->styleBorderBottom('1px', self::COLOR_GREEN)
-                ->styleMarginTop('20px')
-                ->styleMarginBottom('10px')
-                , '18%');
+        // large Schoolname
+        if (strlen($SchoolName) > 60) {
+            $SectionSchoolName
+                ->addElementColumn((new Element())
+                    ->setContent('Name der Schule:')
+                    ->styleMarginTop('20px')
+                    , '18%')
+                ->addElementColumn((new Element())
+                    ->setContent($SchoolName)
+                    ->styleBorderBottom('1px', self::COLOR_GREEN)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('20px')
+                    , '82%');
+        } else {
+            $SectionSchoolName
+                ->addElementColumn((new Element())
+                    ->setContent('Name der Schule:')
+                    ->styleMarginTop('20px')
+                    , '18%')
+                ->addElementColumn((new Element())
+                    ->setContent($SchoolName)
+                    ->styleBorderBottom('1px', self::COLOR_GREEN)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('20px')
+                    , '64%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom('1px', self::COLOR_GREEN)
+                    ->styleMarginTop('20px')
+                    ->styleMarginBottom('10px')
+                    , '18%');
+        }
 
         if($this->isSample()){
             $SectionTitle->addElementColumn((new Element\Sample())

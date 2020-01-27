@@ -37,7 +37,7 @@ class EsbdGsJa extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule - staatlich anerkannte Ersatzschule'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId))
             ->addSlice($this->getStudentNameConsumer($personId, true))

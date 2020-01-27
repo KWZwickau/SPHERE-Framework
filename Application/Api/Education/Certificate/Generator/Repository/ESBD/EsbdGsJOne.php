@@ -1,10 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESBD;
 
-use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -26,7 +23,7 @@ class EsbdGsJOne extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule - staatlich anerkannte Ersatzschule'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId))
             ->addSlice($this->getStudentNameConsumer($personId, true))
