@@ -69,6 +69,7 @@ abstract class EsbdStyle extends Certificate
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleAlignCenter()
                     ->styleMarginTop('20px')
+                    ->styleMarginBottom('10px')
                     , '82%');
         } else {
             $SectionSchoolName
