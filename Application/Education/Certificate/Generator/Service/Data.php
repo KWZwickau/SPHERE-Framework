@@ -15,6 +15,9 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFELS;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFESH;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsschule;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataGym;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataPrimary;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataSecondary;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateField;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
@@ -191,16 +194,6 @@ class Data extends AbstractData
         $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        //ToDO
-        // Installation über Bildung->Zeugnisse->Einstellung->Auswahl
-//        SDataPrimary::setCertificateStandard($this);
-//        SDataSecondary::setCertificateStandard($this);
-//        SDataGym::setCertificateStandard($this);
-        // ToDo Mandant einfügen
-        if(false){
-            SDataBerufsschule::setCertificateStandard($this);
-        }
-
         $this->setCertificateGradeInformation($tblConsumer);
 
         if ($tblConsumer) {
@@ -244,6 +237,50 @@ class Data extends AbstractData
                 IDataFELS::setCertificateIndividually($this);
             }
         }
+    }
+
+    /**
+     * @param $Type
+     *
+     * @return bool
+     */
+    public function insertCertificate($Type)
+    {
+
+        // Informationen der Zeugnisse
+        $this->tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+        $this->tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
+        $this->tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
+        $this->tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
+        $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
+        $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
+        $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
+        $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
+        $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+        $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+        $this->tblSchoolTypeBerufsschule = Type::useService()->getTypeByName('Berufsschule');
+        $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
+        $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
+
+        switch ($Type) {
+            case TblCertificate::CERTIFICATE_TYPE_PRIMARY :
+                SDataPrimary::setCertificateStandard($this);
+                return true;
+            break;
+            case TblCertificate::CERTIFICATE_TYPE_SECONDARY :
+                SDataSecondary::setCertificateStandard($this);
+                return true;
+            break;
+            case TblCertificate::CERTIFICATE_TYPE_GYM :
+                SDataGym::setCertificateStandard($this);
+                return true;
+            break;
+            case TblCertificate::CERTIFICATE_TYPE_BERUFSSCHULE :
+                SDataBerufsschule::setCertificateStandard($this);
+                return true;
+            break;
+        }
+        return false;
     }
 
     /**

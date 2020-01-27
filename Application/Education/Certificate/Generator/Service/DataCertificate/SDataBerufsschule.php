@@ -30,12 +30,13 @@ class SDataBerufsschule
                     }
                 }
             }
-            // Begrenzung des Bemerkungsfeld
-            // erste Klasse nicht, wegen Enter
-//            $FieldName = 'Remark';
-//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                $Data->createCertificateField($tblCertificate, $FieldName, 4000);
-//            }
+            // Begrenzung Eingabefelder
+            // Begrenzung RemarkWithoutTeam
+            $Var = 'RemarkWithoutTeam';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+                $Data->createCertificateField($tblCertificate, $Var, 900);
+            }
         }
     }
+
 }
