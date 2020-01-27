@@ -201,7 +201,6 @@ class Data extends AbstractData
             SDataBerufsschule::setCertificateStandard($this);
         }
 
-
         $this->setCertificateGradeInformation($tblConsumer);
 
         if ($tblConsumer) {

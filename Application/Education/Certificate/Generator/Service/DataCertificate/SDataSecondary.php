@@ -11,7 +11,7 @@ class SDataSecondary
     {
 
         // wird aktuell nicht benötigt
-        // $tblCertificate = $Data->createCertificate('Mittelschule Halbjahreszeugnis', 'Klasse 5-6', 'MsHj');
+        // $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Klasse 5-6', 'MsHj');
         if (($tblCertificate = $Data->getCertificateByCertificateClassName('MsHj'))) {
             $Data->destroyCertificate($tblCertificate);
         }
@@ -81,7 +81,7 @@ class SDataSecondary
     private static function setMsHjInfoHs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahresinformation', 'Hauptschule', 'MsHjInfoHs');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Hauptschule', 'MsHjInfoHs');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -131,7 +131,7 @@ class SDataSecondary
     private static function setMsHjInfo(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, true);
@@ -180,7 +180,7 @@ class SDataSecondary
     private static function setMsHjInfoRs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahresinformation', 'Realschule', 'MsHjInfoRs');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Realschule', 'MsHjInfoRs');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseReal()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -233,7 +233,7 @@ class SDataSecondary
     private static function setMsHjInfoFsLernen(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahresinformation', 'Förderschwerpunkt Lernen', 'MsHjInfoFsLernen');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Förderschwerpunkt Lernen', 'MsHjInfoFsLernen');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -275,7 +275,7 @@ class SDataSecondary
     private static function setMsHjFsLernen(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahreszeugnis', 'Förderschwerpunkt Lernen', 'MsHjFsLernen');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Förderschwerpunkt Lernen', 'MsHjFsLernen');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -317,7 +317,7 @@ class SDataSecondary
     private static function setMsJFsLernen(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Jahreszeugnis', 'Förderschwerpunkt Lernen', 'MsJFsLernen');
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Förderschwerpunkt Lernen', 'MsJFsLernen');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(),
@@ -359,7 +359,7 @@ class SDataSecondary
     private static function setMsHjInfoFsGeistigeEntwicklung(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahresinformation', 'Förderschwerpunkt geistige Entwicklung', 'MsHjInfoFsGeistigeEntwicklung');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Förderschwerpunkt geistige Entwicklung', 'MsHjInfoFsGeistigeEntwicklung');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -374,7 +374,7 @@ class SDataSecondary
     private static function setMsHjFsGeistigeEntwicklung(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahreszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsHjFsGeistigeEntwicklung');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsHjFsGeistigeEntwicklung');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -389,7 +389,7 @@ class SDataSecondary
     private static function setMsJFsGeistigeEntwicklung(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Jahreszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsJFsGeistigeEntwicklung');
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsJFsGeistigeEntwicklung');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(),
@@ -404,7 +404,7 @@ class SDataSecondary
     private static function setMsHjHs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -451,7 +451,7 @@ class SDataSecondary
     private static function setMsHjRs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Halbjahreszeugnis', 'Realschule', 'MsHjRs');
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Realschule', 'MsHjRs');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseReal()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(),
@@ -498,7 +498,7 @@ class SDataSecondary
     private static function setMsJHs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Jahreszeugnis', 'Hauptschule', 'MsJHs');
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Hauptschule', 'MsJHs');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(),
@@ -553,7 +553,7 @@ class SDataSecondary
     private static function setMsJ(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary());
@@ -607,7 +607,7 @@ class SDataSecondary
     private static function setMsJRs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Jahreszeugnis', 'Realschule', 'MsJRs');
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Realschule', 'MsJRs');
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseReal()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(),
@@ -665,7 +665,7 @@ class SDataSecondary
     private static function setMsAbsHs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
             $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
             $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
@@ -703,7 +703,7 @@ class SDataSecondary
     private static function setMsAbsHsQ(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule qualifiziert',
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Hauptschule qualifiziert',
             'MsAbsHsQ');
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
             $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -742,7 +742,7 @@ class SDataSecondary
     private static function setMsAbsRs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abschlusszeugnis', 'Realschule', 'MsAbsRs');
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Realschule', 'MsAbsRs');
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
             $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
             $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
@@ -779,7 +779,7 @@ class SDataSecondary
     private static function setMsAbg(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg',
+        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', '', 'MsAbg',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
@@ -815,7 +815,7 @@ class SDataSecondary
     private static function setMsAbgLernen(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen', 'MsAbgLernen',
+        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', 'Förderschwerpunkt Lernen', 'MsAbgLernen',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
@@ -851,13 +851,9 @@ class SDataSecondary
     private static function setMsAbgLernenHs(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang', 'MsAbgLernenHs',
+        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang', 'MsAbgLernenHs',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
-            // SSW-574 Rename
-            if ($tblCertificate->getDescription() == 'Förderschwerpunkt Lernen + Hauptschulabschluss') {
-                $Data->updateCertificateName($tblCertificate, 'Mittelschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang');
-            }
 
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 $row = 1;
@@ -892,7 +888,7 @@ class SDataSecondary
     private static function setMsAbgGeistigeEntwicklung(Data $Data)
     {
 
-        $tblCertificate = $Data->createCertificate('Mittelschule Abgangszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsAbgGeistigeEntwicklung',
+        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsAbgGeistigeEntwicklung',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
