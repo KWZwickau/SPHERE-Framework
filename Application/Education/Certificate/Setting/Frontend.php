@@ -117,6 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $haveToAcrossSubject = 4; // (4 * 2) = 8 Fächer (3 Zusatzplatzhalter füü z.B. Religion auf der rechten Seite)
                 $haveToBaseSubject = 12; // (8 * 2) = 16 LF (14 Ist Standard, 15 passen auf das Zeugnis)
                 $chosenSubject = 14; // (2 * 2) = 4 Wahlfächer (3 Wahlfächer passen auf das Zeugnis)
+                $praktSubject = 15; // (2 * 2) = 4 Berufspraktische Ausbildung (1 Fach)
 
                 // Berufsübergreifende Pflichtfächer
                 $SubjectLaneAcrossLeft = array();
@@ -154,6 +155,13 @@ class Frontend extends Extension implements IFrontendInterface
                         $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run)
                     );
                 }
+                // Wahlfächer
+                $SubjectPrakt = array();
+                for ($Run = ($chosenSubject + 1); $Run <= $praktSubject; $Run++) {
+                    array_push($SubjectPrakt,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run)
+                    );
+                }
 
 
                 $Stage->setContent(
@@ -179,6 +187,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormColumn($SubjectLaneChosenRight, 6),
                                 )),
                             ), new FormTitle('Wahlpflichtbereich (Reihenfolge Links -> Rechts)')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectPrakt, 6)
+                                )),
+                            ), new FormTitle('Berufspraktische Ausbildung')),
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject)
                 );
             } else {
@@ -284,11 +297,6 @@ class Frontend extends Extension implements IFrontendInterface
                         ? $tblCertificateSubject->getServiceTblSubject()->getId()
                         : 0
                     );
-//                $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Liberation'] =
-//                    ( $tblCertificateSubject->getServiceTblStudentLiberationCategory()
-//                        ? $tblCertificateSubject->getServiceTblStudentLiberationCategory()->getId()
-//                        : 0
-//                    );
                 $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['IsEssential'] =
                     ( $tblCertificateSubject->isEssential()
                         ? 1
@@ -298,17 +306,12 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-//        $tblStudentLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
-
         return new Panel($LaneTitle, array(
             new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Subject]', ($PreFach? $PreFach.' ' : '').'Fach',
                 array('{{ Acronym }} - {{ Name }}' => $tblSubjectAll)
             ),
             new CheckBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][IsEssential]',
                 'Muss immer ausgewiesen werden', 1),
-//            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Liberation]', 'Befreiung',
-//                array('{{ Name }}' => $tblStudentLiberationCategoryAll)
-//            ),
         ));
     }
 

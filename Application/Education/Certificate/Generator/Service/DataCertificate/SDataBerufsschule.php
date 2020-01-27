@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
-use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Lesson\Division\Division;
 
 class SDataBerufsschule
@@ -32,52 +31,12 @@ class SDataBerufsschule
                 }
             }
             // Begrenzung Eingabefelder
-
-            self::setSecondPageVariable($Data, $tblCertificate);
+            // Begrenzung RemarkWithoutTeam
+            $Var = 'RemarkWithoutTeam';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+                $Data->createCertificateField($tblCertificate, $Var, 900);
+            }
         }
     }
 
-    /**
-     * @param Data           $Data
-     * @param TblCertificate $tblCertificate
-     */
-    private static function setSecondPageVariable(Data $Data, TblCertificate $tblCertificate)
-    {
-        // Begrenzung Remark
-        $Var = 'Remark';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-            $Data->createCertificateField($tblCertificate, $Var, 200);
-        }
-
-        $Var = 'Operation1';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-        }
-
-        $Var = 'OperationTime1';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-        }
-
-        $Var = 'Operation2';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-        }
-
-        $Var = 'OperationTime2';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-        }
-
-        $Var = 'Operation3';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-        }
-
-        $Var = 'OperationTime3';
-        if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-            $Data->createCertificateInformation($tblCertificate, $Var, 2);
-        }
-    }
 }

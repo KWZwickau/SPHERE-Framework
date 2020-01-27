@@ -44,7 +44,7 @@ class BsHj extends Certificate
             ->addSlice($this->getDescriptionBsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('240px')
+                ->stylePaddingTop('100px')
             ))
             ->addSlice($this->getBottomInformation($personId))
             ->addSlice($this->getBsInfo('20px',
@@ -137,17 +137,25 @@ class BsHj extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('
-            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                Frau
+            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
             {% else %}
-                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                    Herr
-                {% else %}
-                    Frau/Herr
-                {% endif %}
+                Frau/Herr
             {% endif %}
             {{ Content.P' . $personId . '.Person.Data.Name.First }}
             {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+//            ->setContent('
+//            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+//                Frau
+//            {% else %}
+//                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+//                    Herr
+//                {% else %}
+//                    Frau/Herr
+//                {% endif %}
+//            {% endif %}
+//            {{ Content.P' . $personId . '.Person.Data.Name.First }}
+//            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
             ->styleBorderBottom('1px', '#000', 'dotted')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -411,7 +419,7 @@ class BsHj extends Certificate
         $Slice = (new Slice());
 
         $Slice->addElement((new Element())
-            ->setContent('Wahlflichtbereich')
+            ->setContent('Wahlpflichtbereich')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -497,6 +505,31 @@ class BsHj extends Certificate
     private function getPraktika($personId)
     {
 
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+
+        $Subject = array();
+
+        if (!empty($tblCertificateSubjectAll)) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
+                    $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
+
+                    if($tblCertificateSubject->getRanking() == 15) {
+
+                        // Wird immer ausgewiesen (Fach wird nicht abgebildet)
+                        $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$RankingString.$LaneString]['SubjectName']
+                            = $tblSubject->getName();
+                    }
+                }
+            }
+            $Subject = current($SubjectStructure);
+        }
+
         $Slice = new Slice();
         $Slice->styleBorderAll('1px', '#000', 'dotted');
         $Slice->styleMarginTop('30px');
@@ -509,8 +542,8 @@ class BsHj extends Certificate
                 , '91%'
             )
             ->addElementColumn((new Element())      //ToDO richtiges Acronym auswählen
-                ->setContent('{% if(Content.P'.$personId.'.Grade.Data["PRAK"] is not empty) %}
-                             {{ Content.P'.$personId.'.Grade.Data["PRAK"] }}
+                ->setContent('{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                             {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
                          {% else %}
                              &ndash;
                          {% endif %}')
@@ -542,7 +575,6 @@ class BsHj extends Certificate
 
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                //ToDO Einsatzgebiet 2 aus Variable | Dauer 2 aus Variable
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation2 is not empty) %}
                         {{ Content.P' . $personId . '.Input.Operation2 }}
                     {% else %}
@@ -559,7 +591,6 @@ class BsHj extends Certificate
                 , '60%'
             )
             ->addElementColumn((new Element())
-                //ToDO Dauer Summe aus 1,2 und 3
                 ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1 + Content.P' . $personId . '.Input.OperationTime2 + Content.P' . $personId . '.Input.OperationTime3 }} Wochen')
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
@@ -570,7 +601,6 @@ class BsHj extends Certificate
 
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                //ToDO Einsatzgebiet 3 aus Variable | Dauer 3 aus Variable
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation3 is not empty) %}
                         {{ Content.P' . $personId . '.Input.Operation3 }}
                     {% else %}
@@ -590,14 +620,14 @@ class BsHj extends Certificate
         return $Slice;
     }
 
-    private function getDescriptionBsContent($personId)
+    private function getDescriptionBsContent($personId, $Height = '195px')
     {
 
         $Slice = new Slice();
 
         $Slice->styleMarginTop('20px');
         $Slice->stylePaddingTop('5px');
-        $Slice->styleHeight('55px');
+        $Slice->styleHeight($Height);
         $Slice->styleBorderAll('1px', '#000', 'dotted');
 
         $Slice->addElement((new Element())
@@ -606,12 +636,14 @@ class BsHj extends Certificate
             ->stylePaddingLeft('5px')
         );
         $Slice->addElement((new Element())
-            ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+            ->setContent('{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
+                        {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
                     {% else %}
                         &nbsp;
                     {% endif %}')
+            ->styleAlignJustify()
             ->stylePaddingLeft('5px')
+            ->stylePaddingRight('5px')
         );
 
         return $Slice;
