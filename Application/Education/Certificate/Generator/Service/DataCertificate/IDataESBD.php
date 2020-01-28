@@ -36,17 +36,11 @@ class IDataESBD
     private static function setEsbdGsHjInformation(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'Klasse 2-4', 'ESBD\EsbdGsHjInformation', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'Klasse 4', 'ESBD\EsbdGsHjInformation', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '4'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
@@ -57,10 +51,6 @@ class IDataESBD
             if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                 $Data->createCertificateField($tblCertificate, $FieldName, 1200);
             }
-        }
-        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
-            $Data->setCertificateGrade($tblCertificate, 'PN', 1, 1);
-//                $Data->setCertificateGradeAllStandard($tblCertificate);
         }
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
 
@@ -83,13 +73,19 @@ class IDataESBD
     private static function setEsbdGsHjOneInfo(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
+        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'Klasse 1-3',
             'ESBD\EsbdGsHjOneInfo', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
                 }
@@ -103,17 +99,11 @@ class IDataESBD
     private static function setEsbdGsJa(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 2-4', 'ESBD\EsbdGsJa', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 4', 'ESBD\EsbdGsJa', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '4'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
@@ -131,8 +121,7 @@ class IDataESBD
             }
         }
         if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
-            $Data->setCertificateGrade($tblCertificate, 'PN', 1, 1);
-//                $Data->setCertificateGradeAllStandard($tblCertificate);
+            $Data->setCertificateGradeAllStandard($tblCertificate);
         }
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
 
@@ -155,12 +144,18 @@ class IDataESBD
     private static function setEsbdGsJOne(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'ESBD\EsbdGsJOne', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 1-3', 'ESBD\EsbdGsJOne', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
                 }
