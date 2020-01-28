@@ -393,14 +393,10 @@ class BsHj extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('Halbjahresinformation für
-            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                Frau
+            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
             {% else %}
-                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                    Herr
-                {% else %}
-                    Frau/Herr
-                {% endif %}
+                Frau/Herr
             {% endif %}
             {{ Content.P' . $personId . '.Person.Data.Name.First }}
             {{ Content.P' . $personId . '.Person.Data.Name.Last }},

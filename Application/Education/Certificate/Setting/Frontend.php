@@ -174,13 +174,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormColumn($SubjectLaneAcrossLeft, 6),
                                     new FormColumn($SubjectLaneAcrossRight, 6),
                                 )),
-                            ), new FormTitle('Berufsübergreifender Bereich')),
+                            ), new FormTitle('Pflicht Berufsübergreifender Bereich')),
                             new FormGroup(array(
                                 new FormRow(array(
                                     new FormColumn($SubjectLaneBaseLeft, 6),
                                     new FormColumn($SubjectLaneBaseRight, 6),
                                 )),
-                            ), new FormTitle('Berufsbezogener Bereich (LF Sortiert auf dem Zeugnis untereinander)')),
+                            ), new FormTitle('Pflicht Berufsbezogener Bereich (LF Sortiert auf dem Zeugnis untereinander)')),
                             new FormGroup(array(
                                 new FormRow(array(
                                     new FormColumn($SubjectLaneChosenLeft, 6),
