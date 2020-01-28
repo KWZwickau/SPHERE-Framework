@@ -1000,6 +1000,7 @@ class Frontend extends FrontendScoreRule
         $TestCount = 0;
         // Positionsermittlung
         $DisplayStudentNameCount = false;
+        $IsDisplayStudentInUse = false;
         if($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount')){
             $DisplayStudentNameCount = $tblSetting->getValue();
         }
@@ -1079,8 +1080,10 @@ class Frontend extends FrontendScoreRule
                         }
                     }
                     // Anpassung des zweiten Headers
-                    if($PeriodWithExtraName){
+                    // Header wird nur einmal erweitert.
+                    if($PeriodWithExtraName && !$IsDisplayStudentInUse){
                         $count++;
+                        $IsDisplayStudentInUse = true;
                     }
                     $periodListCount[$tblPeriod->getId()] = $count;
                 }
