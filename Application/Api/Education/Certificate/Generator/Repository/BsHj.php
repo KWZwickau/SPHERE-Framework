@@ -190,8 +190,14 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
     private function getSubjectLineAcross($personId)
     {
+
         $Slice = (new Slice());
         $Slice->addElement((new Element())
             ->setContent('Pflichtbereich')
@@ -244,6 +250,7 @@ class BsHj extends Certificate
             }
 
             $TextSize = '14px';
+            $TextSizeSmall = '8px';
             foreach ($SubjectList1 as $SubjectList) {
                 // Sort Lane-Ranking (1,2...)
                 ksort($SubjectList);
@@ -276,9 +283,29 @@ class BsHj extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleMarginTop('15px')
-                        ->stylePaddingTop('2px')
-                        ->stylePaddingBottom('2px')
-                        ->styleTextSize($TextSize)
+                        ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 5.3px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                        ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 6px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                        ->styleTextSize(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
                         , '9%');
                 }
                 if (count($SubjectList) == 1 && isset($SubjectList["01"])) {
@@ -292,6 +319,15 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param        $personId
+     * @param string $Title
+     * @param int    $Length
+     * @param bool   $isPageTwo
+     * @param string $Height
+     *
+     * @return Slice
+     */
     private function getSubjectLineBase($personId, $Title = '&nbsp;', $Length = 10, $isPageTwo = false, $Height = 'auto')
     {
         $Slice = (new Slice());
@@ -346,6 +382,7 @@ class BsHj extends Certificate
             }
 
             $TextSize = '14px';
+            $TextSizeSmall = '8px';
 
             $countLF = 1;
             if($isPageTwo){
@@ -374,9 +411,29 @@ class BsHj extends Certificate
                     ->styleAlignCenter()
                     ->styleBackgroundColor('#BBB')
                     ->styleMarginTop('10px')
-                    ->stylePaddingTop('2px')
-                    ->stylePaddingBottom('2px')
-                    ->styleTextSize($TextSize)
+                    ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 5.3px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                    ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 6px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                    ->styleTextSize(
+                        '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                    )
                     , '9%');
                 $Slice->addSection($SubjectSection);
             }
@@ -386,6 +443,11 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
     private function getSecondPageHead($personId)
     {
 
@@ -410,6 +472,12 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param        $personId
+     * @param string $Height
+     *
+     * @return Slice
+     */
     private function getSubjectLineChosen($personId, $Height = '130px')
     {
         $Slice = (new Slice());
@@ -463,6 +531,7 @@ class BsHj extends Certificate
             }
 
             $TextSize = '14px';
+            $TextSizeSmall = '8px';
             foreach ($SubjectList as $Subject) {
                 // Jedes Fach auf separate Zeile
                 $SubjectSection = (new Section());
@@ -486,9 +555,29 @@ class BsHj extends Certificate
                     ->styleAlignCenter()
                     ->styleBackgroundColor('#BBB')
                     ->styleMarginTop('10px')
-                    ->stylePaddingTop('2px')
-                    ->stylePaddingBottom('2px')
-                    ->styleTextSize($TextSize)
+                    ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 5.3px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                    ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 6px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                    ->styleTextSize(
+                        '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                    )
                     , '9%');
                 $Slice->addSection($SubjectSection);
             }
@@ -498,6 +587,11 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
     private function getPraktika($personId)
     {
 
@@ -526,6 +620,9 @@ class BsHj extends Certificate
             $Subject = current($SubjectStructure);
         }
 
+        $TextSize = '14px';
+        $TextSizeSmall = '8px';
+
         $Slice = new Slice();
         $Slice->styleBorderAll('1px', '#000', 'dotted');
         $Slice->styleMarginTop('30px');
@@ -545,8 +642,29 @@ class BsHj extends Certificate
                          {% endif %}')
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#BBB')
-                ->stylePaddingTop('2px')
-                ->stylePaddingBottom('2px')
+                ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 5.3px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 6px
+                             {% else %}
+                                 2px
+                             {% endif %}')
+                ->styleTextSize(
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                )
                 , '9%'
             )
         );
@@ -616,6 +734,12 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param        $personId
+     * @param string $Height
+     *
+     * @return Slice
+     */
     private function getDescriptionBsContent($personId, $Height = '195px')
     {
 
@@ -645,6 +769,11 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
     private function getBottomInformation($personId)
     {
 
@@ -717,6 +846,12 @@ class BsHj extends Certificate
         return $Slice;
     }
 
+    /**
+     * @param string $PaddingTop
+     * @param string $Content
+     *
+     * @return Slice
+     */
     private function getBsInfo($PaddingTop = '20px', $Content = '')
     {
         $Slice = new Slice();
