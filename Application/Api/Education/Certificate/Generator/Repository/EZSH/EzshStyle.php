@@ -435,8 +435,8 @@ abstract class EzshStyle extends Certificate
             $gradeWidth = 17;
             $TextSize = '14px';
             $TextSizeSmall = '8.5px';
-            $paddingTopShrinking = '7.5px';
-            $paddingBottomShrinking = '7px';
+            $paddingTopShrinking = '4px';
+            $paddingBottomShrinking = '4px';
 
             $count = 0;
             foreach ($SubjectStructure as $SubjectList) {
