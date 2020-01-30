@@ -375,9 +375,17 @@ class Service extends Support
 
         $Prefix = $Meta['Student']['Prefix'];
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
-        if($tblSetting && $tblSetting->getValue()){
+
+        if($tblSetting && $tblSetting->getValue() && !$tblStudent->getIdentifier()){
+            // höchste Schülernummer setzen, wenn noch nicht vorhanden
             $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
             $Meta['Student']['Identifier'] = $biggestIdentifier + 1;
+        } elseif($tblSetting && $tblSetting->getValue() && $tblStudent->getIdentifier()){
+            // vorhandene Schülernummer übergeben
+            $Meta['Student']['Identifier'] = $tblStudent->getIdentifier();
+        } elseif(!isset($Meta['Student']['Identifier'])){
+            // sollte nie vorkommen, wenn wird die vorhandene Einstellung übergeben (keine Änderung)
+            $Meta['Student']['Identifier'] = $tblStudent->getIdentifier();
         }
 
         if ($tblStudent) {
