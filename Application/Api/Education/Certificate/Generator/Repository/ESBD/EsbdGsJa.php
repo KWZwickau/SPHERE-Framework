@@ -37,7 +37,7 @@ class EsbdGsJa extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule - staatlich anerkannte Ersatzschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Grundschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId))
             ->addSlice($this->getStudentNameConsumer($personId, true))
@@ -50,7 +50,7 @@ class EsbdGsJa extends EsbdStyle
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                        ->styleHeight('110px')
+                        ->styleHeight('70px')
                     )
                 )
                 ->styleMarginTop('15px')
@@ -64,14 +64,14 @@ class EsbdGsJa extends EsbdStyle
             )
             ->addSlice($this->getSubjectLanes($personId)
                 ->styleHeight('165px'))
-            ->addSlice($this->getDescriptionHeadConsumer($personId, true))
-            ->addSlice($this->getDescriptionContentConsumer($personId, '111px', '5px'))
+            ->addSlice($this->getDescriptionHeadConsumer($personId, false))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '111px', '17px'))
             ->addSlice($this->getMissingConsumer($personId))
-            ->addSlice($this->getTransferConsumer($personId))
+            ->addSlice($this->getTransferConsumer($personId, '15px'))
             ->addSlice($this->getDateLineConsumer($personId))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
-            ->addSlice($this->getInfoConsumer('18px',
+            ->addSlice($this->getInfoConsumer('20px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
             (6 = ungenügend nur bei der Bewertung der Leistungen)'))

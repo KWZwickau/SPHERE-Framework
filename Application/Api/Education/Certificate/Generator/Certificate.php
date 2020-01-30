@@ -124,6 +124,7 @@ abstract class Certificate extends Extension
         $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
 
         $isWidth = false;
+        $InjectStyle = '';
 
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
         if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
@@ -152,6 +153,8 @@ abstract class Certificate extends Extension
                 // normal
                 $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
             }
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESBD') {
+            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
         } else {
             $InjectStyle = '';
         }

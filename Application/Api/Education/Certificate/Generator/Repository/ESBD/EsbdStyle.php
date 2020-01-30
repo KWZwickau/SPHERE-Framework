@@ -22,16 +22,19 @@ abstract class EsbdStyle extends Certificate
 
     /**
      * @param string $SchoolName
-     * @param string $height
+     * @param string $secondLine
      *
      * @return Slice
      */
-    protected function getHeadConsumer($SchoolName = '', $height = '62px')
+    protected function getHeadConsumer($SchoolName = '', $secondLine = '')
     {
 
+        // Grundschullogo muss kleiner sein, damit genügend Platz um das Sachsenlogo ist
+        $height = '50px';
         $ShowRightLogo = true;
         if(strpos($SchoolName, 'Gymnasium') || strpos($SchoolName, 'Oberschule')){
             $ShowRightLogo = false;
+            $height = '62px';
         }
         $picturePath = 'Common/Style/Resource/Logo/ESBD.jpg';
 
@@ -48,7 +51,8 @@ abstract class EsbdStyle extends Certificate
             $SectionLogo->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                 '165px', '50px'))
                 ->styleAlignRight()
-                ->styleMarginTop('6px')
+//                ->styleMarginTop('6px')
+                ->styleMarginBottom('20px')
                 , '26%');
         } else {
             // Standard Logo
@@ -65,7 +69,7 @@ abstract class EsbdStyle extends Certificate
                     ->styleMarginTop('20px')
                     , '18%')
                 ->addElementColumn((new Element())
-                    ->setContent($SchoolName)
+                    ->setContent($SchoolName . ($secondLine != '' ? '<br>' . $secondLine : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleAlignCenter()
                     ->styleMarginTop('20px')
@@ -78,13 +82,13 @@ abstract class EsbdStyle extends Certificate
                     ->styleMarginTop('20px')
                     , '18%')
                 ->addElementColumn((new Element())
-                    ->setContent($SchoolName)
+                    ->setContent($SchoolName . ($secondLine != '' ? '<br>' . $secondLine : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleAlignCenter()
                     ->styleMarginTop('20px')
                     , '64%')
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('&nbsp;' . ($secondLine != '' ? '<br>' . '&nbsp;' : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleMarginTop('20px')
                     ->styleMarginBottom('10px')

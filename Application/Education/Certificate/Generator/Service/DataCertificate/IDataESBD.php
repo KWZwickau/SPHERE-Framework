@@ -46,11 +46,11 @@ class IDataESBD
                     }
                 }
             }
-            // Begrenzung des Bemerkungsfeld
-            $FieldName = 'Remark';
-            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $Data->createCertificateField($tblCertificate, $FieldName, 1200);
-            }
+//            // Begrenzung des Bemerkungsfeld
+//            $FieldName = 'Remark';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 1200);
+//            }
         }
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
 
@@ -109,16 +109,16 @@ class IDataESBD
                     }
                 }
             }
-            // Begrenzung des Bemerkungsfelds
-            $FieldName = 'Remark';
-            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $Data->createCertificateField($tblCertificate, $FieldName, 700);
-            }
-            // Begrenzung des Einschätzungfelds
-            $FieldName = 'Rating';
-            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $Data->createCertificateField($tblCertificate, $FieldName, 600);
-            }
+//            // Begrenzung des Bemerkungsfelds
+//            $FieldName = 'Remark';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 700);
+//            }
+//            // Begrenzung des Einschätzungfelds
+//            $FieldName = 'Rating';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 600);
+//            }
         }
         if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
             $Data->setCertificateGradeAllStandard($tblCertificate);
