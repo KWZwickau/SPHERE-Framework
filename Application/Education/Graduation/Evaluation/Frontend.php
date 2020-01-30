@@ -4155,6 +4155,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTask
             && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask,
             $tblDivision))) {
+
             $tblCurrentGradeType = false;
             $tblNextGradeType = false;
 //            $tblNextTest = false;
@@ -4167,7 +4168,7 @@ class Frontend extends Extension implements IFrontendInterface
                             && $tblTest->getServiceTblSubjectGroup()->getId() == $tblTestItem->getServiceTblSubjectGroup()->getId())
                     )
                     && ($tblGradeTypeItem = $tblTestItem->getServiceTblGradeType())) {
-                    if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                    if (!isset($tblGradeTypeList[$tblTestItem->getId()])) {
                         $tblGradeTypeList[$tblTestItem->getId()] = $tblGradeTypeItem;
                         if ($tblCurrentGradeType && !$tblNextGradeType) {
                             $tblNextGradeType = $tblGradeTypeItem;
