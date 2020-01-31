@@ -121,7 +121,10 @@ class CheHjInfoGs extends Certificate
                     ->styleTextSize(self::TEXT_SIZE)
                 )
             )
-            ->addSlice($this->getSubjectLanesCustomForChemnitz($personId, true, array(), self::TEXT_SIZE, false))
+            ->addSlice(
+                $this->getSubjectLanesCustomForChemnitz($personId, true, array(), self::TEXT_SIZE, false)
+                ->styleHeight('152px')
+            )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
@@ -188,7 +191,7 @@ class CheHjInfoGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleHeight('180px')
+                        ->styleHeight('121px')
                         ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
