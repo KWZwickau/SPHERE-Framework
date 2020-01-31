@@ -12,11 +12,11 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class BsHj
+ * Class BfsHj
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class BsHj extends Certificate
+class BfsHj extends Certificate
 {
 
     /**
@@ -33,12 +33,12 @@ class BsHj extends Certificate
             ->addSlice($this->getSchoolHead($personId))
             ->addSlice($this->getStudentHead($personId))
             ->addSlice($this->getSubjectLineAcross($personId))
-            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbozogener Bereich'))
+            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbezogener Bereich'))
         ;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId))
-            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbozogener Bereich (Fortsetzung)', 10, true, '220px'))
+            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbezogener Bereich (Fortsetzung)', 10, true, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId))
             ->addSlice($this->getPraktika($personId))
             ->addSlice($this->getDescriptionBsContent($personId))
@@ -64,6 +64,7 @@ class BsHj extends Certificate
     {
 
         $name = '';
+        $secondLine = '';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))) {
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
@@ -73,6 +74,7 @@ class BsHj extends Certificate
                     if ($tblStudentTransfer) {
                         if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
                             $name = $tblCompany->getName();
+                            $secondLine = $tblCompany->getExtendedName();
                         }
                     }
                 }
@@ -84,7 +86,14 @@ class BsHj extends Certificate
             ->setContent($name ? $name : '&nbsp;')
             ->styleAlignCenter()
             ->styleTextSize('22px')
-            ->styleHeight('50px')
+            ->styleHeight('28px')
+            ->stylePaddingTop('25px')
+        );
+        $Slice->addElement((new Element())
+            ->setContent($secondLine ? $secondLine : '&nbsp;')
+            ->styleAlignCenter()
+            ->styleTextSize('18px')
+            ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
         );
         $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
@@ -94,7 +103,7 @@ class BsHj extends Certificate
             ->styleTextSize('30px')
         );
         $Slice->addElement((new Element())
-            ->setContent('der Berufsschule für {% if(Content.P' . $personId . '.Input.BsDestination is not empty) %}
+            ->setContent('der Berufsfachschule für {% if(Content.P' . $personId . '.Input.BsDestination is not empty) %}
                         {{ Content.P' . $personId . '.Input.BsDestination }}
                     {% endif %}')
             ->stylePaddingTop('4px')
@@ -120,7 +129,7 @@ class BsHj extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('Klassenstufe {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                 ->styleAlignCenter()
-                ->styleBorderBottom('1px', '#000', 'dotted')
+                ->styleBorderBottom('0.5px', '#000', 'dotted')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -130,7 +139,7 @@ class BsHj extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                 ->styleAlignCenter()
-                ->styleBorderBottom('1px', '#000', 'dotted')
+                ->styleBorderBottom('0.5px', '#000', 'dotted')
                 , '30%'
             )
         );
@@ -156,7 +165,7 @@ class BsHj extends Certificate
 //            {% endif %}
 //            {{ Content.P' . $personId . '.Person.Data.Name.First }}
 //            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-            ->styleBorderBottom('1px', '#000', 'dotted')
+            ->styleBorderBottom('0.5px', '#000', 'dotted')
             ->styleAlignCenter()
             ->styleTextSize('26px')
             ->stylePaddingTop('20px')
@@ -167,6 +176,7 @@ class BsHj extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('geboren am  {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }}')
                 ->styleAlignCenter()
+                ->styleBorderBottom('0.5px', '#BBB')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -176,6 +186,7 @@ class BsHj extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('in {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}')
                 ->styleAlignCenter()
+                ->styleBorderBottom('0.5px', '#BBB')
                 , '30%'
             )
         );
@@ -185,6 +196,7 @@ class BsHj extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('16px')
             ->stylePaddingTop('20px')
+            ->styleBorderBottom('0.5px', '#BBB')
         );
 
         return $Slice;
@@ -271,7 +283,7 @@ class BsHj extends Certificate
                         ->styleMarginTop('15px')
                         ->stylePaddingBottom('1px')
                         ->styleTextSize($TextSize)
-                        ->styleBorderBottom()
+                        ->styleBorderBottom('0.5px', '#BBB')
                         , '39%');
 
                     $SubjectSection->addElementColumn((new Element())
@@ -293,9 +305,9 @@ class BsHj extends Certificate
                         ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                 6px
+                                 5.5px
                              {% else %}
-                                 2px
+                                 1.5px
                              {% endif %}')
                         ->styleTextSize(
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -369,12 +381,20 @@ class BsHj extends Certificate
                 }
             }
 
+            // Anzahl der Abzubildenden Einträge (auch ohne Fach)
+            if(!$isPageTwo){
+                $CountSubjectMissing = 10;
+            } else {
+                $CountSubjectMissing = 4;
+            }
+
             $SubjectList = array();
             ksort($SubjectStructure);
             $SubjectCount = 1;
             foreach ($SubjectStructure as $RankingLane => $Subject) {
                 if($SubjectCount <= $Length && !$isPageTwo){
                     $SubjectList[$RankingLane] = $Subject;
+                    $CountSubjectMissing--;
                 } elseif($SubjectCount > $Length && $isPageTwo){
                     $SubjectList[$RankingLane] = $Subject;
                 }
@@ -398,7 +418,7 @@ class BsHj extends Certificate
                     ->styleMarginTop('10px')
                     ->stylePaddingBottom('1px')
                     ->styleTextSize($TextSize)
-                    ->styleBorderBottom()
+                    ->styleBorderBottom('0.5px', '#BBB')
                     , '91%');
 
 
@@ -421,9 +441,9 @@ class BsHj extends Certificate
                     ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                 6px
+                                 5.5px
                              {% else %}
-                                 2px
+                                 1.5px
                              {% endif %}')
                     ->styleTextSize(
                         '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -438,6 +458,11 @@ class BsHj extends Certificate
                 $Slice->addSection($SubjectSection);
             }
         }
+
+        if($CountSubjectMissing > 0){
+            $Slice = $this->getEmptySubjectField($Slice, $CountSubjectMissing);
+        }
+
         $Slice->styleHeight($Height);
 
         return $Slice;
@@ -500,7 +525,8 @@ class BsHj extends Certificate
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
-                    if($tblCertificateSubject->getRanking() >= 13) {
+                    if($tblCertificateSubject->getRanking() >= 13
+                        && $tblCertificateSubject->getRanking() < 15) {
 
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                             $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
@@ -522,12 +548,12 @@ class BsHj extends Certificate
 
             $SubjectList = array();
 
-//            echo count($SubjectStructure2);
-//            exit;
-
+            // Anzahl der Abzubildenden Einträge (auch ohne Fach)
+            $CountSubjectMissing = 2;
             ksort($SubjectStructure);
             foreach ($SubjectStructure as $RankingLane => $Subject) {
                 $SubjectList[] = $Subject;
+                $CountSubjectMissing--;
             }
 
             $TextSize = '14px';
@@ -542,7 +568,7 @@ class BsHj extends Certificate
                     ->styleMarginTop('10px')
                     ->stylePaddingBottom('1px')
                     ->styleTextSize($TextSize)
-                    ->styleBorderBottom()
+                    ->styleBorderBottom('0.5px', '#BBB')
                     , '91%');
 
 
@@ -565,9 +591,9 @@ class BsHj extends Certificate
                     ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                 6px
+                                 5.5px
                              {% else %}
-                                 2px
+                                 1.5px
                              {% endif %}')
                     ->styleTextSize(
                         '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -582,8 +608,42 @@ class BsHj extends Certificate
                 $Slice->addSection($SubjectSection);
             }
         }
+
+        if($CountSubjectMissing > 0){
+            $Slice = $this->getEmptySubjectField($Slice, $CountSubjectMissing);
+        }
+
         $Slice->styleHeight($Height);
 
+        return $Slice;
+    }
+
+    private function getEmptySubjectField(Slice $Slice, $count = 0)
+    {
+
+        $TextSize = '14px';
+        for($i = 0; $i < $count; $i++){
+            $Section = new Section();
+            $Section->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px', '#BBB')
+                , '91%');
+
+
+            $Section->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+            $Slice->addSection($Section);
+        }
         return $Slice;
     }
 
@@ -624,7 +684,7 @@ class BsHj extends Certificate
         $TextSizeSmall = '8px';
 
         $Slice = new Slice();
-        $Slice->styleBorderAll('1px', '#000', 'dotted');
+        $Slice->styleBorderAll('0.5px', '#000', 'dotted');
         $Slice->styleMarginTop('30px');
         $Slice->stylePaddingTop('10px');
         $Slice->stylePaddingBottom('10px');
@@ -748,7 +808,7 @@ class BsHj extends Certificate
         $Slice->styleMarginTop('20px');
         $Slice->stylePaddingTop('5px');
         $Slice->styleHeight($Height);
-        $Slice->styleBorderAll('1px', '#000', 'dotted');
+        $Slice->styleBorderAll('0.5px', '#000', 'dotted');
 
         $Slice->addElement((new Element())
             ->setContent('Bemerkungen:')
@@ -785,11 +845,12 @@ class BsHj extends Certificate
                     {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}'
                 )
                 ->styleAlignCenter()
+                ->styleBorderBottom('0.5px', '#BBB')
                 , '60%'
             )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleBorderBottom()
+                ->styleBorderBottom('0.5px', '#888')
                 , '40%'
             )
         );
@@ -823,24 +884,25 @@ class BsHj extends Certificate
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('Zur Kenntnis genommen:')
-                , '30%'
+                , '27%'
             )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                , '70%'
+                ->styleBorderBottom('0.5px', '#BBB')
+                , '73%'
             )
         );
 
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                , '30%'
+                , '27%'
             )
             ->addElementColumn((new Element())
                 ->setContent('Eltern')
                 ->styleTextSize('10px')
                 ->styleAlignCenter()
-                , '70%'
+                , '73%'
             )
         );
         return $Slice;

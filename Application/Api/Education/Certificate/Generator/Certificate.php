@@ -434,16 +434,16 @@ abstract class Certificate extends Extension
             $Section->addElementColumn((new Element()), '27%');
         }
 
-        $Section->addElementColumn((new Element()), '46%');
+        $Section->addElementColumn((new Element()), '51%');
 
         // Individually Logo
         if ($picturePath != '') {
             $Section->addElementColumn((new Element\Image($picturePath, 'auto', $IndividuallyLogoHeight))
                 ->styleAlignCenter()
                 ->styleHeight('0px')
-                , '27%');
+                , '22%');
         } else {
-            $Section->addElementColumn((new Element()), '27%');
+            $Section->addElementColumn((new Element()), '22%');
         }
 
         return $Section;

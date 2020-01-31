@@ -468,7 +468,7 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithYou'    => 'TextArea',
             'Content.Input.DialoguesWithParent' => 'TextArea',
             'Content.Input.DialoguesWithUs'     => 'TextArea',
-            // Berufsschule
+            // Berufsfachschule
             'Content.Input.BsDestination'       => 'TextField',
             'Content.Input.Operation1'          => 'TextField',
             'Content.Input.OperationTime1'      => 'TextField',
@@ -526,7 +526,7 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithYou'    => 'Im Dialog mit dir',
             'Content.Input.DialoguesWithParent' => 'Im Dialog mit deinen Eltern',
             'Content.Input.DialoguesWithUs'     => 'Im Dialog mit uns',
-            // Berufsschule
+            // Berufsfachschule
             'Content.Input.BsDestination'       => 'Berufsfachschule für ...',
             'Content.Input.Operation1'          => 'Einsatzgebiet 1',
             'Content.Input.OperationTime1'      => 'Einsatzgebiet Dauer in Wochen 1',

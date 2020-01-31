@@ -109,7 +109,7 @@ class Frontend extends Extension implements IFrontendInterface
                     . new Well(Generator::useService()->updateCertificateReferenceForLanguages($form, $tblCertificate, $Data))
                 );
 
-            } elseif(preg_match('!Berufsschule!', $tblCertificate->getName())) {
+            } elseif(preg_match('!Berufsfachschule!', $tblCertificate->getName())) {
 
                 // Fach-Noten-Definition
                 $tblSubjectAll = Subject::useService()->getSubjectAll();
@@ -496,7 +496,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_PRIMARY, 'Zeugnisse Grundschule', 'GsJa')
                             .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ')
                             .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ')
-                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSSCHULE, 'Zeugnisse Berufsschule', 'BsHj')
+                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE, 'Zeugnisse Berufsfachschule', 'BfsHj')
                         )
                     ))
                 ))
