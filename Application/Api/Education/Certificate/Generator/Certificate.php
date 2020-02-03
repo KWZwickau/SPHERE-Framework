@@ -511,16 +511,16 @@ abstract class Certificate extends Extension
         $YearDivisionSlice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('Klasse:')
-                , '7%')
+                , '8%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
                 ->styleBorderBottom()
                 ->styleAlignCenter()
-                , '7%')
+                , '10%')
             ->addElementColumn((new Element())
-                , '55%')
+                , '51%')
             ->addElementColumn((new Element())
-                ->setContent($YearString . ':')
+                ->setContent($YearString . ':&nbsp;&nbsp;')
                 ->styleAlignRight()
                 , '18%')
             ->addElementColumn((new Element())
@@ -1141,7 +1141,7 @@ abstract class Certificate extends Extension
             } else {
                 $subjectWidth = 39;
                 $gradeWidth = 9;
-                $TextSizeSmall = '8.5px';
+                $TextSizeSmall = '8px';
                 $paddingTopShrinking = '5px';
                 $paddingBottomShrinking = '6px';
             }
