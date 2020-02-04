@@ -55,12 +55,12 @@ class EsbdGymHj extends EsbdStyle
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))
                 ->styleHeight('270px'))
             ->addSlice($this->getProfileStandardNew($personId))
-            ->addSlice($this->getDescriptionHeadConsumer($personId, true))
-            ->addSlice($this->getDescriptionContentConsumer($personId, '87px', '10px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '60px', '15px'))
+            ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getDateLineConsumer($personId))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
-            ->addSlice($this->getInfoConsumer('2px',
+            ->addSlice($this->getInfoConsumer('30px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',

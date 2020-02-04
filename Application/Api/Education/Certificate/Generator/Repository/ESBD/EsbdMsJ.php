@@ -89,13 +89,13 @@ class EsbdMsJ extends EsbdStyle
                 true
             )->styleHeight('290px'))
 //            ->addSlice($this->getOrientationStandard($personId))
-            ->addSlice($this->getDescriptionHeadConsumer($personId, true))
-            ->addSlice($this->getDescriptionContentConsumer($personId, '70px', '8px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '60px', '15px'))
+            ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getTransferConsumer($personId, '13px'))
             ->addSlice($this->getDateLineConsumer($personId, '15px'))
             ->addSlice($this->getSignPartConsumer($personId, true, '15px'))
             ->addSlice($this->getParentSignConsumer('13px'))
-            ->addSlice($this->getInfoConsumer('0px',
+            ->addSlice($this->getInfoConsumer('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
                 (6 = ungenügend nur bei der Bewertung der Leistungen)'))

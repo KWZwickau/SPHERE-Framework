@@ -65,7 +65,7 @@ class EsbdGymJ extends EsbdStyle
                                 {% else %}
                                     ---
                                 {% endif %}')
-                        ->styleHeight('35px')
+                        ->styleHeight('20px')
                     )
                 )
                 ->styleMarginTop('5px')
@@ -93,15 +93,15 @@ class EsbdGymJ extends EsbdStyle
                         ->styleHeight('25px')
                     )
                 )
-                ->styleMarginTop('5px')
+                ->styleMarginTop('10px')
             )
-            ->addSlice($this->getDescriptionHeadConsumer($personId, true, '5px'))
-            ->addSlice($this->getDescriptionContentConsumer($personId, '35px'))
-            ->addSlice($this->getTransferConsumer($personId, '2px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '15px', '10px'))
+            ->addSlice($this->getMissingConsumer($personId))
+            ->addSlice($this->getTransferConsumer($personId, '10px'))
             ->addSlice($this->getDateLineConsumer($personId, '10px'))
             ->addSlice($this->getSignPartConsumer($personId))
-            ->addSlice($this->getParentSignConsumer('33px'))
-            ->addSlice($this->getInfoConsumer('2px',
+            ->addSlice($this->getParentSignConsumer())
+            ->addSlice($this->getInfoConsumer('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',

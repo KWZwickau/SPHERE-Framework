@@ -31,9 +31,9 @@ abstract class EsbdStyle extends Certificate
 
         // Grundschullogo muss kleiner sein, damit genügend Platz um das Sachsenlogo ist
         $height = '50px';
-        $ShowRightLogo = true;
+        $isPrimarySchool = true;
         if(strpos($SchoolName, 'Gymnasium') || strpos($SchoolName, 'Oberschule')){
-            $ShowRightLogo = false;
+            $isPrimarySchool = false;
             $height = '62px';
         }
         $picturePath = 'Common/Style/Resource/Logo/ESBD.jpg';
@@ -46,7 +46,7 @@ abstract class EsbdStyle extends Certificate
         // Individually Logo
         $SectionLogo->addElementColumn((new Element\Image($picturePath, 'auto', $height)), '74%');
 
-        if($ShowRightLogo){
+        if($isPrimarySchool){
             // Standard Logo
             $SectionLogo->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                 '165px', '50px'))
@@ -67,6 +67,7 @@ abstract class EsbdStyle extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('Name der Schule:')
                     ->styleMarginTop('20px')
+                    ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     , '18%')
                 ->addElementColumn((new Element())
                     ->setContent($SchoolName . ($secondLine != '' ? '<br>' . $secondLine : ''))
@@ -74,23 +75,27 @@ abstract class EsbdStyle extends Certificate
                     ->styleAlignCenter()
                     ->styleMarginTop('20px')
                     ->styleMarginBottom('10px')
+                    ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     , '82%');
         } else {
             $SectionSchoolName
                 ->addElementColumn((new Element())
                     ->setContent('Name der Schule:')
                     ->styleMarginTop('20px')
+                    ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     , '18%')
                 ->addElementColumn((new Element())
                     ->setContent($SchoolName . ($secondLine != '' ? '<br>' . $secondLine : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleAlignCenter()
+                    ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     ->styleMarginTop('20px')
                     , '64%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;' . ($secondLine != '' ? '<br>' . '&nbsp;' : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleMarginTop('20px')
+                    ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     ->styleMarginBottom('10px')
                     , '18%');
         }
@@ -217,6 +222,31 @@ abstract class EsbdStyle extends Certificate
             ->styleMarginTop('10px')
         );
         return $Slice;
+    }
+
+    /**
+     * @param $personId
+     * @param $Height
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getDescriptionConsumer($personId, $Height, $MarginTop = '15px')
+    {
+        $DescriptionSlice = (new Slice());
+        $DescriptionSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                            Bemerkungen: {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                        {% else %}
+                            Bemerkungen: &nbsp;
+                        {% endif %}'
+                    ))
+            )->styleMarginTop($MarginTop)
+            ->styleHeight($Height);
+
+        return $DescriptionSlice;
     }
 
     /**
@@ -738,12 +768,13 @@ abstract class EsbdStyle extends Certificate
 
     public function getSecondPageDescription($personId)
     {
+        $textSize = '11.5pt';
         $Slice = array();
         //
         $SliceYou = (new Slice())
             ->addElement((new Element())
                 ->setContent('Im Dialog mit DIR')
-                ->styleMarginTop('15px')
+                ->styleMarginTop('30px')
                 ->styleTextSize(self::TEXT_SIZE_BIG)
                 ->styleTextBold()
                 ->styleAlignCenter()
@@ -758,7 +789,9 @@ abstract class EsbdStyle extends Certificate
                 {% endif %}'
                     )
                 ->styleAlignJustify()
-                ->styleHeight('210px')
+                ->styleHeight('190px')
+                ->styleMarginTop('15px')
+                ->styleTextSize($textSize)
             );
 
         //
@@ -780,7 +813,9 @@ abstract class EsbdStyle extends Certificate
                 {% endif %}'
                 )
                 ->styleAlignJustify()
-                ->styleHeight('210px')
+                ->styleHeight('190px')
+                ->styleMarginTop('15px')
+                ->styleTextSize($textSize)
             );
 
         //
@@ -802,7 +837,10 @@ abstract class EsbdStyle extends Certificate
                 {% endif %}'
                 )
                 ->styleAlignJustify()
-                ->styleHeight('210px')
+                ->styleHeight('190px')
+                ->styleMarginTop('15px')
+                ->styleMarginBottom('10px')
+                ->styleTextSize($textSize)
             )
         );
 
