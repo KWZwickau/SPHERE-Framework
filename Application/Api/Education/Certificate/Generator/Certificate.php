@@ -765,7 +765,7 @@ abstract class Certificate extends Extension
             } else {
                 $subjectWidth = 39;
                 $gradeWidth = 9;
-                $TextSizeSmall = '8.5px';
+                $TextSizeSmall = '8px';
                 $paddingTopShrinking = '5px';
                 $paddingBottomShrinking = '6px';
             }

@@ -68,7 +68,7 @@ abstract class EsbdStyle extends Certificate
                     ->setContent('Name der Schule:')
                     ->styleMarginTop('20px')
                     ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
-                    , '18%')
+                    , '20%')
                 ->addElementColumn((new Element())
                     ->setContent($SchoolName . ($secondLine != '' ? '<br>' . $secondLine : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
@@ -76,28 +76,28 @@ abstract class EsbdStyle extends Certificate
                     ->styleMarginTop('20px')
                     ->styleMarginBottom('10px')
                     ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
-                    , '82%');
+                    , '80%');
         } else {
             $SectionSchoolName
                 ->addElementColumn((new Element())
                     ->setContent('Name der Schule:')
                     ->styleMarginTop('20px')
                     ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
-                    , '18%')
+                    , '20%')
                 ->addElementColumn((new Element())
                     ->setContent($SchoolName . ($secondLine != '' ? '<br>' . $secondLine : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleAlignCenter()
                     ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     ->styleMarginTop('20px')
-                    , '64%')
+                    , '60%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;' . ($secondLine != '' ? '<br>' . '&nbsp;' : ''))
                     ->styleBorderBottom('1px', self::COLOR_GREEN)
                     ->styleMarginTop('20px')
                     ->styleTextSize($isPrimarySchool ? '14px' : '11.5pt')
                     ->styleMarginBottom('10px')
-                    , '18%');
+                    , '20%');
         }
 
         if($this->isSample()){
@@ -108,7 +108,11 @@ abstract class EsbdStyle extends Certificate
             );
         }
 
-        return $Head->addSectionList(array($SectionLogo, $SectionSchoolName, $SectionTitle));
+        if($this->isSample()){
+            return $Head->addSectionList(array($SectionLogo, $SectionSchoolName, $SectionTitle));
+        } else {
+            return $Head->addSectionList(array($SectionLogo, $SectionSchoolName));
+        }
     }
 
     /**
