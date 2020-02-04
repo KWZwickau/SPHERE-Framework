@@ -371,7 +371,7 @@ class Service extends AbstractService
                             $Summary = Balance::useService()->getPriceString($Summary);
                             $Item['Summary'] = $Summary;
 
-                            $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
+                            $Item['Street'] = $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                             if(($tblAddress = Address::useService()->getInvoiceAddressByPerson($tblPersonDebtor))){
                                 $Item['StreetName'] = $tblAddress->getStreetName();
                                 $Item['StreetNumber'] = $tblAddress->getStreetNumber();
