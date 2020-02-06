@@ -1142,8 +1142,8 @@ abstract class Certificate extends Extension
                 $subjectWidth = 39;
                 $gradeWidth = 9;
                 $TextSizeSmall = '8px';
-                $paddingTopShrinking = '5px';
-                $paddingBottomShrinking = '6px';
+                $paddingTopShrinking = '4.5px';
+                $paddingBottomShrinking = '5px';
             }
 
             $count = 0;
@@ -2143,9 +2143,9 @@ abstract class Certificate extends Extension
     protected function getGradeLanesSmall($personId, $TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '10px')
     {
 
-        $TextSizeSmall = '8.5px';
-        $paddingTopShrinking = '5px';
-        $paddingBottomShrinking = '6px';
+        $TextSizeSmall = '8px';
+        $paddingTopShrinking = '4.5px';
+        $paddingBottomShrinking = '5px';
 
         $GradeSlice = (new Slice());
 
@@ -2574,11 +2574,11 @@ abstract class Certificate extends Extension
         $tblSubjectForeign = false;
 
         $TextSizeSmall = '8px';
-        $paddingTopShrinking = '5px';
-        $paddingBottomShrinking = '6px';
 
         $paddingTop = '2px';
         $paddingBottom = '2px';
+        $paddingTopShrinking = '4.5px';
+        $paddingBottomShrinking = '5px';
         if($IsSmall){
             $paddingTop = '1px';
             $paddingBottom = '1px';
