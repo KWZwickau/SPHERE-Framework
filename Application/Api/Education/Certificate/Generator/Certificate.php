@@ -2573,7 +2573,7 @@ abstract class Certificate extends Extension
         $tblSubjectProfile = false;
         $tblSubjectForeign = false;
 
-        $TextSizeSmall = '8.5px';
+        $TextSizeSmall = '8px';
         $paddingTopShrinking = '5px';
         $paddingBottomShrinking = '6px';
 
@@ -2717,6 +2717,37 @@ abstract class Certificate extends Extension
                         {% endif %}
                     {% endif %}
                 ';
+
+                $paddingTopGrade =
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                        ' . $paddingTopShrinking . ' 
+                    {% else %}
+                        {% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                            ' . $paddingTopShrinking . '
+                        {% else %}
+                            '.$paddingTop.' 
+                        {% endif %}
+                    {% endif %}';
+                $paddingBottomGrade =
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                        ' . $paddingBottomShrinking . ' 
+                    {% else %}
+                        {% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                            ' . $paddingBottomShrinking . '
+                        {% else %}
+                            '.$paddingBottom.' 
+                        {% endif %}
+                    {% endif %}';
+                $textSizeGrade =
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                        ' . $TextSizeSmall . '
+                    {% else %}
+                        {% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                            ' . $TextSizeSmall . '
+                        {% else %}
+                            ' . $TextSize . '
+                        {% endif %}
+                    {% endif %}';
             } else {
                 $contentForeignGrade = '
                     {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
@@ -2725,6 +2756,24 @@ abstract class Certificate extends Extension
                         &ndash;
                     {% endif %}
                 ';
+
+                $paddingTopGrade =
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                         ' . $paddingTopShrinking . ' 
+                    {% else %}
+                        '.$paddingTop.'
+                    {% endif %}';
+                $paddingBottomGrade = '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                         ' . $paddingBottomShrinking . ' 
+                    {% else %}
+                        '.$paddingBottom.'
+                    {% endif %}';
+                $textSizeGrade =
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                        ' . $TextSizeSmall . '
+                    {% else %}
+                        ' . $TextSize . '
+                    {% endif %}';
             }
 
             $elementForeignGrade = (new Element())
@@ -2732,27 +2781,9 @@ abstract class Certificate extends Extension
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#BBB')
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                ->stylePaddingTop(
-                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
-                         ' . $paddingTopShrinking . ' 
-                    {% else %}
-                        '.$paddingTop.'
-                    {% endif %}'
-                )
-                ->stylePaddingBottom(
-                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
-                         ' . $paddingBottomShrinking . ' 
-                    {% else %}
-                        '.$paddingBottom.'
-                    {% endif %}'
-                )
-                ->styleTextSize(
-                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
-                        ' . $TextSizeSmall . '
-                    {% else %}
-                        ' . $TextSize . '
-                    {% endif %}'
-                );
+                ->stylePaddingTop($paddingTopGrade)
+                ->stylePaddingBottom($paddingBottomGrade)
+                ->styleTextSize($textSizeGrade);
         } else {
             $elementForeignName = (new Element())
                 ->setContent('---')
