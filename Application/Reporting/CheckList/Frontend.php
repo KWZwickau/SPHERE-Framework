@@ -20,6 +20,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectElementList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -1236,6 +1237,10 @@ class Frontend extends Extension implements IFrontendInterface
         $SchoolOption2Id = null
     ) {
 
+        // test it with much more Field's required much more space
+        // keep in mind to deal with it if it is Live necessary
+//        ini_set('memory_limit','2G');
+
         $Stage = new Stage('Check-Liste', 'Ansicht');
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
         if (!$Id) {
@@ -1327,6 +1332,31 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblList) {
+
+            $ListObjectListContent = CheckList::useService()->getListObjectListContentByList($tblList);
+
+            $ObjectContentList = array();
+            if($ListObjectListContent){
+                foreach($ListObjectListContent as $ObjectContent){
+                    $ObjectContentList[$ObjectContent['ObjectId']][$ObjectContent['ListElementListId']] = $ObjectContent['Value'];
+                }
+            }
+
+            if(($tblListObjectElementListArray = CheckList::useService()->getListObjectElementListByList($tblList))){
+                foreach($tblListObjectElementListArray as $ListObjectElementList){
+                    $ObjectId = false;
+                    $ListElementListId = false;
+                    if($ListObjectElementList->getServiceTblObject()){
+                        $ObjectId = $ListObjectElementList->getServiceTblObject()->getId();
+                    }
+                    if($ListObjectElementList->getTblListElementList()){
+                        $ListElementListId = $ListObjectElementList->getTblListElementList()->getId();
+                    }
+                    if($ObjectId && $ListElementListId)
+                        $ListContent[$ObjectId][$ListElementListId] = $ListObjectElementList->getValue();
+                }
+            }
+
 
             // set Header
             $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
@@ -1538,30 +1568,53 @@ class Frontend extends Extension implements IFrontendInterface
                                 $list[$count]['Name'] = '';
                             }
 
-                            if ($tblListElementListByList) {
+                            if ($tblListElementListByList){
                                 foreach ($tblListElementListByList as $tblListElementList) {
-                                    $list[$count]['Field'.$tblListElementList->getId()] = '';
-
-                                    $tblListObjectElementList = CheckList::useService()->getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId(
-                                        $tblList,
-                                        $tblListElementList,
-                                        $tblObjectType,
-                                        $objectId);
-                                    if ($tblListObjectElementList) {
-                                        if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
-                                            if ($tblListObjectElementList->getValue() == 1) {
-                                                $list[$count]['Field'.$tblListElementList->getId()] = new Center(new SuccessIcon());
+                                    if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX'){
+                                        if (isset($ObjectContentList[$objectId][$tblListElementList->getId()]) && $ObjectContentList[$objectId][$tblListElementList->getId()] == 1){
+                                            $list[$count]['Field'.$tblListElementList->getId()] = new Center(new SuccessIcon());
+                                        } else {
+                                            $list[$count]['Field'.$tblListElementList->getId()] = '';
+                                        }
+                                    } else {
+                                        if (isset($ObjectContentList[$objectId][$tblListElementList->getId()])){
+                                            $list[$count]['Field'.$tblListElementList->getId()] = $ObjectContentList[$objectId][$tblListElementList->getId()];
+                                            // show string 0 in Datatable
+                                            if ($ObjectContentList[$objectId][$tblListElementList->getId()] === "0"){
+                                                $list[$count]['Field'.$tblListElementList->getId()] = ' '.$ObjectContentList[$objectId][$tblListElementList->getId()];
                                             }
                                         } else {
-                                            $list[$count]['Field'.$tblListElementList->getId()] = $tblListObjectElementList->getValue();
-                                            // show string 0 in Datatable
-                                            if ($tblListObjectElementList->getValue() === "0") {
-                                                $list[$count]['Field'.$tblListElementList->getId()] = ' '.$tblListObjectElementList->getValue();
-                                            }
+                                            $list[$count]['Field'.$tblListElementList->getId()] = '';
                                         }
                                     }
                                 }
                             }
+
+                            // Old Version keep in mind until everything work's fine
+//                            if ($tblListElementListByList) {
+//                                foreach ($tblListElementListByList as $tblListElementList) {
+//                                    $list[$count]['Field'.$tblListElementList->getId()] = '';
+//
+//                                    $tblListObjectElementList = CheckList::useService()->getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId(
+//                                        $tblList,
+//                                        $tblListElementList,
+//                                        $tblObjectType,
+//                                        $objectId);
+//                                    if ($tblListObjectElementList){
+//                                        if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX'){
+//                                            if ($tblListObjectElementList->getValue() == 1){
+//                                                $list[$count]['Field'.$tblListElementList->getId()] = new Center(new SuccessIcon());
+//                                            }
+//                                        } else {
+//                                            $list[$count]['Field'.$tblListElementList->getId()] = $tblListObjectElementList->getValue();
+//                                            // show string 0 in Datatable
+//                                            if ($tblListObjectElementList->getValue() === "0"){
+//                                                $list[$count]['Field'.$tblListElementList->getId()] = ' '.$tblListObjectElementList->getValue();
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
                             // Edit Button left = right
                             $list[$count]['FieldOptionLeft'] = $list[$count]['FieldOptionRight'] = new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(),
                                 array('ObjectId'        => $objectId,
@@ -1758,13 +1811,14 @@ class Frontend extends Extension implements IFrontendInterface
         $ListElementList = CheckList::useService()->getListElementListByList($tblList);
 
         // set Post
-        $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
+        $tblListObjectElementListArray = CheckList::useService()->getListObjectElementListByListAndObjectId($tblList, $ObjectId);
         $Global = $this->getGlobal();
-        if ($tblListObjectElementList && empty( $Data ) && !isset( $Global->POST['Button'] )) {
-            foreach ($tblListObjectElementList as $item) {
-                if ($item->getServiceTblObject()) {
-                    if ($item->getServiceTblObject()->getId() == $ObjectId) {
-                        $Global->POST['Data'][$item->getTblListElementList()->getId()] = $item->getValue();
+        if ($tblListObjectElementListArray && empty( $Data ) && !isset( $Global->POST['Button'] )) {
+            /** @var TblListObjectElementList $tblListObjectElementList */
+            foreach ($tblListObjectElementListArray as $tblListObjectElementList) {
+                if ($tblListObjectElementList->getServiceTblObject()) {
+                    if ($tblListObjectElementList->getServiceTblObject()->getId() == $ObjectId) {
+                        $Global->POST['Data'][$tblListObjectElementList->getTblListElementList()->getId()] = $tblListObjectElementList->getValue();
                     }
                 }
             }
