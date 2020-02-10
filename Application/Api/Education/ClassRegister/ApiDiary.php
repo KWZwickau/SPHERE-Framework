@@ -14,12 +14,18 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -28,10 +34,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -63,6 +71,9 @@ class ApiDiary extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openDeleteDiaryModal');
         $Dispatcher->registerMethod('saveDeleteDiaryModal');
+
+        $Dispatcher->registerMethod('openSelectStudentModal');
+        $Dispatcher->registerMethod('saveSelectStudentModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -242,6 +253,51 @@ class ApiDiary extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DiaryId' => $DiaryId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenSelectStudentModal($DivisionId = null, $GroupId = null)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openSelectStudentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSelectStudentSave($DivisionId = null, $GroupId = null)
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveSelectStudentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -444,5 +500,86 @@ class ApiDiary extends Extension implements IApiInterface
         } else {
             return new Danger('Der Eintrag konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     *
+     * @return Danger|string
+     */
+    public function openSelectStudentModal($DivisionId = null, $GroupId = null)
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        if ($tblDivision) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        } elseif ($tblGroup) {
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+            }
+
+        } else {
+            $tblPersonList = false;
+        }
+
+        $columns = array();
+        if ($tblPersonList) {
+            foreach ($tblPersonList as $tblPerson) {
+                $columns[$tblPerson->getId()] = new FormColumn(new RadioBox('Data[Student]',
+                    $tblPerson->getLastFirstName(), $tblPerson->getId()), 4);
+            }
+        }
+
+        return new Title(new Edit() . ' Schüler auswählen')
+            . new Form(array(
+                    new FormGroup(array(
+                        new FormRow(
+                            $columns
+                        ),
+                        new FormRow(
+                            new FormColumn(
+                                (new Primary('Auswählen', ApiDiary::getEndpoint(), new Select()))
+                                    ->ajaxPipelineOnClick(ApiDiary::pipelineSelectStudentSave(
+                                        $tblDivision ? $tblDivision->getId() : null,
+                                        $tblGroup ? $tblGroup->getId() : null
+                                    ))
+                            )
+                        )
+                    ))
+            ));
+    }
+
+    /**
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     * @param array $Data
+     *
+     * @return Danger|string
+     */
+    public function saveSelectStudentModal($DivisionId = null, $GroupId = null, $Data = null)
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Redirect(
+            '/Education/Diary/Selected',
+            0,
+            array(
+                'DivisionId' => $DivisionId,
+                'GroupId' => $GroupId,
+                'BasicRoute' => '/Education/Diary/Teacher',
+                'StudentId' => isset($Data['Student']) ? $Data['Student'] : null
+            )
+        ) . self::pipelineClose();
     }
 }
