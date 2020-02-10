@@ -14,6 +14,28 @@ class IDataESBD
     {
 
         $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESBD');
+
+        // set necessary Level for Certificate if not exist (important vor new Consumer without full level range on setup)
+        // maybe remove after update on live
+        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '1');
+        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '2');
+        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '3');
+        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '4');
+
+        Division::useService()->insertLevel($Data->getTblSchoolTypeSecondary(), '5');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeSecondary(), '6');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeSecondary(), '7');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeSecondary(), '8');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeSecondary(), '9');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeSecondary(), '10');
+
+        Division::useService()->insertLevel($Data->getTblSchoolTypeGym(), '5');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeGym(), '6');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeGym(), '7');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeGym(), '8');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeGym(), '9');
+        Division::useService()->insertLevel($Data->getTblSchoolTypeGym(), '10');
+
         if ($tblConsumerCertificate){
             self::setEsbdGsHjInformation($Data, $tblConsumerCertificate);
             self::setEsbdGsHjOneInfo($Data, $tblConsumerCertificate);
@@ -173,7 +195,8 @@ class IDataESBD
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeGym(), null, true);
-                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                // Update muss erneut ausführbar sein
+//                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '5'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
@@ -189,7 +212,7 @@ class IDataESBD
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '9'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
-                }
+//                }
             }
             // Begrenzung des Bemerkungsfeld
             $FieldName = 'Remark';
@@ -236,11 +259,12 @@ class IDataESBD
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeGym());
-                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                // Update muss erneut ausführbar sein
+//                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
-                }
+//                }
             }
             // Begrenzung des Bemerkungsfeld
             $FieldName = 'Remark';
@@ -287,7 +311,8 @@ class IDataESBD
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeGym());
-                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                // Update muss erneut ausführbar sein
+//                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '5'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
@@ -306,7 +331,7 @@ class IDataESBD
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
-                }
+//                }
             }
             // Begrenzung des Einschätzungfelds
             $FieldName = 'Rating';
@@ -358,7 +383,8 @@ class IDataESBD
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, true);
-                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                // Update muss erneut ausführbar sein
+//                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
@@ -374,7 +400,7 @@ class IDataESBD
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
-                }
+//                }
             }
             // Begrenzung des Bemerkungsfeld
             $FieldName = 'Remark';
@@ -421,10 +447,11 @@ class IDataESBD
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, true);
-                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                // Update muss erneut ausführbar sein
+//                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+//                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -472,7 +499,8 @@ class IDataESBD
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeSecondary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary());
-                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                // Update muss erneut ausführbar sein
+//                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
@@ -488,7 +516,7 @@ class IDataESBD
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
-                }
+//                }
             }
             // Begrenzung des Einschätzungfelds
             $FieldName = 'Rating';
