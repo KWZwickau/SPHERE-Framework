@@ -272,6 +272,7 @@ class Frontend
             '/Platform/Assistance/Support',
             '/Platform/Gatekeeper/Authentication/Offline',
             '/Document/DataProtectionOrdinance',
+            '/Manual/Request',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
