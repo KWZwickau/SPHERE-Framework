@@ -14,6 +14,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -2562,6 +2563,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Person'          => 'Person',
                 'StudentNumber'   => 'Schüler-Nr.',
                 'Division'        => 'Aktuelle Klasse(n)',
+                'SchoolCourse'    => 'Aktueller Bildungsgang',
                 'Salutation'      => 'Anrede',
                 'PersonToAddress' => 'Adressat',
                 'Address'         => 'Adresse',
@@ -2741,10 +2743,17 @@ class Frontend extends Extension implements IFrontendInterface
                                                 }
                                             } else {
                                                 $StudentNumber = new Small(new Muted('-NA-'));
+                                                $SchoolCourse = '';
                                                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                                 if ($tblStudent) {
                                                     if ($tblStudent->getIdentifierComplete() != '') {
                                                         $StudentNumber = $tblStudent->getIdentifierComplete();
+                                                    }
+                                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                                                    if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                                                        if($tblStudentTransfer->getServiceTblCourse()){
+                                                            $SchoolCourse = $tblStudentTransfer->getServiceTblCourse()->getName();
+                                                        }
                                                     }
                                                 }
 
@@ -2754,6 +2763,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 }
                                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
                                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] = $Division;
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['SchoolCourse'] = $SchoolCourse;
+
                                             }
 
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['Person'] =
@@ -2789,6 +2800,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Person'              => ( isset($Address['Person']) ? $Address['Person'] : '' ),
                                     'StudentNumber'       => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
                                     'Division'            => ( isset($Address['Division']) ? $Address['Division'] : '' ),
+                                    'SchoolCourse'        => ( isset($Address['SchoolCourse']) ? $Address['SchoolCourse'] : '' ),
                                     'PersonToAddress'     => ( isset($Address['PersonToAddress']) ? $Address['PersonToAddress'] : '' ),
                                     'Address'             => ( isset($Address['Address']) ? $Address['Address'] : '' ),
                                     'Company'             => ( isset($Address['Company']) ? $Address['Company'] : '' ),
@@ -2822,6 +2834,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblStudent->getIdentifierComplete() != '') {
                                     $StudentNumber = $tblStudent->getIdentifierComplete();
                                 }
+                                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                                if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                                    if($tblStudentTransfer->getServiceTblCourse()){
+                                        $SchoolCourse = $tblStudentTransfer->getServiceTblCourse()->getName();
+                                    }
+                                }
                             }
                             $DivisionString = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                             if ($DivisionString === '') {
@@ -2835,6 +2853,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Person'              => $tblPerson->getLastFirstName(),
                             'StudentNumber'       => ( isset($StudentNumber) ? $StudentNumber : '' ),
                             'Division'            => ( isset($Division) ? $Division : '' ),
+                            'SchoolCourse'        => ( isset($SchoolCourse) ? $SchoolCourse : '' ),
                             'PersonToAddress'     => new Warning(new Exclamation().' Keine Person mit Adresse hinterlegt.'),
                             'Address'             => '',
                             'Salutation'          => '',
