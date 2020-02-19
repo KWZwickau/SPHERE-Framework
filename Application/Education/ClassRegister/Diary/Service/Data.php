@@ -155,13 +155,15 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
+     * @param TblYear $tblYear
      *
      * @return false|TblGroup[]
      */
-    public function getDiaryAllByGroup(TblGroup $tblGroup)
+    public function getDiaryAllByGroup(TblGroup $tblGroup, TblYear $tblYear)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
-            TblDiary::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
+            TblDiary::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
+            TblDiary::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
         ));
     }
 
@@ -271,5 +273,19 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDiary $tblDiary
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDiaryStudent
+     */
+    public function existsDiaryStudent(TblDiary $tblDiary, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDiaryStudent', array(
+            TblDiaryStudent::ATTR_TBL_DIARY => $tblDiary->getId(),
+            TblDiaryStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
     }
 }

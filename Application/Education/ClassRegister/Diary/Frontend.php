@@ -14,6 +14,8 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -33,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -232,7 +235,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivisionList = Division::useService()->getDivisionAll();
 
         $buttonList = Prepare::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $IsGroup, $YearId, $tblYear);
+            $IsAllYears, $IsGroup, $YearId, $tblYear, false);
 
         $divisionTable = array();
         if ($IsGroup) {
@@ -369,13 +372,15 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionId
      * @param null $GroupId
      * @param string $BasicRoute
+     * @param bool $StudentId
      *
      * @return Stage|string
      */
     public function frontendDiary(
         $DivisionId = null,
         $GroupId = null,
-        $BasicRoute = '/Education/Diary/Teacher'
+        $BasicRoute = '/Education/Diary/Teacher',
+        $StudentId = null
     ) {
         $stage = new Stage('Klassenbuch', 'pädagogisches Tagebuch');
 
@@ -386,6 +391,50 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson = $tblPersonAllByAccount[0];
         }
 
+        $tblStudent = false;
+        $buttonName = 'Klassenansicht';
+        if ($GroupId) {
+            $buttonName = 'Gruppenansicht';
+        }
+
+        // auf einen Schüler eingrenzen
+        if ($StudentId && ($tblStudent = Person::useService()->getPersonById($StudentId))) {
+            $buttonList = array(
+                new Standard(
+                    $buttonName, self::BASE_ROUTE . '/Selected', null,
+                    array(
+                        'DivisionId' => $DivisionId,
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => self::BASE_ROUTE
+                    )
+                ),
+                ApiDiary::receiverModal()
+                . (new Standard(
+                    new Edit() . new Info(new Bold('Schüleransicht')),
+                    ApiDiary::getEndpoint()
+                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenSelectStudentModal($DivisionId, $GroupId))
+            );
+        } else {
+            $buttonList = array(
+                new Standard(
+                    new Info(new Bold($buttonName)), self::BASE_ROUTE . '/Selected', new Edit(),
+                    array(
+                        'DivisionId' => $DivisionId,
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => self::BASE_ROUTE
+                    )
+                ),
+                ApiDiary::receiverModal()
+                . (new Standard(
+                    'Schüleransicht',
+                    ApiDiary::getEndpoint()
+                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenSelectStudentModal($DivisionId, $GroupId))
+            );
+        }
+
+        // Abstandszeile
+        $buttonList[] = new Container('&nbsp;');
+
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $stage->addButton(new Standard(
                 'Zurück', $BasicRoute, new ChevronLeft()
@@ -393,16 +442,28 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblYear = $tblDivision->getServiceTblYear();
 
-            $receiver = ApiDiary::receiverBlock($this->loadDiaryTable($tblDivision, null), 'DiaryContent');
+            $receiver = ApiDiary::receiverBlock($this->loadDiaryTable($tblDivision, null, $tblStudent ? $tblStudent : null), 'DiaryContent');
 
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Danger('
+                                    Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und 
+                                    Löschungsrecht durch die betroffene Person und deren Sorgeberechtigten. 
+                                    Aus diesem Grund sollten in diesem Tagebuch nur objektivierbare Sachverhalte vermerkt werden.
+                                ', new Exclamation())
+                            ))
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn($buttonList)
+                        ),
+                        new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
+                                    $tblStudent ? 'Schüler' : 'Klasse',
+                                    $tblStudent ? $tblStudent->getFullName() : $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_INFO
                                 )
                                 , 6),
@@ -417,12 +478,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 $tblPerson
-                                    ? ApiDiary::receiverModal()
+                                    ?
+                                    ($tblStudent ? ''
+                                    : ApiDiary::receiverModal()
                                     . (new Primary(
                                         new Plus() . ' Eintrag hinzufügen',
                                         ApiDiary::getEndpoint()
                                     ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenCreateDiaryModal($tblDivision->getId(),
-                                        null))
+                                        null)))
                                     : new Warning('Für Ihren Account ist keine Person ausgewählt. 
                                     Sie können keine neuen Einträge zum pädagogischen Tagebuch hinzufügen',
                                     new Exclamation())
@@ -452,16 +515,28 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblYear = false;
             }
 
-            $receiver = ApiDiary::receiverBlock($this->loadDiaryTable(null, $tblGroup), 'DiaryContent');
+            $receiver = ApiDiary::receiverBlock($this->loadDiaryTable(null, $tblGroup, $tblStudent ? $tblStudent : null), 'DiaryContent');
 
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Danger('
+                                    Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und 
+                                    Löschungsrecht durch die betroffene Person und deren Sorgeberechtigten. 
+                                    Aus diesem Grund sollten in diesem Tagebuch nur objektivierbare Sachverhalte vermerkt werden.
+                                ', new Exclamation())
+                            ))
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn($buttonList)
+                        ),
+                        new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel(
-                                    'Gruppe',
-                                    $tblGroup->getName(),
+                                    $tblStudent ? 'Schüler' : 'Gruppe',
+                                    $tblStudent ? $tblStudent->getFullName() : $tblGroup->getName(),
                                     Panel::PANEL_TYPE_INFO
                                 )
                                 , 6),
@@ -475,7 +550,8 @@ class Frontend extends Extension implements IFrontendInterface
                         )),
                         new LayoutRow(array(
                             new LayoutColumn(
-                                ApiDiary::receiverModal()
+                                $tblStudent ? ''
+                                : ApiDiary::receiverModal()
                                 . (new Primary(
                                     new Plus() . ' Eintrag hinzufügen',
                                     ApiDiary::getEndpoint()
@@ -595,6 +671,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Data[Subject]', 'Titel', 'Titel', new Calendar())
                     ),
                 )),
+                new FormRow(array(
+                   new FormColumn(array(
+                       new Warning('Wenn kein Schüler ausgewählt wird, handelt es sich um einen Klasseneintrag.')
+                   ))
+                )),
                 new FormRow(
                     $columns
                 ),
@@ -615,25 +696,33 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param TblPerson $tblStudentPerson
      *
      * @return TableData
      */
-    public function loadDiaryTable(TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function loadDiaryTable(TblDivision $tblDivision = null, TblGroup $tblGroup = null, TblPerson $tblStudentPerson = null)
     {
         $dataList = array();
         $diaryList = array();
 
         if ($tblDivision) {
-            // Klasseneinträge inklusive der Einträge der verkünften Vorgänger-Klassen
-            if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, true))) {
+            $tblYear = $tblDivision->getServiceTblYear();
+
+            if ($tblYear && ($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, false))) {
                 foreach ($tblDiaryList as $tblDiary) {
                     $diaryList[$tblDiary->getId()] = $tblDiary;
                 }
             }
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         } elseif ($tblGroup) {
+            if (($tblYearList = Term::useService()->getYearByNow())) {
+                $tblYear = reset($tblYearList);
+            } else {
+                $tblYear = false;
+            }
+
             // Gruppeneinträge
-            if (($tblDiaryList = Diary::useService()->getDiaryAllByGroup($tblGroup))) {
+            if ($tblYear && ($tblDiaryList = Diary::useService()->getDiaryAllByGroup($tblGroup, $tblYear))) {
                 foreach ($tblDiaryList as $tblDiary) {
                     $diaryList[$tblDiary->getId()] = $tblDiary;
                 }
@@ -641,12 +730,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
         } else {
             $tblPersonList = false;
+            $tblYear = false;
         }
 
         // zusätzliche Schülereintrage (z.B. vom Klassenwechsel)
-        if ($tblPersonList) {
+        if ($tblPersonList && $tblYear) {
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblPerson))) {
+                if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblPerson, $tblYear))) {
                     foreach ($tblDiaryListByStudent as $item) {
                         if (!isset($diaryList[$item->getId()])) {
                             $diaryList[$item->getId()] = $item;
@@ -661,20 +751,34 @@ class Frontend extends Extension implements IFrontendInterface
         $count = 0;
         /** @var TblDiary $tblDiaryItem */
         foreach ($diaryList as $tblDiaryItem) {
-            $count++;
-            $dataList[] = $this->setDiaryItem($tblDiaryItem, $count);
+            if ($tblStudentPerson) {
+                if (!Diary::useService()->getDiaryStudentAllByDiary($tblDiaryItem)
+                    || Diary::useService()->existsDiaryStudent($tblDiaryItem, $tblStudentPerson)
+                ) {
+                    // nur Klasseneinträge und welche mit dem ausgewählten Schüler
+                    $count++;
+                    $dataList[] = $this->setDiaryItem($tblDiaryItem, $count, $tblStudentPerson);
+                }
+            } else {
+                $count++;
+                $dataList[] = $this->setDiaryItem($tblDiaryItem, $count);
+            }
         }
 
+        $columns = array(
+            'Number' => '#',
+            'Information' => 'Information',
+            'PersonList' => 'Schüler',
+            'Content' => 'Inhalt'
+        );
+
+        if (!$tblStudentPerson) {
+            $columns['Options'] = ' ';
+        }
         return new TableData(
             $dataList,
             null,
-            array(
-                'Number' => '#',
-                'Information' => 'Information',
-                'PersonList' => 'Schüler',
-                'Content' => 'Inhalt',
-                'Options' => ' '
-            ),
+            $columns,
             array(
                 'order' => array(
                     array(0, 'asc')
@@ -687,10 +791,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblDiary $tblDiary
      * @param int $count
+     * @param TblPerson|null $tblStudentPerson
      *
      * @return array
      */
-    private function setDiaryItem(TblDiary $tblDiary, &$count)
+    private function setDiaryItem(TblDiary $tblDiary, &$count, TblPerson $tblStudentPerson = null)
     {
         $displayPerson = '';
         if (($tblPerson = $tblDiary->getServiceTblPerson())) {
@@ -707,7 +812,13 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
             foreach ($tblDiaryStudentList as $tblDiaryStudent) {
                 if (($tblPersonItem = $tblDiaryStudent->getServiceTblPerson())) {
-                    $personList[] = $tblPersonItem->getLastFirstName();
+                    if ($tblStudentPerson
+                        && $tblStudentPerson->getId() != $tblPersonItem->getId()
+                    ) {
+                        $personList[] = '****';
+                    } else {
+                        $personList[] = $tblPersonItem->getLastFirstName();
+                    }
                 }
             }
         }
@@ -715,9 +826,9 @@ class Frontend extends Extension implements IFrontendInterface
         return array(
             'Number' => $count,
             'Information' => $tblDiary->getDate()
-                . (($tblDivision = $tblDiary->getServiceTblDivision()) ? '<br>' . $tblDivision->getDisplayName() : '')
-                . (($tblGroup = $tblDiary->getServiceTblGroup()) ? '<br>' . $tblGroup->getName() : '')
-                . (($tblYear = $tblDiary->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : '')
+                . (($tblDivision = $tblDiary->getServiceTblDivision()) ? '<br> Klasse: ' . $tblDivision->getDisplayName() : '')
+                . (($tblGroup = $tblDiary->getServiceTblGroup()) ? '<br> Gruppe: ' . $tblGroup->getName() : '')
+//                . (($tblYear = $tblDiary->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : '')
                 . (($location = $tblDiary->getLocation()) ? '<br>' . $location : '')
                 . '<br>' . $displayPerson,
             'PersonList' => empty($personList) ? '' : implode('<br>', $personList),
@@ -725,20 +836,22 @@ class Frontend extends Extension implements IFrontendInterface
                 // Zeilenumbrüche berücksichtigen
                 . str_replace("\n", '<br>', $tblDiary->getContent()),
             'Options' =>
-                (new Standard(
-                    '',
-                    ApiDiary::getEndpoint(),
-                    new Edit(),
-                    array(),
-                    'Bearbeiten'
-                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
-                . (new Standard(
-                    '',
-                    ApiDiary::getEndpoint(),
-                    new Remove(),
-                    array(),
-                    'Löschen'
-                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
+                $tblStudentPerson
+                    ? ''
+                    : (new Standard(
+                        '',
+                        ApiDiary::getEndpoint(),
+                        new Edit(),
+                        array(),
+                        'Bearbeiten'
+                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
+                    . (new Standard(
+                        '',
+                        ApiDiary::getEndpoint(),
+                        new Remove(),
+                        array(),
+                        'Löschen'
+                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
         );
     }
 }

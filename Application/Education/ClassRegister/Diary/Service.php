@@ -9,6 +9,7 @@ use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStud
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Setup;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
@@ -82,12 +83,13 @@ class Service extends AbstractService
 
     /**
      * @param TblGroup $tblGroup
+     * @param TblYear $tblYear
      *
      * @return false|TblGroup[]
      */
-    public function getDiaryAllByGroup(TblGroup $tblGroup)
+    public function getDiaryAllByGroup(TblGroup $tblGroup, TblYear $tblYear)
     {
-        return (new Data($this->getBinding()))->getDiaryAllByGroup($tblGroup);
+        return (new Data($this->getBinding()))->getDiaryAllByGroup($tblGroup, $tblYear);
     }
 
     /**
@@ -295,20 +297,35 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
      *
      * @return TblDiary[]|bool
      */
-    public function getDiaryAllByStudent(TblPerson $tblPerson)
+    public function getDiaryAllByStudent(TblPerson $tblPerson, TblYear $tblYear)
     {
         $resultList = array();
         if (($tblDiaryStudentList = (new Data($this->getBinding()))->getDiaryStudentAllByStudent($tblPerson))) {
             foreach ($tblDiaryStudentList as $tblDiaryStudent) {
-                if (($tblDiary = $tblDiaryStudent->getTblDiary())) {
+                if (($tblDiary = $tblDiaryStudent->getTblDiary())
+                    && ($tblYearDiary = $tblDiary->getServiceTblYear())
+                    && ($tblYearDiary->getId() == $tblYear->getId())
+                ) {
                     $resultList[$tblDiary->getId()] = $tblDiary;
                 }
             }
         }
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDiary $tblDiary
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDiaryStudent
+     */
+    public function existsDiaryStudent(TblDiary $tblDiary, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->existsDiaryStudent($tblDiary, $tblPerson);
     }
 }
