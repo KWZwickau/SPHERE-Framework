@@ -26,7 +26,7 @@
     executeScript(function () {
         Client.Use('ModSelect2', function () {
             var guiSelect = jQuery('select[name="{{ ElementName }}"]');
-            guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');
+            {#guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');#}
             guiSelect.ModSelect2({{ ElementConfiguration }});
             guiSelect.on('change keyup blur', function () {
                 if( guiSelect.val() == 0 ) {
@@ -35,6 +35,12 @@
                     guiSelect.next().find('span.select2-selection__rendered').css('color','');
                 }
             });
+
+            setTimeout(function(){
+                guiSelect.val('{{ ElementValue }}'); // Select the option with a value of 'ElementValue'
+                guiSelect.trigger('change'); // Notify any JS components that the value changed
+            },1);
+
             if( guiSelect.val() == 0 ) {
                 guiSelect.next().find('span.select2-selection__rendered').css('color','silver');
             }
