@@ -285,4 +285,26 @@ class ViewPerson extends AbstractView
         return $Field;
     }
 
+
+    // only necessary if need in twig (SelectBox etc.)
+//    /** @return string */
+//    public function getTblPerson_Id(){return $this->TblPerson_Id;}
+//    public function getTblCommonGender_Name(){return $this->TblCommonGender_Name;}
+//    public function getTblSalutation_Salutation(){return $this->TblSalutation_Salutation;}
+//    public function getTblPerson_Title(){return $this->TblPerson_Title;}
+//    public function TblPerson_FirstName(){return $this->TblPerson_FirstName;}
+//    public function TblPerson_SecondName(){return $this->TblPerson_SecondName;}
+//    public function TblPerson_CallName(){return $this->TblPerson_CallName;}
+//    public function getTblPerson_LastName(){return $this->TblPerson_LastName;}
+//    public function getTblPerson_BirthName(){return $this->TblPerson_BirthName;}
+//    public function getTblPerson_FirstLastName(){return $this->TblPerson_FirstLastName;}
+//    public function getTblPerson_LastFirstName(){return $this->TblPerson_LastFirstName;}
+//    public function getTblGroup_GroupList(){return $this->TblGroup_GroupList;}
+//    public function getTblCommonInformation_Denomination(){return $this->TblCommonInformation_Denomination;}
+//    public function getTblCommonInformation_Nationality(){return $this->TblCommonInformation_Nationality;}
+//    public function getTblCommonInformation_IsAssistance(){return $this->TblCommonInformation_IsAssistance;}
+//    public function getTblCommonInformation_AssistanceActivity(){return $this->TblCommonInformation_AssistanceActivity;}
+//    public function getTblCommon_Remark(){return $this->TblCommon_Remark;}
+//    public function getTblCommonBirthDates_Birthday(){return $this->TblCommonBirthDates_Birthday;}
+//    public function getTblCommonBirthDates_Birthplace(){return $this->TblCommonBirthDates_Birthplace;}
 }

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Reporting\Individual;
 
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Individual\Service\Data;
 use SPHERE\Application\Reporting\Individual\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -54,6 +55,23 @@ class ServiceView extends AbstractService
      * @return false|array
      */
     public function getCityNameGroupByCityName(){return (new Data($this->getBinding()))->getCityNameGroupByCityName();}
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return array|bool
+     * array_keys:
+     * <br/>TblPerson_Id
+     * <br/>TblPerson_LastFirstName
+     * <br/>TblCommon_Remark
+     * <br/>Address
+     * <br/>Division
+     * <br/>Identifier
+     * <br/>Year
+     * <br/>Level
+     * <br/>SchoolOption
+     */
+    public function getPersonListByGroup(TblGroup $tblGroup){return (new Data($this->getBinding()))->getPersonListByGroup($tblGroup);}
 
 //    public function getViewProspectCustodyAll(){return (new Data($this->getBinding()))->getViewProspectCustodyAll();}
 //    public function getViewStudentAll(){return (new Data($this->getBinding()))->getViewStudentAll();}

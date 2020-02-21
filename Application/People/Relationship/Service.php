@@ -100,6 +100,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType $tblType
+     *
+     * @return array array[PersonFromId[PersonToId]]
+     */
+    public function getPersonRelationshipArrayByType(TblType $tblType)
+    {
+        return (new Data($this->getBinding()))->getPersonRelationshipArrayByType($tblType);
+    }
+
+    /**
      * @param TblToPerson[] $tblToPersonList
      *
      * @return array|TblPerson[]

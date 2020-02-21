@@ -2,6 +2,9 @@
 
 namespace SPHERE\Application\Reporting\Individual\Service;
 
+use Doctrine\ORM\Query\Expr\Join;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -57,6 +60,120 @@ class DataView extends AbstractData
         }
 
         return (!empty($result) ? $result : false);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return array|bool
+     * array_keys:
+     * <br/>TblPerson_Id
+     * <br/>TblPerson_LastFirstName
+     * <br/>TblCommon_Remark
+     * <br/>Address
+     * <br/>Division
+     * <br/>Identifier
+     * <br/>Year
+     * <br/>Level
+     * <br/>SchoolOption
+     */
+    public function getPersonListByGroup(TblGroup $tblGroup)
+    {
+
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $SelectString = 'vP.TblPerson_Id, vP.TblPerson_LastFirstName, vP.TblCommon_Remark, vPC.TblCity_Name,
+         vPC.TblCity_Code, vPC.TblCity_District, vPC.TblAddress_StreetName, vPC.TblAddress_StreetNumber';
+
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+            $SelectString .= ', vES.TblDivision_Display, vGSB.TblStudent_Identifier';
+        }
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT){
+            $SelectString .= ', vGP.TblProspectReservation_ReservationYear, vGP.TblType_NameA, vGP.TblType_NameB,
+            vGP.TblProspectReservation_ReservationDivision';
+        }
+
+        $queryBuilder->select($SelectString)
+            ->from(__NAMESPACE__ . '\Entity\ViewGroup', 'vG');
+        $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewPersonContact', 'vPC', Join::WITH,
+            'vPC.TblPerson_Id = vG.TblPerson_Id'
+        );
+        $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewPerson', 'vP', Join::WITH,
+            'vP.TblPerson_Id = vG.TblPerson_Id'
+        );
+
+        $queryBuilder->Where($queryBuilder->expr()->eq('vG.TblGroup_Id', '?1'))
+            ->setParameter(1, $tblGroup->getId());
+
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+
+            $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewEducationStudent', 'vES', Join::WITH,
+                'vES.TblPerson_Id = vG.TblPerson_Id'
+            );
+            $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewGroupStudentBasic', 'vGSB', Join::WITH,
+                'vGSB.TblPerson_Id = vG.TblPerson_Id'
+            );
+
+            if(($tblYear = Term::useService()->getYearByNow())){
+                $tblYear = current($tblYear);
+            }
+            if($tblYear){
+                $queryBuilder->andWhere($queryBuilder->expr()->eq('vES.TblYear_Year', '?2'))
+                    ->setParameter(2, $tblYear->getYear());
+            }
+        }
+
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT){
+            $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewGroupProspect', 'vGP', Join::WITH,
+                'vGP.TblPerson_Id = vG.TblPerson_Id'
+            );
+        }
+
+        $query = $queryBuilder->getQuery();
+        $resultList = $query->getResult();
+        $tblContent = array();
+
+        if(!empty($resultList)){
+            array_walk($resultList, function($resultSingle) use (&$tblContent, $tblGroup){
+                $item['TblPerson_Id'] = $resultSingle['TblPerson_Id'];
+                $item['TblPerson_LastFirstName'] = $resultSingle['TblPerson_LastFirstName'];
+                // ESZC special
+                $item['TblCommon_Remark'] = $resultSingle['TblCommon_Remark'];
+//                // address
+//                $item['TblCity_Code'] = $resultSingle['TblCity_Code'];
+//                $item['TblCity_Name'] = $resultSingle['TblCity_Name'];
+//                $item['TblCity_District'] = $resultSingle['TblCity_District'];
+//                $item['TblAddress_StreetName'] = $resultSingle['TblAddress_StreetName'];
+//                $item['TblAddress_StreetNumber'] = $resultSingle['TblAddress_StreetNumber'];
+                // address in one column
+                $item['Address'] = $resultSingle['TblCity_Code'].' '.$resultSingle['TblCity_Name'].' '.
+                    ($resultSingle['TblCity_District'] ? $resultSingle['TblCity_District'].' ' : '').
+                    $resultSingle['TblAddress_StreetName'].' '.$resultSingle['TblAddress_StreetNumber'];
+                // Student
+                $item['Division'] = (isset($resultSingle['TblDivision_Display']) ? $resultSingle['TblDivision_Display'] : '');
+                $item['Identifier'] = (isset($resultSingle['TblStudent_Identifier']) ? $resultSingle['TblStudent_Identifier'] : '');
+                // Prospect
+                $item['Year'] = (isset($resultSingle['TblProspectReservation_ReservationYear']) ? $resultSingle['TblProspectReservation_ReservationYear'] : '');
+                $item['Level'] = (isset($resultSingle['TblProspectReservation_ReservationDivision']) ? $resultSingle['TblProspectReservation_ReservationDivision'] : '');
+                    // SchoolType to one string
+                $item['SchoolOption'] = '';
+                if(isset($resultSingle['TblType_NameA'])
+                    && $resultSingle['TblType_NameA']
+                    && isset($resultSingle['TblType_NameB'])
+                    && $resultSingle['TblType_NameB']) {
+                    $item['SchoolOption'] = $resultSingle['TblType_NameA'].', '.$resultSingle['TblType_NameB'];
+                } elseif(isset($resultSingle['TblType_NameA'])
+                    && $resultSingle['TblType_NameA']) {
+                    $item['SchoolOption'] = $resultSingle['TblType_NameA'];
+                } elseif(isset($resultSingle['TblType_NameB'])
+                    && $resultSingle['TblType_NameB']) {
+                    $item['SchoolOption'] = $resultSingle['TblType_NameB'];
+                }
+
+                array_push($tblContent, $item);
+            });
+        }
+
+        return (!empty($tblContent) ? $tblContent : false);
     }
 
 //    public function getViewProspectCustodyAll(){return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'ViewProspectCustody');}

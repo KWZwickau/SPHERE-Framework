@@ -413,6 +413,37 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblType $tblType
+     *
+     * @return array array[PersonFromId[PersonToId]]
+     */
+    public function getPersonRelationshipArrayByType(TblType $tblType)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblToPerson = new TblToPerson();
+
+        $query = $queryBuilder->select('tTP.serviceTblPersonFrom, tTP.serviceTblPersonTo')
+            ->from($tblToPerson->getEntityFullName(), 'tTP')
+            ->where($queryBuilder->expr()->eq('tTP.tblType', '?1'))
+            ->setParameter(1, $tblType->getId())
+            ->getQuery();
+
+        $FromToList = $query->getResult();
+
+        // Combined "fromPerson" with multiple "toPerson"
+        $resultList = array();
+        if(!empty($FromToList)){
+            foreach($FromToList as $Value){
+                $resultList[$Value['serviceTblPersonFrom']][$Value['serviceTblPersonTo']] = $Value['serviceTblPersonTo'];
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
      * @param bool $isForced
