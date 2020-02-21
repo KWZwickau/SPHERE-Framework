@@ -162,10 +162,6 @@ class Service extends Extension
                 $Error = true;
             }
         }
-        if (isset( $Request['Subject'] ) && empty( $Request['Subject'] )) {
-            $Form->setError('Request[Subject]', 'Bitte geben Sie einen Betreff an');
-            $Error = true;
-        }
         if (isset( $Request['Body'] ) && empty( $Request['Body'] )) {
             $Form->setError('Request[Body]', 'Bitte geben Sie einen Inhalt an');
             $Error = true;
@@ -176,7 +172,7 @@ class Service extends Extension
             try {
                 $mailAddress = $Request['Mail'];
 
-                $subject = utf8_decode($Request['Subject']);
+                $subject = utf8_decode('Cource-Code Anfrage');
 
                 $body = '';
                 if (($tblAccount = Account::useService()->getAccountBySession())) {

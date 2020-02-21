@@ -98,7 +98,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendRequest($Ticket = null)
     {
 
-        $Stage = new Stage('Support', 'Anfrage erstellen');
+        $Stage = new Stage('Source-Code', 'Anfrage erstellen');
         $Stage->addButton(new Standard('Zurück', '/Document/License', new ChevronLeft()));
 
         $Stage->setContent(
@@ -128,11 +128,10 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Support-Anfrage', array(
+                        new Panel('Anfrage', array(
                             (new MailField('Ticket[Mail]', 'meine@email.de', 'Ihre Email-Adresse', new Mail()))->setRequired(),
-                            (new TextField('Ticket[Subject]', 'Thema', 'Betreff der Anfrage', new Flash()))->setRequired(),
                             (new TextArea('Ticket[Body]', 'Meine Frage oder mein Problem',
-                                'Inhalt der Nachricht', new Quote()))->setRequired(),
+                                'Inhalt der Anfrage', new Quote()))->setRequired(),
                             new TextField('Ticket[CallBackNumber]', 'Vorwahl/Telefonnummer', 'Rückrufnummer', new Phone()),
                         ), Panel::PANEL_TYPE_INFO,
                             new Primary('Absenden', new Mail()).new Danger(new Small(' (* Pflichtfeld)')))),
