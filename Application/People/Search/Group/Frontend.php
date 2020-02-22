@@ -144,9 +144,20 @@ class Frontend extends Extension implements IFrontendInterface
                               'Group' => $tblGroup->getId())
                         , 'Person löschen');
 
+                    // CSW fast reaction
+                    if($item['Division'] == 'Achat'
+                    || $item['Division'] == 'Bergkristall'
+                    || $item['Division'] == 'Opal'
+                    || $item['Division'] == 'Saphir'
+                    || $item['Division'] == 'Topas'){
+                        $item = array();
+                    }
+
                     array_push($tableContent, $item);
                 });
             }
+
+            $tableContent = array_filter($tableContent);
 
             $YearNow = '';
             if (($YearList = Term::useService()->getYearByNow())) {
