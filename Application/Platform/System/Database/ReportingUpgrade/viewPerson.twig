@@ -11,13 +11,13 @@ SELECT
     concat(
         tP.FirstName, ' ',
         tP.SecondName,
-        IF(tP.SecondName = '', ' ', ''),
+        IF(tP.SecondName = '', '', ' '),
         tP.LastName
     ) as TblPerson_FirstLastName,
     concat(
         tP.LastName, ' ',
         tP.FirstName,
-        IF(tP.SecondName = '', ' ', ''),
+        IF(tP.SecondName = '', '', ' '),
         tP.SecondName
     ) as TblPerson_LastFirstName,
     tP.EntityRemove AS TblPerson_EntityRemove,
