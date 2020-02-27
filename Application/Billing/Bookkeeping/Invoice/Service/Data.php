@@ -402,6 +402,7 @@ class Data extends AbstractData
                     $Description = $Item['Description'];
                     $Value = $Item['Value'];
                     $Quantity = $Item['Quantity'];
+                    $IsPaid = $Item['IsPaid'];
 
                     $Entity = $Manager->getEntity('TblInvoiceItemDebtor')->findOneBy(
                         array(
@@ -427,7 +428,7 @@ class Data extends AbstractData
                         $Entity->setBankName($BankName);
                         $Entity->setIBAN($IBAN);
                         $Entity->setBIC($BIC);
-                        $Entity->setIsPaid(true);
+                        $Entity->setIsPaid($IsPaid);
                         $Entity->setServiceTblItem($tblItem);
                         $Entity->setServiceTblPersonDebtor($tblPerson);
                         $Entity->setServiceTblBankAccount($tblBankAccount);
