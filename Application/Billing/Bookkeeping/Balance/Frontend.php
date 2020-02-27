@@ -304,6 +304,10 @@ class Frontend extends Extension implements IFrontendInterface
         if(!isset($Balance['To'])){
             $_POST['Balance']['To'] = '12';
         }
+        // required from Select2
+        if(!isset($Balance['BasketType'])){
+            $_POST['Balance']['BasketType'] = '-1';
+        }
 
         if(!isset($Balance['Filter'])){
             $_POST['Balance']['Filter'] = self::FILTER_CLASS;
@@ -879,7 +883,8 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 (new SelectBox('Data[Document]', 'Bescheinigung', array('{{ Name }}' => $tblDocumentList)))
                     ->ajaxPipelineOnChange(ApiDocument::pipelineLoadDocumentContent($tblItem->getId(), $Location,
-                        $Date)),
+                        $Date))
+                    ->configureLibrary(SelectBox::LIBRARY_SELECTER),
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(array(
                         new TextField('Data[Subject]',
