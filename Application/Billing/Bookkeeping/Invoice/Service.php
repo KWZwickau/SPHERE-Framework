@@ -531,6 +531,12 @@ class Service extends AbstractService
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblBankReference'] = $tblBankReference;
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblBankAccount'] = $tblBankAccount;
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblPaymentType'] = $tblPaymentType;
+            if($tblPaymentType && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                $isPaid = true;
+            } else {
+                $isPaid = false;
+            }
+            $InvoiceItemDebtorList[$GroupString][$i]['IsPaid'] = $isPaid;
         });
 
         // create
@@ -629,8 +635,8 @@ class Service extends AbstractService
 
 //                        $item['Option'] = '';
                         // convert to Frontend
-                        $item['ItemPrice'] = str_replace('.',',', number_format($item['ItemPrice'], 2) . ($IsFrontend ? ' €' : ''));
-                        $item['ItemSumPrice'] = str_replace('.',',', number_format($item['ItemSumPrice'], 2) . ($IsFrontend ? ' €' : ''));
+                        $item['ItemPrice'] = str_replace('.',',', number_format($item['ItemPrice'], 2) . ($IsFrontend ? '&nbsp;€' : ''));
+                        $item['ItemSumPrice'] = str_replace('.',',', number_format($item['ItemSumPrice'], 2) . ($IsFrontend ? '&nbsp;€' : ''));
                         array_push($TableContent, $item);
                     }
                 }
@@ -913,6 +919,9 @@ class Service extends AbstractService
                 $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
                 $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
                 $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                $item['PaymentType'] = ($tblInvoiceItemDebtor->getServiceTblPaymentType()
+                    ? $tblInvoiceItemDebtor->getServiceTblPaymentType()->getName()
+                    : 'Zahlungsart nicht gefunden');
                 $item['InvoiceNumber'] = '';
                 $item['CauserPerson'] = '';
                 $item['Time'] = '';
@@ -954,6 +963,8 @@ class Service extends AbstractService
                 $CheckBox = $CheckBox.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
                     new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
                         , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY));
+                // no line break
+                $CheckBox = '<div style="width: 100px">'.$CheckBox.'</div>';
 
                 $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox,
                     $tblInvoiceItemDebtor->getId());
