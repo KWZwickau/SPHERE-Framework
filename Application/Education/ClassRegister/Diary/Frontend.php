@@ -450,9 +450,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Danger('
-                                    Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und 
-                                    Löschungsrecht durch die betroffene Person und deren Sorgeberechtigten. 
-                                    Aus diesem Grund sollten in diesem Tagebuch nur objektivierbare Sachverhalte vermerkt werden.
+                                    Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und
+                                    Löschungsrecht durch die betroffenen Personen und deren Sorgeberechtigten. Aus
+                                    diesem Grund sind in diesem Tagebuch nur objektivierbare Sachverhalte und keine
+                                    Klarnamen zu vermerken.
                                 ', new Exclamation())
                             ))
                         )),
@@ -523,9 +524,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Danger('
-                                    Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und 
-                                    Löschungsrecht durch die betroffene Person und deren Sorgeberechtigten. 
-                                    Aus diesem Grund sollten in diesem Tagebuch nur objektivierbare Sachverhalte vermerkt werden.
+                                    Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und
+                                    Löschungsrecht durch die betroffenen Personen und deren Sorgeberechtigten. Aus
+                                    diesem Grund sind in diesem Tagebuch nur objektivierbare Sachverhalte und keine
+                                    Klarnamen zu vermerken.
                                 ', new Exclamation())
                             ))
                         )),
