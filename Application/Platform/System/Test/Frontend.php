@@ -62,6 +62,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -152,6 +153,14 @@ class Frontend extends Extension implements IFrontendInterface
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenThirdModal());
         $fourReceiverButton = (new Standard('Modal mit "Tabs"', ApiSystemTest::getEndpoint()))
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFourthModal());
+        // reconstruct Table with content
+        $CheckBoxForm = new TableData(
+            array(
+                '1' => array('Check' => new CheckBox('ToggleTest1', 'T1', 1),),
+                '2' => array('Check' => new CheckBox('ToggleTest2', 'T2', 2),),
+                '3' => array('Check' => new CheckBox('ToggleTest3', 'T3', 3),),
+                '4' => array('Check' => new CheckBox('ToggleTest4', 'T4', 4),),
+            ), null, array('Check' => 'CheckBox'), null);
 
         $Stage->setContent(
             (new Form(
@@ -213,7 +222,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new FormRow(array(
                         new FormColumn(array(
-                            (new SelectBox('SelectBox1', 'SelectBox - Bootstrap',
+                            (new SelectBox('SelectBox1', 'SelectBox - Bootstrap (funktioniert nicht auf Tablet\'s)',
                                 array('0' => 'A', '2' => '1', '3' => '2', '4' => '3'), new Select()
                             ))->configureLibrary( SelectBox::LIBRARY_SELECTER ),
                             (new SelectBox('SelectBox2', 'SelectBox2 - Lang (ab 7 Einträge) - Default',
@@ -236,6 +245,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('TextField', 'TextField', 'TextField')
                             , 3),
                     )),
+                    new FormRow(
+                        new FormColumn(array(
+                            new ToggleCheckbox('Alle wählen/abwählen', $CheckBoxForm),
+                            $CheckBoxForm
+                        ))
+                    )
 //                    new FormRow( array(
 //                        new FormColumn(
 //                            new \SPHERE\Common\Frontend\Form\Repository\Title('Title')
