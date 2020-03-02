@@ -545,8 +545,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormColumn(
                                     new Panel(
                                         'Filter für',
-                                        (new SelectBox('Balance[Filter]', '',
-                                            $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem)),
+                                        (new SelectBox('Balance[Filter]', '', $filterOptions))
+                                            ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
+                                            ->configureLibrary(Selectbox::LIBRARY_SELECTER),
                                         Panel::PANEL_TYPE_PRIMARY
                                     )
                                 , 3)
@@ -575,8 +576,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormColumn(
                                     new Panel(
                                         'Filter für',
-                                        (new SelectBox('Balance[Filter]', '',
-                                            $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem)),
+                                        (new SelectBox('Balance[Filter]', '', $filterOptions))
+                                            ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
+                                            ->configureLibrary(Selectbox::LIBRARY_SELECTER),
                                         Panel::PANEL_TYPE_PRIMARY
                                     )
                                 , 3)
