@@ -118,6 +118,8 @@ class DataView extends AbstractData
             }
             if($tblYear){
                 $queryBuilder->andWhere($queryBuilder->expr()->eq('vES.TblYear_Year', '?2'))
+                    ->orWhere($queryBuilder->expr()->isNull('vES.TblYear_Year'))
+                    ->andWhere($queryBuilder->expr()->eq('vG.TblGroup_Id', '?1'))
                     ->setParameter(2, $tblYear->getYear());
             }
         }
