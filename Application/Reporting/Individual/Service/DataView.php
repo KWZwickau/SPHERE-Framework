@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Reporting\Individual\Service;
 
 use Doctrine\ORM\Query\Expr\Join;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -70,7 +69,6 @@ class DataView extends AbstractData
      * <br/>TblPerson_LastFirstName
      * <br/>TblCommon_Remark
      * <br/>Address
-     * <br/>Division
      * <br/>Identifier
      * <br/>Year
      * <br/>Level
@@ -85,7 +83,7 @@ class DataView extends AbstractData
          vPC.TblCity_Code, vPC.TblCity_District, vPC.TblAddress_StreetName, vPC.TblAddress_StreetNumber';
 
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
-            $SelectString .= ', vES.TblDivision_Display, vGSB.TblStudent_Identifier';
+            $SelectString .= ', vGSB.TblStudent_Identifier';
         }
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT){
             $SelectString .= ', vGP.TblProspectReservation_ReservationYear, vGP.TblType_NameA, vGP.TblType_NameB,
@@ -105,23 +103,9 @@ class DataView extends AbstractData
             ->setParameter(1, $tblGroup->getId());
 
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
-
-            $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewEducationStudent', 'vES', Join::WITH,
-                'vES.TblPerson_Id = vG.TblPerson_Id'
-            );
             $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewGroupStudentBasic', 'vGSB', Join::WITH,
                 'vGSB.TblPerson_Id = vG.TblPerson_Id'
             );
-
-            if(($tblYear = Term::useService()->getYearByNow())){
-                $tblYear = current($tblYear);
-            }
-            if($tblYear){
-                $queryBuilder->andWhere($queryBuilder->expr()->eq('vES.TblYear_Year', '?2'))
-                    ->orWhere($queryBuilder->expr()->isNull('vES.TblYear_Year'))
-                    ->andWhere($queryBuilder->expr()->eq('vG.TblGroup_Id', '?1'))
-                    ->setParameter(2, $tblYear->getYear());
-            }
         }
 
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT){
@@ -151,7 +135,6 @@ class DataView extends AbstractData
                     ($resultSingle['TblCity_District'] ? $resultSingle['TblCity_District'].' ' : '').
                     $resultSingle['TblAddress_StreetName'].' '.$resultSingle['TblAddress_StreetNumber'];
                 // Student
-                $item['Division'] = (isset($resultSingle['TblDivision_Display']) ? $resultSingle['TblDivision_Display'] : '');
                 $item['Identifier'] = (isset($resultSingle['TblStudent_Identifier']) ? $resultSingle['TblStudent_Identifier'] : '');
                 // Prospect
                 $item['Year'] = (isset($resultSingle['TblProspectReservation_ReservationYear']) ? $resultSingle['TblProspectReservation_ReservationYear'] : '');

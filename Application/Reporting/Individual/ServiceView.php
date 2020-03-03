@@ -65,7 +65,6 @@ class ServiceView extends AbstractService
      * <br/>TblPerson_LastFirstName
      * <br/>TblCommon_Remark
      * <br/>Address
-     * <br/>Division
      * <br/>Identifier
      * <br/>Year
      * <br/>Level
