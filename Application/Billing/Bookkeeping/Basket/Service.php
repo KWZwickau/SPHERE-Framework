@@ -30,7 +30,9 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -768,6 +770,31 @@ class Service extends AbstractService
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
             $tblPaymentType, $Value, $tblItemVariant, $tblBankAccount, $tblBankReference);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblBasket      $tblBasket
+     * @param array|null     $VerificationList
+     *
+     * @return string
+     */
+    public function removeBasketVerificationList(IFormInterface $Form, TblBasket $tblBasket, $VerificationList = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $VerificationList){
+            return $Form;
+        }
+
+        foreach ($VerificationList as $VerificationId) {
+            $tblBasketVerifivation = Basket::useService()->getBasketVerificationById($VerificationId);
+            Basket::useService()->destroyBasketVerification($tblBasketVerifivation);
+        }
+        return new Success('Zahlungen wurden erfolgreich entfernt.')
+            .new Redirect('/Billing/Bookkeeping/Basket/View', Redirect::TIMEOUT_SUCCESS, array('BasketId' => $tblBasket->getId()));
     }
 
     /**

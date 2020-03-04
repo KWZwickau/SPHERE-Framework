@@ -39,6 +39,11 @@ class Basket implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Reduce',
+                __NAMESPACE__.'\Frontend::frontendBasketReduce'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ViewRepayment',
                 __NAMESPACE__.'\Frontend::frontendBasketViewRepayment'
             )

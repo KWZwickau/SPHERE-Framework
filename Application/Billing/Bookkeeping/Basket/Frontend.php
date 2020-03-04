@@ -16,6 +16,8 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -33,6 +35,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -46,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -341,48 +346,71 @@ class Frontend extends Extension implements IFrontendInterface
         // out of memory (Test with 3300 entrys)
         ini_set('memory_limit', '-1');
         $Stage = new Stage('Abrechnung', 'Inhalt');
+        $tblBasket = Basket::useService()->getBasketById($BasketId);
+        if(!$tblBasket){
+            $Stage->setContent(
+                new Warning('Abrechnung nicht vorhanden.')
+                .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR)
+            );
+            return $Stage;
+        }
+        // BackButton
+        if($tblBasket->getIsArchive()){
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft(), array('IsArchive' => $tblBasket->getIsArchive())));
+        } else {
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        }
 
-        $PanelHead = $Time = $TargetTime = $BillTime = '';
-        if($tblBasket = Basket::useService()->getBasketById($BasketId)){
-            $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
-            $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
-            $TargetTime = $tblBasket->getTargetTime();
-            $BillTime = $tblBasket->getBillTime();
+        if(($tblBasketType = $tblBasket->getTblBasketType())){
+            // Update Title
+            $Stage->setTitle($tblBasketType->getName());
+        }
 
-            if($tblBasket->getIsArchive()){
-                $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft(), array('IsArchive' => $tblBasket->getIsArchive())));
-            } else {
-                $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-            }
-            if(($tblBasketType = $tblBasket->getTblBasketType())){
-                // Update Title
-                $Stage->setTitle($tblBasketType->getName());
-            }
+        if(!$tblBasket->getIsDone()){
+            $Stage->addButton(new Standard(' Massenentfernung', __NAMESPACE__.'/Reduce', new View(), array('BasketId' => $tblBasket->getId())));
         }
 
         $Stage->setContent(
             ApiBasketVerification::receiverModal('Bearbeiten')
             .ApiBasketVerification::receiverModal('Entfernen einer Zahlung', 'deleteDebtorSelection')
             .ApiBasketVerification::receiverService()
-            .new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel('', new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn(new InfoText('<span style="font-size: large">'.$PanelHead.'</span>'),
-                                    6),
-                                new LayoutColumn('Rechnungsdatum:'.new Container($BillTime), 2),
-                                new LayoutColumn('Abrechnungszeitraum:'.new Container($Time), 2),
-                                new LayoutColumn('Fälligkeitsdatum:'.new Container($TargetTime), 2),
-                            )))), Panel::PANEL_TYPE_INFO)
-                        )
-                    )
-                )
-            )
+            .$this->getBasketHeadPanel($tblBasket)
             .ApiBasketVerification::receiverTableLayout($this->getBasketVerificationLayout($BasketId))
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return Layout
+     */
+    private function getBasketHeadPanel(TblBasket $tblBasket){
+
+        $PanelHead = $Time = $TargetTime = $BillTime = '';
+        if($tblBasket){
+            $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
+            $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
+            $TargetTime = $tblBasket->getTargetTime();
+            $BillTime = $tblBasket->getBillTime();
+        }
+
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Panel('', new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(new InfoText('<span style="font-size: large">'.$PanelHead.'</span>'),
+                                6),
+                            new LayoutColumn('Rechnungsdatum:'.new Container($BillTime), 2),
+                            new LayoutColumn('Abrechnungszeitraum:'.new Container($Time), 2),
+                            new LayoutColumn('Fälligkeitsdatum:'.new Container($TargetTime), 2),
+                        )))), Panel::PANEL_TYPE_INFO)
+                    )
+                )
+            )
+        );
     }
 
     /**
@@ -632,6 +660,99 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @param null $BasketId
+     * @param null $Verification
+     *
+     * @return Stage
+     */
+    public function frontendBasketReduce($BasketId = null, $Verification = null)
+    {
+
+        $Stage = new Stage('Abrechnung', 'Inhalt reduzieren');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), array('BasketId' => $BasketId)));
+
+        $tblBasket = Basket::useService()->getBasketById($BasketId);
+        if(!$tblBasket){
+            $Stage->setContent(new Danger('Abrechnung wurde nicht gefunden')
+                .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+        $TableContent = array();
+        if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
+            array_walk($tblBasketVerificationList,
+            function(TblBasketVerification $tblBasketVerification) use (&$TableContent, $tblBasket){
+                $Item['Option'] = (new CheckBox('Verification[Checkbox'.$tblBasketVerification->getId().']', '&nbsp;',
+                    $tblBasketVerification->getId()));
+                $Item['PersonCauser'] = '';
+                $Item['PersonDebtor'] = '';
+                $Item['Item'] = '';
+                if (($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
+                    $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
+                }
+                if (($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
+                    $Item['PersonDebtor'] = $tblPersonDebtor->getLastFirstName();
+                }
+                if (($tblItem = $tblBasketVerification->getServiceTblItem())){
+                    $Item['Item'] = $tblItem->getName();
+                }
+                array_push($TableContent, $Item);
+            });
+        }
+
+        $TableLayout =new Form(new FormGroup(new FormRow(new FormColumn(
+            new TableData($TableContent, null,
+                array(
+                    'Option'           => 'Entfernen',
+                    'PersonCauser'     => 'Beitragsverursacher',
+                    'PersonDebtor'     => 'Beitragszahler',
+                    'Item'             => 'Beitragsart'
+                ), array(
+                    'columnDefs' => array(
+                        array('type'    => Consumer::useService()->getGermanSortBySetting(),
+                              'targets' => array(1, 2)
+                        ),
+                        array("orderable" => false, "targets" => array(0)),
+                    ),
+                    'order'      => array(
+                        array(1, 'asc'),
+                        array(2, 'asc')
+                    ),
+                    'pageLength' => -1,
+                    'paging' => false,
+                    'info' => false,
+                    'searching' => false,
+                    'responsive' => false
+                )
+            )
+        ))));
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $this->getBasketHeadPanel($tblBasket)
+                        ),
+                        new LayoutColumn(
+                            ($Verification === null
+                            ? new ToggleCheckbox('Alle auswählen/abwählen', $TableLayout)
+                            : '')
+                            .Basket::useService()->removeBasketVerificationList(
+                                $TableLayout
+                                    ->appendFormButton(new PrimaryForm('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblBasket, $Verification
+                            )
+                        )
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
     }
 
     /**
