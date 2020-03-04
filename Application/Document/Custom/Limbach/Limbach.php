@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -147,6 +148,7 @@ class Limbach extends Extension implements IModuleInterface
     {
 
         $Stage = new Stage('Schulvertrag', 'Erstellen');
+        $Stage->addButton(new Standard('Zurück', '/Document/Custom/Limbach', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
         $Gender = false;
