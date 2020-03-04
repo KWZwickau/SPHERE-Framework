@@ -224,8 +224,24 @@ class SchoolContract extends AbstractDocument
                                 ->addElementColumn((new Element())
                                     ->setContent('- Nachfolgend Eltern/Erziehungsberechtigte genannt –')
                                     ->styleTextSize(self::TEXT_SIZE)
-                                    ->stylePaddingBottom('25px')
+                                    ->stylePaddingBottom('15px')
                                     ->stylePaddingLeft('90px')
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Als gesetzlicher Vertreter 
+                                    {% if '.$this->FieldValue['Female'].' == "true" %}
+                                        der Schülerin
+                                    {% else %}
+                                        {% if '.$this->FieldValue['Male'].' == "true" %}
+                                            des  Schülers
+                                        {% else %}
+                                            des Schülers/der Schülerin
+                                        {% endif %}
+                                    {% endif %}')
+                                    ->styleTextSize(self::TEXT_SIZE)
+                                    ->stylePaddingBottom('15px')
                                 )
                             )
                             ->addSection((new Section())
@@ -239,7 +255,7 @@ class SchoolContract extends AbstractDocument
                                 ->addElementColumn((new Element())
                                     ->setContent('Geboren am '.$this->FieldValue['Birthday'])
                                     ->styleTextSize(self::TEXT_SIZE)
-                                    ->stylePaddingBottom('60px')
+                                    ->stylePaddingBottom('40px')
                                     ->stylePaddingLeft('90px')
                                 )
                             )
@@ -305,7 +321,7 @@ class SchoolContract extends AbstractDocument
                                 ->addElementColumn((new Element())
                                     ->setContent('Schulvertrag')
                                     ->styleTextSize('9pt')
-                                    ->styleMarginTop('50px')
+                                    ->styleMarginTop('45px')
                                     ->styleHeight('0px')
                                     , '20%'
                                 )
