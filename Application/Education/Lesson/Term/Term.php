@@ -159,7 +159,7 @@ class Term implements IModuleInterface
                     'Holiday' => new Panel(
                         (empty($holidayList) ?
                             'Keine Unterrichtsfreien Tage hinterlegt'
-                            : count($holidayList) . ' Unterrichtsfreie Tage'),
+                            : count($holidayList) . ' Unterrichtsfreie Zeiträume'),
                         $holidayList,
                         (empty($holidayList) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT)
                         , new Standard('', __NAMESPACE__ . '\Holiday\Select', new Holiday(),
@@ -191,7 +191,7 @@ class Term implements IModuleInterface
                                 $Year, null, array(
                                     'Schuljahr' => 'Schuljahr',
                                     'Zeiträume' => 'Zeiträume',
-                                    'Holiday' => 'Unterrichtsfreie Tage',
+                                    'Holiday' => 'Unterrichtsfreie Zeiträume',
 //                                    'Optionen'  => 'Zuordnung'
                                 ), array(
                                     'order'      => array(
