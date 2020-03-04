@@ -367,7 +367,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if(!$tblBasket->getIsDone()){
-            $Stage->addButton(new Standard(' Massenentfernung', __NAMESPACE__.'/Reduce', new View(), array('BasketId' => $tblBasket->getId())));
+            $Stage->addButton(new Standard(' Filterung zur Einzelabrechnung', __NAMESPACE__.'/Reduce', new View(), array('BasketId' => $tblBasket->getId())));
         }
 
         $Stage->setContent(
