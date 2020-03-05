@@ -21,7 +21,7 @@ use SPHERE\Application\People\Person\Person;
 class SchoolContract extends AbstractDocument
 {
 
-    const TEXT_SIZE = '12pt';
+    const TEXT_SIZE = '11pt';
 
     /**
      * AccidentReport constructor.
@@ -191,6 +191,7 @@ class SchoolContract extends AbstractDocument
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingLeft('90px')
                                     ->stylePaddingBottom('25px')
+                                    ->styleLineHeight('130%')
                                 )
                             )
                             ->addSection((new Section())
@@ -224,8 +225,24 @@ class SchoolContract extends AbstractDocument
                                 ->addElementColumn((new Element())
                                     ->setContent('- Nachfolgend Eltern/Erziehungsberechtigte genannt –')
                                     ->styleTextSize(self::TEXT_SIZE)
-                                    ->stylePaddingBottom('25px')
+                                    ->stylePaddingBottom('15px')
                                     ->stylePaddingLeft('90px')
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Als gesetzlicher Vertreter 
+                                    {% if '.$this->FieldValue['Female'].' == "true" %}
+                                        der Schülerin
+                                    {% else %}
+                                        {% if '.$this->FieldValue['Male'].' == "true" %}
+                                            des  Schülers
+                                        {% else %}
+                                            des Schülers/der Schülerin
+                                        {% endif %}
+                                    {% endif %}')
+                                    ->styleTextSize(self::TEXT_SIZE)
+                                    ->stylePaddingBottom('15px')
                                 )
                             )
                             ->addSection((new Section())
@@ -233,14 +250,16 @@ class SchoolContract extends AbstractDocument
                                     ->setContent($this->FieldValue['FirstLastName'])
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingLeft('90px')
+                                    ->styleLineHeight('130%')
                                 )
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Geboren am '.$this->FieldValue['Birthday'])
                                     ->styleTextSize(self::TEXT_SIZE)
-                                    ->stylePaddingBottom('60px')
+                                    ->stylePaddingBottom('50px')
                                     ->stylePaddingLeft('90px')
+                                    ->styleLineHeight('130%')
                                 )
                             )
                             ->addSection((new Section())
@@ -268,6 +287,7 @@ class SchoolContract extends AbstractDocument
                                         sind den Eltern bekannt und als Anhänge Teil dieses Vertrages.')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->styleAlignJustify()
+                                    ->styleLineHeight('130%')
                                 )
                             )
                             ->addSection((new Section())
@@ -275,6 +295,7 @@ class SchoolContract extends AbstractDocument
                                     ->setContent('Personensorgeberechtigte und Schüler/in verstehen sich, ebenso wie
                                      alle angestellten und ehrenamtlichen Mitarbeiter, ausdrücklich als Teil dieser
                                       Bekenntnisgemeinschaft.')
+                                    ->styleLineHeight('130%')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('25px')
                                     ->styleAlignJustify()
@@ -299,20 +320,21 @@ class SchoolContract extends AbstractDocument
                                     aufgenommen.')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->styleAlignJustify()
+                                    ->styleLineHeight('130%')
                                 )
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Schulvertrag')
                                     ->styleTextSize('9pt')
-                                    ->styleMarginTop('50px')
+                                    ->styleMarginTop('67px')
                                     ->styleHeight('0px')
                                     , '20%'
                                 )
                                 ->addElementColumn((new Element())
                                     ->setContent('Freies Evangelisches Limbacher Schulzentrum')
                                     ->styleTextSize('9pt')
-                                    ->styleMarginTop('50px')
+                                    ->styleMarginTop('67px')
                                     ->styleHeight('0px')
                                     ->styleAlignCenter()
                                     , '48%'
@@ -321,7 +343,7 @@ class SchoolContract extends AbstractDocument
                                     ->setContent('Seite 1 von 10')
                                     ->styleTextSize('9pt')
                                     ->styleAlignRight()
-                                    ->styleMarginTop('50px')
+                                    ->styleMarginTop('67px')
                                     ->styleHeight('0px')
                                     , '20%'
                                 )
@@ -354,6 +376,7 @@ class SchoolContract extends AbstractDocument
                         ->styleTextSize(self::TEXT_SIZE)
                         ->stylePaddingLeft('90px')
                         ->stylePaddingBottom('25px')
+                        ->styleLineHeight('130%')
                     )
                 );
         } else {
@@ -368,6 +391,7 @@ class SchoolContract extends AbstractDocument
                     ->styleTextSize(self::TEXT_SIZE)
                     ->stylePaddingLeft('90px')
                     ->stylePaddingBottom('25px')
+                    ->styleLineHeight('130%')
                     , '44%'
                 )
                 ->addElementColumn((new Element())
@@ -377,6 +401,7 @@ class SchoolContract extends AbstractDocument
                         '.$this->FieldValue['AddressPLZ2'].' '.$this->FieldValue['AddressCity2'])
                     ->styleTextSize(self::TEXT_SIZE)
                     ->stylePaddingBottom('25px')
+                    ->styleLineHeight('130%')
                     , '44%'
                 )
             );
