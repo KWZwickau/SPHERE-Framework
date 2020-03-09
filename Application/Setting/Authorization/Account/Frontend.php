@@ -47,8 +47,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -499,12 +501,22 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Account']['Name'] = preg_replace('!^(.*?)-!is', '', $tblAccount->getUsername());
             $Global->savePost();
 
+            $extraButton = '';
+            if($tblSessionAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession()){
+                if($tblIdentification = $tblSessionAccount->getServiceTblIdentification()){
+                    if($tblIdentification->getName() == 'System'){
+                        $extraButton = new Center(new ToggleCheckbox('Alles auswählen/abwählen', $this->formAccount($tblAccount)));
+                    }
+                }
+            }
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(new Well(
-                                Account::useService()->changeAccount(
+                                $extraButton
+                                .Account::useService()->changeAccount(
                                     $this->formAccount($tblAccount)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
