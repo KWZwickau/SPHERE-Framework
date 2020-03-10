@@ -63,6 +63,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
+use SPHERE\Common\Frontend\Link\Repository\ToggleContent;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -154,7 +155,27 @@ class Frontend extends Extension implements IFrontendInterface
         $fourReceiverButton = (new Standard('Modal mit "Tabs"', ApiSystemTest::getEndpoint()))
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFourthModal());
         // reconstruct Table with content
-        $CheckBoxForm = new TableData(
+
+        $toggleContent1 = new ToggleContent(
+            array(new CheckBox('ToggleTest3', 'T3', 5),
+                new CheckBox('ToggleTest4', 'T4', 6),
+                new CheckBox('ToggleTest5', 'T5', 7)
+            )
+        );
+        $toggleContent2 = new ToggleContent(
+            array(new CheckBox('ToggleTest8', 'T8', 1),
+                new CheckBox('ToggleTest9', 'T9', 1)
+            ));
+
+        $CheckBoxContentList = new ToggleContent(array(
+                new CheckBox('ToggleTest2', 'T2', 2),
+                $toggleContent1,
+                new CheckBox('ToggleTest6', 'T6', 1),
+                new CheckBox('ToggleTest7', 'T7', 1),
+                $toggleContent2
+            ));
+
+        $CheckBoxTable = new TableData(
             array(
                 '1' => array('Check' => new CheckBox('ToggleTest1', 'T1', 1),),
                 '2' => array('Check' => new CheckBox('ToggleTest2', 'T2', 2),),
@@ -245,12 +266,28 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('TextField', 'TextField', 'TextField')
                             , 3),
                     )),
-                    new FormRow(
+                    new FormRow(array(
                         new FormColumn(array(
-                            new ToggleCheckbox('Alle wählen/abwählen', $CheckBoxForm),
-                            $CheckBoxForm
-                        ))
-                    )
+                            new ToggleCheckbox('Alle wählen/abwählen', $CheckBoxTable),
+                            $CheckBoxTable
+                        ), 6),
+                        new FormColumn(
+                            new Layout( new LayoutGroup(new LayoutRow( array(
+                                new LayoutColumn(
+                                    new ToggleCheckbox('Alle wählen/abwählen', $CheckBoxContentList)
+                                    , 3),
+                                new LayoutColumn(
+                                    new ToggleCheckbox('3-5 wählen/abwählen', $toggleContent1)
+                                    , 3),
+                                new LayoutColumn(
+                                    new ToggleCheckbox('8-9 wählen/abwählen', $toggleContent2)
+                                    , 3),
+                                new LayoutColumn(
+                                    $CheckBoxContentList
+                                )
+                            ))))
+                        , 6)
+                    ))
 //                    new FormRow( array(
 //                        new FormColumn(
 //                            new \SPHERE\Common\Frontend\Form\Repository\Title('Title')

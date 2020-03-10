@@ -44,12 +44,15 @@ use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
+use SPHERE\Common\Frontend\Link\Repository\ToggleContent;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -356,8 +359,13 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 }
             );
         }
-        $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung', $AgreementPanel,
-            Panel::PANEL_TYPE_INFO);
+
+        $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung'
+            , $AgreementPanel, Panel::PANEL_TYPE_INFO);
+
+        $AgreementPanel = new ToggleContent($AgreementPanel);
+
+        $CheckboxButton = new PullRight(new ToggleCheckbox('Alle wählen/abwählen', $AgreementPanel));
 
         /**
          * Panel: Liberation
@@ -378,7 +386,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
         );
         $LiberationPanel = new Panel('Unterrichtsbefreiung', $LiberationPanel, Panel::PANEL_TYPE_INFO);
 
-        return (new Form(array(
+        $Form = (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
@@ -412,7 +420,10 @@ class FrontendStudentGeneral extends FrontendReadOnly
                         ), Panel::PANEL_TYPE_INFO),
                         $LiberationPanel
                     ), 4),
-                    new FormColumn($AgreementPanel, 4),
+                    new FormColumn(array(
+                        $CheckboxButton,
+                        $AgreementPanel
+                    ), 4),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
@@ -424,5 +435,16 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 ))
             ))
         )))->disableSubmitAction();
+
+        return $Form;
+
+//        return new Layout(new LayoutGroup(new LayoutRow(array(
+//            new LayoutColumn(
+//                new PullRight(new ToggleCheckbox('Alle wählen/abwählen', $Form))
+//            ),
+//            new LayoutColumn(
+//                $Form
+//            )
+//        ))));
     }
 }
