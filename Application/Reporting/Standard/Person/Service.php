@@ -36,6 +36,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Filter\Link\Pile;
@@ -157,6 +158,7 @@ class Service extends Extension
 
                 //Mail
                 $tblMailList = array();
+                $tblMailFrontendList = array();
                 $mailBusinessList = array();
                 $mailPrivateList = array();
                 $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson);
@@ -166,11 +168,15 @@ class Service extends Extension
                         $tblMail = $tblToPersonMail->getTblMail();
                         if ($tblMail) {
                             if (isset($tblMailList[$key])) {
-                                $tblMailList[$key] = $tblMailList[$key] . ', '
-                                    . $tblMail->getAddress();
+                                $preString = ', ';
+                                $tblMailList[$key] = $tblMailList[$key].$preString.$tblMail->getAddress();
+                                $tblMailFrontendList[$key] = $tblMailFrontendList[$key].$preString.
+                                    new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                             } else {
-                                $tblMailList[$key] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' ('
-                                    . $tblMail->getAddress();
+                                $preString = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' (';
+                                $tblMailList[$key] = $preString. $tblMail->getAddress();
+                                $tblMailFrontendList[$key] = $preString.
+                                    new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                             }
 
                             // für die Excel-Trennung der  Emailadressen nach Type
@@ -183,6 +189,7 @@ class Service extends Extension
                     }
                     if (isset($tblMailList[$key])) {
                         $tblMailList[$key] .= ')';
+                        $tblMailFrontendList[$key] .= ')';
                     }
                 }
 
@@ -279,12 +286,16 @@ class Service extends Extension
                                     $tblMail = $tblToPersonMail->getTblMail();
                                     if ($tblMail) {
                                         if (isset($tblMailList[$key])) {
-                                            $tblMailList[$key] = $tblMailList[$key] . ', '
-                                                . $tblMail->getAddress();
+                                            $preString = ', ';
+
+                                            $tblMailList[$key] = $tblMailList[$key].$preString.$tblMail->getAddress();
+                                            $tblMailFrontendList[$key] = $tblMailFrontendList[$key].$preString.
+                                                new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                                         } else {
-                                            $tblMailList[$key] = $pre . $tblPersonGuardian->getFirstName() . ' ' .
-                                                $tblPersonGuardian->getLastName() . ' ('
-                                                . $tblMail->getAddress();
+                                            $preString = $pre . $tblPersonGuardian->getFirstName() . ' ' .
+                                                $tblPersonGuardian->getLastName() . ' (';
+                                            $tblMailList[$key] = $preString. $tblMail->getAddress();
+                                            $tblMailFrontendList[$key] = $preString. new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                                         }
 
                                         // für die Excel-Trennung der  Emailadressen nach Type
@@ -297,6 +308,7 @@ class Service extends Extension
                                 }
                                 if (isset($tblMailList[$key])) {
                                     $tblMailList[$key] .= ')';
+                                    $tblMailFrontendList[$key] .= ')';
                                 }
                             }
                         }
@@ -312,8 +324,8 @@ class Service extends Extension
                 // Insert MailList
                 if (!empty($tblMailList)) {
                     ksort($tblMailList);
-                    $Item['Mail'] .= implode('<br>', $tblMailList);
                     $Item['ExcelMail'] = $tblMailList;
+                    $Item['Mail'] .= implode('<br>', $tblMailFrontendList);
 
                     if (!empty($mailPrivateList)) {
                         ksort($mailPrivateList);
@@ -1509,14 +1521,14 @@ class Service extends Extension
 //                ->mergeCells()->setAlignmentCenter();
             $export->setValue($export->getCell(0, 0), 'Gruppenliste ' . $tblGroup->getName());
 
-            if (!empty($tblGroup->getDescription())) {
+            if ($tblGroup->getDescription()) {
                 $Row++;
 //                $export->setStyle($export->getCell(0, 1), $export->getCell(12, 1))
 //                    ->mergeCells()->setAlignmentCenter();
                 $export->setValue($export->getCell(0, 1), $tblGroup->getDescription());
             }
 
-            if (!empty($tblGroup->getRemark())) {
+            if ($tblGroup->getRemark()) {
                 $Row++;
 //                $export->setStyle($export->getCell(0, 2), $export->getCell(12, 2))
 //                    ->mergeCells()->setAlignmentCenter();
