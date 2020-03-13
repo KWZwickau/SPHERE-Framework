@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -63,14 +65,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
-use SPHERE\Common\Frontend\Link\Repository\ToggleContent;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -86,7 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPlatform()
     {
-        $Global = $this->getGlobal();
+//        $Global = $this->getGlobal();
 //        $this->getDebugger()->screenDump($Global);
 //        $this->getDebugger()->screenDump($_REQUEST);
 //        $this->getDebugger()->screenDump($_FILES);
@@ -122,9 +123,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $IconList = array();
         if (false !== ( $Path = realpath(__DIR__.'/../../../../Common/Frontend/Icon/Repository') )) {
-            $Iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::CHILD_FIRST
+            $Iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($Path, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
             );
             /** @var \SplFileInfo $FileInfo */
             foreach ($Iterator as $FileInfo) {
@@ -155,32 +156,21 @@ class Frontend extends Extension implements IFrontendInterface
         $fourReceiverButton = (new Standard('Modal mit "Tabs"', ApiSystemTest::getEndpoint()))
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFourthModal());
         // reconstruct Table with content
-
-        $toggleContent1 = new ToggleContent(
-            array(new CheckBox('ToggleTest3', 'T3', 5),
-                new CheckBox('ToggleTest4', 'T4', 6),
-                new CheckBox('ToggleTest5', 'T5', 7)
-            )
+        $CheckboxList = array(
+            new CheckBox('ToggleSelective1', 'T1', 1),
+            new CheckBox('ToggleSelective2', 'T2', 2),
+            new CheckBox('ToggleSelective3', 'T3', 3),
+            new CheckBox('ToggleSelective4', 'T4', 4),
+            new CheckBox('ToggleSelective5', 'T5', 5)
         );
-        $toggleContent2 = new ToggleContent(
-            array(new CheckBox('ToggleTest8', 'T8', 1),
-                new CheckBox('ToggleTest9', 'T9', 1)
-            ));
 
-        $CheckBoxContentList = new ToggleContent(array(
-                new CheckBox('ToggleTest2', 'T2', 2),
-                $toggleContent1,
-                new CheckBox('ToggleTest6', 'T6', 1),
-                new CheckBox('ToggleTest7', 'T7', 1),
-                $toggleContent2
-            ));
 
         $CheckBoxTable = new TableData(
             array(
-                '1' => array('Check' => new CheckBox('ToggleTest1', 'T1', 1),),
-                '2' => array('Check' => new CheckBox('ToggleTest2', 'T2', 2),),
-                '3' => array('Check' => new CheckBox('ToggleTest3', 'T3', 3),),
-                '4' => array('Check' => new CheckBox('ToggleTest4', 'T4', 4),),
+                '1' => array('Check' => new CheckBox('ToggleTable1', 'C1', 1),),
+                '2' => array('Check' => new CheckBox('ToggleTable2', 'C2', 2),),
+                '3' => array('Check' => new CheckBox('ToggleTable3', 'C3', 3),),
+                '4' => array('Check' => new CheckBox('ToggleTable4', 'C4', 4),),
             ), null, array('Check' => 'CheckBox'), null);
 
         $Stage->setContent(
@@ -274,16 +264,22 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Layout( new LayoutGroup(new LayoutRow( array(
                                 new LayoutColumn(
-                                    new ToggleCheckbox('Alle wählen/abwählen', $CheckBoxContentList)
+                                    new ToggleSelective('Alle wählen/abwählen', array(
+                                        'ToggleSelective1', 'ToggleSelective2', 'ToggleSelective3', 'ToggleSelective4', 'ToggleSelective5'
+                                    ))
                                     , 3),
                                 new LayoutColumn(
-                                    new ToggleCheckbox('3-5 wählen/abwählen', $toggleContent1)
+                                    new ToggleSelective('2-5 wählen/abwählen', array(
+                                        'ToggleSelective2', 'ToggleSelective3', 'ToggleSelective4', 'ToggleSelective5'
+                                    ))
                                     , 3),
                                 new LayoutColumn(
-                                    new ToggleCheckbox('8-9 wählen/abwählen', $toggleContent2)
+                                    new ToggleSelective('4-5 wählen/abwählen', array(
+                                        'ToggleSelective4', 'ToggleSelective5'
+                                    ))
                                     , 3),
                                 new LayoutColumn(
-                                    $CheckBoxContentList
+                                    $CheckboxList
                                 )
                             ))))
                         , 6)
@@ -345,7 +341,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ), 3),
                         new LayoutColumn(array(
-                            new Well('Well', array())
+                            new Well('Well')
                         ), 3),
                         new LayoutColumn(
                             new TableData(array(
@@ -384,16 +380,16 @@ class Frontend extends Extension implements IFrontendInterface
                             (new LayoutSocial())
                                 ->addMediaItem('Head1', new Paragraph('Content').new Paragraph('Content'), new Time())
                                 ->addMediaItem('Head2', 'Content',
-                                    '<img src="/Common/Style/Resource/logo_kreide2.png" class="image-responsive" style="width:20px;"/>',
+                                    '<img src="/Common/Style/Resource/logo_kreide2.png" alt="Logo" class="image-responsive" style="width:20px;"/>',
                                     '', LayoutSocial::ALIGN_BOTTOM)
                                 ->addMediaList(
                                     (new LayoutSocial())
                                         ->addMediaItem('Head2.1',
                                             new Well(new Paragraph('Content').new Paragraph('Content')),
-                                            '<img src="/Common/Style/Resource/logo_kreide2.png" class="image-responsive" style="width:20px;"/>',
+                                            '<img src="/Common/Style/Resource/logo_kreide2.png" alt="Logo" class="image-responsive" style="width:20px;"/>',
                                             '', LayoutSocial::ALIGN_TOP)
                                         ->addMediaItem('', new Well('Content'),
-                                            '<img src="/Common/Style/Resource/logo_kreide2.png" class="image-responsive" style="width:20px;"/>',
+                                            '<img src="/Common/Style/Resource/logo_kreide2.png" alt="Logo" class="image-responsive" style="width:20px;"/>',
                                             '', LayoutSocial::ALIGN_MIDDLE)
                                 )
                             , 4),

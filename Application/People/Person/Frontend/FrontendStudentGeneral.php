@@ -18,7 +18,6 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -44,6 +43,8 @@ use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -51,8 +52,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
-use SPHERE\Common\Frontend\Link\Repository\ToggleContent;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -337,18 +337,28 @@ class FrontendStudentGeneral extends FrontendReadOnly
          * Panel: Agreement
          */
         $AgreementPanel = array();
+        $CheckboxList = array();
         if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
             array_walk($tblAgreementCategoryAll,
-                function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel) {
-                    array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
+                function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel, &$CheckboxList) {
                     $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                    // Extra Toggle on Category
+                    $CategoryCheckboxList = array();
+                    array_walk($tblAgreementTypeAll,
+                        function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CategoryCheckboxList,
+                            $tblStudentAgreementCategory) {
+                            $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']';
+                        }
+                    );
+                    array_push($AgreementPanel,new PullClear(new PullLeft(new Bold($tblStudentAgreementCategory->getName()))
+                    .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList))
+                    ));
                     if ($tblAgreementTypeAll) {
                         $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
                         array_walk($tblAgreementTypeAll,
-                            function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                &$AgreementPanel,
-                                $tblStudentAgreementCategory
-                            ) {
+                            function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CheckboxList,
+                                $tblStudentAgreementCategory) {
+                                $CheckboxList[] = 'Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']';
                                 array_push($AgreementPanel,
                                     new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
                                         $tblStudentAgreementType->getName(), 1)
@@ -360,12 +370,10 @@ class FrontendStudentGeneral extends FrontendReadOnly
             );
         }
 
-        $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung'
+        $CheckboxButton = new ToggleSelective('Alle wählen/abwählen', $CheckboxList);
+
+        $AgreementPanel = new Panel(new PullClear('Einverständniserklärung zur Datennutzung'.new PullRight($CheckboxButton))
             , $AgreementPanel, Panel::PANEL_TYPE_INFO);
-
-        $AgreementPanel = new ToggleContent($AgreementPanel);
-
-        $CheckboxButton = new PullRight(new ToggleCheckbox('Alle wählen/abwählen', $AgreementPanel));
 
         /**
          * Panel: Liberation
@@ -420,10 +428,9 @@ class FrontendStudentGeneral extends FrontendReadOnly
                         ), Panel::PANEL_TYPE_INFO),
                         $LiberationPanel
                     ), 4),
-                    new FormColumn(array(
-                        $CheckboxButton,
+                    new FormColumn(
                         $AgreementPanel
-                    ), 4),
+                    , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
