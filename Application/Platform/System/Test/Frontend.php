@@ -37,10 +37,12 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
@@ -68,6 +70,7 @@ use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
@@ -269,15 +272,25 @@ class Frontend extends Extension implements IFrontendInterface
                                     ))
                                     , 3),
                                 new LayoutColumn(
-                                    new ToggleSelective('2-5 wählen/abwählen', array(
+                                    new ToggleSelective('2-5 '.new Check().' / '.new Unchecked(), array(
                                         'ToggleSelective2', 'ToggleSelective3', 'ToggleSelective4', 'ToggleSelective5'
                                     ))
-                                    , 3),
+                                    , 2),
                                 new LayoutColumn(
-                                    new ToggleSelective('4-5 wählen/abwählen', array(
+                                    new ToggleSelective('4-5 '.new Check().' / '.new Unchecked(), array(
                                         'ToggleSelective4', 'ToggleSelective5'
                                     ))
-                                    , 3),
+                                    , 2),
+                                new LayoutColumn(
+                                    (new ToggleSelective(new Bold('4-5 '.new Check()), array(
+                                        'ToggleSelective4', 'ToggleSelective5'
+                                    )))->setMode(1)
+                                    , 2),
+                                new LayoutColumn(
+                                    (new ToggleSelective(new Bold('4-5 '.new Unchecked()), array(
+                                        'ToggleSelective4', 'ToggleSelective5'
+                                    )))->setMode(2)
+                                    , 2),
                                 new LayoutColumn(
                                     $CheckboxList
                                 )

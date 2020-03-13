@@ -96,4 +96,17 @@ class ToggleSelective extends Extension implements ILinkInterface
         return $this->Name;
     }
 
+    /**
+     * @param int $Mode
+     * 1 = alle wählen
+     * 2 = alle abwählen
+     *
+     * @return $this
+     */
+    public function setMode($Mode = 1)
+    {
+        $this->Template->setVariable('isActive', $Mode);
+        return $this;
+    }
+
 }
