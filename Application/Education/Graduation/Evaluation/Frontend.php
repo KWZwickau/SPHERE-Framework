@@ -2660,7 +2660,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblTest && $tblTest->isContinues()) {
                 $student[$tblPerson->getId()]['Date']
-                    = (new DatePicker('Grade[' . $tblPerson->getId() . '][Date]', '', ''))->setTabIndex($tabIndex++);
+                    = (new DatePicker('Grade[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom')) ))->setTabIndex($tabIndex++);
             }
 
             $student[$tblPerson->getId()]['Comment']
