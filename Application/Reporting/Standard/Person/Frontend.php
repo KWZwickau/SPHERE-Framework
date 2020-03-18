@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Reporting\Standard\Person;
 
+use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -857,8 +858,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel('Gruppe:',
                                     $tblGroup->getName().
-                                    (!empty($tblGroup->getDescription()) ? '<br/>' . $tblGroup->getDescription() : '').
-                                    (!empty($tblGroup->getRemark()) ? '<br/>' . $tblGroup->getRemark() : ''),
+                                    ($tblGroup->getDescription() ? '<br/>' . $tblGroup->getDescription() : '').
+                                    ($tblGroup->getRemark() ? '<br/>' . $tblGroup->getRemark() : ''),
                                     Panel::PANEL_TYPE_SUCCESS), 12
                             )
                         )
@@ -1514,7 +1515,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($Data == null) {
             $global = $this->getGlobal();
-            $global->POST['Data']['Date'] = (new \DateTime('now'))->format('d.m.Y');
+            $global->POST['Data']['Date'] = (new DateTime('now'))->format('d.m.Y');
             $global->savePost();
         }
 
