@@ -1352,7 +1352,7 @@ abstract class EzshStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('{% if(Content.P'.$personId.'.Input.Transfer is not empty) %}
-                    {{ Content.P'.$personId.'.Input.Transfer|nl2br }}
+                    {{ Content.P'.$personId.'.Input.Transfer|nl2br }}.
                 {% else %}
                     &nbsp;
                 {% endif %}')

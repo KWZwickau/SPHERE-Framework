@@ -953,7 +953,7 @@ class Service extends AbstractService
                         $remark = $tblPrepareInformation->getValue();
                     } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
-                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue() . '.';
+                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         // SSWHD-262
                         if ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
@@ -1046,6 +1046,7 @@ class Service extends AbstractService
                             . " " . $tblPersonSigner->getLastName());
                     break;
                     case 'EVSC':
+                    case 'EMSP':
                         $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
                             . " " . $tblPersonSigner->getLastName());
                         $divisionTeacherDescription = 'Klassenleiter';

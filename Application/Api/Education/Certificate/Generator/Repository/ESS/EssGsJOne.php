@@ -177,7 +177,7 @@ class EssGsJOne extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
-                        {{ Content.P' . $personId . '.Input.Transfer }}
+                        {{ Content.P' . $personId . '.Input.Transfer }}.
                     {% else %}
                           &nbsp;
                     {% endif %}')

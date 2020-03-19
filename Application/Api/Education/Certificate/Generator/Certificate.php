@@ -132,6 +132,12 @@ abstract class Certificate extends Extension
         // für Kinderbrief von Radebeul 2,5cm Rand
         } elseif (strpos(get_class($this), 'RadebeulKinderbrief') !== false) {
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; margin-top: 0.9cm !important; margin-bottom: 0.9cm !important; }';
+        } elseif (strpos(get_class($this), 'EmspGsJ') !== false) {
+            $InjectStyle = 'body { margin-left: 0.18cm !important; margin-right: 0.18cm !important; margin-top: 0.18cm !important;
+             padding-bottom: 0.18cm !important; border: 1px solid black; padding: 40px}';
+        } elseif (strpos(get_class($this), 'EmspGsHj') !== false) {
+            $InjectStyle = 'body { margin-left: 0.18cm !important; margin-right: 0.18cm !important; margin-top: 0.18cm !important;
+             padding-bottom: 0.18cm !important; border: 1px solid black; padding: 40px}';
         } elseif (strpos(get_class($this), 'RadebeulHalbjahresinformation') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
         } elseif (strpos(get_class($this), 'RadebeulJahreszeugnis') !== false) {
@@ -1762,10 +1768,10 @@ abstract class Certificate extends Extension
                 , '22%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
-                                        {{ Content.P' . $personId . '.Input.Transfer }}
-                                    {% else %}
-                                          &nbsp;
-                                    {% endif %}')
+                        {{ Content.P' . $personId . '.Input.Transfer }}.
+                    {% else %}
+                          &nbsp;
+                    {% endif %}')
                 ->styleBorderBottom('1px')
                 , '58%')
             ->addElementColumn((new Element())
