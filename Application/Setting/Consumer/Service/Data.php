@@ -289,7 +289,7 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation',
             'HasBehaviorGradesForSubjectsWithNoGrading', TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen',
-                'Bei Kopfnotenaufträgen können auch Kopfnoten für Fächer vergebenen werden, welche nicht benotet werden. [Standard: Nein]',
+                'Bei Kopfnotenaufträgen können auch Kopfnoten für Fächer vergeben werden, welche nicht benotet werden. [Standard: Nein]',
                 true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation',
