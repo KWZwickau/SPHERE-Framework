@@ -158,7 +158,7 @@ class Term implements IModuleInterface
                     )),
                     'Holiday' => new Panel(
                         (empty($holidayList) ?
-                            'Keine Unterrichtsfreien Tage hinterlegt'
+                            'Keine Unterrichtsfreie Zeiträume hinterlegt'
                             : count($holidayList) . ' Unterrichtsfreie Zeiträume'),
                         $holidayList,
                         (empty($holidayList) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT)
