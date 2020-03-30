@@ -339,14 +339,14 @@ class SchoolContract extends AbstractDocument
                                     ->styleAlignCenter()
                                     , '48%'
                                 )
-                                ->addElementColumn((new Element())
-                                    ->setContent('Seite 1 von 10')
-                                    ->styleTextSize('9pt')
-                                    ->styleAlignRight()
-                                    ->styleMarginTop('67px')
-                                    ->styleHeight('0px')
-                                    , '20%'
-                                )
+//                                ->addElementColumn((new Element())
+//                                    ->setContent('Seite 1 von 10')
+//                                    ->styleTextSize('9pt')
+//                                    ->styleAlignRight()
+//                                    ->styleMarginTop('67px')
+//                                    ->styleHeight('0px')
+//                                    , '20%'
+//                                )
                             )
                         )
                         ->addElementColumn((new Element())
