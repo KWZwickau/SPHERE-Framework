@@ -112,6 +112,8 @@ class Data extends AbstractData
         $this->createType('Kuratoriumsmitglied', '', $tblGroupCompany);
         $this->createType('Partner', '', $tblGroupCompany);
         $this->createType('Verwaltungsleiter', '', $tblGroupCompany);
+        $this->createType('Auszubildender', '', $tblGroupCompany);
+        $this->createType('Praktikant', '', $tblGroupCompany);
 
         $this->createSiblingRank('1. Geschwisterkind');
         $this->createSiblingRank('2. Geschwisterkind');
