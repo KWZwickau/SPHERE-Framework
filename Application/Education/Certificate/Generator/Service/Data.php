@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEZSH;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFELS;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFESH;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataLWSZ;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsfachschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataGym;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataPrimary;
@@ -235,6 +236,9 @@ class Data extends AbstractData
             }
             if ($tblConsumer->getAcronym() == 'FELS') {
                 IDataFELS::setCertificateIndividually($this);
+            }
+            if ($tblConsumer->getAcronym() == 'LWSZ') {
+                IDataLWSZ::setCertificateIndividually($this);
             }
         }
     }

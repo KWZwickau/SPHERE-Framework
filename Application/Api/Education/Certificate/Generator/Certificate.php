@@ -145,8 +145,13 @@ abstract class Certificate extends Extension
 //            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
             $InjectStyle = 'body { margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
-            // Grundschule muss ebenfalls gezogen werden
+        }
+        // Mandanten, deren individuelle Zeugnisse ebenfalls mit den Mandanteneinstellungen die Rahmenbreite verändern können
+        elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'ESZC'
+                             || $tblConsumer->getAcronym() == 'LWSZ'
+//                             || $tblConsumer->getAcronym() == 'REF' // local test
+                )
+            ) {
             $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
             $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
             if($tblSetting && $tblSetting->getValue() == 1){
