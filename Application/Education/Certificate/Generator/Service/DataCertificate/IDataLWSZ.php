@@ -29,7 +29,7 @@ class IDataLWSZ
     private static function setLwszGsOneHjInfo(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
+        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'Klasse 1-2',
             'LWSZ\LwszGsOneHjInfo', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
@@ -60,7 +60,7 @@ class IDataLWSZ
     private static function setLwszGsJOne(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'LWSZ\LwszGsJOne', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 1-2', 'LWSZ\LwszGsJOne', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
@@ -90,7 +90,7 @@ class IDataLWSZ
     private static function setLwszGsHjInfo(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', '', 'LWSZ\LwszGsHjInfo', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Halbjahresinformation', 'Klasse 3-4', 'LWSZ\LwszGsHjInfo', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary(), null, true);
@@ -135,7 +135,7 @@ class IDataLWSZ
     private static function setLwszGsJ(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', '', 'LWSZ\LwszGsJ', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 3-4', 'LWSZ\LwszGsJ', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
