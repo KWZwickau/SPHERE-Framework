@@ -73,6 +73,10 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendMinimumGradeCount($MinimumGradeCount = null)
     {
 
+        if(!isset($_POST['MinimumGradeCount']['Period'])){
+            $_POST['MinimumGradeCount']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
+        }
+
         $Stage = new Stage('Mindestnotenanzahl', 'Übersicht');
         $Stage->setMessage(
             'Hier werden die Mindestnotenanzahlen verwaltet.' . '<br>' .
