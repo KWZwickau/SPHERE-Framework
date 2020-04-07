@@ -54,7 +54,6 @@ use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -227,15 +226,27 @@ class Frontend extends Extension implements IFrontendInterface
     private function formAccount(TblAccount $tblAccount = null)
     {
 
+//        $TeacherRole = array(
+//            'Bildung: Klassenbuch (Lehrer)' => false,
+//            'Bildung: pädagogisches Tagebuch (Klassenlehrer)' => false,
+//            'Bildung: Zensurenvergabe (Lehrer)' => false,
+//            'Bildung: Zeugnis (Drucken - Klassenlehrer)' => false,
+//            'Bildung: Zeugnis (Vorbereitung - Klassenlehrer)' => false,
+//            'Einstellungen: Benutzer' => false
+//        );
+
         $tblConsumer = Consumer::useService()->getConsumerBySession();
 
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
         $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
-        if ($tblRoleAll) {
-            array_walk($tblRoleAll, function (TblRole &$tblRole) {
+        if ($tblRoleAll){
+            array_walk($tblRoleAll, function(TblRole &$tblRole) use(&$TeacherRole){
+//                if(array_key_exists($tblRole->getName(), $TeacherRole)){
+//                    $TeacherRole[$tblRole->getName()] = 'Account[Role]['.$tblRole->getId().']';
+//                }
 
-                if ($tblRole->isInternal()) {
+                if ($tblRole->isInternal()){
                     $tblRole = false;
                 } else {
                     if (!$tblRole->isIndividual()
@@ -244,9 +255,9 @@ class Frontend extends Extension implements IFrontendInterface
                             && ($tblConsumer = $tblAccount->getServiceTblConsumer())
                             && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))
                         )
-                    ) {
-                        $tblRole = new CheckBox('Account[Role][' . $tblRole->getId() . ']',
-                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()) . ' ' . $tblRole->getName(),
+                    ){
+                        $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']',
+                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
                             $tblRole->getId()
                         );
                     } else {
@@ -259,27 +270,29 @@ class Frontend extends Extension implements IFrontendInterface
             $tblRoleAll = array();
         }
 
+//        $TeacherRole
+
         // Token
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Account']['Token'] )) {
+        if (!isset($Global->POST['Account']['Token'])){
             $Global->POST['Account']['Token'] = 0;
             $Global->savePost();
         }
 
         $tblTokenAll = Token::useService()->getTokenAllByConsumer(Consumer::useService()->getConsumerBySession());
-        if ($tblAccount) {
+        if ($tblAccount){
             $tblToken = $tblAccount->getServiceTblToken();
         } else {
             $tblToken = false;
         }
-        if ($tblTokenAll) {
+        if ($tblTokenAll){
             $tblTokenAll = $this->getSorter($tblTokenAll)->sortObjectBy(TblToken::ATTR_SERIAL);
-            array_walk($tblTokenAll, function (TblToken &$tblTokenItem) use ($tblToken) {
+            array_walk($tblTokenAll, function(TblToken &$tblTokenItem) use ($tblToken){
 
                 if (
-                    ( $tblToken === false || $tblTokenItem->getId() != $tblToken->getId() )
+                    ($tblToken === false || $tblTokenItem->getId() != $tblToken->getId())
                     && !Account::useService()->getAccountAllByToken($tblTokenItem)
-                ) {
+                ){
                     $tblTokenItem = new RadioBox('Account[Token]',
                         implode(' ', str_split($tblTokenItem->getSerial(), 4)), $tblTokenItem->getId());
                 } else {
@@ -298,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         // Token Panel
-        if ($tblToken) {
+        if ($tblToken){
             array_unshift($tblTokenAll, new Danger('ODER einen anderen Schlüssel wählen: '));
             array_unshift($tblTokenAll,
                 new RadioBox('Account[Token]',
@@ -315,51 +328,31 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Person
-        if ($tblAccount) {
+        if ($tblAccount){
             $User = Account::useService()->getUserAllByAccount($tblAccount);
         }
-        if (!empty( $User )) {
+        if (!empty($User)){
             $tblPerson = $User[0]->getServiceTblPerson();
         } else {
             $tblPerson = false;
         }
 
-        $tblGroup = Group::useService()->getGroupByMetaTable('STAFF');
-        if ($tblGroup) {
-            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-        } else {
-            $tblPersonAll = false;
-        }
-        if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
-
-                if (
-                    (
-                        $tblPerson === false
-                        || $tblPersonItem->getId() != $tblPerson->getId()
-                    )
-                    && (
-                        !isset( $Global->POST['Account']['User'] )
-                        || (
-                            isset( $Global->POST['Account']['User'] ) && $Global->POST['Account']['User'] != $tblPersonItem->getId()
-                        )
-                    )
-                ) {
+        $tblPersonAll = array();
+        if (!$tblPerson){
+            $tblGroup = Group::useService()->getGroupByMetaTable('STAFF');
+            if ($tblGroup){
+                $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+            }
+            if ($tblPersonAll){
+                array_walk($tblPersonAll, function(TblPerson &$tblPersonItem) use ($tblPerson, $Global){
                     $tblPersonItem = array(
-                        'Select' => new RadioBox('Account[User]', '&nbsp;', $tblPersonItem->getId()),
+                        'Select'  => new RadioBox('Account[User]', '&nbsp;', $tblPersonItem->getId()),
                         'Person'  => $tblPersonItem->getLastFirstName(),
-                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
+                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiTwoRowString() : ''
                     );
-                } else {
-                    $tblPersonItem = array(
-                        'Person'  => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)',
-                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
-                    );
-                }
-            });
-            $tblPersonAll = array_filter($tblPersonAll);
-        } else {
-            $tblPersonAll = array();
+                });
+                $tblPersonAll = array_filter($tblPersonAll);
+            }
         }
 
         $columns = array(
@@ -372,37 +365,39 @@ class Frontend extends Extension implements IFrontendInterface
             'order' => array(
                 array(1, 'asc'),
             ),
-            'responsive' => false
+            'responsive' => false,
+            'lengthMenu' => [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, "All"]],
+            'pageLength' => 5
         );
 
         // Person Panel
         if ($tblPerson) {
-            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
-                new Danger('AKTUELL hinterlegte Person, '),
+            $PanelPerson = new Panel(new Person().' für folgenden Mitarbeiter', array(
+//                new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
-                new Danger('ODER eine andere Person wählen: '),
-                new TableData(
-                    $tblPersonAll,
-                    null,
-                    $columns,
-                    $interactive
-                )
+//                new Danger('ODER eine andere Person wählen: '),
+//                new TableData(
+//                    $tblPersonAll,
+//                    null,
+//                    $columns,
+//                    $interactive
+//                )
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
             $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
-            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
-                new Warning('AKTUELL selektierte Person, '),
+            $PanelPerson = new Panel(new Person().' für folgenden Mitarbeiter', array(
+//                new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
-                new Danger('ODER eine andere Person wählen: '),
-                new TableData(
-                    $tblPersonAll,
-                    null,
-                    $columns,
-                    $interactive
-                ),
+//                new Danger('ODER eine andere Person wählen: '),
+//                new TableData(
+//                    $tblPersonAll,
+//                    null,
+//                    $columns,
+//                    $interactive
+//                ),
             ), Panel::PANEL_TYPE_INFO);
         } else {
-            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
+            $PanelPerson = new Panel(new Person().' für folgenden Mitarbeiter', array(
                 new TableData(
                     $tblPersonAll,
                     null,
@@ -445,12 +440,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         $UsernamePanel,
-                        $PanelToken
-                    ), 4),
+                        $PanelToken,
+                        $PanelPerson
+                    ), 5),
                     new FormColumn(array(
                         new Panel(new Nameplate().' mit folgenden Berechtigungen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
-                        $PanelPerson,
-                    ), 8),
+//                        $PanelPersonRight,
+                    ), 7),
                 )),
             )),
         ));

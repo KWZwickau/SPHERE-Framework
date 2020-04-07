@@ -188,12 +188,12 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Error = true;
         }
 
-        if (!isset( $Account['User'] )) {
-            $Form->prependGridGroup(
-                new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Besitzer des Kontos aus (Person wählen)'))))
-            );
-            $Error = true;
-        }
+//        if (!isset( $Account['User'] )) {
+//            $Form->prependGridGroup(
+//                new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Besitzer des Kontos aus (Person wählen)'))))
+//            );
+//            $Error = true;
+//        }
 
         if (!$Error) {
             if ($tblAccount) {
@@ -208,17 +208,18 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 //                $tblIdentification = GatekeeperAccount::useService()->getIdentificationById($Account['Identification']);
 //                GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
 
-                // Edit User
-                $tblPersonList = GatekeeperAccount::useService()->getPersonAllByAccount($tblAccount);
-                if ($tblPersonList) {
-                    foreach ($tblPersonList as $tblPersonRemove) {
-                        GatekeeperAccount::useService()->removeAccountPerson($tblAccount, $tblPersonRemove);
-                    }
-                }
-                $tblPerson = Person::useService()->getPersonById($Account['User']);
-                if ($tblPerson) {
-                    GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
-                }
+                // remove with SSW-927 no changes allowed
+//                // Edit User
+//                $tblPersonList = GatekeeperAccount::useService()->getPersonAllByAccount($tblAccount);
+//                if ($tblPersonList) {
+//                    foreach ($tblPersonList as $tblPersonRemove) {
+//                        GatekeeperAccount::useService()->removeAccountPerson($tblAccount, $tblPersonRemove);
+//                    }
+//                }
+//                $tblPerson = Person::useService()->getPersonById($Account['User']);
+//                if ($tblPerson) {
+//                    GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
+//                }
 
                 // Edit Access
                 $tblAccessList = GatekeeperAccount::useService()->getAuthorizationAllByAccount($tblAccount);
