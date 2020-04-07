@@ -76,6 +76,7 @@ class Data extends AbstractData
             $Entity->setRemark($Remark);
             $Entity->setLocked($IsLocked);
             $Entity->setMetaTable($MetaTable);
+            $Entity->setCoreGroup(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }

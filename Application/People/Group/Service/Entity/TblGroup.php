@@ -52,6 +52,10 @@ class TblGroup extends Element
      * @Column(type="string")
      */
     protected $MetaTable;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCoreGroup;
 
     /**
      * @param $Name
@@ -159,5 +163,23 @@ class TblGroup extends Element
     {
 
         return Group::useService()->getTudors($this);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCoreGroup()
+    {
+
+        return (bool)$this->IsCoreGroup;
+    }
+
+    /**
+     * @param bool $IsCoreGroup
+     */
+    public function setCoreGroup($IsCoreGroup)
+    {
+
+        $this->IsCoreGroup = (bool)$IsCoreGroup;
     }
 }
