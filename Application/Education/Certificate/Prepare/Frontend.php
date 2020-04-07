@@ -1636,7 +1636,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $isTeamSet = true;
                                 }
 
-                                if ($tblPrepareInformation->getField() == 'Remark') {
+                                if ($tblPrepareInformation->getField() == 'Remark' || $tblPrepareInformation->getField() == 'RemarkWithoutTeam') {
                                     $hasRemarkText = true;
                                 }
 
@@ -1736,6 +1736,70 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $text;
                             }
+                        }
+
+                        // GTA setzen, werden in der Schülerakte als Arbeitsgemeinschaften gepflegt
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
+                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                $tblStudent, $tblSubjectType
+                            ))
+                        ) {
+                            $tempList = array();
+                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                if ($tblStudentSubject->getServiceTblSubject()) {
+                                    $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
+                                }
+                            }
+
+                            $textGTA = $tblPerson->getFirstSecondName() . ' besuchte in diesem Schuljahr ';
+
+                            switch (count($tempList)) {
+                                case 1: $textGTA .= 'das GTA ' . $tempList[0] . '.';
+                                    break;
+                                case 2: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ' und ' . $tempList[1] . '.';
+                                    break;
+                                case 3: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ', ' . $tempList[1]
+                                    . ' und ' . $tempList[2] . '.';
+                                    break;
+                                case 4: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ', ' . $tempList[1]
+                                    . ', ' . $tempList[2]
+                                    . ' und ' . $tempList[3] . '.';
+                                    break;
+                                case 5: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ', ' . $tempList[1]
+                                    . ', ' . $tempList[2]
+                                    . ', ' . $tempList[3]
+                                    . ' und ' . $tempList[4] . '.';
+                                    break;
+                            }
+
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
+                        }
+
+                        // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzten
+                        if (!$hasRemarkText
+                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
+                            && $tblConsumer->getAcronym() ==  'REF'//'ESRL'
+                        ) {
+                            $textSupport = '';
+                            if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
+                            ) {
+                                if ($tblPrimaryFocus->getName() == 'Lernen') {
+                                    $textSupport = $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName()
+                                        . ' wurde inklusiv nach den Lehrplänen der Schule mit dem Förderschwerpunkt Lernen unterrichtet.';
+                                }
+                                if ($tblPrimaryFocus->getName() == 'Geistige Entwicklung') {
+                                    $textSupport = $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName()
+                                        . ' wurde inklusiv nach den Lehrplänen der Schule mit dem Förderschwerpunkt geistige Entwicklung unterrichtet.';
+                                }
+                            }
+
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $textSupport;
                         }
 
                         $Global->savePost();
