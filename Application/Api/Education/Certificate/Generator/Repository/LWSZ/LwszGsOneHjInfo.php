@@ -35,7 +35,7 @@ class LwszGsOneHjInfo extends Certificate
             ->addSlice($this->getParentSign()
             );
 
-        $pageList[] = LwszGsStyle::buildSecondPage($tblPerson);
+        $pageList[] = LwszGsStyle::buildSecondPage($this, $tblPerson);
 
         return $pageList;
     }
