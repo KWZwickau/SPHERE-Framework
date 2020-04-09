@@ -940,8 +940,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         //Integration
         $Accordion = new Accordion();
-//        $Panel = false;
-//        $PanelContent = '';
         $Listing = array();
         $HandyCapCount = 0;
         if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
@@ -952,15 +950,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $Listing[] = new Container(new PullClear($tblPerson->getLastFirstName()
                         .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                             ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())))));
-//                    $PanelContent .= ($PanelContent !== '' ? new Ruler() : '')
-//                        .new Container(new PullClear($tblPerson->getLastFirstName()
-//                        .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
-//                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())))));
                 }
             }
         }
         if(!empty($Listing)){
-//            $Panel = new Panel('Integration '.new Muted('Übersicht'), $PanelContent, Panel::PANEL_TYPE_INFO);
             $Listing = new ListingLayout($Listing);
             $Accordion->addItem('Integration '.new Muted('('.$HandyCapCount.')'), $Listing);
         }
@@ -975,12 +968,31 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
             );
         } else {
-            $tblTestList = false;
+            $tblTestList = array();
+        }
+
+        // SSW-872 - Nachträgliche Aktualisierung Notenauftrag -> anlegen der Tests
+        if (($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+            && ($tblTaskListDivision = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask))
+        ) {
+            foreach($tblTaskListDivision as $tblTaskItem) {
+                if (!(Evaluation::useService()->existsTestByTask(
+                    $tblTaskItem,
+                    $tblDivision,
+                    $tblDivisionSubject->getServiceTblSubject(),
+                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                ))) {
+                    $tblTestList[] = Evaluation::useService()->createTestToAppointedDateTask(
+                        $tblTaskItem,
+                        $tblDivisionSubject
+                    );
+                }
+            }
         }
 
         $contentTable = array();
         $nowDateTime = new DateTime('now');
-        if ($tblTestList) {
+        if (!empty($tblTestList)) {
             if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
             ) {
@@ -988,7 +1000,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $days = false;
             }
-            if (($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
+            if ($tblTestTypeAppointedDateTask) {
                 $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
                 if ($tblTaskList) {
                     $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
