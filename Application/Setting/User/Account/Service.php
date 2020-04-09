@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\User\Account;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
@@ -119,34 +120,34 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTime(\DateTime $dateTime)
+    public function getUserAccountByTime(DateTime $dateTime)
     {
 
         return (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
     }
 
     /**
-     * @param \DateTime $groupByTime
-     * @param \DateTime $exportDate
+     * @param DateTime $groupByTime
+     * @param DateTime $exportDate
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByLastExport(\DateTime $groupByTime, \DateTime $exportDate)
+    public function getUserAccountByLastExport(DateTime $groupByTime, DateTime $exportDate)
     {
 
         return (new Data($this->getBinding()))->getUserAccountByLastExport($groupByTime, $exportDate);
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      *
      * @return false|array(TblUserAccount[])
      */
-    public function getUserAccountByTimeGroupLimitList(\DateTime $dateTime)
+    public function getUserAccountByTimeGroupLimitList(DateTime $dateTime)
     {
 
         $tblUserAccountList = (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
@@ -161,12 +162,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      * @param int       $groupCount
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTimeAndCount(\DateTime $dateTime, $groupCount)
+    public function getUserAccountByTimeAndCount(DateTime $dateTime, $groupCount)
     {
 
         return (new Data($this->getBinding()))->getUserAccountByTimeAndCount($dateTime, $groupCount);
@@ -265,7 +266,7 @@ class Service extends AbstractService
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Datum: ', 4),
-                new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new \DateTime())->format('d.m.Y')), 8),
+                new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new DateTime())->format('d.m.Y')), 8),
             )))),
         ));
 
@@ -531,7 +532,7 @@ class Service extends AbstractService
     /**
      * @param TblUserAccount[] $tblUserAccountList
      *
-     * @return bool|\DateTime
+     * @return bool|DateTime
      */
     public function getLastExport($tblUserAccountList)
     {
@@ -725,7 +726,7 @@ class Service extends AbstractService
     {
 
 //        $IsMissingAddress = false;
-        $TimeStamp = new \DateTime('now');
+        $TimeStamp = new DateTime('now');
 
         $successCount = 0;
         $addressMissCount = 0;
@@ -733,6 +734,8 @@ class Service extends AbstractService
 
         $GroupByCount = 1;
         $CountAccount = 0;
+
+        $tblAccountSession = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getAccountBySession();
 
         foreach ($PersonIdArray as $PersonId) {
             if ($CountAccount % 30 == 0
@@ -801,7 +804,7 @@ class Service extends AbstractService
                         $Type = TblUserAccount::VALUE_TYPE_STUDENT;
                     }
                     // add tblUserAccount
-                    if($this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password, $Type, $GroupByCount)){
+                    if($this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password, $Type, $GroupByCount, $tblAccountSession)){
                         $CountAccount++;
                     }
                 }
@@ -896,20 +899,22 @@ class Service extends AbstractService
     /**
      * @param TblAccount $tblAccount
      * @param TblPerson  $tblPerson
-     * @param \DateTime  $TimeStamp
+     * @param DateTime  $TimeStamp
      * @param string     $userPassword
      * @param string     $Type STUDENT|CUSTODY
      * @param int        $GroupByCount
+     * @param TblAccount $tblAccountSession
      *
      * @return false|TblUserAccount
      */
     public function createUserAccount(
         TblAccount $tblAccount,
         TblPerson $tblPerson,
-        \DateTime $TimeStamp,
+        DateTime $TimeStamp,
         $userPassword,
         $Type,
-        $GroupByCount
+        $GroupByCount,
+        TblAccount $tblAccountSession
     ) {
 
         return ( new Data($this->getBinding()) )->createUserAccount(
@@ -918,7 +923,8 @@ class Service extends AbstractService
             $TimeStamp,
             $userPassword,
             $Type,
-            $GroupByCount);
+            $GroupByCount,
+            $tblAccountSession);
     }
 
     /**
@@ -978,7 +984,7 @@ class Service extends AbstractService
     public function updateDownloadBulk($tblUserAccountList)
     {
 
-        $ExportDate = new \DateTime();
+        $ExportDate = new DateTime();
         $UserName = '';
         $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -999,11 +1005,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $GroupByTime
+     * @param DateTime $GroupByTime
      *
      * @return bool
      */
-    public function clearPassword(\DateTime $GroupByTime)
+    public function clearPassword(DateTime $GroupByTime)
     {
 
         $tblUserAccountList = $this->getUserAccountByTime($GroupByTime);
@@ -1022,13 +1028,20 @@ class Service extends AbstractService
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function changePassword(TblAccount $tblAccount, $Password)
+    public function changePassword(TblUserAccount $tblUserAccount, $Password)
     {
 
-        $tblUserAccount = $this->getUserAccountByAccount($tblAccount);
-        if ($tblUserAccount) {
-            return (new Data($this->getBinding()))->updateUserAccountChangePassword($tblUserAccount, $Password);
+        return (new Data($this->getBinding()))->updateUserAccountChangePassword($tblUserAccount, $Password);
+    }
+
+    public function changeUpdateDate(TblUserAccount $tblUserAccount, $Type)
+    {
+
+        $UserName = '';
+        if(($tblAccount = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getAccountBySession())){
+            $UserName = $tblAccount->getUsername();
         }
-        return false;
+
+        return (new Data($this->getBinding()))->changeUpdateDate($tblUserAccount, $UserName, $Type);
     }
 }
