@@ -138,7 +138,7 @@ class LwszGsStyle
      *
      * @return Slice
      */
-    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null, $marginTop = '80px')
+    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null, $marginTop = '53px')
     {
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -157,6 +157,7 @@ class LwszGsStyle
                     . (strpos($certificate->getCertificateName(), 'info') ? 'Halbjahresinformation' : 'Jahreszeugnis')
                 )
                 ->styleTextSize('9.5px')
+                ->styleHeight('0px')
             ));
     }
 }
