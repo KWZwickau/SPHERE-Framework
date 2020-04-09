@@ -1783,7 +1783,7 @@ class Frontend extends Extension implements IFrontendInterface
                         // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzten
                         if (!$hasRemarkText
                             && ($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() ==  'REF'//'ESRL'
+                            && $tblConsumer->getAcronym() ==  'ESRL'//'REF' für Lokale Test's
                         ) {
                             $textSupport = '';
                             if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
