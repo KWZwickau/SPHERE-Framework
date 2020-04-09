@@ -343,11 +343,16 @@ abstract class EsrlStyle extends Certificate
 
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
-                    {{ Content.P'.$personId.'.Input.Remark|nl2br }}
+            ->setContent('
+                {% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                    {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }} <br>
+                {% endif %}
+                {% if(Content.P'.$personId.'.Input.GTA is not empty) %}
+                    {{ Content.P'.$personId.'.Input.GTA|nl2br }}
                 {% else %}
                     &nbsp;
-                {% endif %}')
+                {% endif %}
+            ')
             ->styleAlignJustify()
             ->styleHeight($Hight)
             ->styleMarginTop('20px')
