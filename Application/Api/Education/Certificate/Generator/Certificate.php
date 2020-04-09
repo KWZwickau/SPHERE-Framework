@@ -154,7 +154,6 @@ abstract class Certificate extends Extension
         }
         // Mandanten, deren individuelle Zeugnisse ebenfalls mit den Mandanteneinstellungen die Rahmenbreite verändern können
         elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'ESZC'
-                             || $tblConsumer->getAcronym() == 'LWSZ'
 //                             || $tblConsumer->getAcronym() == 'REF' // local test
                 )
             ) {
@@ -166,7 +165,16 @@ abstract class Certificate extends Extension
             }
         } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESBD') {
             $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
-        } else {
+        } elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'LWSZ' )) {
+            // erforderlich für die Fußzeile auf der 2. Seite
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+            $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
+            if ($tblSetting && $tblSetting->getValue() == 1) {
+                // normal
+                $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+            }
+        }
+        else {
             $InjectStyle = '';
         }
 
@@ -1822,7 +1830,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getSignPart($personId, $isExtended = true, $MarginTop = '25px')
+    public function getSignPart($personId, $isExtended = true, $MarginTop = '25px')
     {
         $SignSlice = (new Slice());
         if ($isExtended) {

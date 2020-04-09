@@ -72,7 +72,7 @@ class LwszGsJ extends Certificate
                 (6 = ungenügend nur bei der Bewertung der Leistungen)')
             );
 
-        $pageList[] = LwszGsStyle::buildSecondPage($tblPerson);
+        $pageList[] = LwszGsStyle::buildSecondPage($this, $tblPerson);
 
         return $pageList;
     }
