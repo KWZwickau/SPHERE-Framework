@@ -859,7 +859,7 @@ abstract class CmsStyle extends Certificate
             , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
-                                        {{ Content.P'.$personId.'.Input.Transfer }}
+                                        {{ Content.P'.$personId.'.Input.Transfer }}.
                                     {% else %}
                                           &nbsp;
                                     {% endif %}')

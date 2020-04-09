@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Certificate\Generator\Service;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataCMS;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataCSW;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEMSP;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataESBD;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataESRL;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataESS;
@@ -239,6 +240,9 @@ class Data extends AbstractData
             }
             if ($tblConsumer->getAcronym() == 'LWSZ') {
                 IDataLWSZ::setCertificateIndividually($this);
+            }
+            if ($tblConsumer->getAcronym() == 'EMSP') {
+                IDataEMSP::setCertificateIndividually($this);
             }
         }
     }
