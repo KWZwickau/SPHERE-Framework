@@ -6,6 +6,7 @@ use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\Authorization\Authorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
+use SPHERE\Application\Setting\Univention\Univention;
 use SPHERE\Application\Setting\User\User;
 use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Main;
@@ -24,9 +25,10 @@ class Setting implements IClusterInterface
     {
 
         MyAccount::registerApplication();
-        Authorization::registerApplication();
         Consumer::registerApplication();
+        Authorization::registerApplication();
         User::registerApplication();
+        Univention::registerApplication();
         Agb::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(
