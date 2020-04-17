@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Publicly;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Univention
@@ -38,7 +39,10 @@ class Univention implements IApplicationInterface, IModuleInterface
 
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
+        return new Service(new Identifier('Platform', 'Gatekeeper', 'Authorization', 'Token'),
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        );
     }
 
 
