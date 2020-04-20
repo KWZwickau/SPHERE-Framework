@@ -784,7 +784,7 @@ class Service extends AbstractService
                         $row++;
                         $export->setValue($export->getCell("0", $row), $Summary);// Umsatz
                         $export->setValue($export->getCell("1", $row), $direction);// Soll / Haben Kennzeichen
-                        $export->setValue($export->getCell("2", $row), 'EUR');// Dreistelliger ISO-Code der Währung
+                        $export->setValue($export->getCell("2", $row), '!EUR');// Dreistelliger ISO-Code der Währung
                         $export->setValue($export->getCell("3", $row), '');// Kurs (Test: utf8_decode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
                         $export->setValue($export->getCell("4", $row), '');// Basisumsatz
                         $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
