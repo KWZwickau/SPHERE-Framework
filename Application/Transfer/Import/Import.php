@@ -24,6 +24,7 @@ use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Application\Transfer\Import\Schneeberg\Schneeberg;
 use SPHERE\Application\Transfer\Import\Schulstiftung\Schulstiftung;
 use SPHERE\Application\Transfer\Import\Seelitz\Seelitz;
+use SPHERE\Application\Transfer\Import\Standard\ImportStandard;
 use SPHERE\Application\Transfer\Import\Tharandt\Tharandt;
 use SPHERE\Application\Transfer\Import\Zwickau\Zwickau;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -113,6 +114,7 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'MLS') {
             MLS::registerModule();
         }
+        ImportStandard::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -172,7 +174,8 @@ class Import implements IApplicationInterface
 
         if(empty($dataList)){
             $Stage->setContent(
-                Main::getDispatcher()->fetchDashboard('Import')
+                new Layout(ImportStandard::getStandardLink())
+                .Main::getDispatcher()->fetchDashboard('Import')
             );
             return $Stage;
         }
@@ -195,6 +198,7 @@ class Import implements IApplicationInterface
 
         $Stage->setContent(
             new Layout(array(
+                ImportStandard::getStandardLink(),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
