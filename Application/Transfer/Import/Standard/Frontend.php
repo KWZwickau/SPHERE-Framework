@@ -99,6 +99,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Import', 'Standard für Interessenten');
+        $Stage->addButton(
+            new Standard(
+                'Zurück',
+                '/Transfer/Import',
+                new ChevronLeft()
+            )
+        );
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
