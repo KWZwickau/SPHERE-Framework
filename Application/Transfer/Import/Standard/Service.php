@@ -225,7 +225,7 @@ class Service
         );
 
         for ($RunX = 0; $RunX < $X; $RunX++) {
-            $Value = trim($Document->getValue($Document->getCell($RunX, 2)));
+            $Value = trim($Document->getValue($Document->getCell($RunX, 1)));
             if (array_key_exists($Value, $Location)) {
                 $Location[$Value] = $RunX;
             }
@@ -244,7 +244,7 @@ class Service
 
             $error = array();
             $info = array();
-            for ($RunY = 3; $RunY < $Y; $RunY++) {
+            for ($RunY = 2; $RunY < $Y; $RunY++) {
                 set_time_limit(300);
                 // Student ---------------------------------------------------------------------------------------------
                 $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
@@ -491,7 +491,13 @@ class Service
             )));
 
         } else {
-            return new Warning('<pre>'.print_r($Location, true).'</pre>').new Danger(
+            $MissingColumn = array();
+            foreach($Location as $Key => $Column){
+                if($Column === null){
+                    $MissingColumn[] = $Key.': '.new DangerText('Spalte nicht gefunden!');
+                }
+            }
+            return new Warning(new Listing($MissingColumn)).new Danger(
                     "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
         }
     }
@@ -548,7 +554,7 @@ class Service
                     'Name'                => null,
                     'Vorname'             => null,
                     'Rufname'             => null,
-//                    '2. Vorname'               => null, // ToDO add
+                    '2ter_Vorname'        => null,
                     'Geburtsdatum'        => null,
                     'Geburtsort'          => null,
                     'Staatsangehörigkeit' => null,
@@ -585,6 +591,7 @@ class Service
 //                    'S1_Ortsteil' => null,
 //                    'S1_Straße' => null,
 //                    'S1_HNR' => null,
+//                    'S1_Land' => null,
 //                    // contact
 //                    'S1_Geschäftlich_Festnetz' => null,
 //                    'S1_Geschäftlich_Mobil' => null,
@@ -617,6 +624,7 @@ class Service
 //                    'S2_Ortsteil' => null,
 //                    'S2_Straße' => null,
 //                    'S2_HNR' => null,
+//                    'S2_Land' => null,
 //                    // contact
 //                    'S2_Geschäftlich_Festnetz' => null,
 //                    'S2_Geschäftlich_Mobil' => null,
@@ -641,7 +649,7 @@ class Service
 
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
-                    $Value = trim($Document->getValue($Document->getCell($RunX, 2)));
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 1)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
                     }
@@ -659,7 +667,7 @@ class Service
 
                     $error = array();
 
-                    for ($RunY = 3; $RunY < $Y; $RunY++) {
+                    for ($RunY = 2; $RunY < $Y; $RunY++) {
 
                         set_time_limit(300);
                         // Prospect ------------------------------------------------------------------------------------
@@ -681,8 +689,7 @@ class Service
                         }
 
 
-                        $secondName = '';
-//                        $secondName = trim($Document->getValue($Document->getCell($Location['2ter_Vorname'], $RunY)));
+                        $secondName = trim($Document->getValue($Document->getCell($Location['2ter_Vorname'], $RunY)));
                         $callName = trim($Document->getValue($Document->getCell($Location['Rufname'], $RunY)));
                         $Stammgruppe = '';
 //                        $Hort = trim($Document->getValue($Document->getCell($Location['Hort'], $RunY)));
@@ -773,8 +780,13 @@ class Service
                         ))
                     )));
                 } else {
-//                    Debugger::screenDump($Location);
-                    return new Warning('<pre>'.print_r($Location, true).'</pre>').new Danger(
+                    $MissingColumn = array();
+                    foreach($Location as $Key => $Column){
+                        if($Column === null){
+                            $MissingColumn[] = $Key.': '.new DangerText('Spalte nicht gefunden!');
+                        }
+                    }
+                    return new Warning(new Listing($MissingColumn)).new Danger(
                             "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
@@ -846,7 +858,7 @@ class Service
                     'E_Mail_Privat'         => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
-                    $Value = trim($Document->getValue($Document->getCell($RunX, 2)));
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 1)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
                     }
@@ -860,7 +872,7 @@ class Service
                     $countStaffExists = 0;
                     $error = array();
 
-                    for ($RunY = 3; $RunY < $Y; $RunY++) {
+                    for ($RunY = 2; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
                         // Teacher ---------------------------------------------------------------------------------------------
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
@@ -947,9 +959,13 @@ class Service
                     )));
 
                 } else {
-//                    Debugger::screenDump($Location);
-
-                    return new Warning(json_encode($Location)).new Danger(
+                    $MissingColumn = array();
+                    foreach($Location as $Key => $Column){
+                        if($Column === null){
+                            $MissingColumn[] = $Key.': '.new DangerText('Spalte nicht gefunden!');
+                        }
+                    }
+                    return new Warning(new Listing($MissingColumn)).new Danger(
                             "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
