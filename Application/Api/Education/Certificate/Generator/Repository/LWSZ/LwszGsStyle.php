@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\LWSZ;
 
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
@@ -87,7 +88,7 @@ class LwszGsStyle
         return $Slice;
     }
 
-    public static function buildSecondPage(TblPerson $tblPerson = null)
+    public static function buildSecondPage(Certificate $certificate, TblPerson $tblPerson = null)
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
@@ -95,7 +96,7 @@ class LwszGsStyle
             ->addSlice((new Slice())
                 ->addElement((new Element\Image('/Common/Style/Resource/Logo/LWSZ.jpg',
                     '', '100px'))
-                    ->styleAlignCenter()
+                    ->styleAlignRight()
                     ->styleMarginTop('24px')
                 )
             )
@@ -110,7 +111,7 @@ class LwszGsStyle
                         {% endif %}')
                     ->styleAlignRight()
                     ->styleTextSize('12pt')
-                    ->styleMarginTop('50px')
+                    ->styleMarginTop('20px')
                 )
             )
             ->addSlice((new Slice())
@@ -123,7 +124,40 @@ class LwszGsStyle
                     ->styleTextSize('12pt')
                     ->styleMarginTop('20px')
                     ->styleAlignJustify()
+                    ->styleHeight('705px')
                 )
-            );
+            )
+            ->addSlice($certificate->getSignPart($personId, false))
+            ->addSlice(self::buildFooter($certificate, $tblPerson));
+    }
+
+    /**
+     * @param Certificate $certificate
+     * @param TblPerson|null $tblPerson
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null, $marginTop = '53px')
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleBorderBottom()
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '70%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                ->setContent(
+                    ($tblPerson ? $tblPerson->getFullName() : '') . ' | '
+                    . ($certificate->getTblDivision() ? 'Klasse ' . $certificate->getTblDivision()->getDisplayName() : '') . ' | '
+                    . (strpos($certificate->getCertificateName(), 'info') ? 'Halbjahresinformation' : 'Jahreszeugnis')
+                )
+                ->styleTextSize('9.5px')
+                ->styleHeight('0px')
+            ));
     }
 }

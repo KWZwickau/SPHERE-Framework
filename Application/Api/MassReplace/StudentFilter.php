@@ -433,7 +433,7 @@ class StudentFilter extends Extension
                                 $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
                             }
                         }
-                        for ($i = 1; $i < 5; $i++){
+                        for ($i = 1; $i < 6; $i++){
                             if ($Label == $i . '. Fremdsprache'){
                                 $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
                                 $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);

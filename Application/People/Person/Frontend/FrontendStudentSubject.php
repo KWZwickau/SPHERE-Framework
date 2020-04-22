@@ -113,7 +113,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
              * Arbeitsgemeinschaften
              */
             $teamRows = array();
-            for ($i = 1; $i < 4; $i++)
+            for ($i = 1; $i < 6; $i++)
             {
                 $teamRows[] =
                     new LayoutRow(array(
@@ -312,7 +312,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                             $Division, $tblPerson),
                     ), 3),
                     new FormColumn(array(
-                        $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3,
+                        $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 5,
                             ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                     ), 3),
                 )),

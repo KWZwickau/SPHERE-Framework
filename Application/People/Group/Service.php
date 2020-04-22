@@ -232,15 +232,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
+     * @param string $Name
+     * @param string $Description
      *
      * @return bool|TblGroup
      */
-    public function createGroupFromImport($Name)
+    public function createGroupFromImport($Name, $Description = '')
     {
 
         if (!($tblGroup = $this->getGroupByName($Name))) {
-            return (new Data($this->getBinding()))->createGroup($Name, '', '');
+            return (new Data($this->getBinding()))->createGroup($Name, $Description, '');
         } else {
             return $tblGroup;
         }

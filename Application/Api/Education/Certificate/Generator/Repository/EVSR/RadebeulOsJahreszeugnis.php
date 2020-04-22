@@ -269,7 +269,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                         , '22%')
                     ->addElementColumn(self::getBodyElement(
                         '{% if(Content.P' . $personId . '.Input.Transfer) %}
-                            {{ Content.P' . $personId . '.Input.Transfer }}
+                            {{ Content.P' . $personId . '.Input.Transfer }}.
                         {% else %}
                               &nbsp;
                         {% endif %}'

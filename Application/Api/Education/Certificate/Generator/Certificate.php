@@ -132,6 +132,12 @@ abstract class Certificate extends Extension
         // für Kinderbrief von Radebeul 2,5cm Rand
         } elseif (strpos(get_class($this), 'RadebeulKinderbrief') !== false) {
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; margin-top: 0.9cm !important; margin-bottom: 0.9cm !important; }';
+        } elseif (strpos(get_class($this), 'EmspGsJ') !== false) {
+            $InjectStyle = 'body { margin-left: 0.18cm !important; margin-right: 0.18cm !important; margin-top: 0.18cm !important;
+             padding-bottom: 0.18cm !important; border: 1px solid black; padding: 40px}';
+        } elseif (strpos(get_class($this), 'EmspGsHj') !== false) {
+            $InjectStyle = 'body { margin-left: 0.18cm !important; margin-right: 0.18cm !important; margin-top: 0.18cm !important;
+             padding-bottom: 0.18cm !important; border: 1px solid black; padding: 40px}';
         } elseif (strpos(get_class($this), 'RadebeulHalbjahresinformation') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
         } elseif (strpos(get_class($this), 'RadebeulJahreszeugnis') !== false) {
@@ -148,7 +154,6 @@ abstract class Certificate extends Extension
         }
         // Mandanten, deren individuelle Zeugnisse ebenfalls mit den Mandanteneinstellungen die Rahmenbreite verändern können
         elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'ESZC'
-                             || $tblConsumer->getAcronym() == 'LWSZ'
 //                             || $tblConsumer->getAcronym() == 'REF' // local test
                 )
             ) {
@@ -160,7 +165,16 @@ abstract class Certificate extends Extension
             }
         } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESBD') {
             $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
-        } else {
+        } elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'LWSZ' )) {
+            // erforderlich für die Fußzeile auf der 2. Seite
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+            $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
+            if ($tblSetting && $tblSetting->getValue() == 1) {
+                // normal
+                $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+            }
+        }
+        else {
             $InjectStyle = '';
         }
 
@@ -1767,10 +1781,10 @@ abstract class Certificate extends Extension
                 , '22%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
-                                        {{ Content.P' . $personId . '.Input.Transfer }}
-                                    {% else %}
-                                          &nbsp;
-                                    {% endif %}')
+                        {{ Content.P' . $personId . '.Input.Transfer }}.
+                    {% else %}
+                          &nbsp;
+                    {% endif %}')
                 ->styleBorderBottom('1px')
                 , '58%')
             ->addElementColumn((new Element())
@@ -1816,7 +1830,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getSignPart($personId, $isExtended = true, $MarginTop = '25px')
+    public function getSignPart($personId, $isExtended = true, $MarginTop = '25px')
     {
         $SignSlice = (new Slice());
         if ($isExtended) {

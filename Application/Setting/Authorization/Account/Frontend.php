@@ -512,7 +512,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(new Well(
                                 $extraButton
-                                .Account::useService()->changeAccount(
+                                .Account::useService()->changeAccountForm(
                                     $this->formAccount($tblAccount)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
@@ -538,6 +538,33 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         return $Stage;
+    }
+
+    /**
+     * @param int   $tblAccountId
+     * @param array $Account
+     * @param bool  $confirm
+     *
+     * @return \SPHERE\Common\Frontend\Form\IFormInterface|Panel|string
+     */
+    public function frontendConfirmChange($tblAccountId, $Account, $confirm = false)
+    {
+
+        $tblAccount = Account::useService()->getAccountById($tblAccountId);
+        $Panel = new Panel('Alle Benutzerrrechte dieses Accounts werden entfernt. Wollen Sie diese Änderung vornehmen?',
+            new \SPHERE\Common\Frontend\Link\Repository\Danger('Ja', '/Setting/Authorization/Account/Edit/Confirm', new Ok(),
+                array(
+                    'tblAccountId' => $tblAccount->getId(),
+                    'Account'    => $Account,
+                    'confirm'    => true
+                ))
+            . new Standard('Nein', ''), Panel::PANEL_TYPE_DANGER);
+        if($confirm){
+            unset($Account['Role']);
+            return Account::useService()->changeAccount($tblAccount->getId(), $Account);
+        }
+
+        return $Panel;
     }
 
     /**
