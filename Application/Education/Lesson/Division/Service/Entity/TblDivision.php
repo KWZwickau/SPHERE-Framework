@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -164,5 +165,19 @@ class TblDivision extends Element
         } else {
             return '';
         }
+    }
+
+    /**
+     * @return TblType|false
+     */
+    public function getType()
+    {
+
+        if(($tblLevel = $this->getTblLevel())){
+            if(($tblType = $tblLevel->getServiceTblType())){
+                return $tblType;
+            }
+        }
+        return false;
     }
 }

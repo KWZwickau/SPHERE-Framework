@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class UniventionUser
 {
@@ -124,9 +125,99 @@ class UniventionUser
          **/
         $Json = curl_exec($this->curlhandle);
         $StdClass = json_decode($Json);
-        echo "<pre>";
-        var_dump($StdClass);
-        echo "</pre>";
+        Debugger::screenDump($StdClass);
+//        echo "<pre>";
+//        var_dump($StdClass);
+//        echo "</pre>";
+//        exit;
+
+        $Error = null;
+
+        if(isset($StdClass->detail)){
+            if(is_string($StdClass->detail)){
+                $Error = $StdClass->detail;
+            }elseif(is_array($StdClass->detail)){
+                $Error = '';
+                foreach($StdClass->detail as $Detail){
+                    if(is_object($Detail)){
+                        $Error .= $name.' - '.$Detail->msg;
+                    }
+                }
+            }
+        }
+
+        return $Error;
+    }
+
+    public function updateUser($name = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
+        $schools = array(), $source_uid = '')
+    {
+        curl_reset($this->curlhandle);
+
+        $PersonContent = array(
+            'name' => $name,
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            // Try AccountId to find Account again?
+            'record_uid' => $record_uid,
+            'roles' => $roles,
+//Local Test without schools
+            'schools' => $schools, // test with two array elements
+            // Mandant + AccountId to human resolve problems?
+            'source_uid' => $source_uid
+        );
+
+        $PersonContent = json_encode($PersonContent);
+
+//        $PersonContent = http_build_query($PersonContent);
+
+        curl_setopt_array($this->curlhandle, array(
+            CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_SSL_VERIFYHOST => FALSE,
+            CURLOPT_HTTPHEADER => array('accept: application/json',
+                'Content-Type: application/json',
+                'Authorization: bearer '.$this->token),
+            //return the transfer as a string
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_POSTFIELDS => $PersonContent
+        ));
+
+        /**
+         * possible field's
+        - dn
+        - url
+        - ucsschool_roles
+        - name
+        - school
+        - firstname
+        - lastname
+        - birthday
+        - disabled
+        - email
+        - record_uid
+        - roles
+        - schools
+        - school_classes
+        - source_uid
+        - udm_properties
+        {
+         * description
+         * gidNumber
+         * employeeType
+         * organisation
+         * phone
+         * title
+         * uidNumber
+        }
+         **/
+        $Json = curl_exec($this->curlhandle);
+        $StdClass = json_decode($Json);
+        Debugger::screenDump($PersonContent);
+        Debugger::screenDump($StdClass);
+//        echo "<pre>";
+//        var_dump($StdClass);
+//        echo "</pre>";
 //        exit;
 
         $Error = null;

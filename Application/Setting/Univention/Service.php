@@ -1,10 +1,16 @@
 <?php
 namespace SPHERE\Application\Setting\Univention;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Univention\Service\Data;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
 use SPHERE\Application\Setting\Univention\Service\Setup;
+use SPHERE\Application\Setting\User\Account\Account as AccountUser;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Service
@@ -54,5 +60,44 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->createUnivention($Type, $Value);
+    }
+
+    /**
+     * @return array|bool|TblAccount
+     */
+    public function getAccountAllForAPITransfer()
+    {
+
+        // Mitarbeiter / Lehrer
+        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+        $tblAccountList = Account::useService()->getAccountListByIdentification($tblIdentification);
+
+        if(!is_array($tblAccountList)){
+            $tblAccountList = array();
+        }
+
+        // Student
+        if($tblUserAccountList = AccountUser::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT)){
+            foreach($tblUserAccountList as $tblUserAccount){
+                if($tblUserAccount->getServiceTblAccount()){
+                    $tblAccountList[] = $tblUserAccount->getServiceTblAccount();
+                }
+            }
+        }
+        return (!empty($tblAccountList) ? $tblAccountList : false);
+    }
+
+    /**
+     * @param Element $tbl
+     * @param array   $DateCompare
+     */
+    public function setDateList(Element $tbl, &$DateCompare)
+    {
+
+        if(($update = $tbl->getEntityUpdate())){
+            $DateCompare[] = $update;
+        } else {
+            $DateCompare[] = $tbl->getEntityCreate();
+        }
     }
 }

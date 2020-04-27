@@ -93,12 +93,13 @@ class Data extends AbstractData
 
         $token = false;
         $UniventionToken = new UniventionToken();
-        $Json = $UniventionToken->getVerify();
-        $StdClass = json_decode($Json);
-        if(is_object($StdClass)
-            && !isset($StdClass->detail)
-            && $StdClass->access_token){
-            $token = $StdClass->access_token;
+        if(($Json = $UniventionToken->getVerify())){
+            $StdClass = json_decode($Json);
+            if(is_object($StdClass)
+                && !isset($StdClass->detail)
+                && $StdClass->access_token){
+                $token = $StdClass->access_token;
+            }
         }
         return $token;
     }

@@ -1111,6 +1111,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblConsumer       $tblConsumer
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountListByConumser(TblConsumer $tblConsumer)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblAccount',
+            array(
+                TblAccount::SERVICE_TBL_CONSUMER => $tblConsumer->getId(),
+            ));
+        return (!empty($EntityList) ? $EntityList : false);
+    }
+
+    /**
      * @param TblAccount $tblAccount
      *
      * @return bool|TblUser[]

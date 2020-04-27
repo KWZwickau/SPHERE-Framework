@@ -50,12 +50,18 @@ class UniventionToken
             CURLOPT_POSTFIELDS     => $Content
         ));
 
-        echo "<pre>";
-        var_dump(curl_exec($this->curlhandle));
-        echo "</pre>";
 
-        //ToDO not empty = funktioniert
-        return $this->execute($this->curlhandle);
+        // false technische schwierigkeiten
+        // null Verbindung kann nicht aufgebaut werden
+        // StdClass normal response
+        $response = $this->execute($this->curlhandle);
+        if($response){
+            return $response;
+        } elseif($response === null){
+            //ToDO Ausgabe Spezialisieren
+            return false;
+        }
+        return false;
         // close curl resource to free up system resources
 //        curl_close($ch);
     }

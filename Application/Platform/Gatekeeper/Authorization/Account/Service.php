@@ -116,6 +116,20 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|string
+     */
+    public function getMandantAcronym()
+    {
+
+        if(($tblAccount = $this->getAccountBySession())){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                return $tblConsumer->getAcronym();
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param string $Username
      *
      * @return bool|TblAccount
@@ -750,6 +764,41 @@ class Service extends AbstractService
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer, $isForce);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountListByActiveConumser()
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        return (new Data($this->getBinding()))->getAccountListByConumser($tblConsumer);
+    }
+
+    /**
+     * @param TblIdentification $tblIdentification
+     *
+     * @return TblAccount|bool
+     */
+    public function getAccountListByIdentification(TblIdentification $tblIdentification)
+    {
+
+        $returnList = array();
+        if(($tblAccountList = $this->getAccountListByActiveConumser())){
+            foreach($tblAccountList as $tblAccount){
+
+                if(($tblIdentificationSet = $tblAccount->getServiceTblIdentification())){
+                    if($tblIdentificationSet->getId() == $tblIdentification->getId()){
+                        $returnList[] = $tblAccount;
+                    }
+                }
+            }
+        }
+
+        return (!empty($returnList) ? $returnList : false);
     }
 
     /**
