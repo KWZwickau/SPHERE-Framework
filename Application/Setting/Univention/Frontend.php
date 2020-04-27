@@ -3,10 +3,14 @@ namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -22,7 +26,6 @@ use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -42,25 +45,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Univention', 'Verbindung');
         $Stage->addButton(new Standard('Zurück', '/Setting', new Upload()));
-        $Stage->addButton(new Standard('Accounts übertragen', '/Setting/Univention', new Upload(), array('Upload' => true)));
+        // Removed for Live
+//        $Stage->addButton(new Standard('Accounts übertragen', '/Setting/Univention', new Upload(), array('Upload' => true)));
+        $Stage->addButton(new Standard('Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
+        $Stage->addButton(new Standard('User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
 
         // dynamsiche Rollenliste
         $roleList = (new UniventionRole())->getAllRoles();
-        Debugger::screenDump($roleList);
+//        Debugger::screenDump($roleList);
 
         // dynamsiche Schulliste
         $schoolList = (new UniventionSchool())->getAllSchools();
-        Debugger::screenDump($schoolList);
+//        Debugger::screenDump($schoolList);
 //
         $Acronym = Account::useService()->getMandantAcronym();
         $tblAccountList = Univention::useService()->getAccountAllForAPITransfer();
-//        /////////////////////////////////////////////////////////////// ToDO Local Test can be removed
-//        $AccountStrings = '';
-//        foreach($tblAccountList as $tblAccount){
-//            $AccountStrings .= $tblAccount->getId().': '.$tblAccount->getUsername().'</br>';
-//        }
-//        Debugger::screenDump($AccountStrings);
-//        ///////////////////////////////////////////////////////////////
 //        $TargetDate = new \DateTime('12.03.2020');
         $TargetDate = false;
 
@@ -121,6 +120,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $ErrorLog[] = 'kein aktuelles Jahr gefunden';
                 continue;
             }
+
+            $tblDivision = false;
             // Student Search Division
             if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
                 $UploadItem['school_classes'] = $tblDivision->getDisplayName();
@@ -128,67 +129,67 @@ class Frontend extends Extension implements IFrontendInterface
                 Univention::useService()->setDateList($tblDivisionStudent, $DateCompare);
             }
 
-//            // Schulen (alle) //ToDO Schulstring erzeugen
-//            $schools = array();
-//            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-//                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-//                if(($tblStudentTransfer =  Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
-//                    if(($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-//                        if(isset($tblDivision)){
-//                            // Schule über Schülerakte Company und Klasse (Schulart)
-//                            if(($tblSchoolType = $tblDivision->getType())){
-//
-//                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-//                                $schoolString = $Acronym.'-'.$SchoolTypeString.'-'.$tblCompany->getId();
-//                                if(isset($schoolList[$schoolString])){
-//                                    $schools[] = $schoolString;
-//                                } else {
-//                                    $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
-//                                }
-//                                // ToDO Schoolstring aus Array
-//                                // $schools[] = $schoolList[$schoolString];
-//                            }
-//                        }
-//                    }
-//                }
-//            } else {
-//                // keine Schüler -> Accunt bekommt alle Schulen des Mandanten
-//                if(($tblSchoolList =  School::useService()->getSchoolAll())){
-//                    foreach($tblSchoolList as $tblSchool){
-//                        $tblCompany = $tblSchool->getServiceTblCompany();
-//                        $tblSchoolType = $tblSchool->getServiceTblType();
-//                        if($tblCompany && $tblSchoolType){
-//                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-//                            $schoolString = $Acronym.'-'.$SchoolTypeString.'-'.$tblCompany->getId();
-//                            if(isset($schoolList[$schoolString])){
-//                                $schools[] = $schoolString;
-//                                // ToDO Schoolstring aus Array
-////                                $schools[] = $schoolList[$schoolString];
-//                            } else {
-//                                $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-
-            // Uploadtest
+            // Schulen (alle) //ToDO Schulstring erzeugen
+            $schools = array();
             if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                if(rand(0, 1)){
-                    $schools = array(
-                        $schoolList['DEMOSCHOOL']
-                    );
-                } else {
-                    $schools = array(
-                        $schoolList['DEMOSCHOOL2']
-                    );
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                if(($tblStudentTransfer =  Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                    if(($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                        if($tblDivision){
+                            // Schule über Schülerakte Company und Klasse (Schulart)
+                            if(($tblSchoolType = $tblDivision->getType())){
+
+                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                $schoolString = $Acronym.'-'.$SchoolTypeString.'-'.$tblCompany->getId();
+                                if(isset($schoolList[$schoolString])){
+                                    $schools[] = $schoolString;
+                                } else {
+                                    $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
+                                }
+                                // ToDO Schoolstring aus Array
+                                // $schools[] = $schoolList[$schoolString];
+                            }
+                        }
+                    }
                 }
             } else {
-                $schools = array(
-                    $schoolList['DEMOSCHOOL'],
-                    $schoolList['DEMOSCHOOL2']
-                );
+                // keine Schüler -> Accunt bekommt alle Schulen des Mandanten
+                if(($tblSchoolList =  School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        $tblCompany = $tblSchool->getServiceTblCompany();
+                        $tblSchoolType = $tblSchool->getServiceTblType();
+                        if($tblCompany && $tblSchoolType){
+                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                            $schoolString = $Acronym.'-'.$SchoolTypeString.'-'.$tblCompany->getId();
+                            if(isset($schoolList[$schoolString])){
+                                $schools[] = $schoolString;
+                                // ToDO Schoolstring aus Array
+//                                $schools[] = $schoolList[$schoolString];
+                            } else {
+                                $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
+                            }
+                        }
+                    }
+                }
             }
+
+//            // Uploadtest
+//            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+//                if(rand(0, 1)){
+//                    $schools = array(
+//                        $schoolList['DEMOSCHOOL']
+//                    );
+//                } else {
+//                    $schools = array(
+//                        $schoolList['DEMOSCHOOL2']
+//                    );
+//                }
+//            } else {
+//                $schools = array(
+//                    $schoolList['DEMOSCHOOL'],
+//                    $schoolList['DEMOSCHOOL2']
+//                );
+//            }
 
             $UploadItem['schools'] = $schools;
 
@@ -266,8 +267,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-//        Debugger::screenDump($UploadToAPI);
-
         $LayoutColumnList = array();
         if(!empty($AccountError)){
             foreach($AccountError as $ErrorEntity){
@@ -302,11 +301,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         }
 
-        // Benutzerliste suchen
-        $UserList = (new UniventionUser())->getUserListByName('ref-', false);
-        Debugger::screenDump($UserList);
-        $UserList = (new UniventionUser())->getUserListByName('demo-', false);
-        Debugger::screenDump($UserList);
+//        // Benutzerliste suchen
+//        $UserList = (new UniventionUser())->getUserListByName('ref-', false);
+//        Debugger::screenDump($UserList);
+//        $UserList = (new UniventionUser())->getUserListByName('demo-', false);
+//        Debugger::screenDump($UserList);
 
         $Stage->setContent(new Layout(
             new LayoutGroup(array(
@@ -358,10 +357,4 @@ class Frontend extends Extension implements IFrontendInterface
 //
 //        $ErrorLog[] = (new UniventionUser())->deleteUser('DEMO-login');
 //        $ErrorLog[] = (new UniventionUser())->deleteUser('DEMO-login2');
-
-    public function frontendUniventionUpdate()
-    {
-
-
-    }
 }
