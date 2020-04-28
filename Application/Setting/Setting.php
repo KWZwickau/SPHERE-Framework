@@ -2,6 +2,9 @@
 namespace SPHERE\Application\Setting;
 
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\Authorization\Authorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -28,7 +31,15 @@ class Setting implements IClusterInterface
         Consumer::registerApplication();
         Authorization::registerApplication();
         User::registerApplication();
-        Univention::registerApplication();
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                if(($tblConsumerLogin = ConsumerGatekeeper::useService()->getConsumerLoginByConsumer($tblConsumer))){
+                    if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
+                        Univention::registerApplication();
+                    }
+                }
+            }
+        }
         Agb::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(

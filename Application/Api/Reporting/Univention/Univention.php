@@ -57,7 +57,7 @@ class Univention implements IModuleInterface
         $fileLocation = \SPHERE\Application\Setting\Univention\Univention::useService()->downlaodSchoolExcel();
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                $Acronym."_schulimport_UCS.xlsx")->__toString();
+                $Acronym."_schulimport_UCS.csv")->__toString();
         }
         return false;
     }
@@ -72,7 +72,7 @@ class Univention implements IModuleInterface
         $fileLocation = \SPHERE\Application\Setting\Univention\Univention::useService()->downlaodAccountExcel();
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                $Acronym."_userimport_UCS.xlsx")->__toString();
+                $Acronym."_userimport_UCS.csv")->__toString();
         }
         return false;
     }

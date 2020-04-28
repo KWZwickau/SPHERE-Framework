@@ -50,14 +50,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
         $Stage->addButton(new Standard('User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
 
-        // dynamsiche Rollenliste
-        $roleList = (new UniventionRole())->getAllRoles();
-//        Debugger::screenDump($roleList);
-
-        // dynamsiche Schulliste
-        $schoolList = (new UniventionSchool())->getAllSchools();
-//        Debugger::screenDump($schoolList);
+//        // dynamsiche Rollenliste
+//        $roleList = (new UniventionRole())->getAllRoles();
+////        Debugger::screenDump($roleList);
 //
+//        // dynamsiche Schulliste
+//        $schoolList = (new UniventionSchool())->getAllSchools();
+////        Debugger::screenDump($schoolList);
+
         $Acronym = Account::useService()->getMandantAcronym();
         $tblAccountList = Univention::useService()->getAccountAllForAPITransfer();
 //        $TargetDate = new \DateTime('12.03.2020');
@@ -68,6 +68,14 @@ class Frontend extends Extension implements IFrontendInterface
         $AccountError = array();
         $countUploadAccount = 0;
         $countUploadAccountError = 0;
+
+        $tblYear = Term::useService()->getYearByNow();
+        if($tblYear){
+            $tblYear = current($tblYear);
+        } else {
+            $ErrorLog[] = 'kein aktuelles Jahr gefunden';
+        }
+
         foreach($tblAccountList as $tblAccount){
 
             $DateCompare = array();
@@ -102,33 +110,23 @@ class Frontend extends Extension implements IFrontendInterface
             $roles = array();
             foreach($tblGroupList as $tblGroup){
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-                    $roles[] = $roleList['staff'];
+//                    $roles[] = $roleList['staff'];
                 }
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-                    $roles[] = $roleList['teacher'];
+//                    $roles[] = $roleList['teacher'];
                 }
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-                    $roles[] = $roleList['student'];
+//                    $roles[] = $roleList['student'];
                 }
             }
             $UploadItem['roles'] = $roles;
 
-            $tblYear = Term::useService()->getYearByNow();
-            if($tblYear){
-                $tblYear = current($tblYear);
-            } else {
-                $ErrorLog[] = 'kein aktuelles Jahr gefunden';
-                continue;
-            }
-
             $tblDivision = false;
-            // Student Search Division
-            if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
-                $UploadItem['school_classes'] = $tblDivision->getDisplayName();
-                $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
-                Univention::useService()->setDateList($tblDivisionStudent, $DateCompare);
+            if ($tblYear){
+                ($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear));
             }
-
+            // Student Search Division
+            $StudentSchool = '';
             // Schulen (alle) //ToDO Schulstring erzeugen
             $schools = array();
             if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
@@ -138,16 +136,16 @@ class Frontend extends Extension implements IFrontendInterface
                         if($tblDivision){
                             // Schule über Schülerakte Company und Klasse (Schulart)
                             if(($tblSchoolType = $tblDivision->getType())){
-
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $schoolString = $Acronym.'-'.$SchoolTypeString.'-'.$tblCompany->getId();
-                                if(isset($schoolList[$schoolString])){
-                                    $schools[] = $schoolString;
-                                } else {
-                                    $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
-                                }
-                                // ToDO Schoolstring aus Array
-                                // $schools[] = $schoolList[$schoolString];
+                                $SchoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                                $StudentSchool = $SchoolString;
+//                                if(isset($schoolList[$schoolString])){
+                                    $schools[] = $SchoolString;
+//                                } else {
+//                                    $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
+//                                }
+//                                // ToDO Schoolstring aus Array
+//                                // $schools[] = $schoolList[$schoolString];
                             }
                         }
                     }
@@ -160,17 +158,23 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblSchoolType = $tblSchool->getServiceTblType();
                         if($tblCompany && $tblSchoolType){
                             $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                            $schoolString = $Acronym.'-'.$SchoolTypeString.'-'.$tblCompany->getId();
-                            if(isset($schoolList[$schoolString])){
+                            $schoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+//                            if(isset($schoolList[$schoolString])){
                                 $schools[] = $schoolString;
-                                // ToDO Schoolstring aus Array
-//                                $schools[] = $schoolList[$schoolString];
-                            } else {
-                                $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
-                            }
+//                                // ToDO Schoolstring aus Array
+////                                $schools[] = $schoolList[$schoolString];
+//                            } else {
+//                                $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
+//                            }
                         }
                     }
                 }
+            }
+
+            if($tblDivision){
+                $UploadItem['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
+                Univention::useService()->setDateList($tblDivisionStudent, $DateCompare);
             }
 
 //            // Uploadtest
@@ -193,18 +197,18 @@ class Frontend extends Extension implements IFrontendInterface
 
             $UploadItem['schools'] = $schools;
 
-            // alle Accounts ignorieren, die keine Updates erfahren haben.
-            $IsUpdateRelevant = false;
-            if(!$TargetDate){
-                // Erstexport (Es gibt kein Datum des letzten Uploads)
+//            // alle Accounts ignorieren, die keine Updates erfahren haben.
+//            $IsUpdateRelevant = false;
+//            if(!$TargetDate){
+//                // Erstexport (Es gibt kein Datum des letzten Uploads)
                 $IsUpdateRelevant = true;
-            } elseif(!empty($DateCompare)){
-                foreach($DateCompare as $CrateUpdateDate){
-                    if($CrateUpdateDate >= $TargetDate){
-                        $IsUpdateRelevant = true;
-                    }
-                }
-            }
+//            } elseif(!empty($DateCompare)){
+//                foreach($DateCompare as $CrateUpdateDate){
+//                    if($CrateUpdateDate >= $TargetDate){
+//                        $IsUpdateRelevant = true;
+//                    }
+//                }
+//            }
 
             if($IsUpdateRelevant){
                 $countUploadAccount++;
@@ -225,61 +229,61 @@ class Frontend extends Extension implements IFrontendInterface
                 array_push($UploadToAPI, $UploadItem);
             } elseif($IsUpdateRelevant) {
                 $countUploadAccountError++;
-                foreach($UploadItem as $Key => &$Value){
-                    if(is_array($Value)){
-
-                        $MouseOver = '';
-                        switch ($Key){
-                            case 'roles':
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                    'Mögliche Fehler:</br>'
-                                    .'Schüler '.new DangerText('keine aktive Klasse').'</br>'
-                                    .'Person in keiner der Folgenen Personengruppen:</br>'
-                                    .new DangerText('Schüler / Mitarbeiter / Lehrer')
-                                )))->enableHtml();
-                                break;
-                            case 'schools':
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                    'Schüler ist keiner Klasse zugewiesen </br>'
-                                    .'oder Schule fehlt in Univention')))->enableHtml();
-                                break;
-                        }
-
-                        if(empty($Value)){
-                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
-                        }else {
-                            $Value = $Key.' Ok';
-                        }
-
-                    }else {
-                        if($Value === ''){
-                            $MouseOver = '';
-                            switch ($Key){
-                                case 'Test':
-                                    $MouseOver = new ToolTip(new Info(), 'TEXT einfügen'); //ToDO welche Felder bedüfen einer Info zur fehlerbehebung
-                                break;
-                            }
-                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
-                        }
-                    }
-                }
+//                foreach($UploadItem as $Key => &$Value){
+//                    if(is_array($Value)){
+//
+//                        $MouseOver = '';
+//                        switch ($Key){
+//                            case 'roles':
+//                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+//                                    'Mögliche Fehler:</br>'
+//                                    .'Schüler '.new DangerText('keine aktive Klasse').'</br>'
+//                                    .'Person in keiner der Folgenen Personengruppen:</br>'
+//                                    .new DangerText('Schüler / Mitarbeiter / Lehrer')
+//                                )))->enableHtml();
+//                                break;
+//                            case 'schools':
+//                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+//                                    'Schüler ist keiner Klasse zugewiesen </br>'
+//                                    .'oder Schule fehlt in Univention')))->enableHtml();
+//                                break;
+//                        }
+//
+//                        if(empty($Value)){
+//                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+//                        }else {
+//                            $Value = $Key.' Ok';
+//                        }
+//
+//                    }else {
+//                        if($Value === ''){
+//                            $MouseOver = '';
+//                            switch ($Key){
+//                                case 'Test':
+//                                    $MouseOver = new ToolTip(new Info(), 'TEXT einfügen'); //ToDO welche Felder bedüfen einer Info zur fehlerbehebung
+//                                break;
+//                            }
+//                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+//                        }
+//                    }
+//                }
                 array_push($AccountError, $UploadItem);
             }
         }
 
         $LayoutColumnList = array();
-        if(!empty($AccountError)){
-            foreach($AccountError as $ErrorEntity){
-                $LayoutColumnList[] = new LayoutColumn(new Panel($ErrorEntity['name'], array(
-                    $ErrorEntity['firstname'],
-                    $ErrorEntity['lastname'],
-//                    $ErrorEntity['record_uid'],
-//                    $ErrorEntity['source_uid'],
-                    $ErrorEntity['roles'],
-                    $ErrorEntity['schools'],
-                )), 3);
-            }
-        }
+//        if(!empty($AccountError)){
+//            foreach($AccountError as $ErrorEntity){
+//                $LayoutColumnList[] = new LayoutColumn(new Panel($ErrorEntity['name'], array(
+//                    $ErrorEntity['firstname'],
+//                    $ErrorEntity['lastname'],
+////                    $ErrorEntity['record_uid'],
+////                    $ErrorEntity['source_uid'],
+//                    $ErrorEntity['roles'],
+//                    $ErrorEntity['schools'],
+//                )), 3);
+//            }
+//        }
 
         $ErrorPanel = false;
         $ErrorLog = array_unique($ErrorLog);

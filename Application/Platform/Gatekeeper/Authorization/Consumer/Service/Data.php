@@ -36,7 +36,7 @@ class Data extends AbstractData
             foreach ($AccountList as $Acronym) {
                 $tblConsumer = $this->getConsumerByAcronym($Acronym);
                 if ($tblConsumer){
-                    $this->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_NAME);
+                    $this->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
                 }
             }
         }
