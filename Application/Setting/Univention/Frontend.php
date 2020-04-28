@@ -50,13 +50,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
         $Stage->addButton(new Standard('User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
 
-//        // dynamsiche Rollenliste
-//        $roleList = (new UniventionRole())->getAllRoles();
-////        Debugger::screenDump($roleList);
-//
-//        // dynamsiche Schulliste
-//        $schoolList = (new UniventionSchool())->getAllSchools();
-////        Debugger::screenDump($schoolList);
+//        $beginn = microtime(true);
+        // dynamsiche Rollenliste
+        $roleList = (new UniventionRole())->getAllRoles();
+//        Debugger::screenDump($roleList);
+
+        // dynamsiche Schulliste
+        $schoolList = (new UniventionSchool())->getAllSchools();
+//        Debugger::screenDump($schoolList);
+
+//        $dauer = microtime(true) - $beginn;
+//        echo "Verbindung zur API: $dauer Sek.</br>";
 
         $Acronym = Account::useService()->getMandantAcronym();
         $tblAccountList = Univention::useService()->getAccountAllForAPITransfer();
@@ -110,13 +114,13 @@ class Frontend extends Extension implements IFrontendInterface
             $roles = array();
             foreach($tblGroupList as $tblGroup){
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-//                    $roles[] = $roleList['staff'];
+                    $roles[] = $roleList['staff'];
                 }
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-//                    $roles[] = $roleList['teacher'];
+                    $roles[] = $roleList['teacher'];
                 }
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-//                    $roles[] = $roleList['student'];
+                    $roles[] = $roleList['student'];
                 }
             }
             $UploadItem['roles'] = $roles;
@@ -139,11 +143,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
                                 $SchoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
                                 $StudentSchool = $SchoolString;
-//                                if(isset($schoolList[$schoolString])){
+                                if(isset($schoolList[$SchoolString])){
                                     $schools[] = $SchoolString;
-//                                } else {
-//                                    $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
-//                                }
+                                } else {
+                                    $ErrorLog[] = 'Schule '.$SchoolString.' nicht in der API vorhanden';
+                                }
 //                                // ToDO Schoolstring aus Array
 //                                // $schools[] = $schoolList[$schoolString];
                             }
@@ -159,13 +163,13 @@ class Frontend extends Extension implements IFrontendInterface
                         if($tblCompany && $tblSchoolType){
                             $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
                             $schoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
-//                            if(isset($schoolList[$schoolString])){
+                            if(isset($schoolList[$schoolString])){
                                 $schools[] = $schoolString;
-//                                // ToDO Schoolstring aus Array
-////                                $schools[] = $schoolList[$schoolString];
-//                            } else {
-//                                $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
-//                            }
+                                // ToDO Schoolstring aus Array
+//                                $schools[] = $schoolList[$schoolString];
+                            } else {
+                                $ErrorLog[] = 'Schule '.$schoolString.' nicht in der API vorhanden';
+                            }
                         }
                     }
                 }
@@ -229,44 +233,44 @@ class Frontend extends Extension implements IFrontendInterface
                 array_push($UploadToAPI, $UploadItem);
             } elseif($IsUpdateRelevant) {
                 $countUploadAccountError++;
-//                foreach($UploadItem as $Key => &$Value){
-//                    if(is_array($Value)){
-//
-//                        $MouseOver = '';
-//                        switch ($Key){
-//                            case 'roles':
-//                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    'Mögliche Fehler:</br>'
-//                                    .'Schüler '.new DangerText('keine aktive Klasse').'</br>'
-//                                    .'Person in keiner der Folgenen Personengruppen:</br>'
-//                                    .new DangerText('Schüler / Mitarbeiter / Lehrer')
-//                                )))->enableHtml();
-//                                break;
-//                            case 'schools':
-//                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    'Schüler ist keiner Klasse zugewiesen </br>'
-//                                    .'oder Schule fehlt in Univention')))->enableHtml();
-//                                break;
-//                        }
-//
-//                        if(empty($Value)){
-//                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
-//                        }else {
-//                            $Value = $Key.' Ok';
-//                        }
-//
-//                    }else {
-//                        if($Value === ''){
-//                            $MouseOver = '';
-//                            switch ($Key){
-//                                case 'Test':
-//                                    $MouseOver = new ToolTip(new Info(), 'TEXT einfügen'); //ToDO welche Felder bedüfen einer Info zur fehlerbehebung
-//                                break;
-//                            }
-//                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
-//                        }
-//                    }
-//                }
+                foreach($UploadItem as $Key => &$Value){
+                    if(is_array($Value)){
+
+                        $MouseOver = '';
+                        switch ($Key){
+                            case 'roles':
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    'Mögliche Fehler:</br>'
+                                    .'Schüler '.new DangerText('keine aktive Klasse').'</br>'
+                                    .'Person in keiner der Folgenen Personengruppen:</br>'
+                                    .new DangerText('Schüler / Mitarbeiter / Lehrer')
+                                )))->enableHtml();
+                                break;
+                            case 'schools':
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    'Schüler ist keiner Klasse zugewiesen </br>'
+                                    .'oder Schule fehlt in Univention')))->enableHtml();
+                                break;
+                        }
+
+                        if(empty($Value)){
+                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                        }else {
+                            $Value = $Key.' Ok';
+                        }
+
+                    }else {
+                        if($Value === ''){
+                            $MouseOver = '';
+                            switch ($Key){
+                                case 'Test':
+                                    $MouseOver = new ToolTip(new Info(), 'TEXT einfügen'); //ToDO welche Felder bedüfen einer Info zur fehlerbehebung
+                                break;
+                            }
+                            $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                        }
+                    }
+                }
                 array_push($AccountError, $UploadItem);
             }
         }
