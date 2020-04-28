@@ -10,9 +10,9 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -40,15 +40,23 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendUnivention($Upload = false)
+    public function frontendUnivention()
+    {
+        $Stage = new Stage('Univention', '');
+        $Stage->addButton(new Standard('Zurück', '/Setting', new ChevronLeft()));
+
+        //ToDO Erklärung der Schnittstelle? + Vorraussetzungen
+
+        return $Stage;
+    }
+
+    public function frontendUnivAPI($Upload = false)
     {
 
-        $Stage = new Stage('Univention', 'Verbindung');
-        $Stage->addButton(new Standard('Zurück', '/Setting', new Upload()));
+        $Stage = new Stage('Univention', 'Online Verbindung');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
         // Removed for Live
-//        $Stage->addButton(new Standard('Accounts übertragen', '/Setting/Univention', new Upload(), array('Upload' => true)));
-        $Stage->addButton(new Standard('Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
-        $Stage->addButton(new Standard('User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
+//        $Stage->addButton(new Standard('Accounts übertragen', '/Setting/Univention/Api', new Upload(), array('Upload' => true)));
 
 //        $beginn = microtime(true);
         // dynamsiche Rollenliste
@@ -205,7 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
 //            $IsUpdateRelevant = false;
 //            if(!$TargetDate){
 //                // Erstexport (Es gibt kein Datum des letzten Uploads)
-                $IsUpdateRelevant = true;
+            $IsUpdateRelevant = true;
 //            } elseif(!empty($DateCompare)){
 //                foreach($DateCompare as $CrateUpdateDate){
 //                    if($CrateUpdateDate >= $TargetDate){
@@ -223,13 +231,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Handle Error Entity
             if($IsUpdateRelevant
-            && $UploadItem['name'] !== ''
-            && $UploadItem['firstname'] !== ''
-            && $UploadItem['lastname'] !== ''
-            && $UploadItem['record_uid'] !== ''
-            && $UploadItem['source_uid'] !== ''
-            && !empty($UploadItem['roles'])
-            && !empty($UploadItem['schools'])) {
+                && $UploadItem['name'] !== ''
+                && $UploadItem['firstname'] !== ''
+                && $UploadItem['lastname'] !== ''
+                && $UploadItem['record_uid'] !== ''
+                && $UploadItem['source_uid'] !== ''
+                && !empty($UploadItem['roles'])
+                && !empty($UploadItem['schools'])) {
                 array_push($UploadToAPI, $UploadItem);
             } elseif($IsUpdateRelevant) {
                 $countUploadAccountError++;
@@ -265,7 +273,7 @@ class Frontend extends Extension implements IFrontendInterface
                             switch ($Key){
                                 case 'Test':
                                     $MouseOver = new ToolTip(new Info(), 'TEXT einfügen'); //ToDO welche Felder bedüfen einer Info zur fehlerbehebung
-                                break;
+                                    break;
                             }
                             $Value = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
                         }
@@ -319,8 +327,8 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(($ErrorPanel
-                    ? $ErrorPanel
-                    : '')),
+                        ? $ErrorPanel
+                        : '')),
 //                    new LayoutColumn(new Listing($DateCompare)),
                 )),
                 new LayoutRow(
@@ -365,4 +373,19 @@ class Frontend extends Extension implements IFrontendInterface
 //
 //        $ErrorLog[] = (new UniventionUser())->deleteUser('DEMO-login');
 //        $ErrorLog[] = (new UniventionUser())->deleteUser('DEMO-login2');
+
+    /**
+     * @return Stage
+     */
+    public function frontendUnivCSV()
+    {
+        $Stage = new Stage('Univention', 'Online Verbindung');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
+        $Stage->addButton(new Standard('CSV Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
+        $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
+
+        // ToDO Fehleranalyse anzeigen
+
+        return $Stage;
+    }
 }
