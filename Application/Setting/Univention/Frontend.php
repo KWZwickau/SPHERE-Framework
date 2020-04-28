@@ -276,18 +276,18 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $LayoutColumnList = array();
-//        if(!empty($AccountError)){
-//            foreach($AccountError as $ErrorEntity){
-//                $LayoutColumnList[] = new LayoutColumn(new Panel($ErrorEntity['name'], array(
-//                    $ErrorEntity['firstname'],
-//                    $ErrorEntity['lastname'],
-////                    $ErrorEntity['record_uid'],
-////                    $ErrorEntity['source_uid'],
-//                    $ErrorEntity['roles'],
-//                    $ErrorEntity['schools'],
-//                )), 3);
-//            }
-//        }
+        if(!empty($AccountError)){
+            foreach($AccountError as $ErrorEntity){
+                $LayoutColumnList[] = new LayoutColumn(new Panel($ErrorEntity['name'], array(
+                    $ErrorEntity['firstname'],
+                    $ErrorEntity['lastname'],
+//                    $ErrorEntity['record_uid'],
+//                    $ErrorEntity['source_uid'],
+                    $ErrorEntity['roles'],
+                    $ErrorEntity['schools'],
+                )), 3);
+            }
+        }
 
         $ErrorPanel = false;
         $ErrorLog = array_unique($ErrorLog);
