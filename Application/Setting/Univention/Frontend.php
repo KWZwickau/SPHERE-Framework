@@ -11,8 +11,11 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Cluster;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -23,6 +26,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -384,7 +388,81 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('CSV Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
 
-        // ToDO Fehleranalyse anzeigen
+        $ErrorLog = array();
+        if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
+            foreach($AccountPrepareList as $Data){
+                $IsError = false;
+//                $Data['name'];
+//                $Data['firstname'];       // Account ohne Person wird bereits davor ausgefiltert
+//                $Data['lastname'];
+//                $Data['record_uid'];      // Accountabhängig
+//                $Data['source_uid'];      // Accountabhängig
+//                $Data['roles'];           // benutzer ohne Rollen werden bereits entfernt. nachträglich werden Schüler herrangezogen, die besitzen immer Student
+//                $Data['schools'];
+//                $Data['password'];        // noch keine Prüfung
+//                $Data['school_classes'];
+
+
+//                if($Data['name'] == 'DEMO-login'){
+//                    var_dump($Data['name']);
+//                    var_dump($Data['schools']);
+//                    var_dump($Data['school_classes']);
+//                }
+                if(!$Data['name']){
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Person als '.
+                        new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
+                        new DangerText('Account fehlt ');
+                    $IsError = true;
+                }
+                if(!$Data['schools']){
+                    $Data['schools'] = (new ToolTip(new Exclamation(),
+                        htmlspecialchars(new Cluster().' Lehrer erhält alle Schulen aus Mandanteneinstellungen<br/>'
+                            .new Cluster().' Schüler benötigt aktuelle Klasse<br/>'
+                            .new Cluster().' Schüler benötigt aktuelle Schule in S-Akte'
+                        )))->enableHtml().
+                        new DangerText(' Keine Schule hinterlegt');
+                    $IsError = true;
+                } else {
+                    $Data['schools'] = new SuccessText(new SuccessIcon().' gefunden');
+                }
+                if(!$Data['school_classes'] && preg_match("/student/",$Data['roles'])){
+                    $Data['school_classes'] = new ToolTip(new Exclamation(), 'Schüler benötigt eine aktuelle Klasse').
+                        new DangerText(' Keine Klasse');
+                    $IsError = true;
+                } else {
+                    $Data['school_classes'] = new SuccessText(new SuccessIcon().' gefunden');
+                }
+
+
+                if($IsError){
+                    $ErrorLog[] = $Data;
+                }
+            }
+        }
+
+        $Columnlist = array();
+        if(!empty($ErrorLog)){
+            foreach ($ErrorLog as $Notification){
+                $Columnlist[] = new LayoutColumn(
+                    new Panel($Notification['name'], array(
+                        'Person: '.$Notification['firstname'].' '. $Notification['lastname'],
+                        'Schule: '.$Notification['schools'],
+                        'Klasse: '.$Notification['school_classes']
+                    ))
+                , 2);
+            }
+        }
+
+        $Stage->setcontent(new Layout(new LayoutGroup(array(
+            new LayoutRow(
+                new LayoutColumn(
+                    new Title(count($Columnlist).' Warnungen')
+                )
+            ),
+            new LayoutRow(
+                $Columnlist
+            )
+        ))));
 
         return $Stage;
     }
