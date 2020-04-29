@@ -108,6 +108,15 @@ class TblStudentMedicalRecord extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getInsuranceStateId()
+    {
+
+        return $this->InsuranceState;
+    }
+
+    /**
      * @param int $tblStudentInsuranceStateId
      */
     public function setInsuranceState($tblStudentInsuranceStateId = 0)

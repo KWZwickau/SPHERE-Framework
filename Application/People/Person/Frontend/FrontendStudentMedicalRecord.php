@@ -127,7 +127,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 $Global->POST['Meta']['MedicalRecord']['Disease'] = $tblStudentMedicalRecord->getDisease();
                 $Global->POST['Meta']['MedicalRecord']['Medication'] = $tblStudentMedicalRecord->getMedication();
                 $Global->POST['Meta']['MedicalRecord']['AttendingDoctor'] = $tblStudentMedicalRecord->getAttendingDoctor();
-                $Global->POST['Meta']['MedicalRecord']['Insurance']['State'] = $tblStudentMedicalRecord->getInsuranceState();
+                $Global->POST['Meta']['MedicalRecord']['Insurance']['State'] = $tblStudentMedicalRecord->getInsuranceStateId();
                 $Global->POST['Meta']['MedicalRecord']['Insurance']['Company'] = $tblStudentMedicalRecord->getInsurance();
 
                 $Global->savePost();
@@ -157,6 +157,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
     private function getEditStudentMedicalRecordForm(TblPerson $tblPerson = null)
     {
 
+//        $tblPerson
         $tblStudentInsuranceState = Student::useService()->getStudentInsuranceStateAll();
 
         return (new Form(array(
