@@ -141,6 +141,7 @@ class Service extends AbstractService
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = '';
                 $UploadItem['schools'] = '';
+                $UploadItem['groupArray'] = '';
 
                 $UploadItem['password'] = '';
 //                $UploadItem['password'] = $tblAccount->getPassword(); // ??
@@ -157,6 +158,7 @@ class Service extends AbstractService
                 // Rollen
                 $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                 $roles = array();
+                $groups = array();
                 foreach ($tblGroupList as $tblGroup) {
                     if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
                         $roles[] = 'staff';
@@ -167,12 +169,18 @@ class Service extends AbstractService
                     if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
                         $roles[] = 'student';
                     }
+                    if($tblGroup->isCoreGroup()){
+                        $groups[] = $tblGroup->getName();
+                    }
                 }
                 if(empty($roles)){
                     // Accounts die nicht/nicht mehr zu den 3 Rollen gehören sollen entfernt werden
                     continue;
                 }
-                $UploadItem['roles'] = implode(', ', $roles);
+                if(!empty($groups)){
+                    $UploadItem['groupArray'] = $groups;
+                }
+                $UploadItem['roles'] = implode(',', $roles);
 
 
                 $tblDivision = false;
@@ -191,7 +199,7 @@ class Service extends AbstractService
                                 // Schule über Schülerakte Company und Klasse (Schulart)
                                 if (($tblSchoolType = $tblDivision->getType())){
                                     $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                                    $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
                                     $schools[] = $SchoolString;
                                     $StudentSchool = $SchoolString;
                                 }
@@ -206,7 +214,7 @@ class Service extends AbstractService
                             $tblSchoolType = $tblSchool->getServiceTblType();
                             if($tblCompany && $tblSchoolType){
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $SchoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                                $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
                                 $schools[] = $SchoolString;
                                 // ToDO Schoolstring aus Array
 //                                $schools[] = $schoolList[$schoolString];
@@ -215,7 +223,7 @@ class Service extends AbstractService
                     }
                 }
                 if (!empty($schools)){
-                    $UploadItem['schools'] = implode(', ', $schools);
+                    $UploadItem['schools'] = implode(',', $schools);
                 }
 
                 // Student Search Division
@@ -243,10 +251,12 @@ class Service extends AbstractService
                 $Item['schools'] = '';
                 $Item['password'] = '';
                 $Item['school_classes'] = '';
+                $Item['groupArray'] = '';
 
                 // Rollen
                 $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                 $roles = array();
+                $groups = array();
                 foreach ($tblGroupList as $tblGroup) {
                     if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
                         $roles[] = 'staff';
@@ -257,8 +267,14 @@ class Service extends AbstractService
                     if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
                         $roles[] = 'student';
                     }
+                    if($tblGroup->isCoreGroup()){
+                        $groups[] = $tblGroup->getName();
+                    }
                 }
-                $Item['roles'] = implode(', ', $roles);
+                $Item['roles'] = implode(',', $roles);
+                if(!empty($groups)){
+                    $Item['groupArray'] = $groups;
+                }
 
                 $tblDivision = false;
                 if ($tblYear){
@@ -278,7 +294,7 @@ class Service extends AbstractService
                                 // Schule über Schülerakte Company und Klasse (Schulart)
                                 if (($tblSchoolType = $tblDivision->getType())){
                                     $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                                    $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
                                     $schools[] = $SchoolString;
                                     $StudentSchool = $SchoolString;
                                 }
@@ -287,7 +303,7 @@ class Service extends AbstractService
                     }
                 }
                 if (!empty($schools)){
-                    $Item['schools'] = implode(', ', $schools);
+                    $Item['schools'] = implode(',', $schools);
                 }
 
                 if($tblDivision){
@@ -321,7 +337,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), "Klassen");
             $export->setValue($export->getCell($Column++, $Row), "Benutzername");
             $export->setValue($export->getCell($Column++, $Row), "Passwort");
-            $export->setValue($export->getCell($Column, $Row), "Externe_Mailadresse");
+            $export->setValue($export->getCell($Column++, $Row), "Externe_Mailadresse");
+            $export->setValue($export->getCell($Column, $Row), "Stammgruppe");
 
             foreach ($AccountData as $Account)
             {
@@ -336,8 +353,13 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $Account['school_classes']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['name']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['password']);
-                $export->setValue($export->getCell($Column, $Row), '');
-
+                $export->setValue($export->getCell($Column++, $Row), '');
+                if(is_array($Account['groupArray']) && !empty($Account['groupArray'])){
+                    $GroupString = implode(',',$Account['groupArray']);
+                    $export->setValue($export->getCell($Column, $Row), $GroupString);
+                } else {
+                    $export->setValue($export->getCell($Column, $Row), '');
+                }
             }
 
             $export->setDelimiter(',');
@@ -361,7 +383,7 @@ class Service extends AbstractService
                 $tblType = $tblSchool->getServiceTblType();
                 if($tblCompany && $tblType){
                     $SchoolTypeString = Type::useService()->getSchoolTypeString($tblType);
-                    $Item['OU'] = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                    $Item['OU'] = $Acronym.$SchoolTypeString.$tblCompany->getId();
                     $Item['Schulname'] = $tblCompany->getName();
                     array_push($SchoolData, $Item);
                 }

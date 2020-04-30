@@ -11,10 +11,10 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Cluster;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                             // Schule über Schülerakte Company und Klasse (Schulart)
                             if(($tblSchoolType = $tblDivision->getType())){
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $SchoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                                $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
                                 $StudentSchool = $SchoolString;
                                 if(isset($schoolList[$SchoolString])){
                                     $schools[] = $SchoolString;
@@ -174,7 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblSchoolType = $tblSchool->getServiceTblType();
                         if($tblCompany && $tblSchoolType){
                             $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                            $schoolString = $Acronym.'-'.$SchoolTypeString.$tblCompany->getId();
+                            $schoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
                             if(isset($schoolList[$schoolString])){
                                 $schools[] = $schoolString;
                                 // ToDO Schoolstring aus Array
@@ -390,6 +390,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $ErrorLog = array();
         if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
+
+            $isCoreGroupUsage = false;
+            // kontrolle Stammgruppennutzung
+            if(Group::useService()->getGroupListByIsCoreGroup()){
+                $isCoreGroupUsage = true;
+            }
+
             foreach($AccountPrepareList as $Data){
                 $IsError = false;
 //                $Data['name'];
@@ -401,6 +408,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                $Data['schools'];
 //                $Data['password'];        // noch keine Prüfung
 //                $Data['school_classes'];
+//                $Data['groupArray'];
 
 
 //                if($Data['name'] == 'DEMO-login'){
@@ -409,16 +417,16 @@ class Frontend extends Extension implements IFrontendInterface
 //                    var_dump($Data['school_classes']);
 //                }
                 if(!$Data['name']){
-                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Person als '.
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Person als '.
                         new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
                         new DangerText('Account fehlt ');
                     $IsError = true;
                 }
                 if(!$Data['schools']){
                     $Data['schools'] = (new ToolTip(new Exclamation(),
-                        htmlspecialchars(new Cluster().' Lehrer erhält alle Schulen aus Mandanteneinstellungen<br/>'
-                            .new Cluster().' Schüler benötigt aktuelle Klasse<br/>'
-                            .new Cluster().' Schüler benötigt aktuelle Schule in S-Akte'
+                        htmlspecialchars(new Minus().' Lehrer erhält alle Schulen aus Mandanteneinstellungen<br/>'
+                            .new Minus().' Schüler benötigt aktuelle Klasse<br/>'
+                            .new Minus().' Schüler benötigt aktuelle Schule in S-Akte'
                         )))->enableHtml().
                         new DangerText(' Keine Schule hinterlegt');
                     $IsError = true;
@@ -426,13 +434,24 @@ class Frontend extends Extension implements IFrontendInterface
                     $Data['schools'] = new SuccessText(new SuccessIcon().' gefunden');
                 }
                 if(!$Data['school_classes'] && preg_match("/student/",$Data['roles'])){
-                    $Data['school_classes'] = new ToolTip(new Exclamation(), 'Schüler benötigt eine aktuelle Klasse').
-                        new DangerText(' Keine Klasse');
+                    $Data['school_classes'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().
+                            ' Schüler benötigt eine aktuelle Klasse')))->enableHtml().
+                            new DangerText(' Keine Klasse');
                     $IsError = true;
                 } else {
                     $Data['school_classes'] = new SuccessText(new SuccessIcon().' gefunden');
                 }
 
+                // Stammgruppe nur für Schüler
+                if($isCoreGroupUsage && empty($Data['groupArray']) && preg_match("/student/",$Data['roles'])){
+                    $Data['group'] = new DangerText('Keine Stammgruppe');
+                    $IsError = true;
+                } elseif($isCoreGroupUsage && count($Data['groupArray']) > 1 && preg_match("/student/",$Data['roles'])){
+                    $Data['group'] = new DangerText('mehr als eine Stammgruppe: '.implode(', ',$Data['group']));
+                    $IsError = true;
+                } elseif($isCoreGroupUsage && preg_match("/student/",$Data['roles'])){
+                    $Data['group'] = $Data['school_classes'] = new SuccessText(new SuccessIcon().' '.$Data['groupArray'][0]);
+                }
 
                 if($IsError){
                     $ErrorLog[] = $Data;
@@ -443,12 +462,16 @@ class Frontend extends Extension implements IFrontendInterface
         $Columnlist = array();
         if(!empty($ErrorLog)){
             foreach ($ErrorLog as $Notification){
+                $PanelContent = array();
+                $PanelContent[] = 'Person: '.$Notification['firstname'].' '. $Notification['lastname'];
+                $PanelContent[] = 'Schule: '.$Notification['schools'];
+                $PanelContent[] = 'Klasse: '.$Notification['school_classes'];
+                if(isset($Notification['group'])){
+                    $PanelContent[] = 'Stammgruppe: '.$Notification['group'];
+                }
+
                 $Columnlist[] = new LayoutColumn(
-                    new Panel($Notification['name'], array(
-                        'Person: '.$Notification['firstname'].' '. $Notification['lastname'],
-                        'Schule: '.$Notification['schools'],
-                        'Klasse: '.$Notification['school_classes']
-                    ))
+                    new Panel($Notification['name'], $PanelContent)
                 , 2);
             }
         }

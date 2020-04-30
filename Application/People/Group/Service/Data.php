@@ -182,6 +182,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $isCoreGroup
+     *
+     * @return false|TblGroup[]
+     */
+    public function getGroupListByIsCoreGroup($isCoreGroup = true)
+    {
+
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblGroup',
+            array(
+                TblGroup::ATTR_IS_CORE_GROUP => $isCoreGroup
+            ));
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
      * @param TblGroup $tblGroup
      *
      * @return bool|TblPerson[]

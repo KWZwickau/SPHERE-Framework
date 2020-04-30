@@ -92,6 +92,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isCoreGroup
+     *
+     * @return false|TblGroup[]
+     */
+    public function getGroupListByIsCoreGroup($isCoreGroup = true)
+    {
+
+        return ( new Data($this->getBinding()) )->getGroupListByIsCoreGroup($isCoreGroup);
+    }
+
+    /**
      * Sortierung erst feste Gruppen, dann individuelle Gruppen
      *
      * @return bool|TblGroup[]
