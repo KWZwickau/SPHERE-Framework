@@ -842,6 +842,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
                 $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
+                $Item['Division'] = new Muted('-NA-');
                 $Item['PersonListStudent'] = '';
                 $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
                         ? ''.$tblUserAccount->getAccountCreator().' - '
@@ -877,6 +878,9 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Salutation'] = $tblPerson->getSalutation();
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
+                    if(($tblDivision =  Student::useService()->getCurrentDivisionByPerson($tblPerson))){
+                        $Item['Division'] = $tblDivision->getDisplayName();
+                    }
 
                     $CustodyList = array();
                     $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
@@ -939,6 +943,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'UserName'          => 'Account',
                                         'Address'           => 'Adresse',
                                         'PersonListCustody' => 'Sorgeberechtigte',
+                                        'Division'          => 'aktuelle Klasse',
                                         'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
                                         'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
                                         'Option'            => ''
