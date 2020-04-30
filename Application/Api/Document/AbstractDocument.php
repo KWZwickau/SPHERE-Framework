@@ -621,9 +621,11 @@ abstract class AbstractDocument
 
             $phoneNumberList = $this->setPhoneNumbersByTypeName($tblPerson, 'Privat');
             $phone = '';
-            // es passen nur 2 Telefonnummern in das Feld
+            // es passen nur 3 Telefonnummern in das Feld
             if (!empty($phoneNumberList)) {
-                $phone = $phoneNumberList[0].( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' );
+                $phone = $phoneNumberList[0]
+                    . ( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' )
+                    . ( isset( $phoneNumberList[2] ) ? '<br>'. $phoneNumberList[2] : '' );
 
             }
             $Data['Person']['Contact']['Phone']['Number'] = $phone;
@@ -654,7 +656,7 @@ abstract class AbstractDocument
         }
 
         // Telefonnummern der Sorgeberechtigten mit Anzeigen
-        if (empty($phoneNumberList) || count($phoneNumberList) < 2) {
+        if (empty($phoneNumberList) || count($phoneNumberList) < 3) {
             if (($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
                 && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                     $tblRelationshipType))
@@ -700,6 +702,16 @@ abstract class AbstractDocument
     }
 
     /**
+     * @param $phoneNumber
+     *
+     * @return false|int
+     */
+    private function filterPhoneNumber($phoneNumber)
+    {
+        return preg_replace('![^0-9/\s-+]+!', '', $phoneNumber);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblType   $tblType
      * @param array     $phoneNumberList
@@ -710,13 +722,13 @@ abstract class AbstractDocument
             foreach ($tblPhoneToPersonList as $tblPhoneToPerson) {
                 if (($tblPhone = $tblPhoneToPerson->getTblPhone())) {
                     if($IsRemark){
-                        $phoneNumberList[] = $tblPhone->getNumber().
+                        $phoneNumberList[] = $this->filterPhoneNumber($tblPhone->getNumber()) .
                             ($tblPhoneToPerson->getRemark()
                                 ? ' ('. $tblPhoneToPerson->getRemark().')'
                                 : ''
                             );
                     } else {
-                        $phoneNumberList[] = $tblPhone->getNumber();
+                        $phoneNumberList[] = $this->filterPhoneNumber($tblPhone->getNumber());
                     }
                 }
             }
@@ -735,9 +747,11 @@ abstract class AbstractDocument
 
             $phoneNumberList = $this->setPhoneNumbersByTypeName($tblPerson, 'Notfall');
             $phone = '';
-            // es passen nur 2 Telefonnummern in das Feld
+            // es passen nur 3 Telefonnummern in das Feld
             if (!empty($phoneNumberList)) {
-                $phone = $phoneNumberList[0].( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' );
+                $phone = $phoneNumberList[0]
+                    . ( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' )
+                    . ( isset( $phoneNumberList[2] ) ? '<br>'. $phoneNumberList[2] : '' );
 
                 $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = implode('; ', $phoneNumberList);
             }
