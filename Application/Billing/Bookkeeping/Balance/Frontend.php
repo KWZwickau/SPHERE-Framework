@@ -100,6 +100,10 @@ class Frontend extends Extension implements IFrontendInterface
         if(!isset($Balance['Filter'])){
             $_POST['Balance']['Filter'] = self::FILTER_CLASS;
         }
+        // required from Select2
+        if(!isset($Balance['BasketType'])){
+            $_POST['Balance']['BasketType'] = '-1';
+        }
         // Standard Download
         $Download = (new PrimaryLink('Herunterladen', '', new Download()))->setDisabled();
         $tblPersonList = array();
@@ -498,8 +502,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $CheckboxItemList, Panel::PANEL_TYPE_INFO)
                     , 6),
                     new FormColumn(
-                        new Panel(new Bold('Variantenauswahl'), new SelectBox('Balance[BasketType]', '', $BasketTypeSelect)
-                        ,Panel::PANEL_TYPE_INFO)
+                        new SelectBox('Balance[BasketType]', 'Variantenauswahl', $BasketTypeSelect)
                     , 6));
             }
 
