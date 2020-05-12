@@ -96,6 +96,22 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool
+     */
+    public function isSchoolSeparated()
+    {
+
+        if(($tblConsumer = $this->getConsumerBySession())){
+            if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer))){
+                if($tblConsumerLogin->getIsSchoolSeparated()){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param null|string $Session
      *
      * @return bool|TblConsumer

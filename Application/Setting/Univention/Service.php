@@ -192,34 +192,46 @@ class Service extends AbstractService
 
                 $schools = array();
                 $StudentSchool = '';
-                if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-                    if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblStudentTransferType))){
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-                            if ($tblDivision){
-                                // Schule über Schülerakte Company und Klasse (Schulart)
-                                if (($tblSchoolType = $tblDivision->getType())){
-                                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-                                    $schools[] = $SchoolString;
-                                    $StudentSchool = $SchoolString;
+                if(!Consumer::useService()->isSchoolSeparated()){
+                    // Mandant wird als Schule verwendet
+                    $SchoolString = $this->getSchoolString($Acronym);
+                    $schools[] = $SchoolString;
+                    // ToDO Schoolstring aus Array
+                    // $schools[] = $schoolList[$schoolString];
+                    $StudentSchool = $SchoolString;
+                } else {
+                    // Schulen im Mandanten werden unterschieden
+                    if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                        if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblStudentTransferType))){
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                                if ($tblDivision){
+                                    // Schule über Schülerakte Company und Klasse (Schulart)
+                                    if (($tblSchoolType = $tblDivision->getType())){
+                                        $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                        $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+                                        $schools[] = $SchoolString;
+                                        $StudentSchool = $SchoolString;
+                                        // ToDO Schoolstring aus Array
+                                        // $schools[] = $schoolList[$schoolString];
+                                    }
                                 }
                             }
                         }
-                    }
-                } else {
-                    // keine Schüler -> Accunt bekommt alle Schulen des Mandanten
-                    if(($tblSchoolList =  School::useService()->getSchoolAll())){
-                        foreach($tblSchoolList as $tblSchool){
-                            $tblCompany = $tblSchool->getServiceTblCompany();
-                            $tblSchoolType = $tblSchool->getServiceTblType();
-                            if($tblCompany && $tblSchoolType){
-                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-                                $schools[] = $SchoolString;
-                                // ToDO Schoolstring aus Array
-//                                $schools[] = $schoolList[$schoolString];
+                    } else {
+                        // keine Schüler -> Account bekommt alle Schulen des Mandanten
+                        if(($tblSchoolList =  School::useService()->getSchoolAll())){
+                            foreach($tblSchoolList as $tblSchool){
+                                $tblCompany = $tblSchool->getServiceTblCompany();
+                                $tblSchoolType = $tblSchool->getServiceTblType();
+                                if($tblCompany && $tblSchoolType){
+                                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                    $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+                                    $schools[] = $SchoolString;
+                                    // ToDO Schoolstring aus Array
+                                    // $schools[] = $schoolList[$schoolString];
+                                }
                             }
                         }
                     }
@@ -288,18 +300,31 @@ class Service extends AbstractService
                 // Schulen (alle) //ToDO Schulstring erzeugen
                 $schools = array();
                 $StudentSchool = '';
-                if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-                    if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblStudentTransferType))){
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-                            if ($tblDivision){
-                                // Schule über Schülerakte Company und Klasse (Schulart)
-                                if (($tblSchoolType = $tblDivision->getType())){
-                                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-                                    $schools[] = $SchoolString;
-                                    $StudentSchool = $SchoolString;
+                if(!Consumer::useService()->isSchoolSeparated()){
+                    // Mandant wird als Schule verwendet
+                    $SchoolString = $this->getSchoolString($Acronym);
+                    $schools[] = $SchoolString;
+                    // ToDO Schoolstring aus Array
+                    // $schools[] = $schoolList[$schoolString];
+                    $StudentSchool = $SchoolString;
+                } else {
+                    // Schulen im Mandanten werden unterschieden
+                    if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                        if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblStudentTransferType))){
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                                if ($tblDivision){
+                                    // Schule über Schülerakte Company und Klasse (Schulart)
+                                    if (($tblSchoolType = $tblDivision->getType())){
+                                        $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                        $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString,
+                                            $tblCompany);
+                                        $schools[] = $SchoolString;
+                                        // ToDO Schoolstring aus Array
+                                        // $schools[] = $schoolList[$schoolString];
+                                        $StudentSchool = $SchoolString;
+                                    }
                                 }
                             }
                         }
@@ -380,18 +405,24 @@ class Service extends AbstractService
 
         $Acronym = Account::useService()->getMandantAcronym();
         $SchoolData = array();
-        if(($tblSchoolList = School::useService()->getSchoolAll())){
-            foreach($tblSchoolList as $tblSchool){
-                $Item = array();
-                $tblCompany = $tblSchool->getServiceTblCompany();
-                $tblType = $tblSchool->getServiceTblType();
-                if($tblCompany && $tblType){
-                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblType);
-                    // ToDO Problemstellung im Ticket erläutert #SSW-962
+        if(!Consumer::useService()->isSchoolSeparated()){
+            $Item['OU'] = $this->getSchoolString($Acronym);
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            $Item['Schulname'] = $tblConsumer->getName();
+            array_push($SchoolData, $Item);
+        } else {
+            if(($tblSchoolList = School::useService()->getSchoolAll())){
+                foreach($tblSchoolList as $tblSchool){
+                    $Item = array();
+                    $tblCompany = $tblSchool->getServiceTblCompany();
+                    $tblType = $tblSchool->getServiceTblType();
+                    if($tblCompany && $tblType){
+                        $SchoolTypeString = Type::useService()->getSchoolTypeString($tblType);
 //                    $Item['OU'] = $Acronym.$SchoolTypeString.$tblCompany->getId();
-                    $Item['OU'] = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-                    $Item['Schulname'] = $tblCompany->getName();
-                    array_push($SchoolData, $Item);
+                        $Item['OU'] = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+                        $Item['Schulname'] = $tblCompany->getName();
+                        array_push($SchoolData, $Item);
+                    }
                 }
             }
         }
@@ -432,20 +463,11 @@ class Service extends AbstractService
      *
      * @return int|string
      */
-    public function getSchoolString($Acronym, $SchoolTypeString, TblCompany $tblCompany = null)
+    public function getSchoolString($Acronym, $SchoolTypeString = '', TblCompany $tblCompany = null)
     {
 
-        $tblConsumerLogin = false;
-        if(($tblAccount = Account::useService()->getAccountBySession())){
-            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
-                $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer);
-            }
-        }
-        if($tblConsumerLogin){
-            // Schulen werden in Univention in Schulart unterteilt
-            if($tblConsumerLogin->getIsSchoolSeparated()){
-                return $Acronym.$SchoolTypeString.($tblCompany) ? $tblCompany->getId() : '1';
-            }
+        if(Consumer::useService()->isSchoolSeparated()){
+                return $Acronym.$SchoolTypeString.($tblCompany ? $tblCompany->getId() : '1');
         }
         // ToDO Standard nach Wunsch anpassen
         // Schulen werden in Univention in Mandant zusammen gefasst (Standard)
