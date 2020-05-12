@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                             // Schule über Schülerakte Company und Klasse (Schulart)
                             if(($tblSchoolType = $tblDivision->getType())){
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                                $SchoolString = Univention::useService()->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                                 $StudentSchool = $SchoolString;
                                 if(isset($schoolList[$SchoolString])){
                                     $schools[] = $SchoolString;
@@ -174,7 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblSchoolType = $tblSchool->getServiceTblType();
                         if($tblCompany && $tblSchoolType){
                             $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                            $schoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                            $schoolString = Univention::useService()->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                             if(isset($schoolList[$schoolString])){
                                 $schools[] = $schoolString;
                                 // ToDO Schoolstring aus Array
@@ -210,6 +210,10 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $schoolList['DEMOSCHOOL2']
 //                );
 //            }
+
+            if(!empty($schools)){
+                $schools = array_unique($schools);
+            }
 
             $UploadItem['schools'] = $schools;
 

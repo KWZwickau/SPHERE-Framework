@@ -18,6 +18,7 @@ class TblConsumerLogin extends Element
 
     const ATTR_SYSTEM_NAME = 'SystemName';
     const ATTR_TBL_CONSUMER = 'tblConsumer';
+    const ATTR_IS_SCHOOL_SEPARATED = 'IsSchoolSeparated';
 
     const VALUE_SYSTEM_UCS = 'Univention';
 
@@ -30,6 +31,11 @@ class TblConsumerLogin extends Element
      * @Column(type="string")
      */
     protected $tblConsumer;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsSchoolSeparated;
 
     /**
      * @return string
@@ -69,5 +75,21 @@ class TblConsumerLogin extends Element
     {
 
         $this->tblConsumer = (null === $tblConsumer ? null : $tblConsumer->getId());
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsSchoolSeparated()
+    {
+        return $this->IsSchoolSeparated;
+    }
+
+    /**
+     * @param boolean $IsSchoolSeparated
+     */
+    public function setIsSchoolSeparated($IsSchoolSeparated = false)
+    {
+        $this->IsSchoolSeparated = $IsSchoolSeparated;
     }
 }

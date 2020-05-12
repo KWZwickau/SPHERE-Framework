@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\Univention;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -14,6 +15,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Univention\Service\Data;
@@ -199,7 +201,7 @@ class Service extends AbstractService
                                 // Schule über Schülerakte Company und Klasse (Schulart)
                                 if (($tblSchoolType = $tblDivision->getType())){
                                     $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                                    $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                                     $schools[] = $SchoolString;
                                     $StudentSchool = $SchoolString;
                                 }
@@ -214,7 +216,7 @@ class Service extends AbstractService
                             $tblSchoolType = $tblSchool->getServiceTblType();
                             if($tblCompany && $tblSchoolType){
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                                $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                                 $schools[] = $SchoolString;
                                 // ToDO Schoolstring aus Array
 //                                $schools[] = $schoolList[$schoolString];
@@ -223,6 +225,7 @@ class Service extends AbstractService
                     }
                 }
                 if (!empty($schools)){
+                    $schools = array_unique($schools);
                     $UploadItem['schools'] = implode(',', $schools);
                 }
 
@@ -294,7 +297,7 @@ class Service extends AbstractService
                                 // Schule über Schülerakte Company und Klasse (Schulart)
                                 if (($tblSchoolType = $tblDivision->getType())){
                                     $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                                    $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                                     $schools[] = $SchoolString;
                                     $StudentSchool = $SchoolString;
                                 }
@@ -303,6 +306,7 @@ class Service extends AbstractService
                     }
                 }
                 if (!empty($schools)){
+                    $schools = array_unique($schools);
                     $Item['schools'] = implode(',', $schools);
                 }
 
@@ -383,7 +387,9 @@ class Service extends AbstractService
                 $tblType = $tblSchool->getServiceTblType();
                 if($tblCompany && $tblType){
                     $SchoolTypeString = Type::useService()->getSchoolTypeString($tblType);
-                    $Item['OU'] = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                    // ToDO Problemstellung im Ticket erläutert #SSW-962
+//                    $Item['OU'] = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                    $Item['OU'] = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                     $Item['Schulname'] = $tblCompany->getName();
                     array_push($SchoolData, $Item);
                 }
@@ -417,5 +423,32 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param string          $Acronym
+     * @param string          $SchoolTypeString
+     * @param TblCompany|null $tblCompany
+     *
+     * @return int|string
+     */
+    public function getSchoolString($Acronym, $SchoolTypeString, TblCompany $tblCompany = null)
+    {
+
+        $tblConsumerLogin = false;
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer);
+            }
+        }
+        if($tblConsumerLogin){
+            // Schulen werden in Univention in Schulart unterteilt
+            if($tblConsumerLogin->getIsSchoolSeparated()){
+                return $Acronym.$SchoolTypeString.($tblCompany) ? $tblCompany->getId() : '1';
+            }
+        }
+        // ToDO Standard nach Wunsch anpassen
+        // Schulen werden in Univention in Mandant zusammen gefasst (Standard)
+        return $Acronym;
     }
 }
