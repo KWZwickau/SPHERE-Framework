@@ -1286,33 +1286,25 @@ class GymAbitur extends Certificate
         $schoolName = '';
         $extendedName = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))) {
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
-                            $place = '';
-                            if (($tblAddress = $tblCompany->fetchMainAddress())
-                                && ($tblCity = $tblAddress->getTblCity())
-                            ) {
-                                $place = ' zu ' . $tblCity->getName();
-                            }
-                            $schoolName = $tblCompany->getName();
-                            $extendedName = $isSchoolExtendedNameDisplayed ?
-                                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : '';
-                            $extendedName .= $place;
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
+        ) {
+            $place = '';
+            if (($tblAddress = $tblCompany->fetchMainAddress())
+                && ($tblCity = $tblAddress->getTblCity())
+            ) {
+                $place = ' zu ' . $tblCity->getName();
+            }
+            $schoolName = $tblCompany->getName();
+            $extendedName = $isSchoolExtendedNameDisplayed ?
+                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : '';
+            $extendedName .= $place;
 
-                            if (strlen($schoolName) > 60) {
-                                $isLargeCompanyName = true;
-                            }
-                            if (strlen($extendedName) > 60) {
-                                $isLargeSecondRow = true;
-                            }
-                        }
-                    }
-                }
+            if (strlen($schoolName) > 60) {
+                $isLargeCompanyName = true;
+            }
+            if (strlen($extendedName) > 60) {
+                $isLargeSecondRow = true;
             }
         }
 

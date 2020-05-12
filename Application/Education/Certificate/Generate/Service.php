@@ -346,17 +346,7 @@ class Service extends AbstractService
             $countStudents = count($tblPersonList);
             foreach ($tblPersonList as $tblPerson) {
                 // Schulnamen
-                $tblCompany = false;
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    && ($tblStudent = $tblPerson->getStudent())
-                ) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        $tblCompany = $tblStudentTransfer->getServiceTblCompany();
-                    }
-                }
-                if ($tblCompany) {
+                if (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision))) {
                     if (!array_search($tblCompany->getName(), $schoolNameList)) {
                         $schoolNameList[$tblCompany->getId()] = $tblCompany->getName();
                     }
