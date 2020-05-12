@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -397,7 +398,15 @@ class Service extends AbstractService
         TblType $tblSchoolType = null
     ) {
 
-        return (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+        // SSW-939 - Noteninformation Zuweisung Vorlage
+        // für die Noteninformation ist keine Schulart angegeben, deswegen wird keine Vorlage gefunden
+        if ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
+            && ($tblCertificate = Setting::useService()->getCertificateByCertificateClassName('GradeInformation'))
+        ) {
+            return array(0 => $tblCertificate);
+        } else {
+            return (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+        }
     }
 
 

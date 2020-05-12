@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
@@ -413,6 +414,12 @@ class Service extends AbstractService
                 $tblSchoolType
             ))
         ) {
+            // SSW-939 - Noteninformation Zuweisung Vorlage
+            if ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
+                && ($tblCertificate = Setting::useService()->getCertificateByCertificateClassName('GradeInformation'))
+            ) {
+                return $tblCertificateList;
+            }
 
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
