@@ -729,7 +729,6 @@ class Service extends AbstractService
         $TimeStamp = new DateTime('now');
 
         $successCount = 0;
-        $addressMissCount = 0;
         $accountExistCount = 0;
         $accountError = 0;
 
@@ -752,8 +751,9 @@ class Service extends AbstractService
                 // ignore Person without Main Address
                 $tblAddress = $tblPerson->fetchMainAddress();
                 if (!$tblAddress) {
-//                    $IsMissingAddress = true;
-                    $addressMissCount++;
+                    $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                        ': Hauptadresse fehlt';
+                    $accountError++;
                     continue;
                 }
                 // ignore without Consumer
@@ -817,7 +817,6 @@ class Service extends AbstractService
         }
 
         $result['Time'] = $TimeStamp->format('d.m.Y H:i:s');
-        $result['AddressMissCount'] = $addressMissCount;
         $result['AccountExistCount'] = $accountExistCount;
         $result['SuccessCount'] = $successCount;
         $result['AccountError'] = $accountError;
@@ -957,7 +956,7 @@ class Service extends AbstractService
             }
             if(!isset($randNumber) || !$randNumber){
                 $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
-                    ' hat keine Geburtsdatum und kann somit nicht erstellt werden';
+                    ': Geburtsdatum fehlt';
                 return false;
             }
         }
@@ -993,7 +992,7 @@ class Service extends AbstractService
                 }
                 // no free AccountName
                 $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
-                    ' kann keinen Verfügbaren Accountnamen erstellen ('.$UserName.'XX)';
+                    ': kein freier Benutzeraccount '.$UserName.'XX';
                 return false;
             }
         } elseif($AccountType == 'S'){
@@ -1011,7 +1010,7 @@ class Service extends AbstractService
                     return $UserNameMod;
                 } else {
                     $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
-                        ' kann keinen verfügbaren Accountnamen erstellen, dieser ist bereits vorhanden ('.$UserName.$randNumber.')';
+                        ': Benutzeraccount '.$UserName.$randNumber.' existiert bereits';
                     return false;
                 }
             }

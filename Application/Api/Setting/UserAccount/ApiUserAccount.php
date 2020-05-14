@@ -491,12 +491,12 @@ class ApiUserAccount extends Extension implements IApiInterface
     }
 
     /**
-     * @param array $PersonIdArray
-     * @param       $Type
+     * @param array  $PersonIdArray
+     * @param string $Type
      *
      * @return Pipeline
      */
-    public function serviceAccount($PersonIdArray = array(), $Type)
+    public function serviceAccount($PersonIdArray = array(), $Type = 'S')
     {
 
         $result = Account::useService()->createAccount($PersonIdArray, $Type);
@@ -545,9 +545,6 @@ class ApiUserAccount extends Extension implements IApiInterface
         if (isset($result['AccountExistCount']) && $result['AccountExistCount'] > 0) {
             $Content .= new WarningMessage($result['AccountExistCount'].' Personen haben bereits einen Account (ignoriert)');
         }
-        if (isset($result['AddressMissCount']) && $result['AddressMissCount'] > 0) {
-            $Content .= new WarningMessage($result['AddressMissCount'].' Personen ohne Hauptadresse (ignoriert)');
-        }
         if (isset($result['SuccessCount']) && $result['SuccessCount'] > 0) {
             $Content .= new SuccessMessage($result['SuccessCount'].' Benutzer wurden erfolgreich angelegt.');
         }
@@ -565,7 +562,7 @@ class ApiUserAccount extends Extension implements IApiInterface
             }
 
             $Content .= new DangerMessage('<div style="padding-bottom: 10px;">'.$result['AccountError'].
-                ' Account(s) für Person(en) konnten nicht angelegt werden.</div>'.$Error);
+                ' Account(s) konnten nicht angelegt werden.</div>'.$Error);
 
         }
 
