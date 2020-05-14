@@ -131,10 +131,35 @@ class Service extends AbstractService
         $tblAccountList = Univention::useService()->getAccountAllForAPITransfer();
 
         $UploadToAPI = array();
+        $TeacherClasses = array();
+        $TeacherSchools = array();
 
         $tblYear = Term::useService()->getYearByNow();
         if ($tblYear){
             $tblYear = current($tblYear);
+            // Lehraufträge
+            if(($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
+                foreach($tblDivisionList as $tblDivision){
+                    if(($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))){
+                        foreach($tblDivisionSubjectList as $tblDivisionSubject){
+                            if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
+                                foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                                    if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
+                                        $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+//                                        //ToDO CompanyID
+//                                        if(($tblCompany = $tblDivision->getCompany())){
+//                                            if(($tblSchoolType = $tblDivision->getType())){
+//                                                $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+//                                                $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId()] = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
+//                                            }
+//                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if($tblAccountList){
@@ -156,7 +181,7 @@ class Service extends AbstractService
 
                 if ($tblPerson = Account::useService()->getPersonAllByAccount($tblAccount)){
                     $tblPerson = current($tblPerson);
-                    $UploadItem = $this->getPersonDataExcel($UploadItem, $tblPerson, $tblYear, $Acronym);
+                    $UploadItem = $this->getPersonDataExcel($UploadItem, $tblPerson, $tblYear, $Acronym, $TeacherClasses);
                 } else {
                     // Ohne Person kein sinnvoller Account
                     continue;
@@ -187,7 +212,7 @@ class Service extends AbstractService
                 $Item['mail'] = '';
                 $Item['groupArray'] = '';
 
-                $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym);
+                $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym, $TeacherClasses);
 
                 if($Item){
                     array_push($UploadToAPI, $Item);
@@ -203,10 +228,11 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblYear   $tblYear
      * @param string    $Acronym
+     * @param array     $TeacherClasses
      *
      * @return bool|array
      */
-    private function getPersonDataExcel($Item, TblPerson $tblPerson, TblYear $tblYear, $Acronym)
+    private function getPersonDataExcel($Item, TblPerson $tblPerson, TblYear $tblYear, $Acronym, $TeacherClasses)
     {
 
         $Item['firstname'] = $tblPerson->getFirstSecondName();
@@ -270,19 +296,20 @@ class Service extends AbstractService
                         }
                     }
                 }
-            } else {
-                // keine Schüler -> Account bekommt alle Schulen des Mandanten
-                if(($tblSchoolList =  School::useService()->getSchoolAll())){
-                    foreach($tblSchoolList as $tblSchool){
-                        $tblCompany = $tblSchool->getServiceTblCompany();
-                        $tblSchoolType = $tblSchool->getServiceTblType();
-                        if($tblCompany && $tblSchoolType){
-                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                            $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-                            $schools[] = $SchoolString;
-                        }
-                    }
-                }
+//            } else {
+//                // ToDo vorübergehend deaktiviert sollte überflüssig werden -> $TeacherSchools
+//                // keine Schüler -> Account bekommt alle Schulen des Mandanten
+//                if(($tblSchoolList =  School::useService()->getSchoolAll())){
+//                    foreach($tblSchoolList as $tblSchool){
+//                        $tblCompany = $tblSchool->getServiceTblCompany();
+//                        $tblSchoolType = $tblSchool->getServiceTblType();
+//                        if($tblCompany && $tblSchoolType){
+//                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+//                            $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+//                            $schools[] = $SchoolString;
+//                        }
+//                    }
+//                }
             }
         }
         if (!empty($schools)){
@@ -293,6 +320,14 @@ class Service extends AbstractService
         // Student Search Division
         if ($tblDivision){
             $Item['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+        } else {
+            if(isset($TeacherClasses[$tblPerson->getId()])){
+                $ClassList = $TeacherClasses[$tblPerson->getId()];
+                foreach($ClassList as &$Class){
+                    $Class = $StudentSchool.'-'.$Class;
+                }
+                $Item['school_classes'] = implode(',', $ClassList);
+            }
         }
 
         if(($ToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
