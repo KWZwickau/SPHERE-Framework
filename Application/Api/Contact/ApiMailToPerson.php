@@ -440,7 +440,7 @@ class ApiMailToPerson extends Extension implements IApiInterface
             return $this->getMailToPersonModal($form, $tblPerson, $ToPersonId);
         }
 
-        if (Mail::useService()->updateMailToPerson($tblToPerson, $Address, $Type)) {
+        if (Mail::useService()->updateMailToPerson($tblToPerson, $Address, $Type, $tblToPerson->isAccountUserAlias())) {
             return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();

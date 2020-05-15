@@ -442,6 +442,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $firstName
+     * @param $lastName
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndLastName($firstName, $lastName)
+    {
+        return (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($firstName, $lastName);
+    }
+
+    /**
+     * @param string $firstName
+     * @param string $lastName
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonListLikeFirstNameAndLastName($firstName, $lastName)
+    {
+        return (new Data($this->getBinding()))->getPersonListLikeFirstNameAndLastName($firstName, $lastName);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return bool

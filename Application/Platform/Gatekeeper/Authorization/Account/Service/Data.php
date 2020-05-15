@@ -1196,4 +1196,49 @@ class Data extends AbstractData
 
         return $this->getConnection()->getEntityManager()->getEntity('TblSession')->count();
     }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $userAlias
+     *
+     * @return bool
+     */
+    public function changeUserAlias(TblAccount $tblAccount, $userAlias)
+    {
+        // prüfen ob Alias eineindeutig ist
+        if (($tblAccountList = $this->getAccountAllByUserAlias($userAlias))) {
+            foreach ($tblAccountList as $item) {
+                if ($tblAccount->getId() != $item->getId()) {
+                    return false;
+                }
+            }
+        }
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setUserAlias($userAlias);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param $userAlias
+     *
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllByUserAlias($userAlias)
+    {
+        return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(), 'TblAccount', array(
+            TblAccount::ATTR_USER_ALIAS => $userAlias
+        ));
+    }
 }
