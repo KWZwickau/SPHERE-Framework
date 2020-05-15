@@ -4,16 +4,22 @@ namespace SPHERE\Application\Setting\Univention;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Univention\Service\Data;
@@ -125,10 +131,35 @@ class Service extends AbstractService
         $tblAccountList = Univention::useService()->getAccountAllForAPITransfer();
 
         $UploadToAPI = array();
+        $TeacherClasses = array();
+        $TeacherSchools = array();
 
         $tblYear = Term::useService()->getYearByNow();
         if ($tblYear){
             $tblYear = current($tblYear);
+            // Lehraufträge
+            if(($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
+                foreach($tblDivisionList as $tblDivision){
+                    if(($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))){
+                        foreach($tblDivisionSubjectList as $tblDivisionSubject){
+                            if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
+                                foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                                    if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
+                                        $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+//                                        //ToDO CompanyID
+//                                        if(($tblCompany = $tblDivision->getCompany())){
+//                                            if(($tblSchoolType = $tblDivision->getType())){
+//                                                $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+//                                                $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId()] = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
+//                                            }
+//                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if($tblAccountList){
@@ -141,6 +172,7 @@ class Service extends AbstractService
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = '';
                 $UploadItem['schools'] = '';
+                $UploadItem['mail'] = '';
                 $UploadItem['groupArray'] = '';
 
                 $UploadItem['password'] = '';
@@ -149,89 +181,15 @@ class Service extends AbstractService
 
                 if ($tblPerson = Account::useService()->getPersonAllByAccount($tblAccount)){
                     $tblPerson = current($tblPerson);
-                    $UploadItem['firstname'] = $tblPerson->getFirstSecondName();
-                    $UploadItem['lastname'] = $tblPerson->getLastName();
+                    $UploadItem = $this->getPersonDataExcel($UploadItem, $tblPerson, $tblYear, $Acronym, $TeacherClasses);
                 } else {
                     // Ohne Person kein sinnvoller Account
                     continue;
                 }
-                // Rollen
-                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                $roles = array();
-                $groups = array();
-                foreach ($tblGroupList as $tblGroup) {
-                    if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-                        $roles[] = 'staff';
-                    }
-                    if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-                        $roles[] = 'teacher';
-                    }
-                    if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-                        $roles[] = 'student';
-                    }
-                    if($tblGroup->isCoreGroup()){
-                        $groups[] = $tblGroup->getName();
-                    }
-                }
-                if(empty($roles)){
-                    // Accounts die nicht/nicht mehr zu den 3 Rollen gehören sollen entfernt werden
-                    continue;
-                }
-                if(!empty($groups)){
-                    $UploadItem['groupArray'] = $groups;
-                }
-                $UploadItem['roles'] = implode(',', $roles);
 
-
-                $tblDivision = false;
-                if ($tblYear){
-                    ($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear));
+                if($UploadItem){
+                    array_push($UploadToAPI, $UploadItem);
                 }
-
-                $schools = array();
-                $StudentSchool = '';
-                if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-                    if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblStudentTransferType))){
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-                            if ($tblDivision){
-                                // Schule über Schülerakte Company und Klasse (Schulart)
-                                if (($tblSchoolType = $tblDivision->getType())){
-                                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
-                                    $schools[] = $SchoolString;
-                                    $StudentSchool = $SchoolString;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // keine Schüler -> Accunt bekommt alle Schulen des Mandanten
-                    if(($tblSchoolList =  School::useService()->getSchoolAll())){
-                        foreach($tblSchoolList as $tblSchool){
-                            $tblCompany = $tblSchool->getServiceTblCompany();
-                            $tblSchoolType = $tblSchool->getServiceTblType();
-                            if($tblCompany && $tblSchoolType){
-                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
-                                $schools[] = $SchoolString;
-                                // ToDO Schoolstring aus Array
-//                                $schools[] = $schoolList[$schoolString];
-                            }
-                        }
-                    }
-                }
-                if (!empty($schools)){
-                    $UploadItem['schools'] = implode(',', $schools);
-                }
-
-                // Student Search Division
-                if ($tblDivision){
-                    $UploadItem['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                }
-
-                array_push($UploadToAPI, $UploadItem);
             }
         }
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
@@ -243,77 +201,146 @@ class Service extends AbstractService
                     continue;
                 }
                 $Item['name'] = '';
-                $Item['firstname'] = $tblPerson->getFirstName();
-                $Item['lastname'] = $tblPerson->getLastName();
+                $Item['firstname'] = '';
+                $Item['lastname'] = '';
                 $Item['record_uid'] = '';
                 $Item['source_uid'] = $Acronym.'-';
                 $Item['roles'] = '';
                 $Item['schools'] = '';
                 $Item['password'] = '';
                 $Item['school_classes'] = '';
+                $Item['mail'] = '';
                 $Item['groupArray'] = '';
 
-                // Rollen
-                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                $roles = array();
-                $groups = array();
-                foreach ($tblGroupList as $tblGroup) {
-                    if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-                        $roles[] = 'staff';
-                    }
-                    if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-                        $roles[] = 'teacher';
-                    }
-                    if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-                        $roles[] = 'student';
-                    }
-                    if($tblGroup->isCoreGroup()){
-                        $groups[] = $tblGroup->getName();
-                    }
-                }
-                $Item['roles'] = implode(',', $roles);
-                if(!empty($groups)){
-                    $Item['groupArray'] = $groups;
-                }
+                $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym, $TeacherClasses);
 
-                $tblDivision = false;
-                if ($tblYear){
-                    // Student Search Division
-                    $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
+                if($Item){
+                    array_push($UploadToAPI, $Item);
                 }
-
-                // Schulen (alle) //ToDO Schulstring erzeugen
-                $schools = array();
-                $StudentSchool = '';
-                if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-                    if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblStudentTransferType))){
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-                            if ($tblDivision){
-                                // Schule über Schülerakte Company und Klasse (Schulart)
-                                if (($tblSchoolType = $tblDivision->getType())){
-                                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                    $SchoolString = $Acronym.$SchoolTypeString.$tblCompany->getId();
-                                    $schools[] = $SchoolString;
-                                    $StudentSchool = $SchoolString;
-                                }
-                            }
-                        }
-                    }
-                }
-                if (!empty($schools)){
-                    $Item['schools'] = implode(',', $schools);
-                }
-
-                if($tblDivision){
-                    $Item['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                }
-                array_push($UploadToAPI, $Item);
             }
         }
 
         return (!empty($UploadToAPI) ? $UploadToAPI : false);
+    }
+
+    /**
+     * @param array     $Item
+     * @param TblPerson $tblPerson
+     * @param TblYear   $tblYear
+     * @param string    $Acronym
+     * @param array     $TeacherClasses
+     *
+     * @return bool|array
+     */
+    private function getPersonDataExcel($Item, TblPerson $tblPerson, TblYear $tblYear, $Acronym, $TeacherClasses)
+    {
+
+        $Item['firstname'] = $tblPerson->getFirstSecondName();
+        $Item['lastname'] = $tblPerson->getLastName();
+
+        // Rollen
+        $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+        $roles = array();
+        $groups = array();
+        foreach ($tblGroupList as $tblGroup) {
+            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
+                $roles[] = 'staff';
+            }
+            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
+                $roles[] = 'teacher';
+            }
+            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
+                $roles[] = 'student';
+            }
+            if($tblGroup->isCoreGroup()){
+                $groups[] = $tblGroup->getName();
+            }
+        }
+        if(empty($roles)){
+            // Accounts die nicht/nicht mehr zu den 3 Rollen gehören sollen entfernt werden
+            return false;
+        }
+        if(!empty($groups)){
+            $Item['groupArray'] = $groups;
+        }
+        $Item['roles'] = implode(',', $roles);
+
+
+        $tblDivision = false;
+        if ($tblYear){
+            ($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear));
+        }
+
+        $schools = array();
+        $StudentSchool = '';
+        if(!Consumer::useService()->isSchoolSeparated()){
+            // Mandant wird als Schule verwendet
+            $SchoolString = $this->getSchoolString($Acronym);
+            $schools[] = $SchoolString;
+            $StudentSchool = $SchoolString;
+        } else {
+            // Schulen im Mandanten werden unterschieden
+            if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                    $tblStudentTransferType))){
+                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                        if ($tblDivision){
+                            // Schule über Schülerakte Company und Klasse (Schulart)
+                            if (($tblSchoolType = $tblDivision->getType())){
+                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+                                $schools[] = $SchoolString;
+                                $StudentSchool = $SchoolString;
+                            }
+                        }
+                    }
+                }
+//            } else {
+//                // ToDo vorübergehend deaktiviert sollte überflüssig werden -> $TeacherSchools
+//                // keine Schüler -> Account bekommt alle Schulen des Mandanten
+//                if(($tblSchoolList =  School::useService()->getSchoolAll())){
+//                    foreach($tblSchoolList as $tblSchool){
+//                        $tblCompany = $tblSchool->getServiceTblCompany();
+//                        $tblSchoolType = $tblSchool->getServiceTblType();
+//                        if($tblCompany && $tblSchoolType){
+//                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+//                            $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+//                            $schools[] = $SchoolString;
+//                        }
+//                    }
+//                }
+            }
+        }
+        if (!empty($schools)){
+            $schools = array_unique($schools);
+            $Item['schools'] = implode(',', $schools);
+        }
+
+        // Student Search Division
+        if ($tblDivision){
+            $Item['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+        } else {
+            if(isset($TeacherClasses[$tblPerson->getId()])){
+                $ClassList = $TeacherClasses[$tblPerson->getId()];
+                foreach($ClassList as &$Class){
+                    $Class = $StudentSchool.'-'.$Class;
+                }
+                $Item['school_classes'] = implode(',', $ClassList);
+            }
+        }
+
+        if(($ToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
+            foreach($ToPersonList as $tbltoPerson){
+                if($tbltoPerson->getTblType()->getName() == TblTypeMail::VALUE_BUSINESS){
+                    if(($tblMail = $tbltoPerson->getTblMail())){
+                        $Item['mail'] = $tblMail->getAddress();
+                        continue;
+                    }
+                }
+            }
+        }
+        return $Item;
     }
 
     public function downlaodAccountExcel()
@@ -353,7 +380,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $Account['school_classes']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['name']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['password']);
-                $export->setValue($export->getCell($Column++, $Row), '');
+                $export->setValue($export->getCell($Column++, $Row), $Account['mail']);
                 if(is_array($Account['groupArray']) && !empty($Account['groupArray'])){
                     $GroupString = implode(',',$Account['groupArray']);
                     $export->setValue($export->getCell($Column, $Row), $GroupString);
@@ -376,16 +403,24 @@ class Service extends AbstractService
 
         $Acronym = Account::useService()->getMandantAcronym();
         $SchoolData = array();
-        if(($tblSchoolList = School::useService()->getSchoolAll())){
-            foreach($tblSchoolList as $tblSchool){
-                $Item = array();
-                $tblCompany = $tblSchool->getServiceTblCompany();
-                $tblType = $tblSchool->getServiceTblType();
-                if($tblCompany && $tblType){
-                    $SchoolTypeString = Type::useService()->getSchoolTypeString($tblType);
-                    $Item['OU'] = $Acronym.$SchoolTypeString.$tblCompany->getId();
-                    $Item['Schulname'] = $tblCompany->getName();
-                    array_push($SchoolData, $Item);
+        if(!Consumer::useService()->isSchoolSeparated()){
+            $Item['OU'] = $this->getSchoolString($Acronym);
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            $Item['Schulname'] = $tblConsumer->getName();
+            array_push($SchoolData, $Item);
+        } else {
+            if(($tblSchoolList = School::useService()->getSchoolAll())){
+                foreach($tblSchoolList as $tblSchool){
+                    $Item = array();
+                    $tblCompany = $tblSchool->getServiceTblCompany();
+                    $tblType = $tblSchool->getServiceTblType();
+                    if($tblCompany && $tblType){
+                        $SchoolTypeString = Type::useService()->getSchoolTypeString($tblType);
+//                    $Item['OU'] = $Acronym.$SchoolTypeString.$tblCompany->getId();
+                        $Item['OU'] = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+                        $Item['Schulname'] = $tblCompany->getName();
+                        array_push($SchoolData, $Item);
+                    }
                 }
             }
         }
@@ -417,5 +452,23 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param string          $Acronym
+     * @param string          $SchoolTypeString
+     * @param TblCompany|null $tblCompany
+     *
+     * @return int|string
+     */
+    public function getSchoolString($Acronym, $SchoolTypeString = '', TblCompany $tblCompany = null)
+    {
+
+        if(Consumer::useService()->isSchoolSeparated()){
+                return $Acronym.$SchoolTypeString.($tblCompany ? $tblCompany->getId() : '1');
+        }
+        // ToDO Standard nach Wunsch anpassen
+        // Schulen werden in Univention in Mandant zusammen gefasst (Standard)
+        return $Acronym;
     }
 }
