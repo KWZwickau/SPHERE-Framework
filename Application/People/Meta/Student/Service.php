@@ -1246,4 +1246,30 @@ class Service extends Support
 
         return false;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision|null $tblDivision
+     *
+     * @return bool|TblCompany
+     */
+    public function getCurrentSchoolByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
+    {
+        if ($tblDivision && $tblDivision->getServiceTblCompany()) {
+            return $tblDivision->getServiceTblCompany();
+        } elseif (($tblCurrentDivision = $this->getCurrentDivisionByPerson($tblPerson))
+            && $tblCurrentDivision->getServiceTblCompany()
+        ) {
+            return $tblCurrentDivision->getServiceTblCompany();
+        } else {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                && ($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType))
+            ) {
+                return $tblTransfer->getServiceTblCompany();
+            }
+        }
+
+        return false;
+    }
 }

@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -25,6 +27,7 @@ class TblDivision extends Element
     const ATTR_NAME = 'Name';
     const ATTR_LEVEL = 'tblLevel';
     const ATTR_YEAR = 'serviceTblYear';
+    const SERVICE_TBL_COMPANY = 'serviceTblCompany';
 
     /**
      * @Column(type="string")
@@ -42,6 +45,11 @@ class TblDivision extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblYear;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblCompany;
 
     /**
      * @return string
@@ -121,6 +129,28 @@ class TblDivision extends Element
     {
 
         $this->serviceTblYear = ( null === $tblYear ? null : $tblYear->getId() );
+    }
+
+    /**
+     * @return bool|TblCompany
+     */
+    public function getServiceTblCompany()
+    {
+
+        if (null === $this->serviceTblCompany) {
+            return false;
+        } else {
+            return Company::useService()->getCompanyById($this->serviceTblCompany);
+        }
+    }
+
+    /**
+     * @param TblCompany|null $tblCompany
+     */
+    public function setServiceTblCompany(TblCompany $tblCompany = null)
+    {
+
+        $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
     }
 
     /**

@@ -787,7 +787,7 @@ class Frontend extends Extension
                             $tblTransferType);
                         if ($tblStudentTransfer) {
                             $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                            $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision);
                             if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
                                 $isMuted = false;
                             }
@@ -822,7 +822,7 @@ class Frontend extends Extension
                         'Student' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName(),
                         'Course' => $isMuted ? new Muted($courseName) : $courseName,
                         'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
-                            new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
+                            new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt oder bei der Klasse hinterlegt.'
                         )),
                         'PrimaryFocus' => $isMuted ? new Muted($primaryFocus) : $primaryFocus,
                         'CheckSubjects' => $checkSubjectsString,

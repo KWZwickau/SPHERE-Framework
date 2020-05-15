@@ -88,6 +88,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Application\Education\Lesson\Division\Filter\Frontend as FilterFrontend;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -174,6 +175,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Temp['Year'] = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '';
                 $Temp['SchoolType'] = $tblDivision->getTypeName();
+                $Temp['Company'] = $tblDivision->getServiceTblCompany() ? $tblDivision->getServiceTblCompany()->getDisplayName() : '';
                 $Temp['ClassGroup'] = $tblDivision->getDisplayName();
 
                 if ($tblDivision->getServiceTblYear()) {
@@ -277,6 +279,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Year'        => 'Schuljahr',
                                     'Period'      => 'Zeitraum',
                                     'SchoolType'  => 'Schulart',
+                                    'Company'     => 'Schule',
                                     'ClassGroup'  => 'Schulklasse',
                                     'Description' => 'Beschreibung',
                                     'StudentList' => 'Schüler',
@@ -285,13 +288,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option'      => '',
                                 )
                                 , array(
-                                    'order'      => array(array(3, 'asc')),
+                                    'order'      => array(array(4, 'asc')),
                                     'columnDefs' => array(
                                         array('orderable' => false, 'width' => '20px', 'targets' => 0),
                                         array('orderable' => false, 'targets' => array(1, -1)),
-                                        array('type' => 'natural', 'targets' => 3),
-                                        array('type' => 'natural', 'targets' => 5),
-                                        array('type' => 'natural', 'targets' => 7),
+                                        array('type' => 'natural', 'targets' => 4),
+                                        array('type' => 'natural', 'targets' => 6),
+                                        array('type' => 'natural', 'targets' => 8),
                                     )
                                 )
                             )
@@ -345,6 +348,13 @@ class Frontend extends Extension implements IFrontendInterface
             //$Global->POST['Division']['Year'] = ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getId() : 0 );
             $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
+
+            $levelNumber = intval($tblLevel->getName());
+            if ($tblDivision && ($tblCompany = $tblDivision->getServiceTblCompany())
+                && $levelNumber != 5 && $levelNumber != 11
+            ) {
+                $Global->POST['Division']['Company'] = $tblCompany->getId();
+            }
             $Global->savePost();
         }
 
@@ -358,26 +368,29 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klassenstufe',
                             array(
-                                new SelectBox('Level[Type]', 'Schulart', array(
+                                (new SelectBox('Level[Type]', 'Schulart', array(
                                     '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                                ), new Education()),
-                                new AutoCompleter('Level[Name]', 'Klassenstufe (Nummer)', 'z.B: 5', $acNameAll,
+                                ), new Education()))->setRequired(),
+                                (new AutoCompleter('Level[Name]', 'Klassenstufe (Nummer)', 'z.B: 5', $acNameAll,
+                                    new Pencil()))->setRequired(),
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 4),
+                    new FormColumn(
+                        new Panel('Klassengruppe',
+                            array(
+                                (new SelectBox('Division[Year]', 'Schuljahr', array(
+                                    '{{ Year }} {{ Description }}' => $tblYearAll
+                                ), new Education()))->setRequired(),
+                                new AutoCompleter('Division[Name]', 'Klassengruppe (Name)', 'z.B: Alpha', $acNameAll,
                                     new Pencil()),
                             ), Panel::PANEL_TYPE_INFO
                         ), 4),
                     new FormColumn(
                         new Panel('Klassengruppe',
                             array(
-                                new SelectBox('Division[Year]', 'Schuljahr', array(
-                                    '{{ Year }} {{ Description }}' => $tblYearAll
-                                ), new Education()),
-                                new AutoCompleter('Division[Name]', 'Klassengruppe (Name)', 'z.B: Alpha', $acNameAll,
-                                    new Pencil())
-                            ), Panel::PANEL_TYPE_INFO
-                        ), 4),
-                    new FormColumn(
-                        new Panel('Klassengruppe',
-                            array(
+                                (new SelectBox('Division[Company]', 'Schule', array(
+                                    '{{ Name }} {{ ExtendedName }} {{ Description }}' => Division::useService()->getSchoolListForDivision()
+                                )))->setRequired(),
                                 new TextField('Division[Description]', 'zb: für Fortgeschrittene', 'Beschreibung',
                                     new Pencil())
                             ), Panel::PANEL_TYPE_INFO
@@ -1505,6 +1518,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!isset( $Global->POST['Id'] ) && $tblDivision) {
             $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
+            $Global->POST['Division']['Company'] = $tblDivision->getServiceTblCompany() ? $tblDivision->getServiceTblCompany()->getId() : null;
             $Global->savePost();
         }
 
@@ -1573,18 +1587,25 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(
             new FormGroup(
                 new FormRow(array(
+                        new FormColumn(new Panel('Schule',
+                            array(
+                                (new SelectBox('Division[Company]', 'Schule', array(
+                                    '{{ Name }} {{ ExtendedName }} {{ Description }}' => Division::useService()->getSchoolListForDivision()
+                                )))->setRequired()
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 4),
                         new FormColumn(new Panel('Gruppe',
                             array(
                                 new TextField('Division[Name]', 'zb: Alpha', 'Gruppenname',
                                     new Pencil())
                             ), Panel::PANEL_TYPE_INFO
-                        ), 6),
+                        ), 4),
                         new FormColumn(new Panel('Sonstiges',
                             array(
                                 new TextField('Division[Description]', 'zb: für Fortgeschrittene', 'Beschreibung',
                                     new Pencil())
                             ), Panel::PANEL_TYPE_INFO
-                        ), 6)
+                        ), 4)
                     )
                 )
             )
@@ -2262,6 +2283,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Content[] = 'Klassenbezeichnung: '.new Bold($tblDivision->getDisplayName());
         $Content1[] = 'Jahr: '.new Bold($tblDivision->getServiceTblYear()
                 ? $tblDivision->getServiceTblYear()->getDisplayName() : '');
+        $Content1[] = 'Schule: ' . (($tblCompany = $tblDivision->getServiceTblCompany()) ? new Bold($tblCompany->getDisplayName()) : '');
 //        $Content1[] = 'Gruppe: ' . new Bold($tblDivision->getName());
         $Content1[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
         $Content2[] = 'Schüler: '.new Bold(Division::useService()->countDivisionStudentAllByDivision($tblDivision));

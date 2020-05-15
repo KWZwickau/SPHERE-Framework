@@ -360,22 +360,14 @@ abstract class Certificate extends Extension
         $isLargeCompanyName = false;
         $name = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))) {
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
-                            $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
-                                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
-                            if (strlen($name) > 60) {
-                                $isLargeCompanyName = true;
-                            }
-                        }
-                    }
-                }
-            }
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
+        ) {
+           $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
+               ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
+           if (strlen($name) > 60) {
+               $isLargeCompanyName = true;
+           }
         }
 
         $SchoolSlice = (new Slice());

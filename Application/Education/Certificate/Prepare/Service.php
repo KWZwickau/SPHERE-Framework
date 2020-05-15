@@ -782,7 +782,7 @@ class Service extends AbstractService
             $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                 $tblTransferType);
             if ($tblStudentTransfer) {
-                $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision ? $tblDivision : null);
 
                 // Abschluss (Bildungsgang)
                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();

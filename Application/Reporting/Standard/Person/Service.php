@@ -1297,8 +1297,8 @@ class Service extends Extension
                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                         if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                             $tblStudentTransferType))) {
-                            $Item['School'] = ($tblStudentTransfer->getServiceTblCompany()
-                                ? $tblStudentTransfer->getServiceTblCompany()->getDisplayName()
+                            $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
+                                ? $tblCompany->getDisplayName()
                                 : '');
                             $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
                                 ? Student::useService()->getCourseByStudent($tblStudent)->getName()

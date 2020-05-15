@@ -267,7 +267,7 @@ abstract class AbstractDocument
                             $Data['Student']['School']['Type'] = $tblTransfer->getServiceTblType()->getName();
                         }
 
-                        if (($tblCompany = $tblTransfer->getServiceTblCompany())) {
+                        if (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
                             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
@@ -368,7 +368,7 @@ abstract class AbstractDocument
                     if (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                         $tblTransferType))
                     ) {
-                        $tblCompany = $tblTransfer->getServiceTblCompany();
+                        $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson);
                         $tblSchoolType = $tblTransfer->getServiceTblType();
                         if ($tblCompany && $tblSchoolType) {
                             $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType);

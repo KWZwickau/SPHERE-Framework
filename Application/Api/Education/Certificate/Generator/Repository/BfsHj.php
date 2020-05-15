@@ -66,19 +66,11 @@ class BfsHj extends Certificate
         $name = '';
         $secondLine = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))) {
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
-                            $name = $tblCompany->getName();
-                            $secondLine = $tblCompany->getExtendedName();
-                        }
-                    }
-                }
-            }
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
+        ) {
+            $name = $tblCompany->getName();
+            $secondLine = $tblCompany->getExtendedName();
         }
 
         $Slice = (new Slice());
