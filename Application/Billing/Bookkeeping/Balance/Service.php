@@ -613,6 +613,18 @@ class Service extends AbstractService
                 }
             }
 
+            // decision FibuKonto
+            $IsFibuDebtorNumber = false;
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV))){
+                if(($tblSetting->getValue())){
+                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR))){
+                        if(($tblSetting->getValue())){
+                            $IsFibuDebtorNumber = true;
+                        }
+                    }
+                }
+            }
+
             $row = 0;
             $export->setValue($export->getCell("0", $row), "EXTF");
             $export->setValue($export->getCell("1", $row), "510");
@@ -769,7 +781,12 @@ class Service extends AbstractService
                         /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
                         if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
                             $bookingText = $this->getBookingText($tblInvoiceItemDebtor, $tblItem->getDatevRemark());
-                            $FibuAccount = $tblItem->getFibuAccount();
+                            if($IsFibuDebtorNumber){
+                                $FibuAccount = $tblInvoiceItemDebtor->getDebtorNumber();
+                            } else {
+                                $FibuAccount = $tblItem->getFibuAccount();
+                            }
+
                             $FibuToAccount = $tblItem->getFibuToAccount();
                             $Kost1 = $tblItem->getKost1();
                             $Kost2 = $tblItem->getKost2();
