@@ -247,20 +247,23 @@ class Service extends AbstractService
         $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
         $roles = array();
         $groups = array();
-        foreach ($tblGroupList as $tblGroup) {
-            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-                $roles[] = 'staff';
-            }
-            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-                $roles[] = 'teacher';
-            }
-            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-                $roles[] = 'student';
-            }
-            if($tblGroup->isCoreGroup()){
-                $groups[] = $tblGroup->getName();
+        if(isset($tblGroupList)){
+            foreach ($tblGroupList as $tblGroup) {
+                if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
+                    $roles[] = 'staff';
+                }
+                if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
+                    $roles[] = 'teacher';
+                }
+                if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
+                    $roles[] = 'student';
+                }
+                if($tblGroup->isCoreGroup()){
+                    $groups[] = $tblGroup->getName();
+                }
             }
         }
+
         if(empty($roles)){
             // Accounts die nicht/nicht mehr zu den 3 Rollen gehören sollen entfernt werden
             return false;
