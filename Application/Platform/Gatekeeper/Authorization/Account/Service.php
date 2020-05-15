@@ -962,4 +962,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->countSessionAll();
     }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $userAlias
+     *
+     * @return bool
+     */
+    public function changeUserAlias(TblAccount $tblAccount, $userAlias)
+    {
+        return (new Data($this->getBinding()))->changeUserAlias($tblAccount, $userAlias);
+    }
 }

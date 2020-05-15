@@ -257,8 +257,9 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param           $Address
-     * @param TblType   $tblType
+     * @param TblType $tblType
      * @param           $Remark
+     * @param bool $IsUserAlias
      *
      * @return TblToPerson
      */
@@ -266,11 +267,23 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         $Address,
         TblType $tblType,
-        $Remark
+        $Remark,
+        $IsUserAlias = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
-        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark);
+        // falls die Emailadresse bereits vorhanden ist, diese überschreiben
+        if (($tblToPersonList = $this->getMailAllByPerson($tblPerson))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblMailTemp = $tblToPerson->getTblMail())
+                    && $tblMail->getId() == $tblMailTemp->getId()
+                ) {
+                    return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsUserAlias);
+                }
+            }
+        }
+
+        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsUserAlias);
     }
 
     /**
@@ -296,13 +309,15 @@ class Service extends AbstractService
      * @param TblToPerson $tblToPerson
      * @param $Address
      * @param $Type
+     * @param bool $IsAccountUserAlias
      *
      * @return bool
      */
     public function updateMailToPerson(
         TblToPerson $tblToPerson,
         $Address,
-        $Type
+        $Type,
+        $IsAccountUserAlias = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
@@ -314,7 +329,7 @@ class Service extends AbstractService
         ) {
             // Add new
             if ((new Data($this->getBinding()))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
-                $tblType, $Type['Remark'])
+                $tblType, $Type['Remark'], $IsAccountUserAlias)
             ) {
                 return true;
             } else {
@@ -324,6 +339,33 @@ class Service extends AbstractService
             return false;
         }
     }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param $Address
+     * @param TblType $tblType
+     * @param $Remark
+     * @param bool $IsAccountUserAlias
+     *
+     * @return bool
+     */
+    public function updateMailToPersonService(
+        TblToPerson $tblToPerson,
+        $Address,
+        TblType $tblType,
+        $Remark,
+        $IsAccountUserAlias = false
+    ) {
+
+        $tblMail = (new Data($this->getBinding()))->createMail($Address);
+
+        if ($tblToPerson->getServiceTblPerson()) {
+            return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsAccountUserAlias);
+        } else {
+            return false;
+        }
+    }
+
 
     /**
      * @param TblToCompany $tblToCompany
