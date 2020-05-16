@@ -1004,10 +1004,13 @@ class Data extends AbstractData
         if (null === $tblAccount) {
             $tblAccount = $this->getAccountBySession();
         }
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+
+        $Entity = $this->getForceEntityById(__Method__, $this->getConnection()->getEntityManager(),
+            'TblAccount', $tblAccount->getId());
+
         $Protocol = clone $Entity;
+
+        $Manager = $this->getConnection()->getEntityManager();
         if (null !== $Entity) {
             $Entity->setServiceTblConsumer($tblConsumer);
             $Manager->saveEntity($Entity);
