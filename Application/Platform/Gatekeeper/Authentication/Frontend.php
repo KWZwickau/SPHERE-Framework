@@ -336,6 +336,73 @@ class Frontend extends Extension implements IFrontendInterface
         return $View;
     }
 
+//    /**
+//     * Step 1/3 get data from Univention
+//     *
+//     * @param array $credentials
+//     *
+//     * @return Stage
+//     */
+//    public function frontendIdentificationUnivention($credentials = array())
+//    {
+//        $Stage = new Stage(new Nameplate().' Anmelden', '', $this->getIdentificationEnvironment());
+//
+//        $CredentialId = $credentials['SourceId'];
+//
+////        $request = $credentials['request'];
+////        new \OneLogin_Saml2_AuthnRequest();
+////
+////        $samlAuth = $this->getSamlAuth($request->get('initiator'));
+////
+////        // prevent loops
+////        if ($request->post('SAMLResponse')) {
+////            $samlAuth->processResponse();
+////            if (!$samlAuth->isAuthenticated()) {
+////                throw new SamlException($samlAuth);
+////            }
+////        }
+////
+////        if (!$samlAuth->isAuthenticated()) {
+////            // $samlAuth->login(redirect()->intended(route('welcome'))->getTargetUrl()); // optional; submit the intended url as relayState
+////            $samlAuth->login(config('app.name') . '_' . app()->environment()); // optional; submit the intended url as relayState
+////
+////            return false;
+////        }
+//
+////        $username = $samlAuth->getNameId();
+////        $this->lastAttemptedLoginPO = $loginPO = $this->provider->findLogin($loginType, [TblLogin::ATTR_USERNAME => $username], false);
+//
+//        $tblAccount = null;
+//        $tblIdentification = null;
+//        if ($CredentialId) {
+//            if(($tblAccount = Account::useService()->getAccountById($CredentialId))){
+//                if(($tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount))){
+//                    $tblIdentification = $tblAuthentication->getTblIdentification();
+//                }
+//            }
+//
+//        }
+//
+//        // Matching Account found?
+//        if ($tblAccount && $tblIdentification) {
+//            switch ($tblIdentification->getName()) {
+//                case TblIdentification::NAME_TOKEN:
+//                case TblIdentification::NAME_SYSTEM:
+//                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
+//                case TblIdentification::NAME_CREDENTIAL:
+//                case TblIdentification::NAME_USER_CREDENTIAL:
+//                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
+//            }
+//        }
+//        setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
+//
+//        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+//            new LayoutColumn(new Warning('Ihr Login von Univention ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+//        ))));
+//
+//        return $Stage;
+//    }
+
     /**
      * Environment Information
      *
