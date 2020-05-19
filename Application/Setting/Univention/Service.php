@@ -263,6 +263,11 @@ class Service extends AbstractService
                 }
             }
         }
+        // decide teacher / Stuff
+        if(in_array('staff', $roles) && in_array('teacher', $roles)){
+            $roles = array('teacher');
+        }
+
 
         if(empty($roles)){
             // Accounts die nicht/nicht mehr zu den 3 Rollen gehören sollen entfernt werden
