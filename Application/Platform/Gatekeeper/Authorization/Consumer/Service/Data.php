@@ -23,23 +23,25 @@ class Data extends AbstractData
 //        $this->createConsumer('DEMO', 'Mandant');
         $this->createConsumer('REF', 'Referenz-Mandant');
 
-        // cleanup after installation
-        $tblConsumerActive = $this->getConsumerBySession();
-        if($tblConsumerActive->getAcronym() === 'REF'){
-            $AccountList = array(
-                'EVSC',
-                'EVSR',
-                'EVAMTL',
-                'EGE',
-            );
-
-            foreach ($AccountList as $Acronym) {
-                $tblConsumer = $this->getConsumerByAcronym($Acronym);
-                if ($tblConsumer){
-                    $this->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
-                }
-            }
-        }
+//        // cleanup after installation
+//        $tblConsumerActive = $this->getConsumerBySession();
+//        if($tblConsumerActive->getAcronym() === 'REF'){
+//            $AccountList = array(
+//                'EVSC',
+//                'EVSR',
+//                'EVAMTL',
+//                'EGE',
+//            );
+//
+//            if($AccountList){
+//                foreach ($AccountList as $Acronym) {
+//                    $tblConsumer = $this->getConsumerByAcronym($Acronym);
+//                    if ($tblConsumer){
+//                        $this->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
+//                    }
+//                }
+//            }
+//        }
 
     }
 
@@ -203,6 +205,7 @@ class Data extends AbstractData
             $Entity = new TblConsumerLogin();
             $Entity->setSystemName($SystemName);
             $Entity->setTblConsumer($tblConsumer);
+            $Entity->setIsSchoolSeparated(false);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

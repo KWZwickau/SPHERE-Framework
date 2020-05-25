@@ -273,6 +273,7 @@ class Frontend
             '/Platform/Gatekeeper/Authentication/Offline',
             '/Document/DataProtectionOrdinance',
             '/Manual/Request',
+            '/Platform/Gatekeeper/Saml/MetaData',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
