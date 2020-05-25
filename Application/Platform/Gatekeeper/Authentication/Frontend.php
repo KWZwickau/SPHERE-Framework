@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
@@ -67,6 +68,7 @@ use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
  * Class Frontend
@@ -311,7 +313,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                     new FormRow(
                         new FormColumn(array(
-                            new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                            new Headline('Bitte geben Sie Ihre Zugangsdaten ein'.new Link('.', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login')),   //ToDO Link entfernen
                             new Ruler(),
                             new Listing(array(
                                 new Container($CredentialNameField) .
@@ -402,6 +404,84 @@ class Frontend extends Extension implements IFrontendInterface
 //
 //        return $Stage;
 //    }
+
+    /**
+     * Step 1/3 get data from Univention
+     *
+     * @param array $credentials
+     *
+     * @return Stage
+     */
+    public function frontendIdentificationSaml($credentials = array())
+    {
+        $Stage = new Stage(new Nameplate().' Anmelden', '', $this->getIdentificationEnvironment());
+
+//        echo '<pre>';
+//        var_dump($_POST);
+//        echo '</pre>';
+
+//        $CredentialId = $credentials['SourceId'];
+
+//        $request = $credentials['request'];
+        $Saml = new phpSaml();
+        $Stage->setContent($Saml->getAuthRequest());
+        $tblAccount = null;
+        $LoginOk = false;
+        if(isset($_SESSION['samlUserdata']['uid'])){
+            $AccountName = current($_SESSION['samlUserdata']['uid']);
+            $tblAccount = Account::useService()->getAccountByUsername($AccountName);
+        }
+        if(isset($_SESSION['isAuthenticated']) && $_SESSION['isAuthenticated']){
+            $LoginOk = true;
+        }
+//        $Stage->setContent('Test 2');
+//
+//        $samlAuth = $this->getSamlAuth($request->get('initiator'));
+//
+//        // prevent loops
+//        if ($request->post('SAMLResponse')) {
+//            $samlAuth->processResponse();
+//            if (!$samlAuth->isAuthenticated()) {
+//                throw new SamlException($samlAuth);
+//            }
+//        }
+//
+//        if (!$samlAuth->isAuthenticated()) {
+//            // $samlAuth->login(redirect()->intended(route('welcome'))->getTargetUrl()); // optional; submit the intended url as relayState
+//            $samlAuth->login(config('app.name') . '_' . app()->environment()); // optional; submit the intended url as relayState
+//
+//            return false;
+//        }
+
+//        $username = $samlAuth->getNameId();
+//        $this->lastAttemptedLoginPO = $loginPO = $this->provider->findLogin($loginType, [TblLogin::ATTR_USERNAME => $username], false);
+
+        $tblIdentification = null;
+        if($tblAccount
+            && $LoginOk
+            && ($tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount))){
+            $tblIdentification = $tblAuthentication->getTblIdentification();
+        }
+
+        // Matching Account found?
+        if ($tblAccount && $tblIdentification) {
+            switch ($tblIdentification->getName()) {
+                case TblIdentification::NAME_TOKEN:
+                case TblIdentification::NAME_SYSTEM:
+                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
+                case TblIdentification::NAME_CREDENTIAL:
+                case TblIdentification::NAME_USER_CREDENTIAL:
+                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
+            }
+        }
+        setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
+
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+            new LayoutColumn(new Warning('Ihr Login von Univention ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+        ))));
+
+        return $Stage;
+    }
 
     /**
      * Environment Information

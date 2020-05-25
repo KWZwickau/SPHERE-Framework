@@ -38,6 +38,10 @@ class Authentication implements IModuleInterface
             Main::getDispatcher()->registerRoute(
                 Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendWelcome')
             );
+            //ToDO remove Test
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml', __NAMESPACE__.'\Frontend::frontendIdentificationSaml'
+            ));
         } else {
             Main::getDispatcher()->registerRoute(
                 Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendIdentificationCredential')
@@ -51,6 +55,9 @@ class Authentication implements IModuleInterface
 //            ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Token', __NAMESPACE__.'\Frontend::frontendIdentificationToken'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml', __NAMESPACE__.'\Frontend::frontendIdentificationSaml'
             ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Agb', __NAMESPACE__.'\Frontend::frontendIdentificationAgb'
