@@ -333,7 +333,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         // Set Depending Information
-//        if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'){
+        if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'){
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
@@ -341,7 +341,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login')
                 ))
             )));
-//        }
+        }
 
 
 
