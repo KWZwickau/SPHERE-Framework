@@ -50,7 +50,7 @@ $settings = array(
         // returned to the requester, in this case our SP.
         'singleLogoutService' => array(
             // URL Location where the <Response> from the IdP will be returned
-            'url' => 'https://schulsoftware.schule/Platform/Gatekeeper/Logout', //ToDO Logout für Univention erstellen
+            'url' => 'https://schulsoftware.schule/Platform/Gatekeeper/Authentication/SLO',
             // SAML protocol binding to be used when returning the <Response>
             // message.  Onelogin Toolkit supports for this endpoint the
             // HTTP-Redirect binding only

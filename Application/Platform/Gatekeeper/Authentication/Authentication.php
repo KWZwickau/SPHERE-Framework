@@ -34,6 +34,10 @@ class Authentication implements IModuleInterface
             __NAMESPACE__.'/Offline', __NAMESPACE__.'\Frontend::frontendDestroySession'
         ));
 
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SLO', __NAMESPACE__.'\Frontend::frontendSLO'
+        ));
+
         if (Account::useService()->getAccountBySession()) {
             Main::getDispatcher()->registerRoute(
                 Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendWelcome')
