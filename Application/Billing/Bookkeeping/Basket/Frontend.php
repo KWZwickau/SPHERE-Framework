@@ -488,6 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
                             } else {
                                 $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
                                     $tblBasketVerification->getId());
+                                $DebtorWarningContent = '';
                             }
                         } else {
                             if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
