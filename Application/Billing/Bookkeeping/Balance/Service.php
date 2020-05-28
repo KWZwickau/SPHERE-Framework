@@ -952,8 +952,8 @@ class Service extends AbstractService
             $currentTblInvoice = current($tblInvoiceList);
             $tblInvoiceCreditor = $currentTblInvoice->getTblInvoiceCreditor();
             //Set the custom header (Spanish banks example) information
-            $header = new GroupHeader(date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner());
-            $header->setInitiatingPartyId('DE21WVM1234567890');
+            $header = new GroupHeader($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner());
+            $header->setInitiatingPartyId($tblInvoiceCreditor->getIBAN());
 
             $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
 
@@ -967,6 +967,7 @@ class Service extends AbstractService
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
                 // Dient nur der SEPA-Prüfung
                 if($tblInvoiceItemDebtorList){
+                    // Nur Sepa-Zahlungen, die nicht in offene Posten sind
                     foreach($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtorCheck){
                         if(($tblPaymentType = $tblInvoiceItemDebtorCheck->getServiceTblPaymentType())){
                             if($tblPaymentType->getId() == $SepaPaymentType){
@@ -1045,6 +1046,10 @@ class Service extends AbstractService
                     array_push($combinedItemDebtorList, $item);
 //                    $this->addTransfer($directDebit, $tblInvoiceItemDebtorList, $PaymentId);
                 }
+            }
+            // can't create without List
+            if(empty($directDebit) && empty($combinedItemDebtorList)){
+                return false;
             }
             $this->addCombinedTransfer($directDebit, $combinedItemDebtorList);
 
@@ -1329,7 +1334,6 @@ class Service extends AbstractService
             return false;
         }
 
-        $SepaPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
         $InvoiceCount = 0;
 
         if($tblInvoiceList){
@@ -1337,7 +1341,7 @@ class Service extends AbstractService
             $tblInvoiceCreditor = $currentTblInvoice->getTblInvoiceCreditor();
 
             //Set the initial information
-            $customerCredit = TransferFileFacadeFactory::createCustomerCredit('test123', $tblInvoiceCreditor->getOwner());
+            $customerCredit = TransferFileFacadeFactory::createCustomerCredit($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner());
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
@@ -1346,43 +1350,31 @@ class Service extends AbstractService
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
                 // Dient nur der SEPA-Prüfung
+                // Gutschriften sollen anhand vorhandener Kontodaten gewählt werden
+                $usedTblInvoiceItemDebtorList = array();
                 if($tblInvoiceItemDebtorList){
-                    foreach($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtor){
-                        if(($tblPaymentType = $tblInvoiceItemDebtor->getServiceTblPaymentType())){
-                            if($tblPaymentType->getId() == $SepaPaymentType){
-                                if($tblInvoiceItemDebtor->getIsPaid()){
-                                    $countSepaPayment++;
-                                } else {
-                                    // Offene posten ignorieren
-                                    $tblInvoiceItemDebtor = false;
-                                }
-                            } else {
-                                // Zahlung mit anderem Zahlungstyp als SEPA-Lastschrift wird ignoriert
-                                $tblInvoiceItemDebtor = false;
-                            }
-                        } else {
-                            // Zahlung ohne Zahlungstyp wird ignoriert
-                            $tblInvoiceItemDebtor = false;
+                    foreach ($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtorCheck) {
+                        if ($tblInvoiceItemDebtorCheck->getServiceTblBankAccount()){
+                            $usedTblInvoiceItemDebtorList[] = $tblInvoiceItemDebtorCheck;
+                            $countSepaPayment++;
                         }
                     }
                 }
-                if($countSepaPayment == 0){
-                    // überspringt rechnungen ohne Sepa-Lastschrift
+                if(count($usedTblInvoiceItemDebtorList) == 0){
+                    // überspringt rechnungen ohne Kontoinformation
                     continue;
                 }
-                // entfernen der false Werte
-                $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
+//                // entfernen der false Werte
+//                $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
                 $InvoiceCount++;
-                $this->addCompanyPayment($customerCredit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
-
-                if(!empty($tblInvoiceItemDebtorList)){
-                    $this->addCompanyTransfer($customerCredit, $tblInvoiceItemDebtorList, $PaymentId);
+                if(!empty($usedTblInvoiceItemDebtorList)){
+                    $this->addCompanyPayment($customerCredit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
+                    $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
                 }
             }
         }
 
-
-        if($InvoiceCount == 0 && !isset($customerCredit)){
+        if($InvoiceCount == 0 || !isset($customerCredit)){
             return false;
         }
 

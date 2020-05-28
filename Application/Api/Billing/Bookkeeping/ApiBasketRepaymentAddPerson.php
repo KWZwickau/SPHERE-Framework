@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Api\Billing\Bookkeeping;
 
 use SPHERE\Application\Api\ApiTrait;
+use SPHERE\Application\Api\Billing\Accounting\ApiDebtorSelection;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
@@ -18,7 +19,9 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -31,6 +34,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -73,6 +77,10 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showItemPrice');
         $Dispatcher->registerMethod('checkItemPrice');
         $Dispatcher->registerMethod('changeItemPrice');
+
+        // BankAccount
+        $Dispatcher->registerMethod('showEditBankAccount');
+        $Dispatcher->registerMethod('saveEditBankAccount');
 
         // remove Entry
         $Dispatcher->registerMethod('showDeleteBasketSelection');
@@ -372,6 +380,53 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
     }
 
     /**
+     * @param       $BasketVerificationId
+     * @param array $DebtorSelection
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditBankAccountModal($BasketVerificationId, $DebtorSelection = array())
+    {
+
+        $Receiver = self::receiverModal('', 'BankAccount');
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'showEditBankAccount'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId,
+            'DebtorSelection'      => $DebtorSelection
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveEditBankAccount($BasketVerificationId = '')
+    {
+
+        //Receiver der ausführt, was keinen einfluss auf das Modal haben soll (kein leeres Laden des Modal's)
+        $Receiver = self::receiverService();
+        $Pipeline = new Pipeline(true);
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditBankAccount'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
      * @param string $Identifier
      * @param string $BasketId
      *
@@ -600,6 +655,152 @@ class ApiBasketRepaymentAddPerson extends Extension implements IApiInterface
             return $Price;
         }
         return new WarningText(new WarningIcon());
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     *
+     * @return Form
+     */
+    public function formBankAccount($BasketVerificationId = '')
+    {
+
+        // choose between Add and Edit
+        $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
+        $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditBankAccount($BasketVerificationId));
+
+        $PersonDebtorList = array();
+        $SelectBoxDebtorList = array();
+        $SelectBoxDebtorList[] = new Person();
+        $ItemName = '';
+        $PersonTitle = '';
+        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+
+            $tblItem = $tblBasketVerification->getServiceTblItem();
+            $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
+            if($tblItem){
+                $ItemName = $tblItem->getName();
+            }
+            if($tblPersonCauser){
+                $PersonTitle = ' für '.new Bold($tblPersonCauser->getFirstName().' '.$tblPersonCauser->getLastName());
+                $ObjectList = ApiDebtorSelection::getSelectBoxDebtor($tblPersonCauser);
+                if(isset($ObjectList['SelectBoxDebtorList']) && $ObjectList['SelectBoxDebtorList']){
+                    $SelectBoxDebtorList = $ObjectList['SelectBoxDebtorList'];
+                }
+                if(isset($ObjectList['PersonDebtorList']) && $ObjectList['PersonDebtorList']){
+                    $PersonDebtorList = $ObjectList['PersonDebtorList'];
+                }
+            }
+
+            if($tblPersonCauser){
+                $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPersonCauser);
+                if($tblBankReferenceList){
+                    // Post first entry if PaymentType = SEPA-Lastschrift
+                    if(isset($_POST['DebtorSelection']['PaymentType'])
+                        && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
+                        && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                        if(!isset($_POST['DebtorSelection']['BankReference'])){
+                            $_POST['DebtorSelection']['BankReference'] = $tblBankReferenceList[0]->getId();
+                        }
+                    }
+                }
+            }
+        }
+
+        // no BankAccount available
+        if(!isset($_POST['DebtorSelection']['BankAccount'])){
+            $_POST['DebtorSelection']['BankAccount'] = '-1';
+        }
+        $RadioBoxListBankAccount = ApiDebtorSelection::getBankAccountRadioBoxList($PersonDebtorList);
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Title($ItemName, $PersonTitle))
+                ),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('DebtorSelection[Debtor]', 'Beitragszahler',
+                            $SelectBoxDebtorList, null, true, null))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        array(
+                            new Bold('Konten '),
+                            new Listing($RadioBoxListBankAccount)
+                        ), 6),
+                )),
+                new FormRow(
+                    new FormColumn(
+                        $SaveButton
+                    )
+                )
+            ))
+        ))->disableSubmitAction();
+    }
+
+    /**
+     * @param $BasketVerificationId
+     *
+     * @return string
+     */
+    public function showEditBankAccount($BasketVerificationId)
+    {
+
+        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            $Global = $this->getGlobal();
+//            $tblPaymentType = $tblBasketVerification->getServiceTblPaymentType();
+//            ($tblPaymentType ? $Global->POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId() : '');
+            $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
+            ($tblPersonDebtor ? $Global->POST['DebtorSelection']['Debtor'] = $tblPersonDebtor->getId() : '');
+            $tblBankAccount = $tblBasketVerification->getServiceTblBankAccount();
+            ($tblBankAccount ? $Global->POST['DebtorSelection']['BankAccount'] = $tblBankAccount->getId()
+                : $Global->POST['DebtorSelection']['BankAccount'] = '-1');
+//            $tblBankReference = $tblBasketVerification->getServiceTblBankReference();
+//            ($tblBankReference ? $Global->POST['DebtorSelection']['BankReference'] = $tblBankReference->getId() : '');
+            $Global->savePost();
+        }
+
+        return new Well(self::formBankAccount($BasketVerificationId));
+    }
+
+    /**
+     * @param       $BasketVerificationId
+     * @param array $DebtorSelection
+     *
+     * @return false|Form|Danger|string
+     */
+    public function saveEditBankAccount(
+        $BasketVerificationId,
+        $DebtorSelection = array()
+    ){
+
+        $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
+        if($tblBasketVerification){
+            $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
+            $tblItem = $tblBasketVerification->getServiceTblItem();
+        } else {
+            $tblPersonCauser = false;
+            $tblItem = false;
+        }
+        $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
+        $tblPersonDebtor = Person::useService()->getPersonById($DebtorSelection['Debtor']);
+        if($tblPersonCauser && $tblPersonDebtor && $tblItem){
+            // switch false to null
+            ($tblBankAccount === false ? $tblBankAccount = null : '');
+            (($tblPaymentType = $tblBasketVerification->getServiceTblPaymentType()) ? '' : $tblPaymentType = null);
+            (($tblVerification = $tblBasketVerification->getServiceTblItemVariant()) ? '' : $tblVerification = null);
+            $tblBankReference = null;
+            // change basket
+
+            $tblBasket = $tblBasketVerification->getTblBasket();
+
+            Basket::useService()->changeBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
+                $tblPaymentType, $tblBasketVerification->getValue(),
+                $tblVerification, $tblBankAccount, $tblBankReference);
+            return self::pipelineReloadTable($tblBasket->getId(), 'BankAccount');
+        } else {
+            return new Danger('Die Informationen konnten nicht gespeichert werden');
+        }
     }
 
     /**

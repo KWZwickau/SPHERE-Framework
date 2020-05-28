@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
@@ -47,6 +48,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -289,11 +291,11 @@ class Frontend extends Extension implements IFrontendInterface
             if($IsSepa){
                 // Buttonfarbe nach Download ändern
                 if($tblBasket->getSepaDate()){
-                    $Buttons .= (new Standard('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
-                        array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
+                    $Buttons .= (new External('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'SEPA Download', External::STYLE_BUTTON_DEFAULT));
                 } else {
-                    $Buttons .= (new Primary('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
-                        array('BasketId' => $tblBasket->getId()), 'SEPA Download'));
+                    $Buttons .= (new External('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                        array('BasketId' => $tblBasket->getId()), 'SEPA Download', External::STYLE_BUTTON_PRIMARY));
                 }
             }
             // Datev für diesen Vorgang erstmal verschoben
@@ -477,19 +479,30 @@ class Frontend extends Extension implements IFrontendInterface
                     if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
                         $IsShowPriceString = true;
                         // ignore FailMessage if not necessary
-                        if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
-                            $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
-                                $tblBasketVerification->getId());
-                            $DebtorWarningContent = '';
+                        if($tblBasket->getTblBasketType()->getName() == TblBasketType::IDENT_GUTSCHRIFT){
+                            if(!$tblBasketVerification->getServiceTblBankAccount()){
+                                $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Eintrag ohne Kontoinformation -> fehlt in der Sepa Datei');
+                                $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName().' '.$InfoDebtorNumber,
+                                    $tblBasketVerification->getId());
+                                $DebtorWarningContent = new DangerText(new WarningIcon());
+                            } else {
+                                $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
+                                    $tblBasketVerification->getId());
+                            }
                         } else {
-                            $DebtorNumberMiss++;
-                            $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName().' '.$InfoDebtorNumber,
-                                $tblBasketVerification->getId());
-                            if(!$IsDebtorNumberNeed){
+                            if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
+                                $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
+                                    $tblBasketVerification->getId());
                                 $DebtorWarningContent = '';
+                            } else {
+                                $DebtorNumberMiss++;
+                                $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName().' '.$InfoDebtorNumber,
+                                    $tblBasketVerification->getId());
+                                if(!$IsDebtorNumberNeed){
+                                    $DebtorWarningContent = '';
+                                }
                             }
                         }
-
                     } else {
                         $DebtorMiss++;
                     }
@@ -785,6 +798,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             ApiBasketRepaymentAddPerson::receiverModal('Gutschrift für '.$ItemName.' hinzufügen', 'AddRepayment')
             .ApiBasketRepaymentAddPerson::receiverModal('Gutschrift für '.$ItemName.' festlegen', 'ItemPrice')
+            .ApiBasketRepaymentAddPerson::receiverModal('Kontoinformation anpassen', 'BankAccount')
             .ApiBasketRepaymentAddPerson::receiverModal('Entfernen einer Gutschrift', 'deleteDebtorSelection')
             .ApiBasketRepaymentAddPerson::receiverService()
             .new Layout(
@@ -854,6 +868,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $Item['PersonCauser'] = $Item['PersonDebtor'] = '';
                     $Item['Item'] = '';
+                    $Item['PaymentType'] = '';
                     $Item['Price'] = ApiBasketRepaymentAddPerson::receiverItemPrice(
                         Balance::useService()->getPriceString($tblBasketVerification->getValue()),
                         $tblBasketVerification->getId());
@@ -861,16 +876,31 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
                     }
                     if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
-                        $BankInfo = 'Keine Bankinforamtion gefunden!';
+                        $BankInfo = 'Für SEPA Export bitte Bankdaten hinterlegen';
+                        $isBankInfo = false;
                         if(($tblBankAccount = $tblBasketVerification->getServiceTblBankAccount())){
                             $BankInfo = $tblBankAccount->getOwner().'<br/>'.$tblBankAccount->getBankName().'<br/>'.$tblBankAccount->getIBANFrontend();
+                            $isBankInfo = true;
                         }
-                        $Item['PersonDebtor'] = $tblPersonDebtor->getLastFirstName().' '.
-                            (new ToolTip(new InfoIcon(), htmlspecialchars($BankInfo)))->enableHtml();
+                        $Item['PersonDebtor'] = $tblPersonDebtor->getLastFirstName().' ';
+                        if($isBankInfo){
+                            $Item['PersonDebtor'] .= (new ToolTip(new InfoIcon(), htmlspecialchars($BankInfo)))->enableHtml();
+                        } else {
+                            $Item['PersonDebtor'] .= new DangerText((new ToolTip(new Exclamation(), htmlspecialchars($BankInfo)))->enableHtml());
+                        }
+                        // Add ChangeButton Account
+                        if(!$tblBasket->getIsDone()){
+                            $Item['PersonDebtor'] .= '&nbsp;'.new ToolTip((new Link('', ApiBasketRepaymentAddPerson::getEndpoint(), new Pencil()))
+                                ->ajaxPipelineOnClick(ApiBasketRepaymentAddPerson::pipelineOpenEditBankAccountModal($tblBasketVerification->getId()))
+                                , 'Kontoinformation anpassen');
+                        }
                     }
 
                     if(($tblItem = $tblBasketVerification->getServiceTblItem())){
                         $Item['Item'] = $tblItem->getName();
+                    }
+                    if(($tblPaymentType = $tblBasketVerification->getServiceTblPaymentType())){
+                        $Item['PaymentType'] = $tblPaymentType->getName();
                     }
 
                     if($tblBasket->getIsDone()){
@@ -916,6 +946,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'PersonCauser'     => 'Beitragsverursacher',
 //                                'PersonDebtorFail' => 'Fehler',
                                 'PersonDebtor'     => 'Beitragszahler',
+                                'PaymentType'      => 'Zahlungsart',
                                 'Item'             => 'Beitragsart',
                                 'Price'            => 'Gutschrift',
                                 'Option'           => ''

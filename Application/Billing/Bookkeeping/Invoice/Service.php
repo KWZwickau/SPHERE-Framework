@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
@@ -463,7 +464,8 @@ class Service extends AbstractService
             &$InvoiceItemDebtorList,
             $Month,
             $Year,
-            $DebtorInvoiceList
+            $DebtorInvoiceList,
+            $tblBasket
         ){
             $i++;
             $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
@@ -531,11 +533,21 @@ class Service extends AbstractService
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblBankReference'] = $tblBankReference;
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblBankAccount'] = $tblBankAccount;
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblPaymentType'] = $tblPaymentType;
-            if($tblPaymentType && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
+
+            // Gutschriften erhalten keine offene Posten
+            if($tblBasket->getTblBasketType()->getName() == TblBasketType::IDENT_GUTSCHRIFT){
                 $isPaid = true;
             } else {
-                $isPaid = false;
+                // Alles was nicht Sepa ist wird als offener Posten hinterlegt
+                // (Erwarteter Zahlungseingang muss nach erhalt im Programm bestätigt weden, damit dies nicht untergeht)
+                if($tblPaymentType && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                    $isPaid = true;
+                } else {
+                    $isPaid = false;
+                }
             }
+
+
             $InvoiceItemDebtorList[$GroupString][$i]['IsPaid'] = $isPaid;
         });
 
