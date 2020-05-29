@@ -1161,6 +1161,7 @@ class Service extends AbstractService
             $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
             $CreditorId = '';
             $RefNumber = $tblInvoiceItemDebtor->getBankReference();
+            $DebtorNumber = $tblInvoiceItemDebtor->getDebtorNumber();
             $CauserName = $tblInvoice->getLastName();
             $CauserFirstName = $tblInvoice->getFirstName();
             $TimeString = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
@@ -1173,6 +1174,7 @@ class Service extends AbstractService
             $bookingText = str_ireplace('[BVN]', $CauserName, $bookingText);
             $bookingText = str_ireplace('[BVV]', $CauserFirstName, $bookingText);
             $bookingText = str_ireplace('[BA]', $ItemName, $bookingText);
+            $bookingText = str_ireplace('[DEB]', $DebtorNumber, $bookingText);
             $bookingText = str_ireplace('[BAM]', $TimeString, $bookingText);
             return $bookingText;
         }

@@ -386,6 +386,7 @@ class ApiItem extends ItemVariant implements IApiInterface
                                 '[BVN] Beitragsverursacher Name',
                                 '[BVV] Beitragsverursacher Vorname',
                                 '[BA] Beitragsart',
+                                '[DEB] Debitoren-Nr.',
                                 '[BAM] Abrechnungszeitraum (Jahr+Monat)',
                             )
                             , Panel::PANEL_TYPE_INFO)
