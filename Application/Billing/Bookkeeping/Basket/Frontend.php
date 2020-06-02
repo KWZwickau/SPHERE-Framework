@@ -651,7 +651,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Item'             => 'Beitragsart',
                                 'Price'            => 'Einzelpreis',
                                 'Quantity'         => 'Anzahl',
-                                'Summary'          => 'Gesamtpreis',
+                                'Summary'          => 'Gesamtpreis ('.ApiBasketVerification::receiverItemAllSummary(Basket::useService()->getItemAllSummery($tblBasket->getId()), 'SumAll').' €)',
                                 'Option'           => ''
                             ), array(
                                 'columnDefs' => array(
