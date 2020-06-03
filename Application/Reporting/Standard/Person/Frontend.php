@@ -858,7 +858,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel('Gruppe:',
                                     $tblGroup->getName().
-                                    ($tblGroup->getDescription() ? '<br/>' . $tblGroup->getDescription() : '').
+                                    ($tblGroup->getDescription(true) ? '<br/>' . $tblGroup->getDescription(true) : '').
                                     ($tblGroup->getRemark() ? '<br/>' . $tblGroup->getRemark() : ''),
                                     Panel::PANEL_TYPE_SUCCESS), 12
                             )

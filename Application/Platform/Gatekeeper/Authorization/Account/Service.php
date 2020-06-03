@@ -757,7 +757,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param bool      $isForce
      *
-     * @return bool|TblAccount[]
+     * @return false|TblAccount[]
      */
     public function getAccountAllByPerson(TblPerson $tblPerson, $isForce = false)
     {
@@ -781,7 +781,7 @@ class Service extends AbstractService
     /**
      * @param TblIdentification $tblIdentification
      *
-     * @return TblAccount|bool
+     * @return TblAccount[]|bool
      */
     public function getAccountListByIdentification(TblIdentification $tblIdentification)
     {
@@ -952,6 +952,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSettingAllByAccount($tblAccount);
+    }
+
+    /**
+     * @param $UserAlias
+     *
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllByUserAlias($UserAlias)
+    {
+
+        return (new Data($this->getBinding()))->getAccountAllByUserAlias($UserAlias);
     }
 
     /**

@@ -1208,11 +1208,16 @@ class Data extends AbstractData
      */
     public function changeUserAlias(TblAccount $tblAccount, $userAlias)
     {
-        // prüfen ob Alias eineindeutig ist
-        if (($tblAccountList = $this->getAccountAllByUserAlias($userAlias))) {
-            foreach ($tblAccountList as $item) {
-                if ($tblAccount->getId() != $item->getId()) {
-                    return false;
+
+        if($userAlias === ''){
+            $userAlias = null;
+        } else {
+            // prüfen ob Alias eineindeutig ist
+            if (($tblAccountList = $this->getAccountAllByUserAlias($userAlias))) {
+                foreach ($tblAccountList as $item) {
+                    if ($tblAccount->getId() != $item->getId()) {
+                        return false;
+                    }
                 }
             }
         }

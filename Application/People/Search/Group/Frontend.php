@@ -215,7 +215,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(new LayoutColumn(
                         new Panel(new PersonGroup() . ' Gruppe', array(
                             new Bold($tblGroup->getName()),
-                            ($tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : ''),
+                            ($tblGroup->getDescription(true) ? new Small($tblGroup->getDescription(true)) : ''),
                             ($tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '')
                         ), Panel::PANEL_TYPE_INFO
                         )
