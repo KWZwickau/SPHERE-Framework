@@ -1780,11 +1780,24 @@ class Frontend extends Extension implements IFrontendInterface
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
                         }
 
-                        // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzten
+                        $isSupportForPrimarySchool = false;
+                        // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzen
                         if (!$hasRemarkText
                             && ($tblConsumer = Consumer::useService()->getConsumerBySession())
                             && $tblConsumer->getAcronym() ==  'ESRL'//'REF' für Lokale Test's
                         ) {
+                           $isSupportForPrimarySchool = true;
+                        // staatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
+                        } elseif (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'GsHjInformation'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsHjOneInfo'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJa'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJOne')
+                        ) {
+                            $isSupportForPrimarySchool = true;
+                        }
+
+                        if ($isSupportForPrimarySchool) {
                             $textSupport = '';
                             if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
                                 && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
@@ -1799,7 +1812,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
 
+                            // Seelitz
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $textSupport;
+                            // staatliche GS-Zeugnisse
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $textSupport;
                         }
 
                         $Global->savePost();
