@@ -276,7 +276,7 @@ class SignOutCertificate extends Extension
                         new LayoutColumn(
                             new Title('Vorlage des Standard-Dokuments "Abmeldebescheinigung"')
                             .new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/Document/SignOutCertificate.png')
+                                FileSystem::getFileLoader('/Common/Style/Resource/Document/SignOutCertificate_V2.png')
                                 , ''
                             )
                             , 5),
