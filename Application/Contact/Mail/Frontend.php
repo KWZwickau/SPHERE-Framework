@@ -10,6 +10,8 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\MailField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -82,10 +84,24 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTypeAll = Mail::useService()->getTypeAll();
 
         // Account exist?
-        $IsAccount = false;
-        $tblPerson = Person::useService()->getPersonById($PersonId);
-        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-            $IsAccount = true;
+        $isConnexion = false;
+        if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
+            if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer))){
+                if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
+                    $isConnexion = true;
+                }
+            }
+        }
+
+        $CheckBox = '';
+        if($isConnexion){
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+                $CheckBox = new CheckBox('Address[Alias]', 'E-Mail als CONNEXION Benutzername verwenden', 1);
+            } else {
+                $CheckBox = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als CONNEXION Benutzername verwenden', 1))
+                    ->setDisabled(), 'Person benötigt ein Benutzerkonto');
+            }
         }
 
         return (new Form(
@@ -98,10 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ))->setRequired(),
                                 (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired(),
-                                ($IsAccount
-                                ? new CheckBox('Address[Alias]', 'E-Mail als CONNEXION Benutzername verwenden', 1)
-                                : new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als CONNEXION Benutzername verwenden', 1))
-                                        ->setDisabled(), 'Benutzer benötigt einen Account'))
+                                $CheckBox
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
