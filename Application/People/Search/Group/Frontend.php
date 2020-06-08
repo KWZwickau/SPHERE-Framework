@@ -3,6 +3,8 @@ namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -10,7 +12,7 @@ use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -75,11 +77,11 @@ class Frontend extends Extension implements IFrontendInterface
                         if(isset($tblRelationshipList[$contentRow['TblPerson_Id']])){
                             $CustodyChildList = $tblRelationshipList[$contentRow['TblPerson_Id']];
                             foreach($CustodyChildList as $childId) {
-                                $tblPersonChild = \SPHERE\Application\People\Person\Person::useService()->getPersonById($childId);
+                                $tblPersonChild = Person::useService()->getPersonById($childId);
                                 // Personen müssen noch im Tool vorhanden sein
                                 if($tblPersonChild){
                                     $childrenList[$childId]
-                                        = new Standard('', '/People/Person', new Person(),
+                                        = new Standard('', '/People/Person', new PersonIcon(),
                                             array(
                                                 'Id' => $childId,
                                                 'Group' => $tblGroup->getId()
@@ -102,7 +104,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    && $tblPersonFrom->getId() == $tblPerson->getId()
 //                                ) {
 //                                    $childrenList[$tblPersonTo->getId()]
-//                                        = new Standard('', '/People/Person', new Person(),
+//                                        = new Standard('', '/People/Person', new PersonIcon(),
 //                                            array(
 //                                                'Id' => $tblPersonTo->getId(),
 //                                                'Group' => $tblGroup->getId()
@@ -116,6 +118,13 @@ class Frontend extends Extension implements IFrontendInterface
 //                        }
                     }
 
+                    $displayDivisionList = '';
+                    if ($tblGroup->getMetaTable() == 'STUDENT') {
+                        if(($tblPerson = Person::useService()->getPersonById($contentRow['TblPerson_Id']))){
+                            $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                        }
+                    }
+
                     $item['FullName'] = $contentRow['TblPerson_LastFirstName'];
                     $item['Remark'] = $contentRow['TblCommon_Remark'];
 
@@ -124,7 +133,7 @@ class Frontend extends Extension implements IFrontendInterface
                         : new Warning('Keine Adresse hinterlegt')
                     );
                     // Student
-                    $item['Division'] = trim($contentRow['Division']);
+                    $item['Division'] = $displayDivisionList;
                     $item['Identifier'] = trim($contentRow['Identifier']);
                     // Custody
                     $item['Custody'] = (empty($childrenList) ? '' : (string)new Listing($childrenList));
