@@ -1787,12 +1787,18 @@ class Frontend extends Extension implements IFrontendInterface
                             && $tblConsumer->getAcronym() ==  'ESRL'//'REF' für Lokale Test's
                         ) {
                            $isSupportForPrimarySchool = true;
-                        // staatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
+                        // staatliche und pseudostaatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
                         } elseif (!$hasRemarkText
                             && ($Certificate->getCertificateEntity()->getCertificate() == 'GsHjInformation'
                                 || $Certificate->getCertificateEntity()->getCertificate() == 'GsHjOneInfo'
                                 || $Certificate->getCertificateEntity()->getCertificate() == 'GsJa'
-                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJOne')
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJOne'
+
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheHjInfoGs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheHjInfoGsOne'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheJGs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheJGsOne'
+                            )
                         ) {
                             $isSupportForPrimarySchool = true;
                         }
