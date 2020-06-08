@@ -347,6 +347,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $BasketId
+     *
+     * @return float
+     */
+    public function getItemAllSummery($BasketId)
+    {
+
+        $Summary = 0;
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
+            if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
+                foreach($tblBasketVerificationList as $tblBasketVerification){#
+                    if(($ItemSum = $tblBasketVerification->getValue() * $tblBasketVerification->getQuantity())){
+                        $Summary += $ItemSum;
+                    }
+                }
+            }
+        }
+
+        return number_format($Summary, 2, ',', '.');
+    }
+
+    /**
      * @param TblBasket          $tblBasket
      * @param TblDebtorSelection $tblDebtorSelection
      * @param float              $Value

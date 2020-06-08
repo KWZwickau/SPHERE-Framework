@@ -70,6 +70,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $Dispatcher->registerMethod('getWarning');
         $Dispatcher->registerMethod('getItemPrice');
         $Dispatcher->registerMethod('getItemSummary');
+        $Dispatcher->registerMethod('getItemAllSummary');
         $Dispatcher->registerMethod('getDebtor');
         $Dispatcher->registerMethod('getTableLayout');
 
@@ -167,6 +168,18 @@ class ApiBasketVerification extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return InlineReceiver
+     */
+    public static function receiverItemAllSummary($Content = '', $Identifier = '')
+    {
+
+        return (new InlineReceiver($Content))->setIdentifier('Summary'.$Identifier);
+    }
+
+    /**
      * @param string $BasketVerificationId
      *
      * @return Pipeline
@@ -220,6 +233,15 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverItemSummary('', $BasketVerificationId), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getItemSummary'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        $Emitter = new ServerEmitter(self::receiverItemAllSummary('', 'SumAll'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getItemAllSummary'
         ));
         $Emitter->setPostPayload(array(
             'BasketVerificationId' => $BasketVerificationId
@@ -321,6 +343,22 @@ class ApiBasketVerification extends Extension implements IApiInterface
             return $tblBasketVerification->getSummaryPrice();
         }
         return '';
+    }
+
+    /**
+     * @param $BasketVerificationId
+     *
+     * @return string
+     */
+    public function getItemAllSummary($BasketVerificationId)
+    {
+
+        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            if(($tblBasket = $tblBasketVerification->getTblBasket())){
+                return Basket::useService()->getItemAllSummery($tblBasket->getId());
+            }
+        }
+        return 'Fehler';
     }
 
     /**
@@ -497,6 +535,15 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverItemSummary('', $BasketVerificationId), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getItemSummary'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        // reload All Summary Header
+        $Emitter = new ServerEmitter(self::receiverItemAllSummary('', 'SumAll'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getItemAllSummary'
         ));
         $Emitter->setPostPayload(array(
             'BasketVerificationId' => $BasketVerificationId
