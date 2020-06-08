@@ -322,6 +322,11 @@ class Data extends AbstractData
                 'Bei der alphabetischen Sortierung von Namen werden Präpositionen (z.B. von, de, etc.) für die Sortierung berücksichtigt [Standard: Ja]',
                 true);
         }
+
+        // Fehlzeiten
+        $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
+            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch [Standard: Ja]'
+            , true);
     }
 
     /**

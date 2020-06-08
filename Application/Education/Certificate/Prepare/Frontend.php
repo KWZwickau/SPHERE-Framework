@@ -1341,6 +1341,14 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
+                    if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                        'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                    ) {
+                        $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+                    } else {
+                        $useClassRegisterForAbsence = false;
+                    }
+
                     $studentTable = array();
                     if ($Page == null) {
                         $columnTable = array(
@@ -1423,7 +1431,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
 
                                     if ($Page == null) {
-                                        if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                        if ($useClassRegisterForAbsence
+                                            || ($tblPrepareStudent && $tblPrepareStudent->isApproved())
+                                        ) {
                                             $studentTable[$tblPerson->getId()]['ExcusedDays'] =
                                                 (new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
                                                     '',
