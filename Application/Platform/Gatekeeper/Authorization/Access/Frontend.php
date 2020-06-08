@@ -274,6 +274,9 @@ class Frontend
             '/Document/DataProtectionOrdinance',
             '/Manual/Request',
             '/Platform/Gatekeeper/Saml/MetaData',
+            '/Platform/Gatekeeper/Saml/Login',
+            '/Platform/Gatekeeper/Authentication/Saml',
+            '/Platform/Gatekeeper/Authentication/SLO',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
