@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -32,15 +33,15 @@ class BfsHj extends Certificate
         $pageList[] = (new Page())
             ->addSlice($this->getSchoolHead($personId))
             ->addSlice($this->getStudentHead($personId))
-            ->addSlice($this->getSubjectLineAcross($personId))
-            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbezogener Bereich'))
+            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Berufsbezogener Bereich'))
         ;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId))
-            ->addSlice($this->getSubjectLineBase($personId, 'Berufsbezogener Bereich (Fortsetzung)', 10, true, '220px'))
-            ->addSlice($this->getSubjectLineChosen($personId))
-            ->addSlice($this->getPraktika($personId))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 10, true, '220px'))
+            ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
@@ -48,7 +49,7 @@ class BfsHj extends Certificate
             ))
             ->addSlice($this->getBottomInformation($personId))
             ->addSlice($this->getBsInfo('20px',
-                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6),'))
+                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
         ;
 
         return $pageList;
@@ -60,7 +61,7 @@ class BfsHj extends Certificate
      *
      * @return Slice
      */
-    private function getSchoolHead($personId, $CertificateName = 'Halbjahresinformation')
+    public function getSchoolHead($personId, $CertificateName = 'Halbjahresinformation')
     {
 
         $name = '';
@@ -108,10 +109,11 @@ class BfsHj extends Certificate
 
     /**
      * @param $personId
+     * @param string $period
      *
      * @return Slice
      */
-    private function getStudentHead($personId)
+    public function getStudentHead($personId, $period = 'Schulhalbjahr')
     {
 
         $Slice = new Slice();
@@ -184,7 +186,7 @@ class BfsHj extends Certificate
         );
 
         $Slice->addElement((new Element())
-            ->setContent('hat im zurückliegenden Schulhalbjahr folgende Leistungen erreicht:')
+            ->setContent('hat im zurückliegenden ' . $period . ' folgende Leistungen erreicht:')
             ->styleAlignCenter()
             ->styleTextSize('16px')
             ->stylePaddingTop('20px')
@@ -196,10 +198,11 @@ class BfsHj extends Certificate
 
     /**
      * @param $personId
+     * @param TblCertificate $tblCertificate
      *
      * @return Slice
      */
-    private function getSubjectLineAcross($personId)
+    public function getSubjectLineAcross($personId, TblCertificate $tblCertificate)
     {
 
         $Slice = (new Slice());
@@ -217,7 +220,7 @@ class BfsHj extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
         $tblGradeList = $this->getGrade();
 
         if (!empty($tblCertificateSubjectAll)) {
@@ -325,14 +328,15 @@ class BfsHj extends Certificate
 
     /**
      * @param        $personId
+     * @param TblCertificate $tblCertificate
      * @param string $Title
-     * @param int    $Length
-     * @param bool   $isPageTwo
+     * @param int $Length
+     * @param bool $isPageTwo
      * @param string $Height
      *
      * @return Slice
      */
-    private function getSubjectLineBase($personId, $Title = '&nbsp;', $Length = 10, $isPageTwo = false, $Height = 'auto')
+    public function getSubjectLineBase($personId, TblCertificate $tblCertificate, $Title = '&nbsp;', $Length = 10, $isPageTwo = false, $Height = 'auto')
     {
         $Slice = (new Slice());
 
@@ -343,9 +347,10 @@ class BfsHj extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
         $tblGradeList = $this->getGrade();
 
+        $CountSubjectMissing = 0;
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
@@ -462,16 +467,17 @@ class BfsHj extends Certificate
 
     /**
      * @param $personId
+     * @param string $title
      *
      * @return Slice
      */
-    private function getSecondPageHead($personId)
+    public function getSecondPageHead($personId, $title = 'Halbjahresinformation')
     {
 
         $Slice = new Slice();
 
         $Slice->addElement((new Element())
-            ->setContent('Halbjahresinformation für
+            ->setContent($title . ' für
             {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
             {% else %}
@@ -491,11 +497,12 @@ class BfsHj extends Certificate
 
     /**
      * @param        $personId
+     * @param TblCertificate $tblCertificate
      * @param string $Height
      *
      * @return Slice
      */
-    private function getSubjectLineChosen($personId, $Height = '130px')
+    public function getSubjectLineChosen($personId, TblCertificate $tblCertificate, $Height = '130px')
     {
         $Slice = (new Slice());
 
@@ -506,9 +513,9 @@ class BfsHj extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
         $tblGradeList = $this->getGrade();
-
+        $CountSubjectMissing = 0;
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
@@ -641,13 +648,14 @@ class BfsHj extends Certificate
 
     /**
      * @param $personId
+     * @param TblCertificate $tblCertificate
      *
      * @return Slice
      */
-    private function getPraktika($personId)
+    public function getPraktika($personId, TblCertificate $tblCertificate)
     {
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
 
         $Subject = array();
 
@@ -687,29 +695,32 @@ class BfsHj extends Certificate
                 , '91%'
             )
             ->addElementColumn((new Element())      //ToDO richtiges Acronym auswählen
-                ->setContent('{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                ->setContent(empty($Subject) ? '&ndash;'
+                         :'{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
                              {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
                          {% else %}
                              &ndash;
                          {% endif %}')
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#BBB')
-                ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                ->stylePaddingTop(empty($Subject) ? '2px'
+                    :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
                                  5.3px
                              {% else %}
                                  2px
                              {% endif %}')
-                ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                ->stylePaddingBottom(empty($Subject) ? '2px'
+                    :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
                                  6px
                              {% else %}
                                  2px
                              {% endif %}')
-                ->styleTextSize(
-                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                ->styleTextSize(empty($Subject) ? '2px'
+                            :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
                                  ' . $TextSizeSmall . '
@@ -792,7 +803,7 @@ class BfsHj extends Certificate
      *
      * @return Slice
      */
-    private function getDescriptionBsContent($personId, $Height = '195px')
+    public function getDescriptionBsContent($personId, $Height = '195px')
     {
 
         $Slice = new Slice();
@@ -906,7 +917,7 @@ class BfsHj extends Certificate
      *
      * @return Slice
      */
-    private function getBsInfo($PaddingTop = '20px', $Content = '')
+    public function getBsInfo($PaddingTop = '20px', $Content = '')
     {
         $Slice = new Slice();
         $Slice->stylePaddingTop($PaddingTop);
