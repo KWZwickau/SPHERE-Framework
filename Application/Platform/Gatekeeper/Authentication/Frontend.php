@@ -332,7 +332,8 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        // Set Depending Information
+        // set depending information
+        // local test  || $this->getRequest()->getHost() == '192.168.75.128'
         if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'){
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
@@ -342,8 +343,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )));
         }
-
-
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
 
@@ -357,6 +356,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendIdentificationSaml()
     {
+
         $Stage = new Stage(new Nameplate().' Anmelden', '', $this->getIdentificationEnvironment());
 
         $Saml = new phpSaml();
@@ -372,6 +372,14 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(isset($_SESSION['isAuthenticated']) && $_SESSION['isAuthenticated']){
             $LoginOk = true;
+        }
+
+        if(($ExistSessionAccount = Account::useService()->getAccountBySession())){
+            // is requested account the same like session account go to welcome
+            if($tblAccount && $ExistSessionAccount->getId() == $tblAccount->getId()){
+                $Stage->setContent(new Redirect('/', Redirect::TIMEOUT_SUCCESS));
+                return $Stage;
+            }
         }
 
         $tblIdentification = null;

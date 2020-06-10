@@ -42,7 +42,6 @@ class Authentication implements IModuleInterface
             Main::getDispatcher()->registerRoute(
                 Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendWelcome')
             );
-            //ToDO remove Test
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Saml', __NAMESPACE__.'\Frontend::frontendIdentificationSaml'
             ));
