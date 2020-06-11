@@ -1,8 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Saml;
 
-use SPHERE\Common\Frontend\Link\Repository\External;
-use SPHERE\Common\Window\Stage;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
 use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
@@ -12,33 +11,27 @@ use SPHERE\System\Extension\Repository\phpSaml;
 class Frontend
 {
 
-    public function frontendSaml()
-    {
-
-        $Stage = new Stage('Saml 2');
-
-        $Stage->addButton(new External('MetaData', 'SPHERE\Application\Platform\Gatekeeper\Saml\MetaData'));
-        $Stage->addButton(new External('Saml 2 Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login'));
-
-        return $Stage;
-
-    }
-
-    /**
-     * @throws \OneLogin_Saml2_Error
-     */
     public function XMLMetaData()
     {
 
-        $PhpSaml = new phpSaml();
+        // no config needed
+        $PhpSaml = new phpSaml('');
         echo $PhpSaml->getMetaData();
         exit;
     }
 
-    public function frontendLogin()
+    public function frontendLoginEVSSN()
     {
 
-        $PhpSaml = new phpSaml();
-        return $PhpSaml->samlLogin();
+        $PhpSaml = new phpSaml(SamlEVSSN::getSAML());
+        $PhpSaml->samlLogin();
     }
+
+//    // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
+//    public function frontendLoginEKM()
+//    {
+//
+//        $PhpSaml = new phpSaml(SamlEKM::getSAML());
+//        $PhpSaml->samlLogin();
+//    }
 }
