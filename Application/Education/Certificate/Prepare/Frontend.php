@@ -2693,6 +2693,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ) {
                         // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
                         foreach ($tblDivisionStudentAll as $tblPerson) {
+                            $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                             if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                 if (($tblYear = $tblDivision->getServiceTblYear())
                                     && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson,
@@ -2856,8 +2857,6 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubjectGroup $tblSubjectGroup = null,
         TblPrepareCertificate $tblPrepare = null
     ) {
-        $studentList[$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -4484,9 +4483,6 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         $studentList
     ) {
-
-        $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
-
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
             && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
                 $tblPrepare,
