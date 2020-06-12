@@ -5003,6 +5003,11 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblDivisionItem = $tblDivisionSubject->getTblDivision())
                             && ($tblSubjectItem = $tblDivisionSubject->getServiceTblSubject())
                         ) {
+                            // Fächer ohne Benotung überspringen
+                            if (!$tblDivisionSubject->getHasGrading()) {
+                                continue;
+                            }
+
                             $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
                             $gradeList = array();
                             $average = '';
