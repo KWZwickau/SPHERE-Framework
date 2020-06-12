@@ -2358,7 +2358,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                $columnDefinition['Text'] = 'oder Zeugnistext';
+                $columnDefinition['Text'] = 'oder Zeugnistext'
+                    . ApiEvaluation::receiverModal()
+                    . new PullRight(
+                        (new Standard('Alle bearbeiten', ApiEvaluation::getEndpoint()))
+                            ->ajaxPipelineOnClick(ApiEvaluation::pipelineOpenGradeTextModal($tblTest->getId()))
+                        );
                 $columnDefinition['Comment'] = 'Vermerk Notenänderung';
             } else {
                 // Kopfnotenauftrag
@@ -2684,10 +2689,14 @@ class Frontend extends Extension implements IFrontendInterface
             // Zeugnistext
             if (($tblTask = $tblTest->getTblTask()) && $tblTask->getTblTestType()
                 && $tblTask->getTblTestType()->getIdentifier() == 'APPOINTED_DATE_TASK'
-                && ($tblGradeTextList = Gradebook::useService()->getGradeTextAll())
             ) {
-                $student[$tblPerson->getId()]['Text'] = new SelectBox('Grade[' . $tblPerson->getId() . '][Text]',
-                    '', array(TblGradeText::ATTR_NAME => $tblGradeTextList));
+                $gradeTextId = 0;
+                if ($tblGrade && ($tblGradeText = $tblGrade->getTblGradeText())) {
+                    $gradeTextId = $tblGradeText->getId();
+                }
+                $student[$tblPerson->getId()]['Text'] = ApiEvaluation::receiverContent(
+                    $this->getGradeTextSelectBox($tblPerson->getId(), $gradeTextId), 'ChangeGradeText_' . $tblPerson->getId()
+                );
             }
 
             // öffentlicher Kommentar für die Elternansicht
@@ -2698,6 +2707,23 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $student;
+    }
+
+    /**
+     * @param $personId
+     * @param $gradeTextId
+     *
+     * @return SelectBox
+     */
+    public function getGradeTextSelectBox($personId, $gradeTextId)
+    {
+        $global = $this->getGlobal();
+        $global->POST['Grade'][$personId]['Text'] = $gradeTextId;
+        $global->savePost();
+
+        return new SelectBox(
+            'Grade[' . $personId . '][Text]', '', array(TblGradeText::ATTR_NAME => Gradebook::useService()->getGradeTextAll())
+        );
     }
 
     /**
