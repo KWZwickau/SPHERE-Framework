@@ -71,7 +71,7 @@ class People implements IClusterInterface
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
                                 $tblGroup->getName()
-                                . new Muted(new Small('<br/>' . $tblGroup->getDescription()))
+                                . new Muted(new Small('<br/>' . $tblGroup->getDescription(true)))
                                 , 5),
                             new LayoutColumn(
                                 $countContent

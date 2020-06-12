@@ -1493,11 +1493,11 @@ class Service extends Extension
 //                ->mergeCells()->setAlignmentCenter();
             $export->setValue($export->getCell(0, 0), 'Gruppenliste ' . $tblGroup->getName());
 
-            if ($tblGroup->getDescription()) {
+            if ($tblGroup->getDescription(true)) {
                 $Row++;
 //                $export->setStyle($export->getCell(0, 1), $export->getCell(12, 1))
 //                    ->mergeCells()->setAlignmentCenter();
-                $export->setValue($export->getCell(0, 1), $tblGroup->getDescription());
+                $export->setValue($export->getCell(0, 1), $tblGroup->getDescription(true));
             }
 
             if ($tblGroup->getRemark()) {

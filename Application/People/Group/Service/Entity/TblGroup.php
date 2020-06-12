@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -70,9 +71,11 @@ class TblGroup extends Element
     /**
      * @return string
      */
-    public function getDescription()
+    public function getDescription($isShowCoreInfo = false)
     {
-
+        if($isShowCoreInfo && $this->isCoreGroup()){
+            return $this->Description.new Muted(' (Stammgruppe)');
+        }
         return $this->Description;
     }
 

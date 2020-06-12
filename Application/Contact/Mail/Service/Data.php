@@ -348,4 +348,27 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param bool $IsAccountUserAlias
+     *
+     * @return false|TblToPerson
+     */
+    public function updateMailToPersonAlias(TblToPerson $tblToPerson, $IsAccountUserAlias = false)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsAccountUserAlias($IsAccountUserAlias);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return $Entity;
+        }
+
+        return false;
+    }
 }
