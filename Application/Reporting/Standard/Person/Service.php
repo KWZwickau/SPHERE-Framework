@@ -3346,13 +3346,15 @@ class Service extends Extension
 
         $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CLUB));
         $TableContent = array();
-        $tblPersonStudentAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT));
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+        $tblGroupProspect = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
+        $tblPersonStudentAll = Group::useService()->getPersonAllByGroup($tblGroupStudent);
         if (!empty($tblPersonList)) {
 
             if(($tblYear = Term::useService()->getYearByNow())){
                 $tblYear = current($tblYear);
             }
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblYear, &$tblPersonStudentAll) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblYear, &$tblPersonStudentAll, $tblGroupStudent, $tblGroupProspect) {
 //                $IsOneRow = true;
                 $Item['Number'] = '';
                 $Item['Title'] = $tblPerson->getTitle();
@@ -3404,23 +3406,21 @@ class Service extends Extension
                         // - Nur Schüler aufnehmen, die eine aktuelle Klasse besitzen - old version
                         // Schüler/Interessenten sollen auch ohne Klasse abgebildet werden.
 
-                        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroup)){
+                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroupStudent)){
                             $Item['Type'] = 'Schüler';
                         } else {
-                            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-                            if(Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroup)){
+                            if(Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroupProspect)){
                                 if(($tblProspect = Prospect::useService()->getProspectByPerson($tblPersonStudent))){
                                     if(($tblProspectReservation = $tblProspect->getTblProspectReservation())){
                                         $Item['Year'] = $tblProspectReservation->getReservationYear();
                                     }
+                                } else {
+                                    $Item['Year'] = '';
                                 }
                                 $Item['Type'] = 'Interessent';
                             }
                         }
-
                         array_push($TableContent, $Item);
-
                     }
                 }
             });
