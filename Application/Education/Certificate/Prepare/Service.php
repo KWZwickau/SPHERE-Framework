@@ -517,6 +517,14 @@ class Service extends AbstractService
     public function updatePrepareStudentResetApproved(TblPrepareStudent $tblPrepareStudent)
     {
 
+        if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+            'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+        ) {
+            $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+        } else {
+            $useClassRegisterForAbsence = false;
+        }
+
         if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
             && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
@@ -527,8 +535,9 @@ class Service extends AbstractService
                 $tblCertificate,
                 false,
                 false,
-                $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getUnexcusedDays(),
+                // Fehlzeiten zurücksetzen, bei automatischer Übernahme der Fehlzeiten
+                $useClassRegisterForAbsence ? null : $tblPrepareStudent->getExcusedDays(),
+                $useClassRegisterForAbsence ? null : $tblPrepareStudent->getUnexcusedDays(),
                 $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
             );
         } else {
@@ -927,7 +936,7 @@ class Service extends AbstractService
                 }
             }
 
-            if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            if (($tblSetting = ConsumerSetting::useService()->getSetting(
                 'Education', 'Certificate', 'Prepare', 'HasRemarkBlocking'
             ))) {
                 $hasRemarkBlocking = (boolean) $tblSetting->getValue();
