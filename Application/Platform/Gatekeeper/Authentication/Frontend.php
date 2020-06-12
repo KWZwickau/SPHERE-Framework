@@ -5,6 +5,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -332,18 +333,19 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        // Set Depending Information
-        if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'){
+        // set depending information
+        // local test  || $this->getRequest()->getHost() == '192.168.75.128'
+        if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'
+        ){
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
                     new Title('Anmeldung CONNEXION (Pilot)'),
-                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login')
+                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EVSSN')
+                    //. new Link('.', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EKM') // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
                 ))
             )));
         }
-
-
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
 
@@ -355,23 +357,50 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendIdentificationSaml()
+    public function frontendIdentificationSamlEVSSN()
     {
+
+        return $this->LoginSecondPageLogic(SamlEVSSN::getSAML());
+    }
+
+//    /**
+//     * // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
+//     * @return Stage
+//     */
+//    public function frontendIdentificationSamlEKM()
+//    {
+//
+//        return $this->LoginSecondPageLogic(SamlEKM::getSAML());
+//    }
+
+    private function LoginSecondPageLogic($Config = array())
+    {
+
         $Stage = new Stage(new Nameplate().' Anmelden', '', $this->getIdentificationEnvironment());
 
-        $Saml = new phpSaml();
+        $Saml = new phpSaml($Config);
         if(($Error = $Saml->getAuthRequest())){
             $Stage->setContent($Error);
             return $Stage;
         }
         $tblAccount = null;
         $LoginOk = false;
-        if(isset($_SESSION['ucsschoolRecordUID']) && $_SESSION['ucsschoolRecordUID']){
-            $AccountId = $_SESSION['ucsschoolRecordUID'];
+
+        if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
+            $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
+
             $tblAccount = Account::useService()->getAccountById($AccountId);
         }
         if(isset($_SESSION['isAuthenticated']) && $_SESSION['isAuthenticated']){
             $LoginOk = true;
+        }
+
+        if(($ExistSessionAccount = Account::useService()->getAccountBySession())){
+            // is requested account the same like session account go to welcome
+            if($tblAccount && $ExistSessionAccount->getId() == $tblAccount->getId()){
+                $Stage->setContent(new Redirect('/', Redirect::TIMEOUT_SUCCESS));
+                return $Stage;
+            }
         }
 
         $tblIdentification = null;
@@ -392,7 +421,6 @@ class Frontend extends Extension implements IFrontendInterface
                     return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
             }
         }
-        setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
             new LayoutColumn(new Warning('Ihr Login von CONNEXION ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
@@ -753,6 +781,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * Prepare if other sign out will come. now not in use.
+     * Route deprecated
      * @return Stage
      */
     public function frontendSLO()
