@@ -2830,7 +2830,6 @@ class Service extends Extension
         $export->setValue($export->getCell($Column++, $Row), "Mobil (Privat)");
         $export->setValue($export->getCell($Column++, $Row), "Mobil (Geschäftl.)");
         $export->setValue($export->getCell($Column++, $Row), "Mobil (Notfall)");
-        $export->setValue($export->getCell($Column++, $Row), "Mobil (Notfall)");
         if($PersonGroupName){
             $export->setValue($export->getCell($Column++, $Row), "Personengruppe");
         }
