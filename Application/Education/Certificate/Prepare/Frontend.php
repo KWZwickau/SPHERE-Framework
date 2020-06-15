@@ -1341,6 +1341,14 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
+                    if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                        'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                    ) {
+                        $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+                    } else {
+                        $useClassRegisterForAbsence = false;
+                    }
+
                     $studentTable = array();
                     if ($Page == null) {
                         $columnTable = array(
@@ -1423,7 +1431,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
 
                                     if ($Page == null) {
-                                        if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                        if ($useClassRegisterForAbsence
+                                            || ($tblPrepareStudent && $tblPrepareStudent->isApproved())
+                                        ) {
                                             $studentTable[$tblPerson->getId()]['ExcusedDays'] =
                                                 (new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
                                                     '',
@@ -1787,12 +1797,18 @@ class Frontend extends Extension implements IFrontendInterface
                             && $tblConsumer->getAcronym() ==  'ESRL'//'REF' für Lokale Test's
                         ) {
                            $isSupportForPrimarySchool = true;
-                        // staatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
+                        // staatliche und pseudostaatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
                         } elseif (!$hasRemarkText
                             && ($Certificate->getCertificateEntity()->getCertificate() == 'GsHjInformation'
                                 || $Certificate->getCertificateEntity()->getCertificate() == 'GsHjOneInfo'
                                 || $Certificate->getCertificateEntity()->getCertificate() == 'GsJa'
-                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJOne')
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJOne'
+
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheHjInfoGs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheHjInfoGsOne'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheJGs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheJGsOne'
+                            )
                         ) {
                             $isSupportForPrimarySchool = true;
                         }
@@ -2693,6 +2709,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ) {
                         // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
                         foreach ($tblDivisionStudentAll as $tblPerson) {
+                            $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                             if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                 if (($tblYear = $tblDivision->getServiceTblYear())
                                     && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson,
@@ -2856,8 +2873,6 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubjectGroup $tblSubjectGroup = null,
         TblPrepareCertificate $tblPrepare = null
     ) {
-        $studentList[$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -4484,9 +4499,6 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         $studentList
     ) {
-
-        $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
-
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
             && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
                 $tblPrepare,
@@ -4987,6 +4999,11 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblDivisionItem = $tblDivisionSubject->getTblDivision())
                             && ($tblSubjectItem = $tblDivisionSubject->getServiceTblSubject())
                         ) {
+                            // Fächer ohne Benotung überspringen
+                            if (!$tblDivisionSubject->getHasGrading()) {
+                                continue;
+                            }
+
                             $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
                             $gradeList = array();
                             $average = '';

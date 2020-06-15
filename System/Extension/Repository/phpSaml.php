@@ -12,11 +12,15 @@ use SPHERE\Common\Window\Redirect;
 class phpSaml
 {
 
+    private $config = array();
+
     /**
      * PdfMerge constructor.
      */
-    public function __construct()
+    public function __construct($config)
     {
+
+        $this->config = $config;
 
         require_once(__DIR__
             . DIRECTORY_SEPARATOR . '..'
@@ -31,13 +35,14 @@ class phpSaml
     }
 
     /**
+     * @param string $Config
+     *
      * @throws Error
      */
     public function samlLogin()
     {
 
-
-        $Auth = new Auth();
+        $Auth = new Auth($this->config);
         $Auth->login();
     }
 
@@ -69,31 +74,23 @@ class phpSaml
     }
 
     /**
-     * @throws Error
-     * @throws \OneLogin\Saml2\ValidationError
+     * @return bool|string
      */
     public function getAuthRequest()
     {
 
-//        $auth = new Auth();
-//        $response = new Response($auth->getSettings(), $_POST['SAMLResponse']);
-//
-
-//        exit;
-
-        echo '<pre>';
-        echo 'Session:<br/>';
-        var_dump($_SESSION);
-        echo '</pre>';
+        // Session davor
+//        echo '<pre>';
+//        echo 'Session:<br/>';
+//        var_dump($_SESSION);
+//        echo '</pre>';
 
         $needsAuth = empty($_SESSION['samlUserdata']);
 
+        // put SAML settings into an array to avoid placing files in the
+        // composer vendor/ directories
+        $auth = new Auth($this->config);
         if ($needsAuth) {
-            // put SAML settings into an array to avoid placing files in the
-            // composer vendor/ directories
-
-            $auth = new Auth();
-
             if (!empty($_REQUEST['SAMLResponse']) && !empty($_REQUEST['RelayState'])) {
                 $auth->processResponse(null);
                 $errors = $auth->getErrors();
@@ -114,52 +111,13 @@ class phpSaml
         }
 
         $_SESSION['isAuthenticated'] = $auth->isAuthenticated();
+        return false; // no errors
 
-        echo '<pre>';
-        echo '<br/>Session:<br/>';
-        var_dump($_SESSION);
-        echo '</pre>';
-
+        // Session danach
 //        echo '<pre>';
-//        echo 'Post:<br/>';
-//        var_dump('Test');
-//        var_dump($_POST);
-////        echo '<br/>response object:<br/>';
-////        var_dump($response);
 //        echo '<br/>Session:<br/>';
 //        var_dump($_SESSION);
-////        echo '<br/>XML Dokument:<br/>';
-////        var_dump($response->decryptedDocument);
-////        // $response->getXMLDocument()->textContent
 //        echo '</pre>';
-
-        //ToDO Old version found http error
-//        error_reporting(E_ALL);
-////        exit;
-//        $samlResponse = new Response($auth->getSettings(), $_POST['SAMLResponse']);
-//
-//        try {
-//            if ($samlResponse->isValid()) {
-//                echo 'You are: ' . $samlResponse->getNameId() . '<br>';
-//                $attributes = $samlResponse->getAttributes();
-//                if (!empty($attributes)) {
-//                    echo 'You have the following attributes:<br>';
-//                    echo '<table><thead><th>Name</th><th>Values</th></thead><tbody>';
-//                    foreach ($attributes as $attributeName => $attributeValues) {
-//                        echo '<tr><td>' . htmlentities($attributeName) . '</td><td><ul>';
-//                        foreach ($attributeValues as $attributeValue) {
-//                            echo '<li>' . htmlentities($attributeValue) . '</li>';
-//                        }
-//                        echo '</ul></td></tr>';
-//                    }
-//                    echo '</tbody></table><br><br>';
-//                }
-//            } else {
-//                echo 'Invalid SAML response.';
-//            }
-//        } catch (Exception $e) {
-//            echo 'Invalid SAML response: ' . $e->getMessage();
-//        }
 
     }
 }

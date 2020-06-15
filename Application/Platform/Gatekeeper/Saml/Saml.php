@@ -2,9 +2,7 @@
 namespace SPHERE\Application\Platform\Gatekeeper\Saml;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Saml
@@ -22,8 +20,13 @@ class Saml implements IModuleInterface
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Login', __NAMESPACE__.'/Frontend::frontendLogin'
+            __NAMESPACE__.'/Login/EVSSN', __NAMESPACE__.'/Frontend::frontendLoginEVSSN'
         ));
+
+//        // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Login/EKM', __NAMESPACE__.'/Frontend::frontendLoginEKM'
+//        ));
     }
 
     public static function useService()
