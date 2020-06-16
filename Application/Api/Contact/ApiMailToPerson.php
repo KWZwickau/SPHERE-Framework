@@ -403,7 +403,8 @@ class ApiMailToPerson extends Extension implements IApiInterface
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $Address['Mail'], $Type))) {
+        $mailAddress = str_replace(' ', '', $Address['Mail']);
+        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $mailAddress, $Type))) {
             // display Errors on form
             return $this->getMailToPersonModal($form, $tblPerson);
         }
@@ -413,7 +414,7 @@ class ApiMailToPerson extends Extension implements IApiInterface
         }
 
         $ErrorString = '';
-        if (Mail::useService()->createMailToPerson($tblPerson, $Address['Mail'], $Type, $Alias, $ErrorString)) {
+        if (Mail::useService()->createMailToPerson($tblPerson, $mailAddress, $Type, $Alias, $ErrorString)) {
             if($ErrorString){
                 return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                     . new Warning($ErrorString)
@@ -446,7 +447,8 @@ class ApiMailToPerson extends Extension implements IApiInterface
             return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $Address['Mail'], $Type, $tblToPerson))) {
+        $mailAddress = str_replace(' ', '', $Address['Mail']);
+        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $mailAddress, $Type, $tblToPerson))) {
             // display Errors on form
             return $this->getMailToPersonModal($form, $tblPerson, $ToPersonId);
         }
@@ -456,7 +458,7 @@ class ApiMailToPerson extends Extension implements IApiInterface
         }
 
         $ErrorString = '';
-        if (Mail::useService()->updateMailToPerson($tblToPerson, $Address['Mail'], $Type, $Alias, $ErrorString)) {
+        if (Mail::useService()->updateMailToPerson($tblToPerson, $mailAddress, $Type, $Alias, $ErrorString)) {
             if($ErrorString){
                 return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                     . new Warning($ErrorString)
