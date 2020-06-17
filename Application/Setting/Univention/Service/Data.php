@@ -91,17 +91,8 @@ class Data extends AbstractData
     private function getNewToken()
     {
 
-        $token = false;
         $UniventionToken = new UniventionToken();
-        if(($Json = $UniventionToken->getVerify())){
-            $StdClass = json_decode($Json);
-            if(is_object($StdClass)
-                && !isset($StdClass->detail)
-                && $StdClass->access_token){
-                $token = $StdClass->access_token;
-            }
-        }
-        return $token;
+        return $UniventionToken->getVerify();
     }
 
     /**

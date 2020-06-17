@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class UniventionSchool
 {
@@ -52,21 +53,56 @@ class UniventionSchool
           -url
          **/
 
-        $Json = curl_exec($this->curlhandle);
+        $Json = $this->execute($this->curlhandle);
+        Debugger::screenDump($Json);
         $StdClassArray = json_decode($Json);
-
         $schoolList = array();
-        if(is_array($StdClassArray) && !empty($StdClassArray)){
+        if($StdClassArray !== null && is_array($StdClassArray) && !empty($StdClassArray)){
             foreach($StdClassArray as $StdClass){
                 $schoolList[$StdClass->name] = $StdClass->url;
             }
         }
-        return (!empty($schoolList) ? $schoolList : false);
+        return (is_array($schoolList) && !empty($schoolList) ? $schoolList : false);
     }
 
-    function __destruct()
-    {
+    private $retriableErrorCodes = [
+        CURLE_COULDNT_RESOLVE_HOST,
+        CURLE_COULDNT_CONNECT,
+        CURLE_HTTP_NOT_FOUND,
+        CURLE_READ_ERROR,
+        CURLE_OPERATION_TIMEOUTED,
+        CURLE_HTTP_POST_ERROR,
+        CURLE_SSL_CONNECT_ERROR,
+    ];
 
-        curl_close($this->curlhandle);
+    /**
+     * Executes a CURL request with optional retries and exception on failure
+     *
+     * @param  resource    $ch             curl handler
+     * @param  int         $retries
+     * @param  bool        $closeAfterDone
+     * @return bool|string @see curl_exec
+     */
+    public function execute($ch, $retries = 5, $closeAfterDone = true)
+    {
+        while ($retries--) {
+            $curlResponse = curl_exec($ch);
+            if ($curlResponse === false) {
+                $curlErrno = curl_errno($ch);
+                if (false === in_array($curlErrno, $this->retriableErrorCodes, true) || !$retries) {
+                    echo curl_error($ch);
+                    if ($closeAfterDone) {
+                        curl_close($ch);
+                    }
+                    return null; //throw new \RuntimeException(sprintf('Curl error (code %d): %s', $curlErrno, $curlError));
+                }
+                continue;
+            }
+            if ($closeAfterDone) {
+                curl_close($ch);
+            }
+            return $curlResponse;
+        }
+        return false;
     }
 }
