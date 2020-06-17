@@ -701,7 +701,7 @@ class ApiBasket extends Extension implements IApiInterface
         if(!empty($tblItemList)){
 
             // Kontrolle, ob alle Varianten zum Fälligkeitsdatum ein gültigen Preis haben
-            $DateNow = new \DateTime('now');
+            $TargetTime = new \DateTime($Basket['TargetTime']);
             /** @var TblItem $tblItemPriceControl */
             foreach($tblItemList as $tblItemPriceControl) {
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItemPriceControl))){
@@ -710,10 +710,10 @@ class ApiBasket extends Extension implements IApiInterface
                             $IsCalculationTest = false;
                             foreach($tblItemCalculationList as $tblItemCalculation){
                                 if($tblItemCalculation->getDateTo()
-                                    && $tblItemCalculation->getDateFrom(true) <= $DateNow
-                                    && $tblItemCalculation->getDateTo(true) >= $DateNow
+                                    && $tblItemCalculation->getDateFrom(true) <= $TargetTime
+                                    && $tblItemCalculation->getDateTo(true) >= $TargetTime
                                     || !$tblItemCalculation->getDateTo()
-                                    && $tblItemCalculation->getDateFrom(true) <= $DateNow
+                                    && $tblItemCalculation->getDateFrom(true) <= $TargetTime
                                 ){
                                     $IsCalculationTest = true;
                                     break;
