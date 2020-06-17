@@ -48,6 +48,12 @@ class IDataESBD
             self::setEsbdMsHj($Data, $tblConsumerCertificate);
             self::setEsbdMsJ($Data, $tblConsumerCertificate);
             self::setEsbdGymKurshalbjahreszeugnis($Data, $tblConsumerCertificate);
+            self::setEsbdMsHjInfoFsGeistigeEntwicklung($Data, $tblConsumerCertificate);
+            self::setEsbdMsHjFsGeistigeEntwicklung($Data, $tblConsumerCertificate);
+            self::setEsbdMsJFsGeistigeEntwicklung($Data, $tblConsumerCertificate);
+            self::setEsbdMsHjInfoFsLernen($Data, $tblConsumerCertificate);
+            self::setEsbdMsHjFsLernen($Data, $tblConsumerCertificate);
+            self::setEsbdMsJFsLernen($Data, $tblConsumerCertificate);
         }
     }
 
@@ -632,6 +638,291 @@ class IDataESBD
         if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldNameUs)) {
             $Data->createCertificateInformation($tblCertificate, $FieldNameUs, 2);
             $Data->createCertificateField($tblCertificate, $FieldNameUs, 1200);
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdMsHjInfoFsGeistigeEntwicklung(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Förderschwerpunkt geistige Entwicklung',
+            'ESBD\EsbdMsHjInfoFsGeistigeEntwicklung', $tblConsumerCertificate
+        );
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, true, true);
+
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+
+            // Seite 2
+            // Begrenzung der Dialoge
+            self::setESBDSecondPageLength($Data, $tblCertificate);
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdMsHjFsGeistigeEntwicklung(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Förderschwerpunkt geistige Entwicklung',
+            'ESBD\EsbdMsHjFsGeistigeEntwicklung', $tblConsumerCertificate
+        );
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, false, true);
+
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+
+            // Seite 2
+            // Begrenzung der Dialoge
+            self::setESBDSecondPageLength($Data, $tblCertificate);
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdMsJFsGeistigeEntwicklung(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Förderschwerpunkt geistige Entwicklung',
+            'ESBD\EsbdMsJFsGeistigeEntwicklung', $tblConsumerCertificate
+        );
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(), null, false, true);
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+
+            // Seite 2
+            // Begrenzung der Dialoge
+            self::setESBDSecondPageLength($Data, $tblCertificate);
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdMsHjInfoFsLernen(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahresinformation', 'Förderschwerpunkt Lernen', 'ESBD\EsbdMsHjInfoFsLernen', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, true, true);
+                // Update muss erneut ausführbar sein
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 700);
+            }
+
+            // Seite 2
+            // Begrenzung der Dialoge
+            self::setESBDSecondPageLength($Data, $tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6);
+            $Data->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
+        }
+    }
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdMsHjFsLernen(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Halbjahreszeugnis', 'Förderschwerpunkt Lernen', 'ESBD\EsbdMsHjFsLernen', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary(), null, false, true);
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 700);
+            }
+
+            // Seite 2
+            // Begrenzung der Dialoge
+            self::setESBDSecondPageLength($Data, $tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6);
+            $Data->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
+        }
+    }
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdMsJFsLernen(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Jahreszeugnis', 'Förderschwerpunkt Lernen', 'ESBD\EsbdMsJFsLernen', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary(), null, false, true);
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+            // Begrenzung des Einschätzungfelds
+            $FieldName = 'Rating';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 300);
+            }
+            // Begrenzung des Bemerkungsfelds
+            $FieldName = 'Remark';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 300);
+            }
+
+            // Seite 2
+            // Begrenzung der Dialoge
+            self::setESBDSecondPageLength($Data, $tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGrade($tblCertificate, 'PN', 1, 1);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6);
+            $Data->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
         }
     }
 }
