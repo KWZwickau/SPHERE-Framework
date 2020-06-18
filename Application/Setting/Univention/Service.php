@@ -196,30 +196,32 @@ class Service extends AbstractService
                 }
             }
         }
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-        if($tblPersonList && $StudentWithoutAccount){
-            foreach($tblPersonList as $tblPerson){
-                if(Account::useService()->getAccountAllByPerson($tblPerson)){
-                    // ignore students with account
-                    continue;
-                }
-                $Item['name'] = '';
-                $Item['firstname'] = '';
-                $Item['lastname'] = '';
-                $Item['record_uid'] = '';
-                $Item['source_uid'] = $Acronym.'-';
-                $Item['roles'] = '';
-                $Item['schools'] = '';
-                $Item['password'] = '';
-                $Item['school_classes'] = '';
-                $Item['mail'] = '';
-                $Item['groupArray'] = '';
+        if($StudentWithoutAccount){
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if($tblPersonList){
+                foreach($tblPersonList as $tblPerson){
+                    if(Account::useService()->getAccountAllByPerson($tblPerson)){
+                        // ignore students with account
+                        continue;
+                    }
+                    $Item['name'] = '';
+                    $Item['firstname'] = '';
+                    $Item['lastname'] = '';
+                    $Item['record_uid'] = '';
+                    $Item['source_uid'] = $Acronym.'-';
+                    $Item['roles'] = '';
+                    $Item['schools'] = '';
+                    $Item['password'] = '';
+                    $Item['school_classes'] = '';
+                    $Item['mail'] = '';
+                    $Item['groupArray'] = '';
 
-                $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym, $TeacherClasses, $TeacherSchools);
+                    $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym, $TeacherClasses, $TeacherSchools);
 
-                if($Item){
-                    array_push($UploadToAPI, $Item);
+                    if($Item){
+                        array_push($UploadToAPI, $Item);
+                    }
                 }
             }
         }
@@ -352,11 +354,21 @@ class Service extends AbstractService
         }
 
         if(($ToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
-            foreach($ToPersonList as $tbltoPerson){
-                if($tbltoPerson->getTblType()->getName() == TblTypeMail::VALUE_BUSINESS){
-                    if(($tblMail = $tbltoPerson->getTblMail())){
+            // try to get Connexion Mail
+            foreach($ToPersonList as $tblToPerson){
+                if($tblToPerson->isAccountUserAlias()
+                && ($tblMail = $tblToPerson->getTblMail())){
+                    $Item['mail'] = $tblMail->getAddress();
+                    break;
+                }
+            }
+            // again if no result vor Connexion Mail
+            if($Item['mail'] === ''){
+                foreach($ToPersonList as $tblToPerson){
+                    if($tblToPerson->getTblType()->getName() == TblTypeMail::VALUE_BUSINESS
+                    && ($tblMail = $tblToPerson->getTblMail())){
                         $Item['mail'] = $tblMail->getAddress();
-                        continue;
+                        break;
                     }
                 }
             }
@@ -367,7 +379,7 @@ class Service extends AbstractService
     public function downlaodAccountExcel()
     {
 
-        $AccountData = $this->getExportAccount(true);
+        $AccountData = $this->getExportAccount(false);
 
         if (!empty($AccountData))
         {
