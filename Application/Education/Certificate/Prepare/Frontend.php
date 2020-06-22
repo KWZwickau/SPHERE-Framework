@@ -2214,7 +2214,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                                 $tblPerson))
                                             && $tblTest->getServiceTblSubject()
-                                            && $tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== ''
+                                            && (($tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== '')
+                                                || $tblGradeItem->getTblGradeText() != null)
                                         ) {
                                             $countSubjectGrades++;
                                         }
