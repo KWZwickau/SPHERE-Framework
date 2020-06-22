@@ -97,6 +97,7 @@ class Service
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                         $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
                         $mail = trim($Document->getValue($Document->getCell($Location['Benutzername'], $RunY)));
+                        $mail = str_replace(' ', '', $mail);
                         $addMail = false;
                         $tblPerson = false;
                         if ($firstName !== '' && $lastName !== '' && $mail != '') {
