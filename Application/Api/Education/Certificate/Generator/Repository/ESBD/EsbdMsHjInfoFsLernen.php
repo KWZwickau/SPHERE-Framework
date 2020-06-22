@@ -1,36 +1,24 @@
 <?php
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESBD;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class EsbdMsJ
+ * Class EsbdMsHjFsLernen
  *
- * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository\ESBD
+ * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESBD
  */
-class EsbdMsJ extends EsbdStyle
+class EsbdMsHjInfoFsLernen extends EsbdStyle
 {
 
     /**
-     * @return array
-     */
-    public function selectValuesTransfer()
-    {
-        return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
-        );
-    }
-
-    /**
      * @param TblPerson|null $tblPerson
-     * @return Page[]
-     * @internal param bool $IsSample
      *
+     * @return Page[]
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
@@ -50,28 +38,20 @@ class EsbdMsJ extends EsbdStyle
      */
     public function getPageOne($personId)
     {
-
         return (new Page())
             ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
-            ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Oberschule', '5px'))
-            ->addSlice($this->getDivisionAndYearConsumer($personId, '20px'))
+            ->addSlice($this->getCertificateHeadConsumer('Halbjahresinformation der Oberschule', '5px'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
-            ->addSlice($this->getCourseConsumer($personId))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('nahm am Unterricht mit dem Ziel des Abschlusses im Förderschwerpunkt Lernen teil.')
+                    ->styleMarginTop('5px')
+                    ->styleHeight('18px')
+                )
+            )
             ->addSlice($this->getGradeLanes($personId))
             ->addSlice($this->getGradeInfo())
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Einschätzung: {% if(Content.P'.$personId.'.Input.Rating is not empty) %}
-                                {{ Content.P'.$personId.'.Input.Rating|nl2br }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}')
-                        ->styleHeight('50px')
-                    )
-                )
-                ->styleMarginTop('15px')
-            )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -88,17 +68,16 @@ class EsbdMsJ extends EsbdStyle
                 false,
                 true
             )->styleHeight('290px'))
-//            ->addSlice($this->getOrientationStandard($personId))
-            ->addSlice($this->getDescriptionConsumer($personId, '60px', '15px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '100px', '15px'))
             ->addSlice($this->getMissingConsumer($personId))
-            ->addSlice($this->getTransferConsumer($personId, '13px'))
-            ->addSlice($this->getDateLineConsumer($personId, '15px'))
-            ->addSlice($this->getSignPartConsumer($personId, true, '15px'))
-            ->addSlice($this->getParentSignConsumer('13px'))
-            ->addSlice($this->getInfoConsumer('10px',
+            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getSignPartConsumer($personId, false))
+            ->addSlice($this->getParentSignConsumer())
+            ->addSlice($this->getInfoConsumer('30px',
                 'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
-                (6 = ungenügend nur bei der Bewertung der Leistungen)'))
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
+                    (6 = ungenügend nur bei der Bewertung der Leistungen)',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'))
             ->addSlice($this->getBottomLineConsumer());
     }
 
@@ -121,8 +100,7 @@ class EsbdMsJ extends EsbdStyle
                     ->styleMarginTop('5px')
                 )
             )
-//            ->addSlice($this->getCertificateHead('Halbjahreszeugnis der Oberschule', '5px'))
-            ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', 'Schuljahr'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
             ->addSlice($this->getBottomLineConsumer('42px'));

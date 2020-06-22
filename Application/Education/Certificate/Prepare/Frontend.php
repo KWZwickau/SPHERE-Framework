@@ -1811,6 +1811,14 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ) {
                             $isSupportForPrimarySchool = true;
+                        } elseif (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsHjInformation'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsHjOneInfo'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsJa'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsJOne'
+                            )
+                        ) {
+                            $isSupportForPrimarySchool = true;
                         }
 
                         if ($isSupportForPrimarySchool) {
