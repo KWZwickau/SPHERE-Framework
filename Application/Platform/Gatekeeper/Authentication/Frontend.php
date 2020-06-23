@@ -334,8 +334,8 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         // set depending information
-        // local test  || $this->getRequest()->getHost() == '192.168.75.128'
         if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'
+//            || $this->getRequest()->getHost() == '192.168.75.128' // local test
         ){
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(

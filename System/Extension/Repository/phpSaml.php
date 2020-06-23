@@ -1,10 +1,10 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
-use OneLogin\Saml2\Auth;
-use OneLogin\Saml2\Error;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+//use OneLogin\Saml2\Error;
+//use OneLogin\Saml2\Settings;
+//use OneLogin\Saml2\Utils;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Redirect;
@@ -28,21 +28,19 @@ class phpSaml
             . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR . 'Library'
             . DIRECTORY_SEPARATOR . 'php-saml2'
-            . DIRECTORY_SEPARATOR . 'vendor'
-            . DIRECTORY_SEPARATOR . 'autoload.php');
+            . DIRECTORY_SEPARATOR . 'php-saml-master'
+            . DIRECTORY_SEPARATOR . '_toolkit_loader.php');
 
-        Utils::setProxyVars(true);
+        \OneLogin_Saml2_Utils::setProxyVars(true);
     }
 
     /**
-     * @param string $Config
-     *
-     * @throws Error
+     * @throws \OneLogin_Saml2_Error
      */
     public function samlLogin()
     {
 
-        $Auth = new Auth($this->config);
+        $Auth = new \OneLogin_Saml2_Auth($this->config);
         $Auth->login();
     }
 
@@ -56,16 +54,16 @@ class phpSaml
             #$auth = new OneLogin_Saml2_Auth($settingsInfo);
             #$settings = $auth->getSettings();
             // Now we only validate SP settings
-            $settings = new Settings();
+            $settings = new \OneLogin_Saml2_Settings();
             $metadata = $settings->getSPMetadata();
             $errors = $settings->validateMetadata($metadata);
             if (empty($errors)) {
                 header('Content-Type: text/xml');
                 return $metadata;
             } else {
-                throw new Error(
+                throw new \OneLogin_Saml2_Error(
                     'Invalid SP metadata: '.implode(', ', $errors),
-                    Error::METADATA_SP_INVALID
+                    \OneLogin_Saml2_Error::METADATA_SP_INVALID
                 );
             }
         } catch (\Exception $e) {
@@ -89,7 +87,7 @@ class phpSaml
 
         // put SAML settings into an array to avoid placing files in the
         // composer vendor/ directories
-        $auth = new Auth($this->config);
+        $auth = new \OneLogin_Saml2_Auth($this->config);
         if ($needsAuth) {
             if (!empty($_REQUEST['SAMLResponse']) && !empty($_REQUEST['RelayState'])) {
                 $auth->processResponse(null);
