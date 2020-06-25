@@ -412,13 +412,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Matching Account found?
         if ($tblAccount && $tblIdentification) {
+            // Anfragen von SAML müssen Cookies aktiviert haben
+            $isCookieAvailable = true;
             switch ($tblIdentification->getName()) {
                 case TblIdentification::NAME_TOKEN:
                 case TblIdentification::NAME_SYSTEM:
-                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
+                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId(), null, $isCookieAvailable);
                 case TblIdentification::NAME_CREDENTIAL:
                 case TblIdentification::NAME_USER_CREDENTIAL:
-                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
+                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId(), 0, $isCookieAvailable);
             }
         }
 
@@ -451,12 +453,14 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $tblAccount
-     * @param int $tblIdentification
+     * @param int         $tblAccount
+     * @param int         $tblIdentification
      * @param null|string $CredentialKey
+     * @param bool        $isCookieAvailable
+     *
      * @return Stage
      */
-    public function frontendIdentificationToken($tblAccount, $tblIdentification, $CredentialKey = null)
+    public function frontendIdentificationToken($tblAccount, $tblIdentification, $CredentialKey = null, $isCookieAvailable = false)
     {
         $View = new Stage(new YubiKey().' Anmelden', '', $this->getIdentificationEnvironment());
 
@@ -531,7 +535,7 @@ class Frontend extends Extension implements IFrontendInterface
             // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
 
-        if (isset($_COOKIE['cookies_available'])) {
+        if (isset($_COOKIE['cookies_available']) || $isCookieAvailable) {
             // Create Form
             $Form = new Form(
                 new FormGroup(array(
@@ -581,13 +585,15 @@ class Frontend extends Extension implements IFrontendInterface
     private function getCookieMessage()
     {
         return new DangerMessage(
-            'Ihre Browsereinstellungen lassen keine Cookies zu.' . '<br><br>'
-            . 'Um auf die Schulsoftware zu können, müssen Sie Cookies in Ihrem Browser zulassen.' . '<br><br>'
-            . 'Darum sind Cookies notwendig:' . '<br>'
-            . 'Aus Sicherheitsgründen wird beim Login ein Cookie auf Ihrem Rechner gespeichert. ' . '<br>'
-            . 'So wird sichergestellt, dass nur Sie während einer Sitzung auf die Schulsoftware zugreifen können.' . '<br>'
-            . 'Wenn Sie sich ausloggen oder das Browserfenster schließen, wird das Cookie gelöscht und Ihre Sitzung dadurch ungültig gemacht.'
-            , new Exclamation()
+            new Title(new Exclamation().' Browsereinstellungen')
+            .'Sie scheinen Cookies in Ihrem Browser deaktiviert zu haben.' . '<br/>'
+            .'Bitte überprüfen Sie die Einstellungen in Ihrem Browser und versuchen Sie es erneut.'
+//            'Ihre Browsereinstellungen lassen keine Cookies zu.' . '<br><br>'
+//            . 'Um auf die Schulsoftware zu können, müssen Sie Cookies in Ihrem Browser zulassen.' . '<br><br>'
+//            . 'Darum sind Cookies notwendig:' . '<br>'
+//            . 'Aus Sicherheitsgründen wird beim Login ein Cookie auf Ihrem Rechner gespeichert. ' . '<br>'
+//            . 'So wird sichergestellt, dass nur Sie während einer Sitzung auf die Schulsoftware zugreifen können.' . '<br>'
+//            . 'Wenn Sie sich ausloggen oder das Browserfenster schließen, wird das Cookie gelöscht und Ihre Sitzung dadurch ungültig gemacht.'
         );
     }
 
@@ -615,13 +621,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $tblAccount
-     * @param int $tblIdentification
-     * @param int $doAccept 0|1
+     * @param int  $tblAccount
+     * @param int  $tblIdentification
+     * @param int  $doAccept 0|1
+     * @param bool $isCookieAvailable
+     *
      * @return Stage
      */
-    public function frontendIdentificationAgb($tblAccount, $tblIdentification, $doAccept = 0)
+    public function frontendIdentificationAgb($tblAccount, $tblIdentification, $doAccept = 0, $isCookieAvailable = false)
     {
+
         $View = new Stage(new MoreItems().' Anmelden', '', $this->getIdentificationEnvironment());
 
         $tblAccount = Account::useService()->getAccountById($tblAccount);
@@ -641,24 +650,26 @@ class Frontend extends Extension implements IFrontendInterface
 
         // es sind keine Cookies erlaubt -> Login ist nicht möglich
         if (!isset($_COOKIE['cookies_available'])) {
+            // Bypass Cookies
+            if(!$isCookieAvailable){
+                $FormInformation = array(
+                    $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
+                    'Benutzer: ' . $tblAccount->getUsername()
+                );
 
-            $FormInformation = array(
-                $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
-                'Benutzer: ' . $tblAccount->getUsername()
-            );
+                $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                        new Ruler(),
+                        new Listing($FormInformation),
+                        $this->getCookieMessage()
+                    ))
+                ))));
 
-            $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(array(
-                    new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
-                    new Ruler(),
-                    new Listing($FormInformation),
-                    $this->getCookieMessage()
-                ))
-            ))));
+                $View->setContent($this->getIdentificationLayout($layout));
 
-            $View->setContent($this->getIdentificationLayout($layout));
-
-            return $View;
+                return $View;
+            }
         }
 
         $Headline = 'Allgemeine Geschäftsbedingungen';

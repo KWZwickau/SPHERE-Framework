@@ -1431,7 +1431,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
 
                                     if ($Page == null) {
-                                        if ($useClassRegisterForAbsence
+                                        if ($useClassRegisterForAbsence && $tblPrepareStudent
                                             || ($tblPrepareStudent && $tblPrepareStudent->isApproved())
                                         ) {
                                             $studentTable[$tblPerson->getId()]['ExcusedDays'] =
