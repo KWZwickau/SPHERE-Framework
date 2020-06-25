@@ -401,6 +401,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(new Redirect('/', Redirect::TIMEOUT_SUCCESS));
                 return $Stage;
             }
+            // remove existing Session if User is not the same
+            if($Session = session_id()){
+                Account::useService()->destroySession(null, $Session);
+            }
+
         }
 
         $tblIdentification = null;
