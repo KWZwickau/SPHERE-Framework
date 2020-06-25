@@ -259,13 +259,13 @@ abstract class EsbdStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getDescriptionHeadConsumer($personId, $isMissing = false, $MarginTop = '15px')
+    protected function getDescriptionHeadConsumer($personId, $isMissing = false, $MarginTop = '15px', $Content = 'Bemerkungen:')
     {
         $DescriptionSlice = (new Slice());
         if ($isMissing) {
             $DescriptionSlice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Bemerkungen:')
+                    ->setContent($Content)
                     , '16%')
                 ->addElementColumn((new Element())
                     ->setContent('Fehltage entschuldigt:')
@@ -303,9 +303,10 @@ abstract class EsbdStyle extends Certificate
             )
                 ->styleMarginTop($MarginTop);
         } else {
+            // #SSW-1018 Das Wort Bemerkung auf der Vorlage entfernen, nachfolgender Textbeginn bleibt wo er ist
             $DescriptionSlice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Bemerkungen:'))
+                    ->setContent($Content))
             )->styleMarginTop($MarginTop);
         }
         return $DescriptionSlice;

@@ -27,7 +27,7 @@ class EsbdGsHjOneInfo extends EsbdStyle
             ->addSlice($this->getCertificateHeadConsumer('Halbjahresinformation der Grundschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId, true))
-            ->addSlice($this->getDescriptionHeadConsumer($personId, false, '20px'))
+            ->addSlice($this->getDescriptionHeadConsumer($personId, false, '20px', '&nbsp;'))
             ->addSlice($this->getDescriptionContentConsumer($personId, '540px', '17px'))
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getDateLineConsumer($personId))

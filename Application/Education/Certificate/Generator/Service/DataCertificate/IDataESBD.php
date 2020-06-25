@@ -40,6 +40,7 @@ class IDataESBD
             self::setEsbdGsHjInformation($Data, $tblConsumerCertificate);
             self::setEsbdGsHjOneInfo($Data, $tblConsumerCertificate);
             self::setEsbdGsJa($Data, $tblConsumerCertificate);
+            self::setEsbdGsJaFocusText($Data, $tblConsumerCertificate);
             self::setEsbdGsJOne($Data, $tblConsumerCertificate);
             self::setEsbdGymHjInfo($Data, $tblConsumerCertificate);
             self::setEsbdGymHj($Data, $tblConsumerCertificate);
@@ -127,7 +128,7 @@ class IDataESBD
     private static function setEsbdGsJa(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 4', 'ESBD\EsbdGsJa', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis', 'Klasse 4', 'ESBD\EsbdGsJa', $tblConsumerCertificate, false, false, true);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
@@ -163,6 +164,46 @@ class IDataESBD
             $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
             $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 3);
             $Data->setCertificateSubject($tblCertificate, 'WE', 2, 4);
+        }
+    }
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEsbdGsJaFocusText(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Grundschule Jahreszeugnis (Corona-Vorlage) ', 'Klasse 4', 'ESBD\EsbdGsJaCorona', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypePrimary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '4'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+////            // Begrenzung des Bemerkungsfelds
+//            $FieldName = 'Remark';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 2300);
+//            }
+            // Begrenzung des Einschätzungfelds // Die Zeichenzählung lassen wir erstmal weg, da Schule Workaround über eine Wordvorlage hat.
+//            $FieldName = 'Rating';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 2100);
+//            }
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 2, 2);
         }
     }
     /**
