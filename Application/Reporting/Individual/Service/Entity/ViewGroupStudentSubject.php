@@ -47,6 +47,8 @@ class ViewGroupStudentSubject extends AbstractView
     const TBL_SUBJECT_NAME_TEAM_1 = 'TblSubject_Name_Team1';
     const TBL_SUBJECT_NAME_TEAM_2 = 'TblSubject_Name_Team2';
     const TBL_SUBJECT_NAME_TEAM_3 = 'TblSubject_Name_Team3';
+    const TBL_SUBJECT_NAME_TEAM_4 = 'TblSubject_Name_Team4';
+    const TBL_SUBJECT_NAME_TEAM_5 = 'TblSubject_Name_Team5';
 
     /**
      * @return array
@@ -153,6 +155,14 @@ class ViewGroupStudentSubject extends AbstractView
      * @Column(type="string")
      */
     protected $TblSubject_Name_Team3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblSubject_Name_Team4;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblSubject_Name_Team5;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -188,6 +198,8 @@ class ViewGroupStudentSubject extends AbstractView
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_1, 'Arbeitsgemeinschaft 1: Fach');
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_2, 'Arbeitsgemeinschaft 2: Fach');
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_3, 'Arbeitsgemeinschaft 3: Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_4, 'Arbeitsgemeinschaft 4: Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_5, 'Arbeitsgemeinschaft 5: Fach');
 
           //GroupDefinition
         $this->setGroupDefinition('Fremdsprachen', array(
@@ -222,7 +234,9 @@ class ViewGroupStudentSubject extends AbstractView
         $this->setGroupDefinition('Arbeitsgemeinschaft', array(
             self::TBL_SUBJECT_NAME_TEAM_1,
             self::TBL_SUBJECT_NAME_TEAM_2,
-            self::TBL_SUBJECT_NAME_TEAM_3
+            self::TBL_SUBJECT_NAME_TEAM_3,
+            self::TBL_SUBJECT_NAME_TEAM_4,
+            self::TBL_SUBJECT_NAME_TEAM_5
         ));
     }
 
