@@ -5,6 +5,8 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
 use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
@@ -3291,7 +3293,7 @@ class Service extends Extension
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
 
-            $export->setValue($export->getCell(0, 0), $dateTime->format('d.m.Y'));
+            $export->setValue($export->getCell(0, 0), 'Fehlzeitenübersicht vom ' . $dateTime->format('d.m.Y'));
 
             $column = 0;
             $row = 1;
@@ -3328,6 +3330,9 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(25);
+
+            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
+            $export->setPaperSizeParameter(new PaperSizeParameter('A4'));
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
