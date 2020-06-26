@@ -28,6 +28,9 @@ class UniventionToken
         $this->curlhandle = curl_init();
     }
 
+    /**
+     * @return bool|string
+     */
     public function getVerify()
     {
 
@@ -56,7 +59,13 @@ class UniventionToken
         // StdClass normal response
         $response = $this->execute($this->curlhandle);
         if($response){
-            return $response;
+            $StdClass = json_decode($response);
+            if(is_object($StdClass)
+                && !isset($StdClass->detail)
+                && $StdClass->access_token){
+                return $StdClass->access_token;
+            }
+            return false;
         } elseif($response === null){
             //ToDO Ausgabe Spezialisieren
             return false;
@@ -91,7 +100,7 @@ class UniventionToken
             if ($curlResponse === false) {
                 $curlErrno = curl_errno($ch);
                 if (false === in_array($curlErrno, $this->retriableErrorCodes, true) || !$retries) {
-//                    $curlError = curl_error($ch);
+                    echo curl_error($ch);
                     if ($closeAfterDone) {
                         curl_close($ch);
                     }
