@@ -1,12 +1,14 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
@@ -369,6 +371,21 @@ class Data extends Support
         } else {
             $this->createSupportType('Widerspruch', '');
         }
+
+        // Masern
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_IDENTIFICATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'Impfausweis'
+            , 'Impfdokumentation (Impfausweis)');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION, TblStudentMasernInfo::TYPE_DOCUMENT, 'Ausreichender Impfschutz'
+            , 'ärztliches Zeugnis über das Bestehen eines ausreichenden Impfschutzes');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_IMMUNITY, TblStudentMasernInfo::TYPE_DOCUMENT, 'Immunität gegen Masern'
+            , 'ärztliches Zeugnis über die Immunität gegen Masern');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'keine Schutzimpfung möglich'
+            , 'ärztliches Zeugnis, dass das Kind nicht an einer Schutzimpfung (Kontraindikation) oder anderen Maßnahmen zur spezifischen Prophylaxe teilnehmen kann');
+
+        $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_STATE, TblStudentMasernInfo::TYPE_CREATOR, 'Staatlich'
+            , 'staatliche Stelle');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_COMMUNITY, TblStudentMasernInfo::TYPE_CREATOR, 'Gemeinschaftseinrichtung'
+            , 'Leitung der bisher besuchten Gemeinschaftseinrichtung');
     }
 
     /**
@@ -396,11 +413,44 @@ class Data extends Support
     }
 
     /**
-     * @param string $Disease
-     * @param string $Medication
-     * @param string $AttendingDoctor
-     * @param int    $InsuranceState
-     * @param string $Insurance
+     * @param string $Meta
+     * @param string $Type
+     * @param string $TextShort
+     * @param string $TextLont
+     *
+     * @return TblStudentMasernInfo
+     */
+    public function createStudentMasernInfo($Meta = '', $Type = '', $TextShort = '', $TextLont = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentMasernInfo')->findOneBy(array(
+            TblStudentMasernInfo::ATTR_META => $Meta
+        ));
+
+        if($Entity === null){
+            $Entity = new TblStudentMasernInfo();
+            $Entity->setMeta($Meta);
+            $Entity->setType($Type);
+            $Entity->setTextShort($TextShort);
+            $Entity->setTextLong($TextLont);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string                    $Disease
+     * @param string                    $Medication
+     * @param string                    $AttendingDoctor
+     * @param int                       $InsuranceState
+     * @param string                    $Insurance
+     * @param DateTime|null             $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
      *
      * @return TblStudentMedicalRecord
      */
@@ -409,7 +459,10 @@ class Data extends Support
         $Medication,
         $AttendingDoctor,
         $InsuranceState,
-        $Insurance
+        $Insurance,
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo  $MasernCreatorType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -424,6 +477,9 @@ class Data extends Support
         $Entity->setAttendingDoctor($AttendingDoctor);
         $Entity->setInsuranceState($InsuranceState);
         $Entity->setInsurance($Insurance);
+        $Entity->setMasernDate($MasernDate);
+        $Entity->setMasernDocumentType($MasernDocumentType);
+        $Entity->setMasernCreatorType($MasernCreatorType);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -437,6 +493,9 @@ class Data extends Support
      * @param string                  $AttendingDoctor
      * @param int                     $InsuranceState
      * @param string                  $Insurance
+     * @param DateTime|null           $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
      *
      * @return bool
      */
@@ -446,7 +505,10 @@ class Data extends Support
         $Medication,
         $AttendingDoctor,
         $InsuranceState,
-        $Insurance
+        $Insurance,
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo $MasernCreatorType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -459,6 +521,9 @@ class Data extends Support
             $Entity->setAttendingDoctor($AttendingDoctor);
             $Entity->setInsuranceState($InsuranceState);
             $Entity->setInsurance($Insurance);
+            $Entity->setMasernDate($MasernDate);
+            $Entity->setMasernDocumentType($MasernDocumentType);
+            $Entity->setMasernCreatorType($MasernCreatorType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -533,10 +598,35 @@ class Data extends Support
      *
      * @return false|TblStudentInsuranceState
      */
-    public function  getStudentInsuranceStateByName($Name)
+    public function getStudentInsuranceStateByName($Name)
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentInsuranceState', array(
                 TblStudentInsuranceState::ATTR_NAME => $Name
+            )
+        );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentMasernInfo
+     */
+    public function getStudentMasernInfoById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblStudentMasernInfo', $Id);
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return false|TblStudentMasernInfo[]
+     */
+    public function getStudentMasernInfoByType($Type = TblStudentMasernInfo::TYPE_DOCUMENT)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentMasernInfo', array(
+                TblStudentMasernInfo::ATTR_TYPE => $Type
             )
         );
     }
@@ -566,7 +656,7 @@ class Data extends Support
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblStudentBaptism();
-        $Entity->setBaptismDate(( $BaptismDate ? new \DateTime($BaptismDate) : null ));
+        $Entity->setBaptismDate(( $BaptismDate ? new DateTime($BaptismDate) : null ));
         $Entity->setLocation($Location);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -592,7 +682,7 @@ class Data extends Support
         $Entity = $Manager->getEntityById('TblStudentBaptism', $tblStudentBaptism->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setBaptismDate(( $BaptismDate ? new \DateTime($BaptismDate) : null ));
+            $Entity->setBaptismDate(( $BaptismDate ? new DateTime($BaptismDate) : null ));
             $Entity->setLocation($Location);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
