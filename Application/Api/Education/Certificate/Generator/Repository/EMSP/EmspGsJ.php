@@ -33,6 +33,16 @@ class EmspGsJ extends Certificate
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        // Klasse 1 hat keinen Versetzungsvermerk
+        if (($tblDivision = $this->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && intval($tblLevel->getName()) == 1
+        ) {
+            $hasTransfer = false;
+        } else {
+            $hasTransfer = true;
+        }
+
         $pageList[] = (new Page())
             ->addSlice(EmspStyle::getHeader($this->isSample()))
             ->addSlice(EmspStyle::getCertificateHead('JAHRESZEUGNIS DER GRUNDSCHULE'))
@@ -40,7 +50,7 @@ class EmspGsJ extends Certificate
             ->addSlice(EmspStyle::getStudentName($personId))
             ->addSlice(EmspStyle::getBirthRow($personId))
             ->addSlice(EmspStyle::getDescriptionContent($personId, '467px'))
-            ->addSlice(EmspStyle::getTransfer($personId))
+            ->addSlice(EmspStyle::getTransfer($personId, '5px', $hasTransfer))
             ->addSlice(EmspStyle::getMiss($personId))
             ->addSlice(EmspStyle::getDateLine($personId))
             ->addSlice(EmspStyle::getSignPart($personId))
