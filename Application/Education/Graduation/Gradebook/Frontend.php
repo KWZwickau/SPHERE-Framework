@@ -1007,6 +1007,7 @@ class Frontend extends FrontendScoreRule
 
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
+            $PeriodCount = 1;
             /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
                 $PeriodWithExtraName = false;
@@ -1070,7 +1071,7 @@ class Frontend extends FrontendScoreRule
                         $columnDefinition['Period' . $tblPeriod->getId()] = "";
                     }
 
-                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216; '.substr($tblPeriod->getDisplayName(), 0, 1).'. HJ';
+                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216; '.$PeriodCount++.'. HJ';
                     $count++;
                     if (isset($MinimumGradeCountSortedList[$countPeriod])) {
                         /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
