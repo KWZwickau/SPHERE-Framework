@@ -176,19 +176,23 @@ class EmspStyle
     /**
      * @param $personId
      * @param string $MarginTop
+     * @param bool $hasTransfer
      *
      * @return Slice
      */
-    public static function getTransfer($personId, $MarginTop = '5px')
+    public static function getTransfer($personId, $MarginTop = '5px', $hasTransfer = true)
     {
         $TransferSlice = (new Slice());
         $TransferSlice->addElement((new Element())
-            ->setContent('Versetzungsvermerk: {% if(Content.P' . $personId . '.Input.Transfer) %}
-                    {{ Content.P' . $personId . '.Input.Transfer }}
-                {% else %}
-                      &nbsp;
-                {% endif %}
-                in Klassenstufe {{ Content.P' . $personId . '.Division.Data.Level.Name + 1 }}')
+            ->setContent(
+                $hasTransfer
+                    ? 'Versetzungsvermerk: {% if(Content.P' . $personId . '.Input.Transfer) %}
+                        {{ Content.P' . $personId . '.Input.Transfer }} in Klassenstufe {{ Content.P' . $personId . '.Division.Data.Level.Name + 1 }}.
+                    {% else %}
+                          &nbsp;
+                    {% endif %}'
+                    : '&nbsp;'
+            )
             ->styleMarginTop($MarginTop)
         );
         return $TransferSlice;
@@ -292,7 +296,7 @@ class EmspStyle
                             {% endif %}'
                         )
                         ->styleAlignCenter()
-//                        ->styleTextSize('11px')
+                        ->styleTextSize('11px')
                         , $widthName.'%')
                     ->addElementColumn((new Element())
                         , $widthSpace.'%')
@@ -305,37 +309,37 @@ class EmspStyle
                             {% endif %}'
                         )
                         ->styleAlignCenter()
-//                        ->styleTextSize('11px')
+                        ->styleTextSize('11px')
+                        , $widthName.'%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , $widthName.'%')
+                    ->addElementColumn((new Element())
+                        , $widthSpace.'%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
                         , $widthName.'%')
                 );
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent(
-//                            '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
-//                                {{ Content.P' . $personId . '.Headmaster.Name }}
-//                            {% else %}
-//                                &nbsp;
-//                            {% endif %}'
-//                        )
-//                        ->styleTextSize('11px')
-//                        ->stylePaddingTop('2px')
-//                        ->styleAlignCenter()
-//                        , $widthName.'%')
-//                    ->addElementColumn((new Element())
-//                        , $widthSpace.'%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent(
-//                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
-//                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
-//                            {% else %}
-//                                &nbsp;
-//                            {% endif %}'
-//                        )
-//                        ->styleTextSize('11px')
-//                        ->stylePaddingTop('2px')
-//                        ->styleAlignCenter()
-//                        , $widthName.'%')
-//                );
         } else {
             $SignSlice->addSection((new Section())
                 ->addElementColumn((new Element())
@@ -359,25 +363,25 @@ class EmspStyle
                             {% endif %}
                         ')
                         ->styleAlignCenter()
-//                        ->styleTextSize('11px')
+                        ->styleTextSize('11px')
+                        , $widthName.'%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , $widthCombine.'%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
                         , $widthName.'%')
                 );
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        , $widthCombine.'%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent(
-//                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
-//                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
-//                            {% else %}
-//                                &nbsp;
-//                            {% endif %}'
-//                        )
-//                        ->styleTextSize('11px')
-//                        ->stylePaddingTop('2px')
-//                        ->styleAlignCenter()
-//                        , $widthName.'%')
-//                );
         }
         return $SignSlice;
     }
