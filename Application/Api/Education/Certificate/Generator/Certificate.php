@@ -197,6 +197,11 @@ abstract class Certificate extends Extension
             }
         }
 
+        // SSW-1026 schmaler Zeugnisrand
+        if (strpos(get_class($this), 'GymAbitur') !== false) {
+            $InjectStyle = '';
+        }
+
         return (new Frame($InjectStyle))->addDocument($document);
     }
 
