@@ -305,7 +305,8 @@ class Main extends Extension
     public static function runSelfHeal(\Exception $Exception = null)
     {
 
-        (new DebuggerFactory())->createLogger(new FileLogger())->addLog('runSelfHeal Error: '.$Exception->getMessage());
+//        Fehlerfunde nicht der gesuchte Fehler
+//        (new DebuggerFactory())->createLogger(new FileLogger())->addLog('runSelfHeal Error: '.$Exception->getMessage());
 
         $Protocol = (new System\Database\Database())->frontendSetup(false, true);
 
