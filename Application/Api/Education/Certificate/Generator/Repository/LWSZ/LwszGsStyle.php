@@ -124,7 +124,7 @@ class LwszGsStyle
                     ->styleTextSize('12pt')
                     ->styleMarginTop('20px')
                     ->styleAlignJustify()
-                    ->styleHeight('705px')
+                    ->styleHeight('745px')
                 )
             )
             ->addSlice($certificate->getSignPart($personId, false))
@@ -138,7 +138,7 @@ class LwszGsStyle
      *
      * @return Slice
      */
-    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null, $marginTop = '53px')
+    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null, $marginTop = '13px')
     {
         return (new Slice())
             ->styleMarginTop($marginTop)
