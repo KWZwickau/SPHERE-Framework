@@ -254,13 +254,15 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
         );
 
         $DocumentType = new Bold('Art der Bescheinigung');
-        foreach($tblStudentMasernInfoDocumentList as $tblStudentMasernInfoDocument){
-            $DocumentType .= new CheckBox('Meta[MedicalRecord][DocumentType]['.$tblStudentMasernInfoDocument->getMeta().']',
-                $tblStudentMasernInfoDocument->getTextLong(), $tblStudentMasernInfoDocument->getId(), $DisableDocumentList[$tblStudentMasernInfoDocument->getMeta()]);
+        if($tblStudentMasernInfoDocumentList){
+            foreach($tblStudentMasernInfoDocumentList as $tblStudentMasernInfoDocument){
+                $DocumentType .= new CheckBox('Meta[MedicalRecord][DocumentType]['.$tblStudentMasernInfoDocument->getMeta().']',
+                    $tblStudentMasernInfoDocument->getTextLong(), $tblStudentMasernInfoDocument->getId(), $DisableDocumentList[$tblStudentMasernInfoDocument->getMeta()]);
+            }
         }
         $PanelContentArray[] = $DocumentType;
         // Creator
-        $tblStudentMasernInfoProfList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_CREATOR);
+        $tblStudentMasernInfoProofList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_CREATOR);
         $DisableCreatorList = array(
             TblStudentMasernInfo::CREATOR_STATE => array(
                 'Meta[MedicalRecord][CreatorType]['.TblStudentMasernInfo::CREATOR_COMMUNITY.']'
@@ -270,9 +272,11 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
             ),
         );
         $CreatorType = new Bold('Bescheinigung, dass der Nachweis bereits vorgelegt wurde, durch:');
-        foreach($tblStudentMasernInfoProfList as $tblStudentMasernInfoProf){
-            $CreatorType .= new CheckBox('Meta[MedicalRecord][CreatorType]['.$tblStudentMasernInfoProf->getMeta().']',
-                $tblStudentMasernInfoProf->getTextLong(), $tblStudentMasernInfoProf->getId(), $DisableCreatorList[$tblStudentMasernInfoProf->getMeta()]);
+        if($tblStudentMasernInfoProofList){
+            foreach($tblStudentMasernInfoProofList as $tblStudentMasernInfoProof){
+                $CreatorType .= new CheckBox('Meta[MedicalRecord][CreatorType]['.$tblStudentMasernInfoProof->getMeta().']',
+                    $tblStudentMasernInfoProof->getTextLong(), $tblStudentMasernInfoProof->getId(), $DisableCreatorList[$tblStudentMasernInfoProof->getMeta()]);
+            }
         }
         $PanelContentArray[] = $CreatorType;
 
