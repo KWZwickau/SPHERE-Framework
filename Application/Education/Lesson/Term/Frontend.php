@@ -443,8 +443,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     array(
                                         'order' => array(
-                                            array('0', 'asc'),
-                                            array('1', 'asc'),
+                                            array('1', 'desc'),
                                         ),
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => array(1, 2)),
@@ -469,8 +468,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     array(
                                         'order' => array(
-                                            array('0', 'asc'),
-                                            array('1', 'asc'),
+                                            array('1', 'desc'),
                                         ),
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => array(1, 2)),
