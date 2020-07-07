@@ -169,6 +169,16 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'\BadDueben\Common::downloadClassList'
             ));
         }
+
+        /*
+         * Annaberg
+         */
+        if ($consumerAcronym === 'EGE') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Annaberg/Common/PrintClassList/Download',
+                __NAMESPACE__.'\Annaberg\Common::downloadPrintClassList'
+            ));
+        }
     }
 
     /**
