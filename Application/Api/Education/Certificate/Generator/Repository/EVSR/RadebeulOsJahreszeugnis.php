@@ -234,7 +234,7 @@ class RadebeulOsJahreszeugnis extends Certificate
             '8px',
             28,
             self::FONT_FAMILY,
-            '265px'
+            '205px'
         );
 
         $sliceArray[] = self::getOrientation($personId);
@@ -259,7 +259,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleLineHeight(self::LINE_HEIGHT)
                     ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('0px')
-                    ->styleHeight($hasTransfer ? '25px' : '55px'))
+                    ->styleHeight($hasTransfer ? '85px' : '115px'))
             );
 
         if ($hasTransfer) {
