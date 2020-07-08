@@ -489,8 +489,10 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            if ($Task['Period'] < 0) {
+            if ($Task['Period'] < 0 && $Task['Period'] != -3) {
                 $tblPeriod = TblTask::getPseudoPeriod($Task['Period']);
+            } elseif($Task['Period'] == -3) {
+                $tblPeriod = false;
             } else {
                 $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             }
@@ -570,8 +572,10 @@ class Service extends AbstractService
 
         if (!$Error) {
             $tblTask = $this->getTaskById($Id);
-            if ($Task['Period'] < 0) {
+            if ($Task['Period'] < 0 && $Task['Period'] != -3) {
                 $tblPeriod = TblTask::getPseudoPeriod($Task['Period']);
+            } elseif($Task['Period'] == -3) {
+                $tblPeriod = false;
             } else {
                 $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             }
