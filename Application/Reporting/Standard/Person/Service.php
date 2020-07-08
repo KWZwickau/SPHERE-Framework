@@ -2639,6 +2639,8 @@ class Service extends Extension
                                                 } else {
                                                     if ($Option) {
                                                         $SiblingString .= ' (Ehemalig)';
+                                                    } else {
+                                                        $SiblingString = '';
                                                     }
                                                 }
                                             }
