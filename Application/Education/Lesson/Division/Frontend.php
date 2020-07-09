@@ -6,13 +6,13 @@ use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\StudentStatus;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
+use SPHERE\Application\Api\Education\Division\SubjectTeacher;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -88,7 +88,6 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Application\Education\Lesson\Division\Filter\Frontend as FilterFrontend;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -985,14 +984,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $DivisionSubjectId
-     * @param null $SubjectTeacherId
-     * @param null $PersonId
      *
      * @return Stage|string
      */
-    public function frontendSubjectTeacherAdd($Id = null, $DivisionSubjectId = null, $SubjectTeacherId = null, $PersonId = null)
+    public function frontendSubjectTeacherAdd($Id = null, $DivisionSubjectId = null)
     {
-
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
             $Stage = new Stage('Fachlehrer', 'auswählen');
@@ -1020,151 +1016,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
-        if ($tblDivision && $tblDivisionSubject){
-            if ($SubjectTeacherId !== null
-                && ($tblSubjectTeacher = Division::useService()->getSubjectTeacherById($SubjectTeacherId))
-            ){
-                Division::useService()->removeSubjectTeacher($tblSubjectTeacher);
-                $Stage->setContent(
-                    new Success('Fachlehrer erfolgreich entfernt')
-                    . new Redirect('/Education/Lesson/Division/SubjectTeacher/Add', Redirect::TIMEOUT_SUCCESS,
-                        array(
-                            'Id'                => $tblDivision->getId(),
-                            'DivisionSubjectId' => $tblDivisionSubject->getId()
-                        )
-                    )
-                );
-
-                return $Stage;
-            } elseif ($PersonId !== null
-                && ($tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($PersonId))
-            ){
-                Division::useService()->addSubjectTeacher($tblDivisionSubject, $tblPerson);
-                $Stage->setContent(
-                    new Success('Fachlehrer erfolgreich hinzugefügt')
-                    . new Redirect('/Education/Lesson/Division/SubjectTeacher/Add', Redirect::TIMEOUT_SUCCESS,
-                        array(
-                            'Id'                => $tblDivision->getId(),
-                            'DivisionSubjectId' => $tblDivisionSubject->getId()
-                        )
-                    )
-                );
-
-                return $Stage;
-            }
-        }
-
-        $tblSubjectTeacherAllSelected = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
-        $tblTeacherAllList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER'));
-
-        $tblTeacherSelectedList = array();
-        if ($tblSubjectTeacherAllSelected){
-            foreach ($tblSubjectTeacherAllSelected as $tblSubjectTeacher){
-                if ($tblSubjectTeacher->getServiceTblPerson()){
-                    $tblTeacherSelectedList[] = $tblSubjectTeacher->getServiceTblPerson();
-                }
-            }
-        }
-
-        if (!empty($tblTeacherSelectedList) && $tblTeacherAllList) {
-            $tblTeacherAllList = array_udiff($tblTeacherAllList, $tblTeacherSelectedList,
-                function (TblPerson $ObjectA, TblPerson $ObjectB) {
-
-                    return $ObjectA->getId() - $ObjectB->getId();
-                }
-            );
-        }
-
-        $leftTableContent = array();
-        if (!empty($tblSubjectTeacherAllSelected)) {
-            array_walk($tblSubjectTeacherAllSelected, function(TblSubjectTeacher $tblSubjectTeacher) use (&$leftTableContent, $tblDivision, $tblDivisionSubject){
-                $tblPerson = $tblSubjectTeacher->getServiceTblPerson();
-                if ($tblPerson) {
-                    $Item['DisplayName'] = $tblPerson->getLastFirstName();
-                    $Item['Address'] = $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '';
-                    $Item['Option'] = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                            '/Education/Lesson/Division/SubjectTeacher/Add', new Minus(),
-                            array(
-                                'Id'                => $tblDivision->getId(),
-                                'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                                'SubjectTeacherId'  => $tblSubjectTeacher->getId()
-                            ))
-                    );
-                    array_push($leftTableContent, $Item);
-                }
-            });
-        }
-        $rightTableContent = array();
-        if ($tblTeacherAllList) {
-            array_walk($tblTeacherAllList, function(TblPerson $tblPerson) use (&$rightTableContent, $tblDivision, $tblDivisionSubject) {
-                $Item['DisplayName'] = $tblPerson->getLastFirstName();
-                $Item['Address'] = $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '';
-                $Item['Options'] = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                        '/Education/Lesson/Division/SubjectTeacher/Add', new Plus(),
-                        array(
-                            'Id'                => $tblDivision->getId(),
-                            'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                            'PersonId'          => $tblPerson->getId()
-                        ))
-                );
-                array_push($rightTableContent, $Item);
-            });
-        }
-
         $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(
-                                'Fach',
-                                $Subject,
-                                Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                    )
-                ),
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title('Ausgewählt', 'Lehrer'),
-                            ( empty( $leftTableContent )
-                                ? new Warning('Kein Lehrer zugewiesen')
-                                : new TableData($leftTableContent, null,
-                                    array(
-                                        'DisplayName' => 'Name',
-                                        'Address'     => 'Adresse',
-                                        'Option'      => ''
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                            array('orderable' => false, 'targets' => 2),
-                                        ),
-                                    ))
-                            )
-                        ), 6),
-                        new LayoutColumn(array(
-                            new Title('Verfügbar', 'Lehrer'),
-                            ( empty( $rightTableContent )
-                                ? new Info('Keine weiteren Lehrer verfügbar')
-                                : new TableData($rightTableContent, null,
-                                    array(
-                                        'DisplayName' => 'Name',
-                                        'Address'     => 'Adresse',
-                                        'Options'     => ' '
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                            array('orderable' => false, 'targets' => 2),
-                                        ),
-                                    ))
-                            )
-                        ), 6)
-                    ))
-                )
-            ))
+            new Panel('Fach', $Subject, Panel::PANEL_TYPE_INFO)
+            . SubjectTeacher::receiverUsed(SubjectTeacher::tablePerson($tblDivisionSubject->getId()))
         );
 
         return $Stage;

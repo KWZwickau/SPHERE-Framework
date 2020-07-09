@@ -348,23 +348,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Year
-     * @param $Period
+     * @param $tblYear
+     * @param $tblPeriod
      *
      * @return string
      */
-    public function addYearPeriod($Year, $Period)
+    public function addYearPeriod($tblYear, $tblPeriod)
     {
-
-        $tblYear = $this->getYearById($Year);
-        $tblPeriod = $this->getPeriodById($Period);
-
-        if ((new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod)) {
-            return new Success('Zeitraum festgelegt') .
-            new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_SUCCESS);
-        }
-        return new Warning('Zeitraum konnte nicht festgelegt werden') .
-        new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
+        return (new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod);
     }
 
     /**
@@ -390,23 +381,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Year
-     * @param $Period
+     * @param $tblYear
+     * @param $tblPeriod
      *
      * @return string
      */
-    public function removeYearPeriod($Year, $Period)
+    public function removeYearPeriod($tblYear, $tblPeriod)
     {
-
-        $tblYear = $this->getYearById($Year);
-        $tblPeriod = $this->getPeriodById($Period);
-
-        if ((new Data($this->getBinding()))->removeYearPeriod($tblYear, $tblPeriod)) {
-            return new Success('Zeitraum entfernt') .
-            new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_SUCCESS);
-        }
-        return new Warning('Zeitraum konnte nicht entfernt werden') .
-        new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
+        return (new Data($this->getBinding()))->removeYearPeriod($tblYear, $tblPeriod);
     }
 
     /**

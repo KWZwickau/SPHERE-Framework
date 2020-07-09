@@ -10,11 +10,13 @@ use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\StudentStatus;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
+use SPHERE\Application\Api\Education\Division\SubjectTeacher;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
+use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -42,5 +44,7 @@ class Education implements IApplicationInterface
         ApiGradebook::registerApi();
         ApiEvaluation::registerApi();
         ApiMinimumGradeCount::registerApi();
+        SubjectTeacher::registerApi();
+        YearPeriod::registerApi();
     }
 }
