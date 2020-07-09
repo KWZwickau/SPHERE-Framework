@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
+use DateTime;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -21,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
@@ -204,11 +206,14 @@ class Service extends Support
     }
 
     /**
-     * @param string   $Disease
-     * @param string   $Medication
-     * @param string   $Insurance
-     * @param int      $InsuranceState
-     * @param string   $AttendingDoctor
+     * @param string                    $Disease
+     * @param string                    $Medication
+     * @param string                    $Insurance
+     * @param int                       $InsuranceState
+     * @param string                    $AttendingDoctor
+     * @param DateTime|null             $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
      *
      * @return TblStudentMedicalRecord
      */
@@ -217,7 +222,10 @@ class Service extends Support
         $Medication,
         $Insurance,
         $InsuranceState = 0,
-        $AttendingDoctor = ''
+        $AttendingDoctor = '',
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo $MasernCreatorType = null
     ) {
 
         return (new Data($this->getBinding()))->createStudentMedicalRecord(
@@ -225,7 +233,10 @@ class Service extends Support
             $Medication,
             $AttendingDoctor,
             $InsuranceState,
-            $Insurance
+            $Insurance,
+            $MasernDate,
+            $MasernDocumentType,
+            $MasernCreatorType
         );
     }
 
@@ -667,6 +678,26 @@ class Service extends Support
         if (!$tblStudent) {
             $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
         }
+        $DocumentType = null;
+        if(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IDENTIFICATION])){
+            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IDENTIFICATION]);
+        } elseif(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION])) {
+            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION]);
+        } elseif(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IMMUNITY])) {
+            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IMMUNITY]);
+        } elseif(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION])) {
+            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION]);
+        }
+        $CreatorType = null;
+        if(isset($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_STATE])){
+            $CreatorType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_STATE]);
+        } elseif(isset($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_COMMUNITY])) {
+            $CreatorType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_COMMUNITY]);
+        }
+        $MasernDate = null;
+        if(isset($Meta['MedicalRecord']['Masern']['Date']) && $Meta['MedicalRecord']['Masern']['Date']){
+            $MasernDate = new DateTime($Meta['MedicalRecord']['Masern']['Date']);
+        }
 
         if ($tblStudent) {
             if (($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())) {
@@ -676,7 +707,10 @@ class Service extends Support
                     $Meta['MedicalRecord']['Medication'],
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
-                    $Meta['MedicalRecord']['Insurance']['Company']
+                    $Meta['MedicalRecord']['Insurance']['Company'],
+                    $MasernDate,
+                    $DocumentType,
+                    $CreatorType
                 );
             } else {
                 $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
@@ -684,7 +718,10 @@ class Service extends Support
                     $Meta['MedicalRecord']['Medication'],
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
-                    $Meta['MedicalRecord']['Insurance']['Company']
+                    $Meta['MedicalRecord']['Insurance']['Company'],
+                    $MasernDate,
+                    $DocumentType,
+                    $CreatorType
                 );
 
                 if ($tblStudentMedicalRecord) {
@@ -963,9 +1000,30 @@ class Service extends Support
      *
      * @return false|TblStudentInsuranceState
      */
-    public function  getStudentInsuranceStateByName($Name)
+    public function getStudentInsuranceStateByName($Name)
     {
         return (new Data($this->getBinding()))->getStudentInsuranceStateByName($Name);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblStudentMasernInfo
+     */
+    public function getStudentMasernInfoById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentMasernInfoById($Id);
+    }
+
+    /**
+     * @param string $Type
+     * TblStudentMasernInfo::TYPE_DOCUMENT || TblStudentMasernInfo::TYPE_CREATOR
+     *
+     * @return false|TblStudentMasernInfo[]
+     */
+    public function getStudentMasernInfoByType($Type = TblStudentMasernInfo::TYPE_DOCUMENT)
+    {
+        return (new Data($this->getBinding()))->getStudentMasernInfoByType($Type);
     }
 
     /**
