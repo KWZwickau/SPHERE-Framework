@@ -83,10 +83,10 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
             }
 
             if($masernDocumentType){
-                $masernDocumentType = new ToolTip($masernDocumentType->getTextShort().' '.new Small(new Info()) , $masernDocumentType->getTextLong());
+                $masernDocumentType = new ToolTip($masernDocumentType->getTextShort().' '.new Info() , $masernDocumentType->getTextLong());
             }
             if($masernCreatorType){
-                $masernCreatorType = new ToolTip($masernCreatorType->getTextShort().' '.new Small(new Info()) , $masernCreatorType->getTextLong());
+                $masernCreatorType = new ToolTip($masernCreatorType->getTextShort().' '.new Info() , $masernCreatorType->getTextLong());
             }
 
             $content = new Layout(new LayoutGroup(array(
