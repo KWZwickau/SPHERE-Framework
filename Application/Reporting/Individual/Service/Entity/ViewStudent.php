@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
@@ -32,6 +34,9 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
     const TBL_STUDENT_INSURANCE_STATE_NAME = 'TblStudentInsuranceState_Name';
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
+    const TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE = 'TblStudentMedicalRecord_MasernDate';
+    const TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE = 'TblStudentMedicalRecord_MasernDocumentType';
+    const TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE = 'TblStudentMedicalRecord_MasernCreatorType';
     // Taufe
     const TBL_STUDENT_BAPTISM_LOCATION = 'TblStudentBaptism_Location';
     const TBL_STUDENT_BAPTISM_DATE = 'TblStudentBaptism_BaptismDate';
@@ -118,6 +123,18 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblStudentMedicalRecord_MasernDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_MasernDocumentType;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_MasernCreatorType;
+    /**
+     * @Column(type="string")
+     */
     protected $TblStudentTransport_Route;
     /**
      * @Column(type="string")
@@ -165,6 +182,9 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Allgemeines: Medikamente');
         $this->setNameDefinition(self::TBL_STUDENT_INSURANCE_STATE_NAME, 'Allgemeines: Versicherungsstatus');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Allgemeines: Krankenkasse');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE, 'Masern: Vorlagedatum Bescheid');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE, 'Masern: Art der Bescheinigung');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE, 'Masern: Bescheinigung durch');
 
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_ROUTE, 'Allgemeines: Buslinie');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE, 'Allgemeines: Einstiegshaltestelle');
@@ -191,6 +211,9 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION,
             self::TBL_STUDENT_INSURANCE_STATE_NAME,
             self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
+            self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE,
+            self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE,
+            self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE,
             self::TBL_STUDENT_TRANSPORT_ROUTE,
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
@@ -238,6 +261,18 @@ class ViewStudent extends AbstractView
                 $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
                     $Placeholder, $Label, $Icon
                 );
+                break;
+            case self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE:
+                $Data = Student::useService()->getPropertyList( new TblStudentMasernInfo(), TblStudentMasernInfo::ATTR_TEXT_SHORT, array(
+                    TblStudentMasernInfo::ATTR_TYPE => TblStudentMasernInfo::TYPE_DOCUMENT
+                ));
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE:
+                $Data = Student::useService()->getPropertyList( new TblStudentMasernInfo(), TblStudentMasernInfo::ATTR_TEXT_SHORT, array(
+                    TblStudentMasernInfo::ATTR_TYPE => TblStudentMasernInfo::TYPE_CREATOR
+                ));
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
                 break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );

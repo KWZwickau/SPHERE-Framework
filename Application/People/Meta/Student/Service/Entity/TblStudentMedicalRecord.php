@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -39,6 +40,18 @@ class TblStudentMedicalRecord extends Element
      * @Column(type="string")
      */
     protected $Insurance;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $MasernDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $MasernDocumentType;
+    /**
+     * @Column(type="string")
+     */
+    protected $MasernCreatorType;
 
     /**
      * @return string
@@ -142,4 +155,76 @@ class TblStudentMedicalRecord extends Element
 
         $this->Insurance = $Insurance;
     }
+
+    /**
+     * @return false|string
+     */
+    public function getMasernDate()
+    {
+
+        if (null === $this->MasernDate) {
+            return false;
+        }
+        /** @var DateTime MasernDate */
+        $MasernDate = $this->MasernDate;
+        if ($MasernDate instanceof DateTime) {
+            return $MasernDate->format('d.m.Y');
+        } else {
+            return (string)$MasernDate;
+        }
+    }
+
+    /**
+     * @param null|DateTime $MasernDate
+     */
+    public function setMasernDate(DateTime $MasernDate = null)
+    {
+
+        $this->MasernDate = $MasernDate;
+    }
+
+    /**
+     * @return TblStudentMasernInfo|false
+     */
+    public function getMasernDocumentType()
+    {
+
+        if (null === $this->MasernDocumentType) {
+            return false;
+        } else {
+            return Student::useService()->getStudentMasernInfoById($this->MasernDocumentType);
+        }
+    }
+
+    /**
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     */
+    public function setMasernDocumentType(TblStudentMasernInfo $MasernDocumentType = null)
+    {
+
+        $this->MasernDocumentType = ( null === $MasernDocumentType ? null : $MasernDocumentType->getId() );
+    }
+
+    /**
+     * @return TblStudentMasernInfo|false
+     */
+    public function getMasernCreatorType()
+    {
+
+        if (null === $this->MasernCreatorType) {
+            return false;
+        } else {
+            return Student::useService()->getStudentMasernInfoById($this->MasernCreatorType);
+        }
+    }
+
+    /**
+     * @param TblStudentMasernInfo|null $MasernCreatorType
+     */
+    public function setMasernCreatorType(TblStudentMasernInfo $MasernCreatorType = null)
+    {
+
+        $this->MasernCreatorType = ( null === $MasernCreatorType ? null : $MasernCreatorType->getId() );
+    }
+
 }
