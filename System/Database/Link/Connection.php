@@ -79,7 +79,7 @@ class Connection
         try {
             $this->Connection = Database::getDatabase($Username, $Password, $Database, $Driver, $Host, $Port, $Timeout);
         } catch (\Exception $E) {
-            (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Connection Catch: '.$E->getMessage());
+//            (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Connection Catch: '.$E->getMessage());
             try {
                 Database::getDatabase($Username, $Password, null, $Driver, $Host, $Port, $Timeout)
                     ->getSchemaManager()->createDatabase($Database);
