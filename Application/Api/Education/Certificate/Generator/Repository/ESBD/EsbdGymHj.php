@@ -54,7 +54,7 @@ class EsbdGymHj extends EsbdStyle
             )
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))
                 ->styleHeight('270px'))
-            ->addSlice($this->getProfileStandardNew($personId))
+            ->addSlice(EsbdStyle::getProfile($personId))
             ->addSlice($this->getDescriptionConsumer($personId, '60px', '15px'))
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getDateLineConsumer($personId))

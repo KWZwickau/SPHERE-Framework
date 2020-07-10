@@ -80,7 +80,7 @@ class EsbdGymJ extends EsbdStyle
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))
                 ->styleHeight('270px')
             )
-            ->addSlice($this->getProfileStandardNew($personId))
+            ->addSlice(EsbdStyle::getProfile($personId))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
