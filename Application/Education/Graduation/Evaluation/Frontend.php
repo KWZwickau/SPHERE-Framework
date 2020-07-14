@@ -2398,7 +2398,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Comment'] = 'Vermerk Notenänderung';
             $tableColumns['Attendance'] = 'Nicht teilgenommen';
 //            $tableColumns['PublicComment'] = 'Öffentlicher Kommentar';
-            $tableColumns['PublicComment'] = 'Kommentar für Eltern';
+            $tableColumns['PublicComment'] = 'Kommentar für Eltern-/Schülerzugang';
         }
 
         if ($studentList) {
