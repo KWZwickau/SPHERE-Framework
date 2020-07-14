@@ -11,6 +11,7 @@ use SPHERE\Application\Reporting\Custom\Muldental\Person\Person as MuldentalPers
 use SPHERE\Application\Reporting\Custom\Schneeberg\Person\Person as SchneebergPerson;
 use SPHERE\Application\Reporting\Custom\Radebeul\Person\Person as RadebeulPerson;
 use SPHERE\Application\Reporting\Custom\BadDueben\Person\Person as BadDuebenPerson;
+use SPHERE\Application\Reporting\Custom\Annaberg\Person\Person as AnnabergPerson;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -58,6 +59,10 @@ class Custom implements IApplicationInterface
         // Bad Düben
         if ($consumerAcronym === 'ESBD' || $consumerAcronym === 'DEMO') {
             BadDuebenPerson::registerModule();
+        }
+        // Annaberg
+        if ($consumerAcronym === 'EGE') {
+            AnnabergPerson::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(
