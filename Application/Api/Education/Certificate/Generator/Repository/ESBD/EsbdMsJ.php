@@ -60,19 +60,6 @@ class EsbdMsJ extends EsbdStyle
             ->addSlice($this->getGradeLanes($personId))
             ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Einschätzung: {% if(Content.P'.$personId.'.Input.Rating is not empty) %}
-                                {{ Content.P'.$personId.'.Input.Rating|nl2br }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}')
-                        ->styleHeight('50px')
-                    )
-                )
-                ->styleMarginTop('15px')
-            )
-            ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('15px')
@@ -87,14 +74,14 @@ class EsbdMsJ extends EsbdStyle
                 false,
                 false,
                 true
-            )->styleHeight('290px'))
+            )->styleHeight('310px'))
 //            ->addSlice($this->getOrientationStandard($personId))
-            ->addSlice($this->getDescriptionConsumer($personId, '60px', '15px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '80px', '15px'))
             ->addSlice($this->getMissingConsumer($personId))
-            ->addSlice($this->getTransferConsumer($personId, '13px'))
+            ->addSlice($this->getTransferConsumer($personId, '15px'))
             ->addSlice($this->getDateLineConsumer($personId, '15px'))
-            ->addSlice($this->getSignPartConsumer($personId, true, '15px'))
-            ->addSlice($this->getParentSignConsumer('13px'))
+            ->addSlice($this->getSignPartConsumer($personId, true, '25px'))
+            ->addSlice($this->getParentSignConsumer('25px'))
             ->addSlice($this->getInfoConsumer('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend

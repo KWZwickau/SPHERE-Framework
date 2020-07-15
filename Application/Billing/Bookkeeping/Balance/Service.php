@@ -1024,6 +1024,7 @@ class Service extends AbstractService
                             $item[$Ref]['Owner'] = $tblInvoiceItemDebtor->getOwner();
                             $item[$Ref]['BankReference'] = $Ref;
                             $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
+                            $item[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
 
                         } else {
                             if(isset($item[$Ref]['ItemName'])){
@@ -1031,10 +1032,15 @@ class Service extends AbstractService
                             } else {
                                 $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
                             }
+                            if(isset($item[$Ref]['ItemNameAndPrice'])){
+                                $item[$Ref]['ItemNameAndPrice'] .= ', '.$tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                            } else {
+                                $item[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                            }
 
                             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
                                 // allgemeinen Buchungstext verwenden
-                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $item[$Ref]['ItemName']);
+                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $item[$Ref]['ItemName'], $item[$Ref]['ItemNameAndPrice']);
                             }
                             if(isset($item[$Ref]['ItemName'])){
                                 $item[$Ref]['Price'] = $item[$Ref]['Price'] + $tblInvoiceItemDebtor->getSummaryPriceInt();
@@ -1095,6 +1101,7 @@ class Service extends AbstractService
                             $CombOpenList[$Ref]['Owner'] = $tblInvoiceItemDebtor->getOwner();
                             $CombOpenList[$Ref]['BankReference'] = $Ref;
                             $CombOpenList[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
+                            $CombOpenList[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             $CombOpenList[$Ref]['tblInvoice'] = $tblInvoice;
                         } else {
                             if(isset($CombOpenList[$Ref]['ItemName'])){
@@ -1102,10 +1109,15 @@ class Service extends AbstractService
                             } else {
                                 $CombOpenList[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
                             }
+                            if(isset($CombOpenList[$Ref]['ItemNameAndPrice'])){
+                                $CombOpenList[$Ref]['ItemNameAndPrice'] .= ', '.$tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                            } else {
+                                $CombOpenList[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                            }
 
                             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
                                 // allgemeinen Buchungstext verwenden
-                                $CombOpenList[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $CombOpenList[$Ref]['ItemName']);
+                                $CombOpenList[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $CombOpenList[$Ref]['ItemName'], $CombOpenList[$Ref]['ItemNameAndPrice']);
                             }
                             if(isset($CombOpenList[$Ref]['ItemName'])){
                                 $CombOpenList[$Ref]['Price'] = (float)$CombOpenList[$Ref]['Price'] + $Price;
@@ -1144,16 +1156,20 @@ class Service extends AbstractService
      * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
      * @param string               $bookingText
      * @param string               $ItemCombinedName
+     * @param string               $ItemCombinedNameAndPrice
      *
      * @return mixed|string|string[]|null
      */
-    private function getBookingText(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $bookingText = '', $ItemCombinedName = '')
+    private function getBookingText(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $bookingText = '', $ItemCombinedName = '', $ItemCombinedNameAndPrice = '')
     {
 
         $ItemName = $ItemCombinedName;
+        $ItemNameAndPrice = $ItemCombinedNameAndPrice;
         if($ItemName == ''){
             if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                $Price = $tblInvoiceItemDebtor->getPriceString('EUR');
                 $ItemName = $tblItem->getName();
+                $ItemNameAndPrice = $tblItem->getName(). ' '.$Price;
             }
         }
 
@@ -1174,6 +1190,7 @@ class Service extends AbstractService
             $bookingText = str_ireplace('[BVN]', $CauserName, $bookingText);
             $bookingText = str_ireplace('[BVV]', $CauserFirstName, $bookingText);
             $bookingText = str_ireplace('[BA]', $ItemName, $bookingText);
+            $bookingText = str_ireplace('[BAEP]', $ItemNameAndPrice, $bookingText);
             $bookingText = str_ireplace('[DEB]', $DebtorNumber, $bookingText);
             $bookingText = str_ireplace('[BAM]', $TimeString, $bookingText);
             return $bookingText;

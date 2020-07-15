@@ -58,19 +58,6 @@ class EsbdGymJ extends EsbdStyle
             ->addSlice($this->getGradeLanes($personId, '14px', false, '0px'))
             ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Einschätzung: {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Rating|nl2br }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
-                        ->styleHeight('20px')
-                    )
-                )
-                ->styleMarginTop('5px')
-            )
-            ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('5px')
@@ -78,9 +65,9 @@ class EsbdGymJ extends EsbdStyle
                 )
             )
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))
-                ->styleHeight('270px')
+                ->styleHeight('285px')
             )
-            ->addSlice($this->getProfileStandardNew($personId))
+            ->addSlice(EsbdStyle::getProfile($personId))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -97,8 +84,8 @@ class EsbdGymJ extends EsbdStyle
             )
             ->addSlice($this->getDescriptionConsumer($personId, '15px', '10px'))
             ->addSlice($this->getMissingConsumer($personId))
-            ->addSlice($this->getTransferConsumer($personId, '10px'))
-            ->addSlice($this->getDateLineConsumer($personId, '10px'))
+            ->addSlice($this->getTransferConsumer($personId, '15px'))
+            ->addSlice($this->getDateLineConsumer($personId, '15px'))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
             ->addSlice($this->getInfoConsumer('10px',

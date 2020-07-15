@@ -184,12 +184,14 @@ class Service extends AbstractService
                             && ($tblCertificateType->getIdentifier() == 'HALF_YEAR'
                                 || $tblCertificateType->getIdentifier() == 'YEAR'
                                 || $tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
+                                || $tblCertificateType->getIdentifier() == 'DIPLOMA'
                             )
                             && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
                                 $tblPerson))
                             && $tblPrepareStudent->isApproved()
                             && $tblPrepareStudent->isPrinted()
                         ) {
+                            $tblLevel = false;
                             if (($tblType
                                     && ($tblLevel = $tblDivision->getTblLevel())
                                     && $tblLevel->getServiceTblType()
@@ -198,6 +200,11 @@ class Service extends AbstractService
                             ) {
                                 if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
                                     $listSekII[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                                } elseif ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                                    && $tblLevel
+                                    && intval($tblLevel->getName()) == 12
+                                ) {
+                                    // Abiturzeugnis ignorieren
                                 } else {
                                     $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                                 }

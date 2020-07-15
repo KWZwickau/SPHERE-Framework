@@ -6,6 +6,9 @@ use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -890,5 +893,163 @@ abstract class EsbdStyle extends Certificate
                 )
             )
             ->styleMarginTop('15px');
+    }
+
+    /**
+     * @param $personId
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
+     * @param bool $IsSmall
+     * @param bool $IsFootnoteShowed
+     *
+     * @return Slice
+     */
+    public function getProfile($personId, $TextSize = '14px', $IsGradeUnderlined = false, $IsSmall = false, $IsFootnoteShowed = true)
+    {
+        $tblPerson = Person::useService()->getPersonById($personId);
+
+        $slice = new Slice();
+        $sectionList = array();
+
+        $tblSubjectProfile = false;
+
+        $TextSizeSmall = '8px';
+
+        $paddingTop = '2px';
+        $paddingBottom = '2px';
+        $paddingTopShrinking = '4.5px';
+        $paddingBottomShrinking = '5px';
+        if($IsSmall){
+            $paddingTop = '1px';
+            $paddingBottom = '1px';
+        }
+
+        // Profil
+        if ($tblPerson
+            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+            $tblSubjectProfile = $tblStudentSubject->getServiceTblSubject();
+        }
+
+        if ($tblSubjectProfile) {
+            if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                $subjectAcronymForGrade = $value;
+            } else {
+                $subjectAcronymForGrade = $tblSubjectProfile->getAcronym();
+            }
+        } else {
+            $subjectAcronymForGrade = 'SubjectAcronymForGrade';
+        }
+
+        if ($tblSubjectProfile) {
+            $elementName = (new Element())
+                // Profilname aus der Schülerakte
+                // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
+                ->setContent('
+                   {% if(Content.P' . $personId . '.Student.Profile["' . $tblSubjectProfile->getAcronym() . '"] is not empty) %}
+                       {{ Content.P' . $personId . '.Student.Profile["' . $tblSubjectProfile->getAcronym() . '"].Name' . ' }}
+                   {% else %}
+                        &nbsp;
+                   {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->stylePaddingTop($paddingTop)
+                ->stylePaddingBottom($paddingBottom)
+                ->styleTextSize($TextSize);
+
+            $elementGrade = (new Element())
+                ->setContent('
+                    {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop(
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                         ' . $paddingTopShrinking . ' 
+                    {% else %}
+                        '.$paddingTop.'
+                    {% endif %}'
+                )
+                ->stylePaddingBottom(
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                         ' . $paddingBottomShrinking . ' 
+                    {% else %}
+                        '.$paddingBottom.'
+                    {% endif %}'
+                )
+                ->styleTextSize(
+                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                        ' . $TextSizeSmall . '
+                    {% else %}
+                        ' . $TextSize . '
+                    {% endif %}'
+                );
+        } else {
+            $elementName = (new Element())
+                ->setContent('---')
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->stylePaddingTop($paddingTop)
+                ->stylePaddingBottom($paddingBottom)
+                ->styleTextSize($TextSize);
+
+            $elementGrade = (new Element())
+                ->setContent('&ndash;')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop($paddingTop)
+                ->stylePaddingBottom($paddingBottom)
+                ->styleTextSize($TextSize);
+        }
+
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Wahlpflichtbereich:')
+                ->styleTextBold()
+                ->styleMarginTop('15px')
+                ->styleMarginBottom('5px')
+                ->styleTextSize($TextSize)
+            );
+        $sectionList[] = $section;
+
+        $section = new Section();
+        $section
+            ->addElementColumn($elementName
+                , '32%')
+            ->addElementColumn((new Element())
+                ->setContent('Profil')
+                ->stylePaddingTop($paddingTop)
+                ->stylePaddingBottom($paddingBottom)
+                ->styleTextSize($TextSize)
+                ->styleAlignCenter()
+                , '7%')
+            ->addElementColumn($elementGrade, '9%')
+            ->addElementColumn((new Element()));
+        $sectionList[] = $section;
+
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('besuchtes schulspezifisches Profil' . ($IsFootnoteShowed ? '¹' : ''))
+                ->styleTextSize('11px')
+                , '52%');
+        $sectionList[] = $section;
+
+        return $slice->addSectionList($sectionList);
     }
 }

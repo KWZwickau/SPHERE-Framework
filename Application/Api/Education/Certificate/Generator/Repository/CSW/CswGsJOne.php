@@ -17,6 +17,17 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class CswGsJOne extends Certificate
 {
     /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
+
+    /**
      * @param TblPerson|null $tblPerson
      *
      * @return Page[]
@@ -25,13 +36,29 @@ class CswGsJOne extends Certificate
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $pageList[] = (new Page())
+        // Klasse 1 hat keinen Versetzungsvermerk
+        if (($tblDivision = $this->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && intval($tblLevel->getName()) == 1
+        ) {
+            $hasTransfer = false;
+        } else {
+            $hasTransfer = true;
+        }
+
+        $page = (new Page())
             ->addSlice(CswGsStyle::getHeader($this->isSample()))
             ->addSlice($this->getSchoolName($personId))
             ->addSlice($this->getCertificateHead('Jahreszeugnis der Grundschule'))
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getDescriptionContent($personId, '530px', '20px'))
+            ->addSlice($this->getDescriptionContent($personId, $hasTransfer ? '506px' : '530px', '20px'));
+
+        if ($hasTransfer) {
+            $page->addSlice($this->getTransfer($personId));
+        }
+
+        $page
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -61,6 +88,7 @@ class CswGsJOne extends Certificate
             ->addSlice($this->getSignPart($personId, true))
             ->addSlice($this->getParentSign()
             );
+        $pageList[] = $page;
 
         $pageList[] = CswGsStyle::buildSecondPage($tblPerson);
 
