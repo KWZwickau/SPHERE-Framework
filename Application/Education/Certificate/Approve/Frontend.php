@@ -97,6 +97,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $content = false;
         $prepareList = array();
+        $tblYearDivision = false;
 
         if (($tblLeaveStudentAll = Prepare::useService()->getLeaveStudentAll())) {
             $leaveStudentDivisionList = array();
@@ -144,22 +145,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $isLeaveAutomaticallyApproved = false;
             }
             foreach ($leaveStudentDivisionList as $item) {
-                if ($isLeaveAutomaticallyApproved) {
-                    $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' ' .
-                        $item['CountTotalCertificates']
-                        . ' Zeugnisse werden automatisch freigegeben.');
-                } else {
-                    $countApproved = $item['CountApprovedCertificates'];
-                    $countStudents = $item['CountTotalCertificates'];
+                $countApproved = $item['CountApprovedCertificates'];
+                $countStudents = $item['CountTotalCertificates'];
 
-                    $status = $countApproved < $countStudents
-                        ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
-                        : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                            . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.');
-                }
+                $status = $this->getApproveStatusText($isLeaveAutomaticallyApproved, $countApproved, $countStudents);
 
                 $prepareList[] = array(
-                    'Year' => $tblYearDivision->getDisplayName(),
+                    'Year' => $tblYearDivision ? $tblYearDivision->getDisplayName() : '',
                     'Date' => $item['Date'],
                     'Name' => 'Abgangszeugnis',
                     'Division' => $item['DivisionDisplayName'],
@@ -227,13 +219,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if ($tblDivision) {
                         if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                            $countStudents = count($tblPersonList);
-                            if (!$isAutomaticallyApproved) {
-                                foreach ($tblPersonList as $tblPerson) {
-                                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                            $tblPerson))
-                                        && $tblPrepareStudent->isApproved()
-                                    ) {
+                            foreach ($tblPersonList as $tblPerson) {
+                                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                    $tblPerson))) {
+                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                        $countStudents++;
+                                    }
+                                    if ($tblPrepareStudent->isApproved()) {
                                         $countApproved++;
                                     }
                                 }
@@ -241,62 +233,56 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    if ($isAutomaticallyApproved) {
-                        $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                            . ' ' .$countStudents . ' Zeugnisse werden automatisch freigegeben.');
-                    } else {
-                        $status = $countApproved < $countStudents
-                            ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
-                            : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                                . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.');
-                    }
+                    $status = $this->getApproveStatusText($isAutomaticallyApproved, $countApproved, $countStudents);
 
-                    $prepareList[] = array(
-                        'Date' => $tblPrepare->getDate(),
-                        'Name' => $tblPrepare->getName(),
-                        'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
-                        'CertificateType' =>
-                            $tblCertificateType ? $tblCertificateType->getName() : '',
-                        'Status' => $status,
-                        'Option' =>
-                            (new Standard(
-                                '',
-                                '/Education/Certificate/Approve/Prepare',
-                                new EyeOpen(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId()
-                                ),
-                                'Klassenansicht -> Zeugnisse einzeln freigeben'
-                            ))
-                            . (new External(
-                                '',
-                                '/Api/Education/Certificate/Generator/PreviewMultiPdf',
-                                new Download(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Name' => 'Zeugnismuster'
-                                ), 'Alle Zeugnisse als Muster herunterladen'))
-                            . (new Standard(
-                                '',
-                                '/Education/Certificate/Approve/Prepare/Division/SetApproved',
-                                new Check(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Route' => '/Education/Certificate/Approve'
-                                ),
-                                'Alle Zeugnisse dieser Klasse freigeben'
-                            ))
-                            . (new Standard(
-                                '',
-                                '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
-                                new Disable(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Route' => '/Education/Certificate/Approve'
-                                ),
-                                'Alle Zeugnisfreigaben dieser Klasse entfernen'
-                            ))
-                    );
+                    if ($countStudents > 0) {
+                        $prepareList[] = array(
+                            'Date' => $tblPrepare->getDate(),
+                            'Name' => $tblPrepare->getName(),
+                            'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
+                            'CertificateType' =>
+                                $tblCertificateType ? $tblCertificateType->getName() : '',
+                            'Status' => $status,
+                            'Option' =>
+                                (new Standard(
+                                    '',
+                                    '/Education/Certificate/Approve/Prepare',
+                                    new EyeOpen(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId()
+                                    ),
+                                    'Klassenansicht -> Zeugnisse einzeln freigeben'
+                                ))
+                                . (new External(
+                                    '',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    new Download(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'Name' => 'Zeugnismuster'
+                                    ), 'Alle Zeugnisse als Muster herunterladen'))
+                                . (new Standard(
+                                    '',
+                                    '/Education/Certificate/Approve/Prepare/Division/SetApproved',
+                                    new Check(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'Route' => '/Education/Certificate/Approve'
+                                    ),
+                                    'Alle Zeugnisse dieser Klasse freigeben'
+                                ))
+                                . (new Standard(
+                                    '',
+                                    '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
+                                    new Disable(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'Route' => '/Education/Certificate/Approve'
+                                    ),
+                                    'Alle Zeugnisfreigaben dieser Klasse entfernen'
+                                ))
+                        );
+                    }
                 }
             }
 
@@ -428,6 +414,39 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+
+    /**
+     * @param $isAutomaticallyApproved
+     * @param $countApproved
+     * @param $countStudents
+     *
+     * @return Success|Warning
+     */
+    private function getApproveStatusText($isAutomaticallyApproved, $countApproved, $countStudents)
+    {
+        if ($isAutomaticallyApproved) {
+            if ($countApproved > 0) {
+                $countDiff = $countStudents - $countApproved;
+                $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . ' ' . $countApproved . ($countApproved == 1 ? ' Zeugnis ' : ' Zeugnisse ') . 'freigegeben'
+                    . ($countDiff > 0
+                        ? ' und ' . $countDiff . ($countDiff == 1 ? ' Zeugnis wird ' : ' Zeugnisse werden ') . 'automatisch freigegeben.'
+                        : '.'
+                    ));
+            } else {
+                $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . ' ' . $countStudents . ($countStudents == 1 ? ' Zeugnis wird ' : ' Zeugnisse werden ') . 'automatisch freigegeben.');
+            }
+        } else {
+            $status = $countApproved < $countStudents
+                ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
+                : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.');
+        }
+
+        return $status;
     }
 
     /**
