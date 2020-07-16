@@ -615,13 +615,9 @@ class Service extends AbstractService
 
             // decision FibuKonto
             $IsFibuDebtorNumber = false;
-            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV))){
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR))){
                 if(($tblSetting->getValue())){
-                    if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR))){
-                        if(($tblSetting->getValue())){
-                            $IsFibuDebtorNumber = true;
-                        }
-                    }
+                    $IsFibuDebtorNumber = true;
                 }
             }
 

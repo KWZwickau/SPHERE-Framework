@@ -19,36 +19,16 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-
         // SEPA Options
         $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
         $this->createSetting(TblSetting::IDENT_SEPA_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
-        }
+        $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
         $this->createSetting(TblSetting::IDENT_SEPA_FEE, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
 
         // DATEV Options
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        $tblSetting = $this->getSettingByIdentifier('IsDebtorNumberNeed');
-        if($tblSetting){
-            $this->updateSettingIdentifier($tblSetting, TblSetting::IDENT_IS_DATEV);
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
-        }
         $this->createSetting(TblSetting::IDENT_IS_DATEV, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
-
-        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '5', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
-        }
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
-        }
+        $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '5', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_DATEV_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_FIBU_ACCOUNT, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR, '0', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);

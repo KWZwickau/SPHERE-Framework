@@ -254,7 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // DATEV
                     case TblSetting::IDENT_IS_DATEV:
-                        $Listing[0] = '&nbsp;Eingabepflicht relevanter Eingaben für DATEV: &nbsp;'
+                        $Listing[0] = '&nbsp;Download einer DATEV-CSV-Datei für externe Programme: &nbsp;'
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText(new Check())
                                 : new DangerText(new Unchecked())));
@@ -422,19 +422,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Datev Option's
                 case TblSetting::IDENT_IS_DATEV:
-                    // Datev ElementGroup
-                    $DatevElementInWell = new WellReadOnly(
-                        new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Eingabepflicht relevanter Eingaben Für DATEV aktivieren', true)
-                            ),
-                            new LayoutColumn(
-                                $this->showDatevInfo()
-                            ),
-                        ))))
-                    );
                     $_POST['Setting'][TblSetting::IDENT_IS_DATEV] = $tblSetting->getValue();
-                    $elementList[0] = $DatevElementInWell;
+                    $elementList[0] = new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Download einer DATEV-CSV-Datei für externe Programme aktivieren', true);
                 break;
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
@@ -551,19 +540,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Content = new Warning(new Container('- Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu
                     Pflichtangaben: Kontodaten, Mandatsreferenznummer')
                     .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme')
-            , null, false, 5, 0);
-        return $Content;
-    }
-
-    /**
-     * @return Warning
-     */
-    private function showDatevInfo()
-    {
-
-        $Content = new Warning(
-                     new Container('- Bei der Verwendung von DATEV wird folgendes Feld zur Pflichtangabe: Debitorennummer')
-                    .new Container('- Ermöglicht den Download einer DATEV-CSV-Datei für externe Programme')
             , null, false, 5, 0);
         return $Content;
     }

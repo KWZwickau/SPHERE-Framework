@@ -491,8 +491,6 @@ class Service extends AbstractService
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
             $tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
             if($tblDebtorNumberList && !empty($tblDebtorNumberList)){
-                // ToDO mehrere Debitoren-Nr.?
-                // erste Debtitor Nummer wird gezogen
                 $tblDebtorNumber = current($tblDebtorNumberList);
                 $DebtorNumber = $tblDebtorNumber->getDebtorNumber();
             } else {
