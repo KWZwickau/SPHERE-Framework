@@ -8,7 +8,12 @@
 
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\System\Extension\Extension;
@@ -41,19 +46,51 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Document\Standard\StudentCard
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
+    /**
+     * @return Stage
+     */
+    public static function frontendSelect()
+    {
+        $Stage = new Stage('Schülerkartei', 'Auswählen');
+        $Stage = self::setButtonList($Stage);
+
+        return $Stage;
+    }
+
+    /**
+     * @param Stage $Stage
+     *
+     * @return Stage
+     */
+    private static function setButtonList(Stage $Stage)
+    {
+        $Stage->addButton(new Standard('Einstellungen', '/Document/Standard/StudentCard/Setting', new CogWheels(),
+            array(),
+            'Fächer-Einstellungen für die Schülerkarteien'));
+        $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentCard/Person', new Person(),
+            array(),
+            'Schülerkartei eines Schülers'));
+        $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
+            array(),
+            'Schülerkarteien einer Klasse'));
+
+        return $Stage;
+    }
 
     /**
      * @return Stage
      */
     public static function frontendSelectPerson()
     {
-
         $Stage = new Stage('Schülerkartei', 'Schüler auswählen');
-        $Stage->addButton(new Standard('Einstellungen', '/Document/Standard/StudentCard/Setting', new CogWheels(),
-            array(),
-            'Fächer-Einstellungen für die Schülerkarteien'));
+        $Stage = self::setButtonList($Stage);
 
         $dataList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
@@ -94,9 +131,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option' => ''
                                 ),
                                 array(
-                                    "columnDefs" => array(
+                                    'columnDefs' => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                        array('type' => 'natural', 'targets' => array(2)),
+                                        array('width' => '5%', 'orderable' => false, 'targets'   => -1),
                                     ),
+                                    'responsive' => false
                                 )
                             )
                         )),
@@ -109,16 +149,112 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Stage
+     */
+    public static function frontendSelectDivision()
+    {
+        $Stage = new Stage('Schülerkartei', 'Klasse auswählen');
+        $Stage = self::setButtonList($Stage);
+
+        $maxPersonCount = 15;
+        $TableContent = array();
+        if (($tblDivisionAll = Division::useService()->getDivisionAll())) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent, $maxPersonCount) {
+                $count = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                $Item['Year'] = '';
+                $Item['Division'] = $tblDivision->getDisplayName();
+                $Item['Type'] = $tblDivision->getTypeName();
+                if ($tblDivision->getServiceTblYear()) {
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                }
+                $Item['Count'] = $count;
+
+                if ($count > 0) {
+                    if ($count <= $maxPersonCount) {
+                        $Item['Option'] = new External(
+                            '',
+                            '/Api/Document/Standard/StudentCard/CreateMulti',
+                            new Download(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+//                            'List' => 1
+                            ),
+                            'Schülerkarteien herunterladen'
+                        );
+                    } else {
+                        $countList = 1;
+                        $Item['Option'] = '';
+                        for ($i = 0; $i < $count; $i++) {
+                            if ($i % $maxPersonCount == 0) {
+                                $name = $countList . '. Teil';
+                                $Item['Option'] .= (new External(
+                                    $name,
+                                    '/Api/Document/Standard/StudentCard/CreateMulti',
+                                    new Download(),
+                                    array(
+                                        'DivisionId' => $tblDivision->getId(),
+                                        'List' => $countList++
+                                    ),
+                                    $name . ' Schülerkarteien herunterladen'
+                                ))->__toString();
+                            }
+                        }
+                    }
+                } else {
+                    $Item['Option'] = '';
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Warning(
+                                'Das Erstellen der Schülerkarteien über eine Klasse kann sehr lange dauern. Deswegen werden
+                                die Schülerkarteien einer Klasse ab ' . $maxPersonCount . ' Schülern in mehrere Downloads aufgeteilt.'
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null,
+                                array(
+                                    'Year' => 'Jahr',
+                                    'Division' => 'Klasse',
+                                    'Type' => 'Schulart',
+                                    'Count' => 'Schüler',
+                                    'Option' => '',
+                                ), array(
+                                    'columnDefs' => array(
+                                        array('type' => 'natural', 'targets' => array(1,3)),
+                                        array('orderable' => false, 'targets'   => -1),
+                                    ),
+                                    'order' => array(
+                                        array(0, 'desc'),
+                                        array(2, 'asc'),
+                                        array(1, 'asc')
+                                    ),
+                                    'responsive' => false
+                                ))
+                            , 12)
+                    ), new Title(new Listing() . ' Übersicht')
+                ))
+            ));
+
+        return $Stage;
+    }
+
+    /**
      * @return Stage|string
      */
     public function frontendSelectStudentCard()
     {
-
         $Stage = new Stage('Schülerkartei Einstellungen', 'Schülerkartei auswählen');
-        $Stage->addButton(new Standard(
-            'Zurück', '/Document/Standard/StudentCard', new ChevronLeft()
-        ));
-
+        $Stage = self::setButtonList($Stage);
 
         if (($tblDocumentAll = StudentCard::useService()->getDocumentAll())) {
             $contentList = array();
@@ -164,7 +300,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendStudentCardSubjects($Id = null, $Data = null)
     {
-
         $Stage = new Stage('Schülerkartei Einstellungen', 'Fächer zuweisen');
         $Stage->addButton(new Standard(
             'Zurück', '/Document/Standard/StudentCard/Setting', new ChevronLeft()

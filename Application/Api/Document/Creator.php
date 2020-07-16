@@ -30,9 +30,7 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\User\Account\Account;
@@ -230,46 +228,174 @@ class Creator extends Extension
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param TblType[] $tblSchoolTypeList
-     * @param string $paperOrientation
+     * @param int  $PersonId
+     * @param bool $Redirect
+     *
      * @return Stage|string
      */
-    public static function createMultiPdf(TblPerson $tblPerson, $tblSchoolTypeList, $paperOrientation = 'PORTRAIT')
+    public static function createStudentCardPdf($PersonId, $Redirect)
     {
-
-        $Data['Person']['Id'] = $tblPerson->getId();
-        $pageList = array();
-        foreach ($tblSchoolTypeList as $tblType)
-        {
-            if ($tblType->getName() == 'Grundschule') {
-                $DocumentItem = new PrimarySchool();
-            } else if ($tblType->getName() == 'Gymnasium') {
-                $DocumentItem = new GrammarSchool();
-            } else if ($tblType->getName() == 'Mittelschule / Oberschule') {
-                $DocumentItem = new SecondarySchool();
-            } else {
-                $DocumentItem = false;
-            }
-
-            if ($DocumentItem) {
-                $Data = Generator::useService()->setStudentCardContent($Data, $tblPerson, $DocumentItem, $tblType);
-                $DocumentItem->setTblPerson($tblPerson);
-                $pageList[] = $DocumentItem->buildPage();
-                $pageList[] = $DocumentItem->buildRemarkPage($tblType);
-            }
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/StudentCard/Create',
+                array(
+                    'PersonId' => $PersonId,
+                    'Redirect' => 0
+                )
+            );
         }
 
-        if (!empty($pageList))
-        {
-            $Document = new MultiStudentCard();
-            $File = self::buildDummyFile($Document, $Data, $pageList, $paperOrientation);
-            $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblSchoolTypeList = Generator::useService()->getSchoolTypeListForStudentCard($tblPerson))
+        ) {
+            $Data['Person']['Id'] = $tblPerson->getId();
+            $pageList = array();
+            foreach ($tblSchoolTypeList as $tblType) {
+                if ($tblType->getName() == 'Grundschule') {
+                    $DocumentItem = new PrimarySchool();
+                } else {
+                    if ($tblType->getName() == 'Gymnasium') {
+                        $DocumentItem = new GrammarSchool();
+                    } else {
+                        if ($tblType->getName() == 'Mittelschule / Oberschule') {
+                            $DocumentItem = new SecondarySchool();
+                        } else {
+                            $DocumentItem = false;
+                        }
+                    }
+                }
 
-            return self::buildDownloadFile($File, $FileName);
+                if ($DocumentItem) {
+                    $Data = Generator::useService()->setStudentCardContent($Data, $tblPerson, $DocumentItem, $tblType);
+                    $DocumentItem->setTblPerson($tblPerson);
+                    $pageList[] = $DocumentItem->buildPage();
+                    $pageList[] = $DocumentItem->buildRemarkPage($tblType);
+                }
+            }
+
+            if (!empty($pageList)) {
+                $Document = new MultiStudentCard();
+                $File = self::buildDummyFile($Document, $Data, $pageList, self::PAPERORIENTATION_PORTRAIT);
+                $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
+
+                return self::buildDownloadFile($File, $FileName);
+            }
         }
 
         return "Keine Schülerkartei vorhanden!";
+    }
+
+    /**
+     * @param null|int $DivisionId
+     * @param null|int $List
+     * @param bool $Redirect
+     *
+     * @return Display|string
+     */
+    public static function createMultiStudentCardPdf($DivisionId, $List, $Redirect)
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/StudentCard/CreateMulti',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'List' => $List,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            // Fieldpointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+                $FileList = array();
+                $count = 0;
+                $maxPersonCount = 15;
+                if ($List !== null) {
+                    $isList = true;
+                    $minCount = 1 + $maxPersonCount * ($List - 1);
+                    $maxCount = 0 + $maxPersonCount * ($List);
+                } else{
+                    $isList = false;
+                    $minCount = 0;
+                    $maxCount = 0;
+                }
+
+                foreach ($tblPersonList as $tblPerson) {
+                    $count++;
+
+                    // nur entsprechenden Personenteil berücksichtigen
+                    if ($isList
+                        && (($count < $minCount) || ($count > $maxCount))
+                    ) {
+                        continue;
+                    }
+
+                    set_time_limit(300);
+                    $Data['Person']['Id'] = $tblPerson->getId();
+                    $pageList = array();
+                    if (($tblSchoolTypeList = Generator::useService()->getSchoolTypeListForStudentCard($tblPerson))) {
+                        foreach ($tblSchoolTypeList as $tblType) {
+                            if ($tblType->getName() == 'Grundschule') {
+                                $DocumentItem = new PrimarySchool();
+                            } else {
+                                if ($tblType->getName() == 'Gymnasium') {
+                                    $DocumentItem = new GrammarSchool();
+                                } else {
+                                    if ($tblType->getName() == 'Mittelschule / Oberschule') {
+                                        $DocumentItem = new SecondarySchool();
+                                    } else {
+                                        $DocumentItem = false;
+                                    }
+                                }
+                            }
+
+                            if ($DocumentItem) {
+                                $Data = Generator::useService()->setStudentCardContent($Data, $tblPerson, $DocumentItem,
+                                    $tblType);
+                                $DocumentItem->setTblPerson($tblPerson);
+                                $pageList[] = $DocumentItem->buildPage();
+                                $pageList[] = $DocumentItem->buildRemarkPage($tblType);
+                            }
+                        }
+
+                        if (!empty($pageList)) {
+                            $Document = new MultiStudentCard();
+
+                            // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
+                            $File = self::buildDummyFile($Document, $Data, $pageList, self::PAPERORIENTATION_PORTRAIT, false);
+                            // hinzufügen für das mergen
+                            $PdfMerger->addPdf($File);
+                            // speichern der Files zum nachträglichem bereinigen
+                            $FileList[] = $File;
+                        }
+                    }
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Schülerkarteien Klasse ' . $tblDivision->getDisplayName()
+                        . ($isList ? ' ' . $List . '.Teil' : '')
+                        . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Schülerkarteien vorhanden!";
     }
 
     /**
