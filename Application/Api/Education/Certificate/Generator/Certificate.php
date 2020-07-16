@@ -1536,14 +1536,14 @@ abstract class Certificate extends Extension
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 4px
+                                 1px
                              {% else %}
                                  2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 5px
+                                 3px
                              {% else %}
                                  2px
                              {% endif %}'
@@ -3837,6 +3837,7 @@ abstract class Certificate extends Extension
         $tblPerson = Person::useService()->getPersonById($personId);
 
         $marginTop = '5px';
+        $TextSizeSmall = '8px';
 
         $slice = new Slice();
         $sectionList = array();
@@ -3893,10 +3894,28 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#E9E9E9')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop()
-                        ->stylePaddingBottom()
+                        ->stylePaddingTop(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 1px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 3px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
                         ->styleMarginTop($marginTop)
-                        ->styleTextSize($TextSize);
+                        ->styleTextSize(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        );
                 }
             }
 
@@ -3939,10 +3958,28 @@ abstract class Certificate extends Extension
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#E9E9E9')
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
+                            ->stylePaddingTop(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                     1px
+                                 {% else %}
+                                     2px
+                                 {% endif %}'
+                            )
+                            ->stylePaddingBottom(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                     3px
+                                 {% else %}
+                                     2px
+                                 {% endif %}'
+                            )
                             ->styleMarginTop($marginTop)
-                            ->styleTextSize($TextSize);
+                            ->styleTextSize(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                            );
                     }
                 }
             }
