@@ -54,17 +54,6 @@ use SPHERE\Common\Window\Stage;
 class Frontend extends Extension implements IFrontendInterface
 {
     /**
-     * @return Stage
-     */
-    public static function frontendSelect()
-    {
-        $Stage = new Stage('Schülerkartei', 'Auswählen');
-        $Stage = self::setButtonList($Stage);
-
-        return $Stage;
-    }
-
-    /**
      * @param Stage $Stage
      *
      * @return Stage
@@ -74,7 +63,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Einstellungen', '/Document/Standard/StudentCard/Setting', new CogWheels(),
             array(),
             'Fächer-Einstellungen für die Schülerkarteien'));
-        $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentCard/Person', new Person(),
+        $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentCard', new Person(),
             array(),
             'Schülerkartei eines Schülers'));
         $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
@@ -214,8 +203,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Warning(
-                                'Das Erstellen der Schülerkarteien über eine Klasse kann sehr lange dauern. Deswegen werden
-                                die Schülerkarteien einer Klasse ab ' . $maxPersonCount . ' Schülern in mehrere Downloads aufgeteilt.'
+                                'Die Erstellung der Schülerkarteien über eine Klasse kann sehr lange dauern, deswegen
+                                 erfolgt eine Aufteilung ab ' . $maxPersonCount . ' Schülern über mehrere Downloads.'
                             )
                         )
                     ),
