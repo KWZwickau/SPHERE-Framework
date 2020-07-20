@@ -46,6 +46,7 @@ class Service extends Extension
                 $Item['FirstName'] = $tblPerson->getFirstName();
                 $Item['Address'] = '';
                 $Item['Birthday']  = '';
+                $Item['PhoneStudent'] = $Item['PhoneStudentExcel'] = '';
                 $Item['PhoneGuardian1'] = $Item['PhoneGuardian1Excel'] = '';
                 $Item['PhoneGuardian2'] = $Item['PhoneGuardian2Excel'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
@@ -96,6 +97,9 @@ class Service extends Extension
                     $Item['PhoneGuardian2Excel'] = $this->getPhoneList($tblPersonG2, true);
                 }
 
+                $Item['PhoneStudent'] = $this->getPhoneList($tblPerson);
+                $Item['PhoneStudentExcel'] = $this->getPhoneList($tblPerson, true);
+
                 array_push($TableContent, $Item);
             });
         }
@@ -125,28 +129,35 @@ class Service extends Extension
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
 
-            $column = 0;
-            $row = 0;
-            $export->setValue($export->getCell($column, $row), "SJ "
+            $headerText = "SJ "
                 . (($tblYear = $tblDivision->getServiceTblYear()) ? $tblYear->getName() : '')
                 . ' Klasse ' . $tblDivision->getDisplayName() . ' '
-                . (empty($teachers) ? '' : implode(' - ', $teachers))
-            );
-            $export->setStyle($export->getCell(0, $row), $export->getCell(6, $row))
-                ->setFontBold()
-                ->setBorderBottom();
-            $row++;
+                . (empty($teachers) ? '' : implode(' - ', $teachers));
+
+            $column = 0;
+            $row = 0;
+//            $export->setValue($export->getCell($column, $row), "SJ "
+//                . (($tblYear = $tblDivision->getServiceTblYear()) ? $tblYear->getName() : '')
+//                . ' Klasse ' . $tblDivision->getDisplayName() . ' '
+//                . (empty($teachers) ? '' : implode(' - ', $teachers))
+//            );
+//            $export->setStyle($export->getCell(0, $row), $export->getCell(7, $row))
+//                ->setFontBold()
+//                ->setBorderBottom();
+//            $row++;
 
             $export->setValue($export->getCell($column++, $row), "#");
             $export->setValue($export->getCell($column++, $row), "Name");
             $export->setValue($export->getCell($column++, $row), "Vorname");
             $export->setValue($export->getCell($column++, $row), "Adresse");
             $export->setValue($export->getCell($column++, $row), "Geb.-datum");
+            $export->setValue($export->getCell($column++, $row), "Tel. Schüler");
             $export->setValue($export->getCell($column++, $row), "Tel. Sorgeber. 1");
             $export->setValue($export->getCell($column, $row), "Tel. Sorgeber. 2");
             $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))
                 ->setFontBold()
-                ->setBorderBottom();
+                ->setBorderBottom()
+                ->setBorderTop();
             $row++;
 
             foreach ($PersonList as $PersonData) {
@@ -166,6 +177,15 @@ class Service extends Extension
                 $column++;
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
+
+                $phoneStudentRow = $row;
+                if (isset($PersonData['PhoneStudentExcel']) && !empty($PersonData['PhoneStudentExcel'])) {
+                    foreach ($PersonData['PhoneStudentExcel'] as $Phone) {
+                        $export->setValue($export->getCell($column, $phoneStudentRow), $Phone);
+                        $phoneStudentRow++;
+                    }
+                }
+                $column++;
 
                 $phoneGuardian1Row = $row;
                 if (isset($PersonData['PhoneGuardian1Excel']) && !empty($PersonData['PhoneGuardian1Excel'])) {
@@ -196,23 +216,28 @@ class Service extends Extension
                 $export->setStyle($export->getCell(0, $row - 1), $export->getCell($column, $row - 1))->setBorderBottom();
             }
 
-            $export->setStyle($export->getCell(0, 1), $export->getCell(0, $row - 1))->setBorderLeft();
-            for ($i=0; $i<7; $i++) {
-                $export->setStyle($export->getCell($i, 1), $export->getCell($i, $row - 1))->setBorderRight();
+            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $row - 1))->setBorderLeft();
+            for ($i=0; $i<8; $i++) {
+                $export->setStyle($export->getCell($i, 0), $export->getCell($i, $row - 1))->setBorderRight();
             }
 
             // Spaltenbreite Definieren
             $column = 0;
             $export->setStyle($export->getCell($column++, 0))->setColumnWidth(4);
-            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(20);
-            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(20);
+            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(18);
+            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(18);
             $export->setStyle($export->getCell($column++, 0))->setColumnWidth(25);
             $export->setStyle($export->getCell($column++, 0))->setColumnWidth(12);
-            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(25);
-            $export->setStyle($export->getCell($column, 0))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(18);
+            $export->setStyle($export->getCell($column++, 0))->setColumnWidth(18);
+            $export->setStyle($export->getCell($column, 0))->setColumnWidth(18);
 
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->setPaperSizeParameter(new PaperSizeParameter('A4'));
+
+            // Kopfzeile im Excel setzen, sieht man nur beim Drucken oder wenn man es als PDF speichert
+            $export->getActiveSheet()->getHeaderFooter()->setDifferentOddEven(false);
+            $export->getActiveSheet()->getHeaderFooter()->setOddHeader($headerText);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

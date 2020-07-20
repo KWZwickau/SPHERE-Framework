@@ -99,4 +99,12 @@ class PhpExcel extends Worksheet
 
         return $this->Source->getActiveSheet()->getHighestRow();
     }
+
+    /**
+     * @return \PHPExcel_Worksheet
+     */
+    public function getActiveSheet()
+    {
+        return $this->Source->getActiveSheet();
+    }
 }
