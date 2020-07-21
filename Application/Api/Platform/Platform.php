@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Platform\Database\Database;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
 use SPHERE\Application\Api\Platform\Gatekeeper\Gatekeeper;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
+use SPHERE\Application\Api\Platform\View\View;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -19,6 +20,7 @@ class Platform implements IApplicationInterface
     {
 
         Database::registerModule();
+        View::registerModule();
         Gatekeeper::registerModule();
 //        ApiUserGroup::registerApi();
         ApiSystemTest::registerApi();

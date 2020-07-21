@@ -62,6 +62,11 @@ class Database extends Extension implements IModuleInterface
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
+                'Database::frontendDashboard'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Status',
                 'Database::frontendStatus'
             )
         );
@@ -83,6 +88,11 @@ class Database extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Reporting',
                 __CLASS__.'::frontendSetupReporting'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Active/Reporting',
+                __CLASS__.'::frontendSetupActiveReporting'
             )
         );
     }
@@ -114,6 +124,14 @@ class Database extends Extension implements IModuleInterface
         if (!in_array($__CLASS__, self::$ServiceRegister)) {
             array_push(self::$ServiceRegister, trim($__CLASS__, '\\'));
         }
+    }
+
+    public function frontendDashboard()
+    {
+
+        $Stage = new Stage('Datenbank', 'Dashboard');
+        $this->menuButton($Stage);
+        return $Stage;
     }
 
     /**
@@ -203,22 +221,23 @@ class Database extends Extension implements IModuleInterface
     private function menuButton(Stage $Stage)
     {
 
-        $Stage->addButton(new Standard('Status', new Link\Route(__NAMESPACE__), null,
+        $Stage->addButton(new Standard('DB Update', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
+            array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
+        ));
+        $Stage->addButton(new Standard('View Update', new Link\Route(__NAMESPACE__.'/Setup/Active/Reporting'),
+            null, array(), 'Durchführen von Viewänderungen'
+        ));
+        $Stage->addButton(new Standard('1. Alle Mandanten DB', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
+            new Warning(), array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
+        ));
+        $Stage->addButton(new Standard('2. Alle Mandanten View', new Link\Route(__NAMESPACE__.'/Setup/Reporting'),
+            new Warning(), array(), 'Durchführen von Viewänderungen'
+        ));
+        $Stage->addButton(new Standard('Status', new Link\Route(__NAMESPACE__.'/Status'), null,
             array(), 'Datenbankverbindungen'
         ));
         $Stage->addButton(new Standard('Simulation', new Link\Route(__NAMESPACE__.'/Setup/Simulation'), null,
             array(), 'Anzeige von Strukturänderungen'
-        ));
-        $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
-            array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
-        ));
-        $Stage->addButton(new Standard('1. Alle Mandanten aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
-            new Warning(),
-            array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
-        ));
-        $Stage->addButton(new Standard('2. Alle Mandanten Flexible Auswertung aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Reporting'),
-            new Warning(),
-            array(), 'Durchführen von Viewänderungen'
         ));
         $Stage->addButton(new External('phpMyAdmin',
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.6.1'));
@@ -258,12 +277,155 @@ class Database extends Extension implements IModuleInterface
      */
     public function frontendSetupReporting()
     {
-        $Stage = new Stage('Database', 'Setup aller Mandanten (Reporting)');
+        // Old
+//        $Stage = new Stage('Database', 'Setup aller Mandanten (Reporting)');
+//        $this->menuButton($Stage);
+//
+//        $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
+//
+//        $Stage->setContent( $ReportingUpgrade->migrateReporting() );
+//
+//        return $Stage;
+
+        $Stage = new Stage('View', 'Aktuallisierung aller Mandanten (Views)');
+        $this->menuButton($Stage);
+
+        $tblConsumerAll = Consumer::useService()->getConsumerAll();
+        $ConsumerRequestList = array();
+        if ($tblConsumerAll) {
+            $Authenticator = (new Authenticator(new Get()))->getAuthenticator();
+
+            $ProtocolSecure = 'http://';
+            if(strpos($this->getRequest()->getHost(), 'schulsoftware.schule')){
+                $ProtocolSecure = 'https://';
+            }
+
+            array_walk($tblConsumerAll,
+                function (TblConsumer $tblConsumer) use (&$ConsumerRequestList, $Authenticator, $ProtocolSecure) {
+                // local http
+                    $ConsumerRequestList[$tblConsumer->getAcronym()] =
+                        $ProtocolSecure.$this->getRequest()->getHost()
+                        .'/Api/Platform/View/Upgrade'
+                        .'?'.http_build_query($Authenticator->createSignature(array(
+                            'Consumer' => $tblConsumer->getAcronym()
+                        ), '/Api/Platform/View/Upgrade'));
+                });
+            ksort($ConsumerRequestList);
+        }
+
+        $Stage->setContent(
+            new Title('View\'s aller Mandanten werden aktualisiert...')
+            .'<div id="ConsumerProgress" class="progress" style="height: 15px; margin: 0;">
+                <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
+                <div class="progress-bar progress-bar-info progress-bar-striped active" style="width: 0%;"></div>
+                <div class="progress-bar progress-bar-warning" style="width: 100%;"></div>
+            </div>'
+            .'<div id="ConsumerProtocol" class="small"></div>'
+            .'<script language=javascript>
+            //noinspection JSUnresolvedFunction
+            executeScript(function()
+            {
+                Client.Use(\'ModAlways\', function()
+                {
+                    (function($)
+                    {
+                        \'use strict\';
+                        $.fn.ModDatabaseUpgrade = function(options)
+                        {
+
+                            // This is the easiest way to have default options.
+                            var settings = $.extend({
+                                consumer: []
+                            }, options);
+                            console.log(options)
+
+                            var Size = Object.keys(settings.consumer).length;
+
+                            var getConsumer = function pop(obj) {
+                              for (var key in obj) {
+                                // Uncomment below to fix prototype problem.
+                                //if (!Object.hasOwnProperty.call(obj, key)) continue;
+                                var result = obj[key];
+                                // If the property can\'t be deleted fail with an error.
+                                if (!delete obj[key]) { throw new Error(); }
+                                return result;
+                              }
+                            };
+
+                            var ResultConsumer = [];
+                            var ErrorConsumer = false;
+
+                            var Progress = 100 / Size * Object.keys(settings.consumer).length;
+                            var Info = 100 / Size;
+                            var Bar = jQuery("#ConsumerProgress");
+                            Bar.find(".progress-bar-info").css("width",(Info)+"%");
+                            Bar.find(".progress-bar-warning").css("width",(Progress-Info)+"%");
+
+                            var runConsumer = function( Api ){
+                                Progress = 100 / Size * Object.keys(settings.consumer).length;
+                                Info = 100 / Size;
+
+                                Bar.find(".progress-bar-info").css("width",(Info)+"%");
+                                if( Api ) {
+                                    jQuery.get( Api, function( Result ){
+                                        
+                                        Bar.find(".progress-bar-success").css("width",(100-Progress)+"%").html( (Size-Object.keys(settings.consumer).length)+" / "+Size );
+                                        Bar.find(".progress-bar-warning").css("width",(Progress-Info)+"%");
+                                        
+                                        var ResultError = Result.indexOf("glyphicons glyphicons-remove-circle", "36");
+                                        Result = Result.substr(Result.indexOf(\' \'),Result.length);
+                                        jQuery("#ConsumerProtocol").append( Result );
+
+//                                        var Consumer = Result.substr(0,Result.indexOf(\' \'));
+//                                        Result = Result.substr(Result.indexOf(\' \'),Result.length);
+//                                        jQuery("#ConsumerProtocol").append( Result );
+
+                                        if( -1 == ResultError ) {
+                                            ResultConsumer.push(Result);
+                                        } else {
+                                            ErrorConsumer = true;
+                                        }
+
+                                        Api = getConsumer( settings.consumer );
+                                        runConsumer( Api );
+                                    }, "json" );
+                                } else {
+                                    if(ErrorConsumer) {
+                                        Bar.find(".progress-bar-success").removeClass("progress-bar-success").addClass("progress-bar-danger").html("ERROR")
+                                        } else {
+                                        Bar.find(".progress-bar-success").html("DONE")
+                                        }
+                                        Bar.find(".progress-bar-success").removeClass("active");
+                                }
+                            };
+
+                            var Api = getConsumer( settings.consumer );
+                            runConsumer( Api );
+
+                            return this;
+                        };
+
+                    }(jQuery));
+
+                    jQuery().ModDatabaseUpgrade({consumer:'.json_encode($ConsumerRequestList).' });
+                });
+            });
+        </script>'
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendSetupActiveReporting()
+    {
+        $Stage = new Stage('Database', 'Setup aktiver Mandant (Reporting)');
         $this->menuButton($Stage);
 
         $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
-
-        $Stage->setContent( $ReportingUpgrade->migrateReporting() );
+        $Stage->setContent( $ReportingUpgrade->activeMigrateReporting() );
 
         return $Stage;
     }
@@ -282,11 +444,16 @@ class Database extends Extension implements IModuleInterface
         if ($tblConsumerAll) {
             $Authenticator = (new Authenticator(new Get()))->getAuthenticator();
 
-            array_walk($tblConsumerAll,
-                function (TblConsumer $tblConsumer) use (&$ConsumerRequestList, $Authenticator) {
+            $ProtocolSecure = 'http://';
+            if(strpos($this->getRequest()->getHost(), 'schulsoftware.schule')){
+                $ProtocolSecure = 'https://';
+            }
 
+            array_walk($tblConsumerAll,
+                function (TblConsumer $tblConsumer) use (&$ConsumerRequestList, $Authenticator, $ProtocolSecure) {
+                    // local http
                     $ConsumerRequestList[$tblConsumer->getAcronym()] =
-                        'https://'.$this->getRequest()->getHost()
+                        $ProtocolSecure.$this->getRequest()->getHost()
                         .'/Api/Platform/Database/Upgrade'
                         .'?'.http_build_query($Authenticator->createSignature(array(
                             'Consumer' => $tblConsumer->getAcronym()
@@ -294,7 +461,6 @@ class Database extends Extension implements IModuleInterface
                 });
 
             ksort($ConsumerRequestList);
-
             if(isset($ConsumerRequestList['REF'])){
                 $Api = $ConsumerRequestList['REF'];
                 unset($ConsumerRequestList['REF']);
@@ -315,7 +481,7 @@ class Database extends Extension implements IModuleInterface
         }
 
         $Stage->setContent(
-            new Title('Mandanten werden aktualisiert...')
+            new Title('Datenbanken aller Mandanten werden aktualisiert...')
             .'<div id="ConsumerProgress" class="progress" style="height: 15px; margin: 0;">
                 <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
                 <div class="progress-bar progress-bar-info progress-bar-striped active" style="width: 0%;"></div>
