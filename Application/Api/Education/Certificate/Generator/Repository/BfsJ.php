@@ -44,14 +44,14 @@ class BfsJ extends Certificate
         );
 
         $pageList[] = (new Page())
-            ->addSlice($bfsHj->getSchoolHead($personId, 'Jahreszeugnis'))
+            ->addSlice($bfsHj->getSchoolHead($personId, 'Endjahresinformation'))
             ->addSlice($bfsHj->getStudentHead($personId, 'Schuljahr'))
             ->addSlice($bfsHj->getSubjectLineAcross($personId, $this->getCertificateEntity()))
             ->addSlice($bfsHj->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich'))
         ;
 
         $pageList[] = (new Page())
-            ->addSlice($bfsHj->getSecondPageHead($personId, 'Jahreszeugnis'))
+            ->addSlice($bfsHj->getSecondPageHead($personId, 'Endjahresinformation'))
             ->addSlice($bfsHj->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 10, true, '180px'))
             ->addSlice($bfsHj->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($bfsHj->getPraktika($personId, $this->getCertificateEntity()))
