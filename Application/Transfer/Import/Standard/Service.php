@@ -11,6 +11,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -211,6 +212,7 @@ class Service
 
             // student extended
             'Klasse/Kurs'          => null,
+            'Schule'               => null,
             'Schulart'             => null,
             'Bildungsgang'         => null,
             'Religion'             => null,
@@ -294,7 +296,8 @@ class Service
                 // division
                 $divisionString = trim($Document->getValue($Document->getCell($Location['Klasse/Kurs'], $RunY)));
                 $schoolType = trim($Document->getValue($Document->getCell($Location['Schulart'], $RunY)));
-                $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $RunY, $Nr, $error);
+                $school = trim($Document->getValue($Document->getCell($Location['Schule'], $RunY)));
+                $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $RunY, $Nr, $error);
 
                 // address
                 $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -1148,11 +1151,12 @@ class Service
      * @param string    $YearString
      * @param string    $divisionString
      * @param string    $schoolType
+     * @param string    $school
      * @param int       $RunY
      * @param string    $Nr
      * @param array     $error
      */
-    private function setPersonDivision(TblPerson $tblPerson, $YearString, $divisionString, $schoolType, $RunY, $Nr, &$error)
+    private function setPersonDivision(TblPerson $tblPerson, $YearString, $divisionString, $schoolType, $school, $RunY, $Nr, &$error)
     {
 
         $year = (int)$YearString;
@@ -1235,13 +1239,19 @@ class Service
                         $tblSchoolType = false;
                 }
 
+                if(!($tblCompany = Company::useService()->getCompanyByName($school, ''))){
+                    $tblCompany = null;
+                }
+
                 if($tblSchoolType){
                     $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
                     if ($tblLevel) {
                         $tblDivision = Division::useService()->insertDivision(
                             $tblYear,
                             $tblLevel,
-                            $division
+                            $division,
+                            '',
+                            $tblCompany
                         );
                     }
                 }
