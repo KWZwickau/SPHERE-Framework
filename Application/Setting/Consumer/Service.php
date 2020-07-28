@@ -6,6 +6,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\Application\Setting\Consumer\Service\Setup;
@@ -299,5 +300,43 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSettingByConsumer($tblSetting, $tblConsumer);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param \DateTime $dateTime
+     * @param $identifier
+     * @param $isLocked
+     * @param $isLockedLastLoad
+     *
+     * @return TblAccountDownloadLock
+     */
+    public function createAccountDownloadLock(
+        TblAccount $tblAccount,
+        \DateTime $dateTime,
+        $identifier,
+        $isLocked,
+        $isLockedLastLoad
+    ) {
+        return (new Data($this->getBinding()))->createAccountDownloadLock(
+            $tblAccount,
+            $dateTime,
+            $identifier,
+            $isLocked,
+            $isLockedLastLoad
+        );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $identifier
+     *
+     * @return false|TblAccountDownloadLock
+     */
+    public function getAccountDownloadLock(
+        TblAccount $tblAccount,
+        $identifier
+    ) {
+        return (new Data($this->getBinding()))->getAccountDownloadLock($tblAccount, $identifier);
     }
 }

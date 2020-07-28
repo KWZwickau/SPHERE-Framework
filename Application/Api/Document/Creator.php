@@ -31,6 +31,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\User\Account\Account;
@@ -305,6 +306,19 @@ class Creator extends Extension
             );
         }
 
+        $tblAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession();
+
+        if ($tblAccount
+            && ($tblAccountDownloadLock = Consumer::useService()->getAccountDownloadLock($tblAccount, 'StudentCard'))
+            && $tblAccountDownloadLock->getIsFrontendLocked()
+        ) {
+            return 'Sie können immer nur eine Schülerkartei herunterladen. Bitte warten Sie bis das Erstellen der letzten Schülerkartei abgeschlossen ist';
+        }
+
+        if ($tblAccount){
+            Consumer::useService()->createAccountDownloadLock($tblAccount, new \DateTime(), 'StudentCard', true, false);
+        }
+
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             // Fieldpointer auf dem der Merge durchgeführt wird, (download)
             $MergeFile = Storage::createFilePointer('pdf');
@@ -384,6 +398,8 @@ class Creator extends Extension
                         $File->setDestruct();
                     }
                 }
+
+                Consumer::useService()->createAccountDownloadLock($tblAccount, new \DateTime(), 'StudentCard', false, true);
 
                 if (!empty($FileList)) {
                     $FileName = 'Schülerkarteien Klasse ' . $tblDivision->getDisplayName()

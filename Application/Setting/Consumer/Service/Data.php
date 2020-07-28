@@ -6,6 +6,7 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -655,5 +656,76 @@ class Data extends AbstractData
             return $Connection;
         }
         return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param \DateTime $dateTime
+     * @param string $identifier
+     * @param boolean $isLocked
+     * @param boolean $isLockedLastLoad
+     *
+     * @return TblAccountDownloadLock
+     */
+    public function createAccountDownloadLock(
+        TblAccount $tblAccount,
+        \DateTime $dateTime,
+        $identifier,
+        $isLocked,
+        $isLockedLastLoad
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblAccountDownloadLock $Entity */
+        $Entity = $Manager->getEntity('TblAccountDownloadLock')->findOneBy(array(
+            TblAccountDownloadLock::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+            TblAccountDownloadLock::ATTR_IDENTIFIER => $identifier
+        ));
+        if ($Entity === null) {
+            $Entity = new TblAccountDownloadLock();
+            $Entity->setServiceTblAccount($tblAccount);
+            $Entity->setDate($dateTime);
+            $Entity->setIdentifier($identifier);
+            $Entity->setIsLocked($isLocked);
+            $Entity->setIsLockedLastLoad($isLockedLastLoad);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setServiceTblAccount($tblAccount);
+                $Entity->setDate($dateTime);
+                $Entity->setIdentifier($identifier);
+                $Entity->setIsLocked($isLocked);
+                $Entity->setIsLockedLastLoad($isLockedLastLoad);
+
+                $Manager->saveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            }
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $identifier
+     *
+     * @return false|TblAccountDownloadLock
+     */
+    public function getAccountDownloadLock(
+        TblAccount $tblAccount,
+        $identifier
+    ) {
+        return $this->getForceEntityBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblAccountDownloadLock', array(
+                TblAccountDownloadLock::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAccountDownloadLock::ATTR_IDENTIFIER => $identifier
+            )
+        );
     }
 }
