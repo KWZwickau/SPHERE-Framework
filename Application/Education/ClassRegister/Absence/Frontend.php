@@ -391,6 +391,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $buttonList = array();
             if ($startDate && $endDate) {
+                // SSW-1061
+                $startDate = new \DateTime('01.' . $startDate->format('m') . '.' . $startDate->format('Y'));
                 while ($startDate <= $endDate) {
                     $startDateYear = $startDate->format('Y');
                     $startDateMonth = $startDate->format('m');
@@ -781,6 +783,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $buttonList = array();
             if ($startDate && $endDate) {
+                // SSW-1061
+                $startDate = new \DateTime('01.' . $startDate->format('m') . '.' . $startDate->format('Y'));
                 while ($startDate <= $endDate) {
                     $startDateYear = $startDate->format('Y');
                     $startDateMonth = $startDate->format('m');
