@@ -329,7 +329,7 @@ class Service extends AbstractService
         if ($isGuardianOfTheGalaxy) {
             $Ranking = null;
             if (!isset($Type['Ranking'])) {
-                $messageOptions = new Danger('Bitte geben Sie an um welchen Sorgeberechtigten (S1, S2, S3) es sich handelt',
+                $message = new Danger('Bitte geben Sie an um welchen Sorgeberechtigten (S1, S2, S3) es sich handelt',
                     new Exclamation());
                 $error = true;
             } else {
@@ -342,7 +342,7 @@ class Service extends AbstractService
                     if (($warnings = $this->checkGuardianRelationshipsForPerson($tblPersonChild, $tblPersonGuardian,
                         $Ranking, $isSingleParent))) {
                         $error = true;
-                        $messageOptions = new Danger(implode('<br>', $warnings));
+                        $message = new Danger(implode('<br>', $warnings));
                     }
                 }
             }
@@ -364,7 +364,7 @@ class Service extends AbstractService
                     && $tblPersonRelationshipTo->getId() == $tblPersonChild->getId()
                 ) {
                     $error = true;
-                    $messageOptions = new Danger('Diese Personenbeziehung existiert bereits, bitte wählen Sie eine andere Person aus.',
+                    $message = new Danger('Diese Personenbeziehung existiert bereits, bitte wählen Sie eine andere Person aus.',
                         new Exclamation());
                 }
             }
