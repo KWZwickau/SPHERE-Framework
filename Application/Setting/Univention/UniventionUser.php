@@ -51,14 +51,13 @@ class UniventionUser
         ));
 
         $Json = curl_exec($this->curlhandle);
-        Debugger::screenDump($Json);
-        $StdClassArray = json_decode($Json);
+        // Object to Array
+        $StdClassAsArray = json_decode($Json, true);
 
         $UserList = array();
-        if(is_array($StdClassArray) && !empty($StdClassArray)){
-            foreach($StdClassArray as $StdClass){
-//                $UserList[] = $StdClass->name;
-                $UserList[] = $StdClass;
+        if(is_array($StdClassAsArray) && !empty($StdClassAsArray)){
+            foreach($StdClassAsArray as $User){
+                $UserList[] = $User;
             }
         }
         return (is_array($UserList) && !empty($UserList) ? $UserList : false);
@@ -72,26 +71,28 @@ class UniventionUser
      * @param string $record_uid
      * @param array  $roles
      * @param array  $schools
+     * @param array  $school_classes
      * @param string $source_uid
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $source_uid = '')
+        $schools = array(), $school_classes = array(), $source_uid = '')
     {
         curl_reset($this->curlhandle);
 
         $PersonContent = array(
             'name' => $name,
 //            'mailPrimaryAddress' => $email,
-            'email' => $email,
+//            'email' => $email,
             'firstname' => $firstname,
             'lastname' => $lastname,
-            // Try AccountId to find Account again?
+            // AccountId
             'record_uid' => $record_uid,
             'roles' => $roles,
-            'schools' => $schools, // test with two array elements
-            // Mandant + AccountId to human resolve problems?
+            'schools' => $schools,
+//            'school_classes' => $school_classes, // ToDO Spalte funktioniert nicht
+            // Mandant + AccountId
             'source_uid' => $source_uid
         );
 
@@ -131,18 +132,17 @@ class UniventionUser
           - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
-        $StdClass = json_decode($Json);
-
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
         $Error = null;
-
-        if(isset($StdClass->detail)){
-            if(is_string($StdClass->detail)){
-                $Error = $StdClass->detail;
-            }elseif(is_array($StdClass->detail)){
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
-                foreach($StdClass->detail as $Detail){
-                    if(is_object($Detail)){
-                        $Error .= $name.' - '.$Detail->msg;
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
                     }
                 }
             }
@@ -171,7 +171,7 @@ class UniventionUser
         $PersonContent = array(
             'name' => $name,
 //            'mailPrimaryAddress' => $email,
-            'email' => $email,
+//            'email' => $email,
             'firstname' => $firstname,
             'lastname' => $lastname,
             // Try AccountId to find Account again?
@@ -219,18 +219,17 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
-        $StdClass = json_decode($Json);
-
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
         $Error = null;
-
-        if(isset($StdClass->detail)){
-            if(is_string($StdClass->detail)){
-                $Error = $StdClass->detail;
-            }elseif(is_array($StdClass->detail)){
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
-                foreach($StdClass->detail as $Detail){
-                    if(is_object($Detail)){
-                        $Error .= $name.' - '.$Detail->msg;
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
                     }
                 }
             }
@@ -249,6 +248,10 @@ class UniventionUser
 
         curl_reset($this->curlhandle);
 
+        $name = urlencode($name);
+
+        Debugger::screenDump($name);
+
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
             CURLOPT_CUSTOMREQUEST => 'DELETE',
@@ -259,17 +262,17 @@ class UniventionUser
         ));
 
         $Json = $this->execute($this->curlhandle);
-        $StdClass = json_decode($Json);
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
         $Error = null;
-
-        if(isset($StdClass->detail)){
-            if(is_string($StdClass->detail)){
-                $Error = $StdClass->detail;
-            }elseif(is_array($StdClass->detail)){
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
-                foreach($StdClass->detail as $Detail){
-                    if(is_object($Detail)){
-                        $Error .= $name.' - '.$Detail->msg;
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
                     }
                 }
             }

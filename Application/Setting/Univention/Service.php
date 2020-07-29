@@ -100,6 +100,21 @@ class Service extends AbstractService
                     $tblAccountList[] = $tblUserAccount->getServiceTblAccount();
                 }
             }
+
+//            // ToDO remove einschränkung
+//            $i = 0;
+//            foreach($tblAccountList as &$tblAccount){
+//                $UserName = $tblAccount->getUsername();
+//                if(preg_match('![üöä]!', $UserName)){
+//                    $tblAccount = false;
+//                    continue;
+//                }
+//                $i++;
+//                if($i > 5){
+//                    $tblAccount = false;
+//                }
+//            }
+//            $tblAccountList = array_filter($tblAccountList);
         }
         return (!empty($tblAccountList) ? $tblAccountList : false);
     }
@@ -109,144 +124,136 @@ class Service extends AbstractService
      * @param string  $Acronym
      * @param array   $TeacherSchools
      * @param array   $TeacherClasses
+     * @param array   $schoolList
+     * @param array   $roleList
      *
      * @return array
      */
-    public function getAccountActive(TblYear $tblYear, $Acronym = '', $TeacherSchools = array(), $TeacherClasses = array())
+    public function getAccountActive(TblYear $tblYear, $Acronym = '', $TeacherSchools = array(), $TeacherClasses = array(), $schoolList = array(), $roleList = array())
     {
 
         $tblAccountList = Univention::useService()->getAccountAllForAPITransfer();
         $activeAccountList = array();
 
-        array_walk($tblAccountList, function(TblAccount $tblAccount) use ($tblYear, $Acronym, &$activeAccountList, $TeacherSchools, $TeacherClasses){
-            $UploadItem['name'] = $tblAccount->getUsername();
-            $UploadItem['email'] = $tblAccount->getUserAlias();
-            $UploadItem['firstname'] = '';
-            $UploadItem['lastname'] = '';
-            $UploadItem['record_uid'] = $tblAccount->getId();
-            $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
-            $UploadItem['roles'] = '';
-            $UploadItem['schools'] = '';
+        if($tblAccountList){
+            array_walk($tblAccountList, function(TblAccount $tblAccount) use ($tblYear, $Acronym, &$activeAccountList,
+                $TeacherSchools, $TeacherClasses, $schoolList, $roleList){
+                $UploadItem['name'] = $tblAccount->getUsername();
+                $UploadItem['email'] = $tblAccount->getUserAlias();
+                $UploadItem['firstname'] = '';
+                $UploadItem['lastname'] = '';
+                $UploadItem['record_uid'] = $tblAccount->getId();
+                $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
+                $UploadItem['roles'] = '';
+                $UploadItem['schools'] = '';
 
 //            $UploadItem['password'] = '';// no passwort transfer
-            $UploadItem['school_classes'] = '';
-            $UploadItem['group'] = '';
+                $UploadItem['school_classes'] = '';
+                $UploadItem['group'] = '';
 
-            $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
-            if($tblPerson){
-                $tblPerson = current($tblPerson);
-                $UploadItem['firstname'] = $tblPerson->getFirstName();
-                $UploadItem['lastname'] = $tblPerson->getLastName();
-            }
-            // Rollen
-            $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-            $groups = array();
-            $roles = array();
-            //ToDO use API Rolles
-            foreach($tblGroupList as $tblGroup){
-                if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-//                    $roles[] = $roleList['staff'];
-                    $roles[] = 'staff';
+                $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
+                if($tblPerson){
+                    $tblPerson = current($tblPerson);
+                    $UploadItem['firstname'] = $tblPerson->getFirstName();
+                    $UploadItem['lastname'] = $tblPerson->getLastName();
                 }
-                if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-//                    $roles[] = $roleList['teacher'];
-                    $roles[] = 'teacher';
+                // Rollen
+                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                $groups = array();
+                $roles = array();
+                foreach($tblGroupList as $tblGroup){
+                    if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
+                    $roles[] = $roleList['staff'];
+                    }
+                    if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
+                    $roles[] = $roleList['teacher'];
+                    }
+                    if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
+                    $roles[] = $roleList['student'];
+                    }
+                    if($tblGroup->isCoreGroup()){
+                        $groups[] = $tblGroup->getName();
+                    }
                 }
-                if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-//                    $roles[] = $roleList['student'];
-                    $roles[] = 'student';
+                if(!empty($roles)){
+                    $UploadItem['roles'] = $roles;
                 }
-                if($tblGroup->isCoreGroup()){
-                    $groups[] = $tblGroup->getName();
+                if(!empty($groups)){
+                    $Item['groupArray'] = $groups;
                 }
-            }
-            if(!empty($roles)){
-                $UploadItem['roles'] = $roles;
-            }
-            if(!empty($groups)){
-                $Item['groupArray'] = $groups;
-            }
 
-            $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-            // Student Search Division
-            $schools = array();
-            $StudentSchool = '';
-            if(!Consumer::useService()->isSchoolSeparated()){
-                // Mandant wird als Schule verwendet
-                $SchoolString = $this->getSchoolString($Acronym);
-                $schools[] = $SchoolString;
-                $StudentSchool = $SchoolString;
-            } else {
-                if (($tblCompany = $tblDivision->getServiceTblCompany())){
-                    if ($tblDivision){
-                        // Schule über Schülerakte Company und Klasse (Schulart)
-                        if (($tblSchoolType = $tblDivision->getType())){
-                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                            $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-                            $schools[] = $SchoolString;
-                            $StudentSchool = $SchoolString;
+                $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
+                // Student Search Division
+                $schools = array();
+                $StudentSchool = '';
+                if(!Consumer::useService()->isSchoolSeparated()){
+                    // Mandant wird als Schule verwendet
+                    $SchoolString = $this->getSchoolString($Acronym);
+                    $schools[] = $SchoolString;
+                    $StudentSchool = $SchoolString;
+                } else {
+                    if (($tblCompany = $tblDivision->getServiceTblCompany())){
+                        if ($tblDivision){
+                            // Schule über Schülerakte Company und Klasse (Schulart)
+                            if (($tblSchoolType = $tblDivision->getType())){
+                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
+                                $schools[] = $SchoolString;
+                                $StudentSchool = $SchoolString;
+                            }
                         }
                     }
                 }
-            }
 
-            if (!empty($schools)){
-                $schools = array_unique($schools);
-                $Item['schools'] = implode(',', $schools);
-            } else {
-                if(isset($TeacherSchools[$tblPerson->getId()])){
-                    $SchoolList = $TeacherSchools[$tblPerson->getId()];
-                    $SchoolList = array_unique($SchoolList);
-                    sort($SchoolList);
-                    $Item['schools'] = implode(',', $SchoolList);
+                if (!empty($schools)){
+                    $schools = array_unique($schools);
+                    $Item['schools'] = implode(',', $schools);
+                } else {
+                    if(isset($TeacherSchools[$tblPerson->getId()])){
+                        $SchoolList = $TeacherSchools[$tblPerson->getId()];
+                        $SchoolList = array_unique($SchoolList);
+                        sort($SchoolList);
+                        $Item['schools'] = implode(',', $SchoolList);
+                    }
                 }
-            }
 
 //            // Uploadtest
 //            //ToDO use API Schools
-//            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-////                if(rand(0, 1)){
-//                $schools = array(
-////                        $schoolList['DEMOSCHOOL']
-//                    'DEMOSCHOOL'
-//                );
-//                $StudentSchool = 'DEMOSCHOOL';
-////                } else {
-////                    $schools = array(
-////                        $schoolList['DEMOSCHOOL2']
-////                    );
-////                }
-//            } else {
-//                $schools = array(
-//                    'DEMOSCHOOL',
-//                    'DEMOSCHOOL2'
-////                    $schoolList['DEMOSCHOOL'],
-////                    $schoolList['DEMOSCHOOL2']
-//                );
-//            }
-
-            if($tblDivision){
-                $UploadItem['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
+            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                $schools = array(
+                        $schoolList['DEMOSCHOOL']
+                );
+                $StudentSchool = 'DEMOSCHOOL';
             } else {
-                if(isset($TeacherClasses[$tblPerson->getId()])){
-                    $ClassList = $TeacherClasses[$tblPerson->getId()];
-                    foreach($ClassList as &$Class){
-                        $Class = $StudentSchool.'-'.$Class;
+                $schools = array(
+                    $schoolList['DEMOSCHOOL'],
+//                    $schoolList['DEMOSCHOOL2']
+                );
+            }
+
+                if($tblDivision){
+                    $UploadItem['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+//                    $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
+                } else {
+                    if(isset($TeacherClasses[$tblPerson->getId()])){
+                        $ClassList = $TeacherClasses[$tblPerson->getId()];
+                        foreach($ClassList as &$Class){
+                            $Class = $StudentSchool.'-'.$Class;
+                        }
+                        sort($ClassList);
+                        $Item['school_classes'] = implode(',', $ClassList);
                     }
-                    sort($ClassList);
-                    $Item['school_classes'] = implode(',', $ClassList);
                 }
-            }
 
-            if(!empty($schools)){
-                $schools = array_unique($schools);
-            }
+                if(!empty($schools)){
+                    $schools = array_unique($schools);
+                }
 
-            $UploadItem['schools'] = $schools;
+                $UploadItem['schools'] = $schools;
 
-            array_push($activeAccountList, $UploadItem);
-        });
+                array_push($activeAccountList, $UploadItem);
+            });
+        }
 
         return $activeAccountList;
     }
