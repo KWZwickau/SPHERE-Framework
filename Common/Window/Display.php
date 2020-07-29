@@ -352,10 +352,12 @@ class Display extends Extension implements ITemplateInterface
         }
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
         if (!$NoConnection) {
-            $this->Template->setVariable('Consumer',
-                '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
-                .Consumer::useService()->getConsumerBySession()->getName()
-            );
+            if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
+                $this->Template->setVariable('Consumer',
+                    '[' . $tblConsumer->getAcronym() . '] '
+                    . Consumer::useService()->getConsumerBySession()->getName()
+                );
+            }
         }
 
         $this->Template->setVariable('SeoTitle',
