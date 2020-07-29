@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Platform\View;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Database\ReportingUpgrade;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Success;
@@ -57,7 +58,8 @@ class View extends Extension implements IModuleInterface
         if ($Consumer) {
             $tblConsumer = Consumer::useService()->getConsumerByAcronym($Consumer);
             if ($tblConsumer) {
-                $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
+                $Connection = Database::getConnectionData($tblConsumer);
+                $ReportingUpgrade = new ReportingUpgrade($Connection['Host'], $Connection['Username'], $Connection['Password']);
                 $isPassed = false;
                 $Protocol = $ReportingUpgrade->migrateActiveReportingSingleResult($Consumer, $isPassed);
                 $Success = new \SPHERE\Common\Frontend\Text\Repository\Success(new Success());

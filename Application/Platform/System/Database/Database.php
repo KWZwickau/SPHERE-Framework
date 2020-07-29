@@ -424,10 +424,36 @@ class Database extends Extension implements IModuleInterface
         $Stage = new Stage('Database', 'Setup aktiver Mandant (Reporting)');
         $this->menuButton($Stage);
 
-        $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
+        $tblConsumer = false;
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            $tblConsumer = $tblAccount->getServiceTblConsumer();
+        }
+        $Connection = self::getConnectionData($tblConsumer);
+        $ReportingUpgrade = new ReportingUpgrade($Connection['Host'], $Connection['Username'], $Connection['Password']);
         $Stage->setContent( $ReportingUpgrade->activeMigrateReporting() );
 
         return $Stage;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getConnectionData($tblConsumer = false)
+    {
+
+        $Connection['Host'] = '127.0.0.1';
+        $Connection['Username'] = 'root';
+        $Connection['Password'] = 'sphere';
+
+        if($tblConsumer !== false){
+            /** @var TblConsumer $tblConsumer */
+            $container = \SPHERE\System\Database\Database::getDataBaseConfig($tblConsumer);
+            $Connection['Host'] = $container->getContainer('Host')->getValue();
+            $Connection['Username'] = $container->getContainer('Username')->getValue();
+            $Connection['Password'] = $container->getContainer('Password')->getValue();
+        }
+
+        return $Connection;
     }
 
     /**
