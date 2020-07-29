@@ -91,6 +91,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($tblSettingGroupPersonList as $tblSettingGroupPerson) {
                 $tblGroupList[] = $tblSettingGroupPerson->getServiceTblGroupPerson();
             }
+            $tblGroupList = array_filter($tblGroupList);
             $NameListLeft = array();
             $NameListRight = array();
 //            $tblGroupAll = Group::useService()->getGroupAll();

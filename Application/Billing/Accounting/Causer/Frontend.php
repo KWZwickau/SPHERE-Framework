@@ -88,6 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGroupList[] = $tblSettingGroupPerson->getServiceTblGroupPerson();
             }
         }
+        $tblGroupList = array_filter($tblGroupList);
         $tblGroupLockedList = array();
         $tblGroupCustomList = array();
         if (!empty($tblGroupList)) {
