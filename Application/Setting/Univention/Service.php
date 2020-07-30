@@ -259,6 +259,78 @@ class Service extends AbstractService
     }
 
     /**
+     * @return array|bool
+     */
+    public function getApiUser()
+    {
+
+        // Benutzerliste suchen
+        $UniventionUserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
+        $UserUniventionList = array();
+        if($UniventionUserList){
+            foreach($UniventionUserList as $User){
+                $UserUniventionList[$User['record_uid']] =
+                // dn, url, ucsschool_roles[], name, school, firstname, lastname, birthday, disabled, email, record_uid,
+                // roles, schools, school_classes, source_uid, udm_properties
+                $UserUniventionList[$User['record_uid']] = array(
+                    'record_uid' => (isset($User['record_uid']) ? $User['record_uid'] : ''),
+                    'name' => (isset($User['name']) ? $User['name'] : ''),
+                    'school' => (isset($User['school']) ? $User['school'] : ''),
+                    'firstname' => (isset($User['firstname']) ? $User['firstname'] : ''),
+                    'lastname' => (isset($User['lastname']) ? $User['lastname'] : ''),
+                    'birthday' => (isset($User['birthday']) ? $User['birthday'] : ''),
+                    'email' => (isset($User['email']) ? $User['email'] : ''),
+                    'roles' => (isset($User['roles']) ? $User['roles'] : array()),
+                    'schools' => (isset($User['schools']) ? $User['schools'] : array()),
+//                    // get no content
+                    'school_classes' => (($User['school_classes']) ? $User['school_classes'] : array()),
+                    'source_uid' => (isset($User['source_uid']) ? $User['source_uid'] : ''),
+//                    // get no content
+                    'udm_properties' => (isset($User['udm_properties']) ? $User['udm_properties'] : array()),
+                );
+            }
+        }
+        return (!empty($UserUniventionList) ? $UserUniventionList : false);
+    }
+
+    public function getSchulsoftwareUser(TblYear $tblYear, $roleList, $schoolList)
+    {
+
+        $Acronym = Account::useService()->getMandantAcronym();
+        // Lehraufträge
+        $TeacherSchools = array();
+        $TeacherClasses = array();
+        if(($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
+            foreach($tblDivisionList as $tblDivision){
+                if(($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))){
+                    foreach($tblDivisionSubjectList as $tblDivisionSubject){
+                        if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
+                            foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                                if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
+                                    $SchoolString = '';
+                                    // wichtig für Schulgetrennte Klassen (nicht Mandantenweise)
+                                    if(($tblCompany = $tblDivision->getServiceTblCompany())
+                                        && Consumer::useService()->isSchoolSeparated()){
+                                        if(($tblSchoolType = $tblDivision->getType())){
+                                            $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+                                            $SchoolString = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
+                                            $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId().'_'.$tblSchoolTypeString] = $SchoolString;
+                                            $SchoolString .= '-';
+                                        }
+                                    }
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()] = $SchoolString.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return Univention::useService()->getAccountActive($tblYear, $Acronym, $TeacherSchools, $TeacherClasses, $schoolList, $roleList);
+
+    }
+
+    /**
      * @param bool $StudentWithoutAccount
      *
      * @return false|array
