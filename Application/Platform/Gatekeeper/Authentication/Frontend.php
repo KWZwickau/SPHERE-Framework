@@ -10,8 +10,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Setting\Agb\Agb;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -467,7 +469,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendIdentificationToken($tblAccount, $tblIdentification, $CredentialKey = null, $isCookieAvailable = false)
     {
-        $View = new Stage(new YubiKey().' Anmelden', '', $this->getIdentificationEnvironment());
+        $View = new Stage(new YubiKey() . ' Anmelden', '', $this->getIdentificationEnvironment());
 
         $tblAccount = Account::useService()->getAccountById($tblAccount);
         $tblIdentification = Account::useService()->getIdentificationById($tblIdentification);
@@ -519,8 +521,8 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 } catch (\Exception $Exception) {
 
-                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: '.$Exception->getMessage());
-                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: '.$Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
 
                     // Error Token API Error
                     $CredentialKeyField->setError('');
@@ -534,11 +536,26 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Switch User/Account (Restart Identification Process)
-        $FormInformation = array(
-            $tblAccount->getServiceTblConsumer()->getAcronym().' - '.$tblAccount->getServiceTblConsumer()->getName(),
-            'Benutzer: ' . $tblAccount->getUsername()
-            // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
-        );
+        if (($tblConsumer = $tblAccount->getServiceTblConsumer())) {
+            $FormInformation = array(
+                $tblConsumer->getAcronym() . ' - ' . $tblConsumer->getName(),
+                'Benutzer: ' . $tblAccount->getUsername()
+                // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
+            );
+        } else {
+            $FormInformation = array(
+                'Benutzer: ' . $tblAccount->getUsername()
+            );
+
+            // ist der Mandant gelöscht werden System-Accounts auf den REF-Mandanten umgeleitet
+            if (($tblConsumer = Consumer::useService()->getConsumerByAcronym('REF'))
+                && $tblAccount->getServiceTblIdentification()
+                && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+            ) {
+                $FormInformation[] = $tblConsumer->getName();
+                MyAccount::useService()->updateConsumer($tblAccount, $tblConsumer);
+            }
+        }
 
         if (isset($_COOKIE['cookies_available']) || $isCookieAvailable) {
             // Create Form
