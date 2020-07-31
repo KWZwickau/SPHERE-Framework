@@ -878,6 +878,20 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionCustody[]
+     */
+    public function getDivisionCustodyAllByDivision(TblDivision $tblDivision)
+    {
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionCustody',
+            array(
+                TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblDivision $tblDivisionCopy
      *
      * @return bool|TblDivisionCustody[]

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term;
 
+use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -23,10 +24,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
-use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -36,7 +35,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -45,8 +43,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Info;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -325,163 +321,26 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param      $Id
-     * @param null $Period
-     * @param null $Remove
      *
      * @return Stage
      */
-    public function frontendChoosePeriod($Id = null, $Period = null, $Remove = null)
+    public function frontendChoosePeriod($Id = null)
     {
-
         $tblYear = $Id === null ? false : Term::useService()->getYearById($Id);
-        if ($tblYear) {
-            $Stage = new Stage('Zeiträume', 'Bearbeiten');
-            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
-            $Stage->setContent(new Warning('Jahr nicht gefunden'));
-        }
-        $Stage = new Stage('Zeitraum', 'Bearbeiten');
+        $Stage = new Stage('Zeiträume', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
-        if ($tblYear && null !== $Period && ($Period = Term::useService()->getPeriodById($Period))) {
-            if ($Remove) {
-                Term::useService()->removeYearPeriod($tblYear->getId(), $Period);
-                $Stage->setContent(
-                    new Success('Zeitraum erfolgreich entfernt')
-                    . new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            } else {
-                Term::useService()->addYearPeriod($tblYear->getId(), $Period);
-                $Stage->setContent(
-                    new Success('Zeitraum erfolgreich hinzugefügt')
-                    . new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            }
-        }
-
-        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
-        $tblPeriodAll = Term::useService()->getPeriodAll();
-
-        $contentPeriodUsed = array();
-        $contentPeriodAvailable = array();
-
-        if (is_array($tblPeriodUsedList)) {
-            $tblPeriodAvailableList = array_udiff($tblPeriodAll, $tblPeriodUsedList,
-                function (TblPeriod $ObjectA, TblPeriod $ObjectB) {
-
-                    return $ObjectA->getId() - $ObjectB->getId();
-                }
+        if ($tblYear) {
+            $Stage->setContent(
+                new Panel('Schuljahr', $tblYear->getName() .
+                    ($tblYear->getDescription() !== '' ? '&nbsp;&nbsp;'
+                        . new Muted(new Small($tblYear->getDescription())) : ''),
+                    Panel::PANEL_TYPE_INFO)
+                . YearPeriod::receiverUsed(YearPeriod::tablePeriod($Id))
             );
-
-            foreach ($tblPeriodUsedList as $tblPeriodUsed) {
-                $contentPeriodUsed[] = array(
-                    'Name' => $tblPeriodUsed->getName(),
-                    'FromDate' => $tblPeriodUsed->getFromDate(),
-                    'ToDate' => $tblPeriodUsed->getToDate(),
-                    'Description' => $tblPeriodUsed->getDescription(),
-                    'IsLevel12' => $tblPeriodUsed->isLevel12() ? new Check() : new Unchecked(),
-                    'Option' => new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                        '/Education/Lesson/Term/Choose/Period', new Minus(),
-                        array(
-                            'Id' => $Id,
-                            'Period' => $tblPeriodUsed->getId(),
-                            'Remove' => true
-                        ))
-                    )
-                );
-            }
         } else {
-            $tblPeriodAvailableList = $tblPeriodAll;
+            $Stage->setContent(new Warning('Jahr nicht gefunden'));
         }
-
-        if (is_array($tblPeriodAvailableList)) {
-            foreach ($tblPeriodAvailableList as $tblPeriodAvailable) {
-                $contentPeriodAvailable[] = array(
-                    'Name' => $tblPeriodAvailable->getName(),
-                    'FromDate' => $tblPeriodAvailable->getFromDate(),
-                    'ToDate' => $tblPeriodAvailable->getToDate(),
-                    'Description' => $tblPeriodAvailable->getDescription(),
-                    'IsLevel12' => $tblPeriodAvailable->isLevel12() ? new Check() : new Unchecked(),
-                    'Option' => new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                            '/Education/Lesson/Term/Choose/Period', new Plus(),
-                            array(
-                                'Id' => $Id,
-                                'Period' => $tblPeriodAvailable->getId()
-                            ))
-                    )
-                );
-            }
-        }
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Schuljahr', $tblYear->getName() .
-                                ($tblYear->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                    . new Muted(new Small($tblYear->getDescription())) : ''),
-                                Panel::PANEL_TYPE_INFO)
-                        ),
-                        new LayoutColumn(array(
-                            new Title('Zeiträume', 'Zugewiesen'),
-                            (empty($tblPeriodUsedList)
-                                ? new Warning('Kein Zeitraum zugewiesen')
-                                : new TableData($contentPeriodUsed, null,
-                                    array(
-                                        'Name' => 'Name',
-                                        'FromDate' => 'Von',
-                                        'ToDate' => 'Bis',
-                                        'Description' => 'Beschreibung',
-                                        'IsLevel12' => 'Für 12. Klasse',
-                                        'Option' => ''
-                                    ),
-                                    array(
-                                        'order' => array(
-                                            array('1', 'desc'),
-                                        ),
-                                        'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => array(1, 2)),
-                                        ),
-                                        "responsive" => false
-                                    )
-                                )
-                            )
-                        ), 6),
-                        new LayoutColumn(array(
-                            new Title('Zeiträume', 'Verfügbar'),
-                            (empty($tblPeriodAvailableList)
-                                ? new Info('Keine weiteren Zeiträume verfügbar')
-                                : new TableData($contentPeriodAvailable, null,
-                                    array(
-                                        'Name'        => 'Name',
-                                        'FromDate'    => 'Von',
-                                        'ToDate'      => 'Bis',
-                                        'Description' => 'Beschreibung',
-                                        'IsLevel12' => 'Für 12. Klasse',
-                                        'Option'      => ' '
-                                    ),
-                                    array(
-                                        'order' => array(
-                                            array('1', 'desc'),
-                                        ),
-                                        'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => array(1, 2)),
-                                        ),
-                                        "responsive" => false
-                                    )
-                                )
-                            )
-                        ), 6)
-                    ))
-                )
-            )
-        );
 
         return $Stage;
     }
@@ -501,24 +360,6 @@ class Frontend extends Extension implements IFrontendInterface
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Panel, 6))));
         }
         return false;
-    }
-
-    /**
-     * @param null $PeriodId
-     * @param null $Id
-     *
-     * @return Stage|string
-     */
-    public function frontendRemovePeriod($PeriodId = null, $Id = null)
-    {
-
-        $Stage = new Stage('Zeitraum', 'entfernen');
-        if ($PeriodId === null || $Id === null) {
-            $Stage->setContent(new Warning('Zeitraum nicht gefunden'));
-            return $Stage . new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
-        }
-        $Stage->setContent(Term::useService()->removeYearPeriod($Id, $PeriodId));
-        return $Stage;
     }
 
     /**
