@@ -177,6 +177,198 @@ class ReportingUpgrade
     }
 
     /**
+     * @param $Acronym
+     * @param $isPassed
+     *
+     * @return string
+     */
+    public function migrateActiveReportingSingleResult($Acronym, &$isPassed)
+    {
+
+        // Location of SQL Templates
+        $TemplateDirectory = __DIR__ . DIRECTORY_SEPARATOR . 'ReportingUpgrade';
+
+        // Execution Protocol
+        $ProtocolList = array();
+        $ProtocolError = 0;
+
+        // Repeat for every Consumer
+        // Connect to DB Server
+        try {
+            $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
+        } catch (\Exception $Exception) {
+            $Connection = null;
+        }
+        if (empty($Connection)) {
+            return new Danger('No Connection to Server!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Database') : '');
+        }
+
+        // Get Schema DBAL
+        $SchemaManager = $Connection->getSchemaManager();
+        if (empty($Connection)) {
+            return new Danger('No Schema Manager available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+        }
+
+        // Repeate for every Template
+        if (empty($this->TemplateList)) {
+            return new Warning('No Template available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+        }
+        foreach ($this->TemplateList as $ViewName => $TemplateFile) {
+
+            // Check Template-File
+            $File = $TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile;
+            if (file_exists($File) && is_readable($File)) {
+
+                // Open Template
+                $Content = file_get_contents($TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile);
+
+                // Set View-Name & Consumer-Acronym
+                $Template = Template::getTwigTemplateString($Content);
+                $Template->setVariable('ConsumerAcronym', $Acronym);
+                $Template->setVariable('ViewName', $ViewName);
+
+                // Build View
+                $View = new View($ViewName, $Template->getContent());
+
+                // Create/Upgrade View
+                if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
+                    // View exists
+                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->dropAndCreateView($View);
+                    } catch (\Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                } else {
+                    // View is missing
+                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->createView($View);
+                    } catch (\Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                }
+            } else {
+                return new Danger('Template ' . $File . ' not available!')
+                    . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+            }
+        }
+
+        if( $ProtocolError > 0 ) {
+            return new Danger('Migration failed on '.$ProtocolError.' Views') . new Listing($ProtocolList);
+        } else {
+            $isPassed = true;
+            return new Success('Migration finished') . new Listing($ProtocolList);
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function activeMigrateReporting()
+    {
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if (!$tblConsumer) {
+            return new Warning('No Consumer available!');
+        }
+
+        // Location of SQL Templates
+        $TemplateDirectory = __DIR__ . DIRECTORY_SEPARATOR . 'ReportingUpgrade';
+
+        // Execution Protocol
+        $ProtocolList = array();
+        $ProtocolError = 0;
+
+        // do for aktive Consumer
+        $Acronym = $tblConsumer->getAcronym();
+        // Connect to DB Server
+        try {
+            $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
+        } catch (\Exception $Exception) {
+            $Connection = null;
+        }
+        if (empty($Connection)) {
+            return new Danger('No Connection to Server!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Database') : '');
+        }
+
+        // Get Schema DBAL
+        $SchemaManager = $Connection->getSchemaManager();
+        if (empty($Connection)) {
+            return new Danger('No Schema Manager available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+
+        }
+
+        // Repeate for every Template
+        if (empty($this->TemplateList)) {
+            return new Warning('No Template available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+        }
+        foreach ($this->TemplateList as $ViewName => $TemplateFile) {
+
+            // Check Template-File
+            $File = $TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile;
+            if (file_exists($File) && is_readable($File)) {
+
+                // Open Template
+                $Content = file_get_contents($TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile);
+
+                // Set View-Name & Consumer-Acronym
+                $Template = Template::getTwigTemplateString($Content);
+                $Template->setVariable('ConsumerAcronym', $Acronym);
+                $Template->setVariable('ViewName', $ViewName);
+
+                // Build View
+                $View = new View($ViewName, $Template->getContent());
+
+                // Create/Upgrade View
+                if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
+                    // View exists
+                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->dropAndCreateView($View);
+                    } catch (\Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                } else {
+                    // View is missing
+                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->createView($View);
+                    } catch (\Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                }
+            } else {
+                return new Danger('Template ' . $File . ' not available!')
+                    . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+            }
+        }
+
+        if( $ProtocolError > 0 ) {
+            return new Danger('Migration failed on '.$ProtocolError.' Views') . new Listing($ProtocolList);
+        } else {
+            return new Success('Migration finished') . new Listing($ProtocolList);
+        }
+    }
+
+    /**
      * @return array
      */
     private function getConsumerList()

@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Document\Generator\Repository\Element;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
@@ -22,9 +21,14 @@ class Image extends Element
     private function getPdfImage($Location)
     {
 
+        $ProtocolSecure = 'http://';
+        if(strpos($this->getRequest()->getPort(), 'schulsoftware.schule')){
+            $ProtocolSecure = 'https://';
+        }
+
         $PathBase = $this->getRequest()->getPathBase();
         if (empty($PathBase)) {
-            $PathBase = 'https://'.$_SERVER['SERVER_NAME'];
+            $PathBase = $ProtocolSecure.$_SERVER['SERVER_NAME'];
         }
 
         return $PathBase.'/'.trim($Location, '/\\');
