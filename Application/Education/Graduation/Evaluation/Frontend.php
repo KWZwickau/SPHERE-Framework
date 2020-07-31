@@ -4235,6 +4235,22 @@ class Frontend extends Extension implements IFrontendInterface
                     $icon = null;
                 }
 
+                switch ($tblGradeType->getName()) {
+                    case 'Betragen': $tooltip = 'Betragen umfasst Aufmerksamkeit, Hilfsbereitschaft, Zivilcourage und
+                        angemessenen Umgang mit Konflikten, Rücksichtnahme, Toleranz und Gemeinsinn sowie Selbsteinschätzung.';
+                        break;
+                    case 'Fleiß': $tooltip = 'Fleiß umfasst Lernbereitschaft, Zielstrebigkeit, Ausdauer und Regelmäßigkeit
+                        beim Erfüllen von Aufgaben.';
+                        break;
+                    case 'Mitarbeit': $tooltip = 'Mitarbeit umfasst Initiative, Kooperationsbereitschaft und Teamfähigkeit,
+                        Beteiligung am Unterricht, Selbstständigkeit, Kreativität sowie Verantwortungsbereitschaft.';
+                        break;
+                    case 'Ordnung': $tooltip = 'Ordnung umfasst Sorgfalt, Pünktlichkeit, Zuverlässigkeit, Einhalten von
+                        Regeln und Absprachen sowie Bereithalten notwendiger Unterrichtsmaterialien';
+                        break;
+                    default: $tooltip = false;
+                }
+
                 // letzte Kopfnote --> zur ersten springen
                 if (!$tblNextTest){
                     $tblNextTest = Evaluation::useService()->getTestById($testId);
@@ -4243,7 +4259,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $buttonList[] = new Standard($name,
                     $BasicRoute . '/Grade/Edit', $icon, array(
                         'Id' => $testId,
-                    )
+                    ),
+                    $tooltip
                 );
             }
         }
