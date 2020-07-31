@@ -2656,7 +2656,10 @@ class Frontend extends FrontendScoreRule
 
         if ($tblGrade) {
             $gradeValue = $tblGrade->getGrade();
-            if ($gradeValue !== null && $gradeValue !== '') {
+            if ($gradeValue === null) {
+                $gradeValue = 'n.t.';
+            }
+            else if ($gradeValue !== null && $gradeValue !== '') {
                 $trend = $tblGrade->getTrend();
                 if (TblGrade::VALUE_TREND_PLUS === $trend) {
                     $gradeValue .= '+';
@@ -2877,7 +2880,8 @@ class Frontend extends FrontendScoreRule
                                                                 $isAddTest = true;
                                                             }
 
-                                                            if ($isAddTest && ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '')) {
+//                                                            if ($isAddTest && ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '')) {
+                                                            if ($isAddTest && $tblGrade->getGrade() !== '') {
                                                                 if (($tblDivisionTest = $tblTest->getServiceTblDivision())
                                                                     && $tblDivision->getId() != $tblDivisionTest->getId()
                                                                 ) {

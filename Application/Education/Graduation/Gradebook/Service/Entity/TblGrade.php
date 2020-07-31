@@ -344,7 +344,9 @@ class TblGrade extends Element
     }
 
     /**
-     * @return string
+     * null steht für nicht teilgenommen
+     *
+     * @return string|null
      */
     public function getGrade()
     {
