@@ -422,7 +422,7 @@ class Creator extends Extension
                     $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
                 )->__toString();
             } else {
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
@@ -486,7 +486,7 @@ class Creator extends Extension
                     $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
                 )->__toString();
             } else {
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
@@ -806,7 +806,7 @@ class Creator extends Extension
 
             } else {
 
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
@@ -910,7 +910,7 @@ class Creator extends Extension
 
             } else {
 
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
