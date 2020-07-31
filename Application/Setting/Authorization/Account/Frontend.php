@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
@@ -88,78 +89,65 @@ class Frontend extends Extension implements IFrontendInterface
     public function layoutAccount()
     {
 
-        $tblAccountAll = Account::useService()->getAccountAll();
-        if ($tblAccountAll) {
-            array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
-
-                if (
-                    ( $tblAccount->getServiceTblIdentification()
-                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId()
-                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('UserCredential')->getId()
-                    )
-                    && $tblAccount->getServiceTblConsumer()
-                    && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
-                ) {
-
-                    $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
-                    if ($tblPersonAll) {
-                        array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
-
-                            $tblPerson = $tblPerson->getFullName();
-                        });
-                    }
-
-                    $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
-                    if ($tblAuthorizationAll) {
-                        array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
-
-                            if ($tblAuthorization->getServiceTblRole()) {
-                                $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
-                            } else {
-                                $tblAuthorization = false;
-                            }
-                        });
-                        $tblAuthorizationAll = array_filter($tblAuthorizationAll);
-
-                        if ($tblAuthorizationAll) {
-                            sort($tblAuthorizationAll);
-                        }
-                    }
-
-                    $tblAccount = array(
-                        'Username'       => new Listing(array($tblAccount->getUsername())),
-                        'Person'         => new Listing(!empty( $tblPersonAll )
-                            ? $tblPersonAll
-                            : array(new Danger(new Exclamation().new Small(' Keine Person angeben')))
-                        ),
-                        'Authentication' => new Listing(array($tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '')),
-                        'Authorization'  => new Listing(!empty( $tblAuthorizationAll )
-                            ? $tblAuthorizationAll
-                            : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
-                        ),
-                        'Token'          => new Listing(array(
-                            $tblAccount->getServiceTblToken()
-                                ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
-                                    4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
-                                : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
-                        )),
-                        'Option'         =>
-                            new Standard('',
-                                '/Setting/Authorization/Account/Edit',
-                                new Edit(), array('Id' => $tblAccount->getId()),
-                                'Benutzer '.$tblAccount->getUsername().' bearbeiten'
-                            )
-                            .new Standard('',
-                                '/Setting/Authorization/Account/Destroy',
-                                new Remove(), array('Id' => $tblAccount->getId()),
-                                'Benutzer '.$tblAccount->getUsername().' löschen'
-                            )
-                    );
-                } else {
-                    $tblAccount = false;
+        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+        $tblAccountConsumerTokenList = array();
+        if($tblIdentification){
+            $tblAccountConsumerTokenList = Account::useService()->getAccountListByIdentification($tblIdentification);
+        }
+        $TableContent = array();
+        if ($tblAccountConsumerTokenList) {
+            array_walk($tblAccountConsumerTokenList, function (TblAccount $tblAccount) use (&$TableContent) {
+                $PersonList = array();
+                $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
+                if ($tblPersonAll) {
+                    array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$PersonList){
+                        $PersonList[] = $tblPerson->getFullName();
+                    });
                 }
+
+                $AuthorizationList = array();
+                $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
+                if ($tblAuthorizationAll) {
+                    array_walk($tblAuthorizationAll, function (TblAuthorization $tblAuthorization) use (&$AuthorizationList){
+                        if ($tblAuthorization->getServiceTblRole()) {
+                            $AuthorizationList[] = $tblAuthorization->getServiceTblRole()->getName();
+                        }
+                    });
+                    if (!empty($AuthorizationList)) {
+                        sort($AuthorizationList);
+                    }
+                }
+
+                $Item['Username'] = new Listing(array($tblAccount->getUsername()));
+                $Item['Person'] = new Listing(!empty( $PersonList )
+                    ? $PersonList
+                    : array(new Danger(new Exclamation().new Small(' Keine Person angeben'))));
+                $Item['Authentication'] = new Listing(array($tblAccount->getServiceTblIdentification()
+                    ? $tblAccount->getServiceTblIdentification()->getDescription()
+                    : '')
+                );
+                $Item['Authorization'] = new Listing(!empty( $AuthorizationList )
+                    ? $AuthorizationList
+                    : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
+                );
+                $Item['Token'] = new Listing(array($tblAccount->getServiceTblToken()
+                        ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
+                            4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                        : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
+                ));
+                $Item['Option'] = new Standard('',
+                        '/Setting/Authorization/Account/Edit',
+                        new Edit(), array('Id' => $tblAccount->getId()),
+                        'Benutzer '.$tblAccount->getUsername().' bearbeiten'
+                    )
+                    .new Standard('',
+                        '/Setting/Authorization/Account/Destroy',
+                        new Remove(), array('Id' => $tblAccount->getId()),
+                        'Benutzer '.$tblAccount->getUsername().' löschen'
+                    );
+
+                array_push($TableContent, $Item);
             });
-            $tblAccountAll = array_filter($tblAccountAll);
         }
 
         return new Layout(
@@ -167,7 +155,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new TableData(
-                            $tblAccountAll,
+                            $TableContent,
                             null,
                             array(
                                 'Username'       => new PersonKey().' Benutzerkonto',
