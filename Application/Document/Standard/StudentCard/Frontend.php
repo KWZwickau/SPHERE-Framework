@@ -8,9 +8,20 @@
 
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
+use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\ApiDownload;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Group\Group;
@@ -41,19 +52,40 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Document\Standard\StudentCard
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
+    /**
+     * @param Stage $Stage
+     *
+     * @return Stage
+     */
+    private static function setButtonList(Stage $Stage)
+    {
+        $Stage->addButton(new Standard('Einstellungen', '/Document/Standard/StudentCard/Setting', new CogWheels(),
+            array(),
+            'Fächer-Einstellungen für die Schülerkarteien'));
+        $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentCard', new Person(),
+            array(),
+            'Schülerkartei eines Schülers'));
+        $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
+            array(),
+            'Schülerkarteien einer Klasse'));
+
+        return $Stage;
+    }
 
     /**
      * @return Stage
      */
     public static function frontendSelectPerson()
     {
-
         $Stage = new Stage('Schülerkartei', 'Schüler auswählen');
-        $Stage->addButton(new Standard('Einstellungen', '/Document/Standard/StudentCard/Setting', new CogWheels(),
-            array(),
-            'Fächer-Einstellungen für die Schülerkarteien'));
+        $Stage = self::setButtonList($Stage);
 
         $dataList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
@@ -94,9 +126,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option' => ''
                                 ),
                                 array(
-                                    "columnDefs" => array(
+                                    'columnDefs' => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                        array('type' => 'natural', 'targets' => array(2)),
+                                        array('width' => '5%', 'orderable' => false, 'targets'   => -1),
                                     ),
+                                    'responsive' => false
                                 )
                             )
                         )),
@@ -109,16 +144,188 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
+     * @return Stage
+     */
+    public static function frontendSelectDivision($IsAllYears = false, $YearId = null)
+    {
+        $Stage = new Stage('Schülerkartei', 'Klasse auswählen');
+        $Stage = self::setButtonList($Stage);
+
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif (!$IsAllYears && $tblYearList) {
+            $tblYear = end($tblYearList);
+        }
+
+        $Route = '/Document/Standard/StudentCard/Division';
+        $buttonList = array();
+        if ($tblYearList) {
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        $Route, new Edit(), array('YearId' => $tblYearItem->getId()));
+                } else {
+                    $buttonList[] = new Standard($tblYearItem->getDisplayName(), $Route,
+                        null, array('YearId' => $tblYearItem->getId()));
+                }
+            }
+
+            if ($IsAllYears) {
+                $buttonList[] = new Standard(new Info(new Bold('Alle Schuljahre')),
+                    $Route, new Edit(), array('IsAllYears' => true));
+            } else {
+                $buttonList[] = new Standard('Alle Schuljahre', $Route, null,
+                    array('IsAllYears' => true));
+            }
+        }
+
+        $maxPersonCount = 15;
+
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblAccountDownloadLock = Consumer::useService()->getAccountDownloadLock($tblAccount, 'StudentCard'))
+        ) {
+            $isLocked = $tblAccountDownloadLock->getIsFrontendLocked();
+            $isFirstRun = false;
+        } else {
+            $isLocked = false;
+            $isFirstRun = true;
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Warning(
+                                'Die Erstellung der Schülerkarteien über eine Klasse kann sehr lange dauern, deswegen
+                                 erfolgt eine Aufteilung ab ' . $maxPersonCount . ' Schülern über mehrere Downloads.
+                                 Jeder Nutzer kann immer nur einen Download starten.'
+                            )
+                        )
+                    ),
+                    new LayoutRow(new LayoutColumn(
+                        empty($buttonList) ? '' : $buttonList
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(ApiDownload::receiverBlock($isFirstRun ? '' : ApiDownload::pipelineLoadTable(
+                            $isLocked, $tblYear ? $tblYear->getId() : null
+                        ), 'Table')),
+                        new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineCheckLock(
+                            $tblYear ? $tblYear->getId() : null
+                        ), 'CheckLock'))
+                    )), new Title(new Listing() . ' Übersicht')
+                ))
+            ));
+
+        return $Stage;
+    }
+
+    /**
+     * @param $isLocked
+     * @param $YearId
+     *
+     * @return TableData
+     */
+    public function loadTable($isLocked, $YearId)
+    {
+        $maxPersonCount = 15;
+
+        $tblYear = Term::useService()->getYearById($YearId);
+        $TableContent = array();
+        if (($tblDivisionAll = Division::useService()->getDivisionAll())) {
+            foreach ($tblDivisionAll as $tblDivision) {
+                if ($tblYear && ($tblYearDivision = $tblDivision->getServiceTblYear()) && $tblYear->getId() != $tblYearDivision->getId()) {
+                    continue;
+                }
+
+                $count = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                $Item['Year'] = '';
+                $Item['Division'] = $tblDivision->getDisplayName();
+                $Item['Type'] = $tblDivision->getTypeName();
+                if ($tblDivision->getServiceTblYear()) {
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                }
+                $Item['Count'] = $count;
+
+                if ($count > 0) {
+                    if ($count <= $maxPersonCount) {
+                        $external = (new External(
+                            '',
+                            '/Api/Document/Standard/StudentCard/CreateMulti',
+                            new Download(),
+                            array(
+                                'DivisionId' => $tblDivision->getId()
+                            ),
+                            'Schülerkarteien herunterladen'
+                        ));
+                        $Item['Option'] = $isLocked
+                            ? new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...')
+                            : $external;
+                    } else {
+                        $countList = 1;
+                        $Item['Option'] = '';
+                        if ($isLocked) {
+                            $Item['Option'] = new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...');
+                        } else {
+                            for ($i = 0; $i < $count; $i++) {
+                                if ($i % $maxPersonCount == 0) {
+                                    $name = $countList . '. Teil';
+                                    $Item['Option'] .= (new External(
+                                        $name,
+                                        '/Api/Document/Standard/StudentCard/CreateMulti',
+                                        new Download(),
+                                        array(
+                                            'DivisionId' => $tblDivision->getId(),
+                                            'List' => $countList++
+                                        ),
+                                        $name . ' Schülerkarteien herunterladen'
+                                    ))->__toString();
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    $Item['Option'] = '';
+                }
+
+                array_push($TableContent, $Item);
+            }
+        }
+
+        return new TableData($TableContent, null,
+            array(
+                'Year' => 'Jahr',
+                'Division' => 'Klasse',
+                'Type' => 'Schulart',
+                'Count' => 'Schüler',
+                'Option' => '',
+            ), array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => array(1,3)),
+                    array('orderable' => false, 'targets'   => -1),
+                ),
+                'order' => array(
+                    array(0, 'desc'),
+                    array(2, 'asc'),
+                    array(1, 'asc')
+                ),
+                'responsive' => false
+            ));
+    }
+
+    /**
      * @return Stage|string
      */
     public function frontendSelectStudentCard()
     {
-
         $Stage = new Stage('Schülerkartei Einstellungen', 'Schülerkartei auswählen');
-        $Stage->addButton(new Standard(
-            'Zurück', '/Document/Standard/StudentCard', new ChevronLeft()
-        ));
-
+        $Stage = self::setButtonList($Stage);
 
         if (($tblDocumentAll = StudentCard::useService()->getDocumentAll())) {
             $contentList = array();
@@ -164,7 +371,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendStudentCardSubjects($Id = null, $Data = null)
     {
-
         $Stage = new Stage('Schülerkartei Einstellungen', 'Fächer zuweisen');
         $Stage->addButton(new Standard(
             'Zurück', '/Document/Standard/StudentCard/Setting', new ChevronLeft()
