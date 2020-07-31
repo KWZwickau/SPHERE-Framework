@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -322,6 +323,12 @@ class ApiEvaluation extends Extension implements IApiInterface
             );
         }
 
+        $selectBox = new SelectBox(
+            'GradeText',
+            '',
+            array(TblGradeText::ATTR_NAME => Gradebook::useService()->getGradeTextAll())
+        );
+
         return
             new Title('Stichtagsnote - Zeugnistext der gesamten Fach-Klasse auswählen')
             . $panel
@@ -332,17 +339,13 @@ class ApiEvaluation extends Extension implements IApiInterface
             )
             . new Well(new Form(new FormGroup(array(
                 new FormRow(
-                    new FormColumn(
-                        new SelectBox(
-                            'GradeText',
-                            '&nbsp;&nbsp;Zeugnistext&nbsp;&nbsp;',
-                            array(TblGradeText::ATTR_NAME => Gradebook::useService()->getGradeTextAll())
-                        )
-                    )
+                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        '<table><tr><td style="width:100px">&nbsp;Zeugnistext</td><td style="width:720px">' . $selectBox . '</td></tr></table>'
+                    )))))
                 ),
                 new FormRow(
                     new FormColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('<br>'))))
+                        new Container('&nbsp;')
                     )
                 ),
                 new FormRow(
