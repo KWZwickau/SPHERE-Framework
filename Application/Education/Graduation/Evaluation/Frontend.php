@@ -845,9 +845,13 @@ class Frontend extends Extension implements IFrontendInterface
     private function formTask()
     {
 
+        if(!isset($_POST['Task']['Period'])){
+            $_POST['Task']['Period'] = -3;
+        }
+
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
 
-        $periodList[] = new SelectBoxItem(0, '');
+        $periodList[] = new SelectBoxItem(-3, 'Gesamtes Schuljahr');
         $periodList[] = new SelectBoxItem(TblTask::FIRST_PERIOD_ID, TblTask::FIRST_PERIOD_NAME);
         $periodList[] = new SelectBoxItem(TblTask::SECOND_PERIOD_ID, TblTask::SECOND_PERIOD_NAME);
 
@@ -862,7 +866,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
                 ),
                 new FormColumn(
-                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', array('Name' => $periodList)), 4
+                    (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '.new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
+                        , array('Name' => $periodList)))->setRequired(), 4
                 ),
                 new FormColumn(
                     new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
@@ -2796,7 +2801,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Task']['Date'] = $tblTask->getDate();
             $Global->POST['Task']['FromDate'] = $tblTask->getFromDate();
             $Global->POST['Task']['ToDate'] = $tblTask->getToDate();
-            $Global->POST['Task']['Period'] = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : 0;
+            $Global->POST['Task']['Period'] = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : -3;
             $Global->POST['Task']['ScoreType'] = $tblTask->getServiceTblScoreType() ? $tblTask->getServiceTblScoreType() : 0;
             $Global->savePost();
         }
