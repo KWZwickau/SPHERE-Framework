@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class UniventionUser
 {
@@ -239,18 +238,23 @@ class UniventionUser
     }
 
     /**
-     * @param $name
+     * @param array $AccountArray
      *
      * @return string|null
      */
-    public function deleteUser($name)
+    public function deleteUser($AccountArray)
     {
 
         curl_reset($this->curlhandle);
 
-        $name = urlencode($name);
-
-        Debugger::screenDump($name);
+        $name = '';
+        // löschen durch Nutnername
+        if(isset($AccountArray['name'])){
+            $name = $AccountArray['name'];
+        }
+        if(!$name){
+            return 'Benutzername nicht gefunden';
+        }
 
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,

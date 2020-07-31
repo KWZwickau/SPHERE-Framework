@@ -28,7 +28,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -62,14 +61,22 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Univention', 'Online Verbindung');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
 
-//        $beginn = microtime(true);
-//        $dauer = microtime(true) - $beginn;
-//        echo "Verbindung zur API: $dauer Sek.</br>";
-
+        $beginn = microtime(true);
         // dynamsiche Rollenliste
         $roleList = (new UniventionRole())->getAllRoles();
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "holen aller Rollen aus der API: $dauer Sek.</br>";
+
+        $beginn = microtime(true);
+
         // dynamsiche Schulliste
         $schoolList = (new UniventionSchool())->getAllSchools();
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "holen Schulen aus der API: $dauer Sek.</br>";
 
         // early break if no answer
         if(!is_array($roleList) || !is_array($schoolList)){
@@ -86,6 +93,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $UserUniventionList = Univention::useService()->getApiUser();
 
+
+        $beginn = microtime(true);
         $ErrorLog = array();
         $UserSchulsoftwareList = array();
         $tblYear = Term::useService()->getYearByNow();
@@ -95,6 +104,10 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $ErrorLog[] = 'kein aktuelles Jahr gefunden';
         }
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "holen aller Benutzeraccounts aus der Schulsoftware * vorbereitung, das Werte wie in der API gepflegt werden: $dauer Sek. (nur 12 Benutzer in der Schulsoftware)</br>";
 
         // Vergleich
         // Zählung
@@ -119,7 +132,10 @@ class Frontend extends Extension implements IFrontendInterface
         // Display changes
         $UpdateLog = array();
         // delete: Accounts, die in der API vorhaden sind, aber nicht in der Schulsoftware
+        $deleteList = array();
         $ApiList['Delete'] = array();
+
+        $beginn = microtime(true);
 
         if(!empty($UserSchulsoftwareList)){
             foreach($UserSchulsoftwareList as $AccountActive){
@@ -172,115 +188,143 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 unset($UserUniventionList[$AccountActive['record_uid']]);
             }
+            $count['delete'] = count($UserUniventionList);
+            $deleteList = $UserUniventionList;
         }
 
         $ErrorLog = array_filter($ErrorLog);
-        $ApiList['Delete'] = $UserUniventionList;
-        $count['delete'] = count($UserUniventionList);
+
+
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "Entscheidung welche Funktionen ausgeführt werden müssen + Frontendvorbereitung: $dauer Sek.)</br>";
 
 //        echo 'Api Kommunikation';
 //        Debugger::screenDump($ApiList);
-        echo'Zählung:';
-        Debugger::screenDump($count);
-        echo'ErrorLog:';
-        Debugger::screenDump($ErrorLog);
+//        echo'Zählung:';
+//        Debugger::screenDump($count);
+//        echo'ErrorLog:';
+//        Debugger::screenDump($ErrorLog);
+
+        $beginn = microtime(true);
+
+        $returnString = 'Komplett Abgleich';
+        if($Upload == 'Create'){
+            $returnString = 'Hinzufügen';
+        } elseif($Upload == 'Update'){
+            $returnString = 'Ändern';
+        } elseif($Upload == 'Delete'){
+            $returnString = 'Löschen';
+        }
 
         // Upload erst nach ausführlicher Bestätigung
-        if($Upload == 'All' || $Upload == 'Create' || $Upload == 'Update' || $Upload == 'Delete'){
-            foreach($ApiList as $Type => $AccountList){
-                if($Type == 'noCreate' || $Type == 'noUpdate'){
-                    continue;
-                }
-                if($Type == 'Create' && !empty($AccountList) && ($Upload == 'All' || $Upload == 'Create')){
-                    Debugger::screenDump('create:');
-                    Debugger::screenDump($AccountList);
-                    foreach($AccountList as $Account){
-                        // create with API
-                        $ErrorLog[] = (new UniventionUser())->createUser($Account['name'], $Account['email'], $Account['firstname'], $Account['lastname'], $Account['record_uid'], $Account['roles'],
-                            $Account['schools'], $Account['school_classes'], $Account['source_uid']);
-                    }
-                }
-                if($Type == 'Update' && !empty($AccountList) && ($Upload == 'All' || $Upload == 'Update')){
-                    Debugger::screenDump('update:');
-                    Debugger::screenDump($AccountList);
-                    foreach($AccountList as $Account){
-                        // update with API
-//                        (new UniventionUser())->updateUser($Account['name'], $Account['email'], $Account['firstname'], $Account['lastname'], $Account['record_uid'], $Account['roles'],
-//                            $Account['schools'], $Account['source_uid']);
-                    }
-                }
-                //ToDo Nutzer in Univention löschen, wenn sie in der Schulsoftware gelöscht werden?
-                //ToDO Löschen funktioniert nicht mit Umlauten, Fehlersuche wenn API wieder verfügbar
-                if($Type == 'Delete' && !empty($AccountList) && ($Upload == 'All' || $Upload == 'Delete')){
-                    Debugger::screenDump('delete:');
-                    Debugger::screenDump($AccountList);
-                    foreach($AccountList as $Account){
-                        // delete with API
-//                        E(new UniventionUser())->deleteUser($Account['name']);
-                    }
-                }
-            }
+        if($Upload == 'All' || $Upload == 'Create'){
+            foreach($createList as $createAccount){
 
-            $returnString = 'Komplett Abgleich';
-            if($Upload == 'Create'){
-                $returnString = 'Hinzufügen';
-            } elseif($Upload == 'Update'){
-                $returnString = 'Ändern';
-            } elseif($Upload == 'Delete'){
-                $returnString = 'Löschen';
+                //ToDO Remove if for local test
+                //Lokal Test Performance
+//                if($createAccount['name'] == 'REF-ZiEh15'
+//                || $createAccount['name'] == 'REF-PyZi01'
+//                || $createAccount['name'] == 'REF-RoSt22'
+//                || $createAccount['name'] == 'REF-QuKa01'
+//                || $createAccount['name'] == 'REF-FiRo22'){
+                    // create with API
+                    $ErrorLog[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
+                        $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
+                        $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes'],
+                        $createAccount['source_uid']);
+//                }
             }
-
             $Stage = new Stage('Univention', 'Service');
             $Stage->setContent(new Success($returnString.' durchgeführt')    );
 //            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
+
+            $dauer = microtime(true) - $beginn;
+            $dauer = round($dauer, 2);
+            echo "Kommunikation mit der API um Veränderungen auszuführen: $dauer Sek.)</br>";
             return $Stage;
         }
+
+
+        if($Upload == 'All' || $Upload == 'Update'){
+            foreach($updateList as $updateAccount){
+                //ToDO Update mach funktionstüchtigkeit und Feldinformation anpassen
+//                // update with API
+//                (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
+//                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
+//                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['source_uid']);
+            }
+            $Stage = new Stage('Univention', 'Service');
+            $Stage->setContent(new Success($returnString.' durchgeführt')    );
+//            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
+
+            $dauer = microtime(true) - $beginn;
+            $dauer = round($dauer, 2);
+            echo "Kommunikation mit der API um Veränderungen auszuführen: $dauer Sek.)</br>";
+            return $Stage;
+        }
+        if($Upload == 'All' || $Upload == 'Delete'){
+            // ToDo Nutzer in Univention löschen, wenn sie in der Schulsoftware gelöscht werden?
+            // ToDO Klärung in wie weit das gewünscht / erfordert ist.
+            // ToDO Löschen funktioniert wahrscheinlich nicht mit Umlauten, warten auf Antwort
+            foreach($deleteList as $deleteAccount){
+                // delete with API
+                $ErrorLog[] = (new UniventionUser())->deleteUser($deleteAccount);
+            }
+            $Stage = new Stage('Univention', 'Service');
+            $Stage->setContent(new Success($returnString.' durchgeführt')    );
+//            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
+
+            $dauer = microtime(true) - $beginn;
+            $dauer = round($dauer, 2);
+            echo "Kommunikation mit der API um Veränderungen auszuführen: $dauer Sek.)</br>";
+
+            return $Stage;
+        }
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "Kommunikation mit der API um Veränderungen auszuführen (keine Aktion ausgeführt): $dauer Sek.)</br>";
+
+        $beginn = microtime(true);
 
         $ContentCreate = array();
         $ContentUpdate = array();
         $ContentDelete = array();
         //Type = Create/Update/Delete
 //        Debugger::screenDump($ApiList);
-        foreach($ApiList as $Type => $AccountList){
-            if($Type == 'Create'){
-                foreach($AccountList as $Account){
-                    $DivisionString = 'Klasse: ';
-                    if(strpos($Account['school_classes'], ',')){
-                        $DivisionString = 'Klassen: ';
-                    }
-
-                    $ContentCreate[] = (new ToolTip($Account['name'].' '.new Info(), htmlspecialchars(
-                        $Account['firstname'].' '.$Account['lastname'].'<br/>'.
-                        $DivisionString.$Account['school_classes']
-                    )))->enableHtml();
-                }
+        foreach($createList as $AccountArray) {
+            $DivisionString = 'Klasse: ';
+            if(strpos($AccountArray['school_classes'], ',')){
+                $DivisionString = 'Klassen: ';
             }
-            if($Type == 'Update'){
-                // ToDo Display changes that will be happend
-                foreach($AccountList as $Account){
-                    $DivisionString = 'Klasse: ';
-                    if(strpos($Account['school_classes'], ',')){
-                        $DivisionString = 'Klassen: ';
-                    }
-                    if(isset($UpdateLog[$Account['record_uid']]) && !empty($UpdateLog[$Account['record_uid']])){
-                        $ContentUpdate[] = (new ToolTip($Account['name'].' '.new Info(), htmlspecialchars(
-                            implode('<br/>', $UpdateLog[$Account['record_uid']])
-                        )))->enableHtml();
-                    } else {
-                        $ContentUpdate[] = $Account['name'];
-                    }
 
-                }
+            $ContentCreate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                $AccountArray['firstname'].' '.$AccountArray['lastname'].'<br/>'.
+                $DivisionString.$AccountArray['school_classes']
+            )))->enableHtml();
+        }
+        foreach($updateList as $AccountArray) {
+            // ToDo Display changes that will be happend
+            $DivisionString = 'Klasse: ';
+            if(strpos($AccountArray['school_classes'], ',')){
+                $DivisionString = 'Klassen: ';
             }
-            if($Type == 'Delete'){
-                foreach($AccountList as $Account){
-                    $ContentDelete[] = (new ToolTip($Account['name'].' '.new Info(), htmlspecialchars(
-                        $Account['firstname'].' '.$Account['lastname']
+            if(isset($UpdateLog[$AccountArray['record_uid']]) && !empty($UpdateLog[$AccountArray['record_uid']])){
+                $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                    implode('<br/>', $UpdateLog[$AccountArray['record_uid']])
+                )))->enableHtml();
+            } else {
+                $ContentUpdate[] = $AccountArray['name'];
+            }
+        }
+        foreach($deleteList as $AccountArray) {
+            $ContentDelete[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                $AccountArray['firstname'].' '.$AccountArray['lastname']
 //                        .'<br/>'.
 //                        $DivisionString.$Account['school_classes']
-                    )))->enableHtml();
-                }
-            }
+            )))->enableHtml();
         }
 
         $NoCreatePanelContent = '';
@@ -323,6 +367,10 @@ class Frontend extends Extension implements IFrontendInterface
                 , 4),
             ))
             ))));
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "Frontend anzeigen: $dauer Sek.)</br>";
 
         return $Stage;
     }

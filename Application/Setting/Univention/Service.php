@@ -221,7 +221,7 @@ class Service extends AbstractService
 //            //ToDO use API Schools
             if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
                 $schools = array(
-                        $schoolList['DEMOSCHOOL']
+                    $schoolList['DEMOSCHOOL']
                 );
                 $StudentSchool = 'DEMOSCHOOL';
             } else {
@@ -264,8 +264,15 @@ class Service extends AbstractService
     public function getApiUser()
     {
 
+        $beginn = microtime(true);
+
         // Benutzerliste suchen
         $UniventionUserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
+
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo "holen Mandantgefilterte Benutzer aus der API: $dauer Sek. (nur 10 vorhanden)</br>";
+
         $UserUniventionList = array();
         if($UniventionUserList){
             foreach($UniventionUserList as $User){
