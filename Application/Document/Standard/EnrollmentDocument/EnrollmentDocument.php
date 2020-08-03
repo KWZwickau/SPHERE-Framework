@@ -347,7 +347,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                                         , 6),
                                                     new LayoutColumn(
                                                         new TextField('Data[Birthplace]', 'Geboren in',
-                                                            'Geburtstag')
+                                                            'Geburtsort')
                                                         , 6),
                                                 )),
                                                 new LayoutRow(array(
