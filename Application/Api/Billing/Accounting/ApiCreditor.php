@@ -287,7 +287,7 @@ class ApiCreditor extends Extension implements IApiInterface
                         (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
                     new FormColumn(
-                        new TextField('Creditor[BIC]', 'BIC', 'BIC')
+                        (new TextField('Creditor[BIC]', 'BIC', 'BIC'))->setRequired()
                         , 6),
                 )),
                 new FormRow(array(
@@ -362,8 +362,13 @@ class ApiCreditor extends Extension implements IApiInterface
         if(isset($Creditor['CreditorId']) && empty($Creditor['CreditorId'])){
             $form->setError('Creditor[CreditorId]', 'Bitte geben Sie eine Gläubiger Id an');
             $Error = true;
-        }if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
+        }
+        if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
+            $Error = true;
+        }
+        if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
+            $form->setError('Creditor[BIC]', 'Bitte geben Sie eine BIC an');
             $Error = true;
         }
 
