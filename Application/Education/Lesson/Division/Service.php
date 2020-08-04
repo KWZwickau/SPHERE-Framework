@@ -1409,6 +1409,16 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      *
+     * @return false|TblDivisionCustody[]
+     */
+    public function getDivisionCustodyAllByDivision(TblDivision $tblDivision)
+    {
+        return (new Data($this->getBinding()))->getDivisionCustodyAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
      * @return bool|TblSubject[]
      */
     public

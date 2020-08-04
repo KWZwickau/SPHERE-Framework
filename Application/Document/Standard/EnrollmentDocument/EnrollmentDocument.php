@@ -154,7 +154,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
         $Gender = false;
         if ($tblPerson) {
             $Global->POST['Data']['PersonId'] = $PersonId;
-            $Global->POST['Data']['FirstLastName'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
+            $Global->POST['Data']['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
 
             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {

@@ -67,9 +67,6 @@ class Term implements IModuleInterface
             __NAMESPACE__ . '/Choose/Period', __NAMESPACE__ . '\Frontend::frontendChoosePeriod'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Remove/Period', __NAMESPACE__ . '\Frontend::frontendRemovePeriod'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Holiday', __NAMESPACE__ . '\Frontend::frontendHoliday'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

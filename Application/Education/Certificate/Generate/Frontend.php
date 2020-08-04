@@ -847,7 +847,7 @@ class Frontend extends Extension
                             $Global->savePost();
                         }
 
-                        // Alle Zeungisse nach Zeugnistyp zur Auswahl
+                        // Alle Zeugnisse nach Zeugnistyp zur Auswahl
                         $tblCertificateType = false;
                         if ($tblPrepare->getServiceTblGenerateCertificate()) {
                             $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
@@ -1122,7 +1122,7 @@ class Frontend extends Extension
 
             if (!$Confirm) {
                 $divisionList = array();
-                $divisionList[0] = 'Zeungisdatum: ' . $tblGenerateCertificate->getDate();
+                $divisionList[0] = 'Zeugnisdatum: ' . $tblGenerateCertificate->getDate();
                 $divisionList[1] = 'Typ: ' . (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                         ? $tblCertificateType->getName() : '');
                 $divisionList[2] = 'Name: ' . $tblGenerateCertificate->getName();

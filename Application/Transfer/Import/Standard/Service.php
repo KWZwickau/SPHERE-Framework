@@ -11,6 +11,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -173,6 +174,8 @@ class Service
             'S1_IBAN'                  => null,
             'S1_BIC'                   => null,
             'S1_Bankname'              => null,
+            // relationship
+            'S1_Alleinerziehend'       => null,
 
             // S2
             'S2_Anrede'                => null,
@@ -206,11 +209,14 @@ class Service
             'S2_IBAN'                  => null,
             'S2_BIC'                   => null,
             'S2_Bankname'              => null,
+            // relationship
+            'S2_Alleinerziehend'       => null,
 
             // maybe S3 ?
 
             // student extended
             'Klasse/Kurs'          => null,
+            'Schule'               => null,
             'Schulart'             => null,
             'Bildungsgang'         => null,
             'Religion'             => null,
@@ -294,7 +300,8 @@ class Service
                 // division
                 $divisionString = trim($Document->getValue($Document->getCell($Location['Klasse/Kurs'], $RunY)));
                 $schoolType = trim($Document->getValue($Document->getCell($Location['Schulart'], $RunY)));
-                $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $RunY, $Nr, $error);
+                $school = trim($Document->getValue($Document->getCell($Location['Schule'], $RunY)));
+                $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $RunY, $Nr, $error);
 
                 // address
                 $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -375,9 +382,14 @@ class Service
                         }
                     }
 
+                    $S1_Alleinerziehend = trim($Document->getValue($Document->getCell($Location['S1_Alleinerziehend'], $RunY)));
+                    $isSingleParent = false;
+                    if(strtoupper($S1_Alleinerziehend) == 'X'){
+                        $isSingleParent = true;
+                    }
                     // relationship
                     $tblRelationshipType = Relationship::useService()->getTypeByName(TblTypeRelationship::IDENTIFIER_GUARDIAN);
-                    Relationship::useService()->insertRelationshipToPerson($tblPerson_S1, $tblPerson, $tblRelationshipType, '', 1);
+                    Relationship::useService()->insertRelationshipToPerson($tblPerson_S1, $tblPerson, $tblRelationshipType, '', 1, $isSingleParent);
                 }
 
                 // S2 --------------------------------------------------------------------------------------------------
@@ -441,9 +453,14 @@ class Service
                         }
                     }
 
+                    $S2_Alleinerziehend = trim($Document->getValue($Document->getCell($Location['S2_Alleinerziehend'], $RunY)));
+                    $isSingleParent = false;
+                    if(strtoupper($S2_Alleinerziehend) == 'X'){
+                        $isSingleParent = true;
+                    }
                     // relationship
                     $tblRelationshipType = Relationship::useService()->getTypeByName(TblTypeRelationship::IDENTIFIER_GUARDIAN);
-                    Relationship::useService()->insertRelationshipToPerson($tblPerson_S2, $tblPerson, $tblRelationshipType, '', 2);
+                    Relationship::useService()->insertRelationshipToPerson($tblPerson_S2, $tblPerson, $tblRelationshipType, '', 2, $isSingleParent);
                 }
             }
 
@@ -580,18 +597,18 @@ class Service
                     'Privat_Mobil'        => null,
                     'E_Mail_Privat'       => null,
 
-//                    // S1
-//                    'S1_Anrede' => null,
+                    // S1
+                    'S1_Anrede' => null,
 //                    'S1_Titel' => null,
-//                    'S1_Name' => null,
-//                    'S1_Vorname' => null,
-//                    // adress
-//                    'S1_PLZ' => null,
-//                    'S1_Ort' => null,
-//                    'S1_Ortsteil' => null,
-//                    'S1_Straße' => null,
-//                    'S1_HNR' => null,
-//                    'S1_Land' => null,
+                    'S1_Name' => null,
+                    'S1_Vorname' => null,
+                    // adress
+                    'S1_PLZ' => null,
+                    'S1_Ort' => null,
+                    'S1_Ortsteil' => null,
+                    'S1_Straße' => null,
+                    'S1_HNR' => null,
+                    'S1_Land' => null,
 //                    // contact
 //                    'S1_Geschäftlich_Festnetz' => null,
 //                    'S1_Geschäftlich_Mobil' => null,
@@ -612,19 +629,21 @@ class Service
 //                    'S1_IBAN' => null,
 //                    'S1_BIC' => null,
 //                    'S1_Bankname' => null,
+                    // relationship
+                    'S1_Alleinerziehend'       => null,
 
-//                    // S2
-//                    'S2_Anrede' => null,
+                    // S2
+                    'S2_Anrede' => null,
 //                    'S2_Titel' => null,
-//                    'S2_Name' => null,
-//                    'S2_Vorname' => null,
-//                    // adress
-//                    'S2_PLZ' => null,
-//                    'S2_Ort' => null,
-//                    'S2_Ortsteil' => null,
-//                    'S2_Straße' => null,
-//                    'S2_HNR' => null,
-//                    'S2_Land' => null,
+                    'S2_Name' => null,
+                    'S2_Vorname' => null,
+                    // adress
+                    'S2_PLZ' => null,
+                    'S2_Ort' => null,
+                    'S2_Ortsteil' => null,
+                    'S2_Straße' => null,
+                    'S2_HNR' => null,
+                    'S2_Land' => null,
 //                    // contact
 //                    'S2_Geschäftlich_Festnetz' => null,
 //                    'S2_Geschäftlich_Mobil' => null,
@@ -645,6 +664,8 @@ class Service
 //                    'S2_IBAN' => null,
 //                    'S2_BIC' => null,
 //                    'S2_Bankname' => null,
+                    // relationship
+                    'S2_Alleinerziehend'       => null,
 
 
                 );
@@ -659,11 +680,11 @@ class Service
                  * Import
                  */
                 if (!in_array(null, $Location, true)) {
-                    $countStudent = 0;
-//                    $countS1 = 0;
-//                    $countS2 = 0;
-//                    $countS1Exists = 0;
-//                    $countS2Exists = 0;
+                    $countProspect = 0;
+                    $countS1 = 0;
+                    $countS2 = 0;
+                    $countS1Exists = 0;
+                    $countS2Exists = 0;
 
                     $error = array();
 
@@ -696,7 +717,7 @@ class Service
                         $Hort = '';
                         //
                         $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, true);
-                        $countStudent++;
+                        $countProspect++;
 
                         // common & birthday
                         $studentGender = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
@@ -734,6 +755,154 @@ class Service
                         $ProspectRemark = trim($Document->getValue($Document->getCell($Location['Bemerkung'], $RunY)));
                         $this->setProspect($tblPerson, $SchoolType, $Year, $Level, $ReservationDate, $InterviewDate, $TrialDate, $ProspectRemark, $RunY, $Nr, $error);
 
+                        // S1 --------------------------------------------------------------------------------------------------
+                        $firstName_S1 = trim($Document->getValue($Document->getCell($Location['S1_Vorname'], $RunY)));
+                        $lastName_S1 = trim($Document->getValue($Document->getCell($Location['S1_Name'], $RunY)));
+                        $cityCode_S1 = trim($Document->getValue($Document->getCell($Location['S1_PLZ'], $RunY)));
+                        // nur vorhandene Datensätze
+                        if($firstName_S1 != '' && $lastName_S1 != ''){
+                            $addInformation = true;
+                            $tblPerson_S1 = Person::useService()->existsPerson($firstName_S1, $lastName_S1, $cityCode_S1);
+                            if(!$tblPerson_S1)
+                            {
+                                $salutation_S1 = trim($Document->getValue($Document->getCell($Location['S1_Anrede'], $RunY)));
+//                                $title_S1 = trim($Document->getValue($Document->getCell($Location['S1_Titel'], $RunY)));
+                                $title_S1 = '';
+//                                $memberNumber_S1 = trim($Document->getValue($Document->getCell($Location['S1_Mitgliedsnummer'], $RunY)));
+                                $memberNumber_S1 = '';
+//                                $assistance_S1 = trim($Document->getValue($Document->getCell($Location['S1_Mitarbeitbereitschaft'], $RunY)));
+                                $assistance_S1 = '';
+                                $tblPerson_S1 = $this->setPersonCustody($salutation_S1, $title_S1, $firstName_S1, $lastName_S1, $memberNumber_S1, $assistance_S1);
+                                $countS1++;
+                            } else {
+                                $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Der Sorgeberechtigte S1 wurde nicht angelegt, da schon eine 
+                        Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden
+                        Person verknüpft'));
+                                $countS1Exists++;
+                                // keine doppelte Datenpflege
+                                $addInformation = false;
+                            }
+                            if($addInformation){
+//                                // custody
+//                                $occupation = trim($Document->getValue($Document->getCell($Location['S1_Beruf'], $RunY)));
+//                                $employment = trim($Document->getValue($Document->getCell($Location['S1_Arbeitsstelle'], $RunY)));
+//                                $remark = trim($Document->getValue($Document->getCell($Location['S1_Bemerkungen'], $RunY)));
+//                                Custody::useService()->insertMeta($tblPerson_S1, $occupation, $employment, $remark);
+
+                                // S1 address
+                                $streetName_S1 = trim($Document->getValue($Document->getCell($Location['S1_Straße'], $RunY)));
+                                $streetNumber_S1 = trim($Document->getValue($Document->getCell($Location['S1_HNR'], $RunY)));
+                                $city_S1 = trim($Document->getValue($Document->getCell($Location['S1_Ort'], $RunY)));
+                                $cityCode_S1 = trim($Document->getValue($Document->getCell($Location['S1_PLZ'], $RunY)));
+                                $district_S1 = trim($Document->getValue($Document->getCell($Location['S1_Ortsteil'], $RunY)));
+                                $nation = trim($Document->getValue($Document->getCell($Location['S1_Land'], $RunY)));
+                                $this->setPersonAddress($tblPerson_S1, $streetName_S1, $streetNumber_S1, $city_S1, $cityCode_S1, $district_S1, $nation, $RunY, $Nr, $error);
+
+//                                // S1 contact
+//                                $emergencyPhone_S1 = trim($Document->getValue($Document->getCell($Location['S1_Notfall_Festnetz'], $RunY)));
+//                                $emergencyMobile_S1 = trim($Document->getValue($Document->getCell($Location['S1_Notfall_Mobil'], $RunY)));
+//                                $privatePhone_S1 = trim($Document->getValue($Document->getCell($Location['S1_Privat_Festnetz'], $RunY)));
+//                                $privateMobile_S1 = trim($Document->getValue($Document->getCell($Location['S1_Privat_Mobil'], $RunY)));
+//                                $businessPhone_S1 = trim($Document->getValue($Document->getCell($Location['S1_Geschäftlich_Festnetz'], $RunY)));
+//                                $businessMobile_S1 = trim($Document->getValue($Document->getCell($Location['S1_Geschäftlich_Mobil'], $RunY)));
+//                                $privateMail_S1 = trim($Document->getValue($Document->getCell($Location['S1_E_Mail_Privat'], $RunY)));
+//                                $businessMail_S1 = trim($Document->getValue($Document->getCell($Location['S1_E_Mail_Geschäftlich'], $RunY)));
+//                                $this->setPersonContact($tblPerson_S1, $emergencyPhone_S1, $emergencyMobile_S1, $privatePhone_S1,
+//                                    $privateMobile_S1, $businessPhone_S1, $businessMobile_S1, $privateMail_S1, $businessMail_S1);
+
+//                                // Billing
+//                                $bankName_S1 = trim($Document->getValue($Document->getCell($Location['S1_Bankname'], $RunY)));
+//                                $IBAN_S1 = trim($Document->getValue($Document->getCell($Location['S1_IBAN'], $RunY)));
+//                                $BIC_S1 = trim($Document->getValue($Document->getCell($Location['S1_BIC'], $RunY)));
+//                                // nur vollständige Daten importieren
+//                                if($bankName_S1 != '' && $IBAN_S1 != '' && $BIC_S1 != ''){
+//                                    $this->setPersonBankAccount($tblPerson_S1, $bankName_S1, $IBAN_S1, $BIC_S1);
+//                                }
+                            }
+
+                            $S1_Alleinerziehend = trim($Document->getValue($Document->getCell($Location['S1_Alleinerziehend'], $RunY)));
+                            $isSingleParent = false;
+                            if(strtoupper($S1_Alleinerziehend) == 'X'){
+                                $isSingleParent = true;
+                            }
+                            // relationship
+                            $tblRelationshipType = Relationship::useService()->getTypeByName(TblTypeRelationship::IDENTIFIER_GUARDIAN);
+                            Relationship::useService()->insertRelationshipToPerson($tblPerson_S1, $tblPerson, $tblRelationshipType, '', 1, $isSingleParent);
+                        }
+
+                        // S2 --------------------------------------------------------------------------------------------------
+                        $firstName_S2 = trim($Document->getValue($Document->getCell($Location['S2_Vorname'], $RunY)));
+                        $lastName_S2 = trim($Document->getValue($Document->getCell($Location['S2_Name'], $RunY)));
+                        $cityCode_S2 = trim($Document->getValue($Document->getCell($Location['S2_PLZ'], $RunY)));
+                        // nur vorhandene Datensätze
+                        if($firstName_S2 != '' && $lastName_S2 != ''){
+                            $addInformation = true;
+                            $tblPerson_S2 = Person::useService()->existsPerson($firstName_S2, $lastName_S2, $cityCode_S2);
+                            if(!$tblPerson_S2)
+                            {
+                                $salutation_S2 = trim($Document->getValue($Document->getCell($Location['S2_Anrede'], $RunY)));
+//                                $title_S2 = trim($Document->getValue($Document->getCell($Location['S2_Titel'], $RunY)));
+                                $title_S2 = '';
+//                                $memberNumber_S2 = trim($Document->getValue($Document->getCell($Location['S2_Mitgliedsnummer'], $RunY)));
+                                $memberNumber_S2 = '';
+//                                $assistance_S2 = trim($Document->getValue($Document->getCell($Location['S2_Mitarbeitbereitschaft'], $RunY)));
+                                $assistance_S2 = '';
+                                $tblPerson_S2 = $this->setPersonCustody($salutation_S2, $title_S2, $firstName_S2, $lastName_S2, $memberNumber_S2, $assistance_S2);
+                                $countS2++;
+                            } else {
+                                $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Der Sorgeberechtigte S2 wurde nicht angelegt, da schon eine 
+                        Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden
+                        Person verknüpft'));
+                                $countS2Exists++;
+                                // keine doppelte Datenpflege
+                                $addInformation = false;
+                            }
+                            if($addInformation){
+//                                // custody
+//                                $occupation = trim($Document->getValue($Document->getCell($Location['S1_Beruf'], $RunY)));
+//                                $employment = trim($Document->getValue($Document->getCell($Location['S1_Arbeitsstelle'], $RunY)));
+//                                $remark = trim($Document->getValue($Document->getCell($Location['S1_Bemerkungen'], $RunY)));
+//                                Custody::useService()->insertMeta($tblPerson_S2, $occupation, $employment, $remark);
+                                // S2 address
+                                $streetName_S2 = trim($Document->getValue($Document->getCell($Location['S2_Straße'], $RunY)));
+                                $streetNumber_S2 = trim($Document->getValue($Document->getCell($Location['S2_HNR'], $RunY)));
+                                $city_S2 = trim($Document->getValue($Document->getCell($Location['S2_Ort'], $RunY)));
+                                $cityCode_S2 = trim($Document->getValue($Document->getCell($Location['S2_PLZ'], $RunY)));
+                                $district_S2 = trim($Document->getValue($Document->getCell($Location['S2_Ortsteil'], $RunY)));
+                                $nation = trim($Document->getValue($Document->getCell($Location['S2_Land'], $RunY)));
+                                $this->setPersonAddress($tblPerson_S2, $streetName_S2, $streetNumber_S2, $city_S2, $cityCode_S2, $district_S2, $nation, $RunY, $Nr, $error);
+
+//                                // S2 contact
+//                                $emergencyPhone_S2 = trim($Document->getValue($Document->getCell($Location['S2_Notfall_Festnetz'], $RunY)));
+//                                $emergencyMobile_S2 = trim($Document->getValue($Document->getCell($Location['S2_Notfall_Mobil'], $RunY)));
+//                                $privatePhone_S2 = trim($Document->getValue($Document->getCell($Location['S2_Privat_Festnetz'], $RunY)));
+//                                $privateMobile_S2 = trim($Document->getValue($Document->getCell($Location['S2_Privat_Mobil'], $RunY)));
+//                                $businessPhone_S2 = trim($Document->getValue($Document->getCell($Location['S2_Geschäftlich_Festnetz'], $RunY)));
+//                                $businessMobile_S2 = trim($Document->getValue($Document->getCell($Location['S2_Geschäftlich_Mobil'], $RunY)));
+//                                $privateMail_S2 = trim($Document->getValue($Document->getCell($Location['S2_E_Mail_Privat'], $RunY)));
+//                                $businessMail_S2 = trim($Document->getValue($Document->getCell($Location['S2_E_Mail_Geschäftlich'], $RunY)));
+//                                $this->setPersonContact($tblPerson_S2, $emergencyPhone_S2, $emergencyMobile_S2, $privatePhone_S2,
+//                                    $privateMobile_S2, $businessPhone_S2, $businessMobile_S2, $privateMail_S2, $businessMail_S2);
+
+//                                // Billing
+//                                $bankName_S2 = trim($Document->getValue($Document->getCell($Location['S2_Bankname'], $RunY)));
+//                                $IBAN_S2 = trim($Document->getValue($Document->getCell($Location['S2_IBAN'], $RunY)));
+//                                $BIC_S2 = trim($Document->getValue($Document->getCell($Location['S2_BIC'], $RunY)));
+//                                // nur vollständige Daten importieren
+//                                if($bankName_S2 != '' && $IBAN_S2 != '' && $BIC_S2 != ''){
+//                                    $this->setPersonBankAccount($tblPerson_S2, $bankName_S2, $IBAN_S2, $BIC_S2);
+//                                }
+                            }
+
+                            $S2_Alleinerziehend = trim($Document->getValue($Document->getCell($Location['S2_Alleinerziehend'], $RunY)));
+                            $isSingleParent = false;
+                            if(strtoupper($S2_Alleinerziehend) == 'X'){
+                                $isSingleParent = true;
+                            }
+                            // relationship
+                            $tblRelationshipType = Relationship::useService()->getTypeByName(TblTypeRelationship::IDENTIFIER_GUARDIAN);
+                            Relationship::useService()->insertRelationshipToPerson($tblPerson_S2, $tblPerson, $tblRelationshipType, '', 2, $isSingleParent);
+                        }
                     }
 
                     // prepare Info what is not imported
@@ -747,24 +916,24 @@ class Service
                     return new Layout(new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Success('Es wurden '.$countStudent.' Interessenten erfolgreich angelegt.', null, false, '25', '5')
+                                new Success('Es wurden '.$countProspect.' Interessenten erfolgreich angelegt.', null, false, '25', '5')
                                 , 4),
-//                            new LayoutColumn(
-//                                new Success('Es wurden '.$countS1.' Sorgeberechtigte S1 erfolgreich angelegt.'.
-//                                    ($countS1Exists > 0
-//                                        ? new Warning(' ('.$countS1Exists.' dopplungen) ', null, false, '1', '5')
-//                                        .($countS1 + $countS1Exists).' Zuweisungen zu Schülern.'
-//                                        : '')
-//                                    , null, false, '3', '5')
-//                                , 4),
-//                            new LayoutColumn(
-//                                new Success('Es wurden '.$countS2.' Sorgeberechtigte S2 erfolgreich angelegt.'.
-//                                    ($countS2Exists > 0
-//                                        ? new Warning(' ('.$countS2Exists.' dopplungen) ', null, false, '1', '5')
-//                                        .($countS2 + $countS2Exists).' Zuweisungen zu Schülern.'
-//                                        : '')
-//                                    , null, false, '3', '5')
-//                                , 4),
+                            new LayoutColumn(
+                                new Success('Es wurden '.$countS1.' Sorgeberechtigte S1 erfolgreich angelegt.'.
+                                    ($countS1Exists > 0
+                                        ? new Warning(' ('.$countS1Exists.' dopplungen) ', null, false, '1', '5')
+                                        .($countS1 + $countS1Exists).' Zuweisungen zu Schülern.'
+                                        : '')
+                                    , null, false, '3', '5')
+                                , 4),
+                            new LayoutColumn(
+                                new Success('Es wurden '.$countS2.' Sorgeberechtigte S2 erfolgreich angelegt.'.
+                                    ($countS2Exists > 0
+                                        ? new Warning(' ('.$countS2Exists.' dopplungen) ', null, false, '1', '5')
+                                        .($countS2 + $countS2Exists).' Zuweisungen zu Schülern.'
+                                        : '')
+                                    , null, false, '3', '5')
+                                , 4),
                         )),
                         new LayoutRow(array(
                             new LayoutColumn(
@@ -840,6 +1009,7 @@ class Service
                     'Titel'                 => null,
                     'Name'                  => null,
                     'Vorname'               => null,
+                    'Lehrer'                => null,
                     'Kürzel'                => null,
                     'Geburtsdatum'          => null,
                     'PLZ'                   => null,
@@ -893,7 +1063,8 @@ class Service
                             // nicht vorhandene Personen werden angelegt
                             $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'], $RunY)));
                             $title = trim($Document->getValue($Document->getCell($Location['Titel'], $RunY)));
-                            $tblPerson = $this->setPersonStaff($salutation, $title, $firstName, $lastName);
+                            $teacher = trim($Document->getValue($Document->getCell($Location['Lehrer'], $RunY)));
+                            $tblPerson = $this->setPersonStaff($salutation, $title, $firstName, $lastName, $teacher);
 
 //                            $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
 //                            $birthPlace = trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY)));
@@ -1148,11 +1319,12 @@ class Service
      * @param string    $YearString
      * @param string    $divisionString
      * @param string    $schoolType
+     * @param string    $school
      * @param int       $RunY
      * @param string    $Nr
      * @param array     $error
      */
-    private function setPersonDivision(TblPerson $tblPerson, $YearString, $divisionString, $schoolType, $RunY, $Nr, &$error)
+    private function setPersonDivision(TblPerson $tblPerson, $YearString, $divisionString, $schoolType, $school, $RunY, $Nr, &$error)
     {
 
         $year = (int)$YearString;
@@ -1235,13 +1407,19 @@ class Service
                         $tblSchoolType = false;
                 }
 
+                if(!($tblCompany = Company::useService()->getCompanyByName($school, ''))){
+                    $tblCompany = null;
+                }
+
                 if($tblSchoolType){
                     $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
                     if ($tblLevel) {
                         $tblDivision = Division::useService()->insertDivision(
                             $tblYear,
                             $tblLevel,
-                            $division
+                            $division,
+                            '',
+                            $tblCompany
                         );
                     }
                 }
@@ -1490,19 +1668,18 @@ class Service
      * @param string $titel
      * @param string $firstName
      * @param string $lastName
-     * @param bool   $isTeacher
-     * @param bool   $isStaff
+     * @param string $teacher
+//     * @param bool   $isStaff
      *
      * @return bool|TblPerson
      */
-    private function setPersonStaff($salutation, $titel, $firstName, $lastName, $isTeacher = true, $isStaff = true)
+    private function setPersonStaff($salutation, $titel, $firstName, $lastName, $teacher) // $isStaff = true
     {
 
+        $GroupList = array();
         $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_COMMON);
-        if($isStaff){
-            $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
-        }
-        if($isTeacher){
+        $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        if(strtoupper($teacher) === 'X'){
             $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
         }
 

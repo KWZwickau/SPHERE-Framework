@@ -551,7 +551,7 @@ class Frontend extends Extension implements IFrontendInterface
     private static function setSettingMenue(Stage $Stage, $Route = 'Template')
     {
 
-        $text = 'Zeungisvorlagen';
+        $text = 'Zeugnisvorlagen';
         $Stage->addButton(new Standard($Route == 'Template' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Template', null, null,
             'Den Zeugnisvorlagen Fächer zuordnen'));
