@@ -65,18 +65,14 @@ class Frontend extends Extension implements IFrontendInterface
         // dynamsiche Rollenliste
         $roleList = (new UniventionRole())->getAllRoles();
 
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "holen aller Rollen aus der API: $dauer Sek.</br>";
+        $this->getTimeSpan($beginn, 'holen aller Rollen aus der API');
 
         $beginn = microtime(true);
 
         // dynamsiche Schulliste
         $schoolList = (new UniventionSchool())->getAllSchools();
 
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "holen Schulen aus der API: $dauer Sek.</br>";
+        $this->getTimeSpan($beginn, 'holen Schulen aus der API');
 
         // early break if no answer
         if(!is_array($roleList) || !is_array($schoolList)){
@@ -105,35 +101,33 @@ class Frontend extends Extension implements IFrontendInterface
             $ErrorLog[] = 'kein aktuelles Jahr gefunden';
         }
 
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "holen aller Benutzeraccounts aus der Schulsoftware * vorbereitung, das Werte wie in der API gepflegt werden: $dauer Sek. (nur 12 Benutzer in der Schulsoftware)</br>";
+        $this->getTimeSpan($beginn, 'holen aller Benutzeraccounts aus der Schulsoftware * vorbereitung, das Werte wie in der API gepflegt werden');
 
         // Vergleich
         // Zählung
         $count['create'] = 0;
-        $count['noCreate'] = 0;
+        $count['cantCreate'] = 0;
         $count['update'] = 0;
-        $count['noUpdate'] = 0;
+        $count['allUpdate'] = 0;
+        $count['cantUpdate'] = 0;
         $count['delete'] = 0;
         // create: AccountActive welche nicht in der API vorhanden sind
         //ToDO eigene Variablen, nicht alles in einem Riesen array
         $createList = array();
         $cantCreateList = array();
 //        $ApiList['Create'] = array();
-        $ApiList['noCreate'] = array();
+//        $ApiList['noCreate'] = array();
 
         // update: Accounts welche Vorhanden sind, aber unterschiedliche Werte aufweisen
         $updateList = array();
         $cantUpdateList = array();
-        $ApiList['Update'] = array();
-        $ApiList['noUpdate'] = array();
+//        $ApiList['Update'] = array();
+//        $ApiList['cantUpdate'] = array();
 
         // Display changes
-        $UpdateLog = array();
         // delete: Accounts, die in der API vorhaden sind, aber nicht in der Schulsoftware
         $deleteList = array();
-        $ApiList['Delete'] = array();
+//        $ApiList['Delete'] = array();
 
         $beginn = microtime(true);
 
@@ -143,7 +137,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ){
                     if(($Error = $this->controlAccount($AccountActive))){
                         $cantCreateList[] = $Error;
-                        $count['noCreate']++;
+                        $count['cantCreate']++;
                     } else {
                         $count['create']++;
                         $createList[] = $AccountActive;
@@ -177,13 +171,23 @@ class Frontend extends Extension implements IFrontendInterface
 //                if($ExistUser['school_classes'] != $AccountActive['school_classes']){
 //                    $Log[] = 'Klasse(n): '.new InfoText(new Listing($ExistUser['school_classes'])).' -> '.new SuccessText(new Listing($ExistUser['school_classes']));
 //                }
+
+                    $count['allUpdate']++;
+
                     if(($Error = $this->controlAccount($AccountActive))){
                         $cantUpdateList[] = $Error;
-                        $count['noUpdate']++;
+                        $count['cantUpdate']++;
                     } else {
-                        $count['update']++;
-                        $updateList[] = $AccountActive;
+
+                        if(!empty($Log)){
+                            $count['update']++;
+                            $AccountActive['UpdateLog'] = $Log;
+                            $updateList[] = $AccountActive;
 //                        $UpdateLog[$AccountActive['record_uid']] = $Log; // brauch ich das noch?
+                        } else {
+                            // ToDO unveränderte Account's Anzeige etc?
+
+                        }
                     }
                 }
                 unset($UserUniventionList[$AccountActive['record_uid']]);
@@ -194,11 +198,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $ErrorLog = array_filter($ErrorLog);
 
-
-
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "Entscheidung welche Funktionen ausgeführt werden müssen + Frontendvorbereitung: $dauer Sek.)</br>";
+        $this->getTimeSpan($beginn, 'Entscheidung welche Funktionen ausgeführt werden müssen + Frontendvorbereitung');
 
 //        echo 'Api Kommunikation';
 //        Debugger::screenDump($ApiList);
@@ -219,7 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Upload erst nach ausführlicher Bestätigung
-        if($Upload == 'All' || $Upload == 'Create'){
+        if($Upload == 'Create'){
             foreach($createList as $createAccount){
 
                 //ToDO Remove if for local test
@@ -236,20 +236,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $createAccount['source_uid']);
 //                }
             }
+            // ToDO Errorlog anzeigen wenn vorhanden
             $Stage = new Stage('Univention', 'Service');
             $Stage->setContent(new Success($returnString.' durchgeführt')    );
 //            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
 
-            $dauer = microtime(true) - $beginn;
-            $dauer = round($dauer, 2);
-            echo "Kommunikation mit der API um Veränderungen auszuführen: $dauer Sek.)</br>";
+            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+
             return $Stage;
         }
-
-
-        if($Upload == 'All' || $Upload == 'Update'){
+        if($Upload == 'Update'){
             foreach($updateList as $updateAccount){
-                //ToDO Update mach funktionstüchtigkeit und Feldinformation anpassen
+                //ToDO Update nach funktionstüchtigkeit und Feldinformation anpassen
 //                // update with API
 //                (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
 //                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
@@ -259,12 +257,11 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Success($returnString.' durchgeführt')    );
 //            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
 
-            $dauer = microtime(true) - $beginn;
-            $dauer = round($dauer, 2);
-            echo "Kommunikation mit der API um Veränderungen auszuführen: $dauer Sek.)</br>";
+            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+
             return $Stage;
         }
-        if($Upload == 'All' || $Upload == 'Delete'){
+        if($Upload == 'Delete'){
             // ToDo Nutzer in Univention löschen, wenn sie in der Schulsoftware gelöscht werden?
             // ToDO Klärung in wie weit das gewünscht / erfordert ist.
             // ToDO Löschen funktioniert wahrscheinlich nicht mit Umlauten, warten auf Antwort
@@ -276,16 +273,32 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Success($returnString.' durchgeführt')    );
 //            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
 
-            $dauer = microtime(true) - $beginn;
-            $dauer = round($dauer, 2);
-            echo "Kommunikation mit der API um Veränderungen auszuführen: $dauer Sek.)</br>";
+            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
 
             return $Stage;
         }
+        if($Upload == 'All'){
+            foreach($createList as $createAccount) {
+                $ErrorLog[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
+                    $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
+                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes'],
+                    $createAccount['source_uid']);
+            }
+            foreach($updateList as $updateAccount){
+                //ToDO Update nach funktionstüchtigkeit und Feldinformation anpassen
+//                // update with API
+//                (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
+//                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
+//                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['source_uid']);
+            }
+            foreach($deleteList as $deleteAccount){
+                // delete with API
+                $ErrorLog[] = (new UniventionUser())->deleteUser($deleteAccount);
+            }
+            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+        }
 
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "Kommunikation mit der API um Veränderungen auszuführen (keine Aktion ausgeführt): $dauer Sek.)</br>";
+        $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen (keine Aktion ausgeführt)');
 
         $beginn = microtime(true);
 
@@ -307,13 +320,13 @@ class Frontend extends Extension implements IFrontendInterface
         }
         foreach($updateList as $AccountArray) {
             // ToDo Display changes that will be happend
-            $DivisionString = 'Klasse: ';
-            if(strpos($AccountArray['school_classes'], ',')){
-                $DivisionString = 'Klassen: ';
-            }
-            if(isset($UpdateLog[$AccountArray['record_uid']]) && !empty($UpdateLog[$AccountArray['record_uid']])){
+//            $DivisionString = 'Klasse: ';
+//            if(strpos($AccountArray['school_classes'], ',')){
+//                $DivisionString = 'Klassen: ';
+//            }
+            if(isset($AccountArray['UpdateLog'])){
                 $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
-                    implode('<br/>', $UpdateLog[$AccountArray['record_uid']])
+                    implode('<br/>', $AccountArray['UpdateLog'])
                 )))->enableHtml();
             } else {
                 $ContentUpdate[] = $AccountArray['name'];
@@ -327,52 +340,61 @@ class Frontend extends Extension implements IFrontendInterface
             )))->enableHtml();
         }
 
-        $NoCreatePanelContent = '';
-        if(!empty($ApiList['noCreate'])){
-            foreach($ApiList['noCreate'] as $AccountErrorList){
-                if(!empty($AccountErrorList)){
-                    $NoCreatePanelContent[] = new Listing($AccountErrorList);
-                }
+        $CantCreatePanelContent = '';
+        if(!empty($cantCreateList)){
+            foreach($cantCreateList as $cantCreateAccount){
+                $CantCreatePanelContent[] = implode('<br/>', $cantCreateAccount);
+            }
+        }
+        $CantUpdatePanelContent = '';
+        if(!empty($cantUpdateList)){
+            foreach($cantUpdateList as $cantUpdateAccount){
+                $CantUpdatePanelContent[] = implode('<br/>', $cantUpdateAccount);
             }
         }
 
         $Stage->setContent(new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Neue Benutzer für Connexion',
+                    new Panel('Neue Benutzer für Connexion ('.$count['create'].')',
                         $ContentCreate, Panel::PANEL_TYPE_INFO
                     )
                 , 4),
                 new LayoutColumn(
-                    new Panel('Benutzer anpassen',
+                    new Panel('Benutzer anpassen ('.$count['update'].' von '.$count['allUpdate'].')',
                         $ContentUpdate, Panel::PANEL_TYPE_PRIMARY
                     )
                 , 4),
                 new LayoutColumn(
-                    new Panel('Benutzer in Connexion entfernen',
+                    new Panel('Benutzer in Connexion entfernen ('.$count['delete'].')',
                         $ContentDelete, Panel::PANEL_TYPE_DANGER
                     )
                 , 4)
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Benutzerm die nicht angelegt werden können',
-                        $NoCreatePanelContent, Panel::PANEL_TYPE_WARNING
+                    new Panel('Benutzerm die nicht angelegt werden können ('.$count['cantCreate'].')',
+                        $CantCreatePanelContent, Panel::PANEL_TYPE_WARNING
                     )
                 , 4),
                 new LayoutColumn(
-                    new Panel('Benutzer, die nicht bearbeitet werden können',
-                        $ApiList['noUpdate'], Panel::PANEL_TYPE_WARNING
+                    new Panel('Benutzer, die nicht bearbeitet werden können ('.$count['cantUpdate'].')',
+                        $CantUpdatePanelContent, Panel::PANEL_TYPE_WARNING
                     )
                 , 4),
             ))
             ))));
 
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "Frontend anzeigen: $dauer Sek.)</br>";
+        $this->getTimeSpan($beginn, 'Frontend anzeigen');
 
         return $Stage;
+    }
+
+    public function getTimeSpan($beginn, $Text = '')
+    {
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo $Text.': '.$dauer.' Sek.)</br>';
     }
 
     /**
@@ -387,9 +409,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $ErrorLog = array();
         // Handle Error Entity
+        // welche Eigenschaften müssen vorhanden sein:
         if($Account['name'] == ''
             || $Account['firstname'] == ''
             || $Account['lastname'] == ''
+            || $Account['email'] == ''
             || $Account['record_uid'] == ''
             || $Account['source_uid'] == ''
             || $Account['school_classes'] == ''
@@ -399,10 +423,21 @@ class Frontend extends Extension implements IFrontendInterface
             $ErrorLog[] = new Bold($Account['name']);
 
             foreach($Account as $Key => $Value){
+
+//                Debugger::screenDump($Key, $Value);
+
                 if(is_array($Value)){
+                    //roles
+                    //schools
 
                     $MouseOver = '';
                     switch ($Key){
+                        case 'email':
+                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                new DangerText('Fehler:').'</br>'
+                                .'keine E-Mail als CONNEXION Benutzername verwendet'
+                            )))->enableHtml();
+                        break;
                         case 'roles':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Mögliche Fehler:</br>'
@@ -410,24 +445,30 @@ class Frontend extends Extension implements IFrontendInterface
                                 .'Person in keiner der Folgenen Personengruppen:</br>'
                                 .new DangerText('Schüler / Mitarbeiter / Lehrer')
                             )))->enableHtml();
-                            break;
+                        break;
                         case 'schools':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen </br>'
                                 .'oder Schule fehlt in Univention')))->enableHtml();
-                            break;
+                        break;
                     }
 
                     if(empty($Value)){
                         $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
-                    }else {
-                        $ErrorLog[] = $Key.' Ok';
                     }
 
                 }else {
-                    if($Value === ''){
+                    if($Value == ''){
+
+                        // Mousover Problembeschreibung
                         $MouseOver = '';
                         switch ($Key){
+                            case 'email':
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    new DangerText('Fehler:').'</br>'
+                                    .'keine E-Mail als CONNEXION Benutzername verwendet'
+                                )))->enableHtml();
+                                break;
                             case 'lastname':
                                 $MouseOver = new ToolTip(new Info(), 'keine Person am Account');
                                 break;
@@ -435,7 +476,22 @@ class Frontend extends Extension implements IFrontendInterface
                                 $MouseOver = new ToolTip(new Info(), 'Person muss mindestens einer Klasse zugewiesen sein');
                                 break;
                         }
-                        $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+
+                        if(empty($Value)){
+                            // Mousover Problembeschreibung
+                            switch($Key){
+                                case 'group':
+                                    // no log
+                                    break;
+                                default:
+                                    $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                            }
+
+
+                            // Error auf nötiges reduzieren
+//                    }else {
+//                        $ErrorLog[] = $Key.' Ok';
+                        }
                     }
                 }
             }

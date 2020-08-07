@@ -269,9 +269,7 @@ class Service extends AbstractService
         // Benutzerliste suchen
         $UniventionUserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
 
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo "holen Mandantgefilterte Benutzer aus der API: $dauer Sek. (nur 10 vorhanden)</br>";
+        Univention::useFrontend()->getTimeSpan($beginn, 'holen Mandantgefilterte Benutzer aus der API');
 
         $UserUniventionList = array();
         if($UniventionUserList){
@@ -289,7 +287,7 @@ class Service extends AbstractService
                     'email' => (isset($User['email']) ? $User['email'] : ''),
                     'roles' => (isset($User['roles']) ? $User['roles'] : array()),
                     'schools' => (isset($User['schools']) ? $User['schools'] : array()),
-//                    // get no content
+//                    // set no content so -> get no content
                     'school_classes' => (($User['school_classes']) ? $User['school_classes'] : array()),
                     'source_uid' => (isset($User['source_uid']) ? $User['source_uid'] : ''),
 //                    // get no content
