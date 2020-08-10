@@ -166,7 +166,7 @@ class Common
             }
             array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
 
-            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
             if ($tblPersonList) {
                 $fileLocation = Person::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
 

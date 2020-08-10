@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
@@ -158,7 +159,7 @@ class Person
             }
             array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
 
-            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
             if ($tblPersonList) {
                 $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
 
