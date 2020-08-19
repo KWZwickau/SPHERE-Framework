@@ -3,12 +3,15 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -22,6 +25,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -35,6 +40,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -59,6 +66,8 @@ class ApiBankAccount extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditBankAccount');
         $Dispatcher->registerMethod('showDeleteBankAccount');
         $Dispatcher->registerMethod('deleteBankAccount');
+        // inlineReceiver
+        $Dispatcher->registerMethod('controlIban');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -84,6 +93,17 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
 
         return (new BlockReceiver($Content))->setIdentifier('BlockPanels');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return InlineReceiver
+     */
+    public static function receiverIban($Content = '')
+    {
+
+        return (new InlineReceiver($Content))->setIdentifier('IBAN');
     }
 
     /**
@@ -267,6 +287,55 @@ class ApiBankAccount extends Extension implements IApiInterface
     }
 
     /**
+     * @param AbstractReceiver $Receiver
+     *
+     * @return Pipeline
+     */
+    public static function pipelineControllIban(AbstractReceiver $Receiver)
+    {
+        $Pipeline = new Pipeline(false);
+        $Emitter = new ServerEmitter($Receiver, ApiBankAccount::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiBankAccount::API_TARGET => 'controlIban'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param array $BankAccount
+     *
+     * @return string
+     */
+    public function controlIban($BankAccount = array())
+    {
+
+        $Iban = str_replace(' ', '', $BankAccount['IBAN']);
+        if(strpos($BankAccount['IBAN'], 'DE') === 0){
+            if(strlen($Iban) == 22){
+
+                $feedback = Account::useService()->getControlIban($Iban);
+                if($feedback){
+                    return '<div style="margin-bottom: 10px">'
+                        .new SuccessText(new SuccessIcon().' Prüfziffer korrekt').'</div>';
+                } elseif($feedback === false) {
+                    return '<div style="margin-bottom: 10px">'
+                        .new WarningText(new WarningIcon().' Prüfziffer der IBAN nicht korrekt').'</div>';
+                } elseif($feedback === null) {
+                    return '<div style="margin-bottom: 10px">'
+                        .new WarningText(new WarningIcon().' falsches Format').'</div>';
+                }
+            } else {
+                return '<div style="margin-bottom: 10px">'
+                    .new WarningText(new WarningIcon()).' eine Deutsche IBAN muss 22 Stellen lang sein'.'</div>';
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * @param $PersonId
      *
      * @return string
@@ -305,6 +374,7 @@ class ApiBankAccount extends Extension implements IApiInterface
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddBankAccount($Identifier, $PersonId));
         }
         $tblBankAccountAll = Debtor::useService()->getBankAccountAll();
+        $IbanReceiver = $this->receiverIban('');
 
         return (new Form(
             new FormGroup(array(
@@ -317,9 +387,12 @@ class ApiBankAccount extends Extension implements IApiInterface
                         , 6)
                 )),
                 new FormRow(array(
-                    new FormColumn(
-                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
-                        , 6),
+                    new FormColumn(array(
+                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))// ->setRequired()
+                        ->ajaxPipelineOnKeyUp($this->pipelineControllIban($IbanReceiver)),
+                        $IbanReceiver
+                    ), 6),
+
                     new FormColumn(
                         new AutoCompleter('BankAccount[BIC]', 'BIC', 'BIC', array('BIC' => $tblBankAccountAll))
                         , 6)
@@ -344,11 +417,20 @@ class ApiBankAccount extends Extension implements IApiInterface
     private function checkInputBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '', $BankAccount = array()
     ){
 
+
+
         $Error = false;
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
+
         if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])){
             $form->setError('BankAccount[IBAN]', 'Bitte geben Sie die IBAN an');
             $Error = true;
+        } elseif(strpos($BankAccount['IBAN'], 'DE') === 0) {
+            $Iban = str_replace(' ', '', $BankAccount['IBAN']);
+            if(strlen($Iban) !== 22){
+                $form->setError('BankAccount[IBAN]', 'Die Deutsche IBAN besteht immer aus 22 Zeichen');
+                $Error = true;
+            }
         }
 
         if($Error){
