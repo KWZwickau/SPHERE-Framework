@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -317,9 +318,10 @@ class ApiBankAccount extends Extension implements IApiInterface
                         , 6)
                 )),
                 new FormRow(array(
-                    new FormColumn(
-                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
-                        , 6),
+                    new FormColumn(array(
+                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 9999 9999 9999 99'))->setRequired()
+                    ), 6),
+
                     new FormColumn(
                         new AutoCompleter('BankAccount[BIC]', 'BIC', 'BIC', array('BIC' => $tblBankAccountAll))
                         , 6)
@@ -344,11 +346,26 @@ class ApiBankAccount extends Extension implements IApiInterface
     private function checkInputBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '', $BankAccount = array()
     ){
 
+
+
         $Error = false;
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
+
         if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])){
             $form->setError('BankAccount[IBAN]', 'Bitte geben Sie die IBAN an');
             $Error = true;
+        } elseif(strpos($BankAccount['IBAN'], 'DE') === 0) {
+            $Iban = str_replace(' ', '', $BankAccount['IBAN']);
+            if(strlen($Iban) !== 22){
+                $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Länge muss 22 Zeichen betragen');
+                $Error = true;
+            } else {
+                $Iban = str_replace(' ', '', $BankAccount['IBAN']);
+                if(!Account::useService()->getControlIban($Iban)){
+                    $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt');
+                    $Error = true;
+                }
+            }
         }
 
         if($Error){
