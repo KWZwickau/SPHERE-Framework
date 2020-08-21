@@ -489,7 +489,9 @@ class Frontend extends Extension implements IFrontendInterface
             if($tblSessionAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession()){
                 if($tblIdentification = $tblSessionAccount->getServiceTblIdentification()){
                     if($tblIdentification->getName() == 'System'){
-                        $extraButton = new Center(new ToggleCheckbox('Alles auswählen/abwählen', $this->formAccount($tblAccount)));
+                        if(isset($_POST['Account']['Identification'])){
+                            $extraButton = new Center(new ToggleCheckbox('Alles auswählen/abwählen', $this->formAccount($tblAccount)));
+                        }
                     }
                 }
             }
