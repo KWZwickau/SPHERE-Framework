@@ -173,6 +173,10 @@ class Service extends AbstractService
                 $pre = $this->calculateModulo($Match[$i], $pre);
             }
             $controlNumber = 98 - $pre;
+            // setzen der Führenden 0 wenn Zahl nur einstellig ist
+            if($controlNumber < 10){
+                $controlNumber = '0'.$controlNumber;
+            }
             if($controlNumber == $Match[2]){
                 return true;
             } else {
