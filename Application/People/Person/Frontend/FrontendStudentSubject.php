@@ -77,7 +77,14 @@ class FrontendStudentSubject  extends FrontendReadOnly
                     $Ranking = $tblStudentSubject->getTblStudentSubjectRanking()->getId();
                     $text = '&ndash;';
                     if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                        $text = $tblSubject->getDisplayName();
+                        // SSW-1067
+                        if ($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                            $text = $tblSubject->getAcronym() . '-' . 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft';
+                        } elseif ($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung') {
+                            $text = $tblSubject->getAcronym() . '-' . 'Gemeinschaftskunde/ Rechtserziehung';
+                        } else {
+                            $text = $tblSubject->getDisplayName();
+                        }
                         $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
                         $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
                         if ($fromLevel || $tillLevel) {
@@ -103,8 +110,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
             {
                 $electiveRows[] =
                     new LayoutRow(array(
-                        self::getLayoutColumnLabel($i . '. Wahlfach', 6),
-                        self::getLayoutColumnValue(isset($subjects['ELECTIVE'][$i]) ? $subjects['ELECTIVE'][$i] : '&ndash;', 6),
+                        self::getLayoutColumnLabel($i . '. WF', 3),
+                        self::getLayoutColumnValue(isset($subjects['ELECTIVE'][$i]) ? $subjects['ELECTIVE'][$i] : '&ndash;', 9),
                     ));
             }
             $electiveContent = new Layout(new LayoutGroup($electiveRows));
@@ -117,8 +124,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
             {
                 $teamRows[] =
                     new LayoutRow(array(
-                        self::getLayoutColumnLabel($i . '. AG', 6),
-                        self::getLayoutColumnValue(isset($subjects['TEAM'][$i]) ? $subjects['TEAM'][$i] : '&ndash;', 6),
+                        self::getLayoutColumnLabel($i . '. AG', 3),
+                        self::getLayoutColumnValue(isset($subjects['TEAM'][$i]) ? $subjects['TEAM'][$i] : '&ndash;', 9),
                     ));
             }
             $teamContent = new Layout(new LayoutGroup($teamRows));
@@ -131,8 +138,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
             {
                 $foreignLanguageContent[] = new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
-                        self::getLayoutColumnLabel($i . '. FS', 4),
-                        self::getLayoutColumnValue(isset($subjects['FOREIGN_LANGUAGE'][$i]) ? $subjects['FOREIGN_LANGUAGE'][$i] : '&ndash;', 8),
+                        self::getLayoutColumnLabel($i . '. FS', 3),
+                        self::getLayoutColumnValue(isset($subjects['FOREIGN_LANGUAGE'][$i]) ? $subjects['FOREIGN_LANGUAGE'][$i] : '&ndash;', 9),
                     )),
                 )));
             }
