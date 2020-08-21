@@ -126,9 +126,9 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2. Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
         }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'DocumentBorder', TblSetting::TYPE_INTEGER, '2'))) {
-
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Festlegung der seitlichen Ränder für Zeugnisse
-            mittels Zahleneingabe (1=mittlerer Rand, 2=breiter Rand): [Standard: 2]', true);
+            mittels Zahleneingabe (1=mittlerer Rand, 2=breiter Rand): [Standard: 2] (Diese Einstellung zählt nicht für
+            Abschluss- und Abgangszeugnisse)', true);
         }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {
