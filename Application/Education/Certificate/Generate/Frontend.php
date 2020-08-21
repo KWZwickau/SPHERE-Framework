@@ -48,6 +48,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -774,7 +775,6 @@ class Frontend extends Extension
             $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 $count = 0;
-                $Global = $this->getGlobal();
                 foreach ($tblStudentList as $tblPerson) {
                     $isMuted = $isCourseMainDiploma && $isDiploma;
 
@@ -842,34 +842,13 @@ class Frontend extends Extension
                                 $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
                             }
                         }
-                        if ($Global && $tblCertificate) {
-                            $Global->POST['Data'][$tblPerson->getId()] = $tblCertificate->getId();
-                            $Global->savePost();
-                        }
 
-                        // Alle Zeugnisse nach Zeugnistyp zur Auswahl
-                        $tblCertificateType = false;
-                        if ($tblPrepare->getServiceTblGenerateCertificate()) {
-                            $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
-                        }
-
-                        $tblCertificateAllByType = array();
-                        if ($tblCertificateType) {
-                            $tblConsumer = Consumer::useService()->getConsumerBySession(null);
-                            $tblCertificateAllStandard = Generator::useService()->getCertificateAllByConsumerAndCertificateType(null, $tblCertificateType);
-                            $tblCertificateAllConsumer = Generator::useService()->getCertificateAllByConsumerAndCertificateType($tblConsumer, $tblCertificateType);
-                            if ($tblCertificateAllConsumer) {
-                                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllConsumer);
-                            }
-                            if ($tblCertificateAllStandard) {
-                                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllStandard);
-                            }
-                        }
-                        $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
-                            '',
-                            array(
-                                '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
-                            )
+                        $tableData[$tblPerson->getId()]['Template'] = ApiGenerate::receiverContent(
+                            $this->getCertificateSelectBox(
+                                $tblPerson->getId(),
+                                $tblCertificate ? $tblCertificate->getId() : 0,
+                                $tblCertificateType ? $tblCertificateType->getId() : 0
+                            ), 'ChangeCertificate_' . $tblPerson->getId()
                         );
                     }
                 }
@@ -886,9 +865,27 @@ class Frontend extends Extension
                                 'Course' => 'Bildungsgang',
                                 'School' => 'Aktuelle Schule',
                                 'PrimaryFocus' => 'primärer FS',
-                                'Template' => 'Zeugnisvorlage',
+                                'Template' => 'Zeugnisvorlage'
+                                    . ApiGenerate::receiverModal()
+                                    . new PullRight(
+                                        (new Standard('Alle bearbeiten', ApiGenerate::getEndpoint()))
+                                            ->ajaxPipelineOnClick(ApiGenerate::pipelineOpenCertificateModal($tblPrepare->getId()))
+                                    ),
                                 'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
-                            ), null
+                                ),
+                                array(
+                                    'columnDefs' => array(
+                                        array("orderable" => false, "targets" => array(1,2,3,4,5,6)),
+                                    ),
+                                    'order' => array(
+                                        array(0, 'asc'),
+                                    ),
+                                    'pageLength' => -1,
+                                    'paging' => false,
+                                    'info' => false,
+                                    'searching' => false,
+                                    'responsive' => false
+                                )
                             )
                         )
                     )
@@ -930,6 +927,43 @@ class Frontend extends Extension
         } else {
             return new Danger('Klasse nicht gefunden', new Exclamation());
         }
+    }
+
+    /**
+     * @param $personId
+     * @param $certificateId
+     * @param $certificateTypeId
+     *
+     * @return SelectBox
+     */
+    public function getCertificateSelectBox($personId, $certificateId, $certificateTypeId)
+    {
+        $global = $this->getGlobal();
+        $global->POST['Data'][$personId] = $certificateId;
+        $global->savePost();
+
+        $tblCertificateAllByType = array();
+        if (($tblCertificateType = Generator::useService()->getCertificateTypeById($certificateTypeId))) {
+            $tblConsumer = Consumer::useService()->getConsumerBySession(null);
+            $tblCertificateAllStandard = Generator::useService()->getCertificateAllByConsumerAndCertificateType(null, $tblCertificateType);
+            $tblCertificateAllConsumer = Generator::useService()->getCertificateAllByConsumerAndCertificateType($tblConsumer, $tblCertificateType);
+            if ($tblCertificateAllConsumer) {
+                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllConsumer);
+            }
+            if ($tblCertificateAllStandard) {
+                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllStandard);
+            }
+        }
+
+        return new SelectBox('Data[' . $personId . ']',
+            '',
+            array(
+                '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
+            ),
+            null,
+            true,
+            null
+        );
     }
 
     /**
