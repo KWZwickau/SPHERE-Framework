@@ -128,6 +128,7 @@ class Service
             'Geburtsdatum'             => null,
             'Geburtsort'               => null,
             'Staatsangehörigkeit'      => null,
+            'Konfession'               => null,
             // address
             'PLZ'                      => null,
             'Ort'                      => null,
@@ -219,7 +220,7 @@ class Service
             'Schule'               => null,
             'Schulart'             => null,
             'Bildungsgang'         => null,
-            'Religion'             => null,
+            'Fach_Religion'        => null,
             'Stammgruppe'          => null,
             'Ersteinschlung_Datum' => null,
             'Allergien'            => null,
@@ -281,7 +282,7 @@ class Service
                 $studentBirth = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'], $RunY)));
                 $birthPlace = trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY)));
                 $nationality = trim($Document->getValue($Document->getCell($Location['Staatsangehörigkeit'], $RunY)));
-                $denomination = ''; // ToDO Konfession nachpflegen?
+                $denomination = trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)));
                 $remark = trim($Document->getValue($Document->getCell($Location['Abholberechtigte'], $RunY)));
                 $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $RunY, $Nr, $error);
 
@@ -293,7 +294,7 @@ class Service
                 $disease = trim($Document->getValue($Document->getCell($Location['Allergien'], $RunY)));
                 $medication = trim($Document->getValue($Document->getCell($Location['Medikamente'], $RunY)));
                 $insurance = trim($Document->getValue($Document->getCell($Location['Krankenkasse'], $RunY)));
-                $religion = trim($Document->getValue($Document->getCell($Location['Religion'], $RunY)));
+                $religion = trim($Document->getValue($Document->getCell($Location['Fach_Religion'], $RunY)));
                 $course = trim($Document->getValue($Document->getCell($Location['Bildungsgang'], $RunY)));
                 $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $disease, $medication, $insurance, $religion, $course, $RunY, $Nr, $error);
 
