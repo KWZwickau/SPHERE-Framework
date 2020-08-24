@@ -146,13 +146,15 @@ class Service extends AbstractService
     /**
      * @param $Iban
      *
-     * @return bool|null
-     *  true = Iban correct;
-     *  false = Iban false;
-     *  null = Iban incorrect format (preg_match)
+     * @return array
      */
     public function getControlIban($Iban)
     {
+
+        $IbanArray = array();
+        $IbanArray['control'] = null;
+        $IbanArray['number'] = 'n.v.';
+        $IbanArray['controlNumber'] = 'n.v.';
 
         /**
          * Zuerst findet eine Verschiebung der Zeichenkette statt. Der Ländercode DE und 00 für den fehlenden Prüfcode rücken an das Ende der Zeichenkette.
@@ -178,12 +180,18 @@ class Service extends AbstractService
                 $controlNumber = '0'.$controlNumber;
             }
             if($controlNumber == $Match[2]){
-                return true;
+                $IbanArray['control'] = true;
+                $IbanArray['number'] = $Match[2];
+                $IbanArray['controlNumber'] = $controlNumber;
+                return $IbanArray;
             } else {
-                return false;
+                $IbanArray['control'] = false;
+                $IbanArray['number'] = $Match[2];
+                $IbanArray['controlNumber'] = $controlNumber;
+                return $IbanArray;
             }
         }
-        return null;
+        return $IbanArray;
     }
 
     /**
