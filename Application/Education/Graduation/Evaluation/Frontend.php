@@ -846,14 +846,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         if(!isset($_POST['Task']['Period'])){
-            $_POST['Task']['Period'] = -3;
+            $_POST['Task']['Period'] = TblTask::FIRST_PERIOD_ID;
         }
 
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
 
         $periodList[] = new SelectBoxItem(-3, 'Gesamtes Schuljahr');
         $periodList[] = new SelectBoxItem(TblTask::FIRST_PERIOD_ID, TblTask::FIRST_PERIOD_NAME);
-        $periodList[] = new SelectBoxItem(TblTask::SECOND_PERIOD_ID, TblTask::SECOND_PERIOD_NAME);
+        $periodList[] = new SelectBoxItem(TblTask::SECOND_PERIOD_ID, TblTask::SECOND_PERIOD_NAME.' (GYM SEKII)');
 
         $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
         if ($tblScoreTypeAll) {
@@ -866,7 +866,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
                 ),
                 new FormColumn(
-                    (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '.new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
+                    (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '//verwirrt JK deswegen auskommentiert .new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
                         , array('Name' => $periodList)))->setRequired(), 4
                 ),
                 new FormColumn(
