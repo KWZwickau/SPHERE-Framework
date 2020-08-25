@@ -1117,24 +1117,29 @@ class Service extends Support
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblYear|null $tblYear
      *
      * @return false|TblDivision
      */
-    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson)
+    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson, TblYear $tblYear = null)
     {
 
         if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
             $tblPerson)
         ) {
-            $tblYearList = Term::useService()->getYearByNow();
+            if ($tblYear) {
+                $tblYearList = array(0 => $tblYear);
+            } else {
+                $tblYearList = Term::useService()->getYearByNow();
+            }
             if ($tblYearList) {
                 $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
                 if ($tblDivisionStudentList) {
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        foreach ($tblYearList as $tblYear) {
+                        foreach ($tblYearList as $tblYearItem) {
                             if ($tblDivisionStudent->getTblDivision()) {
                                 $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                                if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                                if ($divisionYear && $divisionYear->getId() == $tblYearItem->getId()) {
                                     if(($tblDivision = $tblDivisionStudent->getTblDivision())){
                                         if (($tblLevel = $tblDivision->getTblLevel())
                                             && !$tblLevel->getIsChecked()
