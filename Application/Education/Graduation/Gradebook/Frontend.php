@@ -1604,7 +1604,7 @@ class Frontend extends FrontendScoreRule
                         $tblPerson = Person::useService()->getPersonById($personId);
                         if ($tblPerson && is_array($divisionList)) {
                             $tableHeaderList = array();
-                            if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))) {
+                            if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson, $tblYear))) {
                                 $tblLevel = $tblMainDivision->getTblLevel();
                             } else {
                                 $tblLevel = false;
