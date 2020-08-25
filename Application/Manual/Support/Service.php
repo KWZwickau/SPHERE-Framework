@@ -172,7 +172,7 @@ class Service extends Extension
             try {
                 $mailAddress = $Request['Mail'];
 
-                $subject = utf8_decode('Cource-Code Anfrage');
+                $subject = utf8_decode('Source-Code Anfrage');
 
                 $body = '';
                 if (($tblAccount = Account::useService()->getAccountBySession())) {
