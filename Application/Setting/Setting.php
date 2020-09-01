@@ -3,7 +3,6 @@ namespace SPHERE\Application\Setting;
 
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Agb\Agb;
@@ -36,14 +35,7 @@ class Setting implements IClusterInterface
             if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
                 if(($tblConsumerLogin = ConsumerGatekeeper::useService()->getConsumerLoginByConsumer($tblConsumer))){
                     if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
-                        // ToDO remove for productive
-                        // only SystemAdmins allowed
-                        if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                            if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){
-                                Univention::registerApplication();
-                            }
-                        }
-//                        Univention::registerApplication();
+                        Univention::registerApplication();
                     }
                 }
             }
