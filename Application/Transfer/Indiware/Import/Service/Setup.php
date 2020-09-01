@@ -30,6 +30,7 @@ class Setup extends AbstractSetup
         $this->setTableIndiwareImportLectureship($Schema);
         $tblIndiwareImportStudent = $this->setTableIndiwareImportStudent($Schema);
         $this->setTableIndiwareImportStudentCourse($Schema, $tblIndiwareImportStudent);
+        $this->setTableIndiwareError($Schema);
 
         /**
          * Migration & Protocol
@@ -155,6 +156,25 @@ class Setup extends AbstractSetup
             $Table->addColumn('IsIgnoreCourse', 'boolean');
         }
         $this->createForeignKey($Table, $tblIndiwareImportStudent);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table $tblIndiwareImportStudentCourse
+     *
+     * @return Table
+     */
+    private function setTableIndiwareError(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblIndiwareError');
+        $this->createColumn($Table, 'Type', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Warning', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'CompareString', self::FIELD_TYPE_STRING);
 
         return $Table;
     }
