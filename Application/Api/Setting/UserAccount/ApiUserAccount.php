@@ -352,6 +352,8 @@ class ApiUserAccount extends Extension implements IApiInterface
         if(!isset($Data)){
             $Global = $this->getGlobal();
             // HiddenField
+            // pre select first entry
+            $Global->POST['Data']['GroupByCount'] = 1;
             $Global->POST['Data']['GroupByTime'] = $GroupByTime;
             $Global->POST['Data']['IsParent'] = $IsParent;
 //            $Global->POST['Data']['PersonId'] = $tblPerson->getId();

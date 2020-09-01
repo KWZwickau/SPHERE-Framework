@@ -579,7 +579,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('ESZC Auswertung', 'Neuanmeldungen/Interessenten');
-        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
         $PersonList = Person::useService()->createInterestedPersonList();
         if ($PersonList) {
             $Stage->addButton(
