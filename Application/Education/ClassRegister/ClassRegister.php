@@ -468,7 +468,7 @@ class ClassRegister implements IApplicationInterface
                             new LayoutColumn(array(
                                 new Panel(
                                     'Klasse',
-                                    $tblDivision->getDisplayName(),
+                                    $this->getDivisionString($tblDivision),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
@@ -585,5 +585,30 @@ class ClassRegister implements IApplicationInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    public function getDivisionString(TblDivision $tblDivision)
+    {
+
+        //Standard
+        $DivisionString = $DivisionString = $tblDivision->getDisplayName();
+
+        if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
+            $TeacherArray = array();
+            foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                if($tblPerson = $tblDivisionTeacher->getServiceTblPerson()){
+                    $TeacherArray[] = $tblPerson->getFullName();
+                }
+            }
+            if(!empty($TeacherArray)){
+                $DivisionString .= ' (Klassenlehrer: '.implode(', ', $TeacherArray).')';
+            }
+        }
+        return $DivisionString;
     }
 }

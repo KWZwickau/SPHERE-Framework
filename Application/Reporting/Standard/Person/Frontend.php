@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
+use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -955,7 +956,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
                             new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
+                                new Panel('Klasse', (new ClassRegister)->getDivisionString($tblDivision),
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
                             ($tblDivision->getTypeName() ?

@@ -25,11 +25,12 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
+            $tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision);
             $PersonList = ReportingPerson::useService()->createClassList($tblDivision);
             if ($PersonList) {
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createClassListExcel($PersonList, $tblPersonList);
+                    $fileLocation = ReportingPerson::useService()->createClassListExcel($PersonList, $tblPersonList, $tblDivisionTeacherList);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Klassenliste ".$tblDivision->getDisplayName()
