@@ -17,6 +17,18 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
  */
 class BeGs extends Certificate
 {
+    /**
+     * @return array
+     */
+    public function getApiModalColumns()
+    {
+        return array(
+            'Type' => 'Bezieht sich auf',
+            'DateCertifcate' => 'Datum des Zeugnisses',
+            'DateConference' => 'Datum der Klassenkonferenz',
+            'DateConsulting' => 'Datum der Bildungsberatung'
+        );
+    }
 
     /**
      * @return array
