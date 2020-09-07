@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\GradeInformation\GradeInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\PrintCertificate\PrintCertificate;
+use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
@@ -28,6 +29,7 @@ class Certificate implements IApplicationInterface
         Prepare::registerModule();
         Approve::registerModule();
         PrintCertificate::registerModule();
+        Reporting::registerModule();
         GradeInformation::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
