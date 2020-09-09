@@ -596,7 +596,7 @@ class ClassRegister implements IApplicationInterface
     {
 
         //Standard
-        $DivisionString = $DivisionString = $tblDivision->getDisplayName();
+        $DivisionString = $tblDivision->getDisplayName();
 
         if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
             $TeacherArray = array();
