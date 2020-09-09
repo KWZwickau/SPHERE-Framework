@@ -9,7 +9,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -299,9 +298,6 @@ class Data extends AbstractData
      */
     public function updateSubject(TblSubject $tblSubject, $Acronym, $Name, $Description = '')
     {
-
-        Debugger::screenDump($Acronym);
-
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblSubject $Entity */
