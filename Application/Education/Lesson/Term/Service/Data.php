@@ -535,6 +535,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblHolidayType
+     */
+    public function getHolidayTypeByName($Name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblHolidayType',
+            array(
+                TblHolidayType::ATTR_NAME => $Name
+            )
+        );
+    }
+
+    /**
      * @return false|TblHolidayType[]
      */
     public function getHolidayTypeAll()
@@ -905,5 +919,21 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblHolidayType $tblHolidayType
+     * @param $fromDate
+     * @param $toDate
+     *
+     * @return false|TblHoliday
+     */
+    public function getHolidayBy(TblHolidayType $tblHolidayType, $fromDate, $toDate)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblHoliday', array(
+            TblHoliday::ATTR_TBL_HOLIDAY_TYPE => $tblHolidayType->getId(),
+            TblHoliday::ATTR_FROM_DATE => $fromDate,
+            TblHoliday::ATTR_TO_DATE => $toDate
+        ));
     }
 }
