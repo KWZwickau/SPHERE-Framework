@@ -29,20 +29,44 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $YearString = new Bold('Kein aktuelles Jahr gefunden');
-        $tblYearList = false;
         $YearList = Term::useService()->getYearByNow();
+        $tblYear = false;
         if ($YearList) {
-            $YearString = current($YearList)->getYear();
-            // get Years that not now but have same YearString
-            $tblYearList = Term::useService()->getYearsByYear(current($YearList));
+            $tblYear = current($YearList);
+            $YearString = $tblYear->getYear();
+        }
+
+        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
+            $tblFutureYear = current($tblFutureYearList);
+        } else {
+            $tblFutureYear = false;
         }
 
         $Stage = new Stage('Stichtagsmeldung', 'Aktuelles Schuljahr: '.$YearString);
-        if ($tblYearList) {
+        if ($tblYear) {
             $Stage->addButton(
-                new Primary('Herunterladen',
-                    '/Api/Reporting/DeclarationBasis/Download', new Download())
+                new Primary(
+                    'Herunterladen für das aktuelle Schuljahr ' . $tblYear->getYear(),
+                    '/Api/Reporting/DeclarationBasis/Download',
+                    new Download(),
+                    array(
+                        'YearId' => $tblYear->getId()
+                    )
+                )
             );
+
+            if ($tblFutureYear) {
+                $Stage->addButton(
+                    new Primary(
+                        'Herunterladen für das nächste Schuljahr ' . $tblFutureYear->getYear(),
+                        '/Api/Reporting/DeclarationBasis/Download',
+                        new Download(),
+                        array(
+                            'YearId' => $tblFutureYear->getId()
+                        )
+                    )
+                );
+            }
         } else {
             $Stage->setContent(
                 new Layout(
@@ -56,6 +80,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         }
+
         return $Stage;
     }
 }
