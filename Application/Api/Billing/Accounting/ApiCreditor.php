@@ -12,7 +12,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -289,9 +288,6 @@ class ApiCreditor extends Extension implements IApiInterface
                     new FormColumn(
                         (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
-                    new FormColumn(
-                        new HiddenField("test")
-                        , 0),
                     new FormColumn(
                         (new TextField('Creditor[BIC]', 'BIC', 'BIC'))->setRequired()
                         , 6),
