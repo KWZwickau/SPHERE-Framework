@@ -504,6 +504,7 @@ class ClassRegister implements IApplicationInterface
                                             'responsive' => false
                                         )
                                         : array(
+                                        'rowReorderColumn' => 1,
                                         'ExtensionRowReorder' => array(
                                             'Enabled' => true,
                                             'Url'     => '/Api/Education/ClassRegister/Reorder',
