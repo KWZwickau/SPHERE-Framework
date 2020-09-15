@@ -68,6 +68,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return false|TblGenerateCertificate[]
+     */
+    public function getGenerateCertificateAllByCertificateType(TblCertificateType $tblCertificateType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGenerateCerificate', array(
+           TblGenerateCertificate::ATTR_SERVICE_TBL_CERTIFICATE_TYPE => $tblCertificateType->getId()
+        ));
+    }
+
+    /**
      * @param TblYear $tblYear
      * @param $Date
      * @param $Name

@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
@@ -90,6 +91,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getGenerateCertificateAll();
+    }
+
+    /**
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return false|TblGenerateCertificate[]
+     */
+    public function getGenerateCertificateAllByCertificateType(TblCertificateType $tblCertificateType)
+    {
+        return (new Data($this->getBinding()))->getGenerateCertificateAllByCertificateType($tblCertificateType);
     }
 
     /**
