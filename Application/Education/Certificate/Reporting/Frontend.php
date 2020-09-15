@@ -76,9 +76,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDiploma($View = null, $YearId = null)
     {
         switch ($View) {
-            case 0: $description = 'Hauptschulabschlusszeugnisse'; break;
-            case 1: $description = 'Realschulabschlusszeugnisse'; break;
-            case 2: $description = 'Abiturabschlusszeugnisse'; break;
+            case View::HS: $description = 'Hauptschulabschlusszeugnisse'; break;
+            case View::RS: $description = 'Realschulabschlusszeugnisse'; break;
+            case View::ABI: $description = 'Abiturabschlusszeugnisse'; break;
             default: $description = '';
         }
         $Stage = new Stage('Zeugnisse auswerten', $description);
