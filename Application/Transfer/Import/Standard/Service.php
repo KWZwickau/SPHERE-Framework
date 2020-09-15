@@ -562,7 +562,6 @@ class Service
                 $X = $Document->getSheetColumnCount();
                 $Y = $Document->getSheetRowCount();
 
-                // ToDO Add Custody after #SSW-922 & #SSW-926
                 /**
                  * Header -> Location
                  */
@@ -573,9 +572,11 @@ class Service
                     'Vorname'             => null,
                     'Rufname'             => null,
                     '2ter_Vorname'        => null,
+                    // common
                     'Geburtsdatum'        => null,
                     'Geburtsort'          => null,
                     'Staatsangehörigkeit' => null,
+                    'Konfession'          => null,
                     // address
                     'PLZ'                 => null,
                     'Ort'                 => null,
@@ -725,7 +726,7 @@ class Service
                         $studentBirth = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'], $RunY)));
                         $birthPlace = trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY)));
                         $nationality = trim($Document->getValue($Document->getCell($Location['Staatsangehörigkeit'], $RunY)));
-                        $denomination = '';
+                        $denomination = trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)));
                         $remark = '';
                         $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $RunY, $Nr, $error);
 
