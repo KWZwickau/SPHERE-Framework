@@ -1000,17 +1000,16 @@ class Frontend extends FrontendScoreRule
         $testCountTotal = 0;
         // Positionsermittlung
         $DisplayStudentNameCount = false;
-        $IsDisplayStudentInUse = false;
         if($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount')){
             $DisplayStudentNameCount = $tblSetting->getValue();
         }
 
         // Tabellenkopf mit Test-Code und Datum erstellen
+        $PeriodWithExtraName = false;
         if ($tblPeriodList) {
             $PeriodCount = 1;
             /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
-                $PeriodWithExtraName = false;
                 $count = 0;
                 if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
                     $count++;
@@ -1081,12 +1080,7 @@ class Frontend extends FrontendScoreRule
                             $count++;
                         }
                     }
-                    // Anpassung des zweiten Headers
-                    // Header wird nur einmal erweitert.
-                    if($PeriodWithExtraName && !$IsDisplayStudentInUse){
-                        $count++;
-                        $IsDisplayStudentInUse = true;
-                    }
+
                     $periodListCount[$tblPeriod->getId()] = $count;
                 }
             }
@@ -1333,7 +1327,12 @@ class Frontend extends FrontendScoreRule
         $headTableColumnList = array();
         $headTableColumnList[] = new TableColumn('', $showCourse ? 4 : 3, '20%');
         if (!empty($periodListCount)) {
+            $countTemp = 0;
             foreach ($periodListCount as $periodId => $count) {
+                $countTemp++;
+                if ($countTemp > 1 && $PeriodWithExtraName) {
+                    $headTableColumnList[] = new TableColumn('');
+                }
                 $tblPeriod = Term::useService()->getPeriodById($periodId);
                 if ($tblPeriod) {
                     $headTableColumnList[] = new TableColumn($tblPeriod->getDisplayName(), $count);
