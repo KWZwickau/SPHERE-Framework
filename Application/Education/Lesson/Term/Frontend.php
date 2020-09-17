@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -910,4 +911,60 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param null $YearId
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendImportHoliday($YearId = null, $Data = null)
+    {
+        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Tage importieren');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
+
+        if (($tblYear = Term::useService()->getYearById($YearId))) {
+            $list = array();
+            if (($tblState = BasicData::useService()->getStateByName('Sachsen'))) {
+                $list[$tblState->getId()] = $tblState->getName();
+
+                $global = $this->getGlobal();
+                $global->POST['Data'] = $tblState->getId();
+                $global->savePost();
+            }
+
+            $form = new Form(new FormGroup(new FormRow(new FormColumn(
+                new SelectBox('Data', 'Bundesland', $list
+            )))), new Primary('Importieren', new Save()));
+
+            $Stage->setContent(new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Schuljahr',
+                                $tblYear->getName() . ' ' . new Small(new Muted($tblYear->getDescription())),
+                                Panel::PANEL_TYPE_INFO
+                            ), 12
+                        ),
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Well(
+                                Term::useService()->importHolidayFromSystem($form, $tblYear, $Data)
+                            )
+                        ))
+                    ))
+                ))
+            )));
+
+        } else {
+            return $Stage
+                . new Danger('Schuljahr nicht gefunden.', new Ban())
+                . new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $Stage;
+    }
 }

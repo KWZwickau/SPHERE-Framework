@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
+use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -696,6 +697,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblHolidayType
+     */
+    public function getHolidayTypeByName($Name)
+    {
+        return (new Data($this->getBinding()))->getHolidayTypeByName($Name);
+    }
+
+    /**
      * @return false|TblHolidayType[]
      */
     public function getHolidayTypeAll()
@@ -954,5 +965,116 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->destroyHoliday($tblHoliday);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function getStartDateAndEndDateOfYear(TblYear $tblYear)
+    {
+        $startDate = false;
+        $endDate = false;
+        if (($tblPeriodList = $tblYear->getTblPeriodAll(false, true))) {
+            foreach ($tblPeriodList as $tblPeriod) {
+                if ($startDate) {
+                    if ($startDate > new \DateTime($tblPeriod->getFromDate())) {
+                        $startDate = new \DateTime($tblPeriod->getFromDate());
+                    }
+                } else {
+                    $startDate = new \DateTime($tblPeriod->getFromDate());
+                }
+
+                if ($endDate) {
+                    if ($endDate < new \DateTime($tblPeriod->getToDate())) {
+                        $endDate = new \DateTime($tblPeriod->getToDate());
+                    }
+                } else {
+                    $endDate = new \DateTime($tblPeriod->getToDate());
+                }
+            }
+        }
+
+        return array($startDate, $endDate);
+    }
+
+    /**
+     * @param TblHolidayType $tblHolidayType
+     * @param $fromDate
+     * @param $toDate
+     *
+     * @return false|TblHoliday
+     */
+    public function getHolidayBy(TblHolidayType $tblHolidayType, $fromDate, $toDate)
+    {
+        return (new Data($this->getBinding()))->getHolidayBy($tblHolidayType, $fromDate, $toDate);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblYear $tblYear
+     * @param $Data
+     *
+     * @return IFormInterface
+     */
+    public function importHolidayFromSystem(
+        IFormInterface &$Stage = null,
+        TblYear $tblYear,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $error = false;
+        $tblState = false;
+        if (isset($Data) && !($tblState = BasicData::useService()->getStateById($Data))) {
+            $Stage->setError('Data', 'Bitte wählen Sie ein Bundesland aus');
+            $error = true;
+        }
+
+        if (!$error && $tblState) {
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDate && $endDate
+                && ($tblHolidaySystemList = BasicData::useService()->getHolidayAllBy($startDate, $endDate))
+            ) {
+                foreach ($tblHolidaySystemList as $tblHolidaySystem) {
+                    if (($tblHolidayTypeSystem = $tblHolidaySystem->getTblHolidayType())
+                        && ($tblHolidayType = Term::useService()->getHolidayTypeByName($tblHolidayTypeSystem->getName()))
+                    ) {
+                        $tblStateSystem = $tblHolidaySystem->getTblState();
+                        if (!$tblStateSystem || $tblStateSystem->getId() == $tblState->getId()) {
+                            $tblHoliday = Term::useService()->getHolidayBy(
+                                $tblHolidayType,
+                                $tblHolidaySystem->getFromDateTime() ? $tblHolidaySystem->getFromDateTime() : null,
+                                $tblHolidaySystem->getToDate() ? $tblHolidaySystem->getToDateTime() : null
+                            );
+                            if (!($tblHoliday)) {
+                                $tblHoliday = (new Data($this->getBinding()))->createHoliday(
+                                    $tblHolidayType,
+                                    $tblHolidaySystem->getName(),
+                                    $tblHolidaySystem->getFromDate(),
+                                    $tblHolidaySystem->getToDate()
+                                );
+                            }
+
+                            if ($tblHoliday) {
+                                (new Data($this->getBinding()))->addYearHoliday($tblYear, $tblHoliday);
+                            }
+                        }
+                    }
+                }
+
+                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                    . new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_SUCCESS);
+            }
+        }
+
+        return $Stage;
     }
 }
