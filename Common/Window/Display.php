@@ -393,14 +393,14 @@ class Display extends Extension implements ITemplateInterface
             case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="../../Common/Style/Resource/Schulsoftware-font-professional.png" alt="Schulsottware" width="264" height="40">
+                <img src="/Common/Style/Resource/Schulsoftware-font-professional.png" alt="Schulsottware">
                 </a>';
                 $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
                 break;
             case 'trial.schulsoftware.schule':
             case 'trial.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="../../Common/Style/Resource/Schulsoftware-font.png" alt="Schulsottware" width="264" height="40">
+                <img src="/Common/Style/Resource/Schulsoftware-font.png" alt="Schulsottware">
                 </a><a class="navbar-brand" href="/">
                 <span class="text-info" style="margin-top: 3px">Trial</span></a>';
                 $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
@@ -408,21 +408,21 @@ class Display extends Extension implements ITemplateInterface
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="../../Common/Style/Resource/Schulsoftware-font-demo.png" alt="Schulsottware" width="264" height="40">
+                <img src="/Common/Style/Resource/Schulsoftware-font-demo.png" alt="Schulsottware">
                 </a>';
                 $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
             case 'nightly.schulsoftware.schule':
             case 'nightly.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="../../Common/Style/Resource/Schulsoftware-font.png" alt="Schulsottware"  width="264" height="40">
+                <img src="/Common/Style/Resource/Schulsoftware-font.png" alt="Schulsottware">
                 </a><a class="navbar-brand" href="/">
                 <span class="text-danger">Nightly</span></a>';
                 $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
             default:
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="../../Common/Style/Resource/Schulsoftware-font.png" alt="Schulsottware">
+                <img src="/Common/Style/Resource/Schulsoftware-font.png" alt="Schulsottware">
                 </a><a class="navbar-brand" href="/">
                 <span class="text-warning" style="padding-top: 11px">'.$this->getRequest()->getHost().'</span></a>';
                 $this->Template->setVariable('RoadmapVersion', 'Roadmap');
