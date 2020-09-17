@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class UniventionSchool
 {
@@ -54,15 +53,14 @@ class UniventionSchool
          **/
 
         $Json = $this->execute($this->curlhandle);
-        Debugger::screenDump($Json);
-        $StdClassArray = json_decode($Json);
+        $StdClassArray = json_decode($Json, true);
         $schoolList = array();
         if($StdClassArray !== null && is_array($StdClassArray) && !empty($StdClassArray)){
             foreach($StdClassArray as $StdClass){
-                $schoolList[$StdClass->name] = $StdClass->url;
+                $schoolList[$StdClass['name']] = $StdClass['url'];
             }
         }
-        return (is_array($schoolList) && !empty($schoolList) ? $schoolList : false);
+        return (!empty($schoolList) ? $schoolList : false);
     }
 
     private $retriableErrorCodes = [

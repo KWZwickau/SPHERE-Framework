@@ -3,8 +3,8 @@ namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
-//use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-//use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Common\Frontend\Icon\Repository\Publicly;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;

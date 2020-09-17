@@ -1,12 +1,8 @@
 <?php
 namespace SPHERE\Application\Setting\Univention;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -15,6 +11,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -22,13 +19,15 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -61,187 +60,356 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Univention', 'Online Verbindung');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
+
+//        $beginn = microtime(true);
+        // dynamsiche Rollenliste
+        $roleList = (new UniventionRole())->getAllRoles();
+
+//        $this->getTimeSpan($beginn, 'holen aller Rollen aus der API');
+
+//        $beginn = microtime(true);
+
+        // dynamsiche Schulliste
+        $schoolList = (new UniventionSchool())->getAllSchools();
+
+//        $this->getTimeSpan($beginn, 'holen Schulen aus der API');
+
+        // early break if no answer
+        if(!is_array($roleList) || !is_array($schoolList)){
+            $Stage->setContent(new Warning('Univention liefert keine Informationen'));
+            return $Stage;
+        }
+
+        // Buttons nur bei aktiver API
         // Removed for Live
         $Stage->addButton(new Standard('Accounts komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
         $Stage->addButton(new Standard('Accounts hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
         $Stage->addButton(new Standard('Accounts ändern', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
         $Stage->addButton(new Standard('Accounts löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+
+        $UserUniventionList = Univention::useService()->getApiUser();
+
+
 //        $beginn = microtime(true);
-//        $dauer = microtime(true) - $beginn;
-//        echo "Verbindung zur API: $dauer Sek.</br>";
-
-// ToDO Arbeiten mit der API
-//
-//        // dynamsiche Rollenliste
-//        $roleList = (new UniventionRole())->getAllRoles();
-//        Debugger::screenDump($roleList);
-//
-//        // dynamsiche Schulliste
-//        $schoolList = (new UniventionSchool())->getAllSchools();
-////        Debugger::screenDump($schoolList);
-//
-//        // Benutzerliste suchen
-//        $UserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
-//
-//        // early break for no answer
-//        if(!is_array($roleList) || !is_array($schoolList)){
-//            $Stage->setContent(new Warning('Univention liefert keine Informationen'));
-//            return $Stage;
-//        }
-//
-//        // Benutzerliste suchen für den Vergleich
-//        $UniventionUserList = (new UniventionUser())->getUserListByProperty('name',$Acronym.'-', true);
-//
-        $UserUniventionList = array();
-//        if($UniventionUserList){
-//            foreach($UniventionUserList as $User){
-//                // dn, url, ucsschool_roles[], name, school, firstname, lastname, birthday, disabled, email, record_uid, roles, schools, school_classes, source_uid, udm_properties
-//                $UserUniventionList[$User->record_uid] = array(
-//                    'name' => $User->name,
-//                    'school' => $User->school,
-//                    'firstname' => $User->firstname,
-//                    'lastname' => $User->lastname,
-//                    'birthday' => $User->birthday,
-//                    'email' => $User->email,
-//                    'roles' => $User->roles,
-//                    'schools' => $User->schools,
-//                    'school_classes' => $User->school_classes,
-//                    'source_uid' => $User->source_uid,
-//                    'udm_properties' => $User->udm_properties,
-//                );
-//            }
-//        }
-
         $ErrorLog = array();
-        $AccountActiveList = array();
-        $Acronym = Account::useService()->getMandantAcronym();
+        $UserSchulsoftwareList = array();
         $tblYear = Term::useService()->getYearByNow();
         if($tblYear){
             $tblYear = current($tblYear);
-            // Lehraufträge
-            $TeacherSchools = array();
-            $TeacherClasses = array();
-            if(($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
-                foreach($tblDivisionList as $tblDivision){
-                    if(($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))){
-                        foreach($tblDivisionSubjectList as $tblDivisionSubject){
-                            if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
-                                foreach($tblDivisionTeacherList as $tblDivisionTeacher){
-                                    if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
-                                        $SchoolString = '';
-                                        // wichtig für Schulgetrennte Klassen (nicht Mandantenweise)
-                                        if(($tblCompany = $tblDivision->getServiceTblCompany())
-                                            && Consumer::useService()->isSchoolSeparated()){
-                                            if(($tblSchoolType = $tblDivision->getType())){
-                                                $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                                $SchoolString = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
-                                                $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId().'_'.$tblSchoolTypeString] = $SchoolString;
-                                                $SchoolString .= '-';
-                                            }
-                                        }
-                                        $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()] = $SchoolString.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            $AccountActiveList = Univention::useService()->getAccountActive($tblYear, $Acronym, $TeacherSchools, $TeacherClasses);
+            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($tblYear, $roleList, $schoolList);
         } else {
             $ErrorLog[] = 'kein aktuelles Jahr gefunden';
         }
 
+//        $this->getTimeSpan($beginn, 'holen aller Benutzeraccounts aus der Schulsoftware * vorbereitung, das Werte wie in der API gepflegt werden');
+
         // Vergleich
-        // create: AccountActive welche nicht in der API vorhanden sind
-        $ApiList['Create'] = array();
+        // Zählung
         $count['create'] = 0;
-        $count['noCreate'] = 0;
-        $countNoCreate = 0;
-        // update: Accounts welche Vorhanden sind, aber unterschiedliche Werte aufweisen
-        $ApiList['Update'] = array();
+        $count['cantCreate'] = 0;
         $count['update'] = 0;
-        $count['noUpdate'] = 0;
-        // delete: Accounts, die in der API vorhaden sind, aber nicht in der Schulsoftware
-        $ApiList['Delete'] = array();
+        $count['allUpdate'] = 0;
+        $count['cantUpdate'] = 0;
         $count['delete'] = 0;
-        foreach($AccountActiveList as $AccountActive){
-            if(isset($UserUniventionList[$AccountActive['source_uid']])
-            // Lokal Test
-                || $AccountActive['name'] == 'REF-ArAn06'
-            ){
-                if(($Error = $this->controlAccount($AccountActive))){
-                    $ErrorLog[] = $Error;
-                    $count['noUpdate']++;
-                } else {
-                    $count['update']++;
-//                    $ApiList['update'][] = $AccountActive;
-                    // Lokaler Test
-                    $ApiList['Update'][] = $AccountActive['name'];
-                }
-                unset($UserUniventionList[$AccountActive['source_uid']]);
-            } else {
-                if(($Error = $this->controlAccount($AccountActive))){
-                    $ErrorLog[] = $Error;
-                    $count['noCreate']++;
-                } else {
-                    $count['create']++;
-//                    $ApiList['create'][] = $AccountActive;
-                    $ApiList['Create'][] = $AccountActive['name'];
-                }
-                $ApiCreateList[] = $AccountActive;
+        // create: AccountActive welche nicht in der API vorhanden sind
+        //ToDO eigene Variablen, nicht alles in einem Riesen array
+        $createList = array();
+        $cantCreateList = array();
+//        $ApiList['Create'] = array();
+//        $ApiList['noCreate'] = array();
 
-                unset($UserUniventionList[$AccountActive['source_uid']]);
+        // update: Accounts welche Vorhanden sind, aber unterschiedliche Werte aufweisen
+        $updateList = array();
+        $cantUpdateList = array();
+//        $ApiList['Update'] = array();
+//        $ApiList['cantUpdate'] = array();
+
+        // Display changes
+        // delete: Accounts, die in der API vorhaden sind, aber nicht in der Schulsoftware
+        $deleteList = array();
+//        $ApiList['Delete'] = array();
+
+//        $beginn = microtime(true);
+
+        if(!empty($UserSchulsoftwareList)){
+            foreach($UserSchulsoftwareList as $AccountActive){
+                if(!isset($UserUniventionList[$AccountActive['record_uid']])
+                ){
+                    if(($Error = $this->controlAccount($AccountActive))){
+                        $cantCreateList[] = $Error;
+                        $count['cantCreate']++;
+                    } else {
+                        $count['create']++;
+                        $createList[] = $AccountActive;
+                        // Lokaler Test
+//                    $createList[] = $AccountActive['name'];
+                    }
+                    unset($UserUniventionList[$AccountActive['record_uid']]);
+                } else {
+                    $Log = array();
+                    //ToDO only Update if necessary
+                    // compare
+                    $ExistUser = $UserUniventionList[$AccountActive['record_uid']];
+                    if($ExistUser['firstname'] != $AccountActive['firstname']){
+                        $Log[] = 'Vorname: '.new InfoText($ExistUser['firstname']).' -> '.new SuccessText($AccountActive['firstname']);
+                    }
+                    if($ExistUser['lastname'] != $AccountActive['lastname']){
+                        $Log[] = 'Nachname: '.new InfoText($ExistUser['lastname']).' -> '.new SuccessText($AccountActive['lastname']);
+                    }
+//                if($ExistUser['birthday'] != $AccountActive['birthday']){
+//                    $Log[] = 'Geburtstag: '.new InfoText($ExistUser['birthday']).' -> '.new SuccessText($AccountActive['birthday']);
+//                }
+                    if(strtolower($ExistUser['email']) != strtolower($AccountActive['email'])){
+                        $Log[] = 'E-Mail: '.new InfoText($ExistUser['email']).' -> '.new SuccessText($AccountActive['email']);
+                    }
+                    if($ExistUser['roles'] != $AccountActive['roles']){
+                        $Log[] = 'Rolle: '.new InfoText(new Listing($ExistUser['roles'])).' -> '.new SuccessText(new Listing($AccountActive['roles']));
+                    }
+                    if($ExistUser['schools'] != $AccountActive['schools']){
+                        $Log[] = 'Schule: '.new InfoText(new Listing($ExistUser['schools'])).' -> '.new SuccessText(new Listing($AccountActive['schools']));
+                    } else {
+                        $AccountActive['schools'] = $ExistUser['schools'];
+                    }
+//                if($ExistUser['school_classes'] != $AccountActive['school_classes']){
+//                    $Log[] = 'Klasse(n): '.new InfoText(new Listing($ExistUser['school_classes'])).' -> '.new SuccessText(new Listing($ExistUser['school_classes']));
+//                }
+
+                    $count['allUpdate']++;
+
+                    if(($Error = $this->controlAccount($AccountActive))){
+                        $cantUpdateList[] = $Error;
+                        $count['cantUpdate']++;
+                    } else {
+
+                        if(!empty($Log)){
+                            $count['update']++;
+                            $AccountActive['UpdateLog'] = $Log;
+                            $updateList[] = $AccountActive;
+//                        $UpdateLog[$AccountActive['record_uid']] = $Log; // brauch ich das noch?
+                        } else {
+                            // ToDO unveränderte Account's Anzeige etc?
+
+                        }
+                    }
+                }
+                unset($UserUniventionList[$AccountActive['record_uid']]);
             }
+            $count['delete'] = count($UserUniventionList);
+            $deleteList = $UserUniventionList;
         }
-        $ErrorLog = array_filter($ErrorLog);
-        $ApiList['Delete'] = $UserUniventionList;
-        $count['delete'] = count($UserUniventionList);
 
-        echo 'Api Kommunikation';
+        $ErrorLog = array_filter($ErrorLog);
+
+//        $this->getTimeSpan($beginn, 'Entscheidung welche Funktionen ausgeführt werden müssen + Frontendvorbereitung');
+
+//        echo 'Api Kommunikation';
 //        Debugger::screenDump($ApiList);
 //        echo'Zählung:';
 //        Debugger::screenDump($count);
 //        echo'ErrorLog:';
 //        Debugger::screenDump($ErrorLog);
 
-        // Upload erst nach ausführlicher bestätigung
-        if($Upload == 'All' || $Upload == 'Create' || $Upload == 'Update' || $Upload == 'Delete'){
-            foreach($ApiList as $Type => $AccountList){
-                if($Type == 'Create' && !empty($AccountList) && ($Upload == 'All' || $Upload == 'Create')){
-                    Debugger::screenDump('create:');
-                    Debugger::screenDump($AccountList);
-                    foreach($AccountList as $Account){
-                        // create with API
-//                        (new UniventionUser())->createUser($Account['name'], $Account['email'], $Account['firstname'], $Account['lastname'], $Account['record_uid'], $Account['roles'],
-//                            $Account['schools'], $Account['source_uid']);
-                    }
+//        $beginn = microtime(true);
+
+        $returnString = 'Komplett Abgleich';
+        if($Upload == 'Create'){
+            $returnString = 'Hinzufügen';
+        } elseif($Upload == 'Update'){
+            $returnString = 'Ändern';
+        } elseif($Upload == 'Delete'){
+            $returnString = 'Löschen';
+        }
+
+        // Upload erst nach ausführlicher Bestätigung
+        if($Upload == 'Create'){
+            foreach($createList as $createAccount){
+
+                //ToDO Remove its a local test
+                //Lokal Test Performance
+                if(
+                    $createAccount['name'] == 'REF-KoMü10'
+//                    $createAccount['name'] == 'REF-ZiEh15'
+//                    $createAccount['name'] == 'REF-MoVo02'
+//                || $createAccount['name'] == 'REF-ZiEh15'
+//                || $createAccount['name'] == 'REF-PyZi01'
+//                || $createAccount['name'] == 'REF-RoSt22'
+//                || $createAccount['name'] == 'REF-QuKa01'
+//                || $createAccount['name'] == 'REF-FiRo22'
+                ){
+                    // create with API
+                    $ErrorLog[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
+                        $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
+                        $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
                 }
-                if($Type == 'Update' && !empty($AccountList) && ($Upload == 'All' || $Upload == 'Update')){
-                    Debugger::screenDump('update:');
-                    Debugger::screenDump($AccountList);
-                    foreach($AccountList as $Account){
-                        // update with API
-//                        (new UniventionUser())->updateUser($Account['name'], $Account['email'], $Account['firstname'], $Account['lastname'], $Account['record_uid'], $Account['roles'],
-//                            $Account['schools'], $Account['source_uid']);
-                    }
+            }
+            // ToDO Errorlog anzeigen wenn vorhanden
+            $Stage = new Stage('Univention', 'Service');
+            $Stage->setContent(new Success($returnString.' durchgeführt')    );
+//            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
+
+//            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+
+            return $Stage;
+        }
+        if($Upload == 'Update'){
+            foreach($updateList as $updateAccount){
+                //ToDO Update nach funktionstüchtigkeit und Feldinformation anpassen
+//                // update with API
+                (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
+                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
+                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes']);
+            }
+            $Stage = new Stage('Univention', 'Service');
+            $Stage->setContent(new Success($returnString.' durchgeführt')    );
+//            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
+
+//            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+
+            return $Stage;
+        }
+        if($Upload == 'Delete'){
+            // ToDO Klärung in wie weit das gewünscht / erfordert ist.
+            if($deleteList){
+                foreach($deleteList as $deleteAccount){
+                    // delete with API
+                    $ErrorLog[] = (new UniventionUser())->deleteUser($deleteAccount);
                 }
-                //ToDo Nutzer in Univention löschen, wenn sie in der Schulsoftware gelöscht werden?
-                //ToDO Löschen funktioniert nicht mit Umlauten, Fehlersuche wenn API wieder verfügbar
-                if($Type == 'Delete' && !empty($AccountList) && ($Upload == 'All' || $Upload == 'Delete')){
-                    Debugger::screenDump('delete:');
-                    Debugger::screenDump($AccountList);
-                    foreach($AccountList as $Account){
-                        // delete with API
-//                        $ErrorLog[] = (new UniventionUser())->deleteUser($Account['name']);
-                    }
+            }
+////          Testweise einen bestimmten User löschen (Test Umlaute)
+//            $ErrorLog[] = (new UniventionUser())->deleteUserByName('REF-KoMü10');
+
+            $Stage = new Stage('Univention', 'Service');
+            $Stage->setContent(new Success($returnString.' durchgeführt')    );
+//            . new Redirect('/Setting/Univention/Api', Redirect::TIMEOUT_SUCCESS));
+
+//            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+
+            return $Stage;
+        }
+        if($Upload == 'All'){
+            foreach($createList as $createAccount) {
+                $ErrorLog[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
+                    $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
+                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
+            }
+            foreach($updateList as $updateAccount){
+                //ToDO Update nach funktionstüchtigkeit und Feldinformation anpassen
+//                // update with API
+                (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
+                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
+                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes']);
+            }
+            foreach($deleteList as $deleteAccount){
+                // delete with API
+                $ErrorLog[] = (new UniventionUser())->deleteUser($deleteAccount);
+            }
+//            $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen');
+        }
+
+//        $this->getTimeSpan($beginn, 'Kommunikation mit der API um Veränderungen auszuführen (keine Aktion ausgeführt)');
+
+//        $beginn = microtime(true);
+
+        // Frontend Anzeige
+        $ContentCreate = array();
+        $ContentUpdate = array();
+        $ContentDelete = array();
+        if(!empty($createList)){
+            foreach($createList as $AccountArray) {
+                $DivisionString = 'Klasse: ';
+                if(count($AccountArray['school_classes']) === 1){
+                    $DivisionString = 'Klasse: '.current(current($AccountArray['school_classes']));
+                } elseif(count($AccountArray['school_classes']) > 1){
+                    $DivisionString = 'Klassen: '.implode(', ', $AccountArray['school_classes']);
+                }
+
+                $ContentCreate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                    $AccountArray['firstname'].' '.$AccountArray['lastname'].'<br/>'.
+                    $DivisionString
+                )))->enableHtml();
+            }
+        }
+        if(!empty($updateList)){
+            foreach($updateList as $AccountArray) {
+                // ToDo Display changes that will be happend
+//            $DivisionString = 'Klasse: ';
+//            if(strpos($AccountArray['school_classes'], ',')){
+//                $DivisionString = 'Klassen: ';
+//            }
+                if(isset($AccountArray['UpdateLog'])){
+                    $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                        implode('<br/>', $AccountArray['UpdateLog'])
+                    )))->enableHtml();
+                } else {
+                    $ContentUpdate[] = $AccountArray['name'];
                 }
             }
         }
+        if(!empty($deleteList)){
+            foreach($deleteList as $AccountArray) {
+                $ContentDelete[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                    $AccountArray['firstname'].' '.$AccountArray['lastname']
+//                        .'<br/>'.
+//                        $DivisionString.$Account['school_classes']
+                )))->enableHtml();
+            }
+        }
+        // Frontend Anzeige Error/Warnung
+        $CantCreatePanelContent = '';
+        $CantUpdatePanelContent = '';
+        if(!empty($cantCreateList)){
+            foreach($cantCreateList as $cantCreateAccount){
+                $CantCreatePanelContent[] = implode('<br/>', $cantCreateAccount);
+            }
+        }
+        if(!empty($cantUpdateList)){
+            foreach($cantUpdateList as $cantUpdateAccount){
+                $CantUpdatePanelContent[] = implode('<br/>', $cantUpdateAccount);
+            }
+        }
 
-        $Stage->setContent('ToDO Ausgabe');
+        $Stage->setContent(new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Neue Benutzer für Connexion ('.$count['create'].')',
+                        $ContentCreate, Panel::PANEL_TYPE_INFO
+                    )
+                , 4),
+                new LayoutColumn(
+                    new Panel('Benutzer anpassen ('.$count['update'].' von '.$count['allUpdate'].')',
+                        $ContentUpdate, Panel::PANEL_TYPE_PRIMARY
+                    )
+                , 4),
+                new LayoutColumn(
+                    new Panel('Benutzer in Connexion entfernen ('.$count['delete'].')',
+                        $ContentDelete, Panel::PANEL_TYPE_DANGER
+                    )
+                , 4)
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Benutzerm die nicht angelegt werden können ('.$count['cantCreate'].')',
+                        $CantCreatePanelContent, Panel::PANEL_TYPE_WARNING
+                    )
+                , 4),
+                new LayoutColumn(
+                    new Panel('Benutzer, die nicht bearbeitet werden können ('.$count['cantUpdate'].')',
+                        $CantUpdatePanelContent, Panel::PANEL_TYPE_WARNING
+                    )
+                , 4),
+            ))
+        ))));
+
+//        $this->getTimeSpan($beginn, 'Frontend anzeigen');
 
         return $Stage;
+    }
+
+    public function getTimeSpan($beginn, $Text = '')
+    {
+        $dauer = microtime(true) - $beginn;
+        $dauer = round($dauer, 2);
+        echo $Text.': '.$dauer.' Sek.)</br>';
     }
 
     /**
@@ -256,20 +424,34 @@ class Frontend extends Extension implements IFrontendInterface
 
         $ErrorLog = array();
         // Handle Error Entity
+        // welche Eigenschaften müssen vorhanden sein:
         if($Account['name'] == ''
             || $Account['firstname'] == ''
             || $Account['lastname'] == ''
+            || $Account['email'] == ''
             || $Account['record_uid'] == ''
-            || $Account['source_uid'] == ''
             || $Account['school_classes'] == ''
             || empty($Account['roles'])
             || empty($Account['schools'])) {
 
+            $ErrorLog[] = new Bold($Account['name']);
+
             foreach($Account as $Key => $Value){
+
+//                Debugger::screenDump($Key, $Value);
+
                 if(is_array($Value)){
+                    //roles
+                    //schools
 
                     $MouseOver = '';
                     switch ($Key){
+                        case 'email':
+                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                new DangerText('Fehler:').'</br>'
+                                .'keine E-Mail als CONNEXION Benutzername verwendet'
+                            )))->enableHtml();
+                        break;
                         case 'roles':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Mögliche Fehler:</br>'
@@ -277,32 +459,53 @@ class Frontend extends Extension implements IFrontendInterface
                                 .'Person in keiner der Folgenen Personengruppen:</br>'
                                 .new DangerText('Schüler / Mitarbeiter / Lehrer')
                             )))->enableHtml();
-                            break;
+                        break;
                         case 'schools':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen </br>'
                                 .'oder Schule fehlt in Univention')))->enableHtml();
-                            break;
+                        break;
                     }
 
                     if(empty($Value)){
                         $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
-                    }else {
-                        $ErrorLog[] = $Key.' Ok';
                     }
 
                 }else {
-                    if($Value === ''){
+                    if($Value == ''){
+
+                        // Mousover Problembeschreibung
                         $MouseOver = '';
                         switch ($Key){
+                            case 'email':
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    new DangerText('Fehler:').'</br>'
+                                    .'keine E-Mail als CONNEXION Benutzername verwendet'
+                                )))->enableHtml();
+                            break;
                             case 'lastname':
                                 $MouseOver = new ToolTip(new Info(), 'keine Person am Account');
-                                break;
+                            break;
                             case 'school_classes':
                                 $MouseOver = new ToolTip(new Info(), 'Person muss mindestens einer Klasse zugewiesen sein');
-                                break;
+                            break;
                         }
-                        $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+
+                        if(empty($Value)){
+                            // Mousover Problembeschreibung
+                            switch($Key){
+                                case 'group':
+                                    // no log
+                                break;
+                                default:
+                                    $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                            }
+
+
+                            // Error auf nötiges reduzieren
+//                    }else {
+//                        $ErrorLog[] = $Key.' Ok';
+                        }
                     }
                 }
             }
@@ -343,19 +546,12 @@ class Frontend extends Extension implements IFrontendInterface
         $ErrorLog = array();
         if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
 
-            $isCoreGroupUsage = false;
-            // kontrolle Stammgruppennutzung
-            if(Group::useService()->getGroupListByIsCoreGroup()){
-                $isCoreGroupUsage = true;
-            }
-
             foreach($AccountPrepareList as $Data){
                 $IsError = false;
 //                $Data['name'];
 //                $Data['firstname'];       // Account ohne Person wird bereits davor ausgefiltert
 //                $Data['lastname'];
 //                $Data['record_uid'];      // Accountabhängig
-//                $Data['source_uid'];      // Accountabhängig
 //                $Data['roles'];           // benutzer ohne Rollen werden bereits entfernt. nachträglich werden Schüler herrangezogen, die besitzen immer Student
 //                $Data['schools'];
 //                $Data['password'];        // noch keine Prüfung
@@ -364,39 +560,30 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if(!$Data['name']){
                     $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Person als '.
-                        new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
+                            new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
                         new DangerText('Account fehlt ');
                     $IsError = true;
                 }
                 if(!$Data['schools']){
                     $Data['schools'] = (new ToolTip(new Exclamation(),
-                        htmlspecialchars(new Minus().' Lehrer erhält alle Schulen aus Mandanteneinstellungen<br/>'
-                            .new Minus().' Schüler benötigt aktuelle Klasse<br/>'
-                            .new Minus().' Schüler benötigt aktuelle Schule in S-Akte'
-                        )))->enableHtml().
+                            htmlspecialchars(new Minus().' Lehrer erhält alle Schulen aus Mandanteneinstellungen<br/>'
+                                .new Minus().' Schüler benötigt aktuelle Klasse<br/>'
+                                .new Minus().' Schüler benötigt aktuelle Schule in S-Akte'
+                            )))->enableHtml().
                         new DangerText(' Keine Schule hinterlegt');
                     $IsError = true;
                 } else {
                     $Data['schools'] = new SuccessText(new SuccessIcon().' gefunden');
                 }
+
                 if(!$Data['school_classes'] && preg_match("/student/",$Data['roles'])){
+
                     $Data['school_classes'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().
                             ' Schüler benötigt eine aktuelle Klasse')))->enableHtml().
-                            new DangerText(' Keine Klasse');
+                        new DangerText(' Keine Klasse');
                     $IsError = true;
                 } else {
                     $Data['school_classes'] = new SuccessText(new SuccessIcon().' gefunden');
-                }
-
-                // Stammgruppe nur für Schüler
-                if($isCoreGroupUsage && empty($Data['groupArray']) && preg_match("/student/",$Data['roles'])){
-                    $Data['group'] = new DangerText('Keine Stammgruppe');
-                    $IsError = true;
-                } elseif($isCoreGroupUsage && count($Data['groupArray']) > 1 && preg_match("/student/",$Data['roles'])){
-                    $Data['group'] = new DangerText('mehr als eine Stammgruppe: '.implode(', ',$Data['group']));
-                    $IsError = true;
-                } elseif($isCoreGroupUsage && preg_match("/student/",$Data['roles'])){
-                    $Data['group'] = $Data['school_classes'] = new SuccessText(new SuccessIcon().' '.$Data['groupArray'][0]);
                 }
 
                 if($IsError){
@@ -412,9 +599,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $PanelContent[] = 'Person: '.$Notification['firstname'].' '. $Notification['lastname'];
                 $PanelContent[] = 'Schule: '.$Notification['schools'];
                 $PanelContent[] = 'Klasse: '.$Notification['school_classes'];
-                if(isset($Notification['group'])){
-                    $PanelContent[] = 'Stammgruppe: '.$Notification['group'];
-                }
 
                 $Columnlist[] = new LayoutColumn(
                     new Panel($Notification['name'], $PanelContent)
