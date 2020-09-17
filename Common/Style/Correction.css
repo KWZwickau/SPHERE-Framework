@@ -79,6 +79,10 @@ iframe.sphere-iframe-style {
     margin-top: 3px;
 }
 
+.navbar-brand-icon {
+    float: left;
+}
+
 /** LIST GROUP **/
 .list-group .list-group-item {
     padding: 5px 10px;
