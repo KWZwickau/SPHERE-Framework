@@ -133,9 +133,11 @@ class Data extends AbstractData
         $tblCategory = $this->createCategory('Religionsunterricht', '', true, 'RELIGION');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
         if (!$hasSubjects) {
-            $tblSubject = $this->createSubject('RE/k', 'Katholische Religionslehre');
+            $tblSubject = $this->createSubject('RE/k', 'Kath. Religion ');
             $this->addCategorySubject($tblCategory, $tblSubject);
-            $tblSubject = $this->createSubject('RE/e', 'Evangelische Religionslehre');
+            $tblSubject = $this->createSubject('RE/e', 'Ev. Religion');
+            $this->addCategorySubject($tblCategory, $tblSubject);
+            $tblSubject = $this->createSubject('RE/j', 'Jüd. Religion');
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('ETH', 'Ethik');
             $this->addCategorySubject($tblCategory, $tblSubject);

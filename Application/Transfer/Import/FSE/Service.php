@@ -984,7 +984,7 @@ class Service
                                     if ($religion == 'Ethik') {
                                         $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
                                     } elseif ($religion == 'Religion') {
-                                        $tblSubject = Subject::useService()->getSubjectByAcronym('RE/E');
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('RE/e');
                                     } else {
                                         $tblSubject = false;
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Fach-Religion nicht gefunden: ' . $religion;
