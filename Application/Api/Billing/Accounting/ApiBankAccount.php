@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -361,8 +362,10 @@ class ApiBankAccount extends Extension implements IApiInterface
                 $Error = true;
             } else {
                 $Iban = str_replace(' ', '', $BankAccount['IBAN']);
-                if(!Account::useService()->getControlIban($Iban)){
-                    $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt');
+                if(($IbanArray = Account::useService()->getControlIban($Iban)) && !$IbanArray['control']){
+                    // aktuelle Prüfziffer $IbanArray['number']
+                    // errechnete Prüfziffer $IbanArray['controlNumber']
+                    $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt'.new ToolTip('.', $IbanArray['number'].' != '.$IbanArray['controlNumber']));
                     $Error = true;
                 }
             }

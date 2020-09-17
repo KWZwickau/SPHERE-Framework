@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -366,6 +368,20 @@ class ApiCreditor extends Extension implements IApiInterface
         if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
             $Error = true;
+        } elseif(strpos($Creditor['IBAN'], 'DE') === 0) {
+            $Iban = str_replace(' ', '', $Creditor['IBAN']);
+            if(strlen($Iban) !== 22){
+                $form->setError('Creditor[IBAN]', 'Deutsche IBAN-Länge muss 22 Zeichen betragen');
+                $Error = true;
+            } else {
+                $Iban = str_replace(' ', '', $Creditor['IBAN']);
+                if(($IbanArray = Account::useService()->getControlIban($Iban)) && !$IbanArray['control']){
+                    // aktuelle Prüfziffer $IbanArray['number']
+                    // errechnete Prüfziffer $IbanArray['controlNumber']
+                    $form->setError('Creditor[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt'.new ToolTip('.', $IbanArray['number'].' != '.$IbanArray['controlNumber']));
+                    $Error = true;
+                }
+            }
         }
         if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
             $form->setError('Creditor[BIC]', 'Bitte geben Sie eine BIC an');
