@@ -136,8 +136,15 @@ class Service extends AbstractService
         $activeAccountList = array();
 
         if($tblAccountList){
-            array_walk($tblAccountList, function(TblAccount $tblAccount) use ($tblYear, $Acronym, &$activeAccountList,
-                $TeacherSchools, $TeacherClasses, $schoolList, $roleList){
+            array_walk($tblAccountList, function(TblAccount $tblAccount) use (
+                $tblYear,
+                $Acronym,
+                &$activeAccountList,
+                $TeacherSchools,
+                $TeacherClasses,
+                $schoolList,
+                $roleList
+            ) {
                 $UploadItem['name'] = $tblAccount->getUsername();
                 $UploadItem['email'] = $tblAccount->getUserAlias();
                 $UploadItem['firstname'] = '';
@@ -145,10 +152,10 @@ class Service extends AbstractService
                 $UploadItem['record_uid'] = $tblAccount->getId();
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = '';
-                $UploadItem['schools'] = '';
+                $UploadItem['schools'] = array();
 
 //            $UploadItem['password'] = '';// no passwort transfer
-                $UploadItem['school_classes'] = '';
+                $UploadItem['school_classes'] = array();
                 $UploadItem['group'] = '';
 
                 $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -161,15 +168,15 @@ class Service extends AbstractService
                 $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                 $groups = array();
                 $roles = array();
-                foreach($tblGroupList as $tblGroup){
+                foreach($tblGroupList as $tblGroup) {
                     if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
-                    $roles[] = $roleList['staff'];
+                        $roles[] = $roleList['staff'];
                     }
                     if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-                    $roles[] = $roleList['teacher'];
+                        $roles[] = $roleList['teacher'];
                     }
                     if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-                    $roles[] = $roleList['student'];
+                        $roles[] = $roleList['student'];
                     }
                     if($tblGroup->isCoreGroup()){
                         $groups[] = $tblGroup->getName();
@@ -192,10 +199,10 @@ class Service extends AbstractService
                     $schools[] = $SchoolString;
                     $StudentSchool = $SchoolString;
                 } else {
-                    if (($tblCompany = $tblDivision->getServiceTblCompany())){
-                        if ($tblDivision){
+                    if(($tblCompany = $tblDivision->getServiceTblCompany())){
+                        if($tblDivision){
                             // Schule über Schülerakte Company und Klasse (Schulart)
-                            if (($tblSchoolType = $tblDivision->getType())){
+                            if(($tblSchoolType = $tblDivision->getType())){
                                 $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
                                 $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
                                 $schools[] = $SchoolString;
@@ -205,7 +212,7 @@ class Service extends AbstractService
                     }
                 }
 
-                if (!empty($schools)){
+                if(!empty($schools)){
                     $schools = array_unique($schools);
                     $Item['schools'] = implode(',', $schools);
                 } else {
@@ -219,29 +226,25 @@ class Service extends AbstractService
 
 //            // Uploadtest
 //            //ToDO use API Schools
-            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                $schools = array(
-                    $schoolList['DEMOSCHOOL']
-                );
-                $StudentSchool = 'DEMOSCHOOL';
-            } else {
-                $schools = array(
-                    $schoolList['DEMOSCHOOL'],
+                if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                    $schools = array(
+                        $schoolList['DEMOSCHOOL']
+                    );
+                    $StudentSchool = 'DEMOSCHOOL';
+                } else {
+                    $schools = array(
+                        $schoolList['DEMOSCHOOL'],
 //                    $schoolList['DEMOSCHOOL2']
-                );
-            }
-
+                    );
+                }
                 if($tblDivision){
-                    $UploadItem['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                    $UploadItem['school_classes'][$StudentSchool] = array('DemoClass');//. $tblDivision->getTblLevel()->getName().$tblDivision->getName();
 //                    $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
                 } else {
                     if(isset($TeacherClasses[$tblPerson->getId()])){
                         $ClassList = $TeacherClasses[$tblPerson->getId()];
-                        foreach($ClassList as &$Class){
-                            $Class = $StudentSchool.'-'.$Class;
-                        }
                         sort($ClassList);
-                        $Item['school_classes'] = implode(',', $ClassList);
+                        $Item['school_classes'][$StudentSchool] = $ClassList;
                     }
                 }
 
@@ -264,19 +267,19 @@ class Service extends AbstractService
     public function getApiUser()
     {
 
-        $beginn = microtime(true);
+//        $beginn = microtime(true);
 
         // Benutzerliste suchen
         $UniventionUserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
 
-        Univention::useFrontend()->getTimeSpan($beginn, 'holen Mandantgefilterte Benutzer aus der API');
+//        Univention::useFrontend()->getTimeSpan($beginn, 'holen Mandantgefilterte Benutzer aus der API');
 
         $UserUniventionList = array();
         if($UniventionUserList){
             foreach($UniventionUserList as $User){
                 $UserUniventionList[$User['record_uid']] =
-                // dn, url, ucsschool_roles[], name, school, firstname, lastname, birthday, disabled, email, record_uid,
-                // roles, schools, school_classes, source_uid, udm_properties
+                    // dn, url, ucsschool_roles[], name, school, firstname, lastname, birthday, disabled, email, record_uid,
+                    // roles, schools, school_classes, source_uid, udm_properties
                 $UserUniventionList[$User['record_uid']] = array(
                     'record_uid' => (isset($User['record_uid']) ? $User['record_uid'] : ''),
                     'name' => (isset($User['name']) ? $User['name'] : ''),
@@ -557,7 +560,7 @@ class Service extends AbstractService
             // try to get Connexion Mail
             foreach($ToPersonList as $tblToPerson){
                 if($tblToPerson->isAccountUserAlias()
-                && ($tblMail = $tblToPerson->getTblMail())){
+                    && ($tblMail = $tblToPerson->getTblMail())){
                     $Item['mail'] = $tblMail->getAddress();
                     break;
                 }
@@ -566,7 +569,7 @@ class Service extends AbstractService
             if($Item['mail'] === ''){
                 foreach($ToPersonList as $tblToPerson){
                     if($tblToPerson->getTblType()->getName() == TblTypeMail::VALUE_BUSINESS
-                    && ($tblMail = $tblToPerson->getTblMail())){
+                        && ($tblMail = $tblToPerson->getTblMail())){
                         $Item['mail'] = $tblMail->getAddress();
                         break;
                     }
@@ -698,7 +701,7 @@ class Service extends AbstractService
     {
 
         if(Consumer::useService()->isSchoolSeparated()){
-                return $Acronym.$SchoolTypeString.($tblCompany ? $tblCompany->getId() : '1');
+            return $Acronym.$SchoolTypeString.($tblCompany ? $tblCompany->getId() : '1');
         }
         // ToDO Standard nach Wunsch anpassen
         // Schulen werden in Univention in Mandant zusammen gefasst (Standard)

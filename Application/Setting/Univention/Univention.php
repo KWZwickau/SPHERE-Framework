@@ -32,15 +32,16 @@ class Univention implements IApplicationInterface, IModuleInterface
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Csv'),
             new Link\Name('Univention über CSV'), new Link\Icon(new Publicly())
         ));
-        if(($tblAccount = Account::useService()->getAccountBySession())){
-            if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){
-                    Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Api'),
-                        new Link\Name('Univention über API'), new Link\Icon(new Publicly())
-                    ));
-                }
-            }
-        }
+        //ToDO Deaktiviert für Live
+//        if(($tblAccount = Account::useService()->getAccountBySession())){
+//            if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
+//                if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){
+//                    Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Api'),
+//                        new Link\Name('Univention über API'), new Link\Icon(new Publicly())
+//                    ));
+//                }
+//            }
+//        }
 
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

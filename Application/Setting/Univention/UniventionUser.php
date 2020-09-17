@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class UniventionUser
 {
@@ -71,32 +72,31 @@ class UniventionUser
      * @param array  $roles
      * @param array  $schools
      * @param array  $school_classes
-     * @param string $source_uid
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $source_uid = '')
+        $schools = array(), $school_classes = array())
     {
         curl_reset($this->curlhandle);
 
         $PersonContent = array(
             'name' => $name,
 //            'mailPrimaryAddress' => $email,
-//            'email' => $email,
+            'email' => $email,
             'firstname' => $firstname,
             'lastname' => $lastname,
             // AccountId
             'record_uid' => $record_uid,
             'roles' => $roles,
             'schools' => $schools,
-//            'school_classes' => $school_classes, // ToDO Spalte funktioniert nicht
+            'school_classes' => $school_classes,
             // Mandant + AccountId
-            'source_uid' => $source_uid
+//            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );
-
+        Debugger::screenDump($PersonContent);
         $PersonContent = json_encode($PersonContent);
-
+        Debugger::screenDump($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -113,24 +113,25 @@ class UniventionUser
 
         /**
          * possible field's
-          - dn
-          - url
-          - ucsschool_roles
-          - name
-          - school
-          - firstname
-          - lastname
-          - birthday
-          - disabled
-          - email
-          - record_uid
-          - roles
-          - schools
-          - school_classes
-          - source_uid
-          - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
+        - dn
+        - url
+        - ucsschool_roles
+        - name
+        - school
+        - firstname
+        - lastname
+        - birthday
+        - disabled
+        - email
+        - record_uid
+        - roles
+        - schools
+        - school_classes
+        - source_uid
+        - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
+        Debugger::screenDump($Json);
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
@@ -158,19 +159,19 @@ class UniventionUser
      * @param string $record_uid
      * @param array  $roles
      * @param array  $schools
-     * @param string $source_uid
+     * @param array  $school_classes
      *
      * @return string|null
      */
     public function updateUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $source_uid = '')
+        $schools = array(), $school_classes = array())
     {
         curl_reset($this->curlhandle);
 
         $PersonContent = array(
             'name' => $name,
 //            'mailPrimaryAddress' => $email,
-//            'email' => $email,
+            'email' => $email,
             'firstname' => $firstname,
             'lastname' => $lastname,
             // Try AccountId to find Account again?
@@ -178,12 +179,14 @@ class UniventionUser
             'roles' => $roles,
 //Local Test without schools
             'schools' => $schools, // test with two array elements
+            'school_classes' => $school_classes,
             // Mandant + AccountId to human resolve problems?
-            'source_uid' => $source_uid
+//            'source_uid' => $source_uid
         );
 
+        Debugger::screenDump($PersonContent);
         $PersonContent = json_encode($PersonContent);
-
+        Debugger::screenDump($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -218,6 +221,7 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
+        Debugger::screenDump($Json);
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
@@ -266,6 +270,46 @@ class UniventionUser
         ));
 
         $Json = $this->execute($this->curlhandle);
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
+        $Error = null;
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
+                $Error = '';
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
+                    }
+                }
+            }
+        }
+
+        return $Error;
+    }
+
+    /**
+     * @param array $AccountArray
+     *
+     * @return string|null
+     */
+    public function deleteUserByName($name)
+    {
+
+        curl_reset($this->curlhandle);
+
+        curl_setopt_array($this->curlhandle, array(
+            CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
+            CURLOPT_CUSTOMREQUEST => 'DELETE',
+            CURLOPT_SSL_VERIFYHOST => FALSE,
+            CURLOPT_HTTPHEADER => array('Authorization: bearer '.$this->token),
+            //return the transfer as a string
+            CURLOPT_RETURNTRANSFER => TRUE,
+        ));
+
+        $Json = $this->execute($this->curlhandle);
+
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
