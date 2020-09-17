@@ -325,19 +325,42 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutCompanyNew(TblCompany $tblCompany)
     {
 
-        if (($tblPhoneList = Phone::useService()->getPhoneAllByCompany($tblCompany))){
-            $LayoutRowList = array();
-            $LayoutRowCount = 0;
-            $LayoutRow = null;
+        $phoneBusiness = array();
+        if (($tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany))){
+            foreach($tblRelationshipAll as $tblRelationship) {
+                if(($tblPerson = $tblRelationship->getServiceTblPerson())){
+                    $tblToPersonList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                    if($tblToPersonList){
+                        foreach($tblToPersonList as $tblToPerson) {
+                            if(($tblPhone = $tblToPerson->getTblPhone())){
+                                if($tblToPerson->getTblType()->getName() == 'Geschäftlich'){
+                                    $phoneBusiness[$tblPhone->getId()] = $tblToPerson;
+                                }
+                                if($tblToPerson->getTblType()->getName() == 'Fax'
+                                && $tblToPerson->getTblType()->getDescription() == 'Geschäftlich'){
+                                    $phoneBusiness[$tblPhone->getId()] = $tblToPerson;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-            foreach ($tblPhoneList as $tblToCompany) {
-                if (($tblPhone = $tblToCompany->getTblPhone())
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+
+        if (($tblPhoneList = Phone::useService()->getPhoneAllByCompany($tblCompany))){
+
+            foreach($tblPhoneList as $tblToCompany) {
+                if(($tblPhone = $tblToCompany->getTblPhone())
                     && ($tblType = $tblToCompany->getTblType())
-                ) {
+                ){
                     $content = array();
 
                     $panelType = (preg_match('!Notfall!is',
-                        $tblType->getName() . ' ' . $tblType->getDescription())
+                        $tblType->getName().' '.$tblType->getDescription())
                         ? Panel::PANEL_TYPE_DANGER
                         : Panel::PANEL_TYPE_SUCCESS
                     );
@@ -353,8 +376,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCompany->getId(),
                             $tblToCompany->getId()
                         ))
-                        . ' | '
-                        . (new Link(
+                        .' | '
+                        .(new Link(
                             new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
                             ApiPhoneToCompany::getEndpoint(),
                             null,
@@ -366,28 +389,28 @@ class Frontend extends Extension implements IFrontendInterface
                         ));
 
                     $content[] = new PhoneLink($tblToCompany->getTblPhone()->getNumber(),
-                        $tblToCompany->getTblPhone()->getNumber(), new PhoneIcon() );
-                    if (($remark = $tblToCompany->getRemark())) {
+                        $tblToCompany->getTblPhone()->getNumber(), new PhoneIcon());
+                    if(($remark = $tblToCompany->getRemark())){
                         $content[] = new Muted($remark);
                     }
 
                     $panel = FrontendReadOnly::getContactPanel(
                         (preg_match('!Fax!is',
-                            $tblType->getName() . ' ' . $tblType->getDescription())
+                            $tblType->getName().' '.$tblType->getDescription())
                             ? new PhoneFax()
                             : (preg_match('!Mobil!is',
-                                $tblType->getName() . ' ' . $tblType->getDescription())
+                                $tblType->getName().' '.$tblType->getDescription())
                                 ? new PhoneMobil()
                                 : new PhoneIcon()
                             )
                         )
-                        . ' ' . $tblType->getName() . ' ' . $tblType->getDescription(),
+                        .' '.$tblType->getName().' '.$tblType->getDescription(),
                         $content,
                         $options,
                         $panelType
                     );
 
-                    if ($LayoutRowCount % 4 == 0) {
+                    if($LayoutRowCount % 4 == 0){
                         $LayoutRow = new LayoutRow(array());
                         $LayoutRowList[] = $LayoutRow;
                     }
@@ -395,10 +418,53 @@ class Frontend extends Extension implements IFrontendInterface
                     $LayoutRowCount++;
                 }
             }
-
-            return (string) (new Layout(new LayoutGroup($LayoutRowList)));
-        } else {
-            return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt')))));
         }
+
+        if(!empty($phoneBusiness)){
+            /**
+             * @var TblToPerson $tblToPerson
+             */
+            foreach($phoneBusiness as $tblToPerson) {
+                $content = array();
+                $tblPerson = $tblToPerson->getServiceTblPerson();
+                $tblPhone = $tblToPerson->getTblPhone();
+                $tblType = $tblToPerson->getTblType();
+
+                $content[] = new PhoneLink($tblPhone->getNumber(), $tblPhone->getNumber(), new PhoneIcon());
+                if(($remark = $tblToPerson->getRemark())){
+                    $content[] = new Muted($remark);
+                }
+                $content[] = new Link(
+                    new PersonIcon().' '.$tblPerson->getFullName(),
+                    '/People/Person',
+                    null,
+                    array('Id' => $tblPerson->getId()),
+                    'Zur Person'
+                );
+
+                $panel = FrontendReadOnly::getContactPanel(
+                    (preg_match('!Fax!is',
+                        $tblType->getName().' '.$tblType->getDescription())
+                        ? new PhoneFax()
+                        : new PhoneIcon()
+                    )
+                    .' '.$tblType->getName().' '.$tblType->getDescription(),
+                    $content,
+                    '',
+                    Panel::PANEL_TYPE_DEFAULT
+                );
+
+                if($LayoutRowCount % 4 == 0){
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn(new LayoutColumn($panel, 3));
+                $LayoutRowCount++;
+            }
+        }
+        if(!empty($LayoutRowList)){
+            return (string) (new Layout(new LayoutGroup($LayoutRowList)));
+        }
+        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt')))));
     }
 }

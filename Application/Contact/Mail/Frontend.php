@@ -328,19 +328,35 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutCompanyNew(TblCompany $tblCompany)
     {
 
-        if (($tblMailList = Mail::useService()->getMailAllByCompany($tblCompany))){
-            $LayoutRowList = array();
-            $LayoutRowCount = 0;
-            $LayoutRow = null;
+        $mailBusiness = array();
+        if (($tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany))) {
+            foreach ($tblRelationshipAll as $tblRelationship) {
+                if(($tblPerson = $tblRelationship->getServiceTblPerson())){
+                    $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblPerson);
+                    if ($tblRelationshipMailAll) {
+                        foreach ($tblRelationshipMailAll as $tblToPerson) {
+                            if (($tblMail = $tblToPerson->getTblMail())
+                            && $tblToPerson->getTblType()->getName() == 'Geschäftlich') {
+                                $mailBusiness[$tblMail->getId()] = $tblToPerson;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-            foreach ($tblMailList as $tblToCompany) {
-                if (($tblMail = $tblToCompany->getTblMail())
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        if (($tblMailList = Mail::useService()->getMailAllByCompany($tblCompany))){
+            foreach($tblMailList as $tblToCompany) {
+                if(($tblMail = $tblToCompany->getTblMail())
                     && ($tblType = $tblToCompany->getTblType())
-                ) {
+                ){
                     $content = array();
 
                     $panelType = (preg_match('!Notfall!is',
-                        $tblType->getName() . ' ' . $tblType->getDescription())
+                        $tblType->getName().' '.$tblType->getDescription())
                         ? Panel::PANEL_TYPE_DANGER
                         : Panel::PANEL_TYPE_SUCCESS
                     );
@@ -356,8 +372,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCompany->getId(),
                             $tblToCompany->getId()
                         ))
-                        . ' | '
-                        . (new Link(
+                        .' | '
+                        .(new Link(
                             new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
                             ApiMailToCompany::getEndpoint(),
                             null,
@@ -369,18 +385,18 @@ class Frontend extends Extension implements IFrontendInterface
                         ));
 
                     $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
-                    if (($remark = $tblToCompany->getRemark())) {
+                    if(($remark = $tblToCompany->getRemark())){
                         $content[] = new Muted($remark);
                     }
 
                     $panel = FrontendReadOnly::getContactPanel(
-                        new MailIcon() . ' ' . $tblType->getName(),
+                        new MailIcon().' '.$tblType->getName(),
                         $content,
                         $options,
                         $panelType
                     );
 
-                    if ($LayoutRowCount % 4 == 0) {
+                    if($LayoutRowCount % 4 == 0){
                         $LayoutRow = new LayoutRow(array());
                         $LayoutRowList[] = $LayoutRow;
                     }
@@ -388,10 +404,47 @@ class Frontend extends Extension implements IFrontendInterface
                     $LayoutRowCount++;
                 }
             }
-
-            return (string) (new Layout(new LayoutGroup($LayoutRowList)));
-        } else {
-            return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail Adressen hinterlegt')))));
         }
+        if(!empty($mailBusiness)){
+            /**
+             * @var TblToPerson $tblToPerson
+             */
+            foreach($mailBusiness as $tblToPerson) {
+                $content = array();
+                $tblPerson = $tblToPerson->getServiceTblPerson();
+                $tblMail = $tblToPerson->getTblMail();
+                $tblType = $tblToPerson->getTblType();
+
+                $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
+                if(($remark = $tblToPerson->getRemark())){
+                    $content[] = new Muted($remark);
+                }
+                $content[] = new Link(
+                    new PersonIcon().' '.$tblPerson->getFullName(),
+                    '/People/Person',
+                    null,
+                    array('Id' => $tblPerson->getId()),
+                    'Zur Person'
+                );
+
+                $panel = FrontendReadOnly::getContactPanel(
+                    new MailIcon().' '.$tblType->getName().' '.$tblType->getDescription(),
+                    $content,
+                    '',
+                    Panel::PANEL_TYPE_DEFAULT
+                );
+
+                if($LayoutRowCount % 4 == 0){
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn(new LayoutColumn($panel, 3));
+                $LayoutRowCount++;
+            }
+        }
+        if(!empty($LayoutRowList)){
+            return (string) (new Layout(new LayoutGroup($LayoutRowList)));
+        }
+        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail Adressen hinterlegt')))));
     }
 }
