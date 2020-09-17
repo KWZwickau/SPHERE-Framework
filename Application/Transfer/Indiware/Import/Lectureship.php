@@ -7,9 +7,11 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeache
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -18,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
@@ -220,6 +223,8 @@ class Lectureship extends Extension implements IFrontendInterface
 
             // remove existing import
             Import::useService()->destroyIndiwareImportLectureship();
+            // remove IndiwareError with Type
+            Import::useService()->destroyIndiwareErrorByType(TblIndiwareError::TYPE_LECTURE_SHIP);
 
             // match File
             $Extension = (strtolower($File->getClientOriginalExtension()) == 'txt'
@@ -269,13 +274,124 @@ class Lectureship extends Extension implements IFrontendInterface
                 Import::useService()->createIndiwareImportLectureShipByImportList($ImportList, $tblYear, $tblAccount);
             }
 
+            $ClassList = array(
+                'AppDivision1',
+                'AppDivision2',
+                'AppDivision3',
+                'AppDivision4',
+                'AppDivision5',
+                'AppDivision6',
+                'AppDivision7',
+                'AppDivision8',
+                'AppDivision9',
+                'AppDivision10',
+                'AppDivision11',
+                'AppDivision12',
+                'AppDivision13',
+                'AppDivision14',
+                'AppDivision15',
+                'AppDivision16',
+                'AppDivision17',
+                'AppDivision18',
+                'AppDivision19',
+                'AppDivision20',
+            );
+
+            $Subject = 'AppSubject';
+
+            $TeacherList = array(
+                'AppTeacher1',
+                'AppTeacher2',
+                'AppTeacher3'
+            );
+
+            // save Error Messages
+            $ResultList = $Gateway->getResultList();
+            if($ResultList){
+                foreach($ResultList as $ResultRow){
+                    foreach($ResultRow as $Key => $part){
+                        // only with Object (Warning should be the only one)
+                        if(is_object($part)){
+                            $ClassCount = 0;
+                            // Error in Class
+                            foreach($ClassList as $Class){
+                                $ClassCount++;
+                                // ErrorColumn
+                                if($Class == $Key){
+                                    $Division = $ResultRow['FileDivision'.$ClassCount];
+                                    $tempSubject = $ResultRow['FileSubject'];
+                                    // Teacher for
+                                    for($i = 1; $i <= 3; $i++){
+                                        if($ResultRow['FileTeacher'.$i]){
+                                            Import::useService()->createIndiwareError(
+                                                TblIndiwareError::TYPE_LECTURE_SHIP,
+                                                'Division',
+                                                strip_tags($part->getContent()),
+                                                TblIndiwareError::fetchCompareString(
+                                                    $Division, $tempSubject, $ResultRow['FileTeacher'.$i], $ResultRow['FileSubjectGroup']
+                                                )
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                            // Error in Teacher
+                            $TeacherCount = 0;
+                            foreach($TeacherList as $Teacher){
+                                $TeacherCount++;
+                                // ErrorColumn
+                                if($Teacher == $Key){
+                                    $Acronym = $ResultRow['FileTeacher'.$TeacherCount];
+                                    $tempSubject = $ResultRow['FileSubject'];
+                                    // Division for
+                                    for($j = 1; $j <= 20; $j++){
+                                        if($ResultRow['FileDivision'.$j]){
+                                            Import::useService()->createIndiwareError(
+                                                TblIndiwareError::TYPE_LECTURE_SHIP,
+                                                'Teacher',
+                                                strip_tags($part->getContent()),
+                                                TblIndiwareError::fetchCompareString(
+                                                    $ResultRow['FileDivision'.$j], $tempSubject, $Acronym, $ResultRow['FileSubjectGroup']
+                                                )
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                            // Error in Subject
+                            if($Subject == $Key){
+                                $tempSubject = $ResultRow['FileSubject'];
+                                // Teacher for
+                                for($i = 1; $i <= 3; $i++){
+                                    if($ResultRow['FileTeacher'.$i]){
+                                        // Division for
+                                        for($j = 1; $j <= 20; $j++){
+                                            if($ResultRow['FileDivision'.$j]){
+                                                Import::useService()->createIndiwareError(
+                                                    TblIndiwareError::TYPE_LECTURE_SHIP,
+                                                    'Subject',
+                                                    strip_tags($part->getContent()),
+                                                    TblIndiwareError::fetchCompareString(
+                                                        $ResultRow['FileDivision'.$j], $tempSubject, $ResultRow['FileTeacher'.$i], $ResultRow['FileSubjectGroup']
+                                                    )
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
             // view up to 5 divisions
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new TableData($Gateway->getResultList(), null,
+                                new TableData($ResultList, null,
                                     array(
                                         'FileDivision1'    => 'Datei: Klasse 1',
                                         'AppDivision1'     => 'Software: Klasse 1',
@@ -855,14 +971,14 @@ class Lectureship extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(
                             (Import::useService()->destroyIndiwareImportLectureship()
                                 ? new SuccessMessage('Der Import ist nun leer')
                                 .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_SUCCESS)
                                 : new WarningMessage('Der Import konnte nicht vollständig gelöscht werden')
                                 .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_ERROR)
                             )
-                        )))
+                        ))
                     ))
                 )
             );
@@ -927,6 +1043,18 @@ class Lectureship extends Extension implements IFrontendInterface
         $tblYear = Term::useService()->getYearById($YearId);
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft(), array(),
             'Zurück zum Indiware-Import'));
+        // Error Download
+        $tblIndiwareError = Import::useService()->getIndiwareErrorByType(TblIndiwareError::TYPE_LECTURE_SHIP);
+        // load if TblIndiwareImportLectureship exist (by Account)
+        if ($tblIndiwareError) {
+            $Stage->addButton(new External('Import Fehler Herunterladen', '/Api/Transfer/Indiware/ErrorExcel/LectureShip/Download', new Download(),
+                array(
+                    'Type' => TblIndiwareError::TYPE_LECTURE_SHIP,
+                    'StringCompareDescription' => 'Klasse_Fach_Lehrer(_Fachgruppe)'
+                )
+                , 'Herunterladen')
+            );
+        }
 
         $Stage->setMessage(
             new Container('Abgebildet werden alle Lehraufträge aller importierten Klassen für das ausgewählte Jahr '.($tblYear ? $tblYear->getYear() : '').'.')

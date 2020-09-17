@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudentCourse;
@@ -120,6 +121,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string Type
+     *
+     * @return false|TblIndiwareError[]
+     */
+    public function getIndiwareErrorByType($Type = TblIndiwareError::TYPE_LECTURE_SHIP)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblIndiwareError',
+            array(
+                TblIndiwareError::ATTR_TYPE => $Type,
+            ));
+    }
+
+    /**
      * @param TblAccount|null $tblAccount
      *
      * @return false|TblIndiwareImportStudent[]
@@ -131,6 +147,36 @@ class Data extends AbstractData
             'TblIndiwareImportStudent',
             array(
                 TblIndiwareImportStudent::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+            ));
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return false|TblIndiwareError[]
+     */
+    public function getIndiwareErrorByCompareStringAndColum($CompareString)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblIndiwareError',
+            array(
+                TblIndiwareError::ATTR_COMPARE_STRING => $CompareString,
+            ));
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return false|TblIndiwareError[]
+     */
+    public function getIndiwareErrorListByType($Type)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblIndiwareError',
+            array(
+                TblIndiwareError::ATTR_TYPE => $Type,
             ));
     }
 
@@ -147,6 +193,7 @@ class Data extends AbstractData
         TblAccount $tblAccount
     ) {
 
+        $ImportCheck = array();
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {
 
@@ -163,26 +210,43 @@ class Data extends AbstractData
 //                }
                 foreach ($DivisionList as $Number) {
                     if (isset($Result['tblDivision'.$Number]) && $Result['tblDivision'.$Number]) {
+                        //
+                        $Control = $Result['tblDivision'.$Number].'_'.$Result['FileSubject'].'_'.$Result['FileTeacher1'].'_'.$Result['FileSubjectGroup'];
+                        if(!in_array($Control, $ImportCheck)){
+                            if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn1'])) {
+                                $ImportCheck[] = $Control;
+                                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
+                                    $Number);
+                            }
+                        }
+                        $Control = $Result['tblDivision'.$Number].'_'.$Result['FileSubject'].'_'.$Result['FileTeacher2'].'_'.$Result['FileSubjectGroup'];
+                        if(!in_array($Control, $ImportCheck)){
+                            if(isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn2'])){
+                                $ImportCheck[] = $Control;
+                                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2,
+                                    $Number);
+                            }
+                        }
+                        $Control = $Result['tblDivision'.$Number].'_'.$Result['FileSubject'].'_'.$Result['FileTeacher3'].'_'.$Result['FileSubjectGroup'];
+                        if(!in_array($Control, $ImportCheck)){
+                            if(isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn3'])){
+                                $ImportCheck[] = $Control;
+                                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
+                                    $Number);
+                            }
+                        }
 
-                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn1'])) {
-                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
-                                $Number);
-                        }
-                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn2'])) {
-                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2,
-                                $Number);
-                        }
-                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn3'])) {
-                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
-                                $Number);
-                        }
-                        // Eintrag komplett ohne Lehrer speichern
-                        if ((isset($Result['FileTeacher1']) && $Result['FileTeacher1'] == '')
-                            && (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] == '')
-                            && (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] == '')
-                        ) {
-                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
-                                $Number);
+                        $Control = $Result['tblDivision'.$Number].'_'.$Result['FileSubject'].'__'.$Result['FileSubjectGroup'];
+                        if(!in_array($Control, $ImportCheck)){
+                            // Eintrag komplett ohne Lehrer speichern
+                            if((isset($Result['FileTeacher1']) && $Result['FileTeacher1'] == '')
+                                && (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] == '')
+                                && (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] == '')
+                            ){
+                                $ImportCheck[] = $Control;
+                                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
+                                    $Number);
+                            }
                         }
                     }
                 }
@@ -241,6 +305,33 @@ class Data extends AbstractData
         $Entity->setIsIgnore(false);
         $Manager->bulkSaveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+    }
+
+    /**
+     * @param string $Type
+     * @param string $Identifier
+     * @param string $Warning
+     * @param string $CompareString
+     */
+    public function createIndiwareError($Type, $Identifier, $Warning, $CompareString)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblIndiwareError')->findOneBy(array(
+            TblIndiwareError::ATTR_COMPARE_STRING => $CompareString,
+        ));
+        if(null === $Entity){
+            $Entity = new TblIndiwareError();
+            $Entity->setType($Type);
+            $Entity->setIdentifier($Identifier);
+            $Entity->setWarning($Warning);
+            $Entity->setCompareString($CompareString);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -650,6 +741,53 @@ class Data extends AbstractData
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity, true);
             $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $Type
+     * @param string $CompareString
+     *
+     * @return bool
+     */
+    public function destroyIndiwareErrorByTypeAndCustomString($Type = TblIndiwareError::TYPE_LECTURE_SHIP, $compareString = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblIndiwareError',
+            array(
+                TblIndiwareError::ATTR_TYPE => $Type,
+                TblIndiwareError::ATTR_COMPARE_STRING => $compareString,
+            ));
+        if ($Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return bool
+     */
+    public function destroyIndiwareErrorByType($Type = TblIndiwareError::TYPE_LECTURE_SHIP)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $this->getForceEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblIndiwareError',
+            array(TblIndiwareError::ATTR_TYPE => $Type));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity, true);
+                $Manager->bulkKillEntity($Entity);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;

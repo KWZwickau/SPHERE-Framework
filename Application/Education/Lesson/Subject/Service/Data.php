@@ -300,7 +300,6 @@ class Data extends AbstractData
      */
     public function updateSubject(TblSubject $tblSubject, $Acronym, $Name, $Description = '')
     {
-
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblSubject $Entity */
