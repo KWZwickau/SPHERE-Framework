@@ -435,6 +435,7 @@ class Creator extends Extension
 
         $Data = array();
         $Document = false;
+        $paperOrientation = self::PAPERORIENTATION_PORTRAIT;
         if ($Type == 'Grundschule') {
             $Document = new Standard\Repository\KamenzReportGS();
             $Data = Generator::useService()->setKamenzReportGsContent($Data);
@@ -444,10 +445,14 @@ class Creator extends Extension
         } elseif ($Type == 'Gymnasium') {
             $Document = new Standard\Repository\KamenzReportGym();
             $Data = Generator::useService()->setKamenzReportGymContent($Data);
+        } elseif ($Type == 'Berufsfachschule') {
+            $Document = new Standard\Repository\KamenzReportBFS();
+            $paperOrientation = self::PAPERORIENTATION_LANDSCAPE;
+            $Data = Generator::useService()->setKamenzReportBFSContent($Data);
         }
 
         if ($Document) {
-            $File = self::buildDummyFile($Document, $Data);
+            $File = self::buildDummyFile($Document, $Data, array(), $paperOrientation);
 
             $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
 

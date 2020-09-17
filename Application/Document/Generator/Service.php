@@ -797,4 +797,15 @@ class Service extends AbstractService
 
         return KamenzReportService::setKamenzReportGymContent($Content);
     }
+
+    /**
+     * @param $Content
+     *
+     * @return array
+     */
+    public function setKamenzReportBFSContent(
+        $Content
+    ) {
+        return KamenzReportService::setKamenzReportBFSContent($Content);
+    }
 }

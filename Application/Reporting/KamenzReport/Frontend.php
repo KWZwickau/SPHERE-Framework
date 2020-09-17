@@ -53,6 +53,10 @@ class Frontend extends Extension implements IFrontendInterface
             'Gymnasium',  __NAMESPACE__ . '/Validate/GrammarSchool'
         ));
 
+        $Stage->addButton(new Standard(
+            'Berufsfachschule',  __NAMESPACE__ . '/Validate/TechnicalSchool'
+        ));
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -208,6 +212,60 @@ class Frontend extends Extension implements IFrontendInterface
 
         $content[] = new LayoutColumn(
             KamenzService::validate(Type::useService()->getTypeByName('Gymnasium'), $summary)
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $summary
+                        ),
+                    ))
+                ), new Title('Zusammenfassung')),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        $content
+                    )
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public static function frontendValidateTechnicalSchool()
+    {
+
+        $Stage = new Stage('Kamenz-Statistik', 'Berufsfachschule validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
+
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Berufsfachschule'
+            ),
+            'Kamenz-Statistik herunterladen'
+        ));
+
+        $summary = array();
+
+        $countStudentsWithoutDivision = 0;
+        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+            $content[] = new LayoutColumn($studentsWithoutDivision);
+            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse zugeordnet',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $content[] = new LayoutColumn(
+            KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
         );
 
         $Stage->setContent(
