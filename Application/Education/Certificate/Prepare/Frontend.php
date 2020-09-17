@@ -8,8 +8,10 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\BeGs;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
+use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -81,6 +83,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1479,7 +1482,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         $Data,
                                         $CertificateList,
                                         $Page,
-                                        $informationPageList
+                                        $informationPageList,
+                                        $GroupId
                                     );
 
                                     // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
@@ -1599,6 +1603,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array|null $CertificateList
      * @param null|integer $Page
      * @param null|array $informationPageList
+     * @param null $GroupId
      */
     private function getTemplateInformation(
         TblPrepareCertificate $tblPrepareCertificate,
@@ -1608,7 +1613,8 @@ class Frontend extends Extension implements IFrontendInterface
         &$Data,
         &$CertificateList,
         $Page = null,
-        $informationPageList = null
+        $informationPageList = null,
+        $GroupId = null
     ) {
 
         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson);
@@ -1877,7 +1883,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 &$hasTeamExtra,
                                 $Page,
                                 $ignoreInformationOnFirstPage,
-                                $informationPageList
+                                $informationPageList,
+                                $tblPrepareCertificate,
+                                $GroupId
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -1914,6 +1922,34 @@ class Frontend extends Extension implements IFrontendInterface
                                             $Label = $PlaceholderName;
                                         }
 
+                                        $isApiField = false;
+                                        $isAdded = isset($columnTable[$key]);
+                                        // ApiButton
+                                        if (method_exists($Certificate, 'getApiModalColumns')) {
+                                            /** @var BeGs $Certificate */
+                                            if (isset($Certificate->getApiModalColumns()[$key])) {
+                                                $isApiField = true;
+                                                if (!$isAdded) {
+                                                    $columnTable[$key] = $Label
+                                                        . ApiPrepare::receiverModal()
+                                                        . new PullRight(
+                                                            (new Standard('Alle bearbeiten', ApiPrepare::getEndpoint()))
+                                                                ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenInformationModal(
+                                                                    $tblPrepareCertificate->getId(),
+                                                                    $GroupId,
+                                                                    $key,
+                                                                    $tblCertificate->getCertificate()
+                                                                ))
+                                                        );
+
+                                                    $isAdded = true;
+                                                }
+                                            }
+                                        }
+                                        if (!$isAdded) {
+                                            $columnTable[$key] = $Label;
+                                        }
+
                                         if ($key == 'TeamExtra' /*|| isset($columnTable['TeamExtra'])*/) {
                                             $hasTeamExtra = true;
                                         }
@@ -1935,13 +1971,18 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
                                                 }
+                                                $selectBox = new SelectBox($dataFieldName, '', $selectBoxData);
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                                                    $studentTable[$tblPerson->getId()][$key]
-                                                        = (new SelectBox($dataFieldName, '',
-                                                        $selectBoxData))->setDisabled();
+                                                    $studentTable[$tblPerson->getId()][$key] = $selectBox->setDisabled();
                                                 } else {
-                                                    $studentTable[$tblPerson->getId()][$key]
-                                                        = (new SelectBox($dataFieldName, '', $selectBoxData));
+                                                    if ($isApiField) {
+                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+                                                            $selectBox,
+                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+                                                        );
+                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key] = $selectBox;
+                                                    }
                                                 }
                                             } else {
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
@@ -1971,8 +2012,14 @@ class Frontend extends Extension implements IFrontendInterface
                                                             $CharCount, true
                                                         );
                                                     } else {
-                                                        $studentTable[$tblPerson->getId()][$key]
-                                                            = (new $Field($dataFieldName, '', ''));
+                                                        if ($isApiField) {
+                                                            $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+                                                                new $Field($dataFieldName, '', ''),
+                                                                'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+                                                            );
+                                                        } else  {
+                                                            $studentTable[$tblPerson->getId()][$key] = (new $Field($dataFieldName, '', ''));
+                                                        }
                                                     }
                                                 }
                                             }
@@ -1984,10 +2031,6 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $studentTable[$tblPerson->getId()][$key]
                                                     = (new TextField($FieldName, '', ''));
                                             }
-                                        }
-
-                                        if (!isset($columnTable[$key])) {
-                                            $columnTable[$key] = $Label;
                                         }
                                     }
                                 }
