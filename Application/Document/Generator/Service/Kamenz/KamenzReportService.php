@@ -529,8 +529,6 @@ class KamenzReportService
 //                                        $countMigrantsArray,
 //                                        $countMigrantsNationalityArray);
 
-//                                    self::setDivisionStudents($Content, $tblPerson, $tblLevel, $tblDivision, $gender,
-//                                        $isInPreparationDivisionForMigrants, $tblKamenzSchoolType);
 
 //                                    self::setRepeatersGym($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
 
@@ -545,7 +543,13 @@ class KamenzReportService
 //                                        $countProfileArray = self::countProfile($tblStudent, $tblLevel, $gender,
 //                                            $countProfileArray);
 
-                                        $isFullTime = true;
+                                        $isFullTime = false;
+                                        $isChangeStudent = false;
+                                        self::setDivisionStudentsForTechnicalSchool(
+                                            $Content, $tblPerson, $tblLevel->getName(),
+                                            $isFullTime ? 'FullTime' : 'PartTime', $isChangeStudent ? 'ChangeStudent' : 'Student'
+                                        );
+
                                         self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
                                             $hasMigrationBackground, $isInPreparationDivisionForMigrants,
                                             $isFullTime ? 'F01_1' : 'F01_2'
@@ -1954,6 +1958,76 @@ class KamenzReportService
                 }
             }
         }
+    }
+
+    /**
+     * K01. Klassen im Schuljahr 2019/2020 nach Zeitform des Unterrichts, Ausbildungsstatus und Klassenstufen
+     *
+     * @param $Content
+     * @param TblPerson $tblPerson
+     * @param $levelName
+     * @param string $time
+     * @param string $type
+     */
+    private static function setDivisionStudentsForTechnicalSchool(
+        &$Content,
+        TblPerson $tblPerson,
+        $levelName,
+        $time = 'FullTime',
+        $type = 'ChangeStudent'
+    ) {
+        if (isset($Content['K01'][$time][$type]['L' . $levelName])) {
+            $Content['K01'][$time][$type]['L' . $levelName]++;
+        } else {
+            $Content['K01'][$time][$type]['L' . $levelName] = 1;
+        }
+
+        if (isset($Content['K01'][$time]['TotalCount']['L' . $levelName])) {
+            $Content['K01'][$time]['TotalCount']['L' . $levelName]++;
+        } else {
+            $Content['K01'][$time]['TotalCount']['L' . $levelName] = 1;
+        }
+
+        if (isset($Content['K01']['TotalCount'][$type])) {
+            $Content['K01']['TotalCount'][$type]++;
+        } else {
+            $Content['K01']['TotalCount'][$type] = 1;
+        }
+
+
+
+        /**
+         * N
+         */
+//        if (($tblLevel->getName() == '1' || $tblLevel->getName() == '01')
+//            && !self::hasRepeaters($tblPerson, $tblLevel, $tblDivision)
+//        ) {
+//            $identifier = 'NewSchoolStarter';
+//        } else {
+//            $identifier = 'PrimarySchool';
+//        }
+//
+//        if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
+//            $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+//        } else {
+//            $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+//        }
+//
+//        /**
+//         * TotalCount
+//         */
+//        $identifier = 'TotalCount';
+//        if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
+//            $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+//        } else {
+//            $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+//        }
+//
+//        if (isset($Content['E07'][$identifier]['TotalCount'][$gender])) {
+//            $Content['E07'][$identifier]['TotalCount'][$gender]++;
+//        } else {
+//            $Content['E07'][$identifier]['TotalCount'][$gender] = 1;
+//        }
     }
 
     /**
