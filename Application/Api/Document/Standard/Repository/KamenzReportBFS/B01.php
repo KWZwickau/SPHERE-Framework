@@ -14,21 +14,34 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 class B01
 {
     /**
+     * @param string $name
+     *
      * @return array
      */
-    public static function getContent()
+    public static function getContent($name = 'B01')
     {
+        switch ($name) {
+            case 'B01':
+                $title = 'B01. Abgänger/ Absolventen {{ Content.SchoolYear.Past }} nach Bildungsgängen, planmäßiger 
+                    Ausbildungsdauer, Zeitform des Unterrichts, Ausbildungsstatus und Art der 
+                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Beendigung';
+                break;
+            case 'B01_1':
+                $title = 'B01.1 Darunter Abgänger/ Absolventen, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch
+                    ist, {{ Content.SchoolYear.Past }} nach Bildungsgängen, planmäßiger 
+                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ausbildungsdauer, Zeitform des Unterrichts, 
+                    Ausbildungsstatus und Art der Beendigung';
+                break;
+            default: $title = '';
+        }
+
         $sliceList = array();
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
             ->styleMarginBottom('10px')
             ->addElement((new Element())
-                ->setContent(
-                    'B01. Abgänger/ Absolventen {{ Content.SchoolYear.Past }} nach Bildungsgängen, planmäßiger 
-                    Ausbildungsdauer, Zeitform des Unterrichts, Ausbildungsstatus und Art der 
-                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Beendigung'
-                )
+                ->setContent($title)
             );
 
         $width[0] = '13%';
@@ -170,8 +183,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.Course is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.Course }}
+                            {% if (Content.' . $name . '.R' . $i . '.Course is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.Course }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -182,8 +195,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.Time is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.Time }}
+                            {% if (Content.' . $name . '.R' . $i . '.Time is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.Time }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -194,8 +207,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.Lesson is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.Lesson }}
+                            {% if (Content.' . $name . '.R' . $i . '.Lesson is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.Lesson }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -206,8 +219,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.Status is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.Status }}
+                            {% if (Content.' . $name . '.R' . $i . '.Status is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.Status }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -218,8 +231,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.Leave.m is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.Leave.m }}
+                            {% if (Content.' . $name . '.R' . $i . '.Leave.m is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.Leave.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -229,8 +242,8 @@ class B01
                 , $width['gender'])
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.Leave.w is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.Leave.w }}
+                            {% if (Content.' . $name . '.R' . $i . '.Leave.w is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.Leave.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -241,8 +254,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.DiplomaTotal.m is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.DiplomaTotal.m }}
+                            {% if (Content.' . $name . '.R' . $i . '.DiplomaTotal.m is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.DiplomaTotal.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -252,8 +265,8 @@ class B01
                     , $width['gender'])
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.DiplomaTotal.w is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.DiplomaTotal.w }}
+                            {% if (Content.' . $name . '.R' . $i . '.DiplomaTotal.w is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.DiplomaTotal.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -264,8 +277,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.DiplomaAddition.m is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.DiplomaAddition.m }}
+                            {% if (Content.' . $name . '.R' . $i . '.DiplomaAddition.m is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.DiplomaAddition.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -275,8 +288,8 @@ class B01
                     , $width['gender'])
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.DiplomaAddition.w is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.DiplomaAddition.w }}
+                            {% if (Content.' . $name . '.R' . $i . '.DiplomaAddition.w is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.DiplomaAddition.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -287,8 +300,8 @@ class B01
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.TotalCount.m is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.TotalCount.m }}
+                            {% if (Content.' . $name . '.R' . $i . '.TotalCount.m is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.TotalCount.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -300,8 +313,8 @@ class B01
                 , $width['gender'])
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B01' . '.R' . $i . '.TotalCount.w is not empty) %}
-                                {{ Content.B01' . '.R' . $i . '.TotalCount.w }}
+                            {% if (Content.' . $name . '.R' . $i . '.TotalCount.w is not empty) %}
+                                {{ Content.' . $name . '.R' . $i . '.TotalCount.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -366,14 +379,14 @@ class B01
                     ->styleBorderRight()
                 )
             , $width[3])
-            ->addSliceColumn(self::getTotalSlice('Leave', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('Leave', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('DiplomaTotal', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('DiplomaTotal', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('DiplomaAddition', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('DiplomaAddition', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('TotalCount', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice('TotalCount', 'w', true), $width['gender']);
+            ->addSliceColumn(self::getTotalSlice($name, 'Leave', 'm'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'Leave', 'w'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'DiplomaTotal', 'm'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'DiplomaTotal', 'w'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'DiplomaAddition', 'm'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'DiplomaAddition', 'w'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'TotalCount', 'm'), $width['gender'])
+            ->addSliceColumn(self::getTotalSlice($name, 'TotalCount', 'w', true), $width['gender']);
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
@@ -397,18 +410,20 @@ class B01
     }
 
     /**
+     * @param $name
      * @param $identifier
      * @param $gender
      * @param bool $isLastColumn
+     *
      * @return Slice
      */
-    private static function getTotalSlice($identifier, $gender, $isLastColumn = false)
+    private static function getTotalSlice($name, $identifier, $gender, $isLastColumn = false)
     {
         return (new Slice())
             ->addElement((new Element())
                 ->setContent('
-                        {% if (Content.B01.TotalCount.FullTime.Student.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.B01.TotalCount.FullTime.Student.' . $identifier . '.' . $gender . ' }}
+                        {% if (Content.' . $name . '.TotalCount.FullTime.Student.' . $identifier . '.' . $gender . ' is not empty) %}
+                            {{ Content.' . $name . '.TotalCount.FullTime.Student.' . $identifier . '.' . $gender . ' }}
                         {% else %}
                             &nbsp;
                         {% endif %}
@@ -418,8 +433,8 @@ class B01
             )
             ->addElement((new Element())
                 ->setContent('
-                        {% if (Content.B01.TotalCount.FullTime.ChangeStudent.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.B01.TotalCount.FullTime.ChangeStudent.' . $identifier . '.' . $gender . ' }}
+                        {% if (Content.' . $name . '.TotalCount.FullTime.ChangeStudent.' . $identifier . '.' . $gender . ' is not empty) %}
+                            {{ Content.' . $name . '.TotalCount.FullTime.ChangeStudent.' . $identifier . '.' . $gender . ' }}
                         {% else %}
                             &nbsp;
                         {% endif %}
@@ -429,8 +444,8 @@ class B01
             )
             ->addElement((new Element())
                 ->setContent('
-                        {% if (Content.B01.TotalCount.PartTime.Student.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.B01.TotalCount.PartTime.Student.' . $identifier . '.' . $gender . ' }}
+                        {% if (Content.' . $name . '.TotalCount.PartTime.Student.' . $identifier . '.' . $gender . ' is not empty) %}
+                            {{ Content.' . $name . '.TotalCount.PartTime.Student.' . $identifier . '.' . $gender . ' }}
                         {% else %}
                             &nbsp;
                         {% endif %}
@@ -440,8 +455,8 @@ class B01
             )
             ->addElement((new Element())
                 ->setContent('
-                        {% if (Content.B01.TotalCount.PartTime.ChangeStudent.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.B01.TotalCount.PartTime.ChangeStudent.' . $identifier . '.' . $gender . ' }}
+                        {% if (Content.' . $name . '.TotalCount.PartTime.ChangeStudent.' . $identifier . '.' . $gender . ' is not empty) %}
+                            {{ Content.' . $name . '.TotalCount.PartTime.ChangeStudent.' . $identifier . '.' . $gender . ' }}
                         {% else %}
                             &nbsp;
                         {% endif %}

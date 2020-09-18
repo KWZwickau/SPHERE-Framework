@@ -2775,7 +2775,8 @@ class KamenzReportService
         TblType $tblKamenzSchoolType
     ) {
         // dummy
-        $Content['B01']['R0'] = array(
+        $name = 'B01';
+        $Content[$name]['R0'] = array(
             'Course' => 'Erzieher',
             'Time' => '36',
             'Lesson' => 'Vollzeit',
@@ -2798,7 +2799,7 @@ class KamenzReportService
             ),
         );
 
-        $Content['B01']['R1'] = array(
+        $Content[$name]['R1'] = array(
             'Course' => 'Fachinformatiker',
             'Time' => '36',
             'Lesson' => 'Teilzeit',
@@ -2821,7 +2822,7 @@ class KamenzReportService
             ),
         );
 
-        $Content['B01']['TotalCount']['FullTime']['Student'] = array(
+        $Content[$name]['TotalCount']['FullTime']['Student'] = array(
             'Leave' => array(
                 'm' => 2,
                 'w' => 3
@@ -2840,7 +2841,70 @@ class KamenzReportService
             ),
         );
 
-        $Content['B01']['TotalCount']['PartTime']['ChangeStudent'] = array(
+        $Content[$name]['TotalCount']['PartTime']['ChangeStudent'] = array(
+            'Leave' => array(
+                'm' => 1,
+                'w' => 2
+            ),
+            'DiplomaTotal' => array(
+                'm' => 3,
+                'w' => 4
+            ),
+            'DiplomaAddition' => array(
+                'm' => 5,
+                'w' => 6
+            ),
+            'TotalCount' => array(
+                'm' => 7,
+                'w' => 8
+            ),
+        );
+
+        $name = 'B02_2_1';
+
+        $Content[$name]['R0'] = array(
+            'Year' => '2000',
+            'Status' => 'Umschüler',
+            'Leave' => array(
+                'm' => 2,
+                'w' => 3
+            ),
+            'DiplomaTotal' => array(
+                'm' => 5,
+                'w' => 6
+            ),
+            'DiplomaAddition' => array(
+                'm' => 1,
+                'w' => 2
+            ),
+            'TotalCount' => array(
+                'm' => 7,
+                'w' => 9
+            ),
+        );
+
+        $Content[$name]['R1'] = array(
+            'Year' => '2000',
+            'Status' => 'Auszubildende/Schüler',
+            'Leave' => array(
+                'm' => 2,
+                'w' => 3
+            ),
+            'DiplomaTotal' => array(
+                'm' => 5,
+                'w' => 6
+            ),
+            'DiplomaAddition' => array(
+                'm' => 1,
+                'w' => 2
+            ),
+            'TotalCount' => array(
+                'm' => 7,
+                'w' => 9
+            ),
+        );
+
+        $Content[$name]['TotalCount']['ChangeStudent'] = array(
             'Leave' => array(
                 'm' => 1,
                 'w' => 2
