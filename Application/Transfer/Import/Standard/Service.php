@@ -338,7 +338,7 @@ class Service
                         $tblPerson_S1 = $this->setPersonCustody($salutation_S1, $title_S1, $firstName_S1, $lastName_S1, $memberNumber_S1, $assistance_S1);
                         $countS1++;
                     } else {
-                        $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Der Sorgeberechtigte S1 wurde nicht angelegt, da schon eine 
+                        $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Der Sorgeberechtigte S1 ('.$lastName_S1.' PLZ '.$cityCode_S1.') wurde nicht angelegt, da schon eine 
                         Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden
                         Person verknüpft'));
                         $countS1Exists++;
@@ -410,7 +410,7 @@ class Service
                         $tblPerson_S2 = $this->setPersonCustody($salutation_S2, $title_S2, $firstName_S2, $lastName_S2, $memberNumber_S2, $assistance_S2);
                         $countS2++;
                     } else {
-                        $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Der Sorgeberechtigte S2 wurde nicht angelegt, da schon eine 
+                        $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Der Sorgeberechtigte S2 ('.$lastName_S2.' PLZ '.$cityCode_S2.') wurde nicht angelegt, da schon eine 
                         Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden
                         Person verknüpft'));
                         $countS2Exists++;
@@ -1077,6 +1077,11 @@ class Service
                             $birth = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'], $RunY)));
                             $denomination = '';
                             $remark = '';
+                            if(($remarkTemp = trim($Document->getValue($Document->getCell($Location['Lehrer'], $RunY))))){
+                                if(strtoupper($remarkTemp) != 'X'){
+                                    $remark = $remarkTemp;
+                                }
+                            }
                             $this->setPersonBirth($tblPerson, $birth, $birthPlace, $gender, $nationality, $denomination, $remark, $RunY, $Nr, $error);
 
                             // address
