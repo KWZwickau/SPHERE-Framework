@@ -10,6 +10,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\K01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\N01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\N03;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\N05;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\S01;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\S02;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
@@ -95,11 +97,35 @@ class KamenzReportBFS extends AbstractDocument
 //            ->addPage((new Page())
 //                ->addSliceArray(N03::getContent('N04_2'))
 //            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05_1'))
+//            )
             ->addPage((new Page())
-                ->addSliceArray(N05::getContent('N05'))
+                ->addSliceArray(S01::getContent('S01'))
             )
             ->addPage((new Page())
-                ->addSliceArray(N05::getContent('N05_1'))
+                ->addSliceArray(S01::getContent('S01_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(S02::getContent('S02_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(S02::getContent('S02_1_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(S02::getContent('S02_2'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(S02::getContent('S02_2_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(S02::getContent('S03_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(S02::getContent('S03_2'))
             )
         );
     }
