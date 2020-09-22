@@ -360,10 +360,19 @@ class Display extends Extension implements ITemplateInterface
             }
         }
 
+        $PreSeo = '';
+        // Set Depending Information
+        switch (strtolower($this->getRequest()->getHost())) {
+            case 'demo.schulsoftware.schule':
+            case 'demo.kreda.schule':
+                $PreSeo = ' Demo';
+            break;
+        }
+
         $this->Template->setVariable('SeoTitle',
             ( !trim(trim($this->getRequest()->getPathInfo(), '/'))
-                ? ''
-                : ': '.str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
+                ? $PreSeo
+                : $PreSeo.': '.str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
             )
         );
 
