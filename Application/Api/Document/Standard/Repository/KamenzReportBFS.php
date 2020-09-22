@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\B02;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\F01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\K01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\N01;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\N03;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
@@ -69,11 +70,29 @@ class KamenzReportBFS extends AbstractDocument
 //            ->addPage((new Page())
 //                ->addSliceArray(N01::getContent('N01_1'))
 //            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N01::getContent('N02'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N01::getContent('N02_1'))
+//            )
             ->addPage((new Page())
-                ->addSliceArray(N01::getContent('N02'))
+                ->addSliceArray(N03::getContent('N03_1'))
             )
             ->addPage((new Page())
-                ->addSliceArray(N01::getContent('N02_1'))
+                ->addSliceArray(N03::getContent('N03_1_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N03::getContent('N03_2'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N03::getContent('N03_2_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N03::getContent('N04_1'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N03::getContent('N04_2'))
             )
         );
     }
