@@ -22,7 +22,9 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -502,6 +504,12 @@ class Service extends AbstractService
     {
 
         $list[] = new Bold('Person: ' . $tblPerson->getLastFirstName());
+        // Account anzeigen
+        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+            $tblAccount = current($tblAccountList);
+            $list[] = new Danger('Die Person ist mit dem folgenden Benutzerkonto verknüpft: '
+                . $tblAccount->getUsername() . '. Das Benutzerkonto wird nicht mit gelöscht.');
+        }
         // Group
         if (($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))) {
             foreach ($tblGroupList as $tblGroup) {
