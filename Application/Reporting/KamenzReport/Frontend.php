@@ -264,6 +264,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
+        // todo Validierung der Datenfelder für die Berufsfachschulen
         $content[] = new LayoutColumn(
             KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
         );
