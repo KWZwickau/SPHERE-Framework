@@ -37,7 +37,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function menuButton(Stage $Stage)
     {
-        $Stage->addButton(new Standard('Unterrichtsfreie Tage', new Link\Route(__NAMESPACE__ . '\Holiday'), new Holiday()));
+        $Stage->addButton(new Standard('Unterrichtsfreie Zeiträume', new Link\Route(__NAMESPACE__ . '\Holiday'), new Holiday()));
     }
 
     /**
@@ -45,7 +45,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendHoliday()
     {
-        $Stage = new Stage('Grunddaten', 'Unterrichtsfreie Tage');
+        $Stage = new Stage('Grunddaten', 'Unterrichtsfreie Zeiträume');
         $this->menuButton($Stage);
 
         $data = array();
@@ -94,7 +94,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendImportHoliday($File = null)
     {
-        $Stage = new Stage('Import', 'Unterrichtsfreie Tage');
+        $Stage = new Stage('Import', 'Unterrichtsfreie Zeiträume');
         $Stage->addButton(new Standard('Zurück', new Link\Route(__NAMESPACE__ . '\Holiday'), new ChevronLeft()));
 
         $Stage->setContent(

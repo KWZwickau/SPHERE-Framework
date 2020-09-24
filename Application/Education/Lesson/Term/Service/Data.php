@@ -878,24 +878,27 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYearHoliday $tblYearHoliday
+     * @param TblYear $tblYear
+     * @param TblHoliday $tblHoliday
      *
      * @return bool
      */
-    public function removeYearHoliday(TblYearHoliday $tblYearHoliday)
+    public function removeYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday)
     {
-
         $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblHoliday $Entity */
+        /** @var TblYearHoliday $Entity */
         $Entity = $Manager->getEntity('TblYearHoliday')
             ->findOneBy(array(
-                'Id' => $tblYearHoliday->getId(),
+                TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId(),
+                TblYearHoliday::ATTR_TBL_HOLIDAY => $tblHoliday->getId()
             ));
+
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
+
         return false;
     }
 
