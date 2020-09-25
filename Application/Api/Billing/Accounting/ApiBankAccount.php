@@ -327,7 +327,6 @@ class ApiBankAccount extends Extension implements IApiInterface
                     new FormColumn(
                         (new TextField('BankAccount[BIC]', 'BIC', 'BIC', null, '***********'))
                             ->setCaseToUpper(true)
-                            ->setRequired()
                         , 6)
                 )),
                 new FormRow(
@@ -371,6 +370,17 @@ class ApiBankAccount extends Extension implements IApiInterface
                     $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt'.new ToolTip('.', $IbanArray['number'].' != '.$IbanArray['controlNumber']));
                     $Error = true;
                 }
+            }
+        }
+        if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
+            // BIC ist keine Pflichtangabe
+//            $form->setError('Creditor[BIC]', 'Bitte geben Sie die BIC an');
+//            $Error = true;
+        } else {
+            // Wird eine BIC angegeben, so muss sie allerdings mindestens 8 Zeichen besitzen
+            if(strlen($Creditor['BIC']) < 8){
+                $form->setError('Creditor[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
+                $Error = true;
             }
         }
 

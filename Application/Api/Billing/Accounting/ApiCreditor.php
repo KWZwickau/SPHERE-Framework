@@ -385,9 +385,15 @@ class ApiCreditor extends Extension implements IApiInterface
                 }
             }
         }
+
         if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
-            $form->setError('Creditor[BIC]', 'Bitte geben Sie eine BIC an');
+            $form->setError('Creditor[BIC]', 'Bitte geben Sie die BIC an');
             $Error = true;
+        } else {
+            if(strlen($Creditor['BIC']) < 8){
+                $form->setError('Creditor[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
+                $Error = true;
+            }
         }
 
         if($Error){
