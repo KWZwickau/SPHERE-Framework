@@ -89,7 +89,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $IsMaintenance = false;
+        $IsMaintenance = (new \DateTime('now') >= new \DateTime('2020-09-25 10:00:00')
+                       && new \DateTime('now') <= new \DateTime('2020-09-25 23:59:59'));
+//        $IsMaintenance = false;
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
         $IsEqual = false;
@@ -134,8 +136,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($IsMaintenance) {
             $now = new \DateTime();
             if ($now >= new \DateTime('22:00')) {
-                $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
-            } elseif ($now >= new \DateTime('20:00')) {
+                $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung ('.$now->format('d.m.Y').') laufende Wartungsarbeiten ');
+            } elseif ($now >= new \DateTime('9:00')) {
                 $maintenanceMessage = new Warning(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
             }
         }
