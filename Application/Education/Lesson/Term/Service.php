@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHolidayType;
@@ -901,51 +902,26 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblYear $tblYear
-     * @param null $DataAddHoliday
-     * @param null $DataRemoveHoliday
+     * @param TblHoliday $tblHoliday
+     * @param TblCompany|null $tblCompany
      *
-     * @return IFormInterface|string
+     * @return TblYearHoliday
      */
-    public function addHolidaysToYear(
-        IFormInterface $Form,
-        TblYear $tblYear,
-        $DataAddHoliday = null,
-        $DataRemoveHoliday = null
-    ) {
+    public function addYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday, TblCompany $tblCompany = null)
+    {
+        return (new Data($this->getBinding()))->addYearHoliday($tblYear, $tblHoliday, $tblCompany ? $tblCompany : null);
+    }
 
-        /**
-         * Skip to Frontend
-         */
-        if ($DataAddHoliday === null && $DataRemoveHoliday === null) {
-            return $Form;
-        }
-
-        // entfernen
-        if ($DataRemoveHoliday !== null){
-            foreach ($DataRemoveHoliday as $yearHolidayId => $item){
-                $tblYearHoliday = $this->getYearHolidayById($yearHolidayId);
-                if ($tblYearHoliday){
-                    (new Data($this->getBinding()))->removeYearHoliday($tblYearHoliday);
-                }
-            }
-        }
-
-        // hinzufügen
-        if ($DataAddHoliday !== null) {
-            foreach ($DataAddHoliday as $holidayId => $value) {
-                $tblHoliday = $this->getHolidayById($holidayId);
-                if ($tblHoliday) {
-                    (new Data($this->getBinding()))->addYearHoliday($tblYear, $tblHoliday);
-                }
-            }
-        }
-
-        return new Success('Daten erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect('/Education/Lesson/Term/Holiday/Select', Redirect::TIMEOUT_SUCCESS, array(
-            'YearId' => $tblYear->getId(),
-        ));
+    /**
+     * @param TblYear $tblYear
+     * @param TblHoliday $tblHoliday
+     *
+     * @return bool
+     */
+    public function removeYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday)
+    {
+        return (new Data($this->getBinding()))->removeYearHoliday($tblYear, $tblHoliday);
     }
 
     /**

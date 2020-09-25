@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term;
 
+use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
@@ -22,8 +22,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Enable;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -46,7 +44,6 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -504,7 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHoliday($Data = null)
     {
 
-        $Stage = new Stage('Unterrichtsfreie Tage', 'Übersicht');
+        $Stage = new Stage('Unterrichtsfreie Zeiträume', 'Übersicht');
 
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Lesson/Term', new ChevronLeft()
@@ -616,7 +613,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendEditHoliday($Id = null, $Data = null)
     {
 
-        $Stage = new Stage('Unterrichtsfreie Tage', 'Bearbeiten');
+        $Stage = new Stage('Unterrichtsfreie Zeiträume', 'Bearbeiten');
         $tblHoliday = Term::useService()->getHolidayById($Id);
         if ($tblHoliday) {
             $Stage->addButton(new Standard(
@@ -642,7 +639,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Panel(
-                                        'Unterrichtsfreie Tage',
+                                        'Unterrichtsfreie Zeiträume',
                                         $tblHoliday->getName(),
                                         Panel::PANEL_TYPE_INFO
                                     )
@@ -666,152 +663,23 @@ class Frontend extends Extension implements IFrontendInterface
                 'Zurück', '/Education/ClassRegister', new ChevronLeft()
             ));
 
-            return $Stage . new Danger('Unterrichtsfreie Tage nicht gefunden.', new Ban());
+            return $Stage . new Danger('Unterrichtsfreie Zeiträume nicht gefunden.', new Ban());
         }
     }
 
     /**
      * @param null $YearId
-     * @param null $DataAddHoliday
-     * @param null $DataRemoveHoliday
      *
      * @return Stage|string
      */
     public function frontendSelectHoliday(
-        $YearId = null,
-        $DataAddHoliday = null,
-        $DataRemoveHoliday = null
+        $YearId = null
     ) {
 
-        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Tage zuweisen');
+        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Zeiträume zuweisen');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         if (($tblYear = Term::useService()->getYearById($YearId))) {
-
-            // ToDo JohK Filter und Zuweisung Schulweise
-
-            $tblYearHolidayList = Term::useService()->getYearHolidayAllByYear($tblYear);
-            $tblHolidayAllWhereYears = Term::useService()->getHolidayAllWhereYear($tblYear);
-            if ($tblHolidayAllWhereYears
-                && ($tblHolidayAllByYear = Term::useService()->getHolidayAllByYear($tblYear))
-            ) {
-                $tblHolidayAll = array_udiff($tblHolidayAllWhereYears, $tblHolidayAllByYear,
-                    function (TblHoliday $tblHolidayA, TblHoliday $tblHolidayB) {
-
-                        return $tblHolidayA->getId() - $tblHolidayB->getId();
-                    }
-                );
-            } else {
-                $tblHolidayAll = $tblHolidayAllWhereYears;
-            }
-
-            $tblHolidayList = false;
-            if ($tblYearHolidayList) {
-                $tempList = array();
-                foreach ($tblYearHolidayList as $tblYearHoliday) {
-                    $tblHoliday = $tblYearHoliday->getTblHoliday();
-                    $tempList[] = array(
-                        'Check' => new CheckBox('DataRemoveHoliday[' . $tblYearHoliday->getId() . ']', ' ', 1),
-                        'Name' => $tblHoliday->getName(),
-                        'FromDate' => $tblHoliday->getFromDate(),
-                        'ToDate' => $tblHoliday->getToDate(),
-                        'Type' => $tblHoliday->getTblHolidayType()->getName()
-                    );
-                }
-                $tblHolidayList = $tempList;
-            }
-//
-            if (is_array($tblHolidayAll)) {
-                $tempList = array();
-                /** @var TblHoliday $tblHoliday */
-                foreach ($tblHolidayAll as $tblHoliday) {
-                    $tempList[] = array(
-                        'Check' => new CheckBox('DataAddHoliday[' . $tblHoliday->getId() . ']', ' ', 1),
-                        'Name' => $tblHoliday->getName(),
-                        'FromDate' => $tblHoliday->getFromDate(),
-                        'ToDate' => $tblHoliday->getToDate(),
-                        'Type' => $tblHoliday->getTblHolidayType()->getName()
-                    );
-                }
-                $tblHolidayAll = $tempList;
-            }
-
-            $form = new Form(array(
-                new FormGroup(
-                    new FormRow(array(
-                        new FormColumn(array(
-                            ($tblHolidayList
-                                ? new TableData(
-                                    $tblHolidayList,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Unterrichtsfreie Tage des Schuljahrs "' . $tblYear->getName() . '"',
-                                        'Entfernen'),
-                                    array(
-                                        'Check' => new Center(new Small('Entfernen ') . new Disable()),
-                                        'FromDate' => 'Datum von',
-                                        'ToDate' => 'Datum bis',
-                                        'Name' => 'Name',
-                                        'Type' => 'Typ'
-                                    ),
-                                    array(
-                                        'order' => array(
-                                            array(1, 'desc'),
-                                            array(2, 'desc')
-                                        ),
-                                        'columnDefs' => array(
-                                            array('orderable' => false, 'targets' => 0),
-                                            array('type' => 'de_date', 'targets' => 1),
-                                            array('type' => 'de_date', 'targets' => 2),
-                                        ),
-                                        "paging" => false, // Deaktivieren Blättern
-                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                        "searching" => false, // Deaktivieren Suchen
-                                        "info" => false  // Deaktivieren Such-Info
-                                    )
-                                )
-                                : new Warning('Keine Unterrichtsfreien Tage zugewiesen.', new Exclamation())
-                            )
-                        ), 6),
-                        new FormColumn(array(
-                            ($tblHolidayAll
-                                ? new TableData(
-                                    $tblHolidayAll,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere mögliche Unterrichtsfreie Tage dem Schuljahr "' . $tblYear->getDisplayName() . '"',
-                                        'Hinzufügen'),
-                                    array(
-                                        'Check' => new Center(new Small('Hinzufügen ') . new Enable()),
-                                        'FromDate' => 'Datum von',
-                                        'ToDate' => 'Datum bis',
-                                        'Name' => 'Name',
-                                        'Type' => 'Typ'
-                                    ),
-                                    array(
-                                        'order' => array(
-                                            array(1, 'desc'),
-                                            array(2, 'desc')
-                                        ),
-                                        'columnDefs' => array(
-                                            array('orderable' => false, 'targets' => 0),
-                                            array('type' => 'de_date', 'targets' => 1),
-                                            array('type' => 'de_date', 'targets' => 2),
-                                        ),
-                                        "paging" => false, // Deaktivieren Blättern
-                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                        "searching" => false, // Deaktivieren Suchen
-                                        "info" => false  // Deaktivieren Such-Info
-                                    )
-                                )
-                                : new Warning('Keine weiteren Unterrichtsfreien Tage verfügbar.', new Exclamation())
-                            )
-                        ), 6),
-                    ))
-                ),
-            ));
-
-            if ($tblHolidayList || $tblHolidayAll) {
-                $form->appendFormButton(new Primary('Speichern', new Save()));
-                $form->setConfirm('Die Zuweisung der Unterrichtsfreien Tage wurde noch nicht gespeichert.');
-            }
-
             $Stage->setContent(new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
@@ -824,17 +692,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ))
                 )),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Well(
-                                Term::useService()->addHolidaysToYear($form, $tblYear, $DataAddHoliday,
-                                    $DataRemoveHoliday)
-                            )
-                        ))
-                    ))
-                ), new Title('Zusammensetzung', 'der Unterrichtsfreien Tage'))
-            )));
+            )) . YearHoliday::receiverUsed(YearHoliday::tableHoliday($YearId)));
 
         } else {
             return $Stage
@@ -854,7 +712,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDestroyHoliday($Id = null, $Confirm = false)
     {
 
-        $Stage = new Stage('Unterrichtsfreie Tage', 'Löschen');
+        $Stage = new Stage('Unterrichtsfreie Zeiträume', 'Löschen');
 
         if (($tblHoliday = Term::useService()->getHolidayById($Id))) {
             $Stage->addButton(new Standard(
@@ -919,7 +777,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendImportHoliday($YearId = null, $Data = null)
     {
-        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Tage importieren');
+        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Zeiträume importieren');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         if (($tblYear = Term::useService()->getYearById($YearId))) {

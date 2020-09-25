@@ -104,7 +104,7 @@ class Term extends Extension implements IModuleInterface
             'Erstellen/Bearbeiten'));
         $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__ . '\Create\Period', new Time(), null,
             'Erstellen/Bearbeiten'));
-        $Stage->addButton(new Standard('Unterrichtsfreie Tage', __NAMESPACE__ . '\Holiday', new Holiday(), null,
+        $Stage->addButton(new Standard('Unterrichtsfreie Zeiträume', __NAMESPACE__ . '\Holiday', new Holiday(), null,
             'Erstellen/Bearbeiten'));
 
         $tblYearAll = Term::useService()->getYearAll();
@@ -169,7 +169,7 @@ class Term extends Extension implements IModuleInterface
                         $holidayList,
                         (empty($holidayList) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                         (new Standard('', __NAMESPACE__ . '\Holiday\Select', new Holiday(),
-                            array('YearId' => $tblYear->getId()), 'Unterrichtsfreie Tage zuweisen'
+                            array('YearId' => $tblYear->getId()), 'Unterrichtsfreie Zeiträume zuweisen'
                         ))
                         . ($hasHolidayImportButton
                             ? (new Standard('Ferien und Feiertage importieren', __NAMESPACE__ . '\Holiday\Import', null,
