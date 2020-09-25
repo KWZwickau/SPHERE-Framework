@@ -47,6 +47,21 @@ class TextField extends AbstractTextField implements IFieldInterface
     }
 
     /**
+     * @param bool $upper // nur Eingabeoptik -> service muss ein strtoupper ausführen!
+     *
+     * @return $this
+     */
+    public function setCaseToUpper($upper = true){
+
+        if ($upper) {
+            $this->Template->setVariable('ElementCase', 'upper');
+        } else {
+            $this->Template->setVariable('ElementCase', 'lower');
+        }
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getLabel()
