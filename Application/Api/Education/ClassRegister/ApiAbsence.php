@@ -181,9 +181,11 @@ class ApiAbsence extends Extension implements IApiInterface
     public static function generateOrganizerWeekly($WeekNumber = '', $Year = '')
     {
         // Definition
+
         // todo now
 //        $currentDate = new \DateTime('now');
         $currentDate = new DateTime('29.09.2020');
+
         if ($WeekNumber == ''){
             $WeekNumber = (int)(new DateTime('now'))->format('W');
         }
@@ -214,10 +216,6 @@ class ApiAbsence extends Extension implements IApiInterface
             $WeekBefore = $countWeek;
             $YearBefore = $Year - 1;
         }
-
-        // Tabelle vorbereiten
-        $ColumnDefinition['Division']= '<div style="background-color: lightgrey; height: 54px; text-align: center; padding-top: 18px;">'
-            . 'Klasse' . '</div>';
 
         // Start-/Endtag der Woche ermitteln
         $Week = $WeekNumber;
@@ -256,6 +254,35 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
+        // todo remove
+        $dataList['54']['29.09.2020'] = array(
+            1 => 'Name1, Vorname1',
+            2 => 'Name2, Vorname2',
+            3 => 'Name3, Vorname3',
+            4 => 'Name4, Vorname4'
+        );
+        $dataList['52']['28.09.2020'] = array(
+            1 => 'Name1, Vorname1',
+            2 => 'Name2, Vorname2',
+            3 => 'Name3, Vorname3'
+        );
+
+        // get max Person count
+        $personCountList = array();
+        foreach ($dataList as $key => $data) {
+            $personCountList[$key] = 0;
+            foreach ($data as $day => $personArray) {
+                $count = count($personArray);
+                if ($count > $personCountList[$key]) {
+                    $personCountList[$key] = $count;
+                }
+            }
+        }
+
+        // Tabelle vorbereiten
+        $ColumnDefinition['Division']= '<div style="background-color: lightgrey; height: 56px; text-align: center; padding-top: 19px;">'
+            . 'Klasse' . '</div>';
+
         // Kalender-Inhalt erzeugen
         // todo Schuljahreswechsel innerhalb der Woche
         if (($tblYearList = Term::useService()->getYearAllByDate($startDate))){
@@ -263,13 +290,27 @@ class ApiAbsence extends Extension implements IApiInterface
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
                     $tblDivisionList = (new Extension())->getSorter($tblDivisionList)
                         ->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+
+                    // Content der je Klasse erstellen
                     foreach ($tblDivisionList as $tblDivision) {
                         $StartDayPerson = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
                         $EndDayPerson = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}-7")));
 
-                        // Content der je Klasse erstellen
+                        // todo versuchen dynamisch über TableNoPadding zu setzen
+                        if (isset($personCountList[$tblDivision->getId()]) && ($countPersons = $personCountList[$tblDivision->getId()]) > 1) {
+                            $height = ($countPersons * 19) . 'px';
+                            if ($countPersons == 2) {
+                                $padding = '8px';
+                            } else {
+                                $padding = ($countPersons * 6) . 'px';
+                            }
+                        } else {
+                            $height = '30px';
+                            $padding = '5px';
+                        }
+
                         $ColumnContent['Division'] = '<div style="font-weight: bold; text-align: center; 
-                                background-color: lightgrey; padding: 5px 0; height: 30px;">'
+                                background-color: lightgrey; padding: ' . $padding . ' 0; height: ' . $height . ';">'
                             . $tblDivision->getDisplayName()
                             . '</div>';
                         if ($StartDayPerson && $EndDayPerson) {
@@ -278,38 +319,33 @@ class ApiAbsence extends Extension implements IApiInterface
                                 $Day = (int)$StartDayPerson->format('d');
                                 $Month = (int)$StartDayPerson->format('m');
 
-                                // todo unterrichtsfreie Tage
-                                if ($DayName[$DayAtWeek] == '(Sa)' || $DayName[$DayAtWeek] == '(So)' ||
-                                    ($Day == '1' && $Month == '1') ||
-                                    ($Day == '1' && $Month == '5') ||
-                                    ($Day == '3' && $Month == '10') ||
-                                    ($Day == '25' && $Month == '12') ||
-                                    ($Day == '26' && $Month == '12')
-                                ) {
-                                    $ColumnEntry = '<div style="background-color: lightgrey; opacity: 0.5; padding: 5px 0; height: 30px;">';
+                                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $StartDayPerson);
+
+                                if ($DayName[$DayAtWeek] == '(Sa)' || $DayName[$DayAtWeek] == '(So)' || $isHoliday) {
+                                    $ColumnEntry = '<div style="background-color: lightgrey; opacity: 0.5; padding: ' . $padding . ' 0; height: ' . $height . ';">';
+                                } elseif (isset($dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')])) {
+                                    $ColumnEntry = implode('<br>', $dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')]);
                                 } else {
-                                    $ColumnEntry = '<div style="padding-bottom: 5px; padding-top: 5px; height: 30px;">';
+                                    $ColumnEntry = '&nbsp;';
                                 }
 
                                 if (isset($dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')])) {
+                                    // todo link für EditModal
                                     $ColumnEntry = implode('<br>', $dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')]);
                                 }
 
-                                // todo column definition nur einmal
-                                $ColumnDefinition['Day' . $Day] = new Center(new Muted($DayName[$DayAtWeek]) . '<br>' . $Day . '. <br>' . $MonthName[$Month]);
-                                if ((int)$currentDate->format('d') == $Day && (int)$currentDate->format('m') == $Month && $currentDate->format('Y') == $Year) {
-                                    $ColumnDefinition['Day' . $Day] = '<span style="color: darkorange;">' . new Center(new Muted($DayName[$DayAtWeek]) . '<br>' . $Day . '.<br>' . $MonthName[$Month]) . '</span>';
-                                }
-                                if ($DayName[$DayAtWeek] == '(Sa)' || $DayName[$DayAtWeek] == '(So)' ||
-                                    ($Day == '1' && $Month == '1') ||
-                                    ($Day == '1' && $Month == '5') ||
-                                    ($Day == '3' && $Month == '10') ||
-                                    ($Day == '25' && $Month == '12') ||
-                                    ($Day == '26' && $Month == '12')) {
-                                    $ColumnDefinition['Day' . $Day] = '<div style="background-color: lightgrey; opacity: 0.5; color: black;">' .
-                                        new Center($DayName[$DayAtWeek] . '<br>' . $Day . '.<br>' . $MonthName[$Month]) . '</div>';
-                                }
                                 $ColumnContent['Day' . $Day] = new Center($ColumnEntry);
+
+                                if (!isset($ColumnDefinition['Day' . $Day])) {
+                                    $ColumnDefinition['Day' . $Day] = new Center(new Muted($DayName[$DayAtWeek]) . '<br>' . $Day . '. <br>' . $MonthName[$Month]);
+                                    if ((int)$currentDate->format('d') == $Day && (int)$currentDate->format('m') == $Month && $currentDate->format('Y') == $Year) {
+                                        $ColumnDefinition['Day' . $Day] = '<span style="color: darkorange;">' . new Center(new Muted($DayName[$DayAtWeek]) . '<br>' . $Day . '.<br>' . $MonthName[$Month]) . '</span>';
+                                    }
+                                    if ($DayName[$DayAtWeek] == '(Sa)' || $DayName[$DayAtWeek] == '(So)' || $isHoliday) {
+                                        $ColumnDefinition['Day' . $Day] = '<div style="background-color: lightgrey; opacity: 0.5; color: black; height: 56px;">' .
+                                            new Center($DayName[$DayAtWeek] . '<br>' . $Day . '.<br>' . $MonthName[$Month]) . '</div>';
+                                    }
+                                }
 
                                 // Tag weiterzählen
                                 $StartDayPerson->modify('+1 day');
