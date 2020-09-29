@@ -65,6 +65,9 @@ class ClassRegister implements IApplicationInterface
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassenbuch'))
         );
+        Main::getDisplay()->addApplicationNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Absence'), new Link\Name('Fehlzeiten'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__ . '::frontendDivision'

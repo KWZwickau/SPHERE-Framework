@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Absence\Service;
 
+use DateTime;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -129,16 +130,16 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblAbsence')->findOneBy(array(
             TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson,
             TblAbsence::ATTR_SERVICE_TBL_DIVISION => $tblDivision,
-            TblAbsence::ATTR_FROM_DATE => $FromDate ? new \DateTime($FromDate) : null,
-            TblAbsence::ATTR_TO_DATE => $ToDate ? new \DateTime($ToDate) : null,
+            TblAbsence::ATTR_FROM_DATE => $FromDate ? new DateTime($FromDate) : null,
+            TblAbsence::ATTR_TO_DATE => $ToDate ? new DateTime($ToDate) : null,
         ));
 
         if (null === $Entity) {
             $Entity = new TblAbsence();
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
-            $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+            $Entity->setFromDate($FromDate ? new DateTime($FromDate) : null);
+            $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
             $Entity->setStatus($Status);
             $Entity->setRemark($Remark);
 
@@ -172,8 +173,8 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblAbsence', $tblAbsence->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
-            $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+            $Entity->setFromDate($FromDate ? new DateTime($FromDate) : null);
+            $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
             $Entity->setRemark($Remark);
             $Entity->setStatus($Status);
 
@@ -234,5 +235,31 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblAbsence[]|bool
+     */
+    public function getAbsenceAllBetween(DateTime $fromDate, DateTime $toDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblAbsence', 't')
+            ->where($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->between('t.FromDate', '?1', '?2'),
+                $queryBuilder->expr()->between('t.ToDate', '?1', '?2')
+            ))
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

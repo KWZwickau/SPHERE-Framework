@@ -26,22 +26,26 @@ class Table extends Extension implements ITemplateInterface
     protected $Template = null;
     /** @var string $Hash */
     protected $Hash = '';
+    /** @var bool $Padding */
+    protected $Padding = true;
 
     /**
-     * @param TableHead  $TableHead
-     * @param TableBody  $TableBody
-     * @param Title      $TableTitle
+     * @param TableHead $TableHead
+     * @param TableBody $TableBody
+     * @param Title $TableTitle
      * @param bool|array $Interactive
-     * @param TableFoot  $TableFoot
+     * @param TableFoot $TableFoot
+     * @param bool $Padding
      */
     public function __construct(
         TableHead $TableHead,
         TableBody $TableBody,
         Title $TableTitle = null,
         $Interactive = false,
-        TableFoot $TableFoot = null
+        TableFoot $TableFoot = null,
+        $Padding = true
     ) {
-
+        $this->Padding = $Padding;
         $this->Interactive = $Interactive;
 
         if (!is_array($TableHead)) {
@@ -79,7 +83,11 @@ class Table extends Extension implements ITemplateInterface
             $Options = preg_replace( '!"(function\s*\(.*?\)\s*\{.*?\})"!is', '${1}', $Options );
             $this->Template->setVariable('InteractiveOption', $Options);
         } else {
-            $this->Template = $this->getTemplate(__DIR__.'/Table.twig');
+            if ($this->Padding === true){
+                $this->Template = $this->getTemplate(__DIR__.'/Table.twig');
+            } else {
+                $this->Template = $this->getTemplate(__DIR__.'/TableNoPadding.twig');
+            }
         }
         $this->Template->setVariable('TableTitle', $TableTitle);
     }

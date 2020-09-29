@@ -8,6 +8,8 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Absence;
 
+use DateTime;
+use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -36,12 +38,15 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -205,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function formAbsence()
+    public function formAbsence()
     {
 
         return new Form(new FormGroup(array(
@@ -340,29 +345,29 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblPeriodList) {
                     foreach ($tblPeriodList as $tblPeriod) {
                         if ($startDate) {
-                            if ($startDate > new \DateTime($tblPeriod->getFromDate())) {
-                                $firstMonth = (new \DateTime($tblPeriod->getFromDate()))->format('m');
-                                $firstYear = (new \DateTime($tblPeriod->getFromDate()))->format('Y');
-                                $startDate = new \DateTime($tblPeriod->getFromDate());
+                            if ($startDate > new DateTime($tblPeriod->getFromDate())) {
+                                $firstMonth = (new DateTime($tblPeriod->getFromDate()))->format('m');
+                                $firstYear = (new DateTime($tblPeriod->getFromDate()))->format('Y');
+                                $startDate = new DateTime($tblPeriod->getFromDate());
                             }
                         } else {
-                            $firstMonth = (new \DateTime($tblPeriod->getFromDate()))->format('m');
-                            $firstYear = (new \DateTime($tblPeriod->getFromDate()))->format('Y');
-                            $startDate = new \DateTime($tblPeriod->getFromDate());
+                            $firstMonth = (new DateTime($tblPeriod->getFromDate()))->format('m');
+                            $firstYear = (new DateTime($tblPeriod->getFromDate()))->format('Y');
+                            $startDate = new DateTime($tblPeriod->getFromDate());
                         }
 
                         if ($endDate) {
-                            if ($endDate < new \DateTime($tblPeriod->getToDate())) {
-                                $endDate = new \DateTime($tblPeriod->getToDate());
+                            if ($endDate < new DateTime($tblPeriod->getToDate())) {
+                                $endDate = new DateTime($tblPeriod->getToDate());
                             }
                         } else {
-                            $endDate = new \DateTime($tblPeriod->getToDate());
+                            $endDate = new DateTime($tblPeriod->getToDate());
                         }
                     }
                 }
             }
 
-            $now = new \DateTime('now');
+            $now = new DateTime('now');
 
             if (!$Month || !$Year) {
                 if ($startDate <= $now && $now <= $endDate) {
@@ -392,7 +397,7 @@ class Frontend extends Extension implements IFrontendInterface
             $buttonList = array();
             if ($startDate && $endDate) {
                 // SSW-1061
-                $startDate = new \DateTime('01.' . $startDate->format('m') . '.' . $startDate->format('Y'));
+                $startDate = new DateTime('01.' . $startDate->format('m') . '.' . $startDate->format('Y'));
                 while ($startDate <= $endDate) {
                     $startDateYear = $startDate->format('Y');
                     $startDateMonth = $startDate->format('m');
@@ -421,7 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableHead['Name'] = 'Schüler';
             $holidays = array();
             for ($i = 1; $i <= $maxDays; $i++) {
-                $date = new \DateTime($i . '.' . $Month . '.' . $Year);
+                $date = new DateTime($i . '.' . $Month . '.' . $Year);
                 if ($date->format('d.m.Y') == $now->format('d.m.Y')) {
                     $tableHead['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = $i . '<br>' . $days[$date->format('w')]
                         . '<br>' . new \SPHERE\Common\Frontend\Link\Repository\Primary('',
@@ -470,9 +475,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
                     if ($tblAbsenceAllByPerson) {
                         foreach ($tblAbsenceAllByPerson as $tblAbsence) {
-                            $fromDate = new \DateTime($tblAbsence->getFromDate());
+                            $fromDate = new DateTime($tblAbsence->getFromDate());
                             if ($tblAbsence->getToDate()) {
-                                $toDate = new \DateTime($tblAbsence->getToDate());
+                                $toDate = new DateTime($tblAbsence->getToDate());
                                 if ($toDate > $fromDate) {
                                     $date = $fromDate;
                                     while ($date <= $toDate) {
@@ -550,7 +555,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblAbsence $tblAbsence
      * @param TblYear $tblYear
      * @param $studentTable
-     * @param \DateTime $date
+     * @param DateTime $date
      * @param $month
      * @param $year
      * @param $countExcused
@@ -561,7 +566,7 @@ class Frontend extends Extension implements IFrontendInterface
         TblAbsence $tblAbsence,
         TblYear $tblYear,
         &$studentTable,
-        \DateTime $date,
+        DateTime $date,
         $month,
         $year,
         &$countExcused,
@@ -732,29 +737,29 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblPeriodList) {
                     foreach ($tblPeriodList as $tblPeriod) {
                         if ($startDate) {
-                            if ($startDate > new \DateTime($tblPeriod->getFromDate())) {
-                                $firstMonth = (new \DateTime($tblPeriod->getFromDate()))->format('m');
-                                $firstYear = (new \DateTime($tblPeriod->getFromDate()))->format('Y');
-                                $startDate = new \DateTime($tblPeriod->getFromDate());
+                            if ($startDate > new DateTime($tblPeriod->getFromDate())) {
+                                $firstMonth = (new DateTime($tblPeriod->getFromDate()))->format('m');
+                                $firstYear = (new DateTime($tblPeriod->getFromDate()))->format('Y');
+                                $startDate = new DateTime($tblPeriod->getFromDate());
                             }
                         } else {
-                            $firstMonth = (new \DateTime($tblPeriod->getFromDate()))->format('m');
-                            $firstYear = (new \DateTime($tblPeriod->getFromDate()))->format('Y');
-                            $startDate = new \DateTime($tblPeriod->getFromDate());
+                            $firstMonth = (new DateTime($tblPeriod->getFromDate()))->format('m');
+                            $firstYear = (new DateTime($tblPeriod->getFromDate()))->format('Y');
+                            $startDate = new DateTime($tblPeriod->getFromDate());
                         }
 
                         if ($endDate) {
-                            if ($endDate < new \DateTime($tblPeriod->getToDate())) {
-                                $endDate = new \DateTime($tblPeriod->getToDate());
+                            if ($endDate < new DateTime($tblPeriod->getToDate())) {
+                                $endDate = new DateTime($tblPeriod->getToDate());
                             }
                         } else {
-                            $endDate = new \DateTime($tblPeriod->getToDate());
+                            $endDate = new DateTime($tblPeriod->getToDate());
                         }
                     }
                 }
             }
 
-            $now = new \DateTime('now');
+            $now = new DateTime('now');
 
             if (!$Month || !$Year) {
                 if ($startDate <= $now && $now <= $endDate) {
@@ -784,7 +789,7 @@ class Frontend extends Extension implements IFrontendInterface
             $buttonList = array();
             if ($startDate && $endDate) {
                 // SSW-1061
-                $startDate = new \DateTime('01.' . $startDate->format('m') . '.' . $startDate->format('Y'));
+                $startDate = new DateTime('01.' . $startDate->format('m') . '.' . $startDate->format('Y'));
                 while ($startDate <= $endDate) {
                     $startDateYear = $startDate->format('Y');
                     $startDateMonth = $startDate->format('m');
@@ -807,7 +812,7 @@ class Frontend extends Extension implements IFrontendInterface
 
 
             if ($SelectedDate) {
-                $SelectedDate = new \DateTime($SelectedDate);
+                $SelectedDate = new DateTime($SelectedDate);
             }
 
             $days = array("So", "Mo", "Di", "Mi", "Do", "Fr", "Sa");
@@ -817,7 +822,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableHead['Name'] = 'Schüler';
             $holidays = array();
             for ($i = 1; $i <= $maxDays; $i++) {
-                $date = new \DateTime($i . '.' . $Month . '.' . $Year);
+                $date = new DateTime($i . '.' . $Month . '.' . $Year);
                 if ($date->format('d.m.Y') == $SelectedDate->format('d.m.Y')) {
                     $tableHead['Day' . str_pad($i, 2, '0',
                         STR_PAD_LEFT)] = new \SPHERE\Common\Frontend\Message\Repository\Info(
@@ -863,9 +868,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
                     if ($tblAbsenceAllByPerson) {
                         foreach ($tblAbsenceAllByPerson as $tblAbsence) {
-                            $fromDate = new \DateTime($tblAbsence->getFromDate());
+                            $fromDate = new DateTime($tblAbsence->getFromDate());
                             if ($tblAbsence->getToDate()) {
-                                $toDate = new \DateTime($tblAbsence->getToDate());
+                                $toDate = new DateTime($tblAbsence->getToDate());
                                 if ($toDate > $fromDate) {
                                     $date = $fromDate;
                                     while ($date <= $toDate) {
@@ -981,5 +986,37 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage . new Danger('Person nicht gefunden.', new Ban());
         }
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendAbsenceOverview()
+    {
+        $Stage = new Stage('Fehlzeiten', 'Eingabe');
+
+        // todo now
+        $now = new DateTime('28.09.2020');
+
+        $Stage->setContent(
+            ApiAbsence::receiverModal()
+            . new Panel(
+                new Calendar() . ' Kalender' . new PullRight(
+                    (new Link(
+                        new PlusSign() . '  Fehlzeit hinzufügen',
+                        ApiAbsence::getEndpoint(),
+                        null,
+                        array(),
+                        false,
+                        null,
+                        AbstractLink::TYPE_WHITE_LINK
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal())
+                ),
+                ApiAbsence::receiverBlock(ApiAbsence::generateOrganizerWeekly($now->format('W') , $now->format('Y')), 'CalendarContent'),
+                Panel::PANEL_TYPE_PRIMARY
+            )
+        );
+
+        return $Stage;
     }
 }

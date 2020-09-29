@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Absence;
 
+use DateTime;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
@@ -116,8 +117,8 @@ class Service extends AbstractService
         if (isset($Data['FromDate']) && !empty($Data['FromDate'])
             && isset($Data['ToDate']) && !empty($Data['ToDate'])
         ) {
-            $fromDate = new \DateTime($Data['FromDate']);
-            $toDate = new \DateTime($Data['ToDate']);
+            $fromDate = new DateTime($Data['FromDate']);
+            $toDate = new DateTime($Data['ToDate']);
             if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
                 $Stage->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
                 $Error = true;
@@ -132,25 +133,25 @@ class Service extends AbstractService
             if ($tblPeriodList) {
                 foreach ($tblPeriodList as $tblPeriod) {
                     if (!$minDate) {
-                        $minDate = new \DateTime($tblPeriod->getFromDate());
-                    } elseif ($minDate >= new \DateTime($tblPeriod->getFromDate())) {
-                        $minDate = new \DateTime($tblPeriod->getFromDate());
+                        $minDate = new DateTime($tblPeriod->getFromDate());
+                    } elseif ($minDate >= new DateTime($tblPeriod->getFromDate())) {
+                        $minDate = new DateTime($tblPeriod->getFromDate());
                     }
                     if (!$maxDate) {
-                        $maxDate = new \DateTime($tblPeriod->getToDate());
-                    } elseif ($maxDate <= new \DateTime($tblPeriod->getToDate())) {
-                        $maxDate = new \DateTime($tblPeriod->getToDate());
+                        $maxDate = new DateTime($tblPeriod->getToDate());
+                    } elseif ($maxDate <= new DateTime($tblPeriod->getToDate())) {
+                        $maxDate = new DateTime($tblPeriod->getToDate());
                     }
                 }
             }
         }
         if (!$Error && $minDate && $maxDate) {
-            if (new \DateTime($Data['FromDate']) < $minDate) {
+            if (new DateTime($Data['FromDate']) < $minDate) {
                 $Stage->setError('Data[FromDate]',
                     'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
                 $Error = true;
             }
-            if (new \DateTime($Data['ToDate']) > $maxDate) {
+            if (new DateTime($Data['ToDate']) > $maxDate) {
                 $Stage->setError('Data[ToDate]',
                     'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
                 $Error = true;
@@ -209,8 +210,8 @@ class Service extends AbstractService
         if (isset($Data['FromDate']) && !empty($Data['FromDate'])
             && isset($Data['ToDate']) && !empty($Data['ToDate'])
         ) {
-            $fromDate = new \DateTime($Data['FromDate']);
-            $toDate = new \DateTime($Data['ToDate']);
+            $fromDate = new DateTime($Data['FromDate']);
+            $toDate = new DateTime($Data['ToDate']);
             if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
                 $Stage->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
                 $Error = true;
@@ -232,25 +233,25 @@ class Service extends AbstractService
                 if ($tblPeriodList) {
                     foreach ($tblPeriodList as $tblPeriod) {
                         if (!$minDate) {
-                            $minDate = new \DateTime($tblPeriod->getFromDate());
-                        } elseif ($minDate >= new \DateTime($tblPeriod->getFromDate())) {
-                            $minDate = new \DateTime($tblPeriod->getFromDate());
+                            $minDate = new DateTime($tblPeriod->getFromDate());
+                        } elseif ($minDate >= new DateTime($tblPeriod->getFromDate())) {
+                            $minDate = new DateTime($tblPeriod->getFromDate());
                         }
                         if (!$maxDate) {
-                            $maxDate = new \DateTime($tblPeriod->getToDate());
-                        } elseif ($maxDate <= new \DateTime($tblPeriod->getToDate())) {
-                            $maxDate = new \DateTime($tblPeriod->getToDate());
+                            $maxDate = new DateTime($tblPeriod->getToDate());
+                        } elseif ($maxDate <= new DateTime($tblPeriod->getToDate())) {
+                            $maxDate = new DateTime($tblPeriod->getToDate());
                         }
                     }
                 }
             }
             if (!$Error && $minDate && $maxDate) {
-                if (new \DateTime($Data['FromDate']) < $minDate) {
+                if (new DateTime($Data['FromDate']) < $minDate) {
                     $Stage->setError('Data[FromDate]',
                         'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
                     $Error = true;
                 }
-                if (new \DateTime($Data['ToDate']) > $maxDate) {
+                if (new DateTime($Data['ToDate']) > $maxDate) {
                     $Stage->setError('Data[ToDate]',
                         'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
                     $Error = true;
@@ -292,11 +293,11 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
-     * @param \DateTime|null $tillDate
+     * @param DateTime|null $tillDate
      *
      * @return int
      */
-    function getUnexcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $tillDate = null)
+    function getUnexcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, DateTime $tillDate = null)
     {
 
         $list = array();
@@ -322,11 +323,11 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
-     * @param \DateTime|null $tillDate
+     * @param DateTime|null $tillDate
      *
      * @return int
      */
-    public function getExcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $tillDate = null)
+    public function getExcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, DateTime $tillDate = null)
     {
 
         $list = array();
@@ -367,19 +368,19 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
-     * @param \DateTime $date
+     * @param DateTime $date
      *
      * @return false|TblAbsence[]
      */
-    public function getAbsenceListByDate(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $date)
+    public function getAbsenceListByDate(TblPerson $tblPerson, TblDivision $tblDivision, DateTime $date)
     {
 
         $resultList = array();
         if (($tblAbsenceList = $this->getAbsenceAllByPerson($tblPerson, $tblDivision))){
             foreach ($tblAbsenceList as $tblAbsence){
-                $fromDate = new \DateTime($tblAbsence->getFromDate());
+                $fromDate = new DateTime($tblAbsence->getFromDate());
                 if ($tblAbsence->getToDate()) {
-                    $toDate = new \DateTime($tblAbsence->getToDate());
+                    $toDate = new DateTime($tblAbsence->getToDate());
                     if ($toDate >= $fromDate) {
                         if ($fromDate <= $date && $date<= $toDate) {
                             $resultList[] = $tblAbsence;
@@ -400,7 +401,7 @@ class Service extends AbstractService
      * @param IFormInterface|null $Stage
      * @param TblDivision $tblDivision
      * @param string $BasicRoute
-     * @param \DateTime|null $date
+     * @param DateTime|null $date
      * @param $Data
      *
      * @return IFormInterface|string
@@ -409,7 +410,7 @@ class Service extends AbstractService
         IFormInterface $Stage = null,
         TblDivision $tblDivision,
         $BasicRoute = '',
-        \DateTime $date = null,
+        DateTime $date = null,
         $Data
     ) {
 
@@ -538,14 +539,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      * @param TblType|null $tblType
      * @param array $divisionList
      * @param array $groupList
      *
      * @return array
      */
-    public function getAbsenceAllByDay(\DateTime $dateTime, TblType $tblType = null, $divisionList = array(), $groupList = array())
+    public function getAbsenceAllByDay(DateTime $dateTime, TblType $tblType = null, $divisionList = array(), $groupList = array())
     {
         $resultList = array();
         $tblAbsenceList = array();
@@ -578,11 +579,11 @@ class Service extends AbstractService
         if ($tblAbsenceList) {
             foreach ($tblAbsenceList as $tblAbsence) {
                 $isAdd = false;
-                $fromDate = new \DateTime($tblAbsence->getFromDate());
+                $fromDate = new DateTime($tblAbsence->getFromDate());
                 if ($fromDate->format('d.m.Y') == $dateTime->format('d.m.Y')) {
                     $isAdd = true;
                 } elseif ($tblAbsence->getToDate()) {
-                    $toDate = new \DateTime($tblAbsence->getToDate());
+                    $toDate = new DateTime($tblAbsence->getToDate());
                     if ($fromDate <= $dateTime && $toDate >= $dateTime) {
                         $isAdd = true;
                     }
@@ -627,5 +628,16 @@ class Service extends AbstractService
         }
 
         return $resultList;
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblAbsence[]|bool
+     */
+    public function getAbsenceAllBetween(DateTime $fromDate, DateTime $toDate)
+    {
+        return (new Data($this->getBinding()))->getAbsenceAllBetween($fromDate, $toDate);
     }
 }

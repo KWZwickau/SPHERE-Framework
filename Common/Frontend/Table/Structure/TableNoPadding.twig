@@ -1,0 +1,60 @@
+{% if( TableTitle is not empty ) %}
+    {{ TableTitle }}
+{% endif %}
+<table class="table table-bordered table-condensed table-striped">
+    <thead>
+    {% for TableHead in HeadList %}
+        {% for TableRow in TableHead.getTableRow %}
+            <tr>
+                {% for TableColumn in TableRow.getTableColumn %}
+                    {% if(TableColumn.getSize>1) and (TableColumn.getWidth != 'auto') %}
+                        <th colspan="{{ TableColumn.getSize }}"
+                            style="width:{{ TableColumn.getWidth }}; padding: 0;">{{ TableColumn }}</th>
+                    {% elseif(TableColumn.getSize>1) %}
+                        <th colspan="{{ TableColumn.getSize }}" style="padding: 0;">{{ TableColumn }}</th>
+                    {% elseif(TableColumn.getWidth != 'auto') %}
+                        <th style="width:{{ TableColumn.getWidth }}; padding: 0;">{{ TableColumn }}</th>
+                    {% else %}
+                        <th style="padding: 0;">{{ TableColumn }}</th>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    {% endfor %}
+    </thead>
+    {% for TableBody in BodyList %}
+        <tbody>
+        {% for TableRow in TableBody.getTableRow %}
+            <tr>
+                {% for TableColumn in TableRow.getTableColumn %}
+                    {% if(TableColumn.getSize>1) and (TableColumn.getWidth != 'auto') %}
+                        <td colspan="{{ TableColumn.getSize }}"
+                            style="width:{{ TableColumn.getWidth }}; padding: 0;">{{ TableColumn }}</td>
+                    {% elseif(TableColumn.getSize>1) %}
+                        <td colspan="{{ TableColumn.getSize }}" style="padding: 0;">{{ TableColumn }}</td>
+                    {% elseif(TableColumn.getWidth != 'auto') %}
+                        <td style="width:{{ TableColumn.getWidth }}; padding: 0;">{{ TableColumn }}</td>
+                    {% else %}
+                        <td style="padding: 0;">{{ TableColumn }}</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    {% endfor %}
+    {% if( FootList is not empty ) %}
+        {% for TableFoot in FootList %}
+            {% if( TableFoot.getTableRow is not empty) %}
+                <tfoot>
+                {% for TableRow in TableFoot.getTableRow %}
+                    <tr>
+                        {% for TableColumn in TableRow.getTableColumn %}
+                            <td style="padding: 0;">{{ TableColumn }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tfoot>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</table>

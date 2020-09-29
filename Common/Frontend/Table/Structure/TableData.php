@@ -17,13 +17,15 @@ class TableData extends Table
      * @param array $ColumnDefinition
      * @param bool|array $Interactive
      * @param bool $useHtmlRenderer false JS, true DOM
+     * @param bool $padding
      */
     public function __construct(
         $DataList,
         Title $TableTitle = null,
         $ColumnDefinition = array(),
         $Interactive = true,
-        $useHtmlRenderer = false
+        $useHtmlRenderer = false,
+        $padding = true
     ) {
 
         /**
@@ -203,16 +205,16 @@ class TableData extends Table
 
             parent::__construct(
                 new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle,
-                $Interactive, null
+                $Interactive, null, $padding
             );
         } else {
             if ($Interactive === null) {
                 parent::__construct(
-                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, null, null
+                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, null, null, $padding
                 );
             } else {
                 parent::__construct(
-                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, false, null
+                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, false, null, $padding
                 );
             }
         }
