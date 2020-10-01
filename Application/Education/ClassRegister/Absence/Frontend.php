@@ -14,9 +14,12 @@ use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -30,12 +33,14 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -47,7 +52,9 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -208,12 +215,46 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $hasSearch
+     * @param string $Search
+     * @param null $Data
+     * @param null $AbsenceId
+     *
+     * @param IMessageInterface|null $message
      * @return Form
      */
-    public function formAbsence()
+    public function formAbsence($hasSearch = false, $Search = '', $Data = null, $AbsenceId = null, IMessageInterface $message = null)
     {
+        if ($AbsenceId === null) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['IsFullDay'] = 1;
+            $global->savePost();
+        }
 
-        return new Form(new FormGroup(array(
+        $formRowSearchPerson = new FormRow(array(
+            new FormColumn(array(new Panel(
+                'Schüler',
+                    (new TextField(
+                        'Search',
+                        '',
+                        'Suche',
+                        new Search()
+                    ))->ajaxPipelineOnKeyUp(ApiAbsence::pipelineSearchPerson())
+                    . ApiAbsence::receiverBlock($this->loadPersonSearch($Search, $message), 'SearchPerson')
+                , Panel::PANEL_TYPE_INFO
+            )))
+        ));
+
+//        if ($AbsenceId) {
+//            $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
+//                ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($PersonId, $AbsenceId));
+//        } else {
+            $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave());
+//        }
+
+        return (new Form(new FormGroup(array(
+            $hasSearch ? $formRowSearchPerson : null,
             new FormRow(array(
                 new FormColumn(
                     new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
@@ -221,6 +262,19 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
                 ),
+            )),
+            new FormRow(array(
+               new FormColumn(array(
+                   (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
+                   // todo for edit
+                   ApiAbsence::receiverBlock($this->loadLesson(true), 'loadLesson')
+               ))
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    // todo $peronId
+                    ApiAbsence::receiverBlock($this->loadType(null), 'loadType')
+                )
             )),
             new FormRow(array(
                 new FormColumn(
@@ -239,7 +293,141 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ),
             )),
-        )));
+            // todo für normales Formular ohne ajax -> besser wahrscheinlich doch 2 Formulare mit den Bereichen ausgelagert
+            new FormRow(array(
+                new FormColumn(array(
+                    $saveButton
+                ))
+            ))
+        ))))->disableSubmitAction();
+    }
+
+    /**
+     * @param $Search
+     * @param IMessageInterface|null $message
+     *
+     * @return string
+     */
+    public function loadPersonSearch($Search, IMessageInterface $message = null)
+    {
+        if ($Search != '' && strlen($Search) > 2) {
+            $resultList = array();
+            $result = '';
+            if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
+                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                foreach ($tblPersonList as $tblPerson) {
+                    // nur nach Schülern suchen
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        $radio = (new RadioBox('Data[PersonId]', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnClick(
+                            ApiAbsence::pipelineLoadType()
+                        );
+
+                        $resultList[] = array(
+                            'Select' => $radio,
+                            'FirstName' => $tblPerson->getFirstSecondName(),
+                            'LastName' => $tblPerson->getLastName(),
+                            'Division' => ($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
+                                ? $tblMainDivision->getDisplayName() : ''
+                        );
+                    }
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Select' => '',
+                        'LastName' => 'Nachname',
+                        'FirstName' => 'Vorname',
+                        'Division' => 'Klasse'
+                    ),
+                    array(
+                        'order' => array(
+                            array(1, 'asc'),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new \SPHERE\Common\Frontend\Message\Repository\Warning('Es wurden keine entsprechenden Schüler gefunden.', new Ban());
+            }
+        } else {
+            $result =  new \SPHERE\Common\Frontend\Message\Repository\Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return $result . ($message ? $message : '');
+    }
+
+    /**
+     * @param $IsFullDay
+     *
+     * @return Layout|null
+     */
+    public function loadLesson($IsFullDay)
+    {
+        if ($IsFullDay) {
+            return null;
+        } else {
+            $left = array();
+            $right = array();
+            for ($i = 1; $i < 6; $i++) {
+                $left[] = $this->setCheckBoxLesson($i);
+                $right[] = $this->setCheckBoxLesson($i + 5);
+            }
+
+            return new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($left, 6),
+                new LayoutColumn($right, 6)
+            ))));
+        }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return SelectBox|null
+     */
+    public function loadType($PersonId = null)
+    {
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
+            && ($tblLevel = $tblMainDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && ($tblSchoolType->getName() == 'Berufliches Gymnasium'
+                || $tblSchoolType->getName() == 'Berufsfachschule'
+                || $tblSchoolType->getName() == 'Berufsschule'
+                || $tblSchoolType->getName() == 'Fachoberschule'
+                || $tblSchoolType->getName() == 'Fachschule'
+            )
+        ) {
+            // todo wieder einkommentieren
+//            $global = $this->getGlobal();
+//            $global->POST['Data']['Type'] = TblAbsence::VALUE_TYPE_THEORY;
+//            $global->savePost();
+
+            return new SelectBox('Data[Type]', 'Typ', array(
+                TblAbsence::VALUE_TYPE_PRACTICE => 'Praxis',
+                TblAbsence::VALUE_TYPE_THEORY => 'Theorie'
+            ));
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $i
+     *
+     * @return CheckBox
+     */
+    private function setCheckBoxLesson($i)
+    {
+        return new CheckBox('Data[UE][' . $i . ']', $i . '. Unterrichtseinheit', 1);
     }
 
     /**

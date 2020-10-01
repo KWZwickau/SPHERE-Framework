@@ -31,6 +31,10 @@ class TblAbsence extends Element
     const VALUE_STATUS_EXCUSED = 1;
     const VALUE_STATUS_UNEXCUSED = 2;
 
+    const VALUE_TYPE_NULL = 0;
+    const VALUE_TYPE_PRACTICE = 1;
+    const VALUE_TYPE_THEORY = 2;
+
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_FROM_DATE = 'FromDate';
@@ -65,6 +69,11 @@ class TblAbsence extends Element
      * @Column(type="smallint")
      */
     protected $Status;
+
+    /**
+     * @Column(type="smallint")
+     */
+    protected $Type;
 
     /**
      * @return bool|TblPerson

@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -52,15 +53,17 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('openCreateAbsenceModal');
-//        $Dispatcher->registerMethod('saveCreateAbsenceModal');
-//
+        $Dispatcher->registerMethod('saveCreateAbsenceModal');
+
 //        $Dispatcher->registerMethod('openEditAbsenceModal');
 //        $Dispatcher->registerMethod('saveEditAbsenceModal');
-//
+
 //        $Dispatcher->registerMethod('openDeleteAbsenceModal');
 //        $Dispatcher->registerMethod('saveDeleteAbsenceModal');
-//
-//        $Dispatcher->registerMethod('searchPerson');
+
+        $Dispatcher->registerMethod('searchPerson');
+        $Dispatcher->registerMethod('loadLesson');
+        $Dispatcher->registerMethod('loadType');
 
         $Dispatcher->registerMethod('generateOrganizerWeekly');
 
@@ -117,7 +120,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
     public function openCreateAbsenceModal()
     {
-        return $this->getAbsenceModal(Absence::useFrontend()->formAbsence());
+        return $this->getAbsenceModal(Absence::useFrontend()->formAbsence(true));
     }
 
     private function getAbsenceModal($form,  $AbsenceId = null)
@@ -150,6 +153,131 @@ class ApiAbsence extends Extension implements IApiInterface
                         )
                     ))
             );
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineCreateAbsenceSave()
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateAbsenceModal'
+        ));
+
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Data
+     * @param $Search
+     *
+     * @return string
+     */
+    public function saveCreateAbsenceModal($Data, $Search)
+    {
+
+//        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+//            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+//        }
+
+        if (($form = Absence::useService()->checkFormAbsence($Data, $Search))) {
+            // display Errors on form
+            return $this->getAbsenceModal($form);
+        }
+
+//        if (!($tblPersonTo = Person::useService()->getPersonById($To))) {
+//            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+//        }
+
+//        if (Relationship::useService()->createRelationshipToPerson($tblPerson, $tblPersonTo, $Type)) {
+//            return new Success('Die Personenbeziehung wurde erfolgreich gespeichert.')
+//                . self::pipelineLoadRelationshipToPersonContent($PersonId)
+//                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
+//                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+//                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
+//                . self::pipelineClose();
+//        } else {
+//            return new Danger('Die Personenbeziehung konnte nicht gespeichert werden.') . self::pipelineClose();
+//        }
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSearchPerson()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchPerson'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'searchPerson',
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Search
+     *
+     * @return string
+     */
+    public function searchPerson($Search = null)
+    {
+        return Absence::useFrontend()->loadPersonSearch(trim($Search));
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadLesson()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'loadLesson'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadLesson',
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Layout|null
+     */
+    public function loadLesson()
+    {
+        return Absence::useFrontend()->loadLesson(isset($_POST['Data']['IsFullDay']));
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadType()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'loadType'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadType',
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return SelectBox|null
+     */
+    public function loadType()
+    {
+        return Absence::useFrontend()->loadType(isset($_POST['Data']['PersonId']) ? $_POST['Data']['PersonId'] : null);
     }
 
     /**
@@ -238,17 +366,22 @@ class ApiAbsence extends Extension implements IApiInterface
                             $date = $fromDate;
                             while ($date <= $toDate) {
                                 // todo Method auslagern
+                                // bei Unterrichtseinheiten dahinter in Klammern (1.UE)
+                                // E entschuldig, U unentschuldig
+                                // wie kombination eventuell ein Gyphicon
+                                // T Theorie, P Praxis
+                                // [Vorname] [Nachname] ( [[UE]] / [T/P] / [U/E])
                                 $dataList[$tblDivisionItem->getId()][$date->format('d.m.Y')][$tblPerson->getId()]
-                                    = $tblPerson->getLastFirstName();
+                                    = $tblPerson->getFullName();
                                 $date = $date->modify('+1 day');
                             }
                         } elseif ($toDate == $fromDate) {
                             $dataList[$tblDivisionItem->getId()][$tblAbsence->getFromDate()][$tblPerson->getId()]
-                                = $tblPerson->getLastFirstName();
+                                = $tblPerson->getFullName();
                         }
                     } else {
                         $dataList[$tblDivisionItem->getId()][$tblAbsence->getFromDate()][$tblPerson->getId()]
-                            = $tblPerson->getLastFirstName();
+                            = $tblPerson->getFullName();
                     }
                 }
             }
@@ -256,15 +389,15 @@ class ApiAbsence extends Extension implements IApiInterface
 
         // todo remove
         $dataList['54']['29.09.2020'] = array(
-            1 => 'Name1, Vorname1',
-            2 => 'Name2, Vorname2',
-            3 => 'Name3, Vorname3',
-            4 => 'Name4, Vorname4'
+            1 => 'Vorname1, Nachname1',
+            2 => 'Vorname2, Nachname2',
+            3 => 'Vorname3, Nachname3',
+            4 => 'Vorname4, Nachname4'
         );
         $dataList['52']['28.09.2020'] = array(
-            1 => 'Name1, Vorname1',
-            2 => 'Name2, Vorname2',
-            3 => 'Name3, Vorname3'
+            1 => 'Vorname1, Nachname1',
+            2 => 'Vorname2, Nachname2',
+            3 => 'Vorname3, Nachname3'
         );
 
         // get max Person count

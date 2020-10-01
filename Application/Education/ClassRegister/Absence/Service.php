@@ -21,6 +21,9 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -639,5 +642,97 @@ class Service extends AbstractService
     public function getAbsenceAllBetween(DateTime $fromDate, DateTime $toDate)
     {
         return (new Data($this->getBinding()))->getAbsenceAllBetween($fromDate, $toDate);
+    }
+
+    /**
+     * @param $Data
+     * @param string $Search
+     * @param null $PersonId
+     *
+     * @return bool|Form
+     */
+    public function checkFormAbsence(
+        $Data,
+        $Search = '',
+        $PersonId = null
+    ) {
+
+        $error = false;
+        $message = null;
+
+        // todo es gibt keine Personensuche
+        if ($PersonId === null && (!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId'])))) {
+            $message = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
+            $error = true;
+        }
+
+        // todo Prüfung Schüler muss eine aktuelle Klasse besitzen
+
+        $form = Absence::useFrontend()->formAbsence(
+            $PersonId === null,
+            $Search,
+            $Data,
+            null,
+            $message
+        );
+
+        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
+            $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
+            $error = true;
+        }
+        if (isset($Data['FromDate']) && !empty($Data['FromDate'])
+            && isset($Data['ToDate']) && !empty($Data['ToDate'])
+        ) {
+            $fromDate = new DateTime($Data['FromDate']);
+            $toDate = new DateTime($Data['ToDate']);
+            if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
+                $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                $error = true;
+            }
+        }
+
+//        $minDate = false;
+//        $maxDate = false;
+//        if (($tblYear = $tblDivision->getServiceTblYear())) {
+//            $tblLevel = $tblDivision->getTblLevel();
+//            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+//            if ($tblPeriodList) {
+//                foreach ($tblPeriodList as $tblPeriod) {
+//                    if (!$minDate) {
+//                        $minDate = new DateTime($tblPeriod->getFromDate());
+//                    } elseif ($minDate >= new DateTime($tblPeriod->getFromDate())) {
+//                        $minDate = new DateTime($tblPeriod->getFromDate());
+//                    }
+//                    if (!$maxDate) {
+//                        $maxDate = new DateTime($tblPeriod->getToDate());
+//                    } elseif ($maxDate <= new DateTime($tblPeriod->getToDate())) {
+//                        $maxDate = new DateTime($tblPeriod->getToDate());
+//                    }
+//                }
+//            }
+//        }
+//        if (!$error && $minDate && $maxDate) {
+//            if (new DateTime($Data['FromDate']) < $minDate) {
+//                $form->setError('Data[FromDate]',
+//                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
+//                $error = true;
+//            }
+//            if (new DateTime($Data['ToDate']) > $maxDate) {
+//                $form->setError('Data[ToDate]',
+//                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
+//                $error = true;
+//            }
+//        }
+
+
+        // todo es ist nicht gesetzt -> Prüfung über Schüler erforderlich
+        if (isset($Data['Type']) && $Data['Type'] == TblAbsence::VALUE_TYPE_NULL) {
+            $form->setError('Data[Type]', 'Bitte geben Sie einen Typ an');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Type]');
+        }
+
+        return $error ? $form : false;
     }
 }
