@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\ClassRegister\Absence\Service;
 
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsenceLesson;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -114,6 +115,7 @@ class Data extends AbstractData
      * @param $ToDate
      * @param $Status
      * @param string $Remark
+     * @param int $Type
      *
      * @return TblAbsence
      */
@@ -123,7 +125,8 @@ class Data extends AbstractData
         $FromDate,
         $ToDate,
         $Status,
-        $Remark = ''
+        $Remark = '',
+        $Type = TblAbsence::VALUE_TYPE_NULL
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -142,6 +145,7 @@ class Data extends AbstractData
             $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
             $Entity->setStatus($Status);
             $Entity->setRemark($Remark);
+            $Entity->setType($Type);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -261,5 +265,33 @@ class Data extends AbstractData
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     * @param integer $lesson
+     *
+     * @return TblAbsenceLesson
+     */
+    public function createAbsenceLesson(
+        TblAbsence $tblAbsence,
+        $lesson
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblAbsenceLesson')->findOneBy(array(
+            TblAbsenceLesson::ATTR_TBL_ABSENCE => $tblAbsence->getId(),
+            TblAbsenceLesson::ATTR_LESSON => $lesson
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblAbsenceLesson();
+            $Entity->setTblAbsence($tblAbsence);
+            $Entity->setLesson($lesson);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

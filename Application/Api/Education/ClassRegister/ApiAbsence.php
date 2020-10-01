@@ -27,6 +27,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -180,30 +182,20 @@ class ApiAbsence extends Extension implements IApiInterface
      */
     public function saveCreateAbsenceModal($Data, $Search)
     {
-
-//        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
-//            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
-//        }
-
         if (($form = Absence::useService()->checkFormAbsence($Data, $Search))) {
             // display Errors on form
             return $this->getAbsenceModal($form);
         }
 
-//        if (!($tblPersonTo = Person::useService()->getPersonById($To))) {
-//            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
-//        }
+        $now = new DateTime('now');
 
-//        if (Relationship::useService()->createRelationshipToPerson($tblPerson, $tblPersonTo, $Type)) {
-//            return new Success('Die Personenbeziehung wurde erfolgreich gespeichert.')
-//                . self::pipelineLoadRelationshipToPersonContent($PersonId)
-//                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
-//                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
-//                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
-//                . self::pipelineClose();
-//        } else {
-//            return new Danger('Die Personenbeziehung konnte nicht gespeichert werden.') . self::pipelineClose();
-//        }
+        if (Absence::useService()->createAbsenceService($Data)) {
+            return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
+                . self::pipelineChangeWeek($now->format('W') , $now->format('Y'))
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
     }
 
     /**

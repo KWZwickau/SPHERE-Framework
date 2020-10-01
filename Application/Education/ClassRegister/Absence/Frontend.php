@@ -218,17 +218,34 @@ class Frontend extends Extension implements IFrontendInterface
      * @param bool $hasSearch
      * @param string $Search
      * @param null $Data
+     * @param null $PersonId
+     * @param null $DivisionId
      * @param null $AbsenceId
+     * @param IMessageInterface|null $messageSearch
+     * @param IMessageInterface|null $messageLesson
      *
-     * @param IMessageInterface|null $message
      * @return Form
      */
-    public function formAbsence($hasSearch = false, $Search = '', $Data = null, $AbsenceId = null, IMessageInterface $message = null)
-    {
-        if ($AbsenceId === null) {
+    public function formAbsence(
+        $hasSearch = false,
+        $Search = '',
+        $Data = null,
+        $PersonId = null,
+        $DivisionId = null,
+        $AbsenceId = null,
+        IMessageInterface $messageSearch = null,
+        IMessageInterface $messageLesson = null
+    ) {
+        if ($Data === null) {
+            $isFullDay = true;
+
             $global = $this->getGlobal();
-            $global->POST['Data']['IsFullDay'] = 1;
+            $global->POST['Data']['IsFullDay'] = $isFullDay;
+            $global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_UNEXCUSED;
+
             $global->savePost();
+        } else {
+            $isFullDay = isset($Data['IsFullDay']) ? $Data['IsFullDay'] : false;
         }
 
         $formRowSearchPerson = new FormRow(array(
@@ -240,7 +257,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Suche',
                         new Search()
                     ))->ajaxPipelineOnKeyUp(ApiAbsence::pipelineSearchPerson())
-                    . ApiAbsence::receiverBlock($this->loadPersonSearch($Search, $message), 'SearchPerson')
+                    . ApiAbsence::receiverBlock($this->loadPersonSearch($Search, $messageSearch), 'SearchPerson')
                 , Panel::PANEL_TYPE_INFO
             )))
         ));
@@ -266,14 +283,12 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                new FormColumn(array(
                    (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
-                   // todo for edit
-                   ApiAbsence::receiverBlock($this->loadLesson(true), 'loadLesson')
+                   ApiAbsence::receiverBlock($this->loadLesson($isFullDay, $messageLesson), 'loadLesson')
                ))
             )),
             new FormRow(array(
                 new FormColumn(
-                    // todo $peronId
-                    ApiAbsence::receiverBlock($this->loadType(null), 'loadType')
+                    ApiAbsence::receiverBlock($this->loadType($PersonId, $DivisionId), 'loadType')
                 )
             )),
             new FormRow(array(
@@ -366,13 +381,19 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $IsFullDay
+     * @param IMessageInterface $message
      *
      * @return Layout|null
      */
-    public function loadLesson($IsFullDay)
+    public function loadLesson($IsFullDay, IMessageInterface $message = null)
     {
         if ($IsFullDay) {
-            return null;
+            if ($message === null) {
+                return null;
+            } else {
+                return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($message))));
+            }
+
         } else {
             $left = array();
             $right = array();
@@ -381,35 +402,36 @@ class Frontend extends Extension implements IFrontendInterface
                 $right[] = $this->setCheckBoxLesson($i + 5);
             }
 
-            return new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($left, 6),
-                new LayoutColumn($right, 6)
-            ))));
+            return new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn($left, 6),
+                    new LayoutColumn($right, 6)
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn($message)
+                )),
+            )));
         }
     }
 
     /**
      * @param null $PersonId
+     * @param null $DivisionId
      *
      * @return SelectBox|null
      */
-    public function loadType($PersonId = null)
+    public function loadType($PersonId = null, $DivisionId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-            && ($tblLevel = $tblMainDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && ($tblSchoolType->getName() == 'Berufliches Gymnasium'
-                || $tblSchoolType->getName() == 'Berufsfachschule'
-                || $tblSchoolType->getName() == 'Berufsschule'
-                || $tblSchoolType->getName() == 'Fachoberschule'
-                || $tblSchoolType->getName() == 'Fachschule'
+            && ($tblDivision = $DivisionId === null
+                ? Student::useService()->getCurrentMainDivisionByPerson($tblPerson)
+                : Division::useService()->getDivisionById($DivisionId)
             )
+            && Absence::useService()->hasAbsenceTypeOptions($tblDivision)
         ) {
-            // todo wieder einkommentieren
-//            $global = $this->getGlobal();
-//            $global->POST['Data']['Type'] = TblAbsence::VALUE_TYPE_THEORY;
-//            $global->savePost();
+            $global = $this->getGlobal();
+            $global->POST['Data']['Type'] = TblAbsence::VALUE_TYPE_THEORY;
+            $global->savePost();
 
             return new SelectBox('Data[Type]', 'Typ', array(
                 TblAbsence::VALUE_TYPE_PRACTICE => 'Praxis',

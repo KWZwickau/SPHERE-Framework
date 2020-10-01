@@ -11,11 +11,14 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblAbsence")
+ * @Table(name="tblAbsenceLesson")
  * @Cache(usage="READ_ONLY")
  */
 class TblAbsenceLesson extends Element
 {
+    const ATTR_TBL_ABSENCE = 'tblAbsence';
+    const ATTR_LESSON = 'Lesson';
+
     /**
      * @Column(type="bigint")
      */

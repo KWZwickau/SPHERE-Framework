@@ -315,4 +315,20 @@ class TblAbsence extends Element
             return $this->getFromDate();
         }
     }
+
+    /**
+     * @return integer
+     */
+    public function getType()
+    {
+        return $this->Type;
+    }
+
+    /**
+     * @param integer $Type
+     */
+    public function setType($Type)
+    {
+        $this->Type = $Type;
+    }
 }

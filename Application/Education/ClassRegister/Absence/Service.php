@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -104,6 +105,8 @@ class Service extends AbstractService
         $BasicRoute = '',
         $Data
     ) {
+
+        // todo Anpassen an neue Datenfelder lesson + type
 
         /**
          * Skip to Frontend
@@ -417,6 +420,7 @@ class Service extends AbstractService
         $Data
     ) {
 
+        // todo remove
         /**
          * Skip to Frontend
          */
@@ -658,24 +662,46 @@ class Service extends AbstractService
     ) {
 
         $error = false;
-        $message = null;
+        $messageSearch = null;
+        $messageLesson = null;
 
-        // todo es gibt keine Personensuche
-        if ($PersonId === null && (!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId'])))) {
-            $message = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
-            $error = true;
+        $tblPerson = false;
+        $tblDivision = false;
+
+        // todo edit (es gibt keine Personensuche)
+        if ($PersonId === null) {
+            if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
+                $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
+                $error = true;
+            }
+
+            if ($tblPerson) {
+                if (!($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))) {
+                    $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus, welcher sich aktuell in einer Klasse befindet.'
+                        , new Exclamation()
+                    );
+                }
+            }
         }
 
-        // todo Prüfung Schüler muss eine aktuelle Klasse besitzen
+        // Prüfung ob Unterrichtseinheiten ausgewählt wurden
+        if (!isset($Data['IsFullDay']) && !isset($Data['UE'])) {
+            $messageLesson = new Danger('Bitte wählen Sie mindestens eine Unterrichtseinheit aus.', new Exclamation());
+            $error = true;
+        }
 
         $form = Absence::useFrontend()->formAbsence(
             $PersonId === null,
             $Search,
             $Data,
+            $tblPerson ? $tblPerson->getId() : null,
+            $tblDivision ? $tblDivision->getId() : null,
             null,
-            $message
+            $messageSearch,
+            $messageLesson
         );
 
+        // todo methode auslagern und auch für Fehlzeiten im Klassenbuch verwenden
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $error = true;
@@ -691,48 +717,93 @@ class Service extends AbstractService
             }
         }
 
-//        $minDate = false;
-//        $maxDate = false;
-//        if (($tblYear = $tblDivision->getServiceTblYear())) {
-//            $tblLevel = $tblDivision->getTblLevel();
-//            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
-//            if ($tblPeriodList) {
-//                foreach ($tblPeriodList as $tblPeriod) {
-//                    if (!$minDate) {
-//                        $minDate = new DateTime($tblPeriod->getFromDate());
-//                    } elseif ($minDate >= new DateTime($tblPeriod->getFromDate())) {
-//                        $minDate = new DateTime($tblPeriod->getFromDate());
-//                    }
-//                    if (!$maxDate) {
-//                        $maxDate = new DateTime($tblPeriod->getToDate());
-//                    } elseif ($maxDate <= new DateTime($tblPeriod->getToDate())) {
-//                        $maxDate = new DateTime($tblPeriod->getToDate());
-//                    }
-//                }
-//            }
-//        }
-//        if (!$error && $minDate && $maxDate) {
-//            if (new DateTime($Data['FromDate']) < $minDate) {
-//                $form->setError('Data[FromDate]',
-//                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
-//                $error = true;
-//            }
-//            if (new DateTime($Data['ToDate']) > $maxDate) {
-//                $form->setError('Data[ToDate]',
-//                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
-//                $error = true;
-//            }
-//        }
+        if (!$error && $tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDate && $endDate) {
+                $fromDate = new DateTime($Data['FromDate']);
+                if ($fromDate < $startDate || $fromDate > $endDate) {
+                    $form->setError(
+                        'Data[FromDate]',
+                        'Eingabe außerhalb des Schuljahres (' . $startDate->format('d.m.Y').' - ' . $endDate->format('d.m.Y') . ')'
+                    );
+                    $error = true;
+                }
 
-
-        // todo es ist nicht gesetzt -> Prüfung über Schüler erforderlich
-        if (isset($Data['Type']) && $Data['Type'] == TblAbsence::VALUE_TYPE_NULL) {
-            $form->setError('Data[Type]', 'Bitte geben Sie einen Typ an');
-            $error = true;
-        } else {
-            $form->setSuccess('Data[Type]');
+                if (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+                    $toDate = new DateTime($Data['ToDate']);
+                    if ($toDate > $endDate) {
+                        $form->setError(
+                            'Data[FromDate]',
+                            'Eingabe außerhalb des Schuljahres (' . $startDate->format('d.m.Y').' - ' . $endDate->format('d.m.Y') . ')'
+                        );
+                        $error = true;
+                    }
+                }
+            }
         }
 
         return $error ? $form : false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function hasAbsenceTypeOptions(TblDivision $tblDivision)
+    {
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && ($tblSchoolType->getName() == 'Berufliches Gymnasium'
+                || $tblSchoolType->getName() == 'Berufsfachschule'
+                || $tblSchoolType->getName() == 'Berufsschule'
+                || $tblSchoolType->getName() == 'Fachoberschule'
+                || $tblSchoolType->getName() == 'Fachschule'
+            )
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param $Data
+     * @param TblPerson|null $tblPerson
+     * @param TblDivision|null $tblDivision
+     *
+     * @return bool
+     */
+    public function createAbsenceService($Data, TblPerson $tblPerson = null, TblDivision $tblDivision = null)
+    {
+        if ($tblPerson === null) {
+            $tblPerson = Person::useService()->getPersonById($Data['PersonId']);
+        }
+
+        if ($tblDivision === null) {
+            $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+        }
+
+        if ($tblPerson && $tblDivision) {
+            if (($tblAbsence = (new Data($this->getBinding()))->createAbsence(
+                $tblPerson,
+                $tblDivision,
+                $Data['FromDate'],
+                $Data['ToDate'],
+                $Data['Status'],
+                $Data['Remark'],
+                isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL
+            ))) {
+                if (isset($Data['UE'])) {
+                    foreach ($Data['UE'] as $lesson => $value) {
+                        (new Data($this->getBinding()))->createAbsenceLesson($tblAbsence, $lesson);
+                    }
+                }
+
+                return  true;
+            }
+        }
+
+        return false;
     }
 }
