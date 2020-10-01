@@ -691,14 +691,8 @@ class Service extends AbstractService
         }
 
         $form = Absence::useFrontend()->formAbsence(
-            $PersonId === null,
-            $Search,
-            $Data,
-            $tblPerson ? $tblPerson->getId() : null,
-            $tblDivision ? $tblDivision->getId() : null,
-            null,
-            $messageSearch,
-            $messageLesson
+            null, $PersonId === null, $Search, $Data, $tblPerson ? $tblPerson->getId() : null,
+            $tblDivision ? $tblDivision->getId() : null, $messageSearch, $messageLesson
         );
 
         // todo methode auslagern und auch für Fehlzeiten im Klassenbuch verwenden
@@ -805,5 +799,40 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return false|int[]
+     */
+    public function getLessonAllByAbsence(TblAbsence $tblAbsence)
+    {
+        $result = array();
+        if (($list = (new Data($this->getBinding()))->getAbsenceLessonAllByAbsence($tblAbsence))) {
+            foreach ($list as $tblAbsenceLesson) {
+                $result[] = $tblAbsenceLesson->getLesson();
+            }
+        }
+
+        return  empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return string
+     */
+    public function getLessonStringByAbsence(TblAbsence $tblAbsence)
+    {
+        $result = '';
+        if (($list = (new Data($this->getBinding()))->getAbsenceLessonAllByAbsence($tblAbsence))) {
+            foreach ($list as $tblAbsenceLesson) {
+
+                $result .= ($result == '' ? '' : ', ') . $tblAbsenceLesson->getLesson() . '.UE';
+            }
+        }
+
+        return $result;
     }
 }

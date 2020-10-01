@@ -215,28 +215,28 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $AbsenceId
      * @param bool $hasSearch
      * @param string $Search
      * @param null $Data
      * @param null $PersonId
      * @param null $DivisionId
-     * @param null $AbsenceId
      * @param IMessageInterface|null $messageSearch
      * @param IMessageInterface|null $messageLesson
      *
      * @return Form
      */
     public function formAbsence(
+        $AbsenceId = null,
         $hasSearch = false,
         $Search = '',
         $Data = null,
         $PersonId = null,
         $DivisionId = null,
-        $AbsenceId = null,
         IMessageInterface $messageSearch = null,
         IMessageInterface $messageLesson = null
     ) {
-        if ($Data === null) {
+        if ($Data === null && $AbsenceId === null) {
             $isFullDay = true;
 
             $global = $this->getGlobal();
@@ -245,7 +245,28 @@ class Frontend extends Extension implements IFrontendInterface
 
             $global->savePost();
         } else {
-            $isFullDay = isset($Data['IsFullDay']) ? $Data['IsFullDay'] : false;
+            if ($AbsenceId && ($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+                $global = $this->getGlobal();
+                if(($lessons = Absence::useService()->getLessonAllByAbsence($tblAbsence))) {
+                    $isFullDay = false;
+                    foreach($lessons as $lesson) {
+                        $global->POST['Data']['UE'][$lesson] = 1;
+                    }
+                } else {
+                    $isFullDay = true;
+                }
+
+                $global->POST['Data']['IsFullDay'] = $isFullDay;
+                $global->POST['Data']['FromDate'] = $tblAbsence->getFromDate();
+                $global->POST['Data']['ToDate'] = $tblAbsence->getToDate();
+                $global->POST['Data']['Remark'] = $tblAbsence->getRemark();
+                $global->POST['Data']['Type'] = $tblAbsence->getType();
+                $global->POST['Data']['Status'] = $tblAbsence->getStatus();
+
+                $global->savePost();
+            }  else {
+                $isFullDay = isset($Data['IsFullDay']) ? $Data['IsFullDay'] : false;
+            }
         }
 
         $formRowSearchPerson = new FormRow(array(

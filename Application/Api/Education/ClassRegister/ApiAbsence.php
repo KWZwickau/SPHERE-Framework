@@ -6,9 +6,12 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -19,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -57,7 +61,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openCreateAbsenceModal');
         $Dispatcher->registerMethod('saveCreateAbsenceModal');
 
-//        $Dispatcher->registerMethod('openEditAbsenceModal');
+        $Dispatcher->registerMethod('openEditAbsenceModal');
 //        $Dispatcher->registerMethod('saveEditAbsenceModal');
 
 //        $Dispatcher->registerMethod('openDeleteAbsenceModal');
@@ -122,7 +126,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
     public function openCreateAbsenceModal()
     {
-        return $this->getAbsenceModal(Absence::useFrontend()->formAbsence(true));
+        return $this->getAbsenceModal(Absence::useFrontend()->formAbsence(null, true));
     }
 
     private function getAbsenceModal($form,  $AbsenceId = null)
@@ -196,6 +200,41 @@ class ApiAbsence extends Extension implements IApiInterface
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param int $AbsenceId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditAbsenceModal($AbsenceId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditAbsenceModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'AbsenceId' => $AbsenceId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    public function openEditAbsenceModal($AbsenceId)
+    {
+        if (!($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+            return new Danger('Die Fehlzeit wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblPerson = $tblAbsence->getServiceTblPerson();
+        $tblDivision = $tblAbsence->getServiceTblDivision();
+
+        return $this->getAbsenceModal(Absence::useFrontend()->formAbsence(
+            $AbsenceId, false, '', null, $tblPerson ? $tblPerson->getId() : null,
+            $tblDivision ? $tblDivision->getId() : null
+        ), $AbsenceId);
     }
 
     /**
@@ -357,40 +396,18 @@ class ApiAbsence extends Extension implements IApiInterface
                         if ($toDate > $fromDate) {
                             $date = $fromDate;
                             while ($date <= $toDate) {
-                                // todo Method auslagern
-                                // bei Unterrichtseinheiten dahinter in Klammern (1.UE)
-                                // E entschuldig, U unentschuldig
-                                // wie kombination eventuell ein Gyphicon
-                                // T Theorie, P Praxis
-                                // [Vorname] [Nachname] ( [[UE]] / [T/P] / [U/E])
-                                $dataList[$tblDivisionItem->getId()][$date->format('d.m.Y')][$tblPerson->getId()]
-                                    = $tblPerson->getFullName();
+                                self::setAbsenceContent($dataList, $tblPerson, $tblDivisionItem, $tblAbsence, $date->format('d.m.Y'));
                                 $date = $date->modify('+1 day');
                             }
                         } elseif ($toDate == $fromDate) {
-                            $dataList[$tblDivisionItem->getId()][$tblAbsence->getFromDate()][$tblPerson->getId()]
-                                = $tblPerson->getFullName();
+                            self::setAbsenceContent($dataList, $tblPerson, $tblDivisionItem, $tblAbsence, $tblAbsence->getFromDate());
                         }
                     } else {
-                        $dataList[$tblDivisionItem->getId()][$tblAbsence->getFromDate()][$tblPerson->getId()]
-                            = $tblPerson->getFullName();
+                        self::setAbsenceContent($dataList, $tblPerson, $tblDivisionItem, $tblAbsence, $tblAbsence->getFromDate());
                     }
                 }
             }
         }
-
-        // todo remove
-        $dataList['54']['29.09.2020'] = array(
-            1 => 'Vorname1, Nachname1',
-            2 => 'Vorname2, Nachname2',
-            3 => 'Vorname3, Nachname3',
-            4 => 'Vorname4, Nachname4'
-        );
-        $dataList['52']['28.09.2020'] = array(
-            1 => 'Vorname1, Nachname1',
-            2 => 'Vorname2, Nachname2',
-            3 => 'Vorname3, Nachname3'
-        );
 
         // get max Person count
         $personCountList = array();
@@ -455,7 +472,6 @@ class ApiAbsence extends Extension implements IApiInterface
                                 }
 
                                 if (isset($dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')])) {
-                                    // todo link für EditModal
                                     $ColumnEntry = implode('<br>', $dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')]);
                                 }
 
@@ -535,7 +551,42 @@ class ApiAbsence extends Extension implements IApiInterface
             ))
         );
 
-        return $Content.' ';
+        return $Content . ' ';
+    }
+
+    /**
+     * @param $dataList
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblAbsence $tblAbsence
+     * @param $date string
+     */
+    private static function setAbsenceContent(
+        &$dataList,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblAbsence $tblAbsence,
+        $date
+    ) {
+        // bei Unterrichtseinheiten dahinter in Klammern (1.UE)
+        // E entschuldig, U unentschuldig
+        // wie kombination eventuell ein Gyphicon
+        // T Theorie, P Praxis
+        // [Vorname] [Nachname] ( [[UE]] / [T/P] / [U/E])
+
+        $lesson = Absence::useService()->getLessonStringByAbsence($tblAbsence);
+        $type = $tblAbsence->getTypeDisplayShortName();
+
+        $dataList[$tblDivision->getId()][$date][$tblPerson->getId()] = (new Link(
+            $tblPerson->getFullName()
+                . ' (' . ($lesson ? $lesson . ' / ': '')
+                . ($type ? $type . ' / ': '')
+                . $tblAbsence->getStatusDisplayShortName() . ')',
+            ApiAbsence::getEndpoint(),
+            null,
+            array(),
+            'Bearbeiten'
+        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
     }
 
     /**

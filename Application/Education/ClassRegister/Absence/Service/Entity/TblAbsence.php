@@ -307,6 +307,18 @@ class TblAbsence extends Element
     /**
      * @return string
      */
+    public function getStatusDisplayShortName()
+    {
+        switch ($this->getStatus()) {
+            case self::VALUE_STATUS_EXCUSED: return 'E';
+            case self::VALUE_STATUS_UNEXCUSED: return 'U';
+            default: return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
     public function getDateSpan()
     {
         if ($this->getToDate()) {
@@ -331,4 +343,17 @@ class TblAbsence extends Element
     {
         $this->Type = $Type;
     }
+
+    /**
+     * @return string
+     */
+    public function getTypeDisplayShortName()
+    {
+        switch ($this->getType()) {
+            case self::VALUE_TYPE_THEORY: return 'T';
+            case self::VALUE_TYPE_PRACTICE: return 'P';
+            default: return '';
+        }
+    }
+
 }

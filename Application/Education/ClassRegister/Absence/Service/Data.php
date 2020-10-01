@@ -294,4 +294,16 @@ class Data extends AbstractData
 
         return $Entity;
     }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return false|TblAbsenceLesson[]
+     */
+    public function getAbsenceLessonAllByAbsence(TblAbsence $tblAbsence)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblAbsenceLesson', array(
+            TblAbsenceLesson::ATTR_TBL_ABSENCE => $tblAbsence->getId()
+        ), array(TblAbsenceLesson::ATTR_LESSON => 'asc'));
+    }
 }
