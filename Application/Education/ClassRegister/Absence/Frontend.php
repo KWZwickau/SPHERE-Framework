@@ -244,98 +244,102 @@ class Frontend extends Extension implements IFrontendInterface
             $global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_UNEXCUSED;
 
             $global->savePost();
-        } else {
-            if ($AbsenceId && ($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
-                $global = $this->getGlobal();
-                if(($lessons = Absence::useService()->getLessonAllByAbsence($tblAbsence))) {
-                    $isFullDay = false;
-                    foreach($lessons as $lesson) {
-                        $global->POST['Data']['UE'][$lesson] = 1;
-                    }
-                } else {
-                    $isFullDay = true;
+        } elseif ($Data === null && $AbsenceId && ($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+            $global = $this->getGlobal();
+            if(($lessons = Absence::useService()->getLessonAllByAbsence($tblAbsence))) {
+                $isFullDay = false;
+                foreach($lessons as $lesson) {
+                    $global->POST['Data']['UE'][$lesson] = 1;
                 }
-
-                $global->POST['Data']['IsFullDay'] = $isFullDay;
-                $global->POST['Data']['FromDate'] = $tblAbsence->getFromDate();
-                $global->POST['Data']['ToDate'] = $tblAbsence->getToDate();
-                $global->POST['Data']['Remark'] = $tblAbsence->getRemark();
-                $global->POST['Data']['Type'] = $tblAbsence->getType();
-                $global->POST['Data']['Status'] = $tblAbsence->getStatus();
-
-                $global->savePost();
-            }  else {
-                $isFullDay = isset($Data['IsFullDay']) ? $Data['IsFullDay'] : false;
+            } else {
+                $isFullDay = true;
             }
+
+            $global->POST['Data']['IsFullDay'] = $isFullDay;
+            $global->POST['Data']['FromDate'] = $tblAbsence->getFromDate();
+            $global->POST['Data']['ToDate'] = $tblAbsence->getToDate();
+            $global->POST['Data']['Remark'] = $tblAbsence->getRemark();
+            $global->POST['Data']['Type'] = $tblAbsence->getType();
+            $global->POST['Data']['Status'] = $tblAbsence->getStatus();
+
+            $global->savePost();
+        } else {
+            $isFullDay = isset($Data['IsFullDay']) ? $Data['IsFullDay'] : false;
         }
 
-        $formRowSearchPerson = new FormRow(array(
-            new FormColumn(array(new Panel(
-                'Schüler',
-                    (new TextField(
-                        'Search',
-                        '',
-                        'Suche',
-                        new Search()
-                    ))->ajaxPipelineOnKeyUp(ApiAbsence::pipelineSearchPerson())
-                    . ApiAbsence::receiverBlock($this->loadPersonSearch($Search, $messageSearch), 'SearchPerson')
-                , Panel::PANEL_TYPE_INFO
-            )))
-        ));
-
-//        if ($AbsenceId) {
-//            $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-//                ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($PersonId, $AbsenceId));
-//        } else {
+        if ($AbsenceId) {
+            $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId));
+        } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave());
-//        }
+        }
 
-        return (new Form(new FormGroup(array(
-            $hasSearch ? $formRowSearchPerson : null,
-            new FormRow(array(
-                new FormColumn(
-                    new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
-                ),
-                new FormColumn(
-                    new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
-                ),
-            )),
-            new FormRow(array(
-               new FormColumn(array(
-                   (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
-                   ApiAbsence::receiverBlock($this->loadLesson($isFullDay, $messageLesson), 'loadLesson')
-               ))
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    ApiAbsence::receiverBlock($this->loadType($PersonId, $DivisionId), 'loadType')
-                )
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('Data[Remark]', '', 'Bemerkung'), 12
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new Panel(
-                        'Status',
-                        array(
-                            new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
-                            new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
-                        ),
-                        Panel::PANEL_TYPE_INFO
-                    )
-                ),
-            )),
-            // todo für normales Formular ohne ajax -> besser wahrscheinlich doch 2 Formulare mit den Bereichen ausgelagert
-            new FormRow(array(
+        $formRows = array();
+        if ($hasSearch) {
+            $formRows[] = new FormRow(array(
                 new FormColumn(array(
-                    $saveButton
+                    new Panel(
+                        'Schüler',
+                        (new TextField(
+                            'Search',
+                            '',
+                            'Suche',
+                            new Search()
+                        ))->ajaxPipelineOnKeyUp(ApiAbsence::pipelineSearchPerson())
+                        . ApiAbsence::receiverBlock($this->loadPersonSearch($Search, $messageSearch), 'SearchPerson')
+                        , Panel::PANEL_TYPE_INFO
+                    )
                 ))
+            ));
+        }
+
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
+            ),
+            new FormColumn(
+                new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(array(
+                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
+                ApiAbsence::receiverBlock($this->loadLesson($isFullDay, $messageLesson), 'loadLesson')
             ))
-        ))))->disableSubmitAction();
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                ApiAbsence::receiverBlock($this->loadType($PersonId, $DivisionId), 'loadType')
+            )
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Remark]', '', 'Bemerkung'), 12
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Status',
+                    array(
+                        new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
+                        new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                )
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(array(
+                $saveButton
+            ))
+        ));
+
+        return (new Form(new FormGroup(
+            $formRows
+            // todo für normales Formular ohne ajax -> besser wahrscheinlich doch 2 Formulare mit den Bereichen ausgelagert oder beides als Modul
+        )))->disableSubmitAction();
     }
 
     /**
@@ -1226,8 +1230,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Fehlzeiten', 'Eingabe');
 
-        // todo now
-        $now = new DateTime('28.09.2020');
+        $now = new DateTime('now');
 
         $Stage->setContent(
             ApiAbsence::receiverModal()

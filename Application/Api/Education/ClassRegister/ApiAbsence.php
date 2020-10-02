@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -62,7 +63,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveCreateAbsenceModal');
 
         $Dispatcher->registerMethod('openEditAbsenceModal');
-//        $Dispatcher->registerMethod('saveEditAbsenceModal');
+        $Dispatcher->registerMethod('saveEditAbsenceModal');
 
 //        $Dispatcher->registerMethod('openDeleteAbsenceModal');
 //        $Dispatcher->registerMethod('saveDeleteAbsenceModal');
@@ -124,32 +125,45 @@ class ApiAbsence extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @return string
+     */
     public function openCreateAbsenceModal()
     {
         return $this->getAbsenceModal(Absence::useFrontend()->formAbsence(null, true));
     }
 
+    /**
+     * @param $form
+     * @param null $AbsenceId
+     *
+     * @return string
+     */
     private function getAbsenceModal($form,  $AbsenceId = null)
     {
         if ($AbsenceId) {
             $title = new Title(new Edit() . ' Fehlzeit bearbeiten');
+            $tblAbsence = Absence::useService()->getAbsenceById($AbsenceId);
         } else {
             $title = new Title(new Plus() . ' Fehlzeit hinzufügen');
+            $tblAbsence = false;
         }
 
         return $title
             . new Layout(array(
-//                    new LayoutGroup(array(
-//                        new LayoutRow(
-//                            new LayoutColumn(
-//                                new Panel(new PersonIcon() . ' Person',
-//                                    new Bold($tblPerson ? $tblPerson->getFullName() : ''),
-//                                    Panel::PANEL_TYPE_SUCCESS
-//                                )
-//                            )
-//                        ),
-//                    )),
-                    new LayoutGroup(
+                    new LayoutGroup(array(
+                        $tblAbsence ? new LayoutRow(array(
+                            new LayoutColumn(new Panel(
+                                'Schüler',
+                                ($tblPerson = $tblAbsence->getServiceTblPerson()) ? $tblPerson->getFullName() : '',
+                                Panel::PANEL_TYPE_INFO
+                            ), 6),
+                            new LayoutColumn(new Panel(
+                                'Klasse',
+                                ($tblDivision = $tblAbsence->getServiceTblDivision()) ? $tblDivision->getDisplayName() : '',
+                                Panel::PANEL_TYPE_INFO
+                            ), 6)
+                        )) : null,
                         new LayoutRow(
                             new LayoutColumn(
                                 new Well(
@@ -157,7 +171,7 @@ class ApiAbsence extends Extension implements IApiInterface
                                 )
                             )
                         )
-                    ))
+                    )))
             );
     }
 
@@ -222,6 +236,11 @@ class ApiAbsence extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @param $AbsenceId
+     *
+     * @return Danger|string
+     */
     public function openEditAbsenceModal($AbsenceId)
     {
         if (!($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
@@ -235,6 +254,55 @@ class ApiAbsence extends Extension implements IApiInterface
             $AbsenceId, false, '', null, $tblPerson ? $tblPerson->getId() : null,
             $tblDivision ? $tblDivision->getId() : null
         ), $AbsenceId);
+    }
+
+    /**
+     * @param $AbsenceId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditAbsenceSave($AbsenceId)
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditAbsenceModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'AbsenceId' => $AbsenceId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $AbsenceId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditAbsenceModal($AbsenceId, $Data)
+    {
+        if (!($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+            return new Danger('Die Fehlzeit wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Absence::useService()->checkFormAbsence($Data, '', $tblAbsence))) {
+            // display Errors on form
+            return $this->getAbsenceModal($form, $AbsenceId);
+        }
+
+        $now = new DateTime('now');
+
+        if (Absence::useService()->updateAbsenceService($tblAbsence, $Data)) {
+            return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
+                . self::pipelineChangeWeek($now->format('W') , $now->format('Y'))
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
     }
 
     /**
@@ -341,14 +409,12 @@ class ApiAbsence extends Extension implements IApiInterface
     {
         // Definition
 
-        // todo now
-//        $currentDate = new \DateTime('now');
-        $currentDate = new DateTime('29.09.2020');
+        $currentDate = new DateTime('now');
 
-        if ($WeekNumber == ''){
+        if ($WeekNumber == '') {
             $WeekNumber = (int)(new DateTime('now'))->format('W');
         }
-        if ($Year == ''){
+        if ($Year == '') {
             $Year = (int)$currentDate->format('Y');
         }
         $ColumnDefinition = array();
@@ -358,7 +424,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $organizerBaseData = self::convertOrganizerBaseData();
         $DayName = $organizerBaseData['dayName'];
         $MonthName = $organizerBaseData['monthNameShort'];
-        $EntryColor = $organizerBaseData['entryColor'];
+//        $EntryColor = $organizerBaseData['entryColor'];
 
         // Kalenderwoche ermitteln
         $WeekNext = $WeekNumber + 1;
@@ -367,18 +433,18 @@ class ApiAbsence extends Extension implements IApiInterface
         $YearBefore = $Year;
         $lastWeek = date('W', strtotime("31.12." . $Year));
         $countWeek = ($lastWeek == 1) ? 52 : $lastWeek;
-        if ($WeekNumber == $countWeek){
+        if ($WeekNumber == $countWeek) {
             $WeekNext = 1;
             $YearNext = $Year + 1;
         }
-        if ($WeekNumber == 1){
+        if ($WeekNumber == 1) {
             $WeekBefore = $countWeek;
             $YearBefore = $Year - 1;
         }
 
         // Start-/Endtag der Woche ermitteln
         $Week = $WeekNumber;
-        if ($WeekNumber < 10){
+        if ($WeekNumber < 10) {
             $Week = '0' . $WeekNumber;
         }
         $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
@@ -427,7 +493,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
         // Kalender-Inhalt erzeugen
         // todo Schuljahreswechsel innerhalb der Woche
-        if (($tblYearList = Term::useService()->getYearAllByDate($startDate))){
+        if (($tblYearList = Term::useService()->getYearAllByDate($startDate))) {
             foreach ($tblYearList as $tblYear) {
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
                     $tblDivisionList = (new Extension())->getSorter($tblDivisionList)
@@ -469,10 +535,6 @@ class ApiAbsence extends Extension implements IApiInterface
                                     $ColumnEntry = implode('<br>', $dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')]);
                                 } else {
                                     $ColumnEntry = '&nbsp;';
-                                }
-
-                                if (isset($dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')])) {
-                                    $ColumnEntry = implode('<br>', $dataList[$tblDivision->getId()][$StartDayPerson->format('d.m.Y')]);
                                 }
 
                                 $ColumnContent['Day' . $Day] = new Center($ColumnEntry);

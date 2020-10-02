@@ -158,8 +158,9 @@ class Data extends AbstractData
      * @param TblAbsence $tblAbsence
      * @param $FromDate
      * @param $ToDate
-     * @param $Remark
      * @param $Status
+     * @param $Remark
+     * @param $Type
      *
      * @return bool
      */
@@ -168,7 +169,8 @@ class Data extends AbstractData
         $FromDate,
         $ToDate,
         $Status,
-        $Remark = ''
+        $Remark,
+        $Type
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -179,8 +181,9 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setFromDate($FromDate ? new DateTime($FromDate) : null);
             $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
-            $Entity->setRemark($Remark);
             $Entity->setStatus($Status);
+            $Entity->setRemark($Remark);
+            $Entity->setType($Type);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -273,7 +276,7 @@ class Data extends AbstractData
      *
      * @return TblAbsenceLesson
      */
-    public function createAbsenceLesson(
+    public function addAbsenceLesson(
         TblAbsence $tblAbsence,
         $lesson
     ) {
@@ -293,6 +296,31 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     * @param integer $lesson
+     *
+     * @return bool
+     */
+    public function removeAbsenceLesson(TblAbsence $tblAbsence, $lesson)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblAbsenceLesson $Entity */
+        $Entity = $Manager->getEntity('TblAbsenceLesson')
+            ->findOneBy(array(
+                TblAbsenceLesson::ATTR_TBL_ABSENCE => $tblAbsence->getId(),
+                TblAbsenceLesson::ATTR_LESSON => $lesson
+            ));
+
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+
+        return false;
     }
 
     /**

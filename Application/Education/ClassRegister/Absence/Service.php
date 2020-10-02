@@ -271,7 +271,8 @@ class Service extends AbstractService
                 $Data['FromDate'],
                 $Data['ToDate'],
                 $Data['Status'],
-                $Data['Remark']
+                $Data['Remark'],
+                isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Fehlzeit ist geändert worden.')
             . new Redirect('/Education/ClassRegister/Absence', Redirect::TIMEOUT_SUCCESS, array(
@@ -441,7 +442,9 @@ class Service extends AbstractService
                                         $tblAbsence->getFromDate(),
                                         $tblAbsence->getToDate(),
                                         $value,
-                                        $tblAbsence->getRemark());
+                                        $tblAbsence->getRemark(),
+                                        $tblAbsence->getType()
+                                    );
                                 } else {
                                     (new Data($this->getBinding()))->createAbsence(
                                         $tblPerson,
@@ -449,7 +452,8 @@ class Service extends AbstractService
                                         $date->format('d.m.Y'),
                                         '',
                                         $value,
-                                        ''
+                                        '',
+                                        TblAbsence::VALUE_TYPE_NULL
                                     );
                                 }
                             }
@@ -465,7 +469,9 @@ class Service extends AbstractService
                                         $tblAbsence->getFromDate(),
                                         $tblAbsence->getToDate(),
                                         $value,
-                                        $tblAbsence->getRemark());
+                                        $tblAbsence->getRemark(),
+                                        $tblAbsence->getType()
+                                    );
                                     $exists = true;
                                     break;
                                 }
@@ -651,14 +657,14 @@ class Service extends AbstractService
     /**
      * @param $Data
      * @param string $Search
-     * @param null $PersonId
+     * @param TblAbsence|null $tblAbsence
      *
      * @return bool|Form
      */
     public function checkFormAbsence(
         $Data,
         $Search = '',
-        $PersonId = null
+        TblAbsence $tblAbsence = null
     ) {
 
         $error = false;
@@ -668,8 +674,10 @@ class Service extends AbstractService
         $tblPerson = false;
         $tblDivision = false;
 
-        // todo edit (es gibt keine Personensuche)
-        if ($PersonId === null) {
+        if ($tblAbsence) {
+            $tblPerson = $tblAbsence->getServiceTblPerson();
+            $tblDivision = $tblAbsence->getServiceTblDivision();
+        } else {
             if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
                 $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
                 $error = true;
@@ -691,8 +699,14 @@ class Service extends AbstractService
         }
 
         $form = Absence::useFrontend()->formAbsence(
-            null, $PersonId === null, $Search, $Data, $tblPerson ? $tblPerson->getId() : null,
-            $tblDivision ? $tblDivision->getId() : null, $messageSearch, $messageLesson
+            $tblAbsence ? $tblAbsence->getId() : null,
+            $tblAbsence === null,
+            $Search,
+            $Data,
+            $tblPerson ? $tblPerson->getId() : null,
+            $tblDivision ? $tblDivision->getId() : null,
+            $messageSearch,
+            $messageLesson
         );
 
         // todo methode auslagern und auch für Fehlzeiten im Klassenbuch verwenden
@@ -790,12 +804,42 @@ class Service extends AbstractService
             ))) {
                 if (isset($Data['UE'])) {
                     foreach ($Data['UE'] as $lesson => $value) {
-                        (new Data($this->getBinding()))->createAbsenceLesson($tblAbsence, $lesson);
+                        (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $lesson);
                     }
                 }
 
                 return  true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateAbsenceService(TblAbsence $tblAbsence, $Data)
+    {
+        if ((new Data($this->getBinding()))->updateAbsence(
+            $tblAbsence,
+            $Data['FromDate'],
+            $Data['ToDate'],
+            $Data['Status'],
+            $Data['Remark'],
+            isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL
+        )) {
+            for ($i = 1; $i < 11; $i++) {
+                if (isset($Data['UE'][$i])) {
+                    (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $i);
+                } else {
+                    (new Data($this->getBinding()))->removeAbsenceLesson($tblAbsence, $i);
+                }
+            }
+
+            return  true;
         }
 
         return false;
