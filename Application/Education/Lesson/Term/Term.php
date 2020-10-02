@@ -124,7 +124,6 @@ class Term extends Extension implements IModuleInterface
                     $tblPeriodAll = array();
                 }
 
-                $hasHolidayImportButton = false;
                 $holidayList = array();
                 $tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($tblYear);
                 if ($tblYearHolidayAllByYear) {
@@ -141,14 +140,15 @@ class Term extends Extension implements IModuleInterface
                             . new Muted(new Small($tblHoliday->getFromDate()
                                 . ($tblHoliday->getToDate() ? ' - ' . $tblHoliday->getToDate() : ' ')));
                     }
+                }
+
+                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDate && $endDate
+                    && BasicData::useService()->getHolidayAllBy($startDate, $endDate)
+                ) {
+                    $hasHolidayImportButton = true;
                 } else {
-                    // sind noch keine Unterrichtsfreien Tage zugewiesen, können dies vom System importiert werden
-                    list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-                    if ($startDate && $endDate
-                        && BasicData::useService()->getHolidayAllBy($startDate, $endDate)
-                    ) {
-                        $hasHolidayImportButton = true;
-                    }
+                    $hasHolidayImportButton = false;
                 }
 
                 array_push($Year, array(
