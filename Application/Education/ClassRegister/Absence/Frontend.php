@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -1147,17 +1148,13 @@ class Frontend extends Extension implements IFrontendInterface
                             array(),
                             'Bearbeiten'
                         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()))
-                        // todo löschen über Api
-//                        . (new Standard(
-//                            '',
-//                            '/Education/ClassRegister/Absence/Destroy',
-//                            new Remove(),
-//                            array(
-//                                'Id' => $tblAbsence->getId(),
-//                                'BasicRoute' => $BasicRoute
-//                            ),
-//                            'Löschen'
-//                        ))
+                        . (new Standard(
+                            '',
+                            ApiAbsence::getEndpoint(),
+                            new Remove(),
+                            array(),
+                            'Löschen'
+                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($tblAbsence->getId()))
                 );
             }
         }

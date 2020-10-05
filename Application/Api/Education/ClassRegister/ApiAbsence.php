@@ -24,7 +24,10 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -32,7 +35,9 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -66,8 +71,8 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openEditAbsenceModal');
         $Dispatcher->registerMethod('saveEditAbsenceModal');
 
-//        $Dispatcher->registerMethod('openDeleteAbsenceModal');
-//        $Dispatcher->registerMethod('saveDeleteAbsenceModal');
+        $Dispatcher->registerMethod('openDeleteAbsenceModal');
+        $Dispatcher->registerMethod('saveDeleteAbsenceModal');
 
         $Dispatcher->registerMethod('loadAbsenceContent');
         $Dispatcher->registerMethod('searchPerson');
@@ -365,6 +370,119 @@ class ApiAbsence extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param int $AbsenceId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteAbsenceModal($AbsenceId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteAbsenceModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'AbsenceId' => $AbsenceId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $AbsenceId
+     *
+     * @return string
+     */
+    public function openDeleteAbsenceModal($AbsenceId)
+    {
+        if (!($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+            return new Danger('Die Fehlzeit wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblPerson = $tblAbsence->getServiceTblPerson();
+        $tblDivision = $tblAbsence->getServiceTblDivision();
+
+        return new Title(new Remove() . ' Fehlzeit löschen')
+            . new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Panel(
+                            'Schüler',
+                            $tblPerson ? $tblPerson->getFullName() : '',
+                            Panel::PANEL_TYPE_INFO
+                        ), 6),
+                        new LayoutColumn(new Panel(
+                            'Klasse',
+                            $tblDivision ? $tblDivision->getDisplayName() : '',
+                            Panel::PANEL_TYPE_INFO
+                        ), 6)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diese Fehlzeit wirklich löschen?',
+                                array(
+                                    $tblAbsence->getDateSpan(),
+                                    $tblAbsence->getStatusDisplayName()
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteAbsenceSave($AbsenceId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                ))
+            );
+    }
+
+    /**
+     * @param $AbsenceId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteAbsenceSave($AbsenceId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteAbsenceModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'AbsenceId' => $AbsenceId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $AbsenceId
+     *
+     * @return Danger|string
+     */
+    public function saveDeleteAbsenceModal($AbsenceId)
+    {
+        if (!($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+            return new Danger('Die Fehlzeit wurde nicht gefunden', new Exclamation());
+        }
+        $tblDivision = $tblAbsence->getServiceTblDivision();
+        $tblPerson = $tblAbsence->getServiceTblPerson();
+
+        if (Absence::useService()->destroyAbsence($tblAbsence)) {
+            return new Success('Die Fehlzeit wurde erfolgreich gelöscht.')
+                . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Fehlzeit konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 

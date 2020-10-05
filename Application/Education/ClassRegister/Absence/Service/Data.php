@@ -210,6 +210,13 @@ class Data extends AbstractData
         /** @var TblAbsence $Entity */
         $Entity = $Manager->getEntityById('TblAbsence', $tblAbsence->getId());
         if (null !== $Entity) {
+            if (!$IsSoftRemove && ($tblAbsenceLessonList = $this->getAbsenceLessonAllByAbsence($Entity))) {
+                foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblAbsenceLesson);
+                    $Manager->killEntity($tblAbsenceLesson);
+                }
+            }
+
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             if ($IsSoftRemove) {
                 $Manager->removeEntity($Entity);
