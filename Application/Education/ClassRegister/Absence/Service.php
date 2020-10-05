@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\ClassRegister\Absence;
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsenceLesson;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -105,12 +106,16 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param DateTime|null $tillDate
+     * @param int $countLessons
      *
      * @return int
      */
-    function getUnexcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, DateTime $tillDate = null)
-    {
-
+    function getUnexcusedDaysByPerson(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        DateTime $tillDate = null,
+        &$countLessons = 0
+    ) {
         $list = array();
         // Fehlzeiten aus alle Klassen des Schuljahrs
         if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivision, $tblPerson, true))) {
@@ -122,9 +127,10 @@ class Service extends AbstractService
         }
 
         $days = 0;
+        /** @var TblAbsence $item */
         foreach ($list as $item) {
             if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                $days += $item->getDays($tillDate);
+                $days += intval($item->getDays($tillDate, $countLessons));
             }
         }
 
@@ -136,11 +142,15 @@ class Service extends AbstractService
      * @param TblDivision $tblDivision
      * @param DateTime|null $tillDate
      *
+     * @param int $countLessons
      * @return int
      */
-    public function getExcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, DateTime $tillDate = null)
-    {
-
+    public function getExcusedDaysByPerson(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        DateTime $tillDate = null,
+        &$countLessons = 0
+    ) {
         $list = array();
         // Fehlzeiten aus alle Klassen des Schuljahrs
         if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivision, $tblPerson, true))) {
@@ -155,7 +165,7 @@ class Service extends AbstractService
         /** @var TblAbsence $item */
         foreach ($list as $item) {
             if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                $days += $item->getDays($tillDate);
+                $days += intval($item->getDays($tillDate, $countLessons));
             }
         }
 
@@ -677,18 +687,10 @@ class Service extends AbstractService
     /**
      * @param TblAbsence $tblAbsence
      *
-     * @return string
+     * @return false|TblAbsenceLesson[]
      */
-    public function getLessonStringByAbsence(TblAbsence $tblAbsence)
+    public function getAbsenceLessonAllByAbsence(TblAbsence $tblAbsence)
     {
-        $result = '';
-        if (($list = (new Data($this->getBinding()))->getAbsenceLessonAllByAbsence($tblAbsence))) {
-            foreach ($list as $tblAbsenceLesson) {
-
-                $result .= ($result == '' ? '' : ', ') . $tblAbsenceLesson->getLesson() . '.UE';
-            }
-        }
-
-        return $result;
+        return (new Data($this->getBinding()))->getAbsenceLessonAllByAbsence($tblAbsence);
     }
 }

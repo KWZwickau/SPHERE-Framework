@@ -8,10 +8,12 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Absence\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -128,9 +130,9 @@ class TblAbsence extends Element
         if (null === $this->FromDate) {
             return false;
         }
-        /** @var \DateTime $Date */
+        /** @var DateTime $Date */
         $Date = $this->FromDate;
-        if ($Date instanceof \DateTime) {
+        if ($Date instanceof DateTime) {
             return $Date->format('d.m.Y');
         } else {
             return (string)$Date;
@@ -138,9 +140,9 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @param null|DateTime $Date
      */
-    public function setFromDate(\DateTime $Date = null)
+    public function setFromDate(DateTime $Date = null)
     {
 
         $this->FromDate = $Date;
@@ -155,9 +157,9 @@ class TblAbsence extends Element
         if (null === $this->ToDate) {
             return false;
         }
-        /** @var \DateTime $Date */
+        /** @var DateTime $Date */
         $Date = $this->ToDate;
-        if ($Date instanceof \DateTime) {
+        if ($Date instanceof DateTime) {
             return $Date->format('d.m.Y');
         } else {
             return (string)$Date;
@@ -165,9 +167,9 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @param null|DateTime $Date
      */
-    public function setToDate(\DateTime $Date = null)
+    public function setToDate(DateTime $Date = null)
     {
 
         $this->ToDate = $Date;
@@ -206,19 +208,20 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param \DateTime $tillDate
+     * @param DateTime $tillDate
+     * @param int $countLessons
      *
-     * @return int
+     * @return int|string
      */
-    public function getDays(\DateTime $tillDate = null)
+    public function getDays(DateTime $tillDate = null, &$countLessons = 0)
     {
-
         $countDays = 0;
-        $fromDate = new \DateTime($this->getFromDate());
+        $lessons = Absence::useService()->getLessonAllByAbsence($this);
 
+        $fromDate = new DateTime($this->getFromDate());
         if ($tillDate === null) {
             if ($this->getToDate()) {
-                $toDate = new \DateTime($this->getToDate());
+                $toDate = new DateTime($this->getToDate());
                 if ($toDate >= $fromDate) {
                     $date = $fromDate;
                     while ($date <= $toDate) {
@@ -229,30 +232,40 @@ class TblAbsence extends Element
                     }
                 }
             } else {
-
                 $countDays = $this->countThisDay($fromDate, $countDays);
             }
         } else {
             if ($tillDate >= $fromDate){
                 if ($this->getToDate()) {
-                    $toDate = new \DateTime($this->getToDate());
+                    $toDate = new DateTime($this->getToDate());
                     if ($toDate >= $fromDate) {
                         $date = $fromDate;
                         while ($date <= $toDate && $date <= $tillDate) {
-
                             $countDays = $this->countThisDay($date, $countDays);
-
                             $date = $date->modify('+1 day');
                         }
                     }
                 } else {
-
                     $countDays = $this->countThisDay($fromDate, $countDays);
                 }
             }
         }
 
-        return $countDays;
+        $countLessons += $lessons ? (count($lessons) * $countDays) : 0;
+
+        return $lessons ? '' : $countDays;
+    }
+
+    public function getLessonStringByAbsence()
+    {
+        $result = '';
+        if (($list = Absence::useService()->getAbsenceLessonAllByAbsence($this))) {
+            foreach ($list as $tblAbsenceLesson) {
+                $result .= ($result == '' ? '' : ', ') . $tblAbsenceLesson->getLesson() . '.UE';
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -260,7 +273,7 @@ class TblAbsence extends Element
      * @param $countDays
      * @return mixed
      */
-    private function countThisDay(\DateTime $date, $countDays)
+    private function countThisDay(DateTime $date, $countDays)
     {
 
         if ($date->format('w') != 0 && $date->format('w') != 6) {
@@ -356,4 +369,15 @@ class TblAbsence extends Element
         }
     }
 
+    /**
+     * @return string
+     */
+    public function getTypeDisplayName()
+    {
+        switch ($this->getType()) {
+            case self::VALUE_TYPE_THEORY: return 'Theorie';
+            case self::VALUE_TYPE_PRACTICE: return 'Praxis';
+            default: return '';
+        }
+    }
 }

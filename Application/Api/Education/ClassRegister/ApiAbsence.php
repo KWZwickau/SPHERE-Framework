@@ -857,7 +857,7 @@ class ApiAbsence extends Extension implements IApiInterface
         // T Theorie, P Praxis
         // [Vorname] [Nachname] ( [[UE]] / [T/P] / [U/E])
 
-        $lesson = Absence::useService()->getLessonStringByAbsence($tblAbsence);
+        $lesson = $tblAbsence->getLessonStringByAbsence();
         $type = $tblAbsence->getTypeDisplayShortName();
 
         $dataList[$tblDivision->getId()][$date][$tblPerson->getId()] = (new Link(

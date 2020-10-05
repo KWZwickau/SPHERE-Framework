@@ -1123,6 +1123,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadAbsenceTable(TblPerson $tblPerson, TblDivision $tblDivision)
     {
+        $hasAbsenceTypeOptions = Absence::useService()->hasAbsenceTypeOptions($tblDivision);
         $tableData = array();
         $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
         if ($tblAbsenceAllByPerson) {
@@ -1134,10 +1135,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
                 }
 
-                $tableData[] = array(
+                $item = array(
                     'FromDate' => $tblAbsence->getFromDate(),
                     'ToDate' => $tblAbsence->getToDate(),
                     'Days' => $tblAbsence->getDays(),
+                    'Lessons' => $tblAbsence->getLessonStringByAbsence(),
                     'Remark' => $tblAbsence->getRemark(),
                     'Status' => $status,
                     'Option' =>
@@ -1156,20 +1158,42 @@ class Frontend extends Extension implements IFrontendInterface
                             'Löschen'
                         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($tblAbsence->getId()))
                 );
+
+                if ($hasAbsenceTypeOptions) {
+                    $item['Type'] = $tblAbsence->getTypeDisplayName();
+                }
+
+                $tableData[] = $item;
             }
+        }
+
+        if ($hasAbsenceTypeOptions) {
+            $columns = array(
+                'FromDate' => 'Datum von',
+                'ToDate' => 'Datum bis',
+                'Days' => 'Tage',
+                'Lessons' => 'Unterrichts&shy;einheiten',
+                'Type' => 'Typ',
+                'Remark' => 'Bemerkung',
+                'Status' => 'Status',
+                'Option' => ''
+            );
+        } else {
+            $columns = array(
+                'FromDate' => 'Datum von',
+                'ToDate' => 'Datum bis',
+                'Days' => 'Tage',
+                'Lessons' => 'Unterrichts&shy;einheiten',
+                'Remark' => 'Bemerkung',
+                'Status' => 'Status',
+                'Option' => ''
+            );
         }
 
         return new TableData(
             $tableData,
             null,
-            array(
-                'FromDate' => 'Datum von',
-                'ToDate' => 'Datum bis',
-                'Days' => 'Tage',
-                'Remark' => 'Bemerkung',
-                'Status' => 'Status',
-                'Option' => ''
-            ),
+            $columns,
             array(
                 'order' => array(
                     array(0, 'desc')
@@ -1178,7 +1202,8 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => 'de_date', 'targets' => 0),
                     array('type' => 'de_date', 'targets' => 1),
                     array('orderable' => false, 'width' => '60px', 'targets' => -1)
-                )
+                ),
+                'responsive' => false
             )
         );
     }
