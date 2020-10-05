@@ -70,11 +70,11 @@ class DataMaintenance
                 __CLASS__.'::frontendDestroyAccount'
             )
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Integration',
-                __CLASS__.'::frontendTransferOltIntegration'
-            )
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Integration',
+//                __CLASS__.'::frontendTransferOltIntegration'
+//            )
+//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Restore/Person',
                 __CLASS__.'::frontendPersonRestore'
@@ -115,36 +115,36 @@ class DataMaintenance
         $CustodyAccountCount = ($tblUserAccountList ? count($tblUserAccountList) : 0);
 
         // Import Integration
-        $IsImport = false;
-        if(Student::useService()->countSupportAll() !== '0'){
-            $IsImport = true;
-        }
-        if(!$IsImport && Student::useService()->countSpecialAll() !== '0'){
-            $IsImport = true;
-        }
-
-        $ImportCount = 0;
-        if(!$IsImport && ($tblStudentAll = Student::useService()->getStudentAll())) {
-            foreach ($tblStudentAll as $tblStudent) {
-                $tblPerson = $tblStudent->getServiceTblPerson();
-                if (($tblStudentIntegration = $tblStudent->getTblStudentIntegration())) {
-                    $Request = $tblStudentIntegration->getCoachingRequestDate();
-                    $Counsel = $tblStudentIntegration->getCoachingCounselDate();
-                    $Decision = $tblStudentIntegration->getCoachingDecisionDate();
-                    if ($tblPerson && ($Request || $Counsel || $Decision)) {
-                        $ImportCount++;
-                    }
-                }
-            }
-        }
-        if($IsImport){
-            $IntegrationColumn = new LayoutColumn('');
-        } else {
-            $IntegrationColumn = new LayoutColumn(array(
-                new TitleLayout('Integration', 'Übernehmen'),
-                new Standard('Import aus alter Datenbank '.new Label($ImportCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/Integration', new CogWheels())
-            ));
-        }
+//        $IsImport = false;
+//        if(Student::useService()->countSupportAll() !== '0'){
+//            $IsImport = true;
+//        }
+//        if(!$IsImport && Student::useService()->countSpecialAll() !== '0'){
+//            $IsImport = true;
+//        }
+//
+//        $ImportCount = 0;
+//        if(!$IsImport && ($tblStudentAll = Student::useService()->getStudentAll())) {
+//            foreach ($tblStudentAll as $tblStudent) {
+//                $tblPerson = $tblStudent->getServiceTblPerson();
+//                if (($tblStudentIntegration = $tblStudent->getTblStudentIntegration())) {
+//                    $Request = $tblStudentIntegration->getCoachingRequestDate();
+//                    $Counsel = $tblStudentIntegration->getCoachingCounselDate();
+//                    $Decision = $tblStudentIntegration->getCoachingDecisionDate();
+//                    if ($tblPerson && ($Request || $Counsel || $Decision)) {
+//                        $ImportCount++;
+//                    }
+//                }
+//            }
+//        }
+//        if($IsImport){
+//            $IntegrationColumn = new LayoutColumn('');
+//        } else {
+//            $IntegrationColumn = new LayoutColumn(array(
+//                new TitleLayout('Integration', 'Übernehmen'),
+//                new Standard('Import aus alter Datenbank '.new Label($ImportCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/Integration', new CogWheels())
+//            ));
+//        }
 
         // SoftRemoved Person
         $CountSoftRemovePerson = 0;
@@ -487,6 +487,10 @@ class DataMaintenance
         return $Stage;
     }
 
+    /**
+     * @deprecated Diente zur Datenübertragung alte -> neue DB Struktur Quellcode als Referenz übrig gelassen
+     * @return Stage
+     */
     public function frontendTransferOltIntegration()
     {
 
