@@ -90,202 +90,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param string $BasicRoute
-     * @param $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function createAbsence(
-        IFormInterface $Stage = null,
-        TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        $BasicRoute = '',
-        $Data
-    ) {
-
-        // todo Anpassen an neue Datenfelder lesson + type
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
-            $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
-            $Error = true;
-        }
-        if (isset($Data['FromDate']) && !empty($Data['FromDate'])
-            && isset($Data['ToDate']) && !empty($Data['ToDate'])
-        ) {
-            $fromDate = new DateTime($Data['FromDate']);
-            $toDate = new DateTime($Data['ToDate']);
-            if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
-                $Stage->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
-                $Error = true;
-            }
-        }
-
-        $minDate = false;
-        $maxDate = false;
-        if (($tblYear = $tblDivision->getServiceTblYear())) {
-            $tblLevel = $tblDivision->getTblLevel();
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
-            if ($tblPeriodList) {
-                foreach ($tblPeriodList as $tblPeriod) {
-                    if (!$minDate) {
-                        $minDate = new DateTime($tblPeriod->getFromDate());
-                    } elseif ($minDate >= new DateTime($tblPeriod->getFromDate())) {
-                        $minDate = new DateTime($tblPeriod->getFromDate());
-                    }
-                    if (!$maxDate) {
-                        $maxDate = new DateTime($tblPeriod->getToDate());
-                    } elseif ($maxDate <= new DateTime($tblPeriod->getToDate())) {
-                        $maxDate = new DateTime($tblPeriod->getToDate());
-                    }
-                }
-            }
-        }
-        if (!$Error && $minDate && $maxDate) {
-            if (new DateTime($Data['FromDate']) < $minDate) {
-                $Stage->setError('Data[FromDate]',
-                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
-                $Error = true;
-            }
-            if (new DateTime($Data['ToDate']) > $maxDate) {
-                $Stage->setError('Data[ToDate]',
-                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
-                $Error = true;
-            }
-        }
-
-        // ToDo setError for RadioBox
-        if (!isset($Data['Status'])) {
-            $Stage->setError('Data[Status]', 'Bitte geben Sie einen Status an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->createAbsence(
-                $tblPerson,
-                $tblDivision,
-                $Data['FromDate'],
-                $Data['ToDate'],
-                $Data['Status'],
-                $Data['Remark']
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Fehlzeit ist erfasst worden.')
-            . new Redirect('/Education/ClassRegister/Absence', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblDivision->getId(),
-                'PersonId' => $tblPerson->getId(),
-                'BasicRoute' => $BasicRoute
-            ));
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblAbsence $tblAbsence
-     * @param string $BasicRoute
-     * @param $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function updateAbsence(IFormInterface $Stage = null, TblAbsence $tblAbsence, $BasicRoute = '', $Data)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
-            $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
-            $Error = true;
-        }
-        if (isset($Data['FromDate']) && !empty($Data['FromDate'])
-            && isset($Data['ToDate']) && !empty($Data['ToDate'])
-        ) {
-            $fromDate = new DateTime($Data['FromDate']);
-            $toDate = new DateTime($Data['ToDate']);
-            if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
-                $Stage->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
-                $Error = true;
-            }
-        }
-
-        // ToDo setError for RadioBox
-        if (!isset($Data['Status'])) {
-            $Stage->setError('Data[Status]', 'Bitte geben Sie einen Status an');
-            $Error = true;
-        }
-
-        $minDate = false;
-        $maxDate = false;
-        if (($tblDivision = $tblAbsence->getServiceTblDivision())) {
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                $tblLevel = $tblDivision->getTblLevel();
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
-                if ($tblPeriodList) {
-                    foreach ($tblPeriodList as $tblPeriod) {
-                        if (!$minDate) {
-                            $minDate = new DateTime($tblPeriod->getFromDate());
-                        } elseif ($minDate >= new DateTime($tblPeriod->getFromDate())) {
-                            $minDate = new DateTime($tblPeriod->getFromDate());
-                        }
-                        if (!$maxDate) {
-                            $maxDate = new DateTime($tblPeriod->getToDate());
-                        } elseif ($maxDate <= new DateTime($tblPeriod->getToDate())) {
-                            $maxDate = new DateTime($tblPeriod->getToDate());
-                        }
-                    }
-                }
-            }
-            if (!$Error && $minDate && $maxDate) {
-                if (new DateTime($Data['FromDate']) < $minDate) {
-                    $Stage->setError('Data[FromDate]',
-                        'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
-                    $Error = true;
-                }
-                if (new DateTime($Data['ToDate']) > $maxDate) {
-                    $Stage->setError('Data[ToDate]',
-                        'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
-                    $Error = true;
-                }
-            }
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->updateAbsence(
-                $tblAbsence,
-                $Data['FromDate'],
-                $Data['ToDate'],
-                $Data['Status'],
-                $Data['Remark'],
-                isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Fehlzeit ist geändert worden.')
-            . new Redirect('/Education/ClassRegister/Absence', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblAbsence->getServiceTblDivision()->getId(),
-                'PersonId' => $tblAbsence->getServiceTblPerson()->getId(),
-                'BasicRoute' => $BasicRoute
-            ));
-        }
-
-        return $Stage;
-    }
-
-    /**
      * @param TblAbsence $tblAbsence
      * @param bool $IsSoftRemove
      *
@@ -658,13 +462,19 @@ class Service extends AbstractService
      * @param $Data
      * @param string $Search
      * @param TblAbsence|null $tblAbsence
+     * @param null $PersonId
+     * @param null $DivisionId
+     * @param bool $hasSearch
      *
      * @return bool|Form
      */
     public function checkFormAbsence(
         $Data,
         $Search = '',
-        TblAbsence $tblAbsence = null
+        TblAbsence $tblAbsence = null,
+        $PersonId = null,
+        $DivisionId = null,
+        $hasSearch = false
     ) {
 
         $error = false;
@@ -674,7 +484,10 @@ class Service extends AbstractService
         $tblPerson = false;
         $tblDivision = false;
 
-        if ($tblAbsence) {
+        if ($PersonId && $DivisionId) {
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        } elseif ($tblAbsence) {
             $tblPerson = $tblAbsence->getServiceTblPerson();
             $tblDivision = $tblAbsence->getServiceTblDivision();
         } else {
@@ -700,7 +513,7 @@ class Service extends AbstractService
 
         $form = Absence::useFrontend()->formAbsence(
             $tblAbsence ? $tblAbsence->getId() : null,
-            $tblAbsence === null,
+            $hasSearch,
             $Search,
             $Data,
             $tblPerson ? $tblPerson->getId() : null,
@@ -709,7 +522,6 @@ class Service extends AbstractService
             $messageLesson
         );
 
-        // todo methode auslagern und auch für Fehlzeiten im Klassenbuch verwenden
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $error = true;
@@ -784,11 +596,11 @@ class Service extends AbstractService
      */
     public function createAbsenceService($Data, TblPerson $tblPerson = null, TblDivision $tblDivision = null)
     {
-        if ($tblPerson === null) {
+        if ($tblPerson == null) {
             $tblPerson = Person::useService()->getPersonById($Data['PersonId']);
         }
 
-        if ($tblDivision === null) {
+        if ($tblDivision == null) {
             $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
         }
 

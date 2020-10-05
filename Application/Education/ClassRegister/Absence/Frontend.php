@@ -12,6 +12,7 @@ use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -34,18 +35,16 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -75,20 +74,17 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
      * @param null $DivisionId
      * @param null $PersonId
      * @param string $BasicRoute
-     * @param null $Data
      *
      * @return Stage|string
      */
     public function frontendAbsence(
         $DivisionId = null,
         $PersonId = null,
-        $BasicRoute = '/Education/ClassRegister/Teacher',
-        $Data = null
+        $BasicRoute = '/Education/ClassRegister/Teacher'
     ) {
 
         $Stage = new Stage('Fehlzeiten', 'Übersicht');
@@ -105,59 +101,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $tblPerson = Person::useService()->getPersonById($PersonId);
         if ($tblPerson && $tblDivision) {
-
-            if ($Data === null) {
-                $Global = $this->getGlobal();
-                $Global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_EXCUSED;
-                $Global->savePost();
-            }
-
-            $tableData = array();
-            $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
-            if ($tblAbsenceAllByPerson) {
-                foreach ($tblAbsenceAllByPerson as $tblAbsence) {
-                    $status = '';
-                    if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                        $status = new Success('entschuldigt');
-                    } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
-                    }
-
-                    $tableData[] = array(
-                        'FromDate' => $tblAbsence->getFromDate(),
-                        'ToDate' => $tblAbsence->getToDate(),
-                        'Days' => $tblAbsence->getDays(),
-                        'Remark' => $tblAbsence->getRemark(),
-                        'Status' => $status,
-                        'Option' =>
-                            (new Standard(
-                                '',
-                                '/Education/ClassRegister/Absence/Edit',
-                                new Edit(),
-                                array(
-                                    'Id' => $tblAbsence->getId(),
-                                    'BasicRoute' => $BasicRoute
-                                ),
-                                'Bearbeiten'
-                            ))
-                            . (new Standard(
-                                '',
-                                '/Education/ClassRegister/Absence/Destroy',
-                                new Remove(),
-                                array(
-                                    'Id' => $tblAbsence->getId(),
-                                    'BasicRoute' => $BasicRoute
-                                ),
-                                'Löschen'
-                            ))
-                    );
-                }
-            }
-
-            $Form = $this->formAbsence()
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
             $Stage->setContent(
                 new Layout(array(
                         new LayoutGroup(array(
@@ -174,35 +117,25 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    new TableData($tableData, null, array(
-                                        'FromDate' => 'Datum von',
-                                        'ToDate' => 'Datum bis',
-                                        'Days' => 'Tage',
-                                        'Remark' => 'Bemerkung',
-                                        'Status' => 'Status',
-                                        'Option' => ''
-                                    ),
-                                        array(
-                                            'order' => array(
-                                                array(0, 'desc')
-                                            ),
-                                            'columnDefs' => array(
-                                                array('type' => 'de_date', 'targets' => 0),
-                                                array('type' => 'de_date', 'targets' => 1),
-                                            )
-                                        )
+                                    ApiAbsence::receiverModal()
+                                    . (new PrimaryLink(
+                                        new Plus() . ' Eintrag hinzufügen',
+                                        ApiAbsence::getEndpoint()
+                                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal($PersonId, $DivisionId)),
+                                    new Container('&nbsp;')
+                                ))
+                            ))
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    ApiAbsence::receiverBlock(
+                                        $this->loadAbsenceTable($tblPerson, $tblDivision),
+                                        'AbsenceContent'
                                     )
                                 ))
                             ))
-                        ), new Title(new ListingTable() . ' Übersicht')),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Well(Absence::useService()->createAbsence($Form, $tblPerson, $tblDivision,
-                                        $BasicRoute, $Data))
-                                )
-                            ))
-                        ), new Title(new PlusSign() . ' Hinzufügen'))
+                        )) //, new Title(new ListingTable() . ' Übersicht')),
                     )
                 )
             );
@@ -272,7 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave());
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionId, $hasSearch));
         }
 
         $formRows = array();
@@ -338,7 +271,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         return (new Form(new FormGroup(
             $formRows
-            // todo für normales Formular ohne ajax -> besser wahrscheinlich doch 2 Formulare mit den Bereichen ausgelagert oder beides als Modul
         )))->disableSubmitAction();
     }
 
@@ -475,78 +407,6 @@ class Frontend extends Extension implements IFrontendInterface
     private function setCheckBoxLesson($i)
     {
         return new CheckBox('Data[UE][' . $i . ']', $i . '. Unterrichtseinheit', 1);
-    }
-
-    /**
-     * @param null $Id
-     * @param string $BasicRoute
-     * @param null $Data
-     *
-     * @return Stage|string
-     */
-    public function frontendEditAbsence($Id = null, $BasicRoute = '', $Data = null)
-    {
-
-        $Stage = new Stage('Fehlzeiten', 'Bearbeiten');
-        $tblAbsence = Absence::useService()->getAbsenceById($Id);
-        if ($tblAbsence) {
-            $tblDivision = $tblAbsence->getServiceTblDivision();
-            $tblPerson = $tblAbsence->getServiceTblPerson();
-            $Stage->addButton(new Standard(
-                'Zurück', '/Education/ClassRegister/Absence', new ChevronLeft(),
-                array(
-                    'PersonId' => $tblPerson->getId(),
-                    'DivisionId' => $tblDivision->getId(),
-                    'BasicRoute' => $BasicRoute
-                )
-            ));
-
-            if ($Data === null) {
-                $Global = $this->getGlobal();
-                $Global->POST['Data']['FromDate'] = $tblAbsence->getFromDate();
-                $Global->POST['Data']['ToDate'] = $tblAbsence->getToDate();
-                $Global->POST['Data']['Remark'] = $tblAbsence->getRemark();
-                $Global->POST['Data']['Status'] = $tblAbsence->getStatus();
-                $Global->savePost();
-            }
-
-            $Form = $this->formAbsence()
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->setContent(
-                new Layout(array(
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    new Panel(
-                                        'Schüler',
-                                        $tblPerson->getLastFirstName(),
-                                        Panel::PANEL_TYPE_INFO
-                                    )
-                                ))
-                            ))
-                        )),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Well(Absence::useService()->updateAbsence($Form, $tblAbsence, $BasicRoute,
-                                        $Data))
-                                )
-                            ))
-                        ))
-                    )
-                )
-            );
-
-            return $Stage;
-        } else {
-            $Stage->addButton(new Standard(
-                'Zurück', $BasicRoute, new ChevronLeft()
-            ));
-
-            return $Stage . new Danger('Fehlzeit nicht gefunden.', new Ban());
-        }
     }
 
     /**
@@ -1252,5 +1112,77 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     *
+     * @return TableData
+     */
+    public function loadAbsenceTable(TblPerson $tblPerson, TblDivision $tblDivision)
+    {
+        $tableData = array();
+        $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
+        if ($tblAbsenceAllByPerson) {
+            foreach ($tblAbsenceAllByPerson as $tblAbsence) {
+                $status = '';
+                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+                    $status = new Success('entschuldigt');
+                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                    $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                }
+
+                $tableData[] = array(
+                    'FromDate' => $tblAbsence->getFromDate(),
+                    'ToDate' => $tblAbsence->getToDate(),
+                    'Days' => $tblAbsence->getDays(),
+                    'Remark' => $tblAbsence->getRemark(),
+                    'Status' => $status,
+                    'Option' =>
+                        (new Standard(
+                            '',
+                            ApiAbsence::getEndpoint(),
+                            new Edit(),
+                            array(),
+                            'Bearbeiten'
+                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()))
+                        // todo löschen über Api
+//                        . (new Standard(
+//                            '',
+//                            '/Education/ClassRegister/Absence/Destroy',
+//                            new Remove(),
+//                            array(
+//                                'Id' => $tblAbsence->getId(),
+//                                'BasicRoute' => $BasicRoute
+//                            ),
+//                            'Löschen'
+//                        ))
+                );
+            }
+        }
+
+        return new TableData(
+            $tableData,
+            null,
+            array(
+                'FromDate' => 'Datum von',
+                'ToDate' => 'Datum bis',
+                'Days' => 'Tage',
+                'Remark' => 'Bemerkung',
+                'Status' => 'Status',
+                'Option' => ''
+            ),
+            array(
+                'order' => array(
+                    array(0, 'desc')
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 0),
+                    array('type' => 'de_date', 'targets' => 1),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1)
+                )
+            )
+        );
     }
 }
