@@ -22,12 +22,9 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -187,154 +184,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param DateTime $date
-     *
-     * @return false|TblAbsence[]
-     */
-    public function getAbsenceListByDate(TblPerson $tblPerson, TblDivision $tblDivision, DateTime $date)
-    {
-
-        $resultList = array();
-        if (($tblAbsenceList = $this->getAbsenceAllByPerson($tblPerson, $tblDivision))){
-            foreach ($tblAbsenceList as $tblAbsence){
-                $fromDate = new DateTime($tblAbsence->getFromDate());
-                if ($tblAbsence->getToDate()) {
-                    $toDate = new DateTime($tblAbsence->getToDate());
-                    if ($toDate >= $fromDate) {
-                        if ($fromDate <= $date && $date<= $toDate) {
-                            $resultList[] = $tblAbsence;
-                        }
-                    }
-                } else {
-                    if ($date->format('d.m.Y') == $fromDate->format('d.m.Y')) {
-                        $resultList[] = $tblAbsence;
-                    }
-                }
-            }
-        }
-
-        return empty($resultList) ? false : $resultList;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblDivision $tblDivision
-     * @param string $BasicRoute
-     * @param DateTime|null $date
-     * @param $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function createAbsenceList(
-        IFormInterface $Stage = null,
-        TblDivision $tblDivision,
-        $BasicRoute = '',
-        DateTime $date = null,
-        $Data
-    ) {
-
-        // todo remove
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data || null === $date) {
-            return $Stage;
-        }
-
-        foreach ($Data as $personId => $value) {
-            if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                if ($value != TblAbsence::VALUE_STATUS_NULL) {
-                    if (($tblAbsenceList = $this->getAbsenceListByDate($tblPerson, $tblDivision, $date))) {
-                        if (count($tblAbsenceList) == 1) {
-                            $tblAbsence = current($tblAbsenceList);
-                            if ($tblAbsence->getStatus() != $value) {
-                                if ($tblAbsence->isSingleDay()) {
-                                    (new Data($this->getBinding()))->updateAbsence(
-                                        $tblAbsence,
-                                        $tblAbsence->getFromDate(),
-                                        $tblAbsence->getToDate(),
-                                        $value,
-                                        $tblAbsence->getRemark(),
-                                        $tblAbsence->getType()
-                                    );
-                                } else {
-                                    (new Data($this->getBinding()))->createAbsence(
-                                        $tblPerson,
-                                        $tblDivision,
-                                        $date->format('d.m.Y'),
-                                        '',
-                                        $value,
-                                        '',
-                                        TblAbsence::VALUE_TYPE_NULL
-                                    );
-                                }
-                            }
-                        } else {
-                            $exists = false;
-                            foreach($tblAbsenceList as $tblAbsence) {
-                                if ($tblAbsence->getStatus() == $value) {
-                                    $exists = true;
-                                    break;
-                                } elseif ($tblAbsence->isSingleDay()) {
-                                    (new Data($this->getBinding()))->updateAbsence(
-                                        $tblAbsence,
-                                        $tblAbsence->getFromDate(),
-                                        $tblAbsence->getToDate(),
-                                        $value,
-                                        $tblAbsence->getRemark(),
-                                        $tblAbsence->getType()
-                                    );
-                                    $exists = true;
-                                    break;
-                                }
-                            }
-                            if (!$exists) {
-                                (new Data($this->getBinding()))->createAbsence(
-                                    $tblPerson,
-                                    $tblDivision,
-                                    $date->format('d.m.Y'),
-                                    '',
-                                    $value,
-                                    ''
-                                );
-                            }
-                        }
-                    } else {
-                        (new Data($this->getBinding()))->createAbsence(
-                            $tblPerson,
-                            $tblDivision,
-                            $date->format('d.m.Y'),
-                            '',
-                            $value,
-                            ''
-                        );
-                    }
-                } else {
-                    // delete Absence
-                    if (($tblAbsenceList = $this->getAbsenceListByDate($tblPerson, $tblDivision, $date))) {
-                        foreach ($tblAbsenceList as $tblAbsence) {
-                            if ($tblAbsence->isSingleDay()) {
-                                $this->destroyAbsence($tblAbsence);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Fehlzeiten sind erfasst worden.')
-            . new Redirect('/Education/ClassRegister/Absence/Month', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblDivision->getId(),
-                'BasicRoute' => $BasicRoute,
-                'Month' => $date->format('m'),
-                'Year' => $date->format('Y'),
-            ));
-    }
-
-    /**
      * @param TblAbsence $tblAbsence
      *
      * @return bool
@@ -466,6 +315,18 @@ class Service extends AbstractService
     public function getAbsenceAllBetween(DateTime $fromDate, DateTime $toDate)
     {
         return (new Data($this->getBinding()))->getAbsenceAllBetween($fromDate, $toDate);
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     * @param TblDivision $tblDivision
+     *
+     * @return TblAbsence[]|bool
+     */
+    public function getAbsenceAllBetweenByDivision(DateTime $fromDate, DateTime $toDate, TblDivision $tblDivision)
+    {
+        return (new Data($this->getBinding()))->getAbsenceAllBetweenByDivision($fromDate, $toDate, $tblDivision);
     }
 
     /**

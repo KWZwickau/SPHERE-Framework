@@ -20,10 +20,8 @@ use SPHERE\System\Database\Link\Identifier;
  */
 class Absence implements IModuleInterface
 {
-
     public static function registerModule()
     {
-
         /**
          * Route
          */
@@ -31,16 +29,7 @@ class Absence implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendAbsence')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Edit' , __NAMESPACE__ . '\Frontend::frontendEditAbsence')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Destroy' , __NAMESPACE__ . '\Frontend::frontendDestroyAbsence')
-        );
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Month' , __NAMESPACE__ . '\Frontend::frontendAbsenceMonth')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Month/Edit' , __NAMESPACE__ . '\Frontend::frontendEditAbsenceMonth')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('SPHERE\Application\Education\Absence', __NAMESPACE__ . '\Frontend::frontendAbsenceOverview')
@@ -52,7 +41,6 @@ class Absence implements IModuleInterface
      */
     public static function useService()
     {
-
         return new Service(new Identifier('Education', 'ClassRegister', null, null,
             Consumer::useService()->getConsumerBySession()),
             __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
@@ -64,7 +52,6 @@ class Absence implements IModuleInterface
      */
     public static function useFrontend()
     {
-
         return new Frontend();
     }
 }
