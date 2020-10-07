@@ -1032,7 +1032,7 @@ class ApiAbsence extends Extension implements IApiInterface
                             ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId()))
                         , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
                     ). '</div>';
-                if ($DayCounter){
+                if ($DayCounter) {
                     $Day = 1;
                     while($Day <= $DayCounter){
                         $fetchedDate = new DateTime($Day . '.' . ($Month <= 9 ? '0'.$Month : $Month) . '.' . $Year);
@@ -1048,7 +1048,7 @@ class ApiAbsence extends Extension implements IApiInterface
                         } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
                             $ColumnEntry = $dataList[$tblPerson->getId()][$fetchedDateString];
                         } else {
-                            $ColumnEntry = (new Link('<div style="width: 35px; padding-top: 5px; padding-bottom: 5px; height: 30px;"><span style="visibility: hidden">'.new Plus().'</span></div>',
+                            $ColumnEntry = (new Link('<div style="padding-top: 5px; padding-bottom: 5px; height: 30px;"><span style="visibility: hidden">'.new Plus().'</span></div>',
                                 self::getEndpoint(),
                                 null,
                                 array(),
@@ -1060,12 +1060,12 @@ class ApiAbsence extends Extension implements IApiInterface
                         $ColumnContent['Day'.$Day]= new Center($ColumnEntry);
 
                         if (!isset($ColumnDefinition['Day' . $Day])) {
-                            $ColumnDefinition['Day'.$Day]= '<div style="width: 35px;">'.new Center($Day).new Center(new Muted($DayName[$DayAtWeek])).'</div>';
+                            $ColumnDefinition['Day'.$Day]= '<div style="">'.new Center($Day).new Center(new Muted($DayName[$DayAtWeek])).'</div>';
                             if ((int)$currentDate->format('d') == $Day && (int)$currentDate->format('m') == $Month && $currentDate->format('Y') == $Year){
-                                $ColumnDefinition['Day'.$Day]= '<div style="width: 35px;"><span id="OrganizerDay" style="color: darkorange;">'.new Center($Day).'</span>'.new Center(new Muted($DayName[$DayAtWeek])).'</div>';
+                                $ColumnDefinition['Day'.$Day]= '<div style=""><span id="OrganizerDay" style="color: darkorange;">'.new Center($Day).'</span>'.new Center(new Muted($DayName[$DayAtWeek])).'</div>';
                             }
                             if ($isWeekend || $isHoliday) {
-                                $ColumnDefinition['Day'.$Day]= '<div style="background-color: lightgrey; opacity: 0.5; color: black; width: 35px;">'.
+                                $ColumnDefinition['Day'.$Day]= '<div style="background-color: lightgrey; opacity: 0.5; color: black;">'.
                                     new Center($Day.'<br>'.$DayName[$DayAtWeek]).'</div>';
                             }
                         }
@@ -1166,7 +1166,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $fontColor = '#337ab7';
 
         $dataList[$tblPerson->getId()][$date] = (new Link(
-            '<div style="background-color: ' .  $backgroundColor . '; color: ' . $fontColor . '; width: 35px;">
+            '<div style="background-color: ' .  $backgroundColor . '; color: ' . $fontColor . ';">
                 <div style="padding-bottom: 5px; padding-top: 5px; height: 30px;">'
                 . $tblAbsence->getStatusDisplayShortName()
                 . '</div>
