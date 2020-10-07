@@ -77,17 +77,33 @@ class Import extends Extension implements IModuleInterface
                     .new Standard('', '/Transfer/Untis/Import/Lectureship/Destroy', new Remove(), array(), 'Löschen'));
         }
 
+        $PanelStudentCourse[] = new PullClear('Schüler-Kurse SEK II importieren: '.
+            new Center(new Standard('', '/Transfer/Untis/Import/StudentCourse/Prepare', new Upload()
+                , array(), 'Hochladen, danach bearbeiten')));
+//        $tblUntisImportStudentCourse = Import::useService()->getUntisImportStudentCourseAll(true);
+        $tblUntisImportStudentCourse = Import::useService()->getUntisImportStudentAll(true);
+        // load if TblUntisImportLectureship exist (by Account)
+        if ($tblUntisImportStudentCourse) {
+            $PanelStudentCourse[] = 'Vorhandenen Import der Schüler-Kurse SEK II bearbeiten: '.
+                new Center(new Standard('', '/Transfer/Untis/Import/StudentCourse/Show', new Edit(), array(), 'Bearbeiten')
+                    .new Standard('', '/Transfer/Untis/Import/StudentCourse/Destroy', new Remove(), array(), 'Löschen'));
+        }
+
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Untis-Import für Lehraufträge:', $PanelLectureshipImport
                                 , Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )
+                        , 4),
+                        new LayoutColumn(
+                            new Panel('Untis-Import für Schüler-Kurse SEK II:', $PanelStudentCourse
+                                , Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    ))
                 )
             )
         );
