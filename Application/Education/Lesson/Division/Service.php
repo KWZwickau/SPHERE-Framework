@@ -198,9 +198,9 @@ class Service extends AbstractService
             $tblType = Type::useService()->getTypeById($Level['Type']);
             $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
 
-            if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
+            if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel, $tblCompany)
             ) {
-                $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang bereits verwendet');
+                $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang/Schule bereits verwendet');
             } else {
 
                 (new Data($this->getBinding()))->createDivision(
@@ -215,16 +215,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblYear $tblYear
-     * @param string $Name
-     * @param TblLevel|null $tblLevel
+     * @param TblYear         $tblYear
+     * @param string          $Name
+     * @param TblLevel|null   $tblLevel
+     * @param TblCompany|null $tblCompany
      *
      * @return bool
      */
-    public function checkDivisionExists(TblYear $tblYear, $Name, TblLevel $tblLevel = null)
+    public function checkDivisionExists(TblYear $tblYear, $Name, TblLevel $tblLevel = null, TblCompany $tblCompany = null)
     {
 
-        return (new Data($this->getBinding()))->checkDivisionExists($tblYear, $Name, $tblLevel);
+        return (new Data($this->getBinding()))->checkDivisionExists($tblYear, $Name, $tblLevel, $tblCompany);
     }
 
     /**
@@ -1904,9 +1905,9 @@ class Service extends AbstractService
         // Create
         if (!$Error) {
 
-            if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
+            if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel, $tblCompany)
             ) {
-                $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang bereits verwendet');
+                $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang/Schule bereits verwendet');
             } else {
 
                 $tblDivisionCopy = (new Data($this->getBinding()))->createDivision(

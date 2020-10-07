@@ -276,7 +276,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Period'      => 'Zeitraum',
                                     'SchoolType'  => 'Schulart',
                                     'Company'     => 'Schule',
-                                    'ClassGroup'  => 'Schulklasse',
+                                    'ClassGroup'  => 'Klasse',
                                     'Description' => 'Beschreibung',
                                     'StudentList' => 'Schüler',
                                     'TeacherList' => 'Klassenlehrer',
@@ -286,8 +286,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 , array(
                                     'order'      => array(array(4, 'asc')),
                                     'columnDefs' => array(
-                                        array('orderable' => false, 'width' => '20px', 'targets' => 0),
-                                        array('orderable' => false, 'targets' => array(1, -1)),
+                                        array('orderable' => false, 'width' => '60px', 'targets' => 0),
+                                        array('orderable' => false, 'width' => '150px', 'targets' => 1),
+                                        array('width' => '110px', 'targets' => -2),
+                                        array('orderable' => false, 'width' => '235px', 'targets' => -1),
                                         array('type' => 'natural', 'targets' => 4),
                                         array('type' => 'natural', 'targets' => 6),
                                         array('type' => 'natural', 'targets' => 8),
@@ -1818,7 +1820,7 @@ class Frontend extends Extension implements IFrontendInterface
                 // Destroy Division
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(
                             ( Division::useService()->destroyDivision($tblDivision)
                                 ? new Success('Die Klasse wurde gelöscht',
                                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -1827,7 +1829,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Ban())
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR)
                             )
-                        )))
+                        ))
                     )))
                 );
             }

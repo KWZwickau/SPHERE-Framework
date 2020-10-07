@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -142,11 +143,15 @@ class People implements IClusterInterface
                         }
 
                         $schoolType = $tblDivision->getTypeName();
+                        $Companystring = 0;
+                        if(($tblCompany = $tblDivision->getServiceTblCompany())){
+                            $Companystring = $tblCompany->getName();
+                        }
                         $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                        if (isset($StudentCountBySchoolType[$schoolType])) {
-                            $StudentCountBySchoolType[$schoolType] += $personCount;
+                        if (isset($StudentCountBySchoolType[$schoolType][$Companystring])) {
+                            $StudentCountBySchoolType[$schoolType][$Companystring] += $personCount;
                         } else {
-                            $StudentCountBySchoolType[$schoolType] = $personCount;
+                            $StudentCountBySchoolType[$schoolType][$Companystring] = $personCount;
                         }
                     }
                 }
@@ -164,8 +169,23 @@ class People implements IClusterInterface
         }
         // Anhängen der Schulartzählung
         if (!empty($StudentCountBySchoolType)) {
-            foreach ($StudentCountBySchoolType as $SchoolType => $Counter) {
-                $tblStudentCounterBySchoolType[] = new Muted(new Small($SchoolType . ': ' . $Counter));
+            foreach($StudentCountBySchoolType as $SchoolType => $CompanyGroup){
+                $RowContent = '';
+                // Mehr als einmal die gleiche Schulart
+                // Zählung nach Institution trennen
+                if(count($CompanyGroup) >= 2){
+                    $RowContent .= new Container(new Muted(new Small($SchoolType)));
+                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                        $RowContent .= new Container(
+                            new Muted(new Small($SchoolName.': '.$Counter))
+                        );
+                    }
+                    $tblStudentCounterBySchoolType[] = $RowContent;
+                } else {
+                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                        $tblStudentCounterBySchoolType[] = new Muted(new Small($SchoolType.': '.$Counter));
+                    }
+                }
             }
         }
 
