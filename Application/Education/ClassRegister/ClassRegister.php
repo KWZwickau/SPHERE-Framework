@@ -251,7 +251,7 @@ class ClassRegister implements IApplicationInterface
                             ), array(
                                 'columnDefs' => array(
                                     array('type' => 'natural', 'targets' => 2),
-                                    array("orderable" => false, "targets"   => 3),
+                                    array('orderable' => false, 'width' => '30px', 'targets' => -1),
                                 ),
                                 'order' => array(
                                     array('0', 'desc'),
@@ -360,8 +360,6 @@ class ClassRegister implements IApplicationInterface
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
                     $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedLessons) . ')';
-
-                    // todo eventuell Theorie und Praxis dazu darstellen
 
                     if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                         $IntegrationButton = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -512,6 +510,7 @@ class ClassRegister implements IApplicationInterface
                                             'columnDefs' => array(
                                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                                 array('width' => '1%', 'targets' => 2),
+                                                array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                             ),
                                             'responsive' => false
                                         )
@@ -527,7 +526,7 @@ class ClassRegister implements IApplicationInterface
                                         'columnDefs' => array(
                                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                             array('width' => '1%', 'targets' => 2),
-                                            array('width' => '60px', 'targets' => -1),
+                                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                         ),
                                         'responsive' => false
                                     )

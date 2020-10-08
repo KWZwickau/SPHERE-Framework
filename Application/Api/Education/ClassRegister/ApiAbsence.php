@@ -45,7 +45,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -795,6 +794,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
                                 $bodyList[$tblDivision->getId()]['Day' . $Day] = $columnBody
                                     ->setMinHeight($minHeightBody)
+                                    ->setVerticalAlign('middle')
                                     ->setPadding($padding);
 
                                 $startDate->modify('+1 day');
@@ -937,11 +937,10 @@ class ApiAbsence extends Extension implements IApiInterface
             $Year = (int)$Year;
         }
 
-        $ColumnDefinition = array();
-        $ColumnDefinitionStatic = array();
-        $ColumnContent = array();
-        $TableContent = array();
-        $TableContentStatic = array();
+        $headerListStatic = array();
+        $bodyListStatic = array();
+        $headerList = array();
+        $bodyList = array();
 
         $organizerBaseData = self::convertOrganizerBaseData();
         $DayName = $organizerBaseData['dayName'];
@@ -995,19 +994,20 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
-        $height = '30px';
-        $padding = '5px';
-
-//        $color = 'lightgrey';
-//        $color = '#D0E9F6';
-        $color = '#E0F0FF';
+        $backgroundColor = '#E0F0FF';
+        $fontColor = '#337ab7';
+        $minHeightHeader = '44px';
+        $minHeightBody = '30px';
+        $padding = '3px';
 
         $hasMonthBefore = true;
         $hasMonthNext = true;
 
-        // Tabelle vorbereiten
-        $ColumnDefinitionStatic['Person']= '<div style="background-color: ' . $color . '; height: 36px; text-align: center; padding-top: 9px;">'
-            . new PersonGroup() . 'Schüler</div>';
+        $headerListStatic['Person'] = (new TableColumn(new Center(new Bold(new PersonGroup() . 'Schüler'))))
+            ->setBackgroundColor($backgroundColor)
+            ->setVerticalAlign('middle')
+            ->setMinHeight($minHeightHeader)
+            ->setPadding($padding);
 
         // Einträge für alle ausgewählten Personen anzeigen
         if ($tblDivision
@@ -1032,12 +1032,18 @@ class ApiAbsence extends Extension implements IApiInterface
 
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson){
-                $ColumnContentStatic['Person']= '<div style="font-weight: bold; text-align: center; background-color: ' . $color . '; padding: 5px 0; height: 30px;">'
-                    . new ToolTip(
-                        (new Link('<span>' . $tblPerson->getLastFirstName() .' </span>', self::getEndpoint()))
+                $bodyListStatic[$tblPerson->getId()]['Person'] = (new TableColumn(new Center(new Bold(
+                    new ToolTip(
+                        (new Link($tblPerson->getLastFirstName(), self::getEndpoint()))
                             ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId()))
-                        , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
-                    ). '</div>';
+                                , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
+                    )
+                ))))
+                    ->setBackgroundColor($backgroundColor)
+                    ->setVerticalAlign('middle')
+                    ->setMinHeight($minHeightBody)
+                    ->setPadding($padding);
+
                 if ($DayCounter) {
                     $Day = 1;
                     while($Day <= $DayCounter){
@@ -1048,103 +1054,142 @@ class ApiAbsence extends Extension implements IApiInterface
                         $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
                         $isHoliday = Term::useService()->getHolidayByDay($tblYear, $fetchedDate);
 
+                        if (!isset($headerList['Day' . $Day])) {
+                            if (($isCurrentDate = ((int)$currentDate->format('d') == $Day
+                                && (int)$currentDate->format('m') == $Month
+                                && $currentDate->format('Y') == $Year))
+                            ) {
+                                // scrollen zum aktuellen Tag
+                                $content = '<span id="OrganizerDay" style="color: darkorange;">'
+                                    . new Center ($DayName[$DayAtWeek] . new Container($Day))
+                                    . '</span>';
+                            } else {
+                                $content = new Center ($DayName[$DayAtWeek] . new Container($Day));
+                            }
+
+                            $columnHeader = (new TableColumn(new Center(
+                                $content
+                            )))
+                                ->setMinHeight($minHeightHeader)
+                                ->setPadding($padding);
+
+                            if ($isCurrentDate) {
+                                $columnHeader
+                                    ->setColor('darkorange');
+                            }
+                            if ($isWeekend || $isHoliday) {
+                                $columnHeader->setBackgroundColor('lightgray')
+                                    ->setOpacity(0.5);
+                            } else {
+                                $columnHeader->setBackgroundColor($backgroundColor);
+                            }
+
+                            $headerList['Day' . $Day] = $columnHeader;
+                        }
+
                         if ($isWeekend || $isHoliday) {
-                            $ColumnEntry = '<div style="background-color: lightgrey; opacity: 0.5; padding: ' . $padding . ' 0; height: ' . $height . ';">'
-                                . ($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f'))) . '</div>';
+                            $columnBody = (new TableColumn(new Center($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f')))))
+                                ->setBackgroundColor('lightgrey')
+                                ->setVerticalAlign('middle')
+                                ->setOpacity(0.5)
+                                ->setPadding($padding);
                         } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
-                            $ColumnEntry = $dataList[$tblPerson->getId()][$fetchedDateString];
+                            $columnBody = (new TableColumn(new Center(
+                                $dataList[$tblPerson->getId()][$fetchedDateString]
+                            )))
+                                ->setBackgroundColor($backgroundColor)
+                                ->setColor($fontColor)
+                                ->setPadding($padding);
                         } else {
-                            $ColumnEntry = (new Link('<div style="padding-top: 5px; padding-bottom: 5px; height: 30px;"><span style="visibility: hidden">'.new Plus().'</span></div>',
+                            $columnBody = (new TableColumn((new Link(
+                                '<div style="height: 28px"><span style="visibility: hidden">'.new Plus().'</span></div>',
                                 self::getEndpoint(),
                                 null,
                                 array(),
                                 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' für den '
                                     . $fetchedDateString . ' hinzufügen.'))
-                                ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $fetchedDateString));
+                                ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $fetchedDateString))))
+                            ->setPadding('0');
                         }
 
-                        $ColumnContent['Day'.$Day]= new Center($ColumnEntry);
-
-                        if (!isset($ColumnDefinition['Day' . $Day])) {
-                            $ColumnDefinition['Day'.$Day]= '<div style="">'.new Center($Day).new Center(new Muted($DayName[$DayAtWeek])).'</div>';
-                            if ((int)$currentDate->format('d') == $Day && (int)$currentDate->format('m') == $Month && $currentDate->format('Y') == $Year){
-                                $ColumnDefinition['Day'.$Day]= '<div style=""><span id="OrganizerDay" style="color: darkorange;">'.new Center($Day).'</span>'.new Center(new Muted($DayName[$DayAtWeek])).'</div>';
-                            }
-                            if ($isWeekend || $isHoliday) {
-                                $ColumnDefinition['Day'.$Day]= '<div style="background-color: lightgrey; opacity: 0.5; color: black;">'.
-                                    new Center($Day.'<br>'.$DayName[$DayAtWeek]).'</div>';
-                            }
-                        }
+                        $bodyList[$tblPerson->getId()]['Day' . $Day] = $columnBody
+                            ->setMinHeight($minHeightBody)
+                            ->setVerticalAlign('middle');
 
                         $Day++;
                     }
                 }
-
-                array_push($TableContentStatic, $ColumnContentStatic);
-                array_push($TableContent, $ColumnContent);
             }
         }
+
+        // table Static
+        $tableHeadStatic = new TableHead(new TableRow($headerListStatic));
+        $rowsStatic = array();
+        foreach ($bodyListStatic as $columnListStatic) {
+            $rowsStatic[] = new TableRow($columnListStatic);
+        }
+        $tableBodyStatic = new TableBody($rowsStatic);
+        $tableStatic = new Table($tableHeadStatic, $tableBodyStatic, null, false, null, 'TableCustom');
+
+        // table float
+        $tableHead = new TableHead(new TableRow($headerList));
+        $rows = array();
+        foreach ($bodyList as $columnList) {
+            $rows[] = new TableRow($columnList);
+        }
+        $tableBody = new TableBody($rows);
+        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
 
         $Content = new Layout(
             new LayoutGroup(array(
                 new LayoutRow(
                     new LayoutColumn(
                         new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn(''
-//                                    new Refresh().
-//                                    (new ToolTipNeu(
-//                                        (new Link(' Woche', self::getEndpoint()))
-//                                            ->ajaxPipelineOnClick(self::pipelineChangeOrganizerOptions($tblDivision->getId(), 'Week'))
-//                                        , htmlspecialchars('<span style="color: black;">auf Kalenderwochenansicht wechseln</span>')))->enableHtml()
-//                                    .' | '.
-//                                    (new ToolTipNeu(
-//                                        (new Link(' Tag +', self::getEndpoint()))
-//                                            ->ajaxPipelineOnClick(self::pipelineChangeOrganizerOptions($tblDivision->getId(), 'Today'))
-//                                        , htmlspecialchars('<span style="color: black;">Ansicht wechseln, beginnend ab Heute +30 Tage</span>')))->enableHtml()
-                                    , 3),
-                                new LayoutColumn(
-                                    $hasMonthBefore
-                                        ? new Center(
-                                            (new Link(new ChevronLeft(), self::getEndpoint(), null, array(), $MonthName[$MonthBefore] . ' ' . $YearBefore))
-                                                ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthBefore, $YearBefore))
-                                            )
-                                        : ''
-                                    , 1),
-                                new LayoutColumn(
-                                    new Center('<b>' . $MonthName[$Month] . ' ' . $Year . '</b>')
-                                    , 4),
-                                new LayoutColumn(
-                                    $hasMonthNext
-                                        ? new Center(
-                                                (new Link(new ChevronRight(), self::getEndpoint(), null, array(), $MonthName[$MonthNext].' '.$YearNext))
-                                                    ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthNext, $YearNext))
-                                            )
-                                        : ''
-                                    , 1),
-                                new LayoutColumn(''
+                            new LayoutColumn('&nbsp;', 3),
+                            new LayoutColumn(
+                                $hasMonthBefore
+                                    ? new Center(
+                                        (new Link(new ChevronLeft(), self::getEndpoint(), null, array(), $MonthName[$MonthBefore] . ' ' . $YearBefore))
+                                            ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthBefore, $YearBefore))
+                                        )
+                                    : ''
+                                , 1),
+                            new LayoutColumn(
+                                new Center(new Bold($MonthName[$Month] . ' ' . $Year))
+                                , 4),
+                            new LayoutColumn(
+                                $hasMonthNext
+                                    ? new Center(
+                                            (new Link(new ChevronRight(), self::getEndpoint(), null, array(), $MonthName[$MonthNext].' '.$YearNext))
+                                                ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthNext, $YearNext))
+                                        )
+                                    : ''
+                                , 1),
+                            new LayoutColumn(
+                                '&nbsp;'
 //                                    new PullRight((new Link(' Download', self::getEndpoint(), new Download(), array(), 'Download der Daten vorbereiten'))
 //                                        ->ajaxPipelineOnClick(self::pipelineOpenDownloadEdit($DivisionId))
 //                                    )
-                                    , 3)
-                            )))
-                        )
-                        //                        . new Small('<br>')
+                                , 3)
+                        ))))
                         . '<div style="height: 5px;"></div>'
                         , 12)
                 ),
                 new LayoutRow(
                     new LayoutColumn(
-                        '<div style="float: left;">'.
-                        new TableData($TableContentStatic, null, $ColumnDefinitionStatic, false, false)
-                        .'</div>'.
-                        '<div id="OrganizerTable" style="overflow-x: scroll;">'.
-                        new TableData($TableContent, null, $ColumnDefinition, false, false).
-                        '</div>'.(($Month == (int)$currentDate->format('m') &&
-                            $Year == (int)$currentDate->format('Y')) ?
-                            '<script>
+                        '<div style="float: left;">'
+                        . $tableStatic
+                        .'</div>'
+                        . '<div id="OrganizerTable" style="overflow-x: auto;">'
+                        . $table
+                        . '</div>'
+                        . (($Month == (int)$currentDate->format('m') && $Year == (int)$currentDate->format('Y'))
+                            ? '<script>
                                 tableSelector = "div#OrganizerTable";
                                 $(tableSelector).scrollLeft( $("span#OrganizerDay").offset().left - ( $(tableSelector).offset().left + ( $(tableSelector).width() / 2 ) ) )
-                            </script>' : '')
+                            </script>'
+                            : ''
+                        )
                     )
                 )
             ))
@@ -1168,19 +1213,11 @@ class ApiAbsence extends Extension implements IApiInterface
         $lesson = $tblAbsence->getLessonStringByAbsence();
         $type = $tblAbsence->getTypeDisplayShortName();
 
-        $backgroundColor = '#E0F0FF';
-        $fontColor = '#337ab7';
-
         $dataList[$tblPerson->getId()][$date] = (new Link(
-            '<div style="background-color: ' .  $backgroundColor . '; color: ' . $fontColor . ';">
-                <div style="padding-bottom: 5px; padding-top: 5px; height: 30px;">'
-                . $tblAbsence->getStatusDisplayShortName()
-                . '</div>
-            </div>',
+            $tblAbsence->getStatusDisplayShortName(),
             ApiAbsence::getEndpoint(),
             null,
             array(),
-//            $tblPerson->getFullName() . ' (' .
             ($lesson ? $lesson . ' / ': '')
             . ($type ? $type . ' / ': '')
             . $tblAbsence->getStatusDisplayShortName()  //. ')'
