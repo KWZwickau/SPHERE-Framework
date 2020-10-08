@@ -355,11 +355,6 @@ class StudentCourse extends Import implements IFrontendInterface
                         if (($tblSubject = $tblUntisImportStudentCourse->getServiceTblSubject())) {
                             $SubjectString = $tblSubject->getAcronym().' - '.$tblSubject->getName();
                         }
-                        if ($tblUntisImportStudentCourse->getIsIntensiveCourse()) {
-                            $GroupIsIntensiveString = new Muted(new Small(new Bold(' LK')));
-                        } else {
-                            $GroupIsIntensiveString = new Muted(new Small(' GK'));
-                        }
                         $SubjectName = $tblUntisImportStudentCourse->getSubjectName();
 
 //                        if ($SubjectName != '' && !$tblUntisImportStudentCourse->getServiceTblSubject()) {
@@ -374,8 +369,10 @@ class StudentCourse extends Import implements IFrontendInterface
                         $ListContent[] = $SubjectString;
 //                            $ListContent[] = $GroupIsIntensiveString;
                         $GroupString = $tblUntisImportStudentCourse->getSubjectGroup();
-                        $ListContent[] = $GroupString.' - '.$GroupIsIntensiveString;
-                        $Item['SubjectAndGroup'.$CourseNumber] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($ListContent);
+                        $ListContent[] = $GroupString;
+                        $Item['SubjectAndGroup'.$CourseNumber] = '<div style="min-width: 110px;">'.
+                            new \SPHERE\Common\Frontend\Layout\Repository\Listing($ListContent)
+                            .'</div>';
 
                         // Error wenn Fächerzuweisung fehlt
                         if (!$tblSubject && $tblUntisImportStudentCourse->getSubjectGroup() != '' && !$tblUntisImportStudentCourse->getisIgnoreCourse()) {

@@ -108,9 +108,9 @@ class StudentCourseGPU015 extends AbstractConverter
      */
     protected function sanitizeSubjectGroup($Value)
     {
-        if(preg_match('!^([\w\/]{2,})-([GLgl]-[\d])!', $Value, $Match)){
-            if(isset($Match[2])){
-                return $Match[2];
+        if(preg_match('!^([\w\/]{2,}-[GLgl]-[\d])!', $Value, $Match)){
+            if(isset($Match[1])){
+                return $Match[1];
             } else {
                 return new Warning(new WarningIcon().' Die Fachgruppe'.$Value.' kann aus dem Feld nicht ermittelt werden');
             }
