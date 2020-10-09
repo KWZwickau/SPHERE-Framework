@@ -219,11 +219,18 @@ class Service extends AbstractService
      * @param TblType|null $tblType
      * @param array $divisionList
      * @param array $groupList
+     * @param bool $hasAbsenceTypeOptions
      *
      * @return array
+     * @throws \Exception
      */
-    public function getAbsenceAllByDay(DateTime $dateTime, TblType $tblType = null, $divisionList = array(), $groupList = array())
-    {
+    public function getAbsenceAllByDay(
+        DateTime $dateTime,
+        TblType $tblType = null,
+        $divisionList = array(),
+        $groupList = array(),
+        &$hasAbsenceTypeOptions = false
+    ) {
         $resultList = array();
         $tblAbsenceList = array();
         $isGroup = false;
@@ -279,8 +286,15 @@ class Service extends AbstractService
                             'Person' => $tblPerson->getLastFirstName(),
                             'DateSpan' => $tblAbsence->getDateSpan(),
                             'Status' => $tblAbsence->getStatusDisplayName(),
-                            'Remark' => $tblAbsence->getRemark()
+                            'Remark' => $tblAbsence->getRemark(),
+                            'AbsenceType' => $tblAbsence->getTypeDisplayName(),
+                            'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
+                            'Lessons' => $tblAbsence->getLessonStringByAbsence()
                         );
+                    }
+
+                    if (!$hasAbsenceTypeOptions && $this->hasAbsenceTypeOptionsBySchoolType($tblTypeItem)) {
+                        $hasAbsenceTypeOptions = true;
                     }
                 }
             }
@@ -445,12 +459,25 @@ class Service extends AbstractService
     {
         if (($tblLevel = $tblDivision->getTblLevel())
             && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && ($tblSchoolType->getName() == 'Berufliches Gymnasium'
-                || $tblSchoolType->getName() == 'Berufsfachschule'
-                || $tblSchoolType->getName() == 'Berufsschule'
-                || $tblSchoolType->getName() == 'Fachoberschule'
-                || $tblSchoolType->getName() == 'Fachschule'
-            )
+        ) {
+            return $this->hasAbsenceTypeOptionsBySchoolType($tblSchoolType);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return bool
+     */
+    public function hasAbsenceTypeOptionsBySchoolType(TblType $tblSchoolType)
+    {
+        if ($tblSchoolType->getName() == 'Berufliches Gymnasium'
+            || $tblSchoolType->getName() == 'Berufsfachschule'
+            || $tblSchoolType->getName() == 'Berufsschule'
+            || $tblSchoolType->getName() == 'Fachoberschule'
+            || $tblSchoolType->getName() == 'Fachschule'
         ) {
             return true;
         } else {

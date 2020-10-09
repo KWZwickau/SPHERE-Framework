@@ -3289,10 +3289,17 @@ class Service extends Extension
         }
 
         $isGroup = false;
+        $hasAbsenceTypeOptions = false;
         if ($DivisionName != '') {
             $divisionList = Division::useService()->getDivisionAllByName($DivisionName);
             if (!empty($divisionList)) {
-                $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
+                $absenceList = Absence::useService()->getAbsenceAllByDay(
+                    $dateTime,
+                    $tblType ? $tblType : null,
+                    $divisionList,
+                    array(),
+                    $hasAbsenceTypeOptions
+                );
             } else {
                 $absenceList = array();
             }
@@ -3300,12 +3307,24 @@ class Service extends Extension
             $isGroup = true;
             $groupList = Group::useService()->getGroupListLike($GroupName);
             if (!empty($groupList)) {
-                $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, array(), $groupList);
+                $absenceList = Absence::useService()->getAbsenceAllByDay(
+                    $dateTime,
+                    $tblType ? $tblType : null,
+                    array(),
+                    $groupList,
+                    $hasAbsenceTypeOptions
+                );
             } else {
                 $absenceList = array();
             }
         } else {
-            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null);
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTime,
+                $tblType ? $tblType : null,
+                array(),
+                array(),
+                $hasAbsenceTypeOptions
+            );
         }
 
         if (!empty($absenceList)) {
@@ -3322,6 +3341,10 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
             $export->setValue($export->getCell($column++, $row), "Schüler");
             $export->setValue($export->getCell($column++, $row), "Zeitraum");
+            $export->setValue($export->getCell($column++, $row), "U-Einheiten");
+            if ($hasAbsenceTypeOptions) {
+                $export->setValue($export->getCell($column++, $row), "Typ");
+            }
             $export->setValue($export->getCell($column++, $row), "Status");
             $export->setValue($export->getCell($column, $row), "Bemerkung");
 
@@ -3337,6 +3360,10 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
                 $export->setValue($export->getCell($column++, $row), $absence['Person']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
+                $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
+                if ($hasAbsenceTypeOptions) {
+                    $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
+                }
                 $export->setValue($export->getCell($column++, $row), $absence['Status']);
                 $export->setValue($export->getCell($column, $row), $absence['Remark']);
 
@@ -3345,12 +3372,18 @@ class Service extends Extension
 
             // Spaltenbreite
             $column = 0;
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(20);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(25);
+            if ($hasAbsenceTypeOptions) {
+                $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
+            }
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(14);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
+                $hasAbsenceTypeOptions ? 14 : 19
+            );
 
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->setPaperSizeParameter(new PaperSizeParameter('A4'));
