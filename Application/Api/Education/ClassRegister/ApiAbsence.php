@@ -279,7 +279,7 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
-        if (Absence::useService()->createAbsenceService(
+        if (Absence::useService()->createAbsence(
             $Data,
             $tblPerson ? $tblPerson :  null,
             $tblDivision ? $tblDivision : null
@@ -1095,10 +1095,10 @@ class ApiAbsence extends Extension implements IApiInterface
                                 ->setPadding($padding);
                         } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
                             $columnBody = (new TableColumn(new Center(
-                                $dataList[$tblPerson->getId()][$fetchedDateString]
+                                $dataList[$tblPerson->getId()][$fetchedDateString]['Content']
                             )))
-                                ->setBackgroundColor($backgroundColor)
-                                ->setColor($fontColor)
+                                ->setBackgroundColor($dataList[$tblPerson->getId()][$fetchedDateString]['BackgroundColor'])
+                                ->setColor($dataList[$tblPerson->getId()][$fetchedDateString]['FontColor'])
                                 ->setPadding($padding);
                         } else {
                             $columnBody = (new TableColumn((new Link(
@@ -1213,7 +1213,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $lesson = $tblAbsence->getLessonStringByAbsence();
         $type = $tblAbsence->getTypeDisplayShortName();
 
-        $dataList[$tblPerson->getId()][$date] = (new Link(
+        $dataList[$tblPerson->getId()][$date]['Content'] = (new Link(
             $tblAbsence->getStatusDisplayShortName(),
             ApiAbsence::getEndpoint(),
             null,
@@ -1222,6 +1222,22 @@ class ApiAbsence extends Extension implements IApiInterface
             . ($type ? $type . ' / ': '')
             . $tblAbsence->getStatusDisplayShortName()  //. ')'
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
+
+        $backgroundColor = '#E0F0FF';
+        $fontColor = 'black';
+
+        if (($tblAbsenceType = $tblAbsence->getType())) {
+            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
+                $backgroundColor = 'orange';
+                $fontColor = 'black';
+            }
+            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_PRACTICE) {
+                $backgroundColor = 'red';
+                $fontColor = 'black';
+            }
+        }
+        $dataList[$tblPerson->getId()][$date]['BackgroundColor'] = $backgroundColor;
+        $dataList[$tblPerson->getId()][$date]['FontColor'] = $fontColor;
     }
 
     /**

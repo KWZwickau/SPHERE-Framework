@@ -312,6 +312,73 @@ class Data extends AbstractData
     }
 
     /**
+     * @param DateTime $fromDate
+     * @param TblPerson $tblPerson
+     * @param DateTime|null $toDate
+     *
+     * @return array|bool
+     */
+    public function getAbsenceAllBetweenByPerson(DateTime $fromDate, TblPerson $tblPerson, DateTime $toDate = null)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        if ($toDate) {
+            $and = $queryBuilder->expr()->andX();
+            $and->add($queryBuilder->expr()->eq('t.serviceTblPerson', '?3'));
+
+            // Zeitraum überschneidet einen existierenden Zeitraum
+            $or = $queryBuilder->expr()->orX();
+            $or->add($queryBuilder->expr()->between('t.FromDate', '?1', '?2'));
+            $or->add($queryBuilder->expr()->between('t.ToDate', '?1', '?2'));
+
+            // Zeitraum liegt innerhalb eines existierenden Zeitraums
+            $subAnd = $queryBuilder->expr()->andX();
+            $subAnd->add($queryBuilder->expr()->lte('t.FromDate', '?1'));
+            $subAnd->add($queryBuilder->expr()->gte('t.ToDate', '?2'));
+            $or->add($subAnd);
+
+            $and->add($or);
+
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblAbsence', 't')
+                ->where($and)
+                ->setParameter(1, $fromDate)
+                ->setParameter(2, $toDate ? $toDate : $fromDate)
+                ->setParameter(3, $tblPerson->getId())
+                ->getQuery();
+
+            $resultList = $query->getResult();
+        } else {
+            // Tag liegt innerhalb eines existierenden Zeitraums
+            $andFirst = $queryBuilder->expr()->andX();
+            $andFirst->add($queryBuilder->expr()->eq('t.serviceTblPerson', '?3'));
+            $andFirst->add($queryBuilder->expr()->lte('t.FromDate', '?1'));
+            $andFirst->add($queryBuilder->expr()->gte('t.ToDate', '?1'));
+
+            // Tag liegt auf existierenden Tag
+            $andSecond = $queryBuilder->expr()->andX();
+            $andSecond->add($queryBuilder->expr()->eq('t.serviceTblPerson', '?3'));
+            $andSecond->add($queryBuilder->expr()->eq('t.FromDate', '?1'));
+
+            $or = $queryBuilder->expr()->orX();
+            $or->add($andFirst);
+            $or->add($andSecond);
+
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblAbsence', 't')
+                ->where($or)
+                ->setParameter(1, $fromDate)
+                ->setParameter(3, $tblPerson->getId())
+                ->getQuery();
+
+            $resultList = $query->getResult();
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblAbsence $tblAbsence
      * @param integer $lesson
      *

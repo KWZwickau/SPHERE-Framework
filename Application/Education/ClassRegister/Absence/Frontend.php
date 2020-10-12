@@ -53,6 +53,8 @@ use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -531,7 +533,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $item = array(
                     'FromDate' => $tblAbsence->getFromDate(),
                     'ToDate' => $tblAbsence->getToDate(),
-                    'Days' => $tblAbsence->getDays(),
+                    'Days' => ($days = $tblAbsence->getDays()) == 1
+                        ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
+                        : $days,
                     'Lessons' => $tblAbsence->getLessonStringByAbsence(),
                     'Remark' => $tblAbsence->getRemark(),
                     'Status' => $status,

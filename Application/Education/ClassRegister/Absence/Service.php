@@ -222,7 +222,6 @@ class Service extends AbstractService
      * @param bool $hasAbsenceTypeOptions
      *
      * @return array
-     * @throws \Exception
      */
     public function getAbsenceAllByDay(
         DateTime $dateTime,
@@ -413,13 +412,30 @@ class Service extends AbstractService
             $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $error = true;
         }
-        if (isset($Data['FromDate']) && !empty($Data['FromDate'])
-            && isset($Data['ToDate']) && !empty($Data['ToDate'])
-        ) {
+
+        $fromDate = null;
+        $toDate = null;
+        if (isset($Data['FromDate']) && !empty($Data['FromDate'])) {
             $fromDate = new DateTime($Data['FromDate']);
+        }
+        if (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
             $toDate = new DateTime($Data['ToDate']);
+        }
+
+        if ($fromDate && $toDate) {
             if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
                 $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                $error = true;
+            }
+        }
+
+        // Prüfung ob in diesem Zeitraum bereits eine Fehlzeit existiert
+        if (!$error && !$tblAbsence && $tblPerson && $fromDate) {
+            if (($list = (new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($fromDate, $tblPerson, $toDate == $fromDate ? null : $toDate))) {
+                $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
+//                if ($toDate) {
+//                    $form->setError('Data[ToDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
+//                }
                 $error = true;
             }
         }
@@ -427,7 +443,6 @@ class Service extends AbstractService
         if (!$error && $tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDate && $endDate) {
-                $fromDate = new DateTime($Data['FromDate']);
                 if ($fromDate < $startDate || $fromDate > $endDate) {
                     $form->setError(
                         'Data[FromDate]',
@@ -437,7 +452,6 @@ class Service extends AbstractService
                 }
 
                 if (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
-                    $toDate = new DateTime($Data['ToDate']);
                     if ($toDate > $endDate) {
                         $form->setError(
                             'Data[FromDate]',
@@ -494,7 +508,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function createAbsenceService($Data, TblPerson $tblPerson = null, TblDivision $tblDivision = null)
+    public function createAbsence($Data, TblPerson $tblPerson = null, TblDivision $tblDivision = null)
     {
         if ($tblPerson == null) {
             $tblPerson = Person::useService()->getPersonById($Data['PersonId']);

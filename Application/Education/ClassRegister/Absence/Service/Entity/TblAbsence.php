@@ -380,4 +380,27 @@ class TblAbsence extends Element
             default: return '';
         }
     }
+
+    /**
+     * @return string
+     */
+    public function getWeekDay()
+    {
+        /** @var DateTime $date */
+        if (($date = $this->FromDate)) {
+            $data = array(
+                0 => 'So',
+                1 => 'Mo',
+                2 => 'Di',
+                3 => 'Mi',
+                4 => 'Do',
+                5 => 'Fr',
+                6 => 'Sa',
+            );
+
+            return $data[$date->format('w')];
+        }
+
+        return '';
+    }
 }
