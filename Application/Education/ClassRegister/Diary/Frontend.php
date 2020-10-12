@@ -452,7 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Danger('
                                     Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und
                                     Löschungsrecht durch die betroffenen Personen und deren Sorgeberechtigten. Aus
-                                    diesem Grund sind in diesem Tagebuch <b>"in der Spalte Inhalt"</b> nur
+                                    diesem Grund sind in diesem Tagebuch in der Spalte <b>"Inhalt"</b> nur
                                     objektivierbare Sachverhalte und keine Klarnamen zu vermerken.
                                 ', new Exclamation())
                             ))
@@ -526,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Danger('
                                     Das pädagogische Tagebuch unterliegt dem Auskunfts-, Berichtigungs- und
                                     Löschungsrecht durch die betroffenen Personen und deren Sorgeberechtigten. Aus
-                                    diesem Grund sind in diesem Tagebuch <b>"in der Spalte Inhalt"</b> nur
+                                    diesem Grund sind in diesem Tagebuch in der Spalte <b>"Inhalt"</b> nur
                                     objektivierbare Sachverhalte und keine Klarnamen zu vermerken.
                                 ', new Exclamation())
                             ))
