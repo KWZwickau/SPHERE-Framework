@@ -3341,7 +3341,7 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
             $export->setValue($export->getCell($column++, $row), "Schüler");
             $export->setValue($export->getCell($column++, $row), "Zeitraum");
-            $export->setValue($export->getCell($column++, $row), "U-Einheiten");
+            $export->setValue($export->getCell($column++, $row), "Unterrichtseinheiten");
             if ($hasAbsenceTypeOptions) {
                 $export->setValue($export->getCell($column++, $row), "Typ");
             }
@@ -3351,12 +3351,14 @@ class Service extends Extension
             // header bold
             $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
 
+            $maxColumn = $column;
+
             $row++;
 
             foreach ($absenceList as $absence) {
                 $column = 0;
 
-                $export->setValue($export->getCell($column++, $row), $absence['Type']);
+                $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
                 $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
                 $export->setValue($export->getCell($column++, $row), $absence['Person']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
@@ -3364,26 +3366,33 @@ class Service extends Extension
                 if ($hasAbsenceTypeOptions) {
                     $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
                 }
-                $export->setValue($export->getCell($column++, $row), $absence['Status']);
+                $export->setValue($export->getCell($column++, $row), $absence['StatusExcel']);
                 $export->setValue($export->getCell($column, $row), $absence['Remark']);
+
+                $export->setStyle($export->getCell(0, $row - 1), $export->getCell($maxColumn, $row))->setBorderBottom();
 
                 $row++;
             }
 
             // Spaltenbreite
             $column = 0;
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(20);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(8);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(30);
             if ($hasAbsenceTypeOptions) {
                 $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
             }
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(14);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(7);
             $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
-                $hasAbsenceTypeOptions ? 14 : 19
+                $hasAbsenceTypeOptions ? 18 : 23
             );
+
+            // Gitterlinien
+            $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, 1))->setBorderBottom();
+            $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, $row - 1))->setBorderVertical();
+            $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, $row - 1))->setBorderOutline();
 
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->setPaperSizeParameter(new PaperSizeParameter('A4'));

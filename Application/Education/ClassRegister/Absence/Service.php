@@ -281,11 +281,13 @@ class Service extends AbstractService
                     if (!$tblType || ($tblType->getId() == $tblTypeItem->getId())) {
                         $resultList[] = array(
                             'Type' => $tblTypeItem->getName(),
+                            'TypeExcel' => $tblTypeItem->getShortName(),
                             'Division' => $tblDivision->getDisplayName(),
                             'Group' => $isGroup && isset($groupPersonList[$tblPerson->getId()]) ? $groupPersonList[$tblPerson->getId()] : '',
                             'Person' => $tblPerson->getLastFirstName(),
                             'DateSpan' => $tblAbsence->getDateSpan(),
                             'Status' => $tblAbsence->getStatusDisplayName(),
+                            'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
                             'Remark' => $tblAbsence->getRemark(),
                             'AbsenceType' => $tblAbsence->getTypeDisplayName(),
                             'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
