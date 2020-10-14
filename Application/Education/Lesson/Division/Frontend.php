@@ -198,12 +198,16 @@ class Frontend extends Extension implements IFrontendInterface
                 // SSW-834 jahrgangsübergreifende nicht mitzählen, ansonsten werden Schüler doppelt gezählt
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && !$tblLevel->getIsChecked()
-                ) {
-
-                    if (isset($StudentCountBySchoolType[$Temp['SchoolType']])) {
-                        $StudentCountBySchoolType[$Temp['SchoolType']] += $Temp['StudentList'];
+                ){
+                    $CompanyString = 0;
+                    if(($tblCompany = $tblDivision->getServiceTblCompany())){
+                        $CompanyString = $tblCompany->getName();
+                    }
+                    $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                    if(isset($StudentCountBySchoolType[$Temp['SchoolType']][$CompanyString])){
+                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyString] += $personCount;
                     } else {
-                        $StudentCountBySchoolType[$Temp['SchoolType']] = $Temp['StudentList'];
+                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyString] = $personCount;
                     }
                 }
 
@@ -256,10 +260,26 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
+        // Anhängen der Schulartzählung
         $tblStudentCounterBySchoolType = array();
         if (!empty($StudentCountBySchoolType)) {
-            foreach ($StudentCountBySchoolType as $SchoolType => $Counter) {
-                $tblStudentCounterBySchoolType[] = $SchoolType . ': ' . $Counter;
+            foreach($StudentCountBySchoolType as $SchoolType => $CompanyGroup){
+                $RowContent = '';
+                // Mehr als einmal die gleiche Schulart
+                // Zählung nach Institution trennen
+                if(count($CompanyGroup) >= 2){
+                    $RowContent .= new Container(new Muted(new Small($SchoolType)));
+                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                        $RowContent .= new Container(
+                            new Muted(new Small($SchoolName.': '.$Counter))
+                        );
+                    }
+                    $tblStudentCounterBySchoolType[] = $RowContent;
+                } else {
+                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                        $tblStudentCounterBySchoolType[] = new Muted(new Small($SchoolType.': '.$Counter));
+                    }
+                }
             }
         }
 
