@@ -10,6 +10,7 @@ use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\SubjectTeacher;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -199,15 +200,15 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && !$tblLevel->getIsChecked()
                 ){
-                    $CompanyString = 0;
+                    $CompanyId = 0;
                     if(($tblCompany = $tblDivision->getServiceTblCompany())){
-                        $CompanyString = $tblCompany->getName();
+                        $CompanyId = $tblCompany->getId();
                     }
                     $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                    if(isset($StudentCountBySchoolType[$Temp['SchoolType']][$CompanyString])){
-                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyString] += $personCount;
+                    if(isset($StudentCountBySchoolType[$Temp['SchoolType']][$CompanyId])){
+                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyId] += $personCount;
                     } else {
-                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyString] = $personCount;
+                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyId] = $personCount;
                     }
                 }
 
@@ -268,10 +269,19 @@ class Frontend extends Extension implements IFrontendInterface
                 // Mehr als einmal die gleiche Schulart
                 // Zählung nach Institution trennen
                 if(count($CompanyGroup) >= 2){
-                    $RowContent .= new Container(new Muted(new Small($SchoolType)));
-                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                    $tempCounterAllByType = 0;
+                    foreach($CompanyGroup as $tempCounter) {
+                        $tempCounterAllByType += $tempCounter;
+                    }
+                    $RowContent .= new Container(new Muted(new Small($SchoolType.': '.$tempCounterAllByType)));
+                    foreach($CompanyGroup as $CompanyId => $Counter) {
+                        $SchoolName = '-NA-';
+                        if(($tblCompany = Company::useService()->getCompanyById($CompanyId))){
+                            //toDO später mal Schulkürzel
+                            $SchoolName = $tblCompany->getName();
+                        }
                         $RowContent .= new Container(
-                            new Muted(new Small($SchoolName.': '.$Counter))
+                            new Muted(new Small('&nbsp;&nbsp;- '.$SchoolName.': '.$Counter))
                         );
                     }
                     $tblStudentCounterBySchoolType[] = $RowContent;

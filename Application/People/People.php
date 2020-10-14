@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\People;
 
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IClusterInterface;
@@ -143,15 +144,15 @@ class People implements IClusterInterface
                         }
 
                         $schoolType = $tblDivision->getTypeName();
-                        $Companystring = 0;
+                        $CompanyId = 0;
                         if(($tblCompany = $tblDivision->getServiceTblCompany())){
-                            $Companystring = $tblCompany->getName();
+                            $CompanyId = $tblCompany->getId();
                         }
                         $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                        if (isset($StudentCountBySchoolType[$schoolType][$Companystring])) {
-                            $StudentCountBySchoolType[$schoolType][$Companystring] += $personCount;
+                        if (isset($StudentCountBySchoolType[$schoolType][$CompanyId])) {
+                            $StudentCountBySchoolType[$schoolType][$CompanyId] += $personCount;
                         } else {
-                            $StudentCountBySchoolType[$schoolType][$Companystring] = $personCount;
+                            $StudentCountBySchoolType[$schoolType][$CompanyId] = $personCount;
                         }
                     }
                 }
@@ -174,10 +175,19 @@ class People implements IClusterInterface
                 // Mehr als einmal die gleiche Schulart
                 // Zählung nach Institution trennen
                 if(count($CompanyGroup) >= 2){
-                    $RowContent .= new Container(new Muted(new Small($SchoolType)));
-                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                    $tempCounterAllByType = 0;
+                    foreach($CompanyGroup as $tempCounter) {
+                        $tempCounterAllByType += $tempCounter;
+                    }
+                    $RowContent .= new Container(new Muted(new Small($SchoolType.': '.$tempCounterAllByType)));
+                    foreach($CompanyGroup as $CompanyId => $Counter) {
+                        $SchoolName = '-NA-';
+                        if(($tblCompany = Company::useService()->getCompanyById($CompanyId))){
+                            //toDO später mal Schulkürzel
+                            $SchoolName = $tblCompany->getName();
+                        }
                         $RowContent .= new Container(
-                            new Muted(new Small($SchoolName.': '.$Counter))
+                            new Muted(new Small('&nbsp;&nbsp;- '.$SchoolName.': '.$Counter))
                         );
                     }
                     $tblStudentCounterBySchoolType[] = $RowContent;
