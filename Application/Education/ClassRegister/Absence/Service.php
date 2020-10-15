@@ -626,11 +626,12 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
+     * @param $Status
      *
      * @return bool
      */
-    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision)
+    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision, $Status)
     {
-        return (new Data($this->getBinding()))->hasPersonAbsenceLessons($tblPerson, $tblDivision);
+        return (new Data($this->getBinding()))->hasPersonAbsenceLessons($tblPerson, $tblDivision, $Status);
     }
 }

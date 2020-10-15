@@ -446,10 +446,11 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
+     * @param $Status
      *
      * @return bool
      */
-    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision)
+    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision, $Status)
     {
         $queryBuilder = $this->getEntityManager()->getQueryBuilder();
 
@@ -460,11 +461,13 @@ class Data extends AbstractData
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('l.tblAbsence', 'a.Id'),
                     $queryBuilder->expr()->eq('a.serviceTblPerson', '?1'),
-                    $queryBuilder->expr()->eq('a.serviceTblDivision', '?2')
+                    $queryBuilder->expr()->eq('a.serviceTblDivision', '?2'),
+                    $queryBuilder->expr()->eq('a.Status', '?3')
                 )
             )
             ->setParameter(1, $tblPerson->getId())
             ->setParameter(2, $tblDivision->getId())
+            ->setParameter(3, $Status)
             ->getQuery();
 
         $resultList = $query->getResult();
