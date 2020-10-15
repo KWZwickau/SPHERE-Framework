@@ -40,13 +40,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
-use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
@@ -260,10 +257,21 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ),
         ));
+
+        $buttons = array();
+        $buttons[] = $saveButton;
+        if ($AbsenceId) {
+            $buttons[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
+                'Löschen',
+                ApiAbsence::getEndpoint(),
+                new Remove(),
+                array(),
+                false
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($AbsenceId));
+        }
+
         $formRows[] = new FormRow(array(
-            new FormColumn(array(
-                $saveButton
-            ))
+            new FormColumn($buttons)
         ));
 
         return (new Form(new FormGroup(
@@ -489,19 +497,15 @@ class Frontend extends Extension implements IFrontendInterface
         $now = new DateTime('now');
 
         $Stage->setContent(
-            ApiAbsence::receiverModal()
+            (new PrimaryLink(
+                'Fehlzeit hinzufügen',
+                ApiAbsence::getEndpoint(),
+                new PlusSign()
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal())
+            . new Container('&nbsp;')
+            . ApiAbsence::receiverModal()
             . new Panel(
-                new Calendar() . ' Kalender' . new PullRight(
-                    (new Link(
-                        new PlusSign() . '  Fehlzeit hinzufügen',
-                        ApiAbsence::getEndpoint(),
-                        null,
-                        array(),
-                        false,
-                        null,
-                        AbstractLink::TYPE_WHITE_LINK
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal())
-                ),
+                new Calendar() . ' Kalender',
                 ApiAbsence::receiverBlock(ApiAbsence::generateOrganizerWeekly($now->format('W') , $now->format('Y')), 'CalendarWeekContent'),
                 Panel::PANEL_TYPE_PRIMARY
             )

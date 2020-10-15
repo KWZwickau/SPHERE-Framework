@@ -389,13 +389,13 @@ class TblAbsence extends Element
         /** @var DateTime $date */
         if (($date = $this->FromDate)) {
             $data = array(
-                0 => 'So',
-                1 => 'Mo',
-                2 => 'Di',
-                3 => 'Mi',
-                4 => 'Do',
-                5 => 'Fr',
-                6 => 'Sa',
+                0 => '(Sonntag)',
+                1 => '(Montag)',
+                2 => '(Dienstag)',
+                3 => '(Mittwoch)',
+                4 => '(Donnerstag)',
+                5 => '(Freitag)',
+                6 => '(Samstag)',
             );
 
             return $data[$date->format('w')];

@@ -3276,8 +3276,6 @@ class Service extends Extension
      * @param string $GroupName
      *
      * @return bool|FilePointer
-     * @throws TypeFileException
-     * @throws DocumentTypeException
      */
     public function createAbsenceListExcel(DateTime $dateTime, $Type = null, $DivisionName = '', $GroupName = '')
     {
@@ -3328,81 +3326,134 @@ class Service extends Extension
         }
 
         if (!empty($absenceList)) {
-
-            $fileLocation = Storage::createFilePointer('xlsx');
-            /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation->getFileLocation());
-
-            $export->setValue($export->getCell(0, 0), 'Fehlzeitenübersicht vom ' . $dateTime->format('d.m.Y'));
-
-            $column = 0;
-            $row = 1;
-            $export->setValue($export->getCell($column++, $row), "Schulart");
-            $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
-            $export->setValue($export->getCell($column++, $row), "Schüler");
-            $export->setValue($export->getCell($column++, $row), "Zeitraum");
-            $export->setValue($export->getCell($column++, $row), "Unterrichtseinheiten");
-            if ($hasAbsenceTypeOptions) {
-                $export->setValue($export->getCell($column++, $row), "Typ");
-            }
-            $export->setValue($export->getCell($column++, $row), "Status");
-            $export->setValue($export->getCell($column, $row), "Bemerkung");
-
-            // header bold
-            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
-
-            $maxColumn = $column;
-
-            $row++;
-
-            foreach ($absenceList as $absence) {
-                $column = 0;
-
-                $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
-                $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
-                $export->setValue($export->getCell($column++, $row), $absence['Person']);
-                $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
-                $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
-                if ($hasAbsenceTypeOptions) {
-                    $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
-                }
-                $export->setValue($export->getCell($column++, $row), $absence['StatusExcel']);
-                $export->setValue($export->getCell($column, $row), $absence['Remark']);
-
-                $export->setStyle($export->getCell(0, $row - 1), $export->getCell($maxColumn, $row))->setBorderBottom();
-
-                $row++;
-            }
-
-            // Spaltenbreite
-            $column = 0;
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(8);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(30);
-            if ($hasAbsenceTypeOptions) {
-                $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
-            }
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(7);
-            $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
-                $hasAbsenceTypeOptions ? 18 : 23
-            );
-
-            // Gitterlinien
-            $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, 1))->setBorderBottom();
-            $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, $row - 1))->setBorderVertical();
-            $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, $row - 1))->setBorderOutline();
-
-            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
-            $export->setPaperSizeParameter(new PaperSizeParameter('A4'));
-
-            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
-            return $fileLocation;
+            return $this->createExcelByAbsenceList($absenceList, $hasAbsenceTypeOptions, $isGroup, $dateTime);
         }
 
         return false;
+    }
+
+    /**
+     * @param DateTime $startDate
+     * @param DateTime $endDate
+     *
+     * @return bool|FilePointer
+     */
+    public function createAbsenceBetweenListExcel(DateTime $startDate, DateTime $endDate)
+    {
+        $hasAbsenceTypeOptions = false;
+        $resultList = [];
+        if (($tblAbsenceList = Absence::useService()->getAbsenceAllBetween($startDate, $endDate))) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if (($tblPerson = $tblAbsence->getServiceTblPerson())
+                    && ($tblDivision = $tblAbsence->getServiceTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && ($tblType = $tblLevel->getServiceTblType())
+                ) {
+                    $resultList = Absence::useService()->setAbsenceContent($tblType, $tblDivision, false, [],
+                        $tblPerson, $tblAbsence, $resultList);
+
+                    if (!$hasAbsenceTypeOptions) {
+                        $hasAbsenceTypeOptions = Absence::useService()->hasAbsenceTypeOptions($tblDivision);
+                    }
+                }
+            }
+
+            return $this->createExcelByAbsenceList($resultList, $hasAbsenceTypeOptions, false, $startDate, $endDate);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $absenceList
+     * @param $hasAbsenceTypeOptions
+     * @param $isGroup
+     * @param DateTime $startDate
+     * @param DateTime|null $endDate
+     *
+     * @return FilePointer
+     */
+    private function createExcelByAbsenceList(
+        $absenceList,
+        $hasAbsenceTypeOptions,
+        $isGroup,
+        DateTime $startDate,
+        DateTime $endDate = null
+    ) {
+        $fileLocation = Storage::createFilePointer('xlsx');
+        /** @var PhpExcel $export */
+        $export = Document::getDocument($fileLocation->getFileLocation());
+
+        $export->setValue($export->getCell(0, 0),
+            'Fehlzeitenübersicht vom ' . $startDate->format('d.m.Y')
+            . ($endDate ? ' bis ' . $endDate->format('d.m.Y') : '')
+        );
+
+        $column = 0;
+        $row = 1;
+        $export->setValue($export->getCell($column++, $row), "Schulart");
+        $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
+        $export->setValue($export->getCell($column++, $row), "Schüler");
+        $export->setValue($export->getCell($column++, $row), "Zeitraum");
+        $export->setValue($export->getCell($column++, $row), "Unterrichtseinheiten");
+        if ($hasAbsenceTypeOptions) {
+            $export->setValue($export->getCell($column++, $row), "Typ");
+        }
+        $export->setValue($export->getCell($column++, $row), "Status");
+        $export->setValue($export->getCell($column, $row), "Bemerkung");
+
+        // header bold
+        $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+
+        $maxColumn = $column;
+
+        $row++;
+
+        foreach ($absenceList as $absence) {
+            $column = 0;
+
+            $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
+            $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
+            $export->setValue($export->getCell($column++, $row), $absence['Person']);
+            $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
+            $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
+            if ($hasAbsenceTypeOptions) {
+                $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
+            }
+            $export->setValue($export->getCell($column++, $row), $absence['StatusExcel']);
+            $export->setValue($export->getCell($column, $row), $absence['Remark']);
+
+            $export->setStyle($export->getCell(0, $row - 1), $export->getCell($maxColumn, $row))->setBorderBottom();
+
+            $row++;
+        }
+
+        // Spaltenbreite
+        $column = 0;
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(8);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(30);
+        if ($hasAbsenceTypeOptions) {
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
+        }
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(7);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
+            $hasAbsenceTypeOptions ? 18 : 23
+        );
+
+        // Gitterlinien
+        $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, 1))->setBorderBottom();
+        $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, $row - 1))->setBorderVertical();
+        $export->setStyle($export->getCell(0, 1), $export->getCell($maxColumn, $row - 1))->setBorderOutline();
+
+        $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
+        $export->setPaperSizeParameter(new PaperSizeParameter('A4'));
+
+        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+        return $fileLocation;
     }
 
     /**

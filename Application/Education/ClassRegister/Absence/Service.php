@@ -278,20 +278,8 @@ class Service extends AbstractService
                     && ($tblTypeItem = $tblLevel->getServiceTblType())
                 ) {
                     if (!$tblType || ($tblType->getId() == $tblTypeItem->getId())) {
-                        $resultList[] = array(
-                            'Type' => $tblTypeItem->getName(),
-                            'TypeExcel' => $tblTypeItem->getShortName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Group' => $isGroup && isset($groupPersonList[$tblPerson->getId()]) ? $groupPersonList[$tblPerson->getId()] : '',
-                            'Person' => $tblPerson->getLastFirstName(),
-                            'DateSpan' => $tblAbsence->getDateSpan(),
-                            'Status' => $tblAbsence->getStatusDisplayName(),
-                            'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
-                            'Remark' => $tblAbsence->getRemark(),
-                            'AbsenceType' => $tblAbsence->getTypeDisplayName(),
-                            'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
-                            'Lessons' => $tblAbsence->getLessonStringByAbsence()
-                        );
+                        $resultList = $this->setAbsenceContent($tblTypeItem, $tblDivision, $isGroup, $groupPersonList,
+                            $tblPerson, $tblAbsence, $resultList);
                     }
 
                     if (!$hasAbsenceTypeOptions && $this->hasAbsenceTypeOptionsBySchoolType($tblTypeItem)) {
@@ -317,6 +305,43 @@ class Service extends AbstractService
                 array_multisort($type, SORT_ASC, $division, SORT_NATURAL, $person, SORT_ASC, $resultList);
             }
         }
+
+        return $resultList;
+    }
+
+    /**
+     * @param TblType $tblType
+     * @param TblDivision $tblDivision
+     * @param $isGroup
+     * @param array $groupPersonList
+     * @param TblPerson $tblPerson
+     * @param TblAbsence $tblAbsence
+     * @param array $resultList
+     * @return array
+     */
+    public function setAbsenceContent(
+        TblType $tblType,
+        TblDivision $tblDivision,
+        $isGroup,
+        array $groupPersonList,
+        TblPerson $tblPerson,
+        TblAbsence $tblAbsence,
+        array $resultList
+    ) {
+        $resultList[] = array(
+            'Type' => $tblType->getName(),
+            'TypeExcel' => $tblType->getShortName(),
+            'Division' => $tblDivision->getDisplayName(),
+            'Group' => $isGroup && isset($groupPersonList[$tblPerson->getId()]) ? $groupPersonList[$tblPerson->getId()] : '',
+            'Person' => $tblPerson->getLastFirstName(),
+            'DateSpan' => $tblAbsence->getDateSpan(),
+            'Status' => $tblAbsence->getStatusDisplayName(),
+            'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
+            'Remark' => $tblAbsence->getRemark(),
+            'AbsenceType' => $tblAbsence->getTypeDisplayName(),
+            'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
+            'Lessons' => $tblAbsence->getLessonStringByAbsence()
+        );
 
         return $resultList;
     }
@@ -596,5 +621,16 @@ class Service extends AbstractService
     public function getAbsenceLessonAllByAbsence(TblAbsence $tblAbsence)
     {
         return (new Data($this->getBinding()))->getAbsenceLessonAllByAbsence($tblAbsence);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision)
+    {
+        return (new Data($this->getBinding()))->hasPersonAbsenceLessons($tblPerson, $tblDivision);
     }
 }

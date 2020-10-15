@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -488,11 +490,15 @@ class ApiAbsence extends Extension implements IApiInterface
         if (!($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
             return new Danger('Die Fehlzeit wurde nicht gefunden', new Exclamation());
         }
+
+        $date = new DateTime($tblAbsence->getFromDate());
         $tblDivision = $tblAbsence->getServiceTblDivision();
         $tblPerson = $tblAbsence->getServiceTblPerson();
 
         if (Absence::useService()->destroyAbsence($tblAbsence)) {
             return new Success('Die Fehlzeit wurde erfolgreich gelöscht.')
+                . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
+                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . self::pipelineClose();
         } else {
@@ -741,7 +747,6 @@ class ApiAbsence extends Extension implements IApiInterface
                     // Content der je Klasse erstellen
                     foreach ($tblDivisionList as $tblDivision) {
                         $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
-                        $endDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}-7")));
 
                         $bodyList[$tblDivision->getId()]['Division'] = (new TableColumn(new Center(new Bold($tblDivision->getDisplayName()))))
                             ->setBackgroundColor($backgroundColor)
@@ -813,6 +818,8 @@ class ApiAbsence extends Extension implements IApiInterface
         $tableBody = new TableBody($rows);
         $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
 
+        $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
+
         // Inhalt zusammenbasteln
         $Content = new Layout(
             new LayoutGroup(array(
@@ -836,11 +843,16 @@ class ApiAbsence extends Extension implements IApiInterface
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    '&nbsp;'
-//                                    new PullRight((new Link(' Download', self::getEndpoint(), new Download(), array(), 'Download der Daten vorbereiten'))
-//                                        ->ajaxPipelineOnClick(self::pipelineOpenDownloadEdit($PersonId))
-//                                    )
-                                    , 3)
+                                    new PullRight((new Link(
+                                        ' Herunterladen',
+                                        '/Api/Reporting/Standard/Person/AbsenceBetweenList/Download',
+                                        new Download(),
+                                        array(
+                                            'StartDate' => $startDate->format('d.m.Y'),
+                                            'EndDate' => $endDate->format('d.m.Y'),
+                                        )
+                                    )))
+                                , 3)
                             )))
                         )
                         . '<div style="height: 5px;"></div>'
@@ -881,13 +893,14 @@ class ApiAbsence extends Extension implements IApiInterface
 
         $dataList[$tblDivision->getId()][$date][$tblPerson->getId()] = (new Link(
             $tblPerson->getFullName()
-                . ' (' . ($lesson ? $lesson . ' / ': '')
-                . ($type ? $type . ' / ': '')
+                . ' ('
+//                . ($lesson ? $lesson . ' / ': '')
+//                . ($type ? $type . ' / ': '')
                 . $tblAbsence->getStatusDisplayShortName() . ')',
             ApiAbsence::getEndpoint(),
             null,
             array(),
-            'Fehlzeit bearbeiten'
+            ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
     }
 
@@ -995,7 +1008,6 @@ class ApiAbsence extends Extension implements IApiInterface
         }
 
         $backgroundColor = '#E0F0FF';
-        $fontColor = '#337ab7';
         $minHeightHeader = '44px';
         $minHeightBody = '30px';
         $padding = '3px';
@@ -1054,6 +1066,7 @@ class ApiAbsence extends Extension implements IApiInterface
                         $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
                         $isHoliday = Term::useService()->getHolidayByDay($tblYear, $fetchedDate);
 
+                        $isCurrentDate = false;
                         if (!isset($headerList['Day' . $Day])) {
                             if (($isCurrentDate = ((int)$currentDate->format('d') == $Day
                                 && (int)$currentDate->format('m') == $Month
@@ -1098,7 +1111,6 @@ class ApiAbsence extends Extension implements IApiInterface
                                 $dataList[$tblPerson->getId()][$fetchedDateString]['Content']
                             )))
                                 ->setBackgroundColor($dataList[$tblPerson->getId()][$fetchedDateString]['BackgroundColor'])
-                                ->setColor($dataList[$tblPerson->getId()][$fetchedDateString]['FontColor'])
                                 ->setPadding($padding);
                         } else {
                             $columnBody = (new TableColumn((new Link(
@@ -1213,31 +1225,30 @@ class ApiAbsence extends Extension implements IApiInterface
         $lesson = $tblAbsence->getLessonStringByAbsence();
         $type = $tblAbsence->getTypeDisplayShortName();
 
+        $backgroundColor = '#E0F0FF';
+        $isWhiteLink = false;
+
+        if (($tblAbsenceType = $tblAbsence->getType())) {
+            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
+                $backgroundColor = '#E0F0FF';
+            }
+            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_PRACTICE) {
+                $backgroundColor = '#337ab7';
+                $isWhiteLink = true;
+            }
+        }
+
         $dataList[$tblPerson->getId()][$date]['Content'] = (new Link(
             $tblAbsence->getStatusDisplayShortName(),
             ApiAbsence::getEndpoint(),
             null,
             array(),
-            ($lesson ? $lesson . ' / ': '')
-            . ($type ? $type . ' / ': '')
-            . $tblAbsence->getStatusDisplayShortName()  //. ')'
+            ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName(),
+            null,
+            $isWhiteLink ? Link::TYPE_WHITE_LINK : Link::TYPE_LINK
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
 
-        $backgroundColor = '#E0F0FF';
-        $fontColor = 'black';
-
-        if (($tblAbsenceType = $tblAbsence->getType())) {
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
-                $backgroundColor = 'orange';
-                $fontColor = 'black';
-            }
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_PRACTICE) {
-                $backgroundColor = 'red';
-                $fontColor = 'black';
-            }
-        }
         $dataList[$tblPerson->getId()][$date]['BackgroundColor'] = $backgroundColor;
-        $dataList[$tblPerson->getId()][$date]['FontColor'] = $fontColor;
     }
 
     /**
@@ -1245,16 +1256,6 @@ class ApiAbsence extends Extension implements IApiInterface
      */
     public static function convertOrganizerBaseData()
     {
-//        $data['dayName'] = array(
-//            '0' => '(So)',
-//            '1' => '(Mo)',
-//            '2' => '(Di)',
-//            '3' => '(Mi)',
-//            '4' => '(Do)',
-//            '5' => '(Fr)',
-//            '6' => '(Sa)',
-//        );
-
         $data['dayName'] = array(
             '0' => 'So',
             '1' => 'Mo',

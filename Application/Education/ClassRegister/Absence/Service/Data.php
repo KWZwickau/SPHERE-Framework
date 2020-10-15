@@ -442,4 +442,33 @@ class Data extends AbstractData
             TblAbsenceLesson::ATTR_TBL_ABSENCE => $tblAbsence->getId()
         ), array(TblAbsenceLesson::ATTR_LESSON => 'asc'));
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision)
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('l')
+            ->from(__NAMESPACE__ . '\Entity\TblAbsence', 'a')
+            ->join(__NAMESPACE__ . '\Entity\TblAbsenceLesson', 'l')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('l.tblAbsence', 'a.Id'),
+                    $queryBuilder->expr()->eq('a.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('a.serviceTblDivision', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblDivision->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return !empty($resultList);
+    }
 }
