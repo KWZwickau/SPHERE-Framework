@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
@@ -610,9 +611,9 @@ class Service extends AbstractService
                                 $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : $tblCertificate,
                                 $tblPrepareStudent->isApproved(),
                                 $tblPrepareStudent->isPrinted(),
-                                $array['ExcusedDays'],
+                                $array['ExcusedDays'] === '' ? null : $array['ExcusedDays'],
                                 $tblPrepareStudent->getExcusedDaysFromLessons(),
-                                $array['UnexcusedDays'],
+                                $array['UnexcusedDays'] === '' ? null : $array['UnexcusedDays'],
                                 $tblPrepareStudent->getUnexcusedDaysFromLessons(),
                                 $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
                             );
@@ -1319,15 +1320,31 @@ class Service extends AbstractService
 
         // Fehlzeiten
         if ($tblPrepareStudent) {
+            if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+            ) {
+                $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+            } else {
+                $useClassRegisterForAbsence = false;
+            }
+
             $excusedDays = $tblPrepareStudent->getExcusedDays();
             $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
-            if ($excusedDays === null) {
-                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                    new \DateTime($tblPrepare->getDate()));
-            }
-            if ($unexcusedDays === null) {
-                $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                    new \DateTime($tblPrepare->getDate()));
+
+            if ($useClassRegisterForAbsence) {
+                // Fehlzeiten werden im Klassenbuch gepflegt
+                if ($excusedDays === null) {
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                        new DateTime($tblPrepare->getDate()));
+                }
+                if ($unexcusedDays === null) {
+                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                        new DateTime($tblPrepare->getDate()));
+                }
+
+                // Zusatztage für die fehlenden Unterrichtseinheiten addieren
+                $excusedDays += $tblPrepareStudent->getExcusedDaysFromLessons() ? $tblPrepareStudent->getExcusedDaysFromLessons() : 0;
+                $unexcusedDays += $tblPrepareStudent->getUnexcusedDaysFromLessons() ? $tblPrepareStudent->getUnexcusedDaysFromLessons() : 0;
             }
             $Content['P' . $personId]['Input']['Missing'] = $excusedDays;
             $Content['P' . $personId]['Input']['Bad']['Missing'] = $unexcusedDays;
@@ -4740,12 +4757,12 @@ class Service extends AbstractService
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param TblDivision $tblDivision
-     * @param TblPerson $tblPerson
+     * @param TblDivision|null $tblDivision
+     * @param TblPerson|null $tblPerson
      *
      * @return bool
      */
-    public function hasCertificateAbsence(TblCertificate $tblCertificate, TblDivision $tblDivision, TblPerson $tblPerson)
+    public function hasCertificateAbsence(TblCertificate $tblCertificate, TblDivision $tblDivision = null, TblPerson $tblPerson = null)
     {
         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
         if (class_exists($CertificateClass)) {
@@ -4753,7 +4770,7 @@ class Service extends AbstractService
             $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
 
             // create Certificate with Placeholders
-            $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
+            $pageList[$tblPerson ? $tblPerson->getId() : 0] = $Certificate->buildPages($tblPerson);
             $Certificate->createCertificate(array(), $pageList);
 
             if (($PlaceholderList = $Certificate->getCertificate()->getPlaceholder())) {

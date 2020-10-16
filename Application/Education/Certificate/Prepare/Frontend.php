@@ -1551,9 +1551,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                             = $tblPrepareStudent->getUnexcusedDaysFromLessons();
                                                     } else {
                                                         $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays']
-                                                            = $tblPrepareStudent->getExcusedDays();
+                                                            = $excusedDays;
                                                         $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays']
-                                                            = $tblPrepareStudent->getUnexcusedDays();
+                                                            = $unexcusedDays;
                                                     }
                                                 }
                                                 $Global->savePost();
@@ -1617,7 +1617,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     ''
                                                 );
                                                 $inputUnexcusedDays = new NumberField(
-                                                    'Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
+                                                    'Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]',
                                                     '',
                                                     ''
                                                 );
@@ -2388,6 +2388,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblDivision = $tblPrepare->getServiceTblDivision())
                     && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
                 ) {
+                    $certificateList = [];
                     foreach ($tblStudentList as $tblPerson) {
                         if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                             $isMuted = $isCourseMainDiploma;
@@ -2482,14 +2483,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
                             }
 
-                            $excusedDays = null;
-                            $unexcusedDays = null;
                             $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                             $signer = '';
                             if ($tblPrepareStudent) {
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
-                                $excusedDays = $tblPrepareStudent->getExcusedDays();
-                                $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                                 // überschreiben für Gruppen
                                 if ($tblPrepareStudent->getServiceTblPersonSigner()) {
 //                                    $tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner();
@@ -2505,20 +2502,68 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCertificate = false;
                             }
 
-                            if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                                if ($excusedDays === null) {
-                                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                        $tblDivision,
-                                        new DateTime($tblPrepare->getDate()));
+                            if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                                'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                            ) {
+                                $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+                            } else {
+                                $useClassRegisterForAbsence = false;
+                            }
+
+                            $excusedDays = null;
+                            $unexcusedDays = null;
+                            if ($tblPrepareStudent && $tblCertificate) {
+                                if (isset($certificateList[$tblCertificate->getId()])) {
+                                    $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
+                                } else {
+                                    $hasCertificateAbsence = Prepare::useService()->hasCertificateAbsence($tblCertificate,
+                                        $tblDivision, $tblPerson);
+                                    $certificateList[$tblCertificate->getId()] = $hasCertificateAbsence;
                                 }
-                                if ($unexcusedDays === null) {
-                                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                        $tblDivision,
-                                        new DateTime($tblPrepare->getDate()));
+
+                                if ($hasCertificateAbsence) {
+                                    // Fehlzeiten nur Anzeigen, wenn Fehltage auf der Zeugnisvorlage sind
+                                    $excusedDays = $tblPrepareStudent->getExcusedDays();
+                                    $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+                                    if ($useClassRegisterForAbsence) {
+                                        if ($excusedDays === null) {
+                                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
+                                                $tblDivision,
+                                                new DateTime($tblPrepare->getDate()));
+                                        }
+                                        if ($unexcusedDays === null) {
+                                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                                                $tblDivision,
+                                                new DateTime($tblPrepare->getDate()));
+                                        }
+                                        // Zusatz-Tage von fehlenden Unterrichtseinheiten
+                                        $excusedDaysFromLessons = $tblPrepareStudent->getExcusedDaysFromLessons();
+                                        $unexcusedDaysFromLessons = $tblPrepareStudent->getUnexcusedDaysFromLessons();
+                                        if ($excusedDaysFromLessons) {
+                                            $excusedDays = new ToolTip((string)($excusedDays + $excusedDaysFromLessons),
+                                                'Fehltage: ' . $excusedDays . ' + Zusatz-Tage: ' . $excusedDaysFromLessons);
+                                        }
+                                        if ($unexcusedDaysFromLessons) {
+                                            $unexcusedDays = new ToolTip((string)($unexcusedDays + $unexcusedDaysFromLessons),
+                                                'Fehltage: ' . $unexcusedDays . ' + Zusatz-Tage: ' . $unexcusedDaysFromLessons);
+                                        }
+                                    } else {
+                                        if ($excusedDays === null) {
+                                            $excusedDays = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()),
+                                                'Keine entschuldigten Fehltage erfasst');
+                                        }
+                                        if ($unexcusedDays === null) {
+                                            $unexcusedDays = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()),
+                                                'Keine unentschuldigten Fehltage erfasst');
+                                        }
+                                    }
+                                } else {
+                                    $excusedDays = '&nbsp;';
+                                    $unexcusedDays = '&nbsp;';
                                 }
                             } else {
-                                $excusedDays = '';
-                                $unexcusedDays = '';
+                                $excusedDays = '&nbsp;';
+                                $unexcusedDays = '&nbsp;';
                             }
 
                             $number = count($studentTable) + 1;
