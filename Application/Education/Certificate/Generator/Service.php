@@ -479,6 +479,7 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithParent' => 'TextArea',
             'Content.Input.DialoguesWithUs'     => 'TextArea',
             // Berufsfachschule
+            'Content.Input.CertificateName'     => 'TextField',
             'Content.Input.BsDestination'       => 'TextField',
             'Content.Input.Operation1'          => 'TextField',
             'Content.Input.OperationTime1'      => 'TextField',
@@ -538,6 +539,7 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithParent' => 'Im Dialog mit deinen Eltern',
             'Content.Input.DialoguesWithUs'     => 'Im Dialog mit uns',
             // Berufsfachschule
+            'Content.Input.CertificateName'     => 'Abweichender Zeugnisname (Endjahresinformation)',
             'Content.Input.BsDestination'       => 'Berufsfachschule für ...',
             'Content.Input.Operation1'          => 'Einsatzgebiet 1',
             'Content.Input.OperationTime1'      => 'Einsatzgebiet Dauer in Wochen 1',
