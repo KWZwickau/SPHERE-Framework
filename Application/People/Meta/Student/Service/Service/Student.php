@@ -4,6 +4,8 @@ namespace SPHERE\Application\People\Meta\Student\Service\Service;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -216,5 +218,35 @@ abstract class Student extends AbstractService
     {
 
         return (new Data($this->getBinding()))->restoreStudent($tblStudent);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSpecialNeeds
+     */
+    public function getStudentSpecialNeedsById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSpecialNeedsLevel
+     */
+    public function getStudentSpecialNeedsLevelById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentSpecialNeedsLevel
+     */
+    public function getStudentSpecialNeedsLevelByName($Name)
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelByName($Name);
     }
 }

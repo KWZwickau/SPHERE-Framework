@@ -386,6 +386,12 @@ class Data extends Support
             , 'staatliche Stelle');
         $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_COMMUNITY, TblStudentMasernInfo::TYPE_CREATOR, 'Gemeinschaftseinrichtung'
             , 'Leitung der bisher besuchten Gemeinschaftseinrichtung');
+
+        // Förderschule
+        $this->createStudentSpecialNeedsLevel('Unterstufe', 'LOWER');
+        $this->createStudentSpecialNeedsLevel('Mittelstufe', 'MIDDLE');
+        $this->createStudentSpecialNeedsLevel('Oberstufe', 'UPPER');
+        $this->createStudentSpecialNeedsLevel('Werkstufe', 'WORK');
     }
 
     /**

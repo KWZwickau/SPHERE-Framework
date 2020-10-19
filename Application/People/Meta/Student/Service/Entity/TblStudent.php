@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -65,6 +66,10 @@ class TblStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentIntegration;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentSpecialNeeds;
 
     /**
      * @Column(type="boolean")
@@ -284,9 +289,9 @@ class TblStudent extends Element
         if (null === $this->SchoolAttendanceStartDate) {
             return false;
         }
-        /** @var \DateTime $SchoolAttendanceStartDate */
+        /** @var DateTime $SchoolAttendanceStartDate */
         $SchoolAttendanceStartDate = $this->SchoolAttendanceStartDate;
-        if ($SchoolAttendanceStartDate instanceof \DateTime) {
+        if ($SchoolAttendanceStartDate instanceof DateTime) {
             return $SchoolAttendanceStartDate->format('d.m.Y');
         } else {
             return (string)$SchoolAttendanceStartDate;
@@ -294,9 +299,9 @@ class TblStudent extends Element
     }
 
     /**
-     * @param null|\DateTime $SchoolAttendanceStartDate
+     * @param null|DateTime $SchoolAttendanceStartDate
      */
-    public function setSchoolAttendanceStartDate(\DateTime $SchoolAttendanceStartDate = null)
+    public function setSchoolAttendanceStartDate(DateTime $SchoolAttendanceStartDate = null)
     {
 
         $this->SchoolAttendanceStartDate = $SchoolAttendanceStartDate;
@@ -465,5 +470,27 @@ class TblStudent extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return bool|TblStudentSpecialNeeds
+     */
+    public function getTblStudentSpecialNeeds()
+    {
+
+        if (null === $this->tblStudentSpecialNeeds) {
+            return false;
+        } else {
+            return Student::useService()->getStudentSpecialNeedsById($this->tblStudentSpecialNeeds);
+        }
+    }
+
+    /**
+     * @param null|TblStudentSpecialNeeds $tblStudentSpecialNeeds
+     */
+    public function setTblStudentSpecialNeeds(TblStudentSpecialNeeds $tblStudentSpecialNeeds = null)
+    {
+
+        $this->tblStudentSpecialNeeds = ( null === $tblStudentSpecialNeeds ? null : $tblStudentSpecialNeeds->getId() );
     }
 }
