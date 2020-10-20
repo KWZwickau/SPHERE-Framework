@@ -24,6 +24,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
@@ -206,14 +208,15 @@ class Service extends Support
     }
 
     /**
-     * @param string                    $Disease
-     * @param string                    $Medication
-     * @param string                    $Insurance
-     * @param int                       $InsuranceState
-     * @param string                    $AttendingDoctor
-     * @param DateTime|null             $MasernDate
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $Insurance
+     * @param int $InsuranceState
+     * @param string $AttendingDoctor
+     * @param DateTime|null $MasernDate
      * @param TblStudentMasernInfo|null $MasernDocumentType
      * @param TblStudentMasernInfo|null $MasernCreatorType
+     * @param string $InsuranceNumber
      *
      * @return TblStudentMedicalRecord
      */
@@ -225,7 +228,8 @@ class Service extends Support
         $AttendingDoctor = '',
         $MasernDate = null,
         TblStudentMasernInfo $MasernDocumentType = null,
-        TblStudentMasernInfo $MasernCreatorType = null
+        TblStudentMasernInfo $MasernCreatorType = null,
+        $InsuranceNumber = ''
     ) {
 
         return (new Data($this->getBinding()))->createStudentMedicalRecord(
@@ -234,6 +238,7 @@ class Service extends Support
             $AttendingDoctor,
             $InsuranceState,
             $Insurance,
+            $InsuranceNumber,
             $MasernDate,
             $MasernDocumentType,
             $MasernCreatorType
@@ -313,16 +318,17 @@ class Service extends Support
     }
 
     /**
-     * @param TblPerson                    $tblPerson
-     * @param string                       $Prefix
-     * @param string                       $Identifier
+     * @param TblPerson $tblPerson
+     * @param string $Prefix
+     * @param string $Identifier
      * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
-     * @param TblStudentTransport|null     $tblStudentTransport
-     * @param TblStudentBilling|null       $tblStudentBilling
-     * @param TblStudentLocker|null        $tblStudentLocker
-     * @param TblStudentBaptism|null       $tblStudentBaptism
-     * @param TblStudentIntegration|null   $tblStudentIntegration
-     * @param string                       $SchoolAttendanceStartDate
+     * @param TblStudentTransport|null $tblStudentTransport
+     * @param TblStudentBilling|null $tblStudentBilling
+     * @param TblStudentLocker|null $tblStudentLocker
+     * @param TblStudentBaptism|null $tblStudentBaptism
+     * @param TblStudentIntegration|null $tblStudentIntegration
+     * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
+     * @param string $SchoolAttendanceStartDate
      *
      * @return TblStudent
      */
@@ -336,6 +342,7 @@ class Service extends Support
         TblStudentLocker $tblStudentLocker = null,
         TblStudentBaptism $tblStudentBaptism = null,
         TblStudentIntegration $tblStudentIntegration = null,
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = ''
     ) {
 
@@ -348,7 +355,9 @@ class Service extends Support
             $tblStudentLocker,
             $tblStudentBaptism,
             $tblStudentIntegration,
-            $SchoolAttendanceStartDate);
+            $tblStudentSpecialNeeds,
+            $SchoolAttendanceStartDate
+        );
     }
 
     /**
@@ -708,6 +717,7 @@ class Service extends Support
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company'],
+                    isset($Meta['MedicalRecord']['Insurance']['Number']) ? $Meta['MedicalRecord']['Insurance']['Number'] : '',
                     $MasernDate,
                     $DocumentType,
                     $CreatorType
@@ -719,6 +729,7 @@ class Service extends Support
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company'],
+                    isset($Meta['MedicalRecord']['Insurance']['Number']) ? $Meta['MedicalRecord']['Insurance']['Number'] : '',
                     $MasernDate,
                     $DocumentType,
                     $CreatorType
@@ -1334,5 +1345,82 @@ class Service extends Support
         }
 
         return false;
+    }
+
+    /**
+     * @param $IsMultipleHandicapped
+     * @param $IsHeavyMultipleHandicapped
+     * @param $IncreaseFactorHeavyMultipleHandicappedSchool
+     * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
+     * @param $RemarkHeavyMultipleHandicapped
+     * @param $DegreeOfHandicap
+     * @param $Sign
+     * @param $ValidTo
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds
+     */
+    public function createStudentSpecialNeeds(
+        $IsMultipleHandicapped,
+        $IsHeavyMultipleHandicapped,
+        $IncreaseFactorHeavyMultipleHandicappedSchool,
+        $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+        $RemarkHeavyMultipleHandicapped,
+        $DegreeOfHandicap,
+        $Sign,
+        $ValidTo,
+        TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
+    ) {
+        return (new Data($this->getBinding()))->createStudentSpecialNeeds(
+            $IsMultipleHandicapped,
+            $IsHeavyMultipleHandicapped,
+            $IncreaseFactorHeavyMultipleHandicappedSchool,
+            $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+            $RemarkHeavyMultipleHandicapped,
+            $DegreeOfHandicap,
+            $Sign,
+            $ValidTo,
+            $tblStudentSpecialNeedsLevel
+        );
+    }
+
+    /**
+     * @param TblStudentMedicalRecord $tblStudentMedicalRecord
+     * @param $Disease
+     * @param $Medication
+     * @param $AttendingDoctor
+     * @param $InsuranceState
+     * @param $Insurance
+     * @param $InsuranceNumber
+     * @param null $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
+     *
+     * @return bool
+     */
+    public function updateStudentMedicalRecordService(
+        TblStudentMedicalRecord $tblStudentMedicalRecord,
+        $Disease,
+        $Medication,
+        $AttendingDoctor,
+        $InsuranceState,
+        $Insurance,
+        $InsuranceNumber,
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo $MasernCreatorType = null
+    ) {
+        return (new Data($this->getBinding()))->updateStudentMedicalRecord(
+            $tblStudentMedicalRecord,
+            $Disease,
+            $Medication,
+            $AttendingDoctor,
+            $InsuranceState,
+            $Insurance,
+            $InsuranceNumber,
+            $MasernDate,
+            $MasernDocumentType,
+            $MasernCreatorType
+        );
     }
 }

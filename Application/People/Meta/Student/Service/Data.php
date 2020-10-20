@@ -10,6 +10,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceSta
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -449,12 +451,13 @@ class Data extends Support
     }
 
     /**
-     * @param string                    $Disease
-     * @param string                    $Medication
-     * @param string                    $AttendingDoctor
-     * @param int                       $InsuranceState
-     * @param string                    $Insurance
-     * @param DateTime|null             $MasernDate
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $AttendingDoctor
+     * @param int $InsuranceState
+     * @param string $Insurance
+     * @param string $InsuranceNumber
+     * @param DateTime|null $MasernDate
      * @param TblStudentMasernInfo|null $MasernDocumentType
      * @param TblStudentMasernInfo|null $MasernCreatorType
      *
@@ -466,6 +469,7 @@ class Data extends Support
         $AttendingDoctor,
         $InsuranceState,
         $Insurance,
+        $InsuranceNumber,
         $MasernDate = null,
         TblStudentMasernInfo $MasernDocumentType = null,
         TblStudentMasernInfo  $MasernCreatorType = null
@@ -483,6 +487,7 @@ class Data extends Support
         $Entity->setAttendingDoctor($AttendingDoctor);
         $Entity->setInsuranceState($InsuranceState);
         $Entity->setInsurance($Insurance);
+        $Entity->setInsuranceNumber($InsuranceNumber);
         $Entity->setMasernDate($MasernDate);
         $Entity->setMasernDocumentType($MasernDocumentType);
         $Entity->setMasernCreatorType($MasernCreatorType);
@@ -494,12 +499,13 @@ class Data extends Support
 
     /**
      * @param TblStudentMedicalRecord $tblStudentMedicalRecord
-     * @param string                  $Disease
-     * @param string                  $Medication
-     * @param string                  $AttendingDoctor
-     * @param int                     $InsuranceState
-     * @param string                  $Insurance
-     * @param DateTime|null           $MasernDate
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $AttendingDoctor
+     * @param int $InsuranceState
+     * @param string $Insurance
+     * @param $InsuranceNumber
+     * @param DateTime|null $MasernDate
      * @param TblStudentMasernInfo|null $MasernDocumentType
      * @param TblStudentMasernInfo|null $MasernCreatorType
      *
@@ -512,6 +518,7 @@ class Data extends Support
         $AttendingDoctor,
         $InsuranceState,
         $Insurance,
+        $InsuranceNumber,
         $MasernDate = null,
         TblStudentMasernInfo $MasernDocumentType = null,
         TblStudentMasernInfo $MasernCreatorType = null
@@ -527,6 +534,7 @@ class Data extends Support
             $Entity->setAttendingDoctor($AttendingDoctor);
             $Entity->setInsuranceState($InsuranceState);
             $Entity->setInsurance($Insurance);
+            $Entity->setInsuranceNumber($InsuranceNumber);
             $Entity->setMasernDate($MasernDate);
             $Entity->setMasernDocumentType($MasernDocumentType);
             $Entity->setMasernCreatorType($MasernCreatorType);
@@ -935,5 +943,49 @@ class Data extends Support
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $IsMultipleHandicapped
+     * @param $IsHeavyMultipleHandicapped
+     * @param $IncreaseFactorHeavyMultipleHandicappedSchool
+     * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
+     * @param $RemarkHeavyMultipleHandicapped
+     * @param $DegreeOfHandicap
+     * @param $Sign
+     * @param $ValidTo
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds
+     */
+    public function createStudentSpecialNeeds(
+        $IsMultipleHandicapped,
+        $IsHeavyMultipleHandicapped,
+        $IncreaseFactorHeavyMultipleHandicappedSchool,
+        $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+        $RemarkHeavyMultipleHandicapped,
+        $DegreeOfHandicap,
+        $Sign,
+        $ValidTo,
+        TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblStudentSpecialNeeds();
+        $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
+        $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);
+        $Entity->setRemarkHeavyMultipleHandicapped($RemarkHeavyMultipleHandicapped);
+        $Entity->setDegreeOfHandicap($DegreeOfHandicap);
+        $Entity->setSign($Sign);
+        $Entity->setValidTo($ValidTo);
+        $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
     }
 }

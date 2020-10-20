@@ -223,6 +223,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'MasernCreatorType')) {
             $Table->addColumn('MasernCreatorType', 'bigint', array('notnull' => false));
         }
+        $this->createColumn($Table, 'InsuranceNumber', self::FIELD_TYPE_STRING, false, '');
 
 //        // entfernen alter Rückstände
 //        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
@@ -919,12 +920,12 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'IsHeavyMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedSchool', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities', self::FIELD_TYPE_STRING);
-        $this->createColumn($table, 'RemarkHeavyMultipleHandicapped', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'RemarkHeavyMultipleHandicapped', self::FIELD_TYPE_TEXT);
         $this->createColumn($table, 'DegreeOfHandicap', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Sign', self::FIELD_TYPE_STRING);
-        $this->createColumn($table, 'ValidToDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'ValidTo', self::FIELD_TYPE_STRING);
 
-        $this->createForeignKey($table, $tblStudentSpecialNeedsLevel);
+        $this->createForeignKey($table, $tblStudentSpecialNeedsLevel, true);
 
         return $table;
     }

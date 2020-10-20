@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\People\Meta\Student\Service\Entity;
 
-use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -46,9 +45,9 @@ class TblStudentSpecialNeeds extends Element
      */
     protected $Sign;
     /**
-     * @Column(type="datetime")
+     * @Column(type="string")
      */
-    protected $ValidToDate;
+    protected $ValidTo;
     /**
      * @Column(type="bigint")
      */
@@ -152,33 +151,6 @@ class TblStudentSpecialNeeds extends Element
     }
 
     /**
-     * @return string|false
-     */
-    public function getValidToDate()
-    {
-
-        if (null === $this->ValidToDate) {
-            return false;
-        }
-        /** @var DateTime $ValidToDate */
-        $ValidToDate = $this->ValidToDate;
-        if ($ValidToDate instanceof DateTime) {
-            return $ValidToDate->format('d.m.Y');
-        } else {
-            return (string)$ValidToDate;
-        }
-    }
-
-    /**
-     * @param null|DateTime $ValidToDate
-     */
-    public function setValidToDate(DateTime $ValidToDate = null)
-    {
-
-        $this->ValidToDate = $ValidToDate;
-    }
-
-    /**
      * @return bool|TblStudentSpecialNeedsLevel
      */
     public function getTblStudentSpecialNeedsLevel()
@@ -198,5 +170,37 @@ class TblStudentSpecialNeeds extends Element
     {
 
         $this->tblStudentSpecialNeedsLevel = ( null === $tblStudentSpecialNeedsLevel ? null : $tblStudentSpecialNeedsLevel->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getValidTo()
+    {
+        return $this->ValidTo;
+    }
+
+    /**
+     * @param string $ValidTo
+     */
+    public function setValidTo($ValidTo)
+    {
+        $this->ValidTo = $ValidTo;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSign()
+    {
+        return $this->Sign;
+    }
+
+    /**
+     * @param string $Sign
+     */
+    public function setSign($Sign)
+    {
+        $this->Sign = $Sign;
     }
 }

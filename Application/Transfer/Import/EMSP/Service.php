@@ -345,6 +345,7 @@ class Service
                                     null,
                                     null,
                                     null,
+                                    null,
                                     $schoolDate,
                                     trim($Document->getValue($Document->getCell($Location['Grunddaten: Migrationshintergrund'],
                                         $RunY))) == 'ja',

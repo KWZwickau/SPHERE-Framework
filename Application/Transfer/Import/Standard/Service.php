@@ -222,7 +222,8 @@ class Service
             'Bildungsgang'         => null,
             'Fach_Religion'        => null,
             'Stammgruppe'          => null,
-            'Ersteinschlung_Datum' => null,
+            'Schulpflichtbeginn'   => null,
+            'Ersteinschulung_Datum'=> null,
             'Allergien'            => null,
             'Medikamente'          => null,
             'Krankenkasse'         => null,
@@ -274,7 +275,8 @@ class Service
                 $callName = trim($Document->getValue($Document->getCell($Location['Rufname'], $RunY)));
                 $Stammgruppe = trim($Document->getValue($Document->getCell($Location['Stammgruppe'], $RunY)));
                 $Hort = trim($Document->getValue($Document->getCell($Location['Hort'], $RunY)));
-                $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort);
+                $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort,
+                    false, $RunY + 1);
                 $countStudent++;
 
                 // common & birthday
@@ -288,7 +290,8 @@ class Service
 
                 // student
                 $Identification = trim($Document->getValue($Document->getCell($Location['Schüler_Nr'], $RunY)));
-                $schoolAttendanceStartDate = trim($Document->getValue($Document->getCell($Location['Ersteinschlung_Datum'], $RunY)));
+                $schoolAttendanceStartDate = trim($Document->getValue($Document->getCell($Location['Schulpflichtbeginn'], $RunY)));
+                $enrollmentDate = trim($Document->getValue($Document->getCell($Location['Ersteinschulung_Datum'], $RunY)));
                 // medicine
                 $tblStudentMedicalRecord = null;
                 $disease = trim($Document->getValue($Document->getCell($Location['Allergien'], $RunY)));
@@ -296,7 +299,8 @@ class Service
                 $insurance = trim($Document->getValue($Document->getCell($Location['Krankenkasse'], $RunY)));
                 $religion = trim($Document->getValue($Document->getCell($Location['Fach_Religion'], $RunY)));
                 $course = trim($Document->getValue($Document->getCell($Location['Bildungsgang'], $RunY)));
-                $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $disease, $medication, $insurance, $religion, $course, $RunY, $Nr, $error);
+                $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $disease, $medication,
+                    $insurance, $religion, $course, $enrollmentDate, $RunY, $Nr, $error);
 
                 // division
                 $divisionString = trim($Document->getValue($Document->getCell($Location['Klasse/Kurs'], $RunY)));
@@ -1159,11 +1163,13 @@ class Service
      * @param string $lastName
      * @param string $Stammgruppe
      * @param string $Hort
-     * @param bool   $isProspect
+     * @param bool $isProspect
+     * @param string $ImportId
      *
      * @return bool|TblPerson
      */
-    private function setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $isProspect = false)
+    private function setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $isProspect = false,
+        $ImportId = '')
     {
 
         // Auswahl der Stammgruppe
@@ -1197,7 +1203,7 @@ class Service
             $lastName,
             $GroupList,
             '',
-            '',
+            $ImportId,
             $callName
         );
     }
@@ -1561,21 +1567,23 @@ class Service
 
     /**
      * @param TblPerson $tblPerson
-     * @param string    $Identification
-     * @param string    $schoolAttendanceStartDate
-     * @param string    $disease
-     * @param string    $medication
-     * @param string    $insurance
-     * @param string    $religion
-     * @param string    $course
-     * @param int       $RunY
-     * @param string    $Nr
-     * @param array     $error
+     * @param string $Identification
+     * @param string $schoolAttendanceStartDate
+     * @param string $disease
+     * @param string $medication
+     * @param string $insurance
+     * @param string $religion
+     * @param string $course
+     * @param string $enrollmentDate
+     * @param int $RunY
+     * @param string $Nr
+     * @param array $error
      */
-    private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $disease, $medication, $insurance, $religion, $course, $RunY, $Nr, &$error)
+    private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $disease,
+        $medication, $insurance, $religion, $course, $enrollmentDate, $RunY, $Nr, &$error)
     {
         // controll conform DateTime string
-        $schoolAttendanceStartDate = $this->checkDate($schoolAttendanceStartDate, 'Ungültiges Einschulungsdatum:', $RunY, $Nr, $error);
+        $schoolAttendanceStartDate = $this->checkDate($schoolAttendanceStartDate, 'Ungültiges Schulpflichtbeginn-Datum:', $RunY, $Nr, $error);
 
         $tblStudentMedicalRecord = null;
         if($disease != '' || $medication != '' || $insurance != ''){
@@ -1583,7 +1591,7 @@ class Service
         }
 
         // Student
-        $tblStudent = Student::useService()->insertStudent($tblPerson, $Identification, $tblStudentMedicalRecord, null, null, null, null, null, $schoolAttendanceStartDate);
+        $tblStudent = Student::useService()->insertStudent($tblPerson, $Identification, $tblStudentMedicalRecord, null, null, null, null, null, null, $schoolAttendanceStartDate);
 
         if($religion){
             $tblSubject = Subject::useService()->getSubjectByAcronym($religion);
@@ -1605,6 +1613,14 @@ class Service
             }
         }
 
+        if ($enrollmentDate) {
+            if (($enrollmentDate = $this->checkDate($enrollmentDate, 'Ungültiges Einschulungsdatum:', $RunY, $Nr, $error))
+                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ENROLLMENT))
+            ) {
+                Student::useService()->insertStudentTransfer($tblStudent, $tblStudentTransferType, null, null, null,
+                    $enrollmentDate ? $enrollmentDate : '');
+            }
+        }
     }
 
     /**
