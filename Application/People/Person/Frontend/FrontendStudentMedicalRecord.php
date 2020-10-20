@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\BarCode;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Heart;
@@ -37,7 +38,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -68,6 +68,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 $attendingDoctor = $tblStudentMedicalRecord->getAttendingDoctor();
                 $insuranceState = $tblStudentMedicalRecord->getInsuranceState();
                 $insurance = $tblStudentMedicalRecord->getInsurance();
+                $insuranceNumber = $tblStudentMedicalRecord->getInsuranceNumber();
                 $masernDate = $tblStudentMedicalRecord->getMasernDate();
                 $masernDocumentType = $tblStudentMedicalRecord->getMasernDocumentType();
                 $masernCreatorType = $tblStudentMedicalRecord->getMasernCreatorType();
@@ -77,6 +78,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 $attendingDoctor = '';
                 $insuranceState = '';
                 $insurance = '';
+                $insuranceNumber = '';
                 $masernDate = '';
                 $masernDocumentType = '';
                 $masernCreatorType = '';
@@ -114,6 +116,10 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Versicherungsstatus', 6),
                                     self::getLayoutColumnValue($insuranceState, 6),
+                                )),
+                                new LayoutRow(array(
+                                    self::getLayoutColumnLabel('Versicherungsnummer', 6),
+                                    self::getLayoutColumnValue($insuranceNumber, 6),
                                 )),
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Krankenkasse', 6),
@@ -187,6 +193,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 $Global->POST['Meta']['MedicalRecord']['Medication'] = $tblStudentMedicalRecord->getMedication();
                 $Global->POST['Meta']['MedicalRecord']['AttendingDoctor'] = $tblStudentMedicalRecord->getAttendingDoctor();
                 $Global->POST['Meta']['MedicalRecord']['Insurance']['State'] = $tblStudentMedicalRecord->getInsuranceStateId();
+                $Global->POST['Meta']['MedicalRecord']['Insurance']['Number'] = $tblStudentMedicalRecord->getInsuranceNumber();
                 $Global->POST['Meta']['MedicalRecord']['Insurance']['Company'] = $tblStudentMedicalRecord->getInsurance();
                 $Global->POST['Meta']['MedicalRecord']['Masern']['Date'] = $tblStudentMedicalRecord->getMasernDate();
                 if(($tblStudentMasernInfoDocument = $tblStudentMedicalRecord->getMasernDocumentType())){
@@ -292,6 +299,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                     new FormColumn(
                         new Panel('&nbsp;', array(
                             new SelectBox('Meta[MedicalRecord][Insurance][State]', 'Versicherungsstatus', array( '{{ Name }}' => $tblStudentInsuranceState), new Lock()),
+                            new TextField('Meta[MedicalRecord][Insurance][Number]', 'Versicherungsnummer', 'Versicherungsnummer', new BarCode()),
                             new AutoCompleter('Meta[MedicalRecord][Insurance][Company]', 'Krankenkasse', 'Krankenkasse', array(), new Shield()),
                             new TextField('Meta[MedicalRecord][AttendingDoctor]', 'Name', 'Behandelnder Arzt',
                                 new Stethoscope())

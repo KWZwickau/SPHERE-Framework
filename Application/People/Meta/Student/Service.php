@@ -717,7 +717,7 @@ class Service extends Support
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company'],
-                    isset($Meta['MedicalRecord']['Insurance']['Number']) ? $Meta['MedicalRecord']['Insurance']['Number'] : '',
+                    $Meta['MedicalRecord']['Insurance']['Number'],
                     $MasernDate,
                     $DocumentType,
                     $CreatorType
@@ -729,7 +729,7 @@ class Service extends Support
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company'],
-                    isset($Meta['MedicalRecord']['Insurance']['Number']) ? $Meta['MedicalRecord']['Insurance']['Number'] : '',
+                    $Meta['MedicalRecord']['Insurance']['Number'],
                     $MasernDate,
                     $DocumentType,
                     $CreatorType
