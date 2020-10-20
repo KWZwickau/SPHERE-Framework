@@ -19,6 +19,7 @@ class SDataBerufsfachschule
         self::setBfsHjInfo($Data);
         self::setBfsHj($Data);
         self::setBfsJ(($Data));
+        self::setBfsAbs(($Data));
         self::setBfsAbg(($Data));
     }
 
@@ -50,6 +51,15 @@ class SDataBerufsfachschule
                 $Data->createCertificateField($tblCertificate, $Var, 900);
             }
         }
+
+        // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
+        // Seite 2
+        $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+        $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+        $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+        $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+        $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+        $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
     }
 
     /**
@@ -79,6 +89,15 @@ class SDataBerufsfachschule
             if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
                 $Data->createCertificateField($tblCertificate, $Var, 900);
             }
+
+            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
+            // Seite 2
+            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
         }
     }
 
@@ -108,6 +127,43 @@ class SDataBerufsfachschule
             if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
                 $Data->createCertificateField($tblCertificate, $Var, 300);
             }
+
+            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
+            // Seite 2
+            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     */
+    private static function setBfsAbs(Data $Data)
+    {
+
+        if (($tblCertificate = $Data->createCertificate('Berufsfachschule Abschlusszeugnis', '', 'BfsAbs',
+            null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsfachschule()))
+        ) {
+            // ToDO hinterlegung irgendwelcher Fächer?
+
+            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
+            // Seite 2
+            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
+            // Seite 3
+            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 3);
+            $Data->createCertificateInformation($tblCertificate, 'DateTo', 3);
+            $Data->createCertificateInformation($tblCertificate, 'AbsYear', 3);
+            $Data->createCertificateInformation($tblCertificate, 'ProfessionalTitle', 3);
+
         }
     }
 

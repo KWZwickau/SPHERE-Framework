@@ -486,7 +486,12 @@ class Service extends AbstractService
             'Content.Input.Operation2'          => 'TextField',
             'Content.Input.OperationTime2'      => 'TextField',
             'Content.Input.Operation3'          => 'TextField',
-            'Content.Input.OperationTime3'      => 'TextField'
+            'Content.Input.OperationTime3'      => 'TextField',
+            'Content.Input.DateFrom'            => 'DatePicker',
+            'Content.Input.DateTo'              => 'DatePicker',
+            'Content.Input.AbsYear'             => 'TextField',
+            'Content.Input.ProfessionalTitle'   => 'TextField',
+
         );
     }
 
@@ -546,7 +551,11 @@ class Service extends AbstractService
             'Content.Input.Operation2'          => 'Einsatzgebiet 2',
             'Content.Input.OperationTime2'      => 'Einsatzgebiet Dauer in Wochen 2',
             'Content.Input.Operation3'          => 'Einsatzgebiet 3',
-            'Content.Input.OperationTime3'      => 'Einsatzgebiet Dauer in Wochen 3'
+            'Content.Input.OperationTime3'      => 'Einsatzgebiet Dauer in Wochen 3',
+            'Content.Input.DateFrom'            => 'Besucht "seit" die Berufsfachschule',
+            'Content.Input.DateTo'              => 'Besuchte "bis" die Berufsfachschule',
+            'Content.Input.AbsYear'             => 'Abschluss im Schuljahr',
+            'Content.Input.ProfessionalTitle'   => 'Berufsbezeichnung',
         );
     }
 

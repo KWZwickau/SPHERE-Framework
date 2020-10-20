@@ -38,11 +38,11 @@ class BfsAbg extends BfsStyle
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, true, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
-            ->addSlice($this->getDescriptionBsContent($personId, '77px'))
+            ->addSlice($this->getDescriptionBsContent($personId, '85px'))
 //            ->addSlice($this->getTransfer($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('128px')
+                ->stylePaddingTop('120px')
             ))
             ->addSlice($this->getIndividuallySignPart($personId, true))
             ->addSlice($this->getBsInfo('85px',

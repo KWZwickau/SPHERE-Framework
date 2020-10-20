@@ -8,11 +8,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class BfsJ
+ * Class BfsAbs
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class BfsJ extends BfsStyle
+class BfsAbs extends BfsStyle
 {
     /**
      * @return array
@@ -36,25 +36,33 @@ class BfsJ extends BfsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSchoolHead($personId, 'Jahreszeugnis', true))
-            ->addSlice($this->getStudentHead($personId, 'Schuljahr', 'folgende Leistungen erreicht:', true))
-            ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6, false))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 10))
+
+            ->addSlice($this->getSchoolHead($personId, 'Abschlusszeugnis', true, true))
+            ->addSlice($this->getStudentHeadAbs($personId))
+            ->addSlice((new Slice())->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop('330px')
+            ))
+            ->addSlice($this->getIndividuallySignPart($personId, true))
+
+//            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity()))
+//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 10))
         ;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId, 'Jahreszeugnis', true))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, true, '220px'))
-            ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', true))
+            ->addSlice($this->getSubjectLinePerformance())
+            ->addSlice($this->getSubjectLineDuty())
+            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6, false, 1, 4))
+            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 14, true, 5, 12, '310px'))
+            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 14, false, 13, 14, '100px'))
+//            ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId, '85px'))
-            ->addSlice($this->getTransfer($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('94px')
+                ->stylePaddingTop('11px')
             ))
-            ->addSlice($this->getIndividuallySignPart($personId))
             ->addSlice($this->getBsInfo('20px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
         ;

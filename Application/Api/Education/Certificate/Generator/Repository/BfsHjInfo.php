@@ -27,9 +27,13 @@ class BfsHjInfo extends BfsStyle
         $pageList[] = (new Page())
             ->addSlice($this->getSchoolHead($personId, 'Halbjahresinformation'))
             ->addSlice($this->getStudentHead($personId, 'Schulhalbjahr', 'folgende Leistungen erreicht:', true))
-            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getSubjectLineDuty())
+            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6, false))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Berufsbezogener Bereich', 1, 10))
         ;
+
+//        Debugger::screenDump($pageList[0]->getContent());
+//        exit;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId))

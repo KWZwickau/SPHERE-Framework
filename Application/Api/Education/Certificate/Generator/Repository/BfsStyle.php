@@ -24,34 +24,63 @@ abstract class BfsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getSchoolHead($personId, $CertificateName = 'Halbjahreszeugnis', $isChangeableCertificateName = false)
+    protected function getSchoolHead($personId, $CertificateName = 'Halbjahreszeugnis', $isChangeableCertificateName = false, $IsLogo = false)
     {
 
         $name = '';
         $secondLine = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if(($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson,
+                $this->getTblDivision() ? $this->getTblDivision() : null))
+        ){
             $name = $tblCompany->getName();
             $secondLine = $tblCompany->getExtendedName();
         }
 
         $Slice = (new Slice());
-        $Slice->addElement((new Element())
-            ->setContent($name ? $name : '&nbsp;')
-            ->styleAlignCenter()
-            ->styleTextSize('22px')
-            ->styleHeight('28px')
-            ->stylePaddingTop('25px')
-        );
-        $Slice->addElement((new Element())
-            ->setContent($secondLine ? $secondLine : '&nbsp;')
-            ->styleAlignCenter()
-            ->styleTextSize('18px')
-            ->styleHeight('42px')
+        if($IsLogo){
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '61%')
+                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                    '214px', '66px'))
+                    ->styleAlignRight()
+                    ->stylePaddingTop('20px')
+                    , '39%')
+            );
+            $Slice->addElement((new Element())
+                ->setContent($name ? $name : '&nbsp;')
+                ->styleAlignRight()
+                ->styleTextSize('22px')
+                ->styleHeight('28px')
+                ->stylePaddingTop('40px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent($secondLine ? $secondLine : '&nbsp;')
+                ->styleAlignRight()
+                ->styleTextSize('18px')
+                ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
-        );
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($name ? $name : '&nbsp;')
+                ->styleAlignCenter()
+                ->styleTextSize('22px')
+                ->styleHeight('28px')
+                ->stylePaddingTop('25px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent($secondLine ? $secondLine : '&nbsp;')
+                ->styleAlignCenter()
+                ->styleTextSize('18px')
+                ->styleHeight('42px')
+//            ->stylePaddingTop('20px')
+            );
+        }
+
         $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
         if($isChangeableCertificateName){
             $Slice->addElement((new Element())
@@ -71,14 +100,20 @@ abstract class BfsStyle extends Certificate
                 ->styleTextSize('30px')
             );
         }
+        $PreString = 'der Berufsfachschule für';
+        if($CertificateName === 'Abschlusszeugnis'){
+            $PreString = 'der Berufsfachschule';
+        }
         $Slice->addElement((new Element())
-            ->setContent('der Berufsfachschule für {% if(Content.P' . $personId . '.Input.BsDestination is not empty) %}
-                        {{ Content.P' . $personId . '.Input.BsDestination }}
-                    {% endif %}')
+            ->setContent($PreString.' {% if(Content.P' . $personId . '.Input.BsDestination is not empty) %}
+                    {{ Content.P' . $personId . '.Input.BsDestination }}
+                {% endif %}')
             ->stylePaddingTop('4px')
             ->styleAlignCenter()
             ->styleTextSize('22px')
         );
+
+
 
         return $Slice;
     }
@@ -233,6 +268,129 @@ abstract class BfsStyle extends Certificate
      *
      * @return Slice
      */
+    protected function getStudentHeadAbs($personId)
+    {
+
+        $Slice = new Slice();
+
+        $Slice->stylePaddingTop('20px');
+
+        $Slice->addElement((new Element())
+            ->setContent('
+            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+            {% else %}
+                Frau/Herr
+            {% endif %}
+            {{ Content.P' . $personId . '.Person.Data.Name.First }}
+            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+            ->styleBorderBottom('0.5px')
+            ->styleAlignCenter()
+            ->styleTextSize('26px')
+            ->styleMarginBottom('20px')
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('geboren am  {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }}')
+                ->styleAlignCenter()
+                ->styleBorderBottom('0.5px')
+                , '35%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp')
+                , '30%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('in {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}')
+                ->styleAlignCenter()
+                ->styleBorderBottom('0.5px')
+                , '35%'
+            )
+        );
+        $Slice->addElement((new Element())
+            ->setContent('hat von 
+                {% if(Content.P' . $personId . '.Input.DateFrom is not empty) %}
+                    {{ Content.P' . $personId . '.Input.DateFrom }}
+                {% else %}
+                    ---
+                {% endif %}
+                bis 
+                {% if(Content.P' . $personId . '.Input.DateTo is not empty) %}
+                    {{ Content.P' . $personId . '.Input.DateTo }}
+                {% else %}
+                    ---
+                {% endif %}
+                 die')
+            ->styleAlignCenter()
+            ->styleTextSize('16px')
+            ->stylePaddingTop('10px')
+        );
+        $Slice->addElement((new Element())
+            ->setContent('Berufsfachschule für {% if(Content.P' . $personId . '.Input.BsDestination is not empty) %}
+                    {{ Content.P' . $personId . '.Input.BsDestination }}
+                {% else %}
+                    ---
+                {% endif %}')
+            ->styleAlignCenter()
+            ->styleTextSize('20px')
+            ->styleTextBold()
+            ->stylePaddingTop('10px')
+        );
+        $GenderString = 'Er/Sie';
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblGender = $tblPerson->getGender())){
+                if($tblGender->getName() == 'Männlich'){
+                    $GenderString = 'Er';
+                } elseif($tblGender->getName() == 'Weiblich') {
+                    $GenderString = 'Sie';
+                }
+            }
+        }
+
+        $Slice->addElement((new Element())
+            ->setContent('besucht und im Schuljahr
+                {% if(Content.P' . $personId . '.Input.AbsYear is not empty) %}
+                    {{ Content.P' . $personId . '.Input.AbsYear }}
+                {% else %}
+                    ---
+                {% endif %}
+                die Abschlussprüfung bestanden. <br/>'.$GenderString.'
+                ist berechtigt, die Berufsbezeichnung')
+            ->styleAlignCenter()
+            ->styleTextSize('16px')
+            ->stylePaddingTop('10px')
+        );
+
+        $Slice->addElement((new Element())
+            ->setContent('
+                {% if(Content.P' . $personId . '.Input.ProfessionalTitle is not empty) %}
+                    {{ Content.P' . $personId . '.Input.ProfessionalTitle }}
+                {% else %}
+                    ---
+                {% endif %}')
+            ->styleAlignCenter()
+            ->styleTextSize('20px')
+            ->styleTextBold()
+            ->stylePaddingTop('10px')
+        );
+
+        $Slice->addElement((new Element())
+            ->setContent('zu führen.')
+            ->styleAlignCenter()
+            ->styleTextSize('16px')
+            ->stylePaddingTop('10px')
+        );
+         
+
+        return $Slice;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
     protected function getStudentHeadAbg($personId)
     {
 
@@ -302,24 +460,25 @@ abstract class BfsStyle extends Certificate
     }
 
     /**
-     * @param $personId
+     * @param                $personId
      * @param TblCertificate $tblCertificate
+     * @param string         $Title
+     * @param int            $StartSubject
+     * @param int            $DisplaySubjectAmount
+     * @param bool           $IsLF
+     * @param int            $SubjectRankingFrom
+     * @param int            $SubjectRankingTill
+     * @param string         $Height
      *
      * @return Slice
      */
-    protected function getSubjectLineAcross($personId, TblCertificate $tblCertificate, $Height = '230px')
+    protected function getSubjectLineAcross($personId, TblCertificate $tblCertificate, $Title = 'Berufsübergreifender Bereich', $StartSubject = 1,
+        $DisplaySubjectAmount = 6, $IsLF = true, $SubjectRankingFrom = 1, $SubjectRankingTill = 4, $Height = '160px')
     {
 
         $Slice = (new Slice());
         $Slice->addElement((new Element())
-            ->setContent('Pflichtbereich')
-            ->styleAlignCenter()
-            ->styleTextSize('18px')
-            ->styleTextBold()
-            ->stylePaddingTop('40px')
-        );
-        $Slice->addElement((new Element())
-            ->setContent('Berufsübergreifender Bereich')
+            ->setContent($Title)
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -335,7 +494,8 @@ abstract class BfsStyle extends Certificate
                 if ($tblSubject) {
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
-                    if($tblCertificateSubject->getRanking() <= 4){
+                    if($tblCertificateSubject->getRanking() >= $SubjectRankingFrom
+                        && $tblCertificateSubject->getRanking() <= $SubjectRankingTill){
                         // Grade Exists? => Add Subject to Certificate
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])){
                             $SubjectStructure[$RankingString][$LaneString]['SubjectAcronym'] = $tblSubject->getAcronym();
@@ -351,34 +511,42 @@ abstract class BfsStyle extends Certificate
                 }
             }
 
+            // Anzahl der Abzubildenden Einträge (auch ohne Fach)
+            $CountSubjectMissing = $DisplaySubjectAmount;
+
             // Berufsübergreifender Bereich
-            $SubjectList1 = array();
+            $SubjectList = array();
             ksort($SubjectStructure);
-            foreach ($SubjectStructure as $Ranking => $SubjectList) {
-                foreach ($SubjectList as $Lane => $Subject) {
-                    $SubjectList1[$Ranking][$Lane] = $Subject;
-//                    $LaneCounter[$Lane]++;
+            $SubjectCount = 1;
+            foreach ($SubjectStructure as $Ranking => $SubjectListTemp) {
+                foreach ($SubjectListTemp as $Lane => $Subject) {
+                    if($SubjectCount >= $StartSubject
+                        && $CountSubjectMissing != 0){
+                        $SubjectList[$Ranking][$Lane] = $Subject;
+                        $CountSubjectMissing--;
+                    }
+                    $SubjectCount++;
                 }
             }
 
             $TextSize = '14px';
             $TextSizeSmall = '8px';
-            foreach ($SubjectList1 as $SubjectList) {
+            foreach ($SubjectList as $SubjectListAlign) {
                 // Sort Lane-Ranking (1,2...)
-                ksort($SubjectList);
+                ksort($SubjectListAlign);
                 $SubjectSection = (new Section());
-                if (count($SubjectList) == 1 && isset($SubjectList["02"])) {
+                if (count($SubjectListAlign) == 1 && isset($SubjectListAlign["02"])) {
                     $SubjectSection->addElementColumn((new Element()), 'auto');
                 }
 
-                foreach ($SubjectList as $Lane => $Subject) {
+                foreach ($SubjectListAlign as $Lane => $Subject) {
                     if ($Lane > 1){
                         $SubjectSection->addElementColumn((new Element())
                             , '4%');
                     }
 
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent($Subject['SubjectName'])
+                        ->setContent(($IsLF ? 'LF'.$StartSubject++.' ' : '').$Subject['SubjectName'])
                         ->stylePaddingTop()
                         ->styleMarginTop('15px')
                         ->stylePaddingBottom('1px')
@@ -420,7 +588,7 @@ abstract class BfsStyle extends Certificate
                         )
                         , '9%');
                 }
-                if (count($SubjectList) == 1 && isset($SubjectList["01"])) {
+                if (count($SubjectListAlign) == 1 && isset($SubjectListAlign["01"])) {
                     $SubjectSection->addElementColumn((new Element()), '52%');
                 }
 
@@ -429,6 +597,24 @@ abstract class BfsStyle extends Certificate
         }
 
         $Slice->styleHeight($Height);
+
+        return $Slice;
+    }
+
+    /**
+     * @return Slice
+     */
+    protected function getSubjectLinePerformance()
+    {
+
+        $Slice = (new Slice());
+        $Slice->addElement((new Element())
+            ->setContent('Leistungen')
+            ->styleAlignCenter()
+            ->styleTextSize('20px')
+            ->styleTextBold()
+            ->stylePaddingTop('20px')
+        );
 
         return $Slice;
     }
@@ -587,36 +773,52 @@ abstract class BfsStyle extends Certificate
     }
 
     /**
-     * @param $personId
-     * @param string $title
+     * @param        $personId
+     * @param string $CertificateName
+     * @param bool   $isChangeableCertificateName
      *
      * @return Slice
      */
-    protected function getSecondPageHead($personId, $title = 'Halbjahresinformation')
+    protected function getSecondPageHead($personId, $CertificateName = 'Halbjahresinformation', $isChangeableCertificateName = false)
     {
 
         $Slice = new Slice();
 
-        $Slice->addElement((new Element())
-            ->setContent('
+        if($isChangeableCertificateName){
+            $Slice->addElement((new Element())
+                ->setContent('
                 {% if(Content.P' . $personId . '.Input.CertificateName is not empty) %}
                     {{ Content.P' . $personId . '.Input.CertificateName }}
                 {% else %}
-                '.$title.'
+                '.$CertificateName.'
                 {% endif %}' . ' für ' .
 //            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
 //                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
 //            {% else %}
 //                Frau/Herr
 //            {% endif %}
-            '{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                    '{{ Content.P' . $personId . '.Person.Data.Name.First }}
             {{ Content.P' . $personId . '.Person.Data.Name.Last }},
             geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
-            ->styleAlignCenter()
+                ->styleAlignCenter()
 //            ->styleTextSize('16px')
-            ->stylePaddingTop('20px')
-            ->styleBorderBottom('0.5px')
-        );
+                ->stylePaddingTop('20px')
+                ->styleBorderBottom('0.5px')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($CertificateName.
+                ' für {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }},
+                geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
+                ->styleAlignCenter()
+//            ->styleTextSize('16px')
+                ->stylePaddingTop('20px')
+                ->styleBorderBottom('0.5px')
+            );
+        }
+
+
 
         return $Slice;
     }
@@ -816,7 +1018,9 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingBottom('10px');
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer: 20 Wochen)')
+                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer: 
+                    {{ Content.P' . $personId . '.Input.OperationTime1 + Content.P' . $personId . '.Input.OperationTime2 + Content.P' . $personId . '.Input.OperationTime3 }}
+                    Wochen)')
                 ->stylePaddingLeft('5px')
                 , '91%'
             )
