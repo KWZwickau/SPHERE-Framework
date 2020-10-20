@@ -743,7 +743,8 @@ class Service extends Support
                         $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                        $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null
                     );
                 } else {
                     return false;
@@ -836,7 +837,8 @@ class Service extends Support
                 $tblStudentBilling ? $tblStudentBilling : null,
                 $tblStudentLocker ? $tblStudentLocker : null,
                 $tblStudentBaptism ? $tblStudentBaptism : null,
-                $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null
+                $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null
             );
 
             /*
@@ -1422,5 +1424,72 @@ class Service extends Support
             $MasernDocumentType,
             $MasernCreatorType
         );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentSpecialNeeds(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            $tblStudentSpecialNeedsLevel = $this->getStudentSpecialNeedsLevelById($Meta['SpecialNeeds']['TblStudentSpecialNeedsLevel']);
+
+            if (($tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds())) {
+                (new Data($this->getBinding()))->updateStudentSpecialNeeds(
+                    $tblStudentSpecialNeeds,
+                    isset($Meta['SpecialNeeds']['IsMultipleHandicapped']),
+                    isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
+                    $Meta['SpecialNeeds']['RemarkHeavyMultipleHandicapped'],
+                    $Meta['SpecialNeeds']['DegreeOfHandicap'],
+                    $Meta['SpecialNeeds']['Sign'],
+                    $Meta['SpecialNeeds']['ValidTo'],
+                    $tblStudentSpecialNeedsLevel ? $tblStudentSpecialNeedsLevel : null
+                );
+            } else {
+
+                $tblStudentSpecialNeeds = (new Data($this->getBinding()))->createStudentSpecialNeeds(
+                    isset($Meta['SpecialNeeds']['IsMultipleHandicapped']),
+                    isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
+                    $Meta['SpecialNeeds']['RemarkHeavyMultipleHandicapped'],
+                    $Meta['SpecialNeeds']['DegreeOfHandicap'],
+                    $Meta['SpecialNeeds']['Sign'],
+                    $Meta['SpecialNeeds']['ValidTo'],
+                    $tblStudentSpecialNeedsLevel ? $tblStudentSpecialNeedsLevel : null
+                );
+
+                if ($tblStudentSpecialNeeds) {
+                    (new Data($this->getBinding()))->updateStudentField(
+                        $tblStudent,
+                        $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
+                        $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                        $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                        $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                        $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                        $tblStudentSpecialNeeds
+                    );
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }

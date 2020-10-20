@@ -132,6 +132,14 @@ class FrontendStudent extends FrontendReadOnly
                 FrontendStudentGeneral::getStudentGeneralContent($PersonId), 'StudentGeneralContent'
             );
 
+            if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+                && $tblConsumer->getAcronym() == 'WVSZ'
+            ) {
+                $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                    FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId), 'StudentSpecialNeedsContent'
+                );
+            }
+
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
                 FrontendStudentSubject::getStudentSubjectContent($PersonId), 'StudentSubjectContent'
             );
@@ -167,12 +175,10 @@ class FrontendStudent extends FrontendReadOnly
                 $identifier = $tblStudent->getIdentifierComplete();
                 $schoolAttendanceStartDate = $tblStudent->getSchoolAttendanceStartDate();
                 $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'Ja' : 'Nein';
-                $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants() ? 'Ja' : 'Nein';
             } else {
                 $identifier = '';
                 $schoolAttendanceStartDate = '';
                 $hasMigrationBackground = '';
-                $isInPreparationDivisionForMigrants = '';
             }
 
             $content = new Layout(new LayoutGroup(array(

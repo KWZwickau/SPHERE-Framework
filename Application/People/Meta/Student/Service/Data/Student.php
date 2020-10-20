@@ -320,6 +320,7 @@ abstract class Student extends AbstractData
      * @param TblStudentLocker|null $tblStudentLocker
      * @param TblStudentBaptism|null $tblStudentBaptism
      * @param TblStudentIntegration|null $tblStudentIntegration
+     * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
      *
      * @return bool
      */
@@ -330,7 +331,8 @@ abstract class Student extends AbstractData
         TblStudentBilling $tblStudentBilling = null,
         TblStudentLocker $tblStudentLocker = null,
         TblStudentBaptism $tblStudentBaptism = null,
-        TblStudentIntegration $tblStudentIntegration = null
+        TblStudentIntegration $tblStudentIntegration = null,
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -346,6 +348,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
+            $Entity->setTblStudentSpecialNeeds($tblStudentSpecialNeeds);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -534,6 +537,14 @@ abstract class Student extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentSpecialNeedsLevel', array(
             TblStudentSpecialNeedsLevel::ATTR_NAME => $Name
         ));
+    }
+
+    /**
+     * @return false|TblStudentSpecialNeedsLevel[]
+     */
+    public function getStudentSpecialNeedsLevelAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblStudentSpecialNeedsLevel', array('EntityCreate' => 'asc'));
     }
 
     /**

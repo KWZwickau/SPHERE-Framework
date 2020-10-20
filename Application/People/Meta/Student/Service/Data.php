@@ -970,7 +970,7 @@ class Data extends Support
         TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
     ) {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        $Manager = $this->getEntityManager();
 
         $Entity = new TblStudentSpecialNeeds();
         $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
@@ -987,5 +987,55 @@ class Data extends Support
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
+    }
+
+    /**
+     * @param TblStudentSpecialNeeds $tblStudentSpecialNeeds
+     * @param $IsMultipleHandicapped
+     * @param $IsHeavyMultipleHandicapped
+     * @param $IncreaseFactorHeavyMultipleHandicappedSchool
+     * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
+     * @param $RemarkHeavyMultipleHandicapped
+     * @param $DegreeOfHandicap
+     * @param $Sign
+     * @param $ValidTo
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return bool
+     */
+    public function updateStudentSpecialNeeds(
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds,
+        $IsMultipleHandicapped,
+        $IsHeavyMultipleHandicapped,
+        $IncreaseFactorHeavyMultipleHandicappedSchool,
+        $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+        $RemarkHeavyMultipleHandicapped,
+        $DegreeOfHandicap,
+        $Sign,
+        $ValidTo,
+        TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
+    ) {
+
+        $Manager = $this->getEntityManager();
+        /** @var null|TblStudentSpecialNeeds $Entity */
+        $Entity = $Manager->getEntityById('TblStudentSpecialNeeds', $tblStudentSpecialNeeds->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+
+            $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
+            $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
+            $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
+            $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);
+            $Entity->setRemarkHeavyMultipleHandicapped($RemarkHeavyMultipleHandicapped);
+            $Entity->setDegreeOfHandicap($DegreeOfHandicap);
+            $Entity->setSign($Sign);
+            $Entity->setValidTo($ValidTo);
+            $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

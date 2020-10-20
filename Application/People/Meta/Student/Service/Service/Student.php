@@ -253,4 +253,12 @@ abstract class Student extends AbstractService
     {
         return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelByName($Name);
     }
+
+    /**
+     * @return false|TblStudentSpecialNeedsLevel[]
+     */
+    public function getStudentSpecialNeedsLevelAll()
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelAll();
+    }
 }
