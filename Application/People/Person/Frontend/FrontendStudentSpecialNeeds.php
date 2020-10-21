@@ -214,14 +214,37 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
     {
         $tblStudentSpecialNeedsLevelList = Student::useService()->getStudentSpecialNeedsLevelAll();
 
-        // todo massenänderung erstmal nur Stufe
+         // Massenänderung für Stufe
+//        $NodeProcess = 'Förderschüler';
+//        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Bildung', array(
-                            new SelectBox('Meta[SpecialNeeds][TblStudentSpecialNeedsLevel]', 'Stufe',
-                                array('{{ Name }}' => $tblStudentSpecialNeedsLevelList), null, true, null),
+//                            ApiMassReplace::receiverField((
+//                            $Field = (new SelectBox('Meta[SpecialNeeds][TblStudentSpecialNeedsLevel]', 'Stufe',
+//                                array('{{ Name }}' => $tblStudentSpecialNeedsLevelList), null, true, null)
+//                            )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
+//                            .ApiMassReplace::receiverModal($Field, $NodeProcess)
+//                            .new PullRight((new Link('Massen-Änderung',
+//                                ApiMassReplace::getEndpoint(), null, array(
+//                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+//                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+//                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+//                                    'Id'                                                      => $tblPerson->getId(),
+//                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+//                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+//                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+//                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+//                                    'Node'                                                          => $NodeProcess,
+//                                )))->ajaxPipelineOnClick(
+//                                ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+//                            ))
+                            (new SelectBox('Meta[SpecialNeeds][TblStudentSpecialNeedsLevel]', 'Stufe',
+                                array('{{ Name }}' => $tblStudentSpecialNeedsLevelList), null, true, null))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
                         ), Panel::PANEL_TYPE_INFO)
                     , 3),
                     new FormColumn(
