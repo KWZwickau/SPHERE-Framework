@@ -11,6 +11,9 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -492,5 +495,32 @@ class TblStudent extends Element
     {
 
         $this->tblStudentSpecialNeeds = ( null === $tblStudentSpecialNeeds ? null : $tblStudentSpecialNeeds->getId() );
+    }
+
+    /**
+     * @return int|ToolTip
+     */
+    public function getSchoolAttendanceYear()
+    {
+        // SBJ (Schulbesuchsjahr): automatisch berechnet aus Datum / Jahr  der Ersteinschulung und richtig setzen entsprechend aktuelle Schuljahr (Stichtag vor und nach 1.8)
+        if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+            && ($tblTransfer = Student::useService()->getStudentTransferByType($this, $tblStudentTransferType))
+        ) {
+            $enrollmentDate = $tblTransfer->getTransferDate();
+        } else {
+            $enrollmentDate = false;
+        }
+
+        if ($enrollmentDate) {
+            $enrollmentDateTime = new DateTime($enrollmentDate);
+            $enrollmentYear = intval($enrollmentDateTime->format('Y'));
+            $now = new DateTime('now');
+            $nowYear = intval($now->format('Y'));
+            $endOfPeriod = new DateTime('01.08.' . $nowYear);
+
+            return ($nowYear - $enrollmentYear + ($now > $endOfPeriod ? 1 : 0));
+        } else {
+            return new ToolTip(new Warning(new Exclamation()), 'Bitte pflegen Sie das Ersteinschulungsdatum ein.');
+        }
     }
 }

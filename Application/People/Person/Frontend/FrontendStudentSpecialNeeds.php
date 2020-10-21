@@ -68,6 +68,12 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                 $level = '';
             }
 
+            if ($tblStudent) {
+                $schoolAttendanceYear = $tblStudent->getSchoolAttendanceYear();
+            } else {
+                $schoolAttendanceYear = '';
+            }
+
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
@@ -78,13 +84,10 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                                     self::getLayoutColumnLabel('Stufe', 6),
                                     self::getLayoutColumnValue($level, 6),
                                 )),
-                                new Layout(new LayoutGroup(array(
-                                    new LayoutRow(array(
-                                        self::getLayoutColumnLabel('SBJ', 6),
-                                        // todo SBJ berechnen
-                                        self::getLayoutColumnValue($level, 6),
-                                    )),
-                                ))),
+                                new LayoutRow(array(
+                                    self::getLayoutColumnLabel('SBJ', 6),
+                                    self::getLayoutColumnValue($schoolAttendanceYear, 6),
+                                )),
                             )))
                         ),
                     ), 3),
