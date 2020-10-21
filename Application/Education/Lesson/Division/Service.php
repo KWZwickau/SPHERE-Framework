@@ -196,7 +196,8 @@ class Service extends AbstractService
         if (!$Error) {
             // Level
             $tblType = Type::useService()->getTypeById($Level['Type']);
-            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
+            $hasLevel = isset($Level['Name']);
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '', !$hasLevel);
 
             if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
             ) {
@@ -1890,19 +1891,23 @@ class Service extends AbstractService
                 $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
                 $Error = true;
             }
-        } else {
-            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
-            $Error = true;
         }
+//        } else {
+//            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
+//            $Error = true;
+//        }
 
         // Level
         if (!$Error) {
             $tblType = Type::useService()->getTypeById($Level['Type']);
-            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
+            $hasLevel = isset($Level['Name']);
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '', !$hasLevel);
+        } else {
+            $tblLevel = false;
         }
 
         // Create
-        if (!$Error) {
+        if (!$Error && $tblLevel) {
 
             if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
             ) {
