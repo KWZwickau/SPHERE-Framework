@@ -808,4 +808,15 @@ class Service extends AbstractService
     ) {
         return KamenzReportService::setKamenzReportBFSContent($Content);
     }
+
+    /**
+     * @param $Content
+     *
+     * @return array
+     */
+    public function setKamenzReportFSContent(
+        $Content
+    ) {
+        return KamenzReportService::setKamenzReportFSContent($Content);
+    }
 }

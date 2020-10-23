@@ -449,6 +449,10 @@ class Creator extends Extension
             $Document = new Standard\Repository\KamenzReportBFS();
             $paperOrientation = self::PAPERORIENTATION_LANDSCAPE;
             $Data = Generator::useService()->setKamenzReportBFSContent($Data);
+        } elseif ($Type == 'Fachschule') {
+            $Document = new Standard\Repository\KamenzReportFS();
+            $paperOrientation = self::PAPERORIENTATION_LANDSCAPE;
+            $Data = Generator::useService()->setKamenzReportFSContent($Data);
         }
 
         if ($Document) {

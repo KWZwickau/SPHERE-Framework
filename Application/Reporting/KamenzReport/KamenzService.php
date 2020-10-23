@@ -243,7 +243,7 @@ class KamenzService
         array_unshift($summary, new Info($count['Student'] . ' Schüler besuchen die/das ' . $tblSchoolType->getName() . '.'));
         $summary = self::setSummary($summary, $count);
 
-        // todo prüfen ob diese Felder auch alle bei der Berufsschule benötigt werden.
+        // todo prüfen ob diese Felder auch alle bei der Berufsfachschule, Fachschulen benötigt werden.
         // todo auch die Summary gegebenfalls anpassen
         $columns = array(
             'Division' => 'Klasse',

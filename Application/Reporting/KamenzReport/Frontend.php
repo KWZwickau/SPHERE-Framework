@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Reporting\KamenzReport;
 
-use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -25,7 +24,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -57,6 +55,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard(
             'Berufsfachschule',  __NAMESPACE__ . '/Validate/TechnicalSchool'
+        ));
+
+        $Stage->addButton(new Standard(
+            'Fachschule',  __NAMESPACE__ . '/Validate/AdvancedTechnicalSchool'
         ));
 
         $Stage->setContent(
@@ -272,6 +274,61 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
 //        Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $summary
+                        ),
+                    ))
+                ), new Title('Zusammenfassung')),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        $content
+                    )
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public static function frontendValidateAdvancedTechnicalSchool()
+    {
+
+        $Stage = new Stage('Kamenz-Statistik', 'Fachschule validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
+
+        $Stage->addbutton(new External('Herunterladen: Fachschulstatistik',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Fachschule'
+            ),
+            'Kamenz-Statistik herunterladen'
+        ));
+
+        $summary = array();
+
+        $countStudentsWithoutDivision = 0;
+        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+            $content[] = new LayoutColumn($studentsWithoutDivision);
+            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse zugeordnet',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        // todo Validierung der Datenfelder für die Fachschulen
+        $content[] = new LayoutColumn(
+            KamenzService::validate(Type::useService()->getTypeByName('Fachschule'), $summary)
+        );
 
         $Stage->setContent(
             new Layout(array(
