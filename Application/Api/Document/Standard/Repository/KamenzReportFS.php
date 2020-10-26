@@ -4,9 +4,13 @@ namespace SPHERE\Application\Api\Document\Standard\Repository;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\F01;
-use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\K01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\B01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\B02;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\K01;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\N01;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\N03;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\N03_2;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS\N05;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
@@ -59,8 +63,44 @@ class KamenzReportFS extends AbstractDocument
 //            ->addPage((new Page())
 //                ->addSliceArray(F01::getContent('F01_2', 'Fachschule'))
 //            )
+//            ->addPage((new Page())
+//                ->addSliceArray(K01::getContent())
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N01::getContent('N01'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N01::getContent('N01_1'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N01::getContent('N02'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N01::getContent('N02_1'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N03::getContent('N03_1'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N03::getContent('N03_1_1'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N03_2::getContent('N03_2'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N03_2::getContent('N03_2_1'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N03::getContent('N04_1'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N03_2::getContent('N04_2'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05'))
+//            )
             ->addPage((new Page())
-                ->addSliceArray(K01::getContent())
+                ->addSliceArray(N05::getContent('N05_1'))
             )
         );
     }
