@@ -15,10 +15,11 @@ class F01
 {
     /**
      * @param string $name
+     * @param string $schoolTypeName
      *
      * @return Slice[]
      */
-    public static function getContent($name = 'F01_1')
+    public static function getContent($name, $schoolTypeName)
     {
         switch ($name) {
             case 'F01_1':
@@ -135,14 +136,28 @@ class F01
         for ($i = 0; $i < 8; $i++) {
             $isBold = false;
             $hasBorderTop = false;
-            if ($name == 'F01_1') {
-                $maxLevel = 4;
-                $paddingTop = '36.2px';
-                $paddingBottom = '36.3px';
+
+            if ($schoolTypeName == 'Berufsfachschule') {
+                if ($name == 'F01_1') {
+                    $maxLevel = 4;
+                    $paddingTop = '36.2px';
+                    $paddingBottom = '36.3px';
+                } else {
+                    $maxLevel = 5;
+                    $paddingTop = '45px';
+                    $paddingBottom = '45.5px';
+                }
             } else {
-                $maxLevel = 5;
-                $paddingTop = '45px';
-                $paddingBottom = '45.5px';
+                // $schoolTypeName == 'Fachschule'
+                if ($name == 'F01_1') {
+                    $maxLevel = 3;
+                    $paddingTop = '27.2px';
+                    $paddingBottom = '27.3px';
+                } else {
+                    $maxLevel = 4;
+                    $paddingTop = '36.2px';
+                    $paddingBottom = '36.3px';
+                }
             }
 
             switch ($i) {
@@ -152,28 +167,39 @@ class F01
                 case 2: $text = 'Hören'; break;
                 case 3: $text = 'Sprache'; break;
                 case 4: $text = 'Körperlich-motorische Entwicklung';
-                    if ($name == 'F01_1') {
+                    if ($maxLevel == 4) {
                         $paddingTop = '27.8px';
                         $paddingBottom = '27.8px';
-                    } else {
+                    } elseif ($maxLevel == 5) {
                         $paddingTop = '36px';
                         $paddingBottom = '37.2px';
+                    } else {
+                        // $maxLevel == 3
+                        $paddingTop = '18.5px';
+                        $paddingBottom = '18.8px';
                     }
                     break;
                 case 5: $text = 'Geistige Entwicklung';
                     $hasBorderTop = $name == 'F01_2';
                     break;
                 case 6: $text = 'Sozial-emotionale Entwicklung';
-                    if ($name == 'F01_1') {
+                    if ($maxLevel == 4) {
                         $hasBorderTop = true;
                         $paddingTop = '27.8px';
                         $paddingBottom = '27.8px';
-                    } else {
+                    } elseif ($maxLevel == 5) {
                         $paddingTop = '36px';
                         $paddingBottom = '37.2px';
-                    };
+                    } else {
+                        // $maxLevel == 3
+                        $paddingTop = '18.5px';
+                        $paddingBottom = '18.8px';
+                    }
                     break;
-                case 7: $text = 'Insgesamt'; $isBold = true; break;
+                case 7: $text = 'Insgesamt';
+                    $isBold = true;
+                    $hasBorderTop = $maxLevel == 3;
+                    break;
                 default: $text = '';
             }
 
@@ -191,10 +217,16 @@ class F01
             // Klassenstufe
             $lineSectionList = array();
             for ($j = 1; $j <= $maxLevel; $j++) {
+                if ($schoolTypeName == 'Fachschule' && $name == 'F01_2') {
+                    $textLevel = ($j < 3 ? '1' : '2') . ' / ' . $j . ' . Ausbildungsjahr';
+                } else {
+                    $textLevel = $j;
+                }
+
                 $lineSection = new Section();
                 $lineSection
                     ->addElementColumn((new Element())
-                        ->setContent($j)
+                        ->setContent($textLevel)
                         ->styleBorderBottom()
                         ->styleBorderTop($hasBorderTop && $j == 1 ? '1px' : '0px')
                     );
@@ -213,16 +245,16 @@ class F01
                 , $width[1]);
 
             // Schüler
-            self::setColumn($section, $name, $text, 'Student', 'm', $width['gender'], $hasBorderTop);
-            self::setColumn($section, $name, $text, 'Student', 'w', $width['gender'], $hasBorderTop);
+            self::setColumn($section, $name, $text, 'Student', 'm', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'Student', 'w', $width['gender'], $hasBorderTop, $maxLevel);
 
             // Migrationshintergrund
-            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'm', $width['gender'], $hasBorderTop);
-            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'w', $width['gender'], $hasBorderTop);
+            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'm', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'w', $width['gender'], $hasBorderTop, $maxLevel);
 
             // Autismus
-            self::setColumn($section, $name, $text, 'Autism', 'm', $width['gender'], $hasBorderTop);
-            self::setColumn($section, $name, $text, 'Autism', 'w', $width['gender'], $hasBorderTop, true);
+            self::setColumn($section, $name, $text, 'Autism', 'm', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'Autism', 'w', $width['gender'], $hasBorderTop, $maxLevel, true);
 
             $sliceList[] = (new Slice())
                 ->styleAlignCenter()
@@ -244,12 +276,11 @@ class F01
      * @param $gender
      * @param string $width
      * @param $hasBorderTop
+     * @param $maxLevel
      * @param bool $isLastColumn
      */
-    private static function setColumn(Section $section, $name, $text, $identifier, $gender, $width, $hasBorderTop, $isLastColumn = false)
+    private static function setColumn(Section $section, $name, $text, $identifier, $gender, $width, $hasBorderTop, $maxLevel, $isLastColumn = false)
     {
-        $maxLevel = ($name == 'F01_1' ? 4 : 5);
-
         if ($text == 'Insgesamt') {
             $text = 'TotalCount';
         } else {
