@@ -155,7 +155,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run)
                     );
                 }
-                // Wahlfächer
+                // Berufspratische Ausbildung
                 $SubjectPrakt = array();
                 for ($Run = ($chosenSubject + 1); $Run <= $praktSubject; $Run++) {
                     array_push($SubjectPrakt,
@@ -174,7 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormColumn($SubjectLaneAcrossLeft, 6),
                                     new FormColumn($SubjectLaneAcrossRight, 6),
                                 )),
-                            ), new FormTitle('Pflicht Berufsübergreifender Bereich')),
+                            ), new FormTitle('Pflicht Berufsübergreifender Bereich (Reihenfolge Links -> Rechts auf dem Zeugnis untereinander)')),
                             new FormGroup(array(
                                 new FormRow(array(
                                     new FormColumn($SubjectLaneBaseLeft, 6),
@@ -186,12 +186,108 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormColumn($SubjectLaneChosenLeft, 6),
                                     new FormColumn($SubjectLaneChosenRight, 6),
                                 )),
+                            ), new FormTitle('Wahlpflichtbereich  (Reihenfolge Links -> Rechts auf dem Zeugnis untereinander)')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectPrakt, 6)
+                                )),
+                            ), new FormTitle('Berufspraktische Ausbildung')),
+                        ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject)
+                );
+            }elseif(preg_match('!Fachschule!', $tblCertificate->getName())) {
+
+                // Fach-Noten-Definition
+                $tblSubjectAll = Subject::useService()->getSubjectAll();
+                // Erstmal bis 20
+                $haveToAcrossSubject = 4; // (4 * 2) = 8 Fächer (3 Zusatzplatzhalter für z.B. Religion auf der rechten Seite)
+                $haveToBaseSubject = 14; // (10 * 2) = 20 LF (14 Ist Standard, 15 passen auf das Zeugnis)
+                $chosenSubject = 16; // (2 * 2) = 4 Wahlfächer (3 Wahlfächer passen auf das Zeugnis)
+                $praktSubject = 17; // (1 * 2) = 2 Berufspraktische Ausbildung (1 Fach)
+                $educationSubject = 18; // (1 * 2) = 2 Erwerb der Fachhochschulreife (1 Fach)
+
+                // Berufsübergreifende Pflichtfächer
+                $SubjectLaneAcrossLeft = array();
+                $SubjectLaneAcrossRight = array();
+                for ($Run = 1; $Run <= $haveToAcrossSubject; $Run++) {
+                    array_push($SubjectLaneAcrossLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run)
+                    );
+                    array_push($SubjectLaneAcrossRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run)
+                    );
+                }
+                // Berufsbezogene Pflichtfächer
+                $SubjectLaneBaseLeft = array();
+                $SubjectLaneBaseRight = array();
+                $countLF = 1;
+                for ($Run = ($haveToAcrossSubject + 1); $Run <= $haveToBaseSubject; $Run++) {
+                    array_push($SubjectLaneBaseLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', 'LF'.$countLF++)
+                    );
+                    array_push($SubjectLaneBaseRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', 'LF'.$countLF++)
+                    );
+                }
+                // Wahlfächer
+                $SubjectLaneChosenLeft = array();
+                $SubjectLaneChosenRight = array();
+                for ($Run = ($haveToBaseSubject + 1); $Run <= $chosenSubject; $Run++) {
+                    array_push($SubjectLaneChosenLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run)
+                    );
+                    array_push($SubjectLaneChosenRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run)
+                    );
+                }
+                // Berufspratische Ausbildung
+                $SubjectPrakt = array();
+                for ($Run = ($chosenSubject + 1); $Run <= $praktSubject; $Run++) {
+                    array_push($SubjectPrakt,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run)
+                    );
+                }
+                // Zusatzausbildung zum Erwerb der Fachhochschulreife
+                $SubjectEducation = array();
+                for ($Run = ($chosenSubject + 2); $Run <= $educationSubject; $Run++) {
+                    array_push($SubjectEducation,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run)
+                    );
+                }
+
+
+                $Stage->setContent(
+                    new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()),
+                        Panel::PANEL_TYPE_INFO)
+                    . Generator::useService()->createCertificateSetting(
+                        new Form(array(
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneAcrossLeft, 6),
+                                    new FormColumn($SubjectLaneAcrossRight, 6),
+                                )),
+                            ), new FormTitle('Pflicht Fachrichtungsübergreifender Bereich (Sortiert auf dem Zeugnis untereinander)')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneBaseLeft, 6),
+                                    new FormColumn($SubjectLaneBaseRight, 6),
+                                )),
+                            ), new FormTitle('Pflicht Fachrichtungsbezogener Bereich (LF Sortiert auf dem Zeugnis untereinander)')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneChosenLeft, 6),
+                                    new FormColumn($SubjectLaneChosenRight, 6),
+                                )),
                             ), new FormTitle('Wahlpflichtbereich (Reihenfolge Links -> Rechts)')),
                             new FormGroup(array(
                                 new FormRow(array(
                                     new FormColumn($SubjectPrakt, 6)
                                 )),
                             ), new FormTitle('Berufspraktische Ausbildung')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectEducation, 6)
+                                )),
+                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject)
                 );
             } else {
@@ -497,6 +593,7 @@ class Frontend extends Extension implements IFrontendInterface
                             .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ')
                             .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ')
                             .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE, 'Zeugnisse Berufsfachschule', 'BfsHj')
+                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE, 'Zeugnisse Fachschule', 'FsHj')
                         )
                     ))
                 ))

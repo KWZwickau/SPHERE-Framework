@@ -480,7 +480,7 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithUs'     => 'TextArea',
             // Berufsfachschule
             'Content.Input.CertificateName'     => 'TextField',
-            'Content.Input.BsDestination'       => 'TextField',
+            'Content.Input.BfsDestination'      => 'TextField',
             'Content.Input.Operation1'          => 'TextField',
             'Content.Input.OperationTime1'      => 'TextField',
             'Content.Input.Operation2'          => 'TextField',
@@ -491,6 +491,17 @@ class Service extends AbstractService
             'Content.Input.DateTo'              => 'DatePicker',
             'Content.Input.AbsYear'             => 'TextField',
             'Content.Input.ProfessionalTitle'   => 'TextField',
+            // Fachschule
+            'Content.Input.FsDestination'       => 'TextField',
+            'Content.Input.SubjectArea'         => 'TextField',
+            'Content.Input.Focus'               => 'TextField',
+            'Content.Input.ChosenArea'          => 'TextField',
+            'Content.Input.JobEducation'        => 'TextField',
+            'Content.Input.JobEducationDuration'=> 'TextField',
+            'Content.Input.AddEducation'        => 'TextField',
+            'Content.Input.ChosenArea1'         => 'TextField',
+            'Content.Input.ChosenArea2'         => 'TextField',
+            'Content.Input.TimeType'            => 'TextField',
 
         );
     }
@@ -545,7 +556,7 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithUs'     => 'Im Dialog mit uns',
             // Berufsfachschule
             'Content.Input.CertificateName'     => 'Abweichender Zeugnisname (Endjahresinformation)',
-            'Content.Input.BsDestination'       => 'Berufsfachschule für ...',
+            'Content.Input.BfsDestination'      => 'Berufsfachschule für ...',
             'Content.Input.Operation1'          => 'Einsatzgebiet 1',
             'Content.Input.OperationTime1'      => 'Einsatzgebiet Dauer in Wochen 1',
             'Content.Input.Operation2'          => 'Einsatzgebiet 2',
@@ -556,6 +567,18 @@ class Service extends AbstractService
             'Content.Input.DateTo'              => 'Besuchte "bis" die Berufsfachschule',
             'Content.Input.AbsYear'             => 'Abschluss im Schuljahr',
             'Content.Input.ProfessionalTitle'   => 'Berufsbezeichnung',
+            // Fachschule
+            'Content.Input.FsDestination'       => 'Fachbereich',
+            'Content.Input.SubjectArea'         => 'Fachrichtung',
+            'Content.Input.Focus'               => 'Schwerpunkt',
+            'Content.Input.ChosenArea'          => 'Wahlplfichtbereich (Überschrift)',
+            'Content.Input.JobEducation'        => 'Berufspraktische Ausbildung (Überschrift)',
+            'Content.Input.JobEducationDuration'=> 'Berufspraktische Ausbildung (dauer in Wochen)',
+            'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife (Überschrift)',
+            'Content.Input.ChosenArea1'         => 'Wahlbereich 1',
+            'Content.Input.ChosenArea2'         => 'Wahlbereich 2',
+            'Content.Input.TimeType'            => 'Vollzeitform / Teilzeitform',
+
         );
     }
 
