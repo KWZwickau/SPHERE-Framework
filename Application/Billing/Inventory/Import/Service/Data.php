@@ -71,6 +71,7 @@ class Data extends AbstractData
                 if(isset($Result['serviceTblPersonDebtor'])){
                     $Entity->setServiceTblPersonDebtor($Result['serviceTblPersonDebtor']);
                 }
+                $Entity->setOwner($Result['Owner']);
                 $Entity->setDebtorNumber($Result['DebtorNumber']);
                 $Entity->setIBAN($Result['IBAN']);
                 $Entity->setBIC($Result['BIC']);

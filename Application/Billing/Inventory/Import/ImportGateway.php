@@ -125,6 +125,7 @@ class ImportGateway extends AbstractConverter
         }
         $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Vorname'], 'DebtorFirstName'));
         $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Nachname'], 'DebtorLastName'));
+        $this->setPointer(new FieldPointer($ColumnList['Kontoinhaber'], 'Owner'));
         if(isset($ColumnList['Debitorennummer'])){
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumberControl'));
@@ -207,6 +208,7 @@ class ImportGateway extends AbstractConverter
             'DebtorFirstName'        => $Result['DebtorFirstName'],
             'DebtorLastName'         => $Result['DebtorLastName'],
             'serviceTblPersonDebtor' => $tblPersonDebtor,
+            'Owner'                  => $Result['Owner'],
             'DebtorNumber'           => $Result['DebtorNumber'],
             'IBAN'                   => $Result['IBAN'],
             'BIC'                    => $Result['BIC'],
