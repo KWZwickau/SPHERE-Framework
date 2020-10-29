@@ -6,6 +6,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -128,6 +129,7 @@ class Service
                     if (!($tblSchoolTypeSpecialNeeds = Type::useService()->getTypeByName('allgemein bildende Förderschule'))) {
                         $tblSchoolTypeSpecialNeeds = Type::useService()->getTypeByName('Förderschule');
                     }
+                    $tblCompany = Company::useService()->insertCompany('Werner-Vogel-Schulzentrum');
 
                     for ($RunY = 2; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
@@ -249,11 +251,12 @@ class Service
                                 if (($level = trim($Document->getValue($Document->getCell($Location['Klasse/Kurs'], $RunY))))) {
                                     $tblSchoolType = $tblSchoolTypePrimary;
                                     if (($tblLevel = Division::useService()->insertLevel($tblSchoolType, $level))) {
-                                        // todo schule
                                         $tblDivision = Division::useService()->insertDivision(
                                             $tblYear,
                                             $tblLevel,
-                                            ''
+                                            '',
+                                            '',
+                                            $tblCompany ? $tblCompany : null
                                         );
 
                                         if ($tblDivision) {
@@ -267,18 +270,20 @@ class Service
                                     if (($tblLevel = Division::useService()->insertLevel($tblSchoolType, '', ''))) {
                                         // Sonderfälle: 1,2,3
                                         if (strlen($division) == 1) {
-                                            // todo schule
                                             $tblDivision = Division::useService()->insertDivision(
                                                 $tblYear,
                                                 $tblLevel,
-                                                'U4'
+                                                'U4',
+                                                '',
+                                                $tblCompany ? $tblCompany : null
                                             );
                                         } else {
-                                            // todo schule
                                             $tblDivision = Division::useService()->insertDivision(
                                                 $tblYear,
                                                 $tblLevel,
-                                                $division
+                                                $division,
+                                                '',
+                                                $tblCompany ? $tblCompany : null
                                             );
                                         }
 
