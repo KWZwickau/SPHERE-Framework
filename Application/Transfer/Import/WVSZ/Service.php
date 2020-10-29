@@ -264,7 +264,7 @@ class Service
                             } elseif ($type == 'FS') {
                                 if (($division = trim($Document->getValue($Document->getCell($Location['Klasse/Kurs'], $RunY))))) {
                                     $tblSchoolType = $tblSchoolTypeSpecialNeeds;
-                                    if (($tblLevel = Division::useService()->insertLevel($tblSchoolType, '', '', true))) {
+                                    if (($tblLevel = Division::useService()->insertLevel($tblSchoolType, '', ''))) {
                                         // Sonderfälle: 1,2,3
                                         if (strlen($division) == 1) {
                                             // todo schule

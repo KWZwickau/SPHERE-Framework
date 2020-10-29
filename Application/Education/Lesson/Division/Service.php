@@ -197,7 +197,7 @@ class Service extends AbstractService
             // Level
             $tblType = Type::useService()->getTypeById($Level['Type']);
             $hasLevel = isset($Level['Name']);
-            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '', !$hasLevel);
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '');
 
             if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
             ) {
@@ -1901,7 +1901,7 @@ class Service extends AbstractService
         if (!$Error) {
             $tblType = Type::useService()->getTypeById($Level['Type']);
             $hasLevel = isset($Level['Name']);
-            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '', !$hasLevel);
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '');
         } else {
             $tblLevel = false;
         }
