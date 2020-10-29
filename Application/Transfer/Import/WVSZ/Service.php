@@ -7,6 +7,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -129,7 +130,17 @@ class Service
                     if (!($tblSchoolTypeSpecialNeeds = Type::useService()->getTypeByName('allgemein bildende Förderschule'))) {
                         $tblSchoolTypeSpecialNeeds = Type::useService()->getTypeByName('Förderschule');
                     }
-                    $tblCompany = Company::useService()->insertCompany('Werner-Vogel-Schulzentrum');
+
+                    if (($tblCompany = Company::useService()->insertCompany('Werner-Vogel-Schulzentrum'))) {
+                        Group::useService()->addGroupCompany(
+                            Group::useService()->getGroupByMetaTable('COMMON'),
+                            $tblCompany
+                        );
+                        Group::useService()->addGroupCompany(
+                            Group::useService()->getGroupByMetaTable('SCHOOL'),
+                            $tblCompany
+                        );
+                    }
 
                     for ($RunY = 2; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
