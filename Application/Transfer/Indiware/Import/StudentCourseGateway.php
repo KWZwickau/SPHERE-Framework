@@ -34,12 +34,12 @@ class StudentCourseGateway extends AbstractConverter
     /**
      * LectureshipGateway constructor.
      *
-     * @param string $File SpUnterricht.csv
-     * @param TblYear $tblYear
-     * @param null $Level
+     * @param string               $File SpUnterricht.csv
+     * @param TblYear              $tblYear
+     * @param string               $Level
      * @param StudentCourseControl $Control
      */
-    public function __construct($File, TblYear $tblYear, $Level = null, StudentCourseControl $Control)
+    public function __construct($File, TblYear $tblYear, $Level, StudentCourseControl $Control)
     {
         $this->loadFile($File);
         $this->Year = $tblYear;
@@ -307,7 +307,6 @@ class StudentCourseGateway extends AbstractConverter
 //            $this->IsError = false;
 //        }
 
-//        Debugger::screenDump($Result);
         $this->ResultList[] = $Result;
 //        exit;
     }
