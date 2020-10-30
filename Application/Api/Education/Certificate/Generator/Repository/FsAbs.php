@@ -24,13 +24,31 @@ class FsAbs extends FsStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $pageList[] = (new Page())
-            ->addSlice($this->getSchoolHeadAbs($personId))
-            ->addSlice($this->getStudentHeadAbs($personId))
-            ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, false, '200px', 1, 4))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8))
+        $Page = (new Page());
+        $Page->addSlice($this->getSchoolHeadAbs($personId));
+        $Page->addSlice($this->getStudentHeadAbs($personId));
+//                ->addSlice($this->getIndividuallySignPart($personId, true))
+
+//            ->addSlice($this->getSubjectLineDuty())
+//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, false, '200px', 1, 4))
+//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8))
         ;
+        //ToDO logik für die Anzeige des Zusatztextes <MITTLERE SCHULABSCHLUSS> auf dem Zeugnis
+        if(false){
+            $Page->addSlice($this->getSecondarySchoolDiploma($personId));
+            $Page->addSlice((new Slice())->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop('45px')
+            ));
+        } else {
+            $Page->addSlice((new Slice())->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop('220px')
+            ));
+        }
+        $Page->addSlice($this->getIndividuallySignPart($personId, true));
+
+        $pageList[] = $Page;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Jahreszeugnis'))

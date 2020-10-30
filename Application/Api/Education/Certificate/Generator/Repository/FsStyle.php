@@ -377,7 +377,7 @@ abstract class FsStyle extends Certificate
 
         $Slice = new Slice();
 
-        $Slice->stylePaddingTop('20px');
+        $Slice->stylePaddingTop('30px');
 
         $Slice->addElement((new Element())
             ->setContent('
@@ -431,7 +431,7 @@ abstract class FsStyle extends Certificate
             ->stylePaddingTop('10px')
         );
         $Slice->addElement((new Element())
-            ->setContent('Fachschule für {% if(Content.P' . $personId . '.Input.FsDestination is not empty) %}
+            ->setContent('Fachschule {% if(Content.P' . $personId . '.Input.FsDestination is not empty) %}
                     {{ Content.P' . $personId . '.Input.FsDestination }}
                 {% else %}
                     ---
@@ -439,7 +439,7 @@ abstract class FsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('20px')
             ->styleTextBold()
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('15px')
         );
 
         $Slice->addElement((new Element())
@@ -455,7 +455,7 @@ abstract class FsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('20px')
             ->styleTextBold()
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('5px')
         );
         $GenderString = 'Er/Sie';
         if(($tblPerson = Person::useService()->getPersonById($personId))){
@@ -480,11 +480,11 @@ abstract class FsStyle extends Certificate
                 {% else %}
                     ---
                 {% endif %}
-                die Abschlussprüfung bestanden. <br/>'.$GenderString.'
+                <br/>die Abschlussprüfung bestanden. '.$GenderString.'
                 ist berechtigt, die Berufsbezeichnung') // .new Sup('1'))
             ->styleAlignCenter()
             ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('15px')
         );
 
         $Slice->addElement((new Element())
@@ -497,14 +497,14 @@ abstract class FsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('20px')
             ->styleTextBold()
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('30px')
         );
 
         $Slice->addElement((new Element())
-            ->setContent('zu führen.')
+            ->setContent('zu führen.' )
             ->styleAlignCenter()
             ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('30px')
         );
 
 
@@ -1430,6 +1430,44 @@ abstract class FsStyle extends Certificate
         return $Slice;
     }
 
+    public function getSecondarySchoolDiploma($personId, $PaddingTop = '30px')
+    {
+
+        $Slice = (new Slice());
+
+        $Slice->addElement((new Element())
+            ->setContent('Aufgrund des erfolgreichen Fachschulabschlusses<br/>wird 
+             {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+            {% else %}
+                Frau/Herr
+            {% endif %}
+            {{ Content.P' . $personId . '.Person.Data.Name.First }}
+            {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+             der')
+            ->stylePaddingTop($PaddingTop)
+            ->styleAlignCenter()
+            ->styleTextSize('16px')
+        );
+
+        $Slice->addElement((new Element())
+            ->setContent('MITTLERE SCHULABSCHLUSS')
+            ->stylePaddingTop('30px')
+            ->styleAlignCenter()
+            ->styleTextBold()
+            ->styleTextSize('16px')
+        );
+
+        $Slice->addElement((new Element())
+            ->setContent('und damit ein dem Realschulabschluss<br/>gleichwertiger Bildungsabschluss zuerkannt.')
+            ->stylePaddingTop('30px')
+            ->styleAlignCenter()
+            ->styleTextSize('16px')
+        );
+
+        return $Slice;
+    }
+
     /**
      * @param int    $personId
      * @param string $paddingTop
@@ -1512,7 +1550,7 @@ abstract class FsStyle extends Certificate
                         {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
                             {{ Content.P' . $personId . '.Headmaster.Description }}
                         {% else %}
-                            Schulleiter(in)
+                            Schulleiter/in
                         {% endif %}'
                     )
                     ->styleAlignCenter()
@@ -1551,7 +1589,7 @@ abstract class FsStyle extends Certificate
                         {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
                             {{ Content.P' . $personId . '.Headmaster.Description }}
                         {% else %}
-                            Schulleiter(in)
+                            Schulleiter/in
                         {% endif %}'
                     )
                     ->styleAlignCenter()
@@ -1564,7 +1602,7 @@ abstract class FsStyle extends Certificate
                         {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
                             {{ Content.P' . $personId . '.DivisionTeacher.Description }}
                         {% else %}
-                            Klassenlehrer(in)
+                            Klassenlehrer/in
                         {% endif %}'
                     )
                     ->styleAlignCenter()
@@ -1603,31 +1641,6 @@ abstract class FsStyle extends Certificate
                 ->setContent('&nbsp;')
                 ->styleHeight('30px')
             );
-
-//            $Slice->addSection((new Section())
-//                ->addElementColumn((new Element())
-//                    ->setContent('Zur Kenntnis genommen:')
-//                    , '27%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBorderBottom('0.5px')
-//                    , '73%'
-//                )
-//            );
-//
-//            $Slice->addSection((new Section())
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    , '27%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('Eltern')
-//                    ->styleTextSize('10px')
-//                    ->styleAlignCenter()
-//                    , '73%'
-//                )
-//            );
         }
 
         return $Slice;
