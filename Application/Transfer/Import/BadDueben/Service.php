@@ -1519,6 +1519,7 @@ class Service
                                     null,
                                     null,
                                     null,
+                                    null,
                                     $date
                                 );
                                 if ($tblStudent) {

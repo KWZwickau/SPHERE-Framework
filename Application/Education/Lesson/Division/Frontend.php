@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Api\Education\Division\AddDivision;
 use SPHERE\Application\Api\Education\Division\DivisionCustody;
 use SPHERE\Application\Api\Education\Division\DivisionTeacher;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
@@ -325,13 +326,12 @@ class Frontend extends Extension implements IFrontendInterface
     public function formLevelDivision(TblLevel $tblLevel = null, TblDivision $tblDivision = null)
     {
 
-        $tblLevelAll = Division::useService()->getLevelAll();
+        $tblDivisionAll = Division::useService()->getDivisionAll();
         $acNameAll = array();
-        if ($tblLevelAll) {
-            array_walk($tblLevelAll, function (TblLevel $tblLevel) use (&$acNameAll) {
-
-                if (!in_array($tblLevel->getName(), $acNameAll)) {
-                    array_push($acNameAll, $tblLevel->getName());
+        if ($tblDivisionAll) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$acNameAll) {
+                if (!in_array($tblDivision->getName(), $acNameAll)) {
+                    array_push($acNameAll, $tblDivision->getName());
                 }
             });
         }
@@ -358,6 +358,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYearAll = Term::useService()->getYearAllSinceYears(0);
 
+        $receiver = AddDivision::receiverFormSelect((new AddDivision())->reloadLevelNameInput());
+
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
@@ -366,9 +368,14 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 (new SelectBox('Level[Type]', 'Schulart', array(
                                     '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                                ), new Education()))->setRequired(),
-                                (new AutoCompleter('Level[Name]', 'Klassenstufe (Nummer)', 'z.B: 5', $acNameAll,
-                                    new Pencil()))->setRequired(),
+                                ), new Education()))
+                                    ->ajaxPipelineOnChange(
+                                        array(
+                                            AddDivision::pipelineCreateLevelNameInput($receiver)
+                                        )
+                                    )
+                                    ->setRequired(),
+                                $receiver
                             ), Panel::PANEL_TYPE_INFO
                         ), 4),
                     new FormColumn(

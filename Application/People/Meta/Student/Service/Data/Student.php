@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -8,6 +9,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -23,14 +26,15 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param string $Identifier
      * @param string $Prefix
+     * @param string $Identifier
      * @param null $tblStudentMedicalRecord
      * @param null $tblStudentTransport
      * @param null $tblStudentBilling
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
+     * @param null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
      * @param bool $IsInPreparationDivisionForMigrants
@@ -47,6 +51,7 @@ abstract class Student extends AbstractData
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
         $tblStudentIntegration = null,
+        $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
         $IsInPreparationDivisionForMigrants = false
@@ -77,7 +82,8 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
-            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setTblStudentSpecialNeeds($tblStudentSpecialNeeds);
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
@@ -126,7 +132,7 @@ abstract class Student extends AbstractData
             if ($IsIdentifier) {
                 $Entity->setIdentifier($Identifier);
             }
-            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
@@ -175,7 +181,7 @@ abstract class Student extends AbstractData
             if ($IsIdentifier) {
                 $Entity->setIdentifier($Identifier);
             }
-            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
@@ -238,14 +244,15 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblStudent $tblStudent
-     * @param string $Identifier
      * @param string $Prefix
+     * @param string $Identifier
      * @param null $tblStudentMedicalRecord
      * @param null $tblStudentTransport
      * @param null $tblStudentBilling
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
+     * @param null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
      * @param bool $IsInPreparationDivisionForMigrants
@@ -262,6 +269,7 @@ abstract class Student extends AbstractData
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
         $tblStudentIntegration = null,
+        $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
         $IsInPreparationDivisionForMigrants = false
@@ -292,7 +300,8 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
-            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setTblStudentSpecialNeeds($tblStudentSpecialNeeds);
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
@@ -311,6 +320,7 @@ abstract class Student extends AbstractData
      * @param TblStudentLocker|null $tblStudentLocker
      * @param TblStudentBaptism|null $tblStudentBaptism
      * @param TblStudentIntegration|null $tblStudentIntegration
+     * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
      *
      * @return bool
      */
@@ -321,7 +331,8 @@ abstract class Student extends AbstractData
         TblStudentBilling $tblStudentBilling = null,
         TblStudentLocker $tblStudentLocker = null,
         TblStudentBaptism $tblStudentBaptism = null,
-        TblStudentIntegration $tblStudentIntegration = null
+        TblStudentIntegration $tblStudentIntegration = null,
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -337,6 +348,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
+            $Entity->setTblStudentSpecialNeeds($tblStudentSpecialNeeds);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -493,5 +505,71 @@ abstract class Student extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSpecialNeeds
+     */
+    public function getStudentSpecialNeedsById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblStudentSpecialNeeds', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSpecialNeedsLevel
+     */
+    public function getStudentSpecialNeedsLevelById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblStudentSpecialNeedsLevel', $Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentSpecialNeedsLevel
+     */
+    public function getStudentSpecialNeedsLevelByName($Name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentSpecialNeedsLevel', array(
+            TblStudentSpecialNeedsLevel::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
+     * @return false|TblStudentSpecialNeedsLevel[]
+     */
+    public function getStudentSpecialNeedsLevelAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblStudentSpecialNeedsLevel', array('EntityCreate' => 'asc'));
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return TblStudentSpecialNeedsLevel|null
+     */
+    public function createStudentSpecialNeedsLevel($Name, $Identifier)
+    {
+        $Manager = $this->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentSpecialNeedsLevel')->findOneBy(array(
+            TblStudentSpecialNeedsLevel::ATTR_IDENTIFIER => $Identifier
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentSpecialNeedsLevel();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

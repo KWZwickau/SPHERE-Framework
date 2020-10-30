@@ -955,7 +955,7 @@ class Service
                                     trim($Document->getValue($Document->getCell($Location['Schüler_Schülernummer'],
                                         $RunY))),
                                     $tblStudentMedicalRecord, null,
-                                    $tblStudentBilling, null, null, $tblStudentIntegration, $date);
+                                    $tblStudentBilling, null, null, $tblStudentIntegration, null, $date);
 
                                 if ($tblStudent) {
 
