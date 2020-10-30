@@ -11,6 +11,7 @@ use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\SubjectTeacher;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -199,12 +200,16 @@ class Frontend extends Extension implements IFrontendInterface
                 // SSW-834 jahrgangsübergreifende nicht mitzählen, ansonsten werden Schüler doppelt gezählt
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && !$tblLevel->getIsChecked()
-                ) {
-
-                    if (isset($StudentCountBySchoolType[$Temp['SchoolType']])) {
-                        $StudentCountBySchoolType[$Temp['SchoolType']] += $Temp['StudentList'];
+                ){
+                    $CompanyId = 0;
+                    if(($tblCompany = $tblDivision->getServiceTblCompany())){
+                        $CompanyId = $tblCompany->getId();
+                    }
+                    $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                    if(isset($StudentCountBySchoolType[$Temp['SchoolType']][$CompanyId])){
+                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyId] += $personCount;
                     } else {
-                        $StudentCountBySchoolType[$Temp['SchoolType']] = $Temp['StudentList'];
+                        $StudentCountBySchoolType[$Temp['SchoolType']][$CompanyId] = $personCount;
                     }
                 }
 
@@ -257,10 +262,35 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
+        // Anhängen der Schulartzählung
         $tblStudentCounterBySchoolType = array();
         if (!empty($StudentCountBySchoolType)) {
-            foreach ($StudentCountBySchoolType as $SchoolType => $Counter) {
-                $tblStudentCounterBySchoolType[] = $SchoolType . ': ' . $Counter;
+            foreach($StudentCountBySchoolType as $SchoolType => $CompanyGroup){
+                $RowContent = '';
+                // Mehr als einmal die gleiche Schulart
+                // Zählung nach Institution trennen
+                if(count($CompanyGroup) >= 2){
+                    $tempCounterAllByType = 0;
+                    foreach($CompanyGroup as $tempCounter) {
+                        $tempCounterAllByType += $tempCounter;
+                    }
+                    $RowContent .= new Container(new Muted(new Small($SchoolType.': '.$tempCounterAllByType)));
+                    foreach($CompanyGroup as $CompanyId => $Counter) {
+                        $SchoolName = '-NA-';
+                        if(($tblCompany = Company::useService()->getCompanyById($CompanyId))){
+                            //toDO später mal Schulkürzel
+                            $SchoolName = $tblCompany->getName();
+                        }
+                        $RowContent .= new Container(
+                            new Muted(new Small('&nbsp;&nbsp;- '.$SchoolName.': '.$Counter))
+                        );
+                    }
+                    $tblStudentCounterBySchoolType[] = $RowContent;
+                } else {
+                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                        $tblStudentCounterBySchoolType[] = new Muted(new Small($SchoolType.': '.$Counter));
+                    }
+                }
             }
         }
 
@@ -277,7 +307,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Period'      => 'Zeitraum',
                                     'SchoolType'  => 'Schulart',
                                     'Company'     => 'Schule',
-                                    'ClassGroup'  => 'Schulklasse',
+                                    'ClassGroup'  => 'Klasse',
                                     'Description' => 'Beschreibung',
                                     'StudentList' => 'Schüler',
                                     'TeacherList' => 'Klassenlehrer',
@@ -287,8 +317,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 , array(
                                     'order'      => array(array(4, 'asc')),
                                     'columnDefs' => array(
-                                        array('orderable' => false, 'width' => '20px', 'targets' => 0),
-                                        array('orderable' => false, 'targets' => array(1, -1)),
+                                        array('orderable' => false, 'width' => '60px', 'targets' => 0),
+                                        array('orderable' => false, 'width' => '150px', 'targets' => 1),
+                                        array('width' => '110px', 'targets' => -2),
+                                        array('orderable' => false, 'width' => '235px', 'targets' => -1),
                                         array('type' => 'natural', 'targets' => 4),
                                         array('type' => 'natural', 'targets' => 6),
                                         array('type' => 'natural', 'targets' => 8),
@@ -1825,7 +1857,7 @@ class Frontend extends Extension implements IFrontendInterface
                 // Destroy Division
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(
                             ( Division::useService()->destroyDivision($tblDivision)
                                 ? new Success('Die Klasse wurde gelöscht',
                                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -1834,7 +1866,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Ban())
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR)
                             )
-                        )))
+                        ))
                     )))
                 );
             }
