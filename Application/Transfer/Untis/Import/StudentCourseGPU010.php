@@ -85,7 +85,8 @@ class StudentCourseGPU010 extends AbstractConverter
         $tblDivision = Division::useService()->getDivisionById($Result['DivisionId']);
 
         $Result['readableBirthday'] = '';
-        if(($BirthDay = $this->getDateTimeString($Result['Birthday']))){
+        $BirthDay = false;
+        if(isset($Result['Birthday']) && ($BirthDay = $this->getDateTimeString($Result['Birthday']))){
             $Result['readableBirthday'] = $Result['Birthday'].' => '.$BirthDay;
         }
 
@@ -101,7 +102,11 @@ class StudentCourseGPU010 extends AbstractConverter
         } else {
             $this->IsError = true;
             if(!$BirthDay){
-                $Result['AppPerson'] = new Danger(new Ban().'Geburtsdatum nicht zuzuordnen ('.$Result['Birthday'].') FORMAT JJJJMMDD');
+                if(isset($Result['Birthday'])){
+                    $Result['AppPerson'] = new Danger(new Ban().'Geburtsdatum nicht zuzuordnen ('.$Result['Birthday'].') FORMAT JJJJMMDD');
+                } else {
+                    $Result['AppPerson'] = new Danger(new Ban().'Geburtsdatum nicht Vorhanden FORMAT JJJJMMDD');
+                }
             } else {
                 $Result['AppPerson'] = new Danger(new Ban().' Name fehlt!');
             }
