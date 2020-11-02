@@ -325,8 +325,7 @@ class ApiBankAccount extends Extension implements IApiInterface
                     ), 6),
 
                     new FormColumn(
-                        (new TextField('BankAccount[BIC]', 'BIC', 'BIC', null, '***********'))
-                            ->setCaseToUpper(true)
+                        new AutoCompleter('BankAccount[BIC]', 'BIC', 'BIC', array('BIC' => $tblBankAccountAll))
                         , 6)
                 )),
                 new FormRow(
@@ -372,13 +371,9 @@ class ApiBankAccount extends Extension implements IApiInterface
                 }
             }
         }
-        if(isset($BankAccount['BIC']) && empty($BankAccount['BIC'])){
-            // BIC ist keine Pflichtangabe
-//            $form->setError('BankAccount[BIC]', 'Bitte geben Sie die BIC an');
-//            $Error = true;
-        } elseif(isset($BankAccount['BIC']) ){
-            // Wird eine BIC angegeben, so muss sie allerdings mindestens 8 Zeichen besitzen
-            if(strlen($BankAccount['BIC']) < 8){
+        if(isset($BankAccount['BIC']) && !empty($BankAccount['BIC'])){
+            // Wird eine BIC angegeben, so muss sie mindestens 8 Zeichen aber höchstens 11 Zeichen besitzen
+            if(strlen($BankAccount['BIC']) < 8 || strlen($BankAccount['BIC']) > 11){
                 $form->setError('BankAccount[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
                 $Error = true;
             }
