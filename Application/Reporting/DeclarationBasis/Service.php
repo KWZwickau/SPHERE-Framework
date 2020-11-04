@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Reporting\DeclarationBasis;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
@@ -26,10 +27,11 @@ class Service extends Extension
 {
     /**
      * @param TblYear $tblYear
+     * @param DateTime $date
      *
      * @return FilePointer|Stage
      */
-    public function createDivisionReportExcel(TblYear $tblYear)
+    public function createDivisionReportExcel(TblYear $tblYear, DateTime $date)
     {
         $DataContent = array();
         $DataBlind = array();
@@ -63,7 +65,7 @@ class Service extends Extension
                                 }
                                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                                     if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())
-                                        && ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                        && ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson, $date))
                                         && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
                                         && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
                                     ) {
@@ -667,7 +669,7 @@ Kostenerstattung durch andere öffentlichen Träger");
             $Row++;
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(0, $Row), (new \DateTime())->format('d.m.Y'));
+            $export->setValue($export->getCell(0, $Row), (new DateTime())->format('d.m.Y'));
             $export->setStyle($export->getCell(0, $Row))
                 ->setBorderBottom();
             $export->setStyle($export->getCell(8, $Row), $export->getCell(15, $Row))
@@ -909,7 +911,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $export->setWorksheetFitToPage();
                 $Row++;
                 $Row++;
-                $export->setValue($export->getCell(0, $Row), (new \DateTime())->format('d.m.Y'));
+                $export->setValue($export->getCell(0, $Row), (new DateTime())->format('d.m.Y'));
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))
                     ->mergeCells()
                     ->setBorderBottom();
