@@ -279,24 +279,13 @@ class Service
                                 if (($division = trim($Document->getValue($Document->getCell($Location['Klasse/Kurs'], $RunY))))) {
                                     $tblSchoolType = $tblSchoolTypeSpecialNeeds;
                                     if (($tblLevel = Division::useService()->insertLevel($tblSchoolType, '', ''))) {
-                                        // Sonderfälle: 1,2,3
-                                        if (strlen($division) == 1) {
-                                            $tblDivision = Division::useService()->insertDivision(
-                                                $tblYear,
-                                                $tblLevel,
-                                                'U4',
-                                                '',
-                                                $tblCompany ? $tblCompany : null
-                                            );
-                                        } else {
-                                            $tblDivision = Division::useService()->insertDivision(
-                                                $tblYear,
-                                                $tblLevel,
-                                                $division,
-                                                '',
-                                                $tblCompany ? $tblCompany : null
-                                            );
-                                        }
+                                        $tblDivision = Division::useService()->insertDivision(
+                                            $tblYear,
+                                            $tblLevel,
+                                            $division,
+                                            '',
+                                            $tblCompany ? $tblCompany : null
+                                        );
 
                                         if ($tblDivision) {
                                             Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
