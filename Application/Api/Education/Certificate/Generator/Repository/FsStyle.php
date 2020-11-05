@@ -868,11 +868,7 @@ abstract class FsStyle extends Certificate
 
         // JobEducation
         $Slice->addElement((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.ChosenArea is not empty) %}
-                             {{ Content.P'.$personId.'.Input.ChosenArea }}
-                         {% else %}
-                             Wahlpflichtbereich
-                         {% endif %}')
+            ->setContent('Wahlpflichtbereich')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -950,11 +946,7 @@ abstract class FsStyle extends Certificate
 
         // JobEducation
         $Slice->addElement((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.JobEducation is not empty) %}
-                             {{ Content.P'.$personId.'.Input.JobEducation }}
-                         {% else %}
-                             Berufspraktische Ausbildung
-                         {% endif %}')
+            ->setContent('Berufspraktische Ausbildung')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -1104,11 +1096,7 @@ abstract class FsStyle extends Certificate
 
         // JobEducation
         $Slice->addElement((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.AddEducation is not empty) %}
-                             {{ Content.P'.$personId.'.Input.AddEducation }}
-                         {% else %}
-                             Zusatzausbildung zum Erwerb der Fachhochschulreife
-                         {% endif %}')
+            ->setContent('Zusatzausbildung zum Erwerb der Fachhochschulreife')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -1328,12 +1316,7 @@ abstract class FsStyle extends Certificate
         $Slice = (new Slice());
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Input.WrittenTest is not empty) %}
-                {{ Content.P'.$personId.'.Input.WrittenTest }}
-            {% else %}
-                Schriftliche Komplexprüfung/en
-            {% endif %}')
+            ->setContent('Schriftliche Komplexprüfung/en')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -1393,12 +1376,7 @@ abstract class FsStyle extends Certificate
         $Slice = (new Slice());
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Input.PractiseTest is not empty) %}
-                {{ Content.P'.$personId.'.Input.PractiseTest }}
-            {% else %}
-                Praktische Komplexprüfung
-            {% endif %}')
+            ->setContent('Praktische Komplexprüfung')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
@@ -1458,12 +1436,7 @@ abstract class FsStyle extends Certificate
         $Slice = (new Slice());
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Input.InformationalExpulsion is not empty) %}
-                {{ Content.P'.$personId.'.Input.InformationalExpulsion }}
-            {% else %}
-                Nachrichtliche Ausweisung
-            {% endif %}')
+            ->setContent('Nachrichtliche Ausweisung')
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
             ->stylePaddingBottom('10px')
