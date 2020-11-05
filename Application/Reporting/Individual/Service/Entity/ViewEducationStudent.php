@@ -36,6 +36,9 @@ class ViewEducationStudent extends AbstractView
     const TBL_DIVISION_NAME = 'TblDivision_Name';
     const TBL_DIVISION_DESCRIPTION = 'TblDivision_Description';
 
+    const TBL_COMPANY_NAME = 'TblCompany_Name';
+    const TBL_COMPANY_NAME_EXTENDED_NAME = 'TblCompany_Name_ExtendedName';
+
     const TBL_TYPE_NAME = 'TblType_Name';
     const TBL_TYPE_DESCRIPTION = 'TblType_Description';
 
@@ -86,6 +89,14 @@ class ViewEducationStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblCompany_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCompany_Name_ExtendedName;
+    /**
+     * @Column(type="string")
+     */
     protected $TblType_Name;
     /**
      * @Column(type="string")
@@ -116,6 +127,8 @@ class ViewEducationStudent extends AbstractView
         $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Bildung: Klasse ist Stufenübergreifend');
         $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Bildung: Klassengruppe');
         $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Bildung: Klassen Beschreibung');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Bildung: Schule');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME_EXTENDED_NAME, 'Bildung: Schule Erweitert');
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Bildung: Schulart');
         $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Bildung: Schuljahr');
         $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Bildung: Schuljahr Beschreibung');
@@ -132,6 +145,11 @@ class ViewEducationStudent extends AbstractView
         $this->setGroupDefinition('Zeitraum', array(
             self::TBL_YEAR_YEAR,
             self::TBL_YEAR_DESCRIPTION,
+        ));
+
+        $this->setGroupDefinition('Schule', array(
+            self::TBL_COMPANY_NAME,
+            self::TBL_COMPANY_NAME_EXTENDED_NAME,
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
