@@ -60,17 +60,12 @@ class DeclarationBasis implements IModuleInterface
         if ($Date != null) {
             $date = new DateTime($Date);
             if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
-                if (count($tblYearList) == 1) {
-                    $tblYear = current($tblYearList);
-                    $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()
-                        ->createDivisionReportExcel($tblYear, $date);
+                $tblYear = current($tblYearList);
+                $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()
+                    ->createDivisionReportExcel($tblYear, $date);
 
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Stichtagsmeldung SBA" . " " . $date->format('Y-m-d') . ".xlsx")->__toString();
-                } else {
-                    return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde mehr als ein Schuljahr gefunden. 
-                        Bitte wählen Sie einen eindeutigen Stichtag aus.';
-                }
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Stichtagsmeldung SBA" . " " . $date->format('Y-m-d') . ".xlsx")->__toString();
             } else {
                 return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde kein Schuljahr gefunden.';
             }
