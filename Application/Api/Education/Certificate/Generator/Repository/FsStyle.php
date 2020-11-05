@@ -694,7 +694,7 @@ abstract class FsStyle extends Certificate
     /**
      * @return Slice
      */
-    protected function getSubjectLineDuty()
+    protected function getSubjectLineDuty($PaddingTop = '30px')
     {
 
         $Slice = (new Slice());
@@ -703,7 +703,7 @@ abstract class FsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('18px')
             ->styleTextBold()
-            ->stylePaddingTop('30px')
+            ->stylePaddingTop($PaddingTop)
         );
 
         return $Slice;
@@ -1317,6 +1317,261 @@ abstract class FsStyle extends Certificate
     }
 
     /**
+     * @param int            $personId
+//     * @param TblCertificate $tblCertificate
+     * @param string         $Height
+     *
+     * @return Slice
+     */
+    protected function getSubjectLineWrittenTest($personId, /*TblCertificate $tblCertificate, */$Height = '170px')
+    {
+        $Slice = (new Slice());
+
+        $Slice->addElement((new Element())
+            ->setContent('
+            {% if(Content.P'.$personId.'.Input.WrittenTest is not empty) %}
+                {{ Content.P'.$personId.'.Input.WrittenTest }}
+            {% else %}
+                Schriftliche Komplexprüfung/en
+            {% endif %}')
+            ->styleAlignCenter()
+            ->stylePaddingTop('20px')
+            ->stylePaddingBottom('10px')
+        );
+
+        $TextSize = '14px';
+
+        for($i = 1; $i <= 4; $i++){
+            $SubjectSection = (new Section());
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent($i.'
+                {% if(Content.P'.$personId.'.Input.WrittenTestSubject'.$i.' is not empty) %}
+                    {{ Content.P'.$personId.'.Input.WrittenTestSubject'.$i.' }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px')
+                , '91%');
+
+
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P'.$personId.'.Input.WrittenTestGrade'.$i.' is not empty) %}
+                    {{ Content.P'.$personId.'.Input.WrittenTestGrade'.$i.' }}
+                {% else %}
+                   &nbsp;
+                {% endif %}')
+                // removed Dash for empty -> &ndash;
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+            $Slice->addSection($SubjectSection);
+        }
+
+        $Slice->styleHeight($Height);
+
+        return $Slice;
+    }
+
+    /**
+     * @param int            $personId
+    //     * @param TblCertificate $tblCertificate
+     * @param string         $Height
+     *
+     * @return Slice
+     */
+    protected function getSubjectLinePractiseTest($personId, /*TblCertificate $tblCertificate, */$Height = '68px')
+    {
+        $Slice = (new Slice());
+
+        $Slice->addElement((new Element())
+            ->setContent('
+            {% if(Content.P'.$personId.'.Input.PractiseTest is not empty) %}
+                {{ Content.P'.$personId.'.Input.PractiseTest }}
+            {% else %}
+                Praktische Komplexprüfung
+            {% endif %}')
+            ->styleAlignCenter()
+            ->stylePaddingTop('20px')
+            ->stylePaddingBottom('10px')
+        );
+
+        $TextSize = '14px';
+
+        for($i = 1; $i <= 1; $i++){
+            $SubjectSection = (new Section());
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent($i.'
+                {% if(Content.P'.$personId.'.Input.PractiseTestSubject'.$i.' is not empty) %}
+                    {{ Content.P'.$personId.'.Input.PractiseTestSubject'.$i.' }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px')
+                , '91%');
+
+
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P'.$personId.'.Input.PractiseTestGrade'.$i.' is not empty) %}
+                    {{ Content.P'.$personId.'.Input.PractiseTestGrade'.$i.' }}
+                {% else %}
+                   &nbsp;
+                {% endif %}')
+                // removed Dash for empty -> &ndash;
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+            $Slice->addSection($SubjectSection);
+        }
+
+        $Slice->styleHeight($Height);
+
+        return $Slice;
+    }
+
+    /**
+     * @param int            $personId
+    //     * @param TblCertificate $tblCertificate
+     * @param string         $Height
+     *
+     * @return Slice
+     */
+    protected function getSubjectLineInformationalExpulsion($personId, /*TblCertificate $tblCertificate, */$Height = '405px')
+    {
+        $Slice = (new Slice());
+
+        $Slice->addElement((new Element())
+            ->setContent('
+            {% if(Content.P'.$personId.'.Input.InformationalExpulsion is not empty) %}
+                {{ Content.P'.$personId.'.Input.InformationalExpulsion }}
+            {% else %}
+                Nachrichtliche Ausweisung
+            {% endif %}')
+            ->styleAlignCenter()
+            ->stylePaddingTop('20px')
+            ->stylePaddingBottom('10px')
+        );
+
+        $TextSize = '14px';
+
+        for($i = 1; $i <= 12; $i++){
+            $SubjectSection = (new Section());
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent($i.'
+                {% if(Content.P'.$personId.'.Input.InformationalExpulsion'.$i.' is not empty) %}
+                    {{ Content.P'.$personId.'.Input.InformationalExpulsion'.$i.' }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px')
+                , '91%');
+
+
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P'.$personId.'.Input.InformationalExpulsionGrade'.$i.' is not empty) %}
+                    {{ Content.P'.$personId.'.Input.InformationalExpulsionGrade'.$i.' }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                // removed Dash for empty -> &ndash;
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+            $Slice->addSection($SubjectSection);
+        }
+
+        $Slice->styleHeight($Height);
+
+        return $Slice;
+    }
+
+    /**
+     * @param int            $personId
+    //     * @param TblCertificate $tblCertificate
+     * @param string         $Height
+     *
+     * @return Slice
+     */
+    protected function getSubjectLineSkilledWork($personId, /*TblCertificate $tblCertificate, */$Height = '90px')
+    {
+        $Slice = (new Slice());
+
+        $Slice->addElement((new Element())
+            ->setContent('Facharbeit')
+            ->styleAlignCenter()
+            ->stylePaddingTop('20px')
+            ->stylePaddingBottom('10px')
+        );
+
+        $TextSize = '14px';
+
+        for($i = 1; $i <= 1; $i++){
+            $SubjectSection = (new Section());
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P'.$personId.'.Input.SkilledWork'.$i.' is not empty) %}
+                     Facharbeit: {{ Content.P'.$personId.'.Input.SkilledWork'.$i.' }}
+                 {% else %}
+                     Facharbeit: &nbsp;
+                 {% endif %}')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px')
+                , '91%');
+
+
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' is not empty) %}
+                     {{ Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' }}
+                 {% else %}
+                    &nbsp;
+                 {% endif %}')
+                // removed Dash for empty -> &ndash;
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+            $Slice->addSection($SubjectSection);
+        }
+
+        $Slice->styleHeight($Height);
+
+        return $Slice;
+    }
+
+    /**
      * @param Slice $Slice
      * @param int   $count
      *
@@ -1739,6 +1994,31 @@ abstract class FsStyle extends Certificate
                 ->setContent($Content)
                 ->styleTextSize('9.5px')
         );
+        return $Slice;
+    }
+
+    /**
+     * @param string $PaddingTop
+     * @param string $Sup
+     * @param string $Content
+     *
+     * @return Slice
+     */
+    protected function getFsInfoExtended($PaddingTop = '20px', $Sup= '', $Content = '')
+    {
+        $Slice = new Slice();
+        $Slice->stylePaddingTop($PaddingTop);
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent($Sup)
+                ->styleTextSize('8px')
+                , '7%')
+            ->addElementColumn((new Element())
+                ->setContent($Content)
+                ->styleTextSize('9.5px')
+                , '93%')
+        );
+
         return $Slice;
     }
 
