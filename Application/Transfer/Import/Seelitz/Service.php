@@ -466,7 +466,7 @@ class Service
                                 }
 
                                 Prospect::useService()->insertMeta(
-                                    $tblPerson, $day, '', '', $reservationYear, '', $tblSchoolType, null, $remark
+                                    $tblPerson, $day, '', '', $reservationYear, '', $tblSchoolType, null, null, $remark
                                 );
                             }
                         }

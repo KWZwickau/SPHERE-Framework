@@ -33,6 +33,7 @@ class ViewGroupProspect extends AbstractView
     const TBL_PROSPECT_RESERVATION_RESERVATION_DIVISION = 'TblProspectReservation_ReservationDivision';
     const TBL_TYPE_NAME_A = 'TblType_NameA';
     const TBL_TYPE_NAME_B = 'TblType_NameB';
+    const TBL_COMPANY_NAME = 'TblCompany_Name';
     const TBL_PROSPECT_REMARK = 'TblProspect_Remark';
 
     /**
@@ -79,6 +80,10 @@ class ViewGroupProspect extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblCompany_Name;
+    /**
+     * @Column(type="string")
+     */
     protected $TblProspect_Remark;
 
     /**
@@ -97,6 +102,7 @@ class ViewGroupProspect extends AbstractView
         $this->setNameDefinition(self::TBL_PROSPECT_RESERVATION_RESERVATION_DIVISION, 'Voranmeldung: Klassenstufe');
         $this->setNameDefinition(self::TBL_TYPE_NAME_A, 'Schulart: Option 1');
         $this->setNameDefinition(self::TBL_TYPE_NAME_B, 'Schulart: Option 2');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Schule');
         $this->setNameDefinition(self::TBL_PROSPECT_REMARK, 'Interessent: Bemerkung');
 
         //GroupDefinition
@@ -110,6 +116,7 @@ class ViewGroupProspect extends AbstractView
             self::TBL_PROSPECT_RESERVATION_RESERVATION_DIVISION,
             self::TBL_TYPE_NAME_A,
             self::TBL_TYPE_NAME_B,
+            self::TBL_COMPANY_NAME,
         ));
         $this->setGroupDefinition('Sonstiges', array(
             self::TBL_PROSPECT_REMARK,
@@ -152,13 +159,14 @@ class ViewGroupProspect extends AbstractView
 
         switch ($PropertyName) {
             case self::TBL_TYPE_NAME_A:
-                $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
-                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
-                break;
             case self::TBL_TYPE_NAME_B:
                 $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
                 $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
+//            case self::TBL_TYPE_NAME_B:
+//                $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
+//                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
+//                break;
             case self::TBL_PROSPECT_RESERVATION_RESERVATION_YEAR:
                 $Data = Prospect::useService()->getPropertyList(new TblProspectReservation(), TblProspectReservation::ATTR_RESERVATION_YEAR);
                 $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount);

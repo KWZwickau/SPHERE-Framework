@@ -774,6 +774,7 @@ class Service
                                     '1',
                                     $tblSchoolType,
                                     null,
+                                    null,
                                     ''
                                 );
 
