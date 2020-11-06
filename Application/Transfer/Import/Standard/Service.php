@@ -308,6 +308,9 @@ class Service
             $nationality = $this->getValue('Staatsangehörigkeit');
             $denomination = $this->getValue('Konfession');
             $remark = $this->getValue('Abholberechtigte');
+            if ($remark != '') {
+                $remark = 'Abholberechtigte: ' . $remark;
+            }
             $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $this->RunY, $Nr, $error);
 
             // student
