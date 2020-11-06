@@ -199,7 +199,7 @@ class TblMinimumGradeCount extends Element
         } else {
             switch ($this->getHighlighted())  {
                 case SelectBoxItem::HIGHLIGHTED_ALL: $gradeType = 'Alle Zensuren-Typen'; break;
-                case SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED: $gradeType = 'Nur große Zensuren-Typen (Fett marktiert)'; break;
+                case SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED: $gradeType = 'Nur große Zensuren-Typen (Fett markiert)'; break;
                 case SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED: $gradeType = 'Nur kleine Zensuren-Typen (nicht Fett markiert)'; break;
                 default: $gradeType = '';
             }
