@@ -33,6 +33,8 @@ class Data extends AbstractData
     {
         $this->createCommonGender( 'Männlich' );
         $this->createCommonGender( 'Weiblich' );
+        $this->createCommonGender('Divers');
+        $this->createCommonGender('Ohne Angabe');
     }
 
     /**

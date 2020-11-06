@@ -41,4 +41,13 @@ class TblCommonGender extends Element
 
         $this->Name = $Name;
     }
+
+    /**
+     * m, w, d, o
+     * @return false|string
+     */
+    public function getShortName()
+    {
+        return substr(strtolower($this->Name), 0, 1);
+    }
 }

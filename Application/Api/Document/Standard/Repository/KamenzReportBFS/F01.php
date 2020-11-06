@@ -23,12 +23,14 @@ class F01
     {
         switch ($name) {
             case 'F01_1':
-                $title = 'F01-1. Inklusiv unterrichtete Förderschüler im <u>Vollzeitunterricht</u> im 
-                    {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und Klassenstufen';
+                $title = 'F01-1. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf <u>im Vollzeitunterricht</u>
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und</br>' . Common::getBlankSpace(11)
+                    . 'Klassenstufen';
                 break;
             case 'F01_2':
-                $title = 'F01-2. Inklusiv unterrichtete Förderschüler im <u>Teilzeitunterricht</u> im 
-                    {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und Klassenstufen';
+                $title = 'F01-2. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf <u>im Teilzeitunterricht</u>
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und</br>' . Common::getBlankSpace(11)
+                    . 'Klassenstufen';
                 break;
             default: $title = '';
         }
@@ -49,11 +51,11 @@ class F01
                 )
             );
 
-        $width[0] = '16%';
-        $width[1] = '18%';
-        $width[2] = '22%';
-        $width[3] = '44%';
-        $width['gender'] = '11%';
+        $width[0] = '15%';
+        $width[1] = '15%';
+        $width[2] = '50%';
+        $width[3] = '20%';
+        $width['gender'] = '10%';
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
@@ -66,14 +68,14 @@ class F01
                 ->addElementColumn((new Element())
                     ->setContent('Förderschwer-</br>punkt(e)')
                     ->styleBorderRight()
-                    ->stylePaddingTop('17.5px')
-                    ->stylePaddingBottom('17.7px')
+                    ->stylePaddingTop('43px')
+                    ->stylePaddingBottom('44.4px')
                 , $width[0])
                 ->addElementColumn((new Element())
                     ->setContent('Klassenstufe')
                     ->styleBorderRight()
-                    ->stylePaddingTop('25.2px')
-                    ->stylePaddingBottom('27px')
+                    ->stylePaddingTop('50.3px')
+                    ->stylePaddingBottom('54.3px')
                 , $width[1])
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -81,53 +83,62 @@ class F01
                             ->setContent('Schüler')
                             ->styleBorderBottom()
                             ->styleBorderRight()
-                            ->stylePaddingTop('17px')
-                            ->stylePaddingBottom('17.2px')
-                        , '30%')
+                            ->stylePaddingTop('43px')
+                            ->stylePaddingBottom('43.4px')
+                        )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '50%'
+                            ->setContent('männlich')
+                            ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '50%'
+                            ->setContent('weiblich')
+                            ->styleBorderRight(), '20%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('divers')
+                            ->styleBorderRight(), '20%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('ohne Angabe¹')
+                            ->styleBorderRight(), '20%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('insgesamt')
+                            ->styleTextBold()
+                            ->styleBorderRight(), '20%'
                         )
                     )
                 , $width[2])
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Darunter von Spalte Schüler')
+                            ->setContent('Darunter')
+                            ->styleBorderBottom()
+                            ->styleTextBold()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler, deren Herkunftssprache nicht oder nicht ausschl. Deutsch ist')
+                            ->setContent('Schüler, deren</br>Herkunftsspr.</br>nicht oder nicht</br>ausschließlich</br>Deutsch ist')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler mit gutachterlich bestätigtem Autismus')
+                            ->setContent('Schüler mit</br>gutachterlich</br>bestätigtem</br>Autismus')
+                            ->stylePaddingTop('8.5px')
+                            ->stylePaddingBottom('8.6px')
                             ->styleBorderBottom(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
+                            ->setContent('insgesamt')
+                            ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w'), '25%'
+                            ->setContent('insgesamt'), '50%'
                         )
                     )
                 , $width[3])
@@ -167,6 +178,7 @@ class F01
                 case 2: $text = 'Hören'; break;
                 case 3: $text = 'Sprache'; break;
                 case 4: $text = 'Körperlich-motorische Entwicklung';
+                    $hasBorderTop = $name == 'F01_2';
                     if ($maxLevel == 4) {
                         $paddingTop = '27.8px';
                         $paddingBottom = '27.8px';
@@ -180,11 +192,11 @@ class F01
                     }
                     break;
                 case 5: $text = 'Geistige Entwicklung';
-                    $hasBorderTop = $name == 'F01_2';
+                    $hasBorderTop = $name == 'F01_1';
                     break;
                 case 6: $text = 'Sozial-emotionale Entwicklung';
                     if ($maxLevel == 4) {
-                        $hasBorderTop = true;
+//                        $hasBorderTop = true;
                         $paddingTop = '27.8px';
                         $paddingBottom = '27.8px';
                     } elseif ($maxLevel == 5) {
@@ -247,14 +259,15 @@ class F01
             // Schüler
             self::setColumn($section, $name, $text, 'Student', 'm', $width['gender'], $hasBorderTop, $maxLevel);
             self::setColumn($section, $name, $text, 'Student', 'w', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'Student', 'd', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'Student', 'o', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'Student', 'TotalCount', $width['gender'], $hasBorderTop, $maxLevel, true);
 
             // Migrationshintergrund
-            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'm', $width['gender'], $hasBorderTop, $maxLevel);
-            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'w', $width['gender'], $hasBorderTop, $maxLevel);
+            self::setColumn($section, $name, $text, 'HasMigrationBackground', 'TotalCount', $width['gender'], $hasBorderTop, $maxLevel);
 
             // Autismus
-            self::setColumn($section, $name, $text, 'Autism', 'm', $width['gender'], $hasBorderTop, $maxLevel);
-            self::setColumn($section, $name, $text, 'Autism', 'w', $width['gender'], $hasBorderTop, $maxLevel, true);
+            self::setColumn($section, $name, $text, 'Autism', 'TotalCount', $width['gender'], $hasBorderTop, $maxLevel, false, true);
 
             $sliceList[] = (new Slice())
                 ->styleAlignCenter()
@@ -277,12 +290,15 @@ class F01
      * @param string $width
      * @param $hasBorderTop
      * @param $maxLevel
+     * @param bool $hasGrayBackground
      * @param bool $isLastColumn
      */
-    private static function setColumn(Section $section, $name, $text, $identifier, $gender, $width, $hasBorderTop, $maxLevel, $isLastColumn = false)
-    {
+    private static function setColumn(Section $section, $name, $text, $identifier, $gender, $width, $hasBorderTop, $maxLevel,
+        $hasGrayBackground = false, $isLastColumn = false
+    ) {
         if ($text == 'Insgesamt') {
             $text = 'TotalCount';
+            $hasGrayBackground = true;
         } else {
             $text = preg_replace('/[^a-zA-Z]/', '', $text);
         }
@@ -300,6 +316,7 @@ class F01
                             {% endif %}
                         ')
                     ->styleBorderBottom()
+                    ->styleBackgroundColor($hasGrayBackground ? 'lightgrey' : 'white')
                 );
             $lineSectionList[] = $lineSection;
         }

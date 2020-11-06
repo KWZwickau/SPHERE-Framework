@@ -90,14 +90,15 @@ class KamenzReportBFS extends AbstractDocument
 //            ->addPage((new Page())
 //                ->addSliceArray(B02::getContent('B02_2_1_U'))
 //            )
+            ->addPage((new Page())
+                ->addSliceArray(F01::getContent('F01_1', 'Berufsfachschule'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(F01::getContent('F01_2', 'Berufsfachschule'))
+            )
 
 
-//            ->addPage((new Page())
-//                ->addSliceArray(F01::getContent('F01_1', 'Berufsfachschule'))
-//            )
-//            ->addPage((new Page())
-//                ->addSliceArray(F01::getContent('F01_2', 'Berufsfachschule'))
-//            )
+
 //            ->addPage((new Page())
 //                ->addSliceArray(K01::getContent())
 //            )

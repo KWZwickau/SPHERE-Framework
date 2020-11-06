@@ -512,7 +512,7 @@ class KamenzReportService
                                         $schoolType = $gender == 'm' ? 'Gymnasium' : 'Oberschule';
                                         $technicalDiploma = 'Abschlusszeugnis';
                                         $technicalType = $gender == 'm' ? 'Beruflisches Gymnasium' : 'Berufsfachschule';
-                                        $hasMigrationBackground = $gender == 'm' ? true : false;
+                                        $hasMigrationBackground = $gender == 'w' ? true : false;
                                         $course = $gender == 'm' ? 'Erzieher' : 'Fachinformatik';
                                         $time = 36;
 
@@ -521,9 +521,8 @@ class KamenzReportService
                                             $isFullTime ? 'FullTime' : 'PartTime', $isChangeStudent ? 'ChangeStudent' : 'Student'
                                         );
 
-                                        self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
-                                            $hasMigrationBackground, $isInPreparationDivisionForMigrants,
-                                            $isFullTime ? 'F01_1' : 'F01_2'
+                                        self::setStudentFocusBFS($tblPerson, $tblLevel, $Content, $gender,
+                                            $hasMigrationBackground, $isFullTime ? 'F01_1' : 'F01_2'
                                         );
 
                                         // Neuanfänger
@@ -721,9 +720,8 @@ class KamenzReportService
                                             $isFullTime ? 'FullTime' : 'PartTime', $isChangeStudent ? 'ChangeStudent' : 'Student'
                                         );
 
-                                        self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
-                                            $hasMigrationBackground, $isInPreparationDivisionForMigrants,
-                                            $isFullTime ? 'F01_1' : 'F01_2'
+                                        self::setStudentFocusBFS($tblPerson, $tblLevel, $Content, $gender,
+                                            $hasMigrationBackground, $isFullTime ? 'F01_1' : 'F01_2'
                                         );
 
                                         // Neuanfänger
@@ -921,12 +919,7 @@ class KamenzReportService
                                                 && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
                                                 && ($birthDay = $tblCommonBirthDates->getBirthday())
                                             ) {
-
-                                                if ($tblCommonGender->getName() == 'Männlich') {
-                                                    $gender = 'm';
-                                                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                                    $gender = 'w';
-                                                }
+                                                $gender = $tblCommonGender->getShortName();
                                             }
 
                                             if ($tblKamenzSchoolType->getName() == 'Mittelschule / Oberschule') {
@@ -1105,6 +1098,127 @@ class KamenzReportService
                         $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender]++;
                     } else {
                         $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender] = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblLevel $tblLevel
+     * @param $Content
+     * @param $gender
+     * @param $hasMigrationBackground
+     * @param string $name
+     */
+    private static function setStudentFocusBFS(
+        TblPerson $tblPerson,
+        TblLevel $tblLevel,
+        &$Content,
+        $gender,
+        $hasMigrationBackground,
+        $name = 'F01_1'
+    ) {
+
+        if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+            && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+            && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
+        ) {
+
+            $text = preg_replace('/[^a-zA-Z]/', '', $tblSupportFocusType->getName());
+
+            /**
+             * Schüler
+             */
+            if (isset($Content[$name][$text]['Student']['L' . $tblLevel->getName()][$gender])) {
+                $Content[$name][$text]['Student']['L' . $tblLevel->getName()][$gender]++;
+            } else {
+                $Content[$name][$text]['Student']['L' . $tblLevel->getName()][$gender] = 1;
+            }
+            if (isset($Content[$name][$text]['Student']['L' . $tblLevel->getName()]['TotalCount'])) {
+                $Content[$name][$text]['Student']['L' . $tblLevel->getName()]['TotalCount']++;
+            } else {
+                $Content[$name][$text]['Student']['L' . $tblLevel->getName()]['TotalCount'] = 1;
+            }
+            if (isset($Content[$name][$text]['Student']['TotalCount'][$gender])) {
+                $Content[$name][$text]['Student']['TotalCount'][$gender]++;
+            } else {
+                $Content[$name][$text]['Student']['TotalCount'][$gender] = 1;
+            }
+            if (isset($Content[$name]['TotalCount']['Student']['TotalCount'][$gender])) {
+                $Content[$name]['TotalCount']['Student']['TotalCount'][$gender]++;
+            } else {
+                $Content[$name]['TotalCount']['Student']['TotalCount'][$gender] = 1;
+            }
+
+            /**
+             * Schüler mit Migrationshintergrund
+             */
+            if ($hasMigrationBackground) {
+                if (isset($Content[$name][$text]['HasMigrationBackground']['L' . $tblLevel->getName()]['TotalCount'])) {
+                    $Content[$name][$text]['HasMigrationBackground']['L' . $tblLevel->getName()]['TotalCount']++;
+                } else {
+                    $Content[$name][$text]['HasMigrationBackground']['L' . $tblLevel->getName()]['TotalCount'] = 1;
+                }
+                if (isset($Content[$name][$text]['HasMigrationBackground']['TotalCount']['TotalCount'])) {
+                    $Content[$name][$text]['HasMigrationBackground']['TotalCount']['TotalCount']++;
+                } else {
+                    $Content[$name][$text]['HasMigrationBackground']['TotalCount']['TotalCount'] = 1;
+                }
+                if (isset($Content[$name]['TotalCount']['HasMigrationBackground']['L' . $tblLevel->getName()]['TotalCount'])) {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['L' . $tblLevel->getName()]['TotalCount']++;
+                } else {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['L' . $tblLevel->getName()]['TotalCount'] = 1;
+                }
+                if (isset($Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount']['TotalCount'])) {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount']['TotalCount']++;
+                } else {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount']['TotalCount'] = 1;
+                }
+            }
+
+            /**
+             * Schüler mit gutachterl. best. Autismus
+             */
+            if (($tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson))) {
+
+                $hasAutism = false;
+                foreach ($tblSpecialList as $tblSpecial) {
+                    if (($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
+                        foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
+                            if ($tblSpecialDisorderType->getName() == 'Störungen aus dem Autismusspektrum') {
+                                $hasAutism = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($hasAutism) {
+                        break;
+                    }
+                }
+
+                if ($hasAutism) {
+                    if (isset($Content[$name][$text]['Autism']['L' . $tblLevel->getName()]['TotalCount'])) {
+                        $Content[$name][$text]['Autism']['L' . $tblLevel->getName()]['TotalCount']++;
+                    } else {
+                        $Content[$name][$text]['Autism']['L' . $tblLevel->getName()]['TotalCount'] = 1;
+                    }
+                    if (isset($Content[$name][$text]['Autism']['TotalCount']['TotalCount'])) {
+                        $Content[$name][$text]['Autism']['TotalCount']['TotalCount']++;
+                    } else {
+                        $Content[$name][$text]['Autism']['TotalCount']['TotalCount'] = 1;
+                    }
+                    if (isset($Content[$name]['TotalCount']['Autism']['L' . $tblLevel->getName()]['TotalCount'])) {
+                        $Content[$name]['TotalCount']['Autism']['L' . $tblLevel->getName()]['TotalCount']++;
+                    } else {
+                        $Content[$name]['TotalCount']['Autism']['L' . $tblLevel->getName()]['TotalCount'] = 1;
+                    }
+                    if (isset($Content[$name]['TotalCount']['Autism']['TotalCount']['TotalCount'])) {
+                        $Content[$name]['TotalCount']['Autism']['TotalCount']['TotalCount']++;
+                    } else {
+                        $Content[$name]['TotalCount']['Autism']['TotalCount']['TotalCount'] = 1;
                     }
                 }
             }
@@ -1808,13 +1922,7 @@ class KamenzReportService
                 && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
             ) {
 
-                if ($tblCommonGender->getName() == 'Männlich') {
-                    $gender = 'm';
-                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                    $gender = 'w';
-                } else {
-                    $gender = 'x';
-                }
+                $gender = $tblCommonGender->getShortName();
 
                 if (($birthDay = $tblCommonBirthDates->getBirthday())) {
                     $birthDayDate = new DateTime($birthDay);
@@ -2730,13 +2838,7 @@ class KamenzReportService
                             && ($birthDay = $tblCommonBirthDates->getBirthday())
                         ) {
 
-                            if ($tblCommonGender->getName() == 'Männlich') {
-                                $gender = 'm';
-                            } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                $gender = 'w';
-                            } else {
-                                $gender = 'x';
-                            }
+                            $gender = $tblCommonGender->getShortName();
 
                             $birthDayDate = new DateTime($birthDay);
                             if ($birthDayDate) {
@@ -2849,13 +2951,7 @@ class KamenzReportService
                                                 && ($birthDay = $tblCommonBirthDates->getBirthday())
                                             ) {
 
-                                                if ($tblCommonGender->getName() == 'Männlich') {
-                                                    $gender = 'm';
-                                                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                                    $gender = 'w';
-                                                } else {
-                                                    $gender = 'x';
-                                                }
+                                                $gender = $tblCommonGender->getShortName();
 
                                                 $birthDayDate = new DateTime($birthDay);
                                                 if ($birthDayDate) {
@@ -3022,13 +3118,7 @@ class KamenzReportService
                                         && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                                         && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
                                     ) {
-                                        if ($tblCommonGender->getName() == 'Männlich') {
-                                            $gender = 'm';
-                                        } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                            $gender = 'w';
-                                        } else {
-                                            $gender = 'x';
-                                        }
+                                        $gender = $tblCommonGender->getShortName();
 
                                         $count[$gender]++;
                                     }
@@ -3074,11 +3164,7 @@ class KamenzReportService
                     && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                     && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
                 ) {
-                    if ($tblCommonGender->getName() == 'Männlich') {
-                        $gender = 'm';
-                    } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                        $gender = 'w';
-                    }
+                    $gender = $tblCommonGender->getShortName();
                 }
 
                 $count = count($subjects);
@@ -3436,13 +3522,7 @@ class KamenzReportService
                             && ($birthDay = $tblCommonBirthDates->getBirthday())
                         ) {
 
-                            if ($tblCommonGender->getName() == 'Männlich') {
-                                $gender = 'm';
-                            } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                $gender = 'w';
-                            } else {
-                                $gender = 'x';
-                            }
+                            $gender = $tblCommonGender->getShortName();
 
                             $birthDayDate = new DateTime($birthDay);
                             if ($birthDayDate) {
@@ -3555,13 +3635,7 @@ class KamenzReportService
                                                 && ($birthDay = $tblCommonBirthDates->getBirthday())
                                             ) {
 
-                                                if ($tblCommonGender->getName() == 'Männlich') {
-                                                    $gender = 'm';
-                                                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                                    $gender = 'w';
-                                                } else {
-                                                    $gender = 'x';
-                                                }
+                                                $gender = $tblCommonGender->getShortName();
 
                                                 $birthDayDate = new DateTime($birthDay);
                                                 if ($birthDayDate) {
