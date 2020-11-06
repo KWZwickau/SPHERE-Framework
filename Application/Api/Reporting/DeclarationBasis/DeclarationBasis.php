@@ -3,9 +3,8 @@
 namespace SPHERE\Application\Api\Reporting\DeclarationBasis;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 
 /**
@@ -22,30 +21,31 @@ class DeclarationBasis implements IModuleInterface
         ));
     }
 
-    /**
-     * @return IServiceInterface
-     */
     public static function useService()
     {
         // Implement useService() method.
     }
 
-    /**
-     * @return IFrontendInterface
-     */
     public static function useFrontend()
     {
         // Implement useFrontend() method.
     }
 
     /**
+     * @param null $YearId
+     *
      * @return string
      */
-    public function downloadDivisionReport()
+    public function downloadDivisionReport($YearId = null)
     {
 
-        $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel();
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Stichtagsmeldung SBA"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        if (($tblYear = Term::useService()->getYearById($YearId))) {
+            $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($tblYear);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Stichtagsmeldung SBA" . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+        }
+
+        return 'Schuljahr nicht gefunden!';
     }
 }

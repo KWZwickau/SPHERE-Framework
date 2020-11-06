@@ -27,6 +27,7 @@ use SPHERE\Application\Transfer\Import\Seelitz\Seelitz;
 use SPHERE\Application\Transfer\Import\Standard\ImportStandard;
 use SPHERE\Application\Transfer\Import\Standard\Mail\Mail;
 use SPHERE\Application\Transfer\Import\Tharandt\Tharandt;
+use SPHERE\Application\Transfer\Import\WVSZ\WVSZ;
 use SPHERE\Application\Transfer\Import\Zwickau\Zwickau;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -115,6 +116,10 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'MLS') {
             MLS::registerModule();
         }
+        if ($consumerAcronym === 'WVSZ') {
+            WVSZ::registerModule();
+        }
+
         ImportStandard::registerModule();
         Mail::registerModule();
 
@@ -172,6 +177,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'MLS') {
             $dataList = MLS::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'WVSZ') {
+            $dataList = WVSZ::setLinks($dataList);
         }
 
         $dataList = Mail::setLinks($dataList);

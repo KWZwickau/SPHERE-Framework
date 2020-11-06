@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
+use SPHERE\Application\Api\Education\Division\AddDivision;
 use SPHERE\Application\Api\Education\Division\DivisionCustody;
 use SPHERE\Application\Api\Education\Division\DivisionTeacher;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
@@ -17,7 +18,9 @@ use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
+use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
+use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\IApplicationInterface;
 
@@ -50,5 +53,8 @@ class Education implements IApplicationInterface
         DivisionTeacher::registerApi();
         DivisionCustody::registerApi();
         YearPeriod::registerApi();
+        YearHoliday::registerApi();
+        ApiPrepare::registerApi();
+        AddDivision::registerApi();
     }
 }

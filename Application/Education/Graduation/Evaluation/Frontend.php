@@ -245,6 +245,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => $tblDivisionItem->getDisplayName(),
                                 'Subject' => '',
                                 'SubjectGroup' => '',
+                                'SubjectTeachers' => '',
                                 'Option' => new Standard(
                                     '', '/Education/Graduation/Evaluation/Test/Teacher/Proposal/Selected', new Select(),
                                     array(
@@ -319,6 +320,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Division' => $tblDivision->getDisplayName(),
                                         'Subject' => $tblSubject->getName(),
                                         'SubjectGroup' => $item->getName(),
+                                        'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $item
+                                        ),
                                         'Option' => new Standard(
                                             '', '/Education/Graduation/Evaluation/Test/Teacher/Selected', new Select(),
                                             array(
@@ -335,6 +339,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => $tblDivision->getDisplayName(),
                                     'Subject' => $tblSubject->getName(),
                                     'SubjectGroup' => '',
+                                    'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject
+                                    ),
                                     'Option' => new Standard(
                                         '', '/Education/Graduation/Evaluation/Test/Teacher/Selected', new Select(),
                                         array(
@@ -377,6 +384,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Subject' => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
+                                'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
                             ), array(
                                 'order'      => array(
@@ -493,6 +501,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Division' => $tblDivision->getDisplayName(),
                                         'Subject' => $tblSubject->getName(),
                                         'SubjectGroup' => $item->getName(),
+                                        'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $item
+                                        ),
                                         'Option' => new Standard(
                                             '', '/Education/Graduation/Evaluation/Test/Headmaster/Selected',
                                             new Select(),
@@ -510,6 +521,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => $tblDivision->getDisplayName(),
                                     'Subject' => $tblSubject->getName(),
                                     'SubjectGroup' => '',
+                                    'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject
+                                    ),
                                     'Option' => new Standard(
                                         '', '/Education/Graduation/Evaluation/Test/Headmaster/Selected', new Select(),
                                         array(
@@ -547,6 +561,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Subject' => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
+                                'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
                             ), array(
                                 'order'      => array(
@@ -846,14 +861,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         if(!isset($_POST['Task']['Period'])){
-            $_POST['Task']['Period'] = -3;
+            $_POST['Task']['Period'] = TblTask::FIRST_PERIOD_ID;
         }
 
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
 
         $periodList[] = new SelectBoxItem(-3, 'Gesamtes Schuljahr');
         $periodList[] = new SelectBoxItem(TblTask::FIRST_PERIOD_ID, TblTask::FIRST_PERIOD_NAME);
-        $periodList[] = new SelectBoxItem(TblTask::SECOND_PERIOD_ID, TblTask::SECOND_PERIOD_NAME);
+        $periodList[] = new SelectBoxItem(TblTask::SECOND_PERIOD_ID, TblTask::SECOND_PERIOD_NAME.' (GYM SEKII)');
 
         $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
         if ($tblScoreTypeAll) {
@@ -866,7 +881,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
                 ),
                 new FormColumn(
-                    (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '.new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
+                    (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '//verwirrt JK deswegen auskommentiert .new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
                         , array('Name' => $periodList)))->setRequired(), 4
                 ),
                 new FormColumn(
@@ -1217,7 +1232,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if ($tblDivision->getServiceTblYear()) {
+        if (($tblYearItem = $tblDivision->getServiceTblYear())) {
             $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                 $tblDivision,
                 $tblDivisionSubject->getServiceTblSubject(),
@@ -1234,8 +1249,11 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->addButton(new Standard('Leistungsüberprüfung anlegen', '', new PlusSign(), array(),
                 false, $Form->getHash()));
+
+            $YearString = $tblYearItem->getYear();
         } else {
             $Form = false;
+            $YearString = '';
         }
 
         // Vorschau Test
@@ -1298,10 +1316,17 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
-                                ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                array(
+                                    'Klasse: ' . $tblDivision->getDisplayName() . ' - ' .
+                                    ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
+                                    ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                        ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                    'Schuljahr: '. $YearString,
+                                    'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblDivisionSubject->getServiceTblSubject(), $tblDivisionSubject->getTblSubjectGroup()
+                                        ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                    )
+                                ),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ))
@@ -1661,10 +1686,17 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Fach-Klasse',
-                                    'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                    ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '') .
-                                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                    array(
+                                        'Klasse: ' . $tblDivision->getDisplayName() . ' - ' .
+                                        ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
+                                        ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                            ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                        'Schuljahr: '. (($tblYear = $tblDivision->getServiceTblYear()) ? $tblYear->getYear() : ''),
+                                        'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblDivisionSubject->getServiceTblSubject(), $tblDivisionSubject->getTblSubjectGroup()
+                                            ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                        )
+                                    ),
                                     Panel::PANEL_TYPE_INFO
                                 ), 6
                             ),
@@ -4387,7 +4419,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $receiverContent = ApiEvaluation::receiverContent(
-            (new ApiEvaluation())->loadTestPlanning($Data, $IsDivisionTeacher, $PersonId)
+            (new ApiEvaluation())->loadTestPlanning($Data, $IsDivisionTeacher, $PersonId), 'TestPlanning'
         );
 
         $yearSelectBox = (new SelectBox('Data[Year]', 'Schuljahr',
@@ -4888,7 +4920,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPerson
      * @param DateTime $taskDate
-     * @param DateTime $leaveDate
      *
      * @return bool
      */

@@ -1519,6 +1519,7 @@ class Service
                                     null,
                                     null,
                                     null,
+                                    null,
                                     $date
                                 );
                                 if ($tblStudent) {
@@ -1677,7 +1678,7 @@ class Service
                                         if ($subjectReligion === 'ETH') {
                                             $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
                                         } elseif ($subjectReligion === 'RE/e') {
-                                            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/E');
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/e');
                                         }
                                         if ($tblSubject) {
                                             Student::useService()->addStudentSubject(

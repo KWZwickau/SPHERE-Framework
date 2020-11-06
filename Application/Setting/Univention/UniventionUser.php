@@ -51,14 +51,13 @@ class UniventionUser
         ));
 
         $Json = curl_exec($this->curlhandle);
-        Debugger::screenDump($Json);
-        $StdClassArray = json_decode($Json);
+        // Object to Array
+        $StdClassAsArray = json_decode($Json, true);
 
         $UserList = array();
-        if(is_array($StdClassArray) && !empty($StdClassArray)){
-            foreach($StdClassArray as $StdClass){
-//                $UserList[] = $StdClass->name;
-                $UserList[] = $StdClass;
+        if(is_array($StdClassAsArray) && !empty($StdClassAsArray)){
+            foreach($StdClassAsArray as $User){
+                $UserList[] = $User;
             }
         }
         return (is_array($UserList) && !empty($UserList) ? $UserList : false);
@@ -72,12 +71,12 @@ class UniventionUser
      * @param string $record_uid
      * @param array  $roles
      * @param array  $schools
-     * @param string $source_uid
+     * @param array  $school_classes
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $source_uid = '')
+        $schools = array(), $school_classes = array())
     {
         curl_reset($this->curlhandle);
 
@@ -87,16 +86,17 @@ class UniventionUser
             'email' => $email,
             'firstname' => $firstname,
             'lastname' => $lastname,
-            // Try AccountId to find Account again?
+            // AccountId
             'record_uid' => $record_uid,
             'roles' => $roles,
-            'schools' => $schools, // test with two array elements
-            // Mandant + AccountId to human resolve problems?
-            'source_uid' => $source_uid
+            'schools' => $schools,
+            'school_classes' => $school_classes,
+            // Mandant + AccountId
+//            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );
-
+        Debugger::screenDump($PersonContent);
         $PersonContent = json_encode($PersonContent);
-
+        Debugger::screenDump($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -113,36 +113,36 @@ class UniventionUser
 
         /**
          * possible field's
-          - dn
-          - url
-          - ucsschool_roles
-          - name
-          - school
-          - firstname
-          - lastname
-          - birthday
-          - disabled
-          - email
-          - record_uid
-          - roles
-          - schools
-          - school_classes
-          - source_uid
-          - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
+        - dn
+        - url
+        - ucsschool_roles
+        - name
+        - school
+        - firstname
+        - lastname
+        - birthday
+        - disabled
+        - email
+        - record_uid
+        - roles
+        - schools
+        - school_classes
+        - source_uid
+        - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
-        $StdClass = json_decode($Json);
-
+        Debugger::screenDump($Json);
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
         $Error = null;
-
-        if(isset($StdClass->detail)){
-            if(is_string($StdClass->detail)){
-                $Error = $StdClass->detail;
-            }elseif(is_array($StdClass->detail)){
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
-                foreach($StdClass->detail as $Detail){
-                    if(is_object($Detail)){
-                        $Error .= $name.' - '.$Detail->msg;
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
                     }
                 }
             }
@@ -159,12 +159,12 @@ class UniventionUser
      * @param string $record_uid
      * @param array  $roles
      * @param array  $schools
-     * @param string $source_uid
+     * @param array  $school_classes
      *
      * @return string|null
      */
     public function updateUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $source_uid = '')
+        $schools = array(), $school_classes = array())
     {
         curl_reset($this->curlhandle);
 
@@ -179,12 +179,14 @@ class UniventionUser
             'roles' => $roles,
 //Local Test without schools
             'schools' => $schools, // test with two array elements
+            'school_classes' => $school_classes,
             // Mandant + AccountId to human resolve problems?
-            'source_uid' => $source_uid
+//            'source_uid' => $source_uid
         );
 
+        Debugger::screenDump($PersonContent);
         $PersonContent = json_encode($PersonContent);
-
+        Debugger::screenDump($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -219,18 +221,18 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
-        $StdClass = json_decode($Json);
-
+        Debugger::screenDump($Json);
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
         $Error = null;
-
-        if(isset($StdClass->detail)){
-            if(is_string($StdClass->detail)){
-                $Error = $StdClass->detail;
-            }elseif(is_array($StdClass->detail)){
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
-                foreach($StdClass->detail as $Detail){
-                    if(is_object($Detail)){
-                        $Error .= $name.' - '.$Detail->msg;
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
                     }
                 }
             }
@@ -240,11 +242,59 @@ class UniventionUser
     }
 
     /**
-     * @param $name
+     * @param array $AccountArray
      *
      * @return string|null
      */
-    public function deleteUser($name)
+    public function deleteUser($AccountArray)
+    {
+
+        curl_reset($this->curlhandle);
+
+        $name = '';
+        // löschen durch Nutnername
+        if(isset($AccountArray['name'])){
+            $name = $AccountArray['name'];
+        }
+        if(!$name){
+            return 'Benutzername nicht gefunden';
+        }
+
+        curl_setopt_array($this->curlhandle, array(
+            CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
+            CURLOPT_CUSTOMREQUEST => 'DELETE',
+            CURLOPT_SSL_VERIFYHOST => FALSE,
+            CURLOPT_HTTPHEADER => array('Authorization: bearer '.$this->token),
+            //return the transfer as a string
+            CURLOPT_RETURNTRANSFER => TRUE,
+        ));
+
+        $Json = $this->execute($this->curlhandle);
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
+        $Error = null;
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
+                $Error = '';
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
+                    }
+                }
+            }
+        }
+
+        return $Error;
+    }
+
+    /**
+     * @param array $AccountArray
+     *
+     * @return string|null
+     */
+    public function deleteUserByName($name)
     {
 
         curl_reset($this->curlhandle);
@@ -259,17 +309,18 @@ class UniventionUser
         ));
 
         $Json = $this->execute($this->curlhandle);
-        $StdClass = json_decode($Json);
-        $Error = null;
 
-        if(isset($StdClass->detail)){
-            if(is_string($StdClass->detail)){
-                $Error = $StdClass->detail;
-            }elseif(is_array($StdClass->detail)){
+        // Object to Array
+        $StdClassArray = json_decode($Json, true);
+        $Error = null;
+        if(isset($StdClassArray['detail'])){
+            if(is_string($StdClassArray['detail'])){
+                $Error = $name.' - '.$StdClassArray['detail'];
+            }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
-                foreach($StdClass->detail as $Detail){
-                    if(is_object($Detail)){
-                        $Error .= $name.' - '.$Detail->msg;
+                foreach($StdClassArray['detail'] as $Detail){
+                    if($Detail['msg']){
+                        $Error .= $name.' - '.$Detail['msg'];
                     }
                 }
             }

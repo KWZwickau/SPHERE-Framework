@@ -10,6 +10,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
@@ -24,12 +25,12 @@ use SPHERE\System\Extension\Extension;
 class Service extends Extension
 {
     /**
+     * @param TblYear $tblYear
+     *
      * @return FilePointer|Stage
      */
-    public function createDivisionReportExcel()
+    public function createDivisionReportExcel(TblYear $tblYear)
     {
-
-        $tblYearList = false;
         $DataContent = array();
         $DataBlind = array();
         $DataHear = array();
@@ -41,13 +42,9 @@ class Service extends Extension
         $DataFocus = array();
         $DataSickStudent = array();
 
-        $YearString = '20.../20...';
-        $YearList = Term::useService()->getYearByNow();
-        if ($YearList) {
-            $YearString = current($YearList)->getYear();
-            $tblYearList = Term::useService()->getYearsByYear(current($YearList));
-        }
+        $tblYearList = Term::useService()->getYearsByYear($tblYear);
         if ($tblYearList) {
+            $YearString = current($tblYearList)->getYear();
             foreach ($tblYearList as $tblYear) {
                 $tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear);
                 if ($tblDivisionList) {
@@ -143,9 +140,6 @@ class Service extends Extension
                 }
             }
         }
-
-//        Debugger::screenDump($DataFocus);
-//        exit;
 
         $fileLocation = Storage::createFilePointer('xlsx');
         /** @var PhpExcel $export */
@@ -941,8 +935,6 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $export->setStyle($export->getCell(9, 0))->setColumnWidth(34.5);
             }
         }
-
-//        exit;
 
         $export->selectWorksheetByIndex(0);
 

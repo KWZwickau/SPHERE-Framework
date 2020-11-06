@@ -39,6 +39,10 @@ class TblStudentMedicalRecord extends Element
     /**
      * @Column(type="string")
      */
+    protected $InsuranceNumber;
+    /**
+     * @Column(type="string")
+     */
     protected $Insurance;
     /**
      * @Column(type="datetime")
@@ -225,6 +229,22 @@ class TblStudentMedicalRecord extends Element
     {
 
         $this->MasernCreatorType = ( null === $MasernCreatorType ? null : $MasernCreatorType->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getInsuranceNumber()
+    {
+        return $this->InsuranceNumber;
+    }
+
+    /**
+     * @param string $InsuranceNumber
+     */
+    public function setInsuranceNumber($InsuranceNumber)
+    {
+        $this->InsuranceNumber = $InsuranceNumber;
     }
 
 }

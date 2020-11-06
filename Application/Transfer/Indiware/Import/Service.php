@@ -2,6 +2,10 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
@@ -11,6 +15,7 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Data;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudentCourse;
@@ -124,6 +129,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string Type
+     *
+     * @return false|TblIndiwareError[]
+     */
+    public function getIndiwareErrorByType($Type = TblIndiwareError::TYPE_LECTURE_SHIP)
+    {
+
+        return (new Data($this->getBinding()))->getIndiwareErrorByType($Type);
+    }
+
+    /**
      * @param bool $ByAccount
      *
      * @return false|TblIndiwareImportStudent[]
@@ -180,6 +196,22 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Type
+     * @param string $Identifier
+     * @param string $Warning
+     * @param string $CompareString
+     *
+     * @return bool
+     */
+    public function createIndiwareError($Type, $Identifier, $Warning, $CompareString)
+    {
+
+        (new Data($this->getBinding()))->createIndiwareError($Type, $Identifier, $Warning, $CompareString);
+
+        return true;
+    }
+
+    /**
      * @param IFormInterface|null          $Stage
      * @param TblIndiwareImportLectureship $tblIndiwareImportLectureship
      * @param null|array                   $Data
@@ -226,6 +258,16 @@ class Service extends AbstractService
         } else {
             $IsIgnore = false;
         }
+        // Es werden nur vollständige Lehraufträge aus der ImportErrorListe entfernt
+        if($tblDivision != null && $tblTeacher != null && $tblSubject != null){
+            // remove Error from IndiwareError
+            $compareString = TblIndiwareError::fetchCompareString(
+                $tblIndiwareImportLectureship->getSchoolClass(), $tblIndiwareImportLectureship->getSubjectName(),
+                $tblIndiwareImportLectureship->getTeacherAcronym(), $tblIndiwareImportLectureship->getSubjectGroupName()
+            );
+            $this->destroyIndiwareErrorByTypeAndCustomString(TblIndiwareError::TYPE_LECTURE_SHIP, $compareString);
+        }
+
 
         if ((new Data($this->getBinding()))->updateIndiwareImportLectureship(
             $tblIndiwareImportLectureship,
@@ -378,12 +420,37 @@ class Service extends AbstractService
         if ($tblIndiwareImportLectureship == null) {
             $tblAccount = Account::useService()->getAccountBySession();
             if ($tblAccount) {
+                // Error werden verworfen, wenn Import verworfen wird
+                (new Data($this->getBinding()))->destroyIndiwareErrorByType(TblIndiwareError::TYPE_LECTURE_SHIP);
                 return (new Data($this->getBinding()))->destroyIndiwareImportLectureshipByAccount($tblAccount);
             }
         } else {
             return (new Data($this->getBinding()))->destroyIndiwareImportLectureship($tblIndiwareImportLectureship);
         }
         return false;
+    }
+
+    /**
+     * @param string $Type
+     * @param string $compareString
+     *
+     * @return bool
+     */
+    public function destroyIndiwareErrorByTypeAndCustomString($Type = TblIndiwareError::TYPE_LECTURE_SHIP, $compareString = '')
+    {
+
+        return (new Data($this->getBinding()))->destroyIndiwareErrorByTypeAndCustomString($Type, $compareString);
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return bool
+     */
+    public function destroyIndiwareErrorByType($Type = TblIndiwareError::TYPE_LECTURE_SHIP)
+    {
+
+        return (new Data($this->getBinding()))->destroyIndiwareErrorByType($Type);
     }
 
     /**
@@ -790,5 +857,37 @@ class Service extends AbstractService
             return true;
         }
         return false;
+    }
+
+    public function getIndiwareErrorExcel($Type = TblIndiwareError::TYPE_LECTURE_SHIP, $StringCompareDescription = 'Klasse_Fach_Lehrer(_Fachgruppe)')
+    {
+        $fileLocation = Storage::createFilePointer('xlsx');
+        /** @var PhpExcel $export */
+        $export = Document::getDocument($fileLocation->getFileLocation());
+
+        $Row = 0;
+        $Column = 0;
+        $export->setValue($export->getCell($Column++, $Row), $StringCompareDescription);
+        $export->setValue($export->getCell($Column++, $Row), 'Kategorie');
+        $export->setValue($export->getCell($Column, $Row), 'Warnung');
+        $Row = 1;
+
+        if(($tblIndiwareErrorList = Import::useService()->getIndiwareErrorByType($Type))){
+            $tblIndiwareErrorList = $this->getSorter($tblIndiwareErrorList)->sortObjectBy('CompareString');
+            foreach ($tblIndiwareErrorList as $tblIndiwareError) {
+                $Column = 0;
+                $export->setValue($export->getCell($Column++, $Row), $tblIndiwareError->getCompareString());
+                $export->setValue($export->getCell($Column++, $Row), $tblIndiwareError->getIdentifier());
+                $export->setValue($export->getCell($Column, $Row), $tblIndiwareError->getWarning());
+                $Row++;
+            }
+
+            $export->setStyle($export->getCell(0, 0))->setColumnWidth(31);
+            $export->setStyle($export->getCell(2, 0))->setColumnWidth(60);
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return 'Keine Fehler verfügbar';
     }
 }

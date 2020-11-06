@@ -50,7 +50,7 @@ class TblSubject extends Element
     public function setAcronym($Acronym)
     {
 
-        $this->Acronym = strtoupper($Acronym);
+        $this->Acronym = $Acronym;
     }
 
     /**

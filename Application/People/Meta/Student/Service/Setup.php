@@ -57,10 +57,13 @@ class Setup extends AbstractSetup
         $tblStudentLocker = $this->setTableStudentLocker($Schema);
         $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
         $tblStudentIntegration = $this->setTableStudentIntegration($Schema);
+        $tblStudentSpecialNeedsLevel = $this->setTableStudentSpecialNeedsLevel($Schema);
+        $tblStudentSpecialNeeds = $this->setTableStudentSpecialNeeds($Schema, $tblStudentSpecialNeedsLevel);
 
         $tblStudent = $this->setTableStudent(
             $Schema, $tblStudentMedicalRecord, $tblStudentTransport,
-            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration
+            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration,
+            $tblStudentSpecialNeeds
         );
 
         $tblStudentTransferType = $this->setTableStudentTransferType($Schema);
@@ -220,6 +223,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'MasernCreatorType')) {
             $Table->addColumn('MasernCreatorType', 'bigint', array('notnull' => false));
         }
+        $this->createColumn($Table, 'InsuranceNumber', self::FIELD_TYPE_STRING, false, '');
 
 //        // entfernen alter Rückstände
 //        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
@@ -367,6 +371,7 @@ class Setup extends AbstractSetup
      * @param Table $tblStudentLocker
      * @param Table $tblStudentBaptism
      * @param Table $tblStudentIntegration
+     * @param Table $tblStudentSpecialNeeds
      *
      * @return Table
      */
@@ -377,7 +382,8 @@ class Setup extends AbstractSetup
         Table $tblStudentBilling,
         Table $tblStudentLocker,
         Table $tblStudentBaptism,
-        Table $tblStudentIntegration
+        Table $tblStudentIntegration,
+        Table $tblStudentSpecialNeeds
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudent');
@@ -405,6 +411,8 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentLocker, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentIntegration, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentSpecialNeeds, true);
+
         return $Table;
     }
 
@@ -881,4 +889,44 @@ class Setup extends AbstractSetup
         return $table;
     }
 
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentSpecialNeedsLevel(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblStudentSpecialNeedsLevel');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudentSpecialNeedsLevel
+     *
+     * @return Table
+     */
+    private function setTableStudentSpecialNeeds(Schema &$Schema, Table $tblStudentSpecialNeedsLevel)
+    {
+
+        $table = $this->createTable($Schema, 'tblStudentSpecialNeeds');
+
+        $this->createColumn($table, 'IsMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsHeavyMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedSchool', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'RemarkHeavyMultipleHandicapped', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'DegreeOfHandicap', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Sign', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'ValidTo', self::FIELD_TYPE_STRING);
+
+        $this->createForeignKey($table, $tblStudentSpecialNeedsLevel, true);
+
+        return $table;
+    }
 }

@@ -34,6 +34,7 @@ class TblImport extends Element
     const ATTR_DEBTOR_FIRST_NAME = 'DebtorFirstName';
     const ATTR_DEBTOR_LAST_NAME = 'DebtorLastName';
     const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
+    const ATTR_OWNER = 'Owner';
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
     const ATTR_IBAN = 'IBAN';
     const ATTR_BIC = 'BIC';
@@ -103,6 +104,10 @@ class TblImport extends Element
      * @column(type="bigint")
      */
     protected $serviceTblPersonDebtor;
+    /**
+     * @column(type="string")
+     */
+    protected $Owner;
     /**
      * @column(type="string")
      */
@@ -384,6 +389,22 @@ class TblImport extends Element
     {
 
         $this->serviceTblPersonDebtor = ($tblPersonDebtor ? $tblPersonDebtor->getId(): null);
+    }
+
+    /**
+     * @return string
+     */
+    public function getOwner()
+    {
+        return $this->Owner;
+    }
+
+    /**
+     * @param string $Owner
+     */
+    public function setOwner($Owner)
+    {
+        $this->Owner = $Owner;
     }
 
     /**

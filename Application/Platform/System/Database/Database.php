@@ -62,12 +62,12 @@ class Database extends Extension implements IModuleInterface
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
-                'Database::frontendDashboard'
+                __CLASS__.'::frontendDashboard'
             )
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Status',
-                'Database::frontendStatus'
+                __CLASS__.'::frontendStatus'
             )
         );
         Main::getDispatcher()->registerRoute(

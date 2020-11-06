@@ -216,9 +216,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(ApiDownload::receiverBlock($isFirstRun ? '' : ApiDownload::pipelineLoadTable(
                             $isLocked, $tblYear ? $tblYear->getId() : null
                         ), 'Table')),
-                        new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineCheckLock(
-                            $tblYear ? $tblYear->getId() : null
-                        ), 'CheckLock'))
+//                        new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineCheckLock(
+//                            $tblYear ? $tblYear->getId() : null
+//                        ), 'CheckLock'))
                     )), new Title(new Listing() . ' Übersicht')
                 ))
             ));

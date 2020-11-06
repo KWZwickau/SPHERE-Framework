@@ -4,6 +4,8 @@ namespace SPHERE\Application\People\Meta\Student\Service\Service;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -69,6 +71,7 @@ abstract class Student extends AbstractService
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
+     * @param null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
      * @param bool $IsInPreparationDivisionForMigrants
@@ -84,6 +87,7 @@ abstract class Student extends AbstractService
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
         $tblStudentIntegration = null,
+        $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
         $IsInPreparationDivisionForMigrants = false
@@ -102,6 +106,7 @@ abstract class Student extends AbstractService
                 $tblStudentLocker,
                 $tblStudentBaptism,
                 $tblStudentIntegration,
+                $tblStudentSpecialNeeds,
                 $SchoolAttendanceStartDate,
                 $HasMigrationBackground,
                 $IsInPreparationDivisionForMigrants
@@ -117,6 +122,7 @@ abstract class Student extends AbstractService
                 $tblStudentLocker,
                 $tblStudentBaptism,
                 $tblStudentIntegration,
+                $tblStudentSpecialNeeds,
                 $SchoolAttendanceStartDate,
                 $HasMigrationBackground,
                 $IsInPreparationDivisionForMigrants
@@ -216,5 +222,43 @@ abstract class Student extends AbstractService
     {
 
         return (new Data($this->getBinding()))->restoreStudent($tblStudent);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSpecialNeeds
+     */
+    public function getStudentSpecialNeedsById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSpecialNeedsLevel
+     */
+    public function getStudentSpecialNeedsLevelById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentSpecialNeedsLevel
+     */
+    public function getStudentSpecialNeedsLevelByName($Name)
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelByName($Name);
+    }
+
+    /**
+     * @return false|TblStudentSpecialNeedsLevel[]
+     */
+    public function getStudentSpecialNeedsLevelAll()
+    {
+        return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelAll();
     }
 }

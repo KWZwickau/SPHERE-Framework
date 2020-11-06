@@ -4,6 +4,8 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -14,6 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
@@ -92,6 +95,17 @@ class Import extends Extension implements IModuleInterface
                         'Bearbeiten')
                     .new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array(),
                         'Löschen'));
+        }
+        $tblIndiwareError = Import::useService()->getIndiwareErrorByType(TblIndiwareError::TYPE_LECTURE_SHIP);
+        // load if TblIndiwareImportLectureship exist (by Account)
+        if ($tblIndiwareError) {
+            $PanelLectureshipImport[] = 'Importfehler des letzten Uploads'.
+                new Center(new External('', '/Api/Transfer/Indiware/ErrorExcel/LectureShip/Download', new Download(),
+                    array(
+                        'Type' => TblIndiwareError::TYPE_LECTURE_SHIP,
+                        'StringCompareDescription' => 'Klasse_Fach_Lehrer(_Fachgruppe)'
+                    )
+                    , 'Herunterladen'));
         }
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');

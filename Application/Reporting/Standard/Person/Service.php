@@ -21,6 +21,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
@@ -328,14 +329,15 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param array       $PersonList
+     * @param array       $tblPersonList
+     * @param array|false $tblDivisionTeacherList
      *
      * @return bool|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
-    public function createClassListExcel($PersonList, $tblPersonList)
+    public function createClassListExcel($PersonList, $tblPersonList, $tblDivisionTeacherList)
     {
 
         if (!empty($PersonList)) {
@@ -437,6 +439,23 @@ class Service extends Extension
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Klassenlehrer:');
+            if($tblDivisionTeacherList){
+                $TeacherList = array();
+                /** @var TblDivisionTeacher $tblDivisionTeacher */
+                foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                    if(($tblPerson = $tblDivisionTeacher->getServiceTblPerson())){
+                        $TeacherList[] = $tblPerson->getFullName();
+                    }
+                }
+                $TeacherString = '';
+                if(!empty($TeacherList)){
+                    $TeacherString = implode(', ', $TeacherList);
+                }
+                $export->setValue($export->getCell("1", $Row), $TeacherString);
+            }
+
 
             // Legende
             $Row = $Row - 2;

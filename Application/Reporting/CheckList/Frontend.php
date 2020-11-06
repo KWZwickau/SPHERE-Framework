@@ -388,6 +388,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Option' => ''
                                         )
                                         , array(
+                                            'rowReorderColumn' => 1,
                                             'ExtensionRowReorder' => array(
                                                 'Enabled' => true,
                                                 'Url'     => '/Api/Reporting/CheckList/Reorder',
