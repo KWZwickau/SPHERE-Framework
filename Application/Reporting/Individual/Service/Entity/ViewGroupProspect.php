@@ -10,6 +10,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -34,6 +35,7 @@ class ViewGroupProspect extends AbstractView
     const TBL_TYPE_NAME_A = 'TblType_NameA';
     const TBL_TYPE_NAME_B = 'TblType_NameB';
     const TBL_COMPANY_NAME = 'TblCompany_Name';
+    const TBL_COMPANY_NAME_EXTENDED_NAME = 'TblCompany_Name_ExtendedName';
     const TBL_PROSPECT_REMARK = 'TblProspect_Remark';
 
     /**
@@ -84,6 +86,10 @@ class ViewGroupProspect extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblCompany_Name_ExtendedName;
+    /**
+     * @Column(type="string")
+     */
     protected $TblProspect_Remark;
 
     /**
@@ -102,7 +108,8 @@ class ViewGroupProspect extends AbstractView
         $this->setNameDefinition(self::TBL_PROSPECT_RESERVATION_RESERVATION_DIVISION, 'Voranmeldung: Klassenstufe');
         $this->setNameDefinition(self::TBL_TYPE_NAME_A, 'Schulart: Option 1');
         $this->setNameDefinition(self::TBL_TYPE_NAME_B, 'Schulart: Option 2');
-        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Schule');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Voranmeldung: Schule');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME_EXTENDED_NAME, 'Voranmeldung: Schule und Zusatz');
         $this->setNameDefinition(self::TBL_PROSPECT_REMARK, 'Interessent: Bemerkung');
 
         //GroupDefinition
@@ -117,6 +124,7 @@ class ViewGroupProspect extends AbstractView
             self::TBL_TYPE_NAME_A,
             self::TBL_TYPE_NAME_B,
             self::TBL_COMPANY_NAME,
+            self::TBL_COMPANY_NAME_EXTENDED_NAME,
         ));
         $this->setGroupDefinition('Sonstiges', array(
             self::TBL_PROSPECT_REMARK,
@@ -170,6 +178,32 @@ class ViewGroupProspect extends AbstractView
             case self::TBL_PROSPECT_RESERVATION_RESERVATION_YEAR:
                 $Data = Prospect::useService()->getPropertyList(new TblProspectReservation(), TblProspectReservation::ATTR_RESERVATION_YEAR);
                 $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_COMPANY_NAME:
+                $Data = array();
+                if(($tblSchoolList = School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        if(($tblCompany = $tblSchool->getServiceTblCompany())){
+                            $Data[] = $tblCompany->getName();
+                        }
+                    }
+                }
+                if(!empty($Data)){
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                }
+                break;
+            case self::TBL_COMPANY_NAME_EXTENDED_NAME:
+                $Data = array();
+                if(($tblSchoolList = School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        if(($tblCompany = $tblSchool->getServiceTblCompany())){
+                            $Data[] = $tblCompany->getDisplayName();
+                        }
+                    }
+                }
+                if(!empty($Data)){
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                }
                 break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
