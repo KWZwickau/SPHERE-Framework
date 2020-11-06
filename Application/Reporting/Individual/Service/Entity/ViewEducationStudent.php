@@ -14,6 +14,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -241,6 +242,8 @@ class ViewEducationStudent extends AbstractView
                 }
                 if(!empty($Data)){
                     $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                } else {
+                    $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 }
                 break;
             case self::TBL_COMPANY_NAME_EXTENDED_NAME:
@@ -254,6 +257,8 @@ class ViewEducationStudent extends AbstractView
                 }
                 if(!empty($Data)){
                     $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                } else {
+                    $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 }
                 break;
 
