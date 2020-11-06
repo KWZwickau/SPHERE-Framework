@@ -1485,6 +1485,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 . ($tblDivisionSubject->getServiceTblSubject()->getDescription()
                                     ? ' - ' . new Small($tblDivisionSubject->getServiceTblSubject()->getDescription())
                                     : '')
+                                . ($tblDivisionSubject->getHasGrading() ? '' : new Small(' (Fach wird nicht benotet)'))
                                 :'',
                                 new WarningText($StudentsGroupCount.' / '.$studentCount.' Schüler aus der Klasse'),
                                 $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING);
