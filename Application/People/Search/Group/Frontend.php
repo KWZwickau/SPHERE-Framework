@@ -141,6 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $item['Year'] = $contentRow['Year'];
                     $item['Level'] = $contentRow['Level'];
                     $item['SchoolOption'] = $contentRow['SchoolOption'];
+                    $item['School'] = $contentRow['School'];
 
                     $item['Option'] = new Standard('', '/People/Person', new Edit(),
                             array(
@@ -173,45 +174,46 @@ class Frontend extends Extension implements IFrontendInterface
                  $YearNow = current($YearList)->getYear();
             }
 
-            if ($tblGroup->getMetaTable() == 'CUSTODY') {
-                if ($Acronym == 'ESZC') {
+            if($tblGroup->getMetaTable() == 'CUSTODY'){
+                if($Acronym == 'ESZC'){
                     $ColumnArray = array(
                         'FullName' => 'Name',
-                        'Address' => 'Adresse',
-                        'Custody' => 'Sorgeberechtigt für',
-                        'Remark' => 'Bemerkung',
-                        'Option' => '',
+                        'Address'  => 'Adresse',
+                        'Custody'  => 'Sorgeberechtigt für',
+                        'Remark'   => 'Bemerkung',
+                        'Option'   => '',
                     );
                 } else {
                     $ColumnArray = array(
                         'FullName' => 'Name',
-                        'Address' => 'Adresse',
-                        'Custody' => 'Sorgeberechtigt für',
-                        'Option' => '',
+                        'Address'  => 'Adresse',
+                        'Custody'  => 'Sorgeberechtigt für',
+                        'Option'   => '',
                     );
                 }
 
             } elseif ($tblGroup->getMetaTable() == 'STUDENT') {
                 $ColumnArray = array(
-                    'FullName' => 'Name',
-                    'Address' => 'Adresse',
-                    'Division' => 'Klasse (SJ ' . $YearNow . ')',
+                    'FullName'   => 'Name',
+                    'Address'    => 'Adresse',
+                    'Division'   => 'Klasse (SJ '.$YearNow.')',
                     'Identifier' => 'Schülernummer',
-                    'Option' => '',
+                    'Option'     => '',
                 );
             } elseif ($tblGroup->getMetaTable() == 'PROSPECT') {
                 $ColumnArray = array(
-                    'FullName' => 'Name',
-                    'Address' => 'Adresse',
-                    'Year' => 'Schuljahr',
-                    'Level' => 'Klassenstufe',
+                    'FullName'     => 'Name',
+                    'Address'      => 'Adresse',
+                    'Year'         => 'Schuljahr',
+                    'Level'        => 'Klassenstufe',
                     'SchoolOption' => 'Schulart',
-                    'Option' => '',
+                    'School'       => 'Schule',
+                    'Option'       => '',
                 );
             } else {
                 $ColumnArray = array(
                     'FullName' => 'Name',
-                    'Address' => 'Adresse',
+                    'Address'  => 'Adresse',
                     'Option' => '',
                 );
             }
@@ -258,7 +260,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblGroupAll = Group::useService()->getGroupAllSorted();
         if (!empty($tblGroupAll)) {
-            /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) use ($Stage) {
 
                 $Stage->addButton(

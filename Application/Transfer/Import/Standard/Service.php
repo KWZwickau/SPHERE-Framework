@@ -1686,7 +1686,8 @@ class Service
         $TrialDate = $this->checkDate($TrialDate, 'Ungültiges Datum Schnuppertag:', $RunY, $Nr, $error);
 
         //ToDO Option 2 für Schulart pflegen
-        Prospect::useService()->insertMeta($tblPerson, $ReservationDate, $InterviewDate, $TrialDate, $Year, $Level, $tblType, null, $ProspectRemark);
+        //ToDO Schule aus dem Import erkennen und mitgeben
+        Prospect::useService()->insertMeta($tblPerson, $ReservationDate, $InterviewDate, $TrialDate, $Year, $Level, $tblType, null, null, $ProspectRemark);
     }
 
     /**

@@ -73,6 +73,7 @@ class DataView extends AbstractData
      * <br/>Year
      * <br/>Level
      * <br/>SchoolOption
+     * <br/>School
      */
     public function getPersonListByGroup(TblGroup $tblGroup)
     {
@@ -87,7 +88,7 @@ class DataView extends AbstractData
         }
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT){
             $SelectString .= ', vGP.TblProspectReservation_ReservationYear, vGP.TblType_NameA, vGP.TblType_NameB,
-            vGP.TblProspectReservation_ReservationDivision';
+            vGP.TblProspectReservation_ReservationDivision, vGP.TblCompany_Name';
         }
 
         $queryBuilder->select($SelectString)
@@ -153,6 +154,7 @@ class DataView extends AbstractData
                     && $resultSingle['TblType_NameB']) {
                     $item['SchoolOption'] = $resultSingle['TblType_NameB'];
                 }
+                $item['School'] = (isset($resultSingle['TblCompany_Name']) ? $resultSingle['TblCompany_Name'] : '');;
 
                 array_push($tblContent, $item);
             });

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect\Service;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
@@ -84,10 +85,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string       $ReservationYear
-     * @param string       $ReservationDivision
-     * @param null|TblType $tblTypeOptionA
-     * @param null|TblType $tblTypeOptionB
+     * @param string          $ReservationYear
+     * @param string          $ReservationDivision
+     * @param null|TblType    $tblTypeOptionA
+     * @param null|TblType    $tblTypeOptionB
+     * @param TblCompany|null $tblCompany
      *
      * @return TblProspectReservation
      */
@@ -95,7 +97,8 @@ class Data extends AbstractData
         $ReservationYear,
         $ReservationDivision,
         TblType $tblTypeOptionA = null,
-        TblType $tblTypeOptionB = null
+        TblType $tblTypeOptionB = null,
+        TblCompany $tblCompany = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -105,6 +108,7 @@ class Data extends AbstractData
         $Entity->setReservationDivision($ReservationDivision);
         $Entity->setServiceTblTypeOptionA($tblTypeOptionA);
         $Entity->setServiceTblTypeOptionB($tblTypeOptionB);
+        $Entity->setServiceTblCompany($tblCompany);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -212,6 +216,7 @@ class Data extends AbstractData
      * @param string                 $ReservationDivision
      * @param null|TblType           $tblTypeOptionA
      * @param null|TblType           $tblTypeOptionB
+     * @param TblCompany|null        $tblCompany
      *
      * @return bool
      */
@@ -220,7 +225,8 @@ class Data extends AbstractData
         $ReservationYear,
         $ReservationDivision,
         TblType $tblTypeOptionA = null,
-        TblType $tblTypeOptionB = null
+        TblType $tblTypeOptionB = null,
+        TblCompany $tblCompany = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -232,6 +238,7 @@ class Data extends AbstractData
             $Entity->setReservationDivision($ReservationDivision);
             $Entity->setServiceTblTypeOptionA($tblTypeOptionA);
             $Entity->setServiceTblTypeOptionB($tblTypeOptionB);
+            $Entity->setServiceTblCompany($tblCompany);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
