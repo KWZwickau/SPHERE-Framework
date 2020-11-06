@@ -185,6 +185,11 @@ class FrontendProspect  extends FrontendReadOnly
                         ? $tblProspectReservation->getServiceTblTypeOptionB()->getId()
                         : 0
                     );
+                    $Global->POST['Meta']['Reservation']['TblCompany'] = (
+                    $tblProspectReservation->getServiceTblCompany()
+                        ? $tblProspectReservation->getServiceTblCompany()->getId()
+                        : 0
+                    );
                 }
                 $Global->savePost();
             }
