@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -128,7 +129,7 @@ class ViewEducationStudent extends AbstractView
         $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Bildung: Klassengruppe');
         $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Bildung: Klassen Beschreibung');
         $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Bildung: Schule');
-        $this->setNameDefinition(self::TBL_COMPANY_NAME_EXTENDED_NAME, 'Bildung: Schule Erweitert');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME_EXTENDED_NAME, 'Bildung: Schule und Zusatz');
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Bildung: Schulart');
         $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Bildung: Schuljahr');
         $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Bildung: Schuljahr Beschreibung');
@@ -228,6 +229,32 @@ class ViewEducationStudent extends AbstractView
             case self::TBL_LEVEL_IS_CHECKED:
                 $Data = array( 0 => 'Nein', 1 => 'Ja' );
                 $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false );
+                break;
+            case self::TBL_COMPANY_NAME:
+                $Data = array();
+                if(($tblSchoolList = School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        if(($tblCompany = $tblSchool->getServiceTblCompany())){
+                            $Data[] = $tblCompany->getName();
+                        }
+                    }
+                }
+                if(!empty($Data)){
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                }
+                break;
+            case self::TBL_COMPANY_NAME_EXTENDED_NAME:
+                $Data = array();
+                if(($tblSchoolList = School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        if(($tblCompany = $tblSchool->getServiceTblCompany())){
+                            $Data[] = $tblCompany->getDisplayName();
+                        }
+                    }
+                }
+                if(!empty($Data)){
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                }
                 break;
 
             default:
