@@ -190,6 +190,8 @@ class ViewGroupProspect extends AbstractView
                 }
                 if(!empty($Data)){
                     $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                } else {
+                    $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 }
                 break;
             case self::TBL_COMPANY_NAME_EXTENDED_NAME:
@@ -203,6 +205,8 @@ class ViewGroupProspect extends AbstractView
                 }
                 if(!empty($Data)){
                     $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                } else {
+                    $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 }
                 break;
             default:
