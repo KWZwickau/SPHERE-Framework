@@ -32,24 +32,6 @@ class DeclarationBasis implements IModuleInterface
         // Implement useFrontend() method.
     }
 
-//    /**
-//     * @param null $YearId
-//     *
-//     * @return string
-//     */
-//    public function downloadDivisionReport($YearId = null)
-//    {
-//
-//        if (($tblYear = Term::useService()->getYearById($YearId))) {
-//            $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($tblYear);
-//
-//            return FileSystem::getDownload($fileLocation->getRealPath(),
-//                "Stichtagsmeldung SBA" . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-//        }
-//
-//        return 'Schuljahr nicht gefunden!';
-//    }
-
     /**
      * @param null $Date
      *
@@ -60,9 +42,8 @@ class DeclarationBasis implements IModuleInterface
         if ($Date != null) {
             $date = new DateTime($Date);
             if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
-                $tblYear = current($tblYearList);
                 $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()
-                    ->createDivisionReportExcel($tblYear, $date);
+                    ->createDivisionReportExcel($date);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Stichtagsmeldung SBA" . " " . $date->format('Y-m-d') . ".xlsx")->__toString();

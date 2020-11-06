@@ -11,7 +11,6 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
@@ -26,12 +25,11 @@ use SPHERE\System\Extension\Extension;
 class Service extends Extension
 {
     /**
-     * @param TblYear $tblYear
      * @param DateTime $date
      *
      * @return FilePointer|Stage
      */
-    public function createDivisionReportExcel(TblYear $tblYear, DateTime $date)
+    public function createDivisionReportExcel(DateTime $date)
     {
         $DataContent = array();
         $DataBlind = array();
@@ -44,8 +42,8 @@ class Service extends Extension
         $DataFocus = array();
         $DataSickStudent = array();
 
-        $tblYearList = Term::useService()->getYearsByYear($tblYear);
-        if ($tblYearList) {
+        $YearString = '';
+        if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
             $YearString = current($tblYearList)->getYear();
             foreach ($tblYearList as $tblYear) {
                 $tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear);
