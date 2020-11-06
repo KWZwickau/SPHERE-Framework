@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Reporting\DeclarationBasis;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
@@ -32,18 +33,23 @@ class DeclarationBasis implements IModuleInterface
     }
 
     /**
-     * @param null $YearId
+     * @param null $Date
      *
      * @return string
      */
-    public function downloadDivisionReport($YearId = null)
+    public function downloadDivisionReport($Date = null)
     {
+        if ($Date != null) {
+            $date = new DateTime($Date);
+            if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
+                $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()
+                    ->createDivisionReportExcel($date);
 
-        if (($tblYear = Term::useService()->getYearById($YearId))) {
-            $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($tblYear);
-
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Stichtagsmeldung SBA" . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Stichtagsmeldung SBA" . " " . $date->format('Y-m-d') . ".xlsx")->__toString();
+            } else {
+                return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde kein Schuljahr gefunden.';
+            }
         }
 
         return 'Schuljahr nicht gefunden!';

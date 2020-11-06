@@ -4433,7 +4433,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGradeTypeList = array();
         }
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED,
-            'Nur große Zensuren-Typen (Fett marktiert)');
+            'Nur große Zensuren-Typen (Fett markiert)');
         $gradeTypeSelectBox = (new SelectBox('Data[GradeType]', 'Zensuren-Typ',
             array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)))
             ->setRequired();

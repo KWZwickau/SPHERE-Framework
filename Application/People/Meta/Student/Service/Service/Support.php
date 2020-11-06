@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
@@ -118,7 +119,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         $tblSupportType = $this->getSupportTypeById($Data['SupportType']);
         $Company = $Data['Company'];
         $PersonSupport = $Data['PersonSupport'];
@@ -176,7 +177,7 @@ abstract class Support extends Integration
         if($PersonEditor == ''){
             $PersonEditor = 'Datenübernahme';   //ToDO Abstimmung mit JK
         }
-        $Date = new \DateTime($Date);
+        $Date = new DateTime($Date);
 
         if($tblPerson && $tblSupportType && $Date){
             return (new Data($this->getBinding()))->createSupport($tblPerson, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
@@ -222,7 +223,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $Remark = 'Aufhebung';
         } else {
@@ -261,7 +262,7 @@ abstract class Support extends Integration
         if($PersonEditor == ''){
             $PersonEditor = 'Datenübernahme';   //ToDO Abstimmung mit JK
         }
-        $Date = new \DateTime($Date);
+        $Date = new DateTime($Date);
 
         if($tblPerson && $Date){
             return (new Data($this->getBinding()))->createSpecial($tblPerson, $Date, $PersonEditor, $Remark);
@@ -306,7 +307,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $RemarkLesson = 'Aufhebung';
             $RemarkRating = 'Aufhebung';
@@ -352,7 +353,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         $tblSupportType = $this->getSupportTypeById($Data['SupportType']);
         $Company = $Data['Company'];
         $PersonSupport = $Data['PersonSupport'];
@@ -420,7 +421,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $Remark = 'Aufhebung';
         } else {
@@ -478,7 +479,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $RemarkLesson = 'Aufhebung';
             $RemarkRating = 'Aufhebung';
@@ -621,7 +622,7 @@ abstract class Support extends Integration
                 if(!empty($Type) && ($tblSupportType = $tblSupport->getTblSupportType()) && in_array( $tblSupportType->getName(), $Type)){
                     /** @var TblSupport $tblSupportMatch */
                     if($tblSupportMatch){
-                        if(new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
+                        if(new DateTime($tblSupportMatch->getDate()) < new DateTime($tblSupport->getDate())) {
                             $tblSupportMatch = $tblSupport;
                         }
                     } else {
@@ -630,7 +631,7 @@ abstract class Support extends Integration
                 } elseif(empty($Type)) {
                     /** @var TblSupport $tblSupportMatch */
                     if($tblSupportMatch){
-                        if (new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
+                        if (new DateTime($tblSupportMatch->getDate()) < new DateTime($tblSupport->getDate())) {
                             $tblSupportMatch = $tblSupport;
                         }
                     } else {
@@ -693,7 +694,7 @@ abstract class Support extends Integration
         if ($tblSupport) {
             // canceled
             if (($tblSupportCancel = Student::useService()->getSupportByPersonNewest($tblPerson, array('Aufhebung')))
-                && new \DateTime($tblSupportCancel->getDate()) >= new \DateTime($tblSupport->getDate())
+                && new DateTime($tblSupportCancel->getDate()) >= new DateTime($tblSupport->getDate())
             ) {
                 $tblSupport = false;
             }
@@ -1008,20 +1009,23 @@ abstract class Support extends Integration
      * ist der Förderbescheid nicht mehr gültig und darf nicht mit herangezogen werden.
      *
      * @param TblPerson $tblPerson
+     * @param DateTime|null $dateTime
      *
      * @return TblSupport|false $tblSupport
      */
-    public function getSupportForReportingByPerson(TblPerson $tblPerson)
+    public function getSupportForReportingByPerson(TblPerson $tblPerson, DateTime $dateTime = null)
     {
         $tblSupport = false;
         if (($tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid'))
             && ($tblSupportList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportType))
         ) {
 
-            $now = new \DateTime();
+            if ($dateTime == null) {
+                $dateTime = new DateTime('now');
+            }
 
             foreach ($tblSupportList as $item) {
-                if(new \DateTime($item->getDate()) <= $now){
+                if(new DateTime($item->getDate()) <= $dateTime){
                     $tblSupport = $item;
 
                     break;
@@ -1033,9 +1037,9 @@ abstract class Support extends Integration
                 && ($tblSupportCancelList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportTypeCancel))
             ) {
                 foreach ($tblSupportCancelList as $itemCancel) {
-                    $cancelDate = new \DateTime($itemCancel->getDate());
-                    if($cancelDate <= $now
-                        && $cancelDate >= new \DateTime($tblSupport->getDate())
+                    $cancelDate = new DateTime($itemCancel->getDate());
+                    if($cancelDate <= $dateTime
+                        && $cancelDate >= new DateTime($tblSupport->getDate())
                     ){
                         $tblSupport = false;
 

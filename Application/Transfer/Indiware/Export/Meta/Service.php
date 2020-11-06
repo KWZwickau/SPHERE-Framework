@@ -117,15 +117,15 @@ class Service extends AbstractService
 
 
 
-                $export->setValue($export->getCell("0", $Row), utf8_encode($tblPerson->getLastName()));
-                $export->setValue($export->getCell("1", $Row), utf8_encode($tblPerson->getFirstName()));
+                $export->setValue($export->getCell("0", $Row), utf8_decode($tblPerson->getLastName()));
+                $export->setValue($export->getCell("1", $Row), utf8_decode($tblPerson->getFirstName()));
                 $export->setValue($export->getCell("2", $Row), $Birthday);
                 $export->setValue($export->getCell("3", $Row), $Gender);
-                $export->setValue($export->getCell("4", $Row), $Birthplace);
-                $export->setValue($export->getCell("5", $Row), $City);
+                $export->setValue($export->getCell("4", $Row), utf8_decode($Birthplace));
+                $export->setValue($export->getCell("5", $Row), utf8_decode($City));
                 $export->setValue($export->getCell("6", $Row), $Code);
-                $export->setValue($export->getCell("7", $Row), $Street);
-                $export->setValue($export->getCell("8", $Row), $DivisionName);
+                $export->setValue($export->getCell("7", $Row), utf8_decode($Street));
+                $export->setValue($export->getCell("8", $Row), utf8_decode($DivisionName));
 //                for ($j = 1; $j <= 17; $j++) {
 //                    if (isset($Data[$j])) {
 //                        $export->setValue($export->getCell(($j + 2), $Row), $Data[$j]);

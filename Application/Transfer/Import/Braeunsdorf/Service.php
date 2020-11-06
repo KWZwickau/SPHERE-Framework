@@ -614,6 +614,7 @@ class Service
                                     '1',
                                     $tblSchoolType,
                                     null,
+                                    null,
                                     trim($Document->getValue($Document->getCell($Location['Bemerkung'], $RunY)))
                                 );
 
