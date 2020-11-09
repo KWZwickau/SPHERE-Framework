@@ -163,7 +163,6 @@ class N01
         $width[3] = '10%';
         $width[4] = '24%';
         $width[5] = '8%';
-        $width['gender'] = '4%';
 
         $paddingTop = '9px';
         $paddingBottom = '9px';
