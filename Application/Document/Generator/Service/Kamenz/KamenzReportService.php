@@ -549,13 +549,28 @@ class KamenzReportService
                                                     $levelName
                                                 );
                                             }
-                                            // N02, N02_1
-//                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
-//                                                $Content, $technicalDiploma, $technicalType, $levelName, $gender,
-//                                                $hasMigrationBackground, 'N02',
-//                                                $isFullTime ? 'FullTime' : 'PartTime',
-//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-//                                            );
+
+                                            // N02
+                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                                $Content,
+                                                'N02_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $technicalDiploma,
+                                                $technicalType,
+                                                $support,
+                                                $gender,
+                                                $levelName
+                                            );
+                                            if ($hasMigrationBackground) {
+                                                self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                                    $Content,
+                                                    'N02_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                    $schoolDiploma,
+                                                    $schoolType,
+                                                    $support,
+                                                    $gender,
+                                                    $levelName
+                                                );
+                                            }
 
                                             // N03
                                             if ($birthDay) {
@@ -637,10 +652,16 @@ class KamenzReportService
             self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_1_A');
             self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_1_U');
 
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_1_U');
 
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_1_U');
 
-            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02');
-            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1');
 
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_1');
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_1_1');

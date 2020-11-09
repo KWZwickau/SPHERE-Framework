@@ -71,55 +71,91 @@ class N01
                 $blankSpace = 19;
                 break;
             case 'N01_2_1_U':
-                $title = 'N01-2.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
+                $title = 'N01-2.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
                     deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
                 $blankSpace = 19;
                 break;
-
-
-
-
-            case 'N02':
-                $title = 'N02. Neuanfänger im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, 
-                    Schularten, Zeitform des Unterrichts, Ausbildungsstatus und Klassenstufen';
+            case 'N02_1_A':
+                $title = 'N02-1-A. Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
-                $footNote = '1)&nbsp;&nbsp;Bitte nur den höchsten Abschluss an einer berufsbildenden Schule angeben.</br>
-                     2)&nbsp;&nbsp;Bitte signieren: Vollzeitunterricht; Teilzeitunterricht; diese Angaben beziehen sich 
-                     auf die derzeitige Ausbildung!</br>';
                 break;
-            case 'N02_1':
-                $title = 'N02.1 Darunter Neuanfänger, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden
-                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Abschlüssen, Schularten, Zeitform des 
-                    Unterrichts, Ausbildungsstatus und Klassenstufen';
+            case 'N02_1_U':
+                $title = 'N02-1-U. Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
-                $footNote = '1)&nbsp;&nbsp;Bitte nur den höchsten Abschluss an einer berufsbildenden Schule angeben.</br>
-                     2)&nbsp;&nbsp;Bitte signieren: Vollzeitunterricht; Teilzeitunterricht; diese Angaben beziehen sich 
-                     auf die derzeitige Ausbildung!</br>';
+                break;
+            case 'N02_1_1_A':
+                $title = 'N02-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
+                    Förderschwerpunkten und Klassenstufen';
+                $columnName = 'Berufsbildender Abschluss¹';
+                $blankSpace = 19;
+                break;
+            case 'N02_1_1_U':
+                $title = 'N02-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
+                    Förderschwerpunkten und Klassenstufen';
+                $columnName = 'Berufsbildender Abschluss¹';
+                $blankSpace = 19;
+                break;
+            case 'N02_2_A':
+                $title = 'N02-2-A. Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
+                $columnName = 'Berufsbildender Abschluss¹';
+                break;
+            case 'N02_2_U':
+                $title = 'N02-2-U. Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
+                $columnName = 'Berufsbildender Abschluss¹';
+                break;
+            case 'N02_2_1_A':
+                $title = 'N02-2.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
+                    Förderschwerpunkten und Klassenstufen';
+                $columnName = 'Berufsbildender Abschluss¹';
+                $blankSpace = 19;
+                break;
+            case 'N02_2_1_U':
+                $title = 'N02-2.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
+                    Förderschwerpunkten und Klassenstufen';
+                $columnName = 'Berufsbildender Abschluss¹';
+                $blankSpace = 19;
                 break;
             default:
                 $title = '';
                 $columnName = '';
-                $footNote = '';
         }
 
         $sliceList = array();
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
-            ->styleMarginBottom('5px')
+            ->styleMarginBottom(strpos($name, 'N02') === false ? '5px' : '10px')
             ->addElement((new Element())
                 ->setContent($title)
             );
-        $sliceList[] = (new Slice())
-            ->styleMarginBottom('10px')
-            ->addElement((new Element())
-                ->setContent(Common::getBlankSpace($blankSpace) .'Schüler, die <u>erstmals</u> im derzeit belegten Bildungsgang beschult werden.'
-                )
-            );
+        if (strpos($name, 'N02') === false) {
+            $sliceList[] = (new Slice())
+                ->styleMarginBottom('10px')
+                ->addElement((new Element())
+                    ->setContent(Common::getBlankSpace($blankSpace) . 'Schüler, die <u>erstmals</u> im derzeit belegten
+                    Bildungsgang beschult werden.'
+                    )
+                );
+        }
 
         $width[0] = '20%';
         $width[1] = '24%';
@@ -266,8 +302,10 @@ class N01
             ->styleBorderRight()
             ->addSection($section);
 
-        $array[] = 'Bitte nur den höchsten Abschluss an einer <u><b>allgemeinbildenden Schule bzw. Schule des zweiten 
-            Bildungsweges</b></u> angeben.';
+        $array[] = 'Bitte nur den höchsten Abschluss an einer <u><b>' . (strpos($name, 'N02') === false
+            ? 'allgemeinbildenden Schule bzw. Schule des zweiten Bildungsweges'
+            : 'berufsbildenden Schule')
+            .'</b></u> angeben.';
         $array[] = 'Laut Eintrag im Geburtenregister';
         $sliceList[] = Common::setFootnotes($array);
 
