@@ -275,6 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
             KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
         );
 
+        // todo remove
         Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
 
         $Stage->setContent(

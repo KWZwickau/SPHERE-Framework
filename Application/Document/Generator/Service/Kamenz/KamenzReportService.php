@@ -607,23 +607,37 @@ class KamenzReportService
                                             // N05
                                             if ($course && $time) {
                                                 self::setCourseForTechnicalSchool(
-                                                    $Content, $course, $time, $levelName, $gender, $hasMigrationBackground,
-                                                    'N05',
-                                                    $isFullTime ? 'FullTime' : 'PartTime',
-                                                    $isChangeStudent ? 'ChangeStudent' : 'Student'
+                                                    $Content,
+                                                    'N05_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                                    $course,
+                                                    $time,
+                                                    $support,
+                                                    $gender,
+                                                    $levelName
                                                 );
+                                                if ($hasMigrationBackground) {
+                                                    self::setCourseForTechnicalSchool(
+                                                        $Content,
+                                                        'N05_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                        $course,
+                                                        $time,
+                                                        $support,
+                                                        $gender,
+                                                        $levelName
+                                                    );
+                                                }
                                             }
                                         }
 
                                         // S01
-                                        if ($course && $time) {
-                                            self::setCourseForTechnicalSchool(
-                                                $Content, $course, $time, $levelName, $gender, $hasMigrationBackground,
-                                                'S01',
-                                                $isFullTime ? 'FullTime' : 'PartTime',
-                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-                                            );
-                                        }
+//                                        if ($course && $time) {
+//                                            self::setCourseForTechnicalSchool(
+//                                                $Content, $course, $time, $levelName, $gender, $hasMigrationBackground,
+//                                                'S01',
+//                                                $isFullTime ? 'FullTime' : 'PartTime',
+//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
+//                                            );
+//                                        }
 
 //                                        // S02
 //                                        if ($birthDay) {
@@ -690,10 +704,18 @@ class KamenzReportService
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N04_2_1_A');
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N04_2_1_U');
 
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_U');
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_1_U');
+
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_U');
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_1_U');
 
 
-            self::sumCourseForTechnicalSchool($Content, 'N05');
-            self::sumCourseForTechnicalSchool($Content, 'N05_1');
+
             self::sumCourseForTechnicalSchool($Content, 'S01');
             self::sumCourseForTechnicalSchool($Content, 'S01_1');
 
@@ -2460,75 +2482,47 @@ class KamenzReportService
      * N05, S01
      *
      * @param $Content
+     * @param string $name
      * @param $course
      * @param $time
-     * @param $levelName
+     * @param $support
      * @param $gender
-     * @param $hasMigrationBackground
-     * @param string $name
-     * @param string $lesson
-     * @param string $type
+     * @param $levelName
      */
     private static function setCourseForTechnicalSchool(
         &$Content,
+        $name,
         $course,
         $time,
-        $levelName,
+        $support,
         $gender,
-        $hasMigrationBackground,
-        $name = 'N05',
-        $lesson = 'FullTime',
-        $type = 'ChangeStudent'
+        $levelName
     ) {
         /**
-         * N05. Neuanfänger im Schuljahr 2019/2020 nach Bildungsgängen, planmäßiger Ausbildungsdauer, Zeitform des
-         *      Unterrichts, Ausbildungsstatus und Klassenstufen
+         * N05-1-A. Neuanfänger im Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht im Schuljahr 2020/2021
+         * nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und Klassenstufen
          */
         if ($course && $time) {
-            if (isset($Content[$name]['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['L' . $levelName][$gender])) {
-                $Content[$name]['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['L' . $levelName][$gender]++;
+            if (isset($Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['L' . $levelName])) {
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['L' . $levelName]++;
             } else {
-                $Content[$name]['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['L' . $levelName][$gender] = 1;
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['L' . $levelName] = 1;
             }
-            if (isset($Content[$name]['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['TotalCount'][$gender])) {
-                $Content[$name]['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['TotalCount'][$gender]++;
+            if (isset($Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount'])) {
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount']++;
             } else {
-                $Content[$name]['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['TotalCount'][$gender] = 1;
-            }
-
-            if (isset($Content[$name]['TotalCount'][$lesson][$type]['L' . $levelName][$gender])) {
-                $Content[$name]['TotalCount'][$lesson][$type]['L' . $levelName][$gender]++;
-            } else {
-                $Content[$name]['TotalCount'][$lesson][$type]['L' . $levelName][$gender] = 1;
-            }
-            if (isset($Content[$name]['TotalCount'][$lesson][$type]['TotalCount'][$gender])) {
-                $Content[$name]['TotalCount'][$lesson][$type]['TotalCount'][$gender]++;
-            } else {
-                $Content[$name]['TotalCount'][$lesson][$type]['TotalCount'][$gender] = 1;
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount'] = 1;
             }
 
-            if ($hasMigrationBackground) {
-                if (isset($Content[$name . '_1']['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['L' . $levelName][$gender])) {
-                    $Content[$name . '_1']['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['L' . $levelName][$gender]++;
-                } else {
-                    $Content[$name . '_1']['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['L' . $levelName][$gender] = 1;
-                }
-                if (isset($Content[$name . '_1']['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['TotalCount'][$gender])) {
-                    $Content[$name . '_1']['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['TotalCount'][$gender]++;
-                } else {
-                    $Content[$name . '_1']['Temp'][$course . '_' . $time . '_' . $lesson . '_' . $type]['TotalCount'][$gender] = 1;
-                }
-
-                if (isset($Content[$name . '_1']['TotalCount'][$lesson][$type]['L' . $levelName][$gender])) {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['L' . $levelName][$gender]++;
-                } else {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['L' . $levelName][$gender] = 1;
-                }
-                if (isset($Content[$name . '_1']['TotalCount'][$lesson][$type]['TotalCount'][$gender])) {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['TotalCount'][$gender]++;
-                } else {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['TotalCount'][$gender] = 1;
-                }
+            if (isset($Content[$name]['TotalCount']['L' . $levelName][$gender])) {
+                $Content[$name]['TotalCount']['L' . $levelName][$gender]++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $levelName][$gender] = 1;
+            }
+            if (isset($Content[$name]['TotalCount']['L' . $levelName]['TotalCount'])) {
+                $Content[$name]['TotalCount']['L' . $levelName]['TotalCount']++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $levelName]['TotalCount'] = 1;
             }
         }
     }
@@ -2550,8 +2544,8 @@ class KamenzReportService
                 $Content[$name]['R' . $i] = array(
                     'Course' => $array[0],
                     'Time' => $array[1],
-                    'Lesson' => $array[2] == 'FullTime' ? 'Vollzeit' : 'Teilzeit',
-                    'Status' => $array[3] == 'Student' ? 'Auszubildende/Schüler' : 'Umschüler',
+                    'Support' => $array[2],
+                    'Gender' => $array[3]
                 );
                 foreach ($row as $subKey => $subRow) {
                     $Content[$name]['R' . $i][$subKey] = $subRow;

@@ -183,18 +183,36 @@ class KamenzReportBFS extends AbstractDocument
 //            ->addPage((new Page())
 //                ->addSliceArray(N03::getContent('N04_2_1_U'))
 //            )
-
-
-
-
-
-
 //            ->addPage((new Page())
-//                ->addSliceArray(N05::getContent('N05'))
+//                ->addSliceArray(N05::getContent('N05_1_A'))
 //            )
 //            ->addPage((new Page())
-//                ->addSliceArray(N05::getContent('N05_1'))
+//                ->addSliceArray(N05::getContent('N05_1_U'))
 //            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05_1_1_A'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05_1_1_U'))
+//            )
+            ->addPage((new Page())
+                ->addSliceArray(N05::getContent('N05_2_A'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N05::getContent('N05_2_U'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N05::getContent('N05_2_1_A'))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(N05::getContent('N05_2_1_U'))
+            )
+
+
+
+
+
+
 //            ->addPage((new Page())
 //                ->addSliceArray(S01::getContent('S01'))
 //            )
