@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Reporting\KamenzReport;
 
+use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -24,6 +25,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -273,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
             KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
         );
 
-//        Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
+        Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
 
         $Stage->setContent(
             new Layout(array(

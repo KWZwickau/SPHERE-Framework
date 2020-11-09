@@ -506,7 +506,7 @@ class KamenzReportService
                                         $levelName = intval($tblLevel->getName());
 
                                         // todo get real values
-                                        $isFullTime = true;
+                                        $isFullTime = false;
                                         $isChangeStudent = false;
                                         $schoolDiploma = $gender == 'm' ? 'Allgemeine Hochschulreife' : 'Realschulabschluss';
                                         $schoolType = $gender == 'm' ? 'Gymnasium' : 'Oberschule';
@@ -515,6 +515,7 @@ class KamenzReportService
                                         $hasMigrationBackground = $gender == 'w' ? true : false;
                                         $course = $gender == 'm' ? 'Erzieher' : 'Fachinformatik';
                                         $time = 36;
+                                        $support = $gender == 'm' ? 'Lernen' : '&nbsp;';
 
                                         self::setDivisionStudentsForTechnicalSchool(
                                             $Content, $tblLevel->getName(),
@@ -527,21 +528,34 @@ class KamenzReportService
 
                                         // Neuanfänger
                                         if (self::isNewSchoolStarterForTechnicalSchool($tblPerson, $tblLevel, $tblDivision)) {
-                                            // N01, N01_1
+                                            // N01
                                             self::setNewSchoolStarterDiplomaForTechnicalSchool(
-                                                $Content, $schoolDiploma, $schoolType, $levelName, $gender,
-                                                $hasMigrationBackground, 'N01',
-                                                $isFullTime ? 'FullTime' : 'PartTime',
-                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
+                                                $Content,
+                                                'N01_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $schoolDiploma,
+                                                $schoolType,
+                                                $support,
+                                                $gender,
+                                                $levelName
                                             );
-
+                                            if ($hasMigrationBackground) {
+                                                self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                                    $Content,
+                                                    'N01_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                    $schoolDiploma,
+                                                    $schoolType,
+                                                    $support,
+                                                    $gender,
+                                                    $levelName
+                                                );
+                                            }
                                             // N02, N02_1
-                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
-                                                $Content, $technicalDiploma, $technicalType, $levelName, $gender,
-                                                $hasMigrationBackground, 'N02',
-                                                $isFullTime ? 'FullTime' : 'PartTime',
-                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-                                            );
+//                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
+//                                                $Content, $technicalDiploma, $technicalType, $levelName, $gender,
+//                                                $hasMigrationBackground, 'N02',
+//                                                $isFullTime ? 'FullTime' : 'PartTime',
+//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
+//                                            );
 
                                             // N03
                                             if ($birthDay) {
@@ -613,8 +627,18 @@ class KamenzReportService
                 }
             }
 
-            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01');
-            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_1_U');
+
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_1_U');
+
+
+
             self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02');
             self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1');
 
@@ -727,20 +751,20 @@ class KamenzReportService
                                         // Neuanfänger
                                         if (self::isNewSchoolStarterForTechnicalSchool($tblPerson, $tblLevel, $tblDivision)) {
                                             // N01, N01_1
-                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
-                                                $Content, $schoolDiploma, $schoolType, $levelName, $gender,
-                                                $hasMigrationBackground, 'N01',
-                                                $isFullTime ? 'FullTime' : 'PartTime',
-                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-                                            );
-
-                                            // N02, N02_1
-                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
-                                                $Content, $technicalDiploma, $technicalType, $levelName, $gender,
-                                                $hasMigrationBackground, 'N02',
-                                                $isFullTime ? 'FullTime' : 'PartTime',
-                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-                                            );
+//                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
+//                                                $Content, $schoolDiploma, $schoolType, $levelName, $gender,
+//                                                $hasMigrationBackground, 'N01',
+//                                                $isFullTime ? 'FullTime' : 'PartTime',
+//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
+//                                            );
+//
+//                                            // N02, N02_1
+//                                            self::setNewSchoolStarterDiplomaForTechnicalSchool(
+//                                                $Content, $technicalDiploma, $technicalType, $levelName, $gender,
+//                                                $hasMigrationBackground, 'N02',
+//                                                $isFullTime ? 'FullTime' : 'PartTime',
+//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
+//                                            );
 
                                             // N03
                                             if ($birthDay) {
@@ -2247,75 +2271,47 @@ class KamenzReportService
      * N01, N02
      *
      * @param $Content
+     * @param string $name
      * @param $schoolDiploma
      * @param $schoolType
+     * @param string $support
+     * @param string $gender
      * @param $levelName
-     * @param $gender
-     * @param $hasMigrationBackground
-     * @param string $name
-     * @param string $lesson
-     * @param string $type
      */
     private static function setNewSchoolStarterDiplomaForTechnicalSchool(
         &$Content,
+        $name,
         $schoolDiploma,
         $schoolType,
-        $levelName,
+        $support,
         $gender,
-        $hasMigrationBackground,
-        $name = 'N01',
-        $lesson = 'FullTime',
-        $type = 'ChangeStudent'
+        $levelName
     ) {
         /**
-         * N01. Neuanfänger im Schuljahr 2019/2020 nach allgemeinbildenden Abschlüssen, Schularten, Zeitform des Unterrichts,
-         * Ausbildungsstatus und Klassenstufen
+         * Neuanfänger im Ausbildungsstatus Umschüler im Vollzeitunterricht im Schuljahr 2020/2021 nach allgemeinbildenden
+         * Abschlüssen, Schularten, Förderschwerpunkten und Klassenstufen
          */
         if ($schoolDiploma && $schoolType) {
-            if (isset($Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['L' . $levelName][$gender])) {
-                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['L' . $levelName][$gender]++;
+            if (isset($Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['L' . $levelName])) {
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['L' . $levelName]++;
             } else {
-                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['L' . $levelName][$gender] = 1;
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['L' . $levelName] = 1;
             }
-            if (isset($Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['TotalCount'][$gender])) {
-                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['TotalCount'][$gender]++;
+            if (isset($Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount'])) {
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount']++;
             } else {
-                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['TotalCount'][$gender] = 1;
-            }
-
-            if (isset($Content[$name]['TotalCount'][$lesson][$type]['L' . $levelName][$gender])) {
-                $Content[$name]['TotalCount'][$lesson][$type]['L' . $levelName][$gender]++;
-            } else {
-                $Content[$name]['TotalCount'][$lesson][$type]['L' . $levelName][$gender] = 1;
-            }
-            if (isset($Content[$name]['TotalCount'][$lesson][$type]['TotalCount'][$gender])) {
-                $Content[$name]['TotalCount'][$lesson][$type]['TotalCount'][$gender]++;
-            } else {
-                $Content[$name]['TotalCount'][$lesson][$type]['TotalCount'][$gender] = 1;
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount'] = 1;
             }
 
-            if ($hasMigrationBackground) {
-                if (isset($Content[$name . '_1']['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['L' . $levelName][$gender])) {
-                    $Content[$name . '_1']['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['L' . $levelName][$gender]++;
-                } else {
-                    $Content[$name . '_1']['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['L' . $levelName][$gender] = 1;
-                }
-                if (isset($Content[$name . '_1']['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['TotalCount'][$gender])) {
-                    $Content[$name . '_1']['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['TotalCount'][$gender]++;
-                } else {
-                    $Content[$name . '_1']['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $lesson . '_' . $type]['TotalCount'][$gender] = 1;
-                }
-
-                if (isset($Content[$name . '_1']['TotalCount'][$lesson][$type]['L' . $levelName][$gender])) {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['L' . $levelName][$gender]++;
-                } else {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['L' . $levelName][$gender] = 1;
-                }
-                if (isset($Content[$name . '_1']['TotalCount'][$lesson][$type]['TotalCount'][$gender])) {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['TotalCount'][$gender]++;
-                } else {
-                    $Content[$name . '_1']['TotalCount'][$lesson][$type]['TotalCount'][$gender] = 1;
-                }
+            if (isset($Content[$name]['TotalCount']['L' . $levelName][$gender])) {
+                $Content[$name]['TotalCount']['L' . $levelName][$gender]++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $levelName][$gender] = 1;
+            }
+            if (isset($Content[$name]['TotalCount']['L' . $levelName]['TotalCount'])) {
+                $Content[$name]['TotalCount']['L' . $levelName]['TotalCount']++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $levelName]['TotalCount'] = 1;
             }
         }
     }
@@ -2336,8 +2332,8 @@ class KamenzReportService
                 $Content[$name]['R' . $i] = array(
                     'Diploma' => $array[0],
                     'SchoolType' => $array[1],
-                    'Lesson' => $array[2] == 'FullTime' ? 'Vollzeit' : 'Teilzeit',
-                    'Status' => $array[3] == 'Student' ? 'Auszubildende/Schüler' : 'Umschüler',
+                    'Support' => $array[2],
+                    'Gender' => $array[3]
                 );
                 foreach ($row as $subKey => $subRow) {
                     $Content[$name]['R' . $i][$subKey] = $subRow;
