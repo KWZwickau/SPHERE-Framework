@@ -506,7 +506,7 @@ class KamenzReportService
                                         $levelName = intval($tblLevel->getName());
 
                                         // todo get real values
-                                        $isFullTime = false;
+                                        $isFullTime = true;
                                         $isChangeStudent = false;
                                         $schoolDiploma = $gender == 'm' ? 'Allgemeine Hochschulreife' : 'Realschulabschluss';
                                         $schoolType = $gender == 'm' ? 'Gymnasium' : 'Oberschule';
@@ -630,14 +630,28 @@ class KamenzReportService
                                         }
 
                                         // S01
-//                                        if ($course && $time) {
-//                                            self::setCourseForTechnicalSchool(
-//                                                $Content, $course, $time, $levelName, $gender, $hasMigrationBackground,
-//                                                'S01',
-//                                                $isFullTime ? 'FullTime' : 'PartTime',
-//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-//                                            );
-//                                        }
+                                        if ($course && $time) {
+                                            self::setCourseForTechnicalSchool(
+                                                $Content,
+                                                'S01_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $course,
+                                                $time,
+                                                $support,
+                                                $gender,
+                                                $levelName
+                                            );
+                                            if ($hasMigrationBackground) {
+                                                self::setCourseForTechnicalSchool(
+                                                    $Content,
+                                                    'S01_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                    $course,
+                                                    $time,
+                                                    $support,
+                                                    $gender,
+                                                    $levelName
+                                                );
+                                            }
+                                        }
 
 //                                        // S02
 //                                        if ($birthDay) {
@@ -714,10 +728,17 @@ class KamenzReportService
             self::sumCourseForTechnicalSchool($Content, 'N05_2_1_A');
             self::sumCourseForTechnicalSchool($Content, 'N05_2_1_U');
 
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_U');
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_1_U');
+
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_U');
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_1_U');
 
 
-            self::sumCourseForTechnicalSchool($Content, 'S01');
-            self::sumCourseForTechnicalSchool($Content, 'S01_1');
 
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1');
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_1');

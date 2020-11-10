@@ -195,30 +195,49 @@ class KamenzReportBFS extends AbstractDocument
 //            ->addPage((new Page())
 //                ->addSliceArray(N05::getContent('N05_1_1_U'))
 //            )
-            ->addPage((new Page())
-                ->addSliceArray(N05::getContent('N05_2_A'))
-            )
-            ->addPage((new Page())
-                ->addSliceArray(N05::getContent('N05_2_U'))
-            )
-            ->addPage((new Page())
-                ->addSliceArray(N05::getContent('N05_2_1_A'))
-            )
-            ->addPage((new Page())
-                ->addSliceArray(N05::getContent('N05_2_1_U'))
-            )
-
-
-
-
-
-
 //            ->addPage((new Page())
-//                ->addSliceArray(S01::getContent('S01'))
+//                ->addSliceArray(N05::getContent('N05_2_A'))
 //            )
 //            ->addPage((new Page())
-//                ->addSliceArray(S01::getContent('S01_1'))
+//                ->addSliceArray(N05::getContent('N05_2_U'))
 //            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05_2_1_A'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(N05::getContent('N05_2_1_U'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_1_A'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_1_U'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_1_1_A'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_1_1_U'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_2_A'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_2_U'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_2_1_A'))
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(S01::getContent('S01_2_1_U'))
+//            )
+
+
+
+
+
+
+
 //            ->addPage((new Page())
 //                ->addSliceArray(S02::getContent('S02_1'))
 //            )
