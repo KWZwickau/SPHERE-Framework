@@ -171,7 +171,7 @@ class S01
             Common::setContentElement($section, $preText . 'L2', $width[5], true);
             Common::setContentElement($section, $preText . 'L3', $width[5], true);
             Common::setContentElement($section, $preText . 'L4', $width[5], true);
-            if (strpos($name, 'S01_1') === false) {
+            if ($maxLevel == 5) {
                 Common::setContentElement($section, $preText . 'L5', $width[5], true);
             }
             Common::setContentElement($section, $preText . 'TotalCount', $width[5], true, true);
@@ -225,8 +225,8 @@ class S01
             ->addSliceColumn(Common::setTotalSlice($name, 'L2'), $width[5])
             ->addSliceColumn(Common::setTotalSlice($name, 'L3'), $width[5])
             ->addSliceColumn(Common::setTotalSlice($name, 'L4'), $width[5]);
-        if (strpos($name, 'S01_1') === false) {
-            $section->addSliceColumn(Common::setTotalSlice($name, 'L4'), $width[5]);
+        if ($maxLevel == 5) {
+            $section->addSliceColumn(Common::setTotalSlice($name, 'L5'), $width[5]);
         }
         $section->addSliceColumn(Common::setTotalSlice($name, 'TotalCount', true), $width[5]);
 

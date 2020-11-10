@@ -654,14 +654,25 @@ class KamenzReportService
                                         }
 
 //                                        // S02
-//                                        if ($birthDay) {
-//                                            $birthYear = (new DateTime($birthDay))->format('Y');
-//                                            self::setBirthYearOrNationalityForTechnicalSchool(
-//                                                $Content, $levelName, $gender, $birthYear, $hasMigrationBackground,
-//                                                $isFullTime ? 'S02_1' : 'S02_2',
-//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-//                                            );
-//                                        }
+                                        if ($birthDay) {
+                                            $birthYear = (new DateTime($birthDay))->format('Y');
+                                            self::setBirthYearOrNationalityForTechnicalSchool(
+                                                $Content,
+                                                'S02_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $birthYear,
+                                                $gender,
+                                                $levelName
+                                            );
+                                            if ($hasMigrationBackground) {
+                                                self::setBirthYearOrNationalityForTechnicalSchool(
+                                                    $Content,
+                                                    'S02_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                    $birthYear,
+                                                    $gender,
+                                                    $levelName
+                                                );
+                                            }
+                                        }
 //
 //                                        // S03
 //                                        if ($nationality) {
@@ -738,14 +749,15 @@ class KamenzReportService
             self::sumCourseForTechnicalSchool($Content, 'S01_2_1_A');
             self::sumCourseForTechnicalSchool($Content, 'S01_2_1_U');
 
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_1_U');
 
-
-            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1');
-            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_1');
-            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2');
-            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1');
-            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_1');
-            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_2');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1_U');
         }
 
         return $Content;
