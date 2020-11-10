@@ -18,28 +18,28 @@ class S04_1_1
      *
      * @return array
      */
-    public static function getContent($name = 'S04_1_1')
+    public static function getContent($name)
     {
         switch ($name) {
             case 'S04_1_1':
-                $title = 'S04-1.1 Schüler im <u>Vollzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach 
-                    der Anzahl der derzeit erlernten Fremdsprachen, Ausbildungsstatus und Klassenstufen';
+                $title = 'S04-1.1 Schüler im <u>Vollzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
+                    Ausbildungsstatus, der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen';
                 $maxLevel = 4;
                 $width[0] = '22%';
                 $width[1] = '18%';
                 $width[2] = '48%';
                 $width[3] = '12%';
-                $width['gender'] = '6%';
+                $width['gender'] = '12%';
                 break;
             case 'S04_2_1':
-                $title = 'S04-2.1 Schüler im <u>Teilzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach 
-                    der Anzahl der derzeit erlernten Fremdsprachen, Ausbildungsstatus und Klassenstufen';
+                $title = 'S04-2.1 Schüler im <u>Teilzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
+                    Ausbildungsstatus, der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen';
                 $maxLevel = 5;
                 $width[0] = '22%';
                 $width[1] = '18%';
                 $width[2] = '50%';
                 $width[3] = '10%';
-                $width['gender'] = '5%';
+                $width['gender'] = '10%';
                 break;
             default:
                 $title = '';
@@ -48,7 +48,7 @@ class S04_1_1
                 $width[1] = '18%';
                 $width[2] = '48%';
                 $width[3] = '12%';
-                $width['gender'] = '6%';
+                $width['gender'] = '12%';
         }
 
         $sliceList = array();
@@ -60,7 +60,8 @@ class S04_1_1
                 ->setContent($title)
             );
 
-        $padding = '3.8px';
+        $paddingTop = '9px';
+        $paddingBottom = '9px';
 
         $sectionLevel = new Section();
         for ($i = 1; $i <= $maxLevel; $i++)
@@ -69,24 +70,7 @@ class S04_1_1
                 ->addElementColumn((new Element())
                     ->setContent($i)
                     ->styleBorderRight()
-                    ->styleBorderBottom()
-                    ->stylePaddingTop($padding)
-                    ->stylePaddingBottom($padding)
                     , (floatval(100) / floatval($maxLevel)) . '%' );
-        }
-
-        $tempWidth = (floatval(100) / floatval(2 * $maxLevel)) . '%';
-        $sectionGender = new Section();
-        for ($i = 1; $i <= $maxLevel; $i++) {
-            $sectionGender
-                ->addElementColumn((new Element())
-                    ->setContent('m')
-                    ->styleBorderRight()
-                    , $tempWidth)
-                ->addElementColumn((new Element())
-                    ->setContent('w')
-                    ->styleBorderRight()
-                    , $tempWidth);
         }
 
         $sliceList[] = (new Slice())
@@ -100,42 +84,29 @@ class S04_1_1
                 ->addElementColumn((new Element())
                     ->setContent('Ausbildungsstatus')
                     ->styleBorderRight()
-                    ->stylePaddingTop('25px')
-                    ->stylePaddingBottom('26.5px')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , $width[0])
                 ->addElementColumn((new Element())
                     ->setContent('Anzahl der Fremdsprachen')
                     ->styleBorderRight()
-                    ->stylePaddingTop('25px')
-                    ->stylePaddingBottom('26.5px')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , $width[1])
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
                         ->setContent('Schüler in Klassenstufe')
                         ->styleBorderRight()
                         ->styleBorderBottom()
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
                     )
                     ->addSection($sectionLevel)
-                    ->addSection($sectionGender)
                     , $width[2])
                 ->addSliceColumn((new Slice())
                     ->styleTextBold()
                     ->addElement((new Element())
                         ->setContent('Insgesamt')
-                        ->styleBorderBottom()
-                        ->stylePaddingTop('16px')
-                        ->stylePaddingBottom('17.3px')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '50%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            , '50%')
+                        ->stylePaddingTop($paddingTop)
+                        ->stylePaddingBottom($paddingBottom)
                     )
                     , $width[3])
             );
@@ -164,24 +135,21 @@ class S04_1_1
             ->addElementColumn((new Element())
                 ->setContent($type == 'Student' ? 'Auszubildende/Schüler' : 'Umschüler')
                 ->styleBackgroundColor('lightgrey')
-                ->styleTextBold()
                 ->styleBorderBottom()
                 ->styleBorderRight()
-                ->stylePaddingTop('62px')
-                ->stylePaddingBottom('64.8px')
+                ->stylePaddingTop('45px')
+                ->stylePaddingBottom('45.5px')
         , $width0);
 
         $sectionLineList = array();
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = 0; $i < 6; $i++) {
             switch ($i) {
                 case 0: $text = 'keine'; break;
                 case 1: $text = 'eine'; break;
                 case 2: $text = 'zwei'; break;
                 case 3: $text = 'drei'; break;
-                case 4: $text = 'vier'; break;
-                case 5: $text = 'fünf'; break;
-                case 6: $text = 'sechs und mehr'; break;
-                case 7: $text = 'Insgesamt'; break;
+                case 4: $text = 'vier und mehr'; break;
+                case 5: $text = 'Insgesamt'; break;
                 default: $text = '&nbsp;';
             }
 
@@ -190,7 +158,7 @@ class S04_1_1
             $sectionLine
                 ->addElementColumn((new Element())
                     ->setContent($text)
-                    ->styleTextBold($text == 'Insgesamt' ? 'bold' : 'normal')
+                    ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderBottom()
                     ->styleBorderRight()
@@ -200,21 +168,8 @@ class S04_1_1
                 $sectionLine
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.' . $name . '.' . $type . '.F' . $i . '.L' . $level . '.m is not empty) %}
-                                {{ Content.' . $name . '.' . $type . '.F' . $i . '.L' . $level . '.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleTextBold($text == 'Insgesamt' ? 'bold' : 'normal')
-                        ->styleBackgroundColor($text == 'Insgesamt' ? 'lightgrey' : 'white')
-                        ->styleBorderRight()
-                        ->styleBorderBottom()
-                    , $withGender)
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.' . $name . '.' . $type . '.F' . $i . '.L' . $level . '.w is not empty) %}
-                                {{ Content.' . $name . '.' . $type . '.F' . $i . '.L' . $level . '.w }}
+                            {% if (Content.' . $name . '.' . $type . '.F' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.' . $name . '.' . $type . '.F' . $i . '.L' . $level . ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -229,21 +184,8 @@ class S04_1_1
             $sectionLine
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.' . $name . '.' . $type . '.F' . $i . '.TotalCount.m is not empty) %}
-                                {{ Content.' . $name . '.' . $type . '.F' . $i . '.TotalCount.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleTextBold()
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->styleBorderBottom()
-                , $withGender)
-                ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.' . $name . '.' . $type . '.F' . $i . '.TotalCount.w is not empty) %}
-                                {{ Content.' . $name . '.' . $type . '.F' . $i . '.TotalCount.w }}
+                            {% if (Content.' . $name . '.' . $type . '.F' . $i . '.TotalCount is not empty) %}
+                                {{ Content.' . $name . '.' . $type . '.F' . $i . '.TotalCount }}
                             {% else %}
                                 &nbsp;
                             {% endif %}

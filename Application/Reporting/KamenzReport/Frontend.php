@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -275,8 +274,7 @@ class Frontend extends Extension implements IFrontendInterface
             KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
         );
 
-        // todo remove
-        Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
+//        Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
 
         $Stage->setContent(
             new Layout(array(
