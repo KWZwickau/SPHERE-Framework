@@ -492,7 +492,7 @@ class Service extends AbstractService
      * @param TblPaymentType        $tblPaymentType
      * @param TblDebtorPeriodType   $tblDebtorPeriodType
      * @param string                $FromDate
-     * @param string|null           $ToDate
+     * @param string                $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -511,7 +511,7 @@ class Service extends AbstractService
         $FromDate = new \DateTime($FromDate);
         // (kein Pflichtfeld)
         // hiermit kann das ToDate wieder entfernt werden
-        if('' === $ToDate){
+        if(!$ToDate){
             $ToDate = null;
         } else {
             $ToDate = new \DateTime($ToDate);
