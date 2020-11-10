@@ -673,15 +673,17 @@ class KamenzReportService
                                                 );
                                             }
                                         }
-//
-//                                        // S03
-//                                        if ($nationality) {
-//                                            self::setBirthYearOrNationalityForTechnicalSchool(
-//                                                $Content, $levelName, $gender, $nationality, $hasMigrationBackground,
-//                                                $isFullTime ? 'S03_1' : 'S03_2',
-//                                                $isChangeStudent ? 'ChangeStudent' : 'Student'
-//                                            );
-//                                        }
+
+                                        // S03
+                                        if ($nationality && $hasMigrationBackground) {
+                                            self::setBirthYearOrNationalityForTechnicalSchool(
+                                                $Content,
+                                                'S03_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $nationality,
+                                                $gender,
+                                                $levelName
+                                            );
+                                        }
 
                                         // todo Fremdsprachen S04_1, S04_1_1, S04_2, S04_2_1
                                     }
@@ -758,6 +760,11 @@ class KamenzReportService
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_U');
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1_A');
             self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_1_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_1_1_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_2_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_2_1_U');
         }
 
         return $Content;

@@ -121,11 +121,18 @@ class S02
         } else {
             // S03
             $width[0] = '30%';
-            $width[1] = '14%';
-            $width[2] = '42%';
-            $width[3] = '14%';
-
-            $maxLevel = 5;
+            $width[1] = '10%';
+            if (strpos($name, 'S03_2') === false) {
+                // S03_1
+                $width[2] = '48%';
+                $width[3] = '12%';
+                $maxLevel = 4;
+            } else {
+                // S03_2
+                $width[2] = '50%';
+                $width[3] = '10%';
+                $maxLevel = 5;
+            }
         }
 
         $levelSection = new Section();
