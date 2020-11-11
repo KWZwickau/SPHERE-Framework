@@ -62,7 +62,11 @@ class Service extends AbstractService
 
         $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
         $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
-        $tblCompany = Company::useService()->getCompanyById($Meta['Reservation']['TblCompany']);
+        if(isset($Meta['Reservation']['TblCompany'])){
+            $tblCompany = Company::useService()->getCompanyById($Meta['Reservation']['TblCompany']);
+        } else {
+            $tblCompany = false;
+        }
 
         if (($tblProspect = $this->getProspectByPerson($tblPerson))) {
             (new Data($this->getBinding()))->updateProspectAppointment(
