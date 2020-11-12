@@ -50,12 +50,13 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                 && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
             ) {
+                $technicalCourse = ($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
+                    ? $tblTechnicalCourse->getDisplayName(($tblCommonGender = $tblPerson->getGender()) ? $tblCommonGender : null) : '';
                 $schoolDiploma = ($tblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
                     ? $tblSchoolDiploma->getName() : '';
                 $technicalDiploma = ($tblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
                     ? $tblTechnicalDiploma->getName() : '';
-                $technicalCourse = ($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
-                    ? $tblTechnicalCourse->getName() : '';
+
                 $praxisLessons = $tblStudentTechnicalSchool->getPraxisLessons();
                 $durationOfTraining = $tblStudentTechnicalSchool->getDurationOfTraining();
                 $studentTenseOfLessons = ($tblStudentTenseOfLessons = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
@@ -63,9 +64,10 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 $studentTrainingStatus = ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
                     ? $tblStudentTrainingStatus->getName() : '';
             } else {
+                $technicalCourse = '';
                 $schoolDiploma = '';
                 $technicalDiploma = '';
-                $technicalCourse = '';
+
                 $praxisLessons = '';
                 $durationOfTraining = '';
                 $studentTenseOfLessons = '';

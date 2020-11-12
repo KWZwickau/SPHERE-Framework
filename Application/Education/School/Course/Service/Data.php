@@ -226,4 +226,38 @@ class Data extends AbstractData
     {
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTechnicalCourse');
     }
+
+    /**
+     * @param TblTechnicalCourse $tblTechnicalCourse
+     * @param $Name
+     * @param $GenderMaleName
+     * @param $GenderFemaleName
+     *
+     * @return bool
+     */
+    public function updateTechnicalCourse(
+        TblTechnicalCourse $tblTechnicalCourse,
+        $Name,
+        $GenderMaleName,
+        $GenderFemaleName
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblTechnicalCourse $Entity */
+        $Entity = $Manager->getEntityById('TblTechnicalCourse', $tblTechnicalCourse->getId());
+
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setName($Name);
+            $Entity->setGenderMaleName($GenderMaleName);
+            $Entity->setGenderFemaleName($GenderFemaleName);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -80,5 +81,22 @@ class TblTechnicalCourse extends Element
     public function setGenderFemaleName($GenderFemaleName)
     {
         $this->GenderFemaleName = $GenderFemaleName;
+    }
+
+    /**
+     * @param TblCommonGender|null $tblCommonGender
+     *
+     * @return string
+     */
+    public function getDisplayName(TblCommonGender $tblCommonGender = null)
+    {
+        $result = $this->getName();
+        if ($tblCommonGender->getName() == 'Männlich' && $this->getGenderMaleName() != '') {
+            $result = $this->getGenderMaleName();
+        } elseif ($tblCommonGender->getName() == 'Weiblich' && $this->getGenderFemaleName() != '') {
+            $result = $this->getGenderFemaleName();
+        }
+
+        return $result;
     }
 }

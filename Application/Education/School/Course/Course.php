@@ -1,15 +1,17 @@
 <?php
 namespace SPHERE\Application\Education\School\Course;
 
+use SPHERE\Application\Api\Education\School\ApiCourse;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
@@ -88,13 +90,40 @@ class Course implements IModuleInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Bildungsgang');
+        $Stage = new Stage('Berufsbildende Schulen', 'Bildungsgang / Berufsbezeichnung / Ausbildung');
 
-        $Stage->setMessage(
-            new Warning('Bildungsgänge sind im Moment fest hinterlegt')
+//        $Stage->setMessage(
+//            new Warning('Bildungsgänge sind im Moment fest hinterlegt')
+//        );
+//
+//        $Stage->setContent(Main::getDispatcher()->fetchDashboard('School-Course'));
+
+        $receiver = ApiCourse::receiverBlock(self::useFrontend()->loadTechnicalCourseTable(), 'TechnicalCourseContent');
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            ApiCourse::receiverModal(),
+                            (new Primary(
+                                new Plus() . ' Eintrag hinzufügen',
+                                ApiCourse::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiCourse::pipelineOpenCreateTechnicalCourseModal())
+                        ))
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            '&nbsp;'
+                        )
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $receiver
+                        )
+                    ))
+                ))
+            ))
         );
-
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('School-Course'));
 
         return $Stage;
     }

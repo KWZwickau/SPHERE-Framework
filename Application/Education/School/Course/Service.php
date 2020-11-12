@@ -7,6 +7,7 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
 use SPHERE\Application\Education\School\Course\Service\Setup;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -123,6 +124,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Data
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @return false|Form
+     */
+    public function checkFormTechnicalCourse(
+        $Data,
+        TblTechnicalCourse $tblTechnicalCourse = null
+    ) {
+        $error = false;
+
+        $form = Course::useFrontend()->formTechnicalCourse($tblTechnicalCourse ? $tblTechnicalCourse->getId() : null);
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $form->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Name]');
+        }
+
+        return $error ? $form : false;
+    }
+    
+    /**
      * @param $Name
      * @param $GenderMaleName
      * @param $GenderFemaleName
@@ -132,5 +155,22 @@ class Service extends AbstractService
     public function createTechnicalCourse($Name, $GenderMaleName, $GenderFemaleName)
     {
         return (new Data($this->getBinding()))->createTechnicalCourse($Name, $GenderMaleName, $GenderFemaleName);
+    }
+
+    /**
+     * @param TblTechnicalCourse $tblTechnicalCourse
+     * @param $Name
+     * @param $GenderMaleName
+     * @param $GenderFemaleName
+     *
+     * @return bool
+     */
+    public function updateTechnicalCourse(
+        TblTechnicalCourse $tblTechnicalCourse,
+        $Name,
+        $GenderMaleName,
+        $GenderFemaleName
+    ) {
+        return (new Data($this->getBinding()))->updateTechnicalCourse($tblTechnicalCourse, $Name, $GenderMaleName, $GenderFemaleName);
     }
 }
