@@ -23,6 +23,7 @@ abstract class AbstractSetup
     const FIELD_TYPE_DATETIME = 'datetime';
     const FIELD_TYPE_BINARY = 'blob';
     const FIELD_TYPE_FLOAT = 'float';
+    const FIELD_TYPE_SMALLINT = 'smallint';
 
     /** @var null|Structure $Connection */
     private $Connection = null;

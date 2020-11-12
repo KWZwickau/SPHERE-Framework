@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
@@ -275,12 +276,32 @@ class Person
      */
     public function downloadAbsenceList($Date = null, $Type = null, $DivisionName = '', $GroupName = '')
     {
-
         // das Datum darf keine Uhrzeit enthalten
-        $dateTime = new \DateTime((new \DateTime($Date))->format('d.m.Y'));
+        $dateTime = new DateTime((new DateTime($Date))->format('d.m.Y'));
         if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTime, $Type, $DivisionName, $GroupName))) {
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Fehlzeiten " . $dateTime->format("Y-m-d") . ".xlsx")->__toString();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $StartDate
+     * @param null $EndDate
+     *
+     * @return bool|string
+     */
+    public function downloadAbsenceBetweenList($StartDate = null, $EndDate = null)
+    {
+        if ($StartDate && $EndDate) {
+            $StartDate = new DateTime($StartDate);
+            $EndDate = new DateTime($EndDate);
+
+            if (($fileLocation = ReportingPerson::useService()->createAbsenceBetweenListExcel($StartDate, $EndDate))) {
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Fehlzeiten " . $StartDate->format("Y-m-d") . " - " . $EndDate->format("Y-m-d") . ".xlsx")->__toString();
+            }
         }
 
         return false;

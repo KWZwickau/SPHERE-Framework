@@ -561,7 +561,9 @@ class Data extends AbstractData
      * @param bool|false $IsApproved
      * @param bool|false $IsPrinted
      * @param null $ExcusedDays
+     * @param null $ExcusedDaysFromLessons
      * @param null $UnexcusedDays
+     * @param null $UnexcusedDaysFromLessons
      * @param TblPerson|null $tblPersonSigner
      *
      * @return bool
@@ -572,7 +574,9 @@ class Data extends AbstractData
         $IsApproved = false,
         $IsPrinted = false,
         $ExcusedDays = null,
+        $ExcusedDaysFromLessons = null,
         $UnexcusedDays = null,
+        $UnexcusedDaysFromLessons = null,
         TblPerson $tblPersonSigner = null
     ) {
 
@@ -586,7 +590,9 @@ class Data extends AbstractData
             $Entity->setApproved($IsApproved);
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
+            $Entity->setExcusedDaysFromLessons($ExcusedDaysFromLessons);
             $Entity->setUnexcusedDays($UnexcusedDays);
+            $Entity->setUnexcusedDaysFromLessons($UnexcusedDaysFromLessons);
             $Entity->setServiceTblPersonSigner($tblPersonSigner);
 
             $Manager->saveEntity($Entity);

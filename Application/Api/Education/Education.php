@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Education;
 
 use SPHERE\Application\Api\Education\Certificate\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
+use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
@@ -56,6 +57,7 @@ class Education implements IApplicationInterface
         YearPeriod::registerApi();
         YearHoliday::registerApi();
         ApiPrepare::registerApi();
+        ApiAbsence::registerApi();
         AddDivision::registerApi();
         ApiCourse::registerApi();
     }
