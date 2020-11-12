@@ -106,7 +106,7 @@ class Course implements IModuleInterface
                         new LayoutColumn(array(
                             ApiCourse::receiverModal(),
                             (new Primary(
-                                new Plus() . ' berufsbildenden Bildungsgang hinzufügen',
+                                new Plus() . ' Berufsbildenden Bildungsgang hinzufügen',
                                 ApiCourse::getEndpoint()
                             ))->ajaxPipelineOnClick(ApiCourse::pipelineOpenCreateTechnicalCourseModal())
                         ))
