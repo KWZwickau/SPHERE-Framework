@@ -201,9 +201,9 @@ class ApiCourse  extends Extension implements IApiInterface
     private function getTechnicalCourseModal($form, $TechnicalCourseId = null)
     {
         if ($TechnicalCourseId) {
-            $title = new Title(new Edit() . ' Eintrag bearbeiten');
+            $title = new Title(new Edit() . ' Berufsbildenden Bildungsgang bearbeiten');
         } else {
-            $title = new Title(new Plus() . ' Eintrag hinzufügen');
+            $title = new Title(new Plus() . ' Berufsbildenden Bildungsgang hinzufügen');
         }
 
         return $title
@@ -233,11 +233,11 @@ class ApiCourse  extends Extension implements IApiInterface
         }
 
         if (Course::useService()->createTechnicalCourse($Data['Name'], $Data['GenderMaleName'], $Data['GenderFemaleName'])) {
-            return new Success('Der Eintrag wurde erfolgreich gespeichert.')
+            return new Success('Der berufsbildende Bildungsgang wurde erfolgreich gespeichert.')
                 . self::pipelineLoadTechnicalCourseContent()
                 . self::pipelineClose();
         } else {
-            return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Der berufsbildende Bildungsgang konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -249,7 +249,7 @@ class ApiCourse  extends Extension implements IApiInterface
     public function openEditTechnicalCourseModal($TechnicalCourseId)
     {
         if (!($tblTechnicalCourse = Course::useService()->getTechnicalCourseById($TechnicalCourseId))) {
-            return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
+            return new Danger('Der berufsbildende Bildungsgang wurde nicht gefunden', new Exclamation());
         }
 
         return $this->getTechnicalCourseModal(Course::useFrontend()->formTechnicalCourse(
@@ -266,7 +266,7 @@ class ApiCourse  extends Extension implements IApiInterface
     public function saveEditTechnicalCourseModal($TechnicalCourseId, $Data)
     {
         if (!($tblTechnicalCourse = Course::useService()->getTechnicalCourseById($TechnicalCourseId))) {
-            return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
+            return new Danger('Der berufsbildende Bildungsgang wurde nicht gefunden', new Exclamation());
         }
 
         if (($form = Course::useService()->checkFormTechnicalCourse($Data, $tblTechnicalCourse))) {
@@ -275,11 +275,11 @@ class ApiCourse  extends Extension implements IApiInterface
         }
 
         if (Course::useService()->updateTechnicalCourse($tblTechnicalCourse, $Data['Name'], $Data['GenderMaleName'], $Data['GenderFemaleName'])) {
-            return new Success('Der Eintrag wurde erfolgreich gespeichert.')
+            return new Success('Der berufsbildende Bildungsgang wurde erfolgreich gespeichert.')
                 . self::pipelineLoadTechnicalCourseContent()
                 . self::pipelineClose();
         } else {
-            return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Der berufsbildende Bildungsgang konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 }

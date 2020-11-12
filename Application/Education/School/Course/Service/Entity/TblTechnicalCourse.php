@@ -91,10 +91,12 @@ class TblTechnicalCourse extends Element
     public function getDisplayName(TblCommonGender $tblCommonGender = null)
     {
         $result = $this->getName();
-        if ($tblCommonGender->getName() == 'Männlich' && $this->getGenderMaleName() != '') {
-            $result = $this->getGenderMaleName();
-        } elseif ($tblCommonGender->getName() == 'Weiblich' && $this->getGenderFemaleName() != '') {
-            $result = $this->getGenderFemaleName();
+        if ($tblCommonGender) {
+            if ($tblCommonGender->getName() == 'Männlich' && $this->getGenderMaleName() != '') {
+                $result = $this->getGenderMaleName();
+            } elseif ($tblCommonGender->getName() == 'Weiblich' && $this->getGenderFemaleName() != '') {
+                $result = $this->getGenderFemaleName();
+            }
         }
 
         return $result;

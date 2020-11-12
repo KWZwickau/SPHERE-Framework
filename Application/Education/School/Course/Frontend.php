@@ -57,6 +57,9 @@ class Frontend extends Extension implements IFrontendInterface
             null,
             $columns,
             array(
+                'columnDefs' => array(
+                    array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                ),
                 'order' => array(
                     array(0, 'asc')
                 ),

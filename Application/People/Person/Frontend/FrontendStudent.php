@@ -24,6 +24,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -140,10 +141,12 @@ class FrontendStudent extends FrontendReadOnly
                 );
             }
 
-            // todo Prüfung ob berufsbildende Schule in der Mandanteneinstellung
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId), 'StudentTechnicalSchoolContent'
-            );
+            if (School::useService()->hasConsumerTechnicalSchool()) {
+                $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                    FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId),
+                    'StudentTechnicalSchoolContent'
+                );
+            }
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
                 FrontendStudentSubject::getStudentSubjectContent($PersonId), 'StudentSubjectContent'

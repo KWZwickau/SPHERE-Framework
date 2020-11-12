@@ -92,4 +92,21 @@ class TblType extends Element
     {
         $this->ShortName = $ShortName;
     }
+
+    /**
+     * @return bool
+     */
+    public function isTechnical()
+    {
+        if ($this->getName() == 'Berufliches Gymnasium'
+            || $this->getName() == 'Berufsfachschule'
+            || $this->getName() == 'Berufsschule'
+            || $this->getName() == 'Fachoberschule'
+            || $this->getName() == 'Fachschule'
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
