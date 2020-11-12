@@ -465,7 +465,6 @@ abstract class BfsStyle extends Certificate
      * @param string         $Title
      * @param int            $StartSubject
      * @param int            $DisplaySubjectAmount
-     * @param bool           $IsLF
      * @param int            $SubjectRankingFrom
      * @param int            $SubjectRankingTill
      * @param string         $Height
@@ -473,7 +472,7 @@ abstract class BfsStyle extends Certificate
      * @return Slice
      */
     protected function getSubjectLineAcross($personId, TblCertificate $tblCertificate, $Title = 'Berufsübergreifender Bereich', $StartSubject = 1,
-        $DisplaySubjectAmount = 6, $IsLF = true, $SubjectRankingFrom = 1, $SubjectRankingTill = 4, $Height = '160px')
+        $DisplaySubjectAmount = 6, $SubjectRankingFrom = 1, $SubjectRankingTill = 4, $Height = '160px')
     {
 
         $Slice = (new Slice());
@@ -546,7 +545,7 @@ abstract class BfsStyle extends Certificate
                     }
 
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent(($IsLF ? 'LF'.$StartSubject++.' ' : '').$Subject['SubjectName'])
+                        ->setContent($Subject['SubjectName'])
                         ->stylePaddingTop()
                         ->styleMarginTop('15px')
                         ->stylePaddingBottom('1px')
@@ -643,7 +642,6 @@ abstract class BfsStyle extends Certificate
      * @param string         $Title
      * @param int            $StartSubject
      * @param int            $DisplaySubjectAmount
-     * @param bool           $IsLF
      * @param string         $Height
      * @param int            $SubjectRankingFrom
      * @param int            $SubjectRankingTill
@@ -651,7 +649,7 @@ abstract class BfsStyle extends Certificate
      * @return Slice
      */
     protected function getSubjectLineBase($personId, TblCertificate $tblCertificate, $Title = '&nbsp;', $StartSubject = 1,
-        $DisplaySubjectAmount = 10, $IsLF = true, $Height = 'auto', $SubjectRankingFrom = 5, $SubjectRankingTill = 12)
+        $DisplaySubjectAmount = 10, $Height = 'auto', $SubjectRankingFrom = 5, $SubjectRankingTill = 12)
     {
         $Slice = (new Slice());
 
@@ -716,7 +714,7 @@ abstract class BfsStyle extends Certificate
                 $SubjectSection = (new Section());
 
                 $SubjectSection->addElementColumn((new Element())
-                    ->setContent(($IsLF ? 'LF'.$StartSubject++.' ' : '').$Subject['SubjectName'])
+                    ->setContent($Subject['SubjectName'])
                     ->stylePaddingTop()
                     ->styleMarginTop('10px')
                     ->stylePaddingBottom('1px')

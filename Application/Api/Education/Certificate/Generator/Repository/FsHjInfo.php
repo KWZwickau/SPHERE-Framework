@@ -15,6 +15,23 @@ class FsHjInfo extends FsStyle
 {
 
     /**
+     * @return array
+     */
+    public function getApiModalColumns()
+    {
+        return array(
+            // Page 2
+            'FsDestination' => 'Fachbereich',
+            'SubjectArea' => 'Fachrichtung',
+            'Focus' => 'Schwerpunkt',
+            // Page 3
+            'JobEducationDuration' => 'Berufspraktische Ausbildung (dauer in Wochen)',
+            'ChosenArea1' => 'Wahlbereich 1',
+            'ChosenArea2' => 'Wahlbereich 2',
+        );
+    }
+
+    /**
      * @param TblPerson|null $tblPerson
      *
      * @return Page[]
@@ -28,7 +45,7 @@ class FsHjInfo extends FsStyle
             ->addSlice($this->getSchoolHead($personId, 'Halbjahresinformation'))
             ->addSlice($this->getStudentHead($personId, 'Schulhalbjahr', 'folgende Leistungen erreicht:', true))
             ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, false, '200px', 1, 4))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, '200px', 1, 4))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8))
         ;
 
@@ -37,7 +54,7 @@ class FsHjInfo extends FsStyle
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 4, true, '170px'))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 4, '170px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity(), '110px'))
             ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
             ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))

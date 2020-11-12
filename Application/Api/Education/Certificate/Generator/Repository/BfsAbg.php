@@ -29,13 +29,13 @@ class BfsAbg extends BfsStyle
             ->addSlice($this->getSchoolHeadAbg($personId))
             ->addSlice($this->getStudentHeadAbg($personId))
             ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', -1, 5, false, '210px', 1, 4))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', -1, 5, '210px', 1, 4))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 10))
         ;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis'))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, true, '220px'))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId, '85px'))

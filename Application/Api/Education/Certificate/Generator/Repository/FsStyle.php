@@ -593,7 +593,6 @@ abstract class FsStyle extends Certificate
      * @param string         $Title
      * @param int            $StartSubject
      * @param int            $DisplaySubjectAmount
-     * @param bool           $IsLF
      * @param int            $SubjectRankingFrom
      * @param int            $SubjectRankingTill
      * @param string         $Height
@@ -602,7 +601,7 @@ abstract class FsStyle extends Certificate
      * //ToDO maybe remove if not used
      */
     protected function getSubjectLineAcross($personId, TblCertificate $tblCertificate, $Title = 'Berufsübergreifender Bereich', $StartSubject = 1,
-        $DisplaySubjectAmount = 6, $IsLF = true, $SubjectRankingFrom = 1, $SubjectRankingTill = 4, $Height = '160px')
+        $DisplaySubjectAmount = 6, $SubjectRankingFrom = 1, $SubjectRankingTill = 4, $Height = '160px')
     {
 
         $Slice = (new Slice());
@@ -613,7 +612,8 @@ abstract class FsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        // SubjectList By EducationType
+        $tblCertificateSubjectAll = $this->getCertificateSubjectByPerson($personId, $tblCertificate);
         $tblGradeList = $this->getGrade();
 
         if (!empty($tblCertificateSubjectAll)) {
@@ -663,7 +663,7 @@ abstract class FsStyle extends Certificate
             foreach ($SubjectList as $SubjectListAlign) {
                 // Sort Lane-Ranking (1,2...)
                 // 2 Subject in one Line
-                $Slice = $this->SubjectTwoLane($Slice, $personId, $SubjectListAlign, $TextSize, $TextSizeSmall, $IsLF);
+                $Slice = $this->SubjectTwoLane($Slice, $personId, $SubjectListAlign, $TextSize, $TextSizeSmall);
             }
         }
 
@@ -715,7 +715,6 @@ abstract class FsStyle extends Certificate
      * @param string         $Title
      * @param int            $StartSubject
      * @param int            $DisplaySubjectAmount
-     * @param bool           $IsLF
      * @param string         $Height
      * @param int            $SubjectRankingFrom
      * @param int            $SubjectRankingTill
@@ -723,7 +722,7 @@ abstract class FsStyle extends Certificate
      * @return Slice
      */
     protected function getSubjectLineBase($personId, TblCertificate $tblCertificate, $Title = '&nbsp;', $StartSubject = 1,
-        $DisplaySubjectAmount = 10, $IsLF = true, $Height = 'auto', $SubjectRankingFrom = 5, $SubjectRankingTill = 14)
+        $DisplaySubjectAmount = 10, $Height = 'auto', $SubjectRankingFrom = 5, $SubjectRankingTill = 14)
     {
         $Slice = (new Slice());
 
@@ -734,7 +733,8 @@ abstract class FsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        // SubjectList By EducationType
+        $tblCertificateSubjectAll = $this->getCertificateSubjectByPerson($personId, $tblCertificate);
         $tblGradeList = $this->getGrade();
 
         // Anzahl der Abzubildenden Einträge (auch ohne Fach)
@@ -783,10 +783,9 @@ abstract class FsStyle extends Certificate
 
             $TextSize = '14px';
             $TextSizeSmall = '8px';
-            $LfCount = $StartSubject;
             foreach ($SubjectList as $Subject) {
                 // Jedes Fach auf separate Zeile
-                $Slice = $this->SubjectOneLane($Slice, $personId, $Subject, $TextSize, $TextSizeSmall, $IsLF, $LfCount++);
+                $Slice = $this->SubjectOneLane($Slice, $personId, $Subject, $TextSize, $TextSizeSmall);
             }
         }
 
@@ -874,7 +873,8 @@ abstract class FsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        // SubjectList By EducationType
+        $tblCertificateSubjectAll = $this->getCertificateSubjectByPerson($personId, $tblCertificate);
         $tblGradeList = $this->getGrade();
         // Anzahl der Abzubildenden Einträge (auch ohne Fach)
         $CountSubjectMissing = 2;
@@ -952,7 +952,8 @@ abstract class FsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        // SubjectList By EducationType
+        $tblCertificateSubjectAll = $this->getCertificateSubjectByPerson($personId, $tblCertificate);
         $tblGradeList = $this->getGrade();
         // Anzahl der Abzubildenden Einträge (auch ohne Fach)
         $CountSubjectMissing = 1;
@@ -1103,7 +1104,8 @@ abstract class FsStyle extends Certificate
             ->styleTextBold()
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        // SubjectList By EducationType
+        $tblCertificateSubjectAll = $this->getCertificateSubjectByPerson($personId, $tblCertificate);
         $tblGradeList = $this->getGrade();
         // Anzahl der Abzubildenden Einträge (auch ohne Fach)
         $CountSubjectMissing = 1;
@@ -1168,18 +1170,16 @@ abstract class FsStyle extends Certificate
      * @param array  $Subject
      * @param string $TextSize
      * @param string $TextSizeSmall
-     * @param bool   $IsLF
-     * @param int    $StartSubject
      *
      * @return Slice
      */
-    private function SubjectOneLane(Slice $Slice, $personId, $Subject = array(), $TextSize = '14px', $TextSizeSmall = '8px', $IsLF = false, $StartSubject = 1)
+    private function SubjectOneLane(Slice $Slice, $personId, $Subject = array(), $TextSize = '14px', $TextSizeSmall = '8px')
     {
 
         $SubjectSection = (new Section());
 
         $SubjectSection->addElementColumn((new Element())
-            ->setContent(($IsLF ? 'LF'.$StartSubject.' ' : '').$Subject['SubjectName'])
+            ->setContent($Subject['SubjectName'])
             ->stylePaddingTop()
             ->styleMarginTop('10px')
             ->stylePaddingBottom('1px')
@@ -1234,7 +1234,7 @@ abstract class FsStyle extends Certificate
      *
      * @return Slice
      */
-    private function SubjectTwoLane(Slice $Slice, $personId, $SubjectListAlign = array(), $TextSize = '14px', $TextSizeSmall = '8px', $IsLF = false)
+    private function SubjectTwoLane(Slice $Slice, $personId, $SubjectListAlign = array(), $TextSize = '14px', $TextSizeSmall = '8px')
     {
 
         ksort($SubjectListAlign);
@@ -1254,7 +1254,7 @@ abstract class FsStyle extends Certificate
             }
 
             $SubjectSection->addElementColumn((new Element())
-                ->setContent(($IsLF ? 'LF'.$StartSubject++.' ' : '').$Subject['SubjectName'])
+                ->setContent($Subject['SubjectName'])
                 ->stylePaddingTop()
                 ->styleMarginTop('15px')
                 ->stylePaddingBottom('1px')
@@ -2033,5 +2033,25 @@ abstract class FsStyle extends Certificate
             ->styleBorderRight('0.5px')
             ->styleBorderBottom('0.5px');
         return $TransferSlice;
+    }
+
+    /**
+     * @param                $personId
+     * @param TblCertificate $tblCertificate
+     *
+     * @return bool|\SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject[]
+     */
+    private function getCertificateSubjectByPerson($personId, TblCertificate $tblCertificate)
+    {
+
+        //ToDO remove old Version
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                //ToDO Fachschule Bildungsgang / Berufsbezeichung zur erkennung der richtigen Fächereinstellung
+            }
+        }
+        return $tblCertificateSubjectAll;
     }
 }

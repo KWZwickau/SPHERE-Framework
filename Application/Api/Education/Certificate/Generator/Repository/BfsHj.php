@@ -15,6 +15,25 @@ class BfsHj extends BfsStyle
 {
 
     /**
+     * @return array
+     */
+    public function getApiModalColumns()
+    {
+        return array(
+            // Page 2
+            'BfsDestination' => 'Berufsfachschule für ...',
+            'CertificateName' => 'Abweichender Zeugnisname (Endjahresinformation)',
+            // Page 3
+            'Operation1' => 'Einsatzgebiet 1',
+            'OperationTime1' => 'Einsatzgebiet Dauer in Wochen 1',
+            'Operation2' => 'Einsatzgebiet 2',
+            'OperationTime2' => 'Einsatzgebiet Dauer in Wochen 2',
+            'Operation3' => 'Einsatzgebiet 3',
+            'OperationTime3' => 'Einsatzgebiet Dauer in Wochen 3',
+        );
+    }
+
+    /**
      * @param TblPerson|null $tblPerson
      *
      * @return Page[]
@@ -25,16 +44,16 @@ class BfsHj extends BfsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSchoolHead($personId))
+            ->addSlice($this->getSchoolHead($personId, 'Halbjahreszeugnis', true))
             ->addSlice($this->getStudentHead($personId, 'Schulhalbjahr', 'hat in der gesamten bisherigen Ausbildung folgende Leistungen erreicht:'))
             ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6, false))
+            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Berufsbezogener Bereich', 1, 10))
         ;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, true, '220px'))
+            ->addSlice($this->getSecondPageHead($personId, 'Halbjahreszeugnis', true))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId))
