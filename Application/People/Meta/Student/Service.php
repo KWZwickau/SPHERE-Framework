@@ -29,6 +29,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -329,6 +330,7 @@ class Service extends Support
      * @param TblStudentIntegration|null $tblStudentIntegration
      * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
+     * @param TblStudentTechnicalSchool|null $tblStudentTechnicalSchool
      *
      * @return TblStudent
      */
@@ -343,6 +345,7 @@ class Service extends Support
         TblStudentBaptism $tblStudentBaptism = null,
         TblStudentIntegration $tblStudentIntegration = null,
         TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
+        TblStudentTechnicalSchool $tblStudentTechnicalSchool = null,
         $SchoolAttendanceStartDate = ''
     ) {
 
@@ -356,6 +359,7 @@ class Service extends Support
             $tblStudentBaptism,
             $tblStudentIntegration,
             $tblStudentSpecialNeeds,
+            $tblStudentTechnicalSchool,
             $SchoolAttendanceStartDate
         );
     }
@@ -744,7 +748,8 @@ class Service extends Support
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
                         $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
-                        $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null
+                        $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                        $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                     );
                 } else {
                     return false;
@@ -838,7 +843,8 @@ class Service extends Support
                 $tblStudentLocker ? $tblStudentLocker : null,
                 $tblStudentBaptism ? $tblStudentBaptism : null,
                 $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
-                $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null
+                $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
             );
 
             /*
@@ -1480,7 +1486,76 @@ class Service extends Support
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
                         $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
-                        $tblStudentSpecialNeeds
+                        $tblStudentSpecialNeeds,
+                        $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
+                    );
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentTechnicalSchool(TblPerson $tblPerson, $Meta)
+    {
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            $tblTechnicalCourse = Course::useService()->getTechnicalCourseById($Meta['TechnicalSchool']['serviceTblTechnicalCourse']);
+            $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById($Meta['TechnicalSchool']['serviceTblSchoolDiploma']);
+            $tblTechnicalDiploma = Course::useService()->getTechnicalDiplomaById($Meta['TechnicalSchool']['serviceTblTechnicalDiploma']);
+
+            $tblStudentTenseOfLesson = $this->getStudentTenseOfLessonById($Meta['TechnicalSchool']['tblStudentTenseOfLesson']);
+            $tblStudentTrainingStatus = $this->getStudentTrainingStatusById($Meta['TechnicalSchool']['tblStudentTrainingStatus']);
+
+            if (($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())) {
+                (new Data($this->getBinding()))->updateStudentTechnicalSchool(
+                    $tblStudentTechnicalSchool,
+                    $Meta['TechnicalSchool']['PraxisLessons'],
+                    $Meta['TechnicalSchool']['DurationOfTraining'],
+                    $tblTechnicalCourse ? $tblTechnicalCourse : null,
+                    $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                    $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
+                    $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
+                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null
+                );
+            } else {
+
+                $tblStudentTechnicalSchool = (new Data($this->getBinding()))->createStudentTechnicalSchool(
+                    $Meta['TechnicalSchool']['PraxisLessons'],
+                    $Meta['TechnicalSchool']['DurationOfTraining'],
+                    $tblTechnicalCourse ? $tblTechnicalCourse : null,
+                    $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                    $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
+                    $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
+                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null
+                );
+
+                if ($tblStudentTechnicalSchool) {
+                    (new Data($this->getBinding()))->updateStudentField(
+                        $tblStudent,
+                        $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
+                        $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                        $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                        $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                        $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                        $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                        $tblStudentTechnicalSchool
                     );
                 } else {
                     return false;

@@ -140,6 +140,11 @@ class FrontendStudent extends FrontendReadOnly
                 );
             }
 
+            // todo Prüfung ob berufsbildende Schule in der Mandanteneinstellung
+            $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId), 'StudentTechnicalSchoolContent'
+            );
+
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
                 FrontendStudentSubject::getStudentSubjectContent($PersonId), 'StudentSubjectContent'
             );

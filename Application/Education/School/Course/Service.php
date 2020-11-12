@@ -3,6 +3,9 @@ namespace SPHERE\Application\Education\School\Course;
 
 use SPHERE\Application\Education\School\Course\Service\Data;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
 use SPHERE\Application\Education\School\Course\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -63,5 +66,71 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCourseByName($Name);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblSchoolDiploma
+     */
+    public function getSchoolDiplomaById($Id)
+    {
+        return (new Data($this->getBinding()))->getSchoolDiplomaById($Id);
+    }
+
+    /**
+     * @return bool|TblSchoolDiploma[]
+     */
+    public function getSchoolDiplomaAll()
+    {
+        return (new Data($this->getBinding()))->getSchoolDiplomaAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTechnicalDiploma
+     */
+    public function getTechnicalDiplomaById($Id)
+    {
+        return (new Data($this->getBinding()))->getTechnicalDiplomaById($Id);
+    }
+
+    /**
+     * @return bool|TblTechnicalDiploma[]
+     */
+    public function getTechnicalDiplomaAll()
+    {
+        return (new Data($this->getBinding()))->getTechnicalDiplomaAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTechnicalCourse
+     */
+    public function getTechnicalCourseById($Id)
+    {
+        return (new Data($this->getBinding()))->getTechnicalCourseById($Id);
+    }
+
+    /**
+     * @return bool|TblTechnicalCourse[]
+     */
+    public function getTechnicalCourseAll()
+    {
+        return (new Data($this->getBinding()))->getTechnicalCourseAll();
+    }
+
+    /**
+     * @param $Name
+     * @param $GenderMaleName
+     * @param $GenderFemaleName
+     *
+     * @return TblTechnicalCourse
+     */
+    public function createTechnicalCourse($Name, $GenderMaleName, $GenderFemaleName)
+    {
+        return (new Data($this->getBinding()))->createTechnicalCourse($Name, $GenderMaleName, $GenderFemaleName);
     }
 }

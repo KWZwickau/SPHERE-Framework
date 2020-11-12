@@ -1,11 +1,15 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -75,6 +79,7 @@ abstract class Student extends AbstractService
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
      * @param bool $IsInPreparationDivisionForMigrants
+     * @param null $tblStudentTechnicalSchool
      *
      * @return bool|TblStudent
      */
@@ -90,7 +95,8 @@ abstract class Student extends AbstractService
         $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
-        $IsInPreparationDivisionForMigrants = false
+        $IsInPreparationDivisionForMigrants = false,
+        $tblStudentTechnicalSchool = null
     ) {
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
@@ -107,6 +113,7 @@ abstract class Student extends AbstractService
                 $tblStudentBaptism,
                 $tblStudentIntegration,
                 $tblStudentSpecialNeeds,
+                $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
                 $HasMigrationBackground,
                 $IsInPreparationDivisionForMigrants
@@ -123,6 +130,7 @@ abstract class Student extends AbstractService
                 $tblStudentBaptism,
                 $tblStudentIntegration,
                 $tblStudentSpecialNeeds,
+                $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
                 $HasMigrationBackground,
                 $IsInPreparationDivisionForMigrants
@@ -135,7 +143,7 @@ abstract class Student extends AbstractService
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     * @return bool|TblCourse
      */
     public function getCourseByPerson(TblPerson $tblPerson)
     {
@@ -151,7 +159,7 @@ abstract class Student extends AbstractService
     /**
      * @param TblStudent $tblStudent
      *
-     * @return bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     * @return bool|TblCourse
      */
     public function getCourseByStudent(TblStudent $tblStudent)
     {
@@ -237,6 +245,16 @@ abstract class Student extends AbstractService
     /**
      * @param $Id
      *
+     * @return false|TblStudentTechnicalSchool
+     */
+    public function getStudentTechnicalSchoolById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentTechnicalSchoolById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
      * @return false|TblStudentSpecialNeedsLevel
      */
     public function getStudentSpecialNeedsLevelById($Id)
@@ -260,5 +278,41 @@ abstract class Student extends AbstractService
     public function getStudentSpecialNeedsLevelAll()
     {
         return (new Data($this->getBinding()))->getStudentSpecialNeedsLevelAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblStudentTrainingStatus
+     */
+    public function getStudentTrainingStatusById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentTrainingStatusById($Id);
+    }
+
+    /**
+     * @return bool|TblStudentTrainingStatus[]
+     */
+    public function getStudentTrainingStatusAll()
+    {
+        return (new Data($this->getBinding()))->getStudentTrainingStatusAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblStudentTenseOfLesson
+     */
+    public function getStudentTenseOfLessonById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentTenseOfLessonById($Id);
+    }
+
+    /**
+     * @return bool|TblStudentTenseOfLesson[]
+     */
+    public function getStudentTenseOfLessonAll()
+    {
+        return (new Data($this->getBinding()))->getStudentTenseOfLessonAll();
     }
 }
