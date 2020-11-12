@@ -66,6 +66,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblType $tblType
      *
      * @return string

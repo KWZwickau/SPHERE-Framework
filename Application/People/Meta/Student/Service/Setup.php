@@ -59,11 +59,14 @@ class Setup extends AbstractSetup
         $tblStudentIntegration = $this->setTableStudentIntegration($Schema);
         $tblStudentSpecialNeedsLevel = $this->setTableStudentSpecialNeedsLevel($Schema);
         $tblStudentSpecialNeeds = $this->setTableStudentSpecialNeeds($Schema, $tblStudentSpecialNeedsLevel);
+        $tblStudentTenseOfLesson = $this->setTableStudentTenseOfLesson($Schema);
+        $tblStudentTrainingStatus = $this->setTableStudentTrainingStatus($Schema);
+        $tblStudentTechnicalSchool = $this->setTableStudentTechnicalSchool($Schema, $tblStudentTenseOfLesson, $tblStudentTrainingStatus);
 
         $tblStudent = $this->setTableStudent(
             $Schema, $tblStudentMedicalRecord, $tblStudentTransport,
             $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration,
-            $tblStudentSpecialNeeds
+            $tblStudentSpecialNeeds, $tblStudentTechnicalSchool
         );
 
         $tblStudentTransferType = $this->setTableStudentTransferType($Schema);
@@ -372,6 +375,7 @@ class Setup extends AbstractSetup
      * @param Table $tblStudentBaptism
      * @param Table $tblStudentIntegration
      * @param Table $tblStudentSpecialNeeds
+     * @param Table $tblStudentTechnicalSchool
      *
      * @return Table
      */
@@ -383,7 +387,8 @@ class Setup extends AbstractSetup
         Table $tblStudentLocker,
         Table $tblStudentBaptism,
         Table $tblStudentIntegration,
-        Table $tblStudentSpecialNeeds
+        Table $tblStudentSpecialNeeds,
+        Table $tblStudentTechnicalSchool
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudent');
@@ -412,6 +417,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentIntegration, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentSpecialNeeds, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentTechnicalSchool, true);
 
         return $Table;
     }
@@ -926,6 +932,59 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'ValidTo', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($table, $tblStudentSpecialNeedsLevel, true);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentTenseOfLesson(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblStudentTenseOfLesson');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentTrainingStatus(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblStudentTrainingStatus');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblStudentTenseOfLesson
+     * @param Table $tblStudentTrainingStatus
+     *
+     * @return Table
+     */
+    private function setTableStudentTechnicalSchool(Schema &$Schema, Table $tblStudentTenseOfLesson, Table $tblStudentTrainingStatus)
+    {
+        $table = $this->createTable($Schema, 'tblStudentTechnicalSchool');
+
+        $this->createColumn($table, 'serviceTblTechnicalCourse', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblSchoolDiploma', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblTechnicalDiploma', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'PraxisLessons', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'DurationOfTraining', self::FIELD_TYPE_STRING);
+
+        $this->createForeignKey($table, $tblStudentTenseOfLesson, true);
+        $this->createForeignKey($table, $tblStudentTrainingStatus, true);
 
         return $table;
     }

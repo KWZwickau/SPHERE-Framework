@@ -65,6 +65,9 @@ class ClassRegister implements IApplicationInterface
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassenbuch'))
         );
+        Main::getDisplay()->addApplicationNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Absence'), new Link\Name('Fehlzeiten'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__ . '::frontendDivision'
@@ -248,7 +251,7 @@ class ClassRegister implements IApplicationInterface
                             ), array(
                                 'columnDefs' => array(
                                     array('type' => 'natural', 'targets' => 2),
-                                    array("orderable" => false, "targets"   => 3),
+                                    array('orderable' => false, 'width' => '30px', 'targets' => -1),
                                 ),
                                 'order' => array(
                                     array('0', 'desc'),
@@ -347,11 +350,16 @@ class ClassRegister implements IApplicationInterface
                             }
                         }
                     }
-                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision);
-                    $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision);
-                    $absence = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
-                        . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
 
+                    // Fehlzeiten
+                    $unExcusedLessons = 0;
+                    $excusedLessons = 0;
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision, null, $excusedLessons);
+                    $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision, null, $unExcusedLessons);
+                    $absenceDays = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
+                        . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
+                    $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
+                        . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedLessons) . ')';
 
                     if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                         $IntegrationButton = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -392,7 +400,8 @@ class ClassRegister implements IApplicationInterface
                         'Address'       => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Birthday'      => $birthday,
                         'Course'        => $course,
-                        'Absence'       => $absence,
+                        'AbsenceDays'   => $absenceDays,
+                        'AbsenceLessons'=> $absenceLessons,
                         'Option'        => new Standard(
                             '', '/Education/ClassRegister/Absence', new Time(),
                             array(
@@ -484,14 +493,15 @@ class ClassRegister implements IApplicationInterface
                                 new TableData($studentTable, null, array(
                                     'Number'        => '#',
                                     'Name'          => 'Name',
-                                    'Integration'   => 'Integration',
-                                    'MedicalRecord' => 'Krankenakte',
-                                    'Agreement'     => 'Einverständnis',
-                                    'Gender'        => 'Geschlecht',
+                                    'Integration'   => 'Inte&shy;gration',
+                                    'MedicalRecord' => 'Kranken&shy;akte',
+                                    'Agreement'     => 'Einver&shy;ständnis',
+                                    'Gender'        => 'Ge&shy;schlecht',
                                     'Address'       => 'Adresse',
-                                    'Birthday'      => 'Geburtsdatum',
-                                    'Course'        => 'Bildungsgang',
-                                    'Absence'       => 'Fehlzeiten (E, U)',
+                                    'Birthday'      => 'Geburts&shy;datum',
+                                    'Course'        => 'Bildungs&shy;gang',
+                                    'AbsenceDays'   => 'Fehlzeiten Tage<br>(E, U)',
+                                    'AbsenceLessons'=> 'Fehlzeiten UE<br>(E, U)',
                                     'Option'        => ''
                                 ),
                                     ($isTeacher || !$IsSortable)
@@ -500,6 +510,7 @@ class ClassRegister implements IApplicationInterface
                                             'columnDefs' => array(
                                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                                 array('width' => '1%', 'targets' => 2),
+                                                array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                             ),
                                             'responsive' => false
                                         )
@@ -515,7 +526,7 @@ class ClassRegister implements IApplicationInterface
                                         'columnDefs' => array(
                                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                             array('width' => '1%', 'targets' => 2),
-                                            array('width' => '60px', 'targets' => -1),
+                                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                         ),
                                         'responsive' => false
                                     )

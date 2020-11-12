@@ -379,7 +379,11 @@ class Service extends AbstractService
                     }
                 }
                 $Data['Certificate'][$typeId]['Data' . $count]['TransferRemark'] = $transferRemark;
-                $Data['Certificate'][$typeId]['Data' . $count]['Absence'] = $tblPrepareStudent->getExcusedDays() + $tblPrepareStudent->getUnexcusedDays();
+                $Data['Certificate'][$typeId]['Data' . $count]['Absence']
+                    = $tblPrepareStudent->getExcusedDays()
+                        + ($tblPrepareStudent->getExcusedDaysFromLessons() ? $tblPrepareStudent->getExcusedDaysFromLessons() : 0)
+                        + $tblPrepareStudent->getUnexcusedDays()
+                        + ($tblPrepareStudent->getUnexcusedDaysFromLessons() ? $tblPrepareStudent->getUnexcusedDaysFromLessons() : 0);
             }
             $count++;
         }

@@ -796,63 +796,6 @@ class Service extends AbstractService
             }
         }
 
-//
-//            }
-//            // bulkSave for Lectureship
-//            Division::useService()->addSubjectTeacherList($createSubjectTeacherList);
-//
-//            //Delete tblImport
-//            Import::useService()->destroyIndiwareImportLectureship();
-//        }
-//
-//        $LayoutColumnArray = array();
-//        if (!empty($InfoList)) {
-//            // better show result
-//            foreach ($InfoList as $key => $Info) {
-//                $divisionName[$key] = strtoupper($Info['DivisionName']);
-//            }
-//            array_multisort($divisionName, SORT_NATURAL, $InfoList);
-//            foreach ($InfoList as $Info) {
-//
-//                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
-//                    $LayoutColumnList = array();
-//                    $PanelContent = array();
-//                    if (!empty($Info['SubjectList'])) {
-//                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
-//                            if (!empty($SubjectAndTeacherArray)) {
-//                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
-//                                    $PanelContent[] = $SubjectAndTeacher;
-//                                }
-//                            }
-//                        }
-//                        $LayoutColumnList[] = new LayoutColumn(array(
-//                                new Title('Klasse: '.$Info['DivisionName']),
-//                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
-//                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
-//                            )
-//                            , 4);
-//                    }
-//                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
-//                }
-//            }
-//        }
-//
-//        // save clean view by LayoutRows
-//        $LayoutRowList = array();
-//        $LayoutRowCount = 0;
-//        $LayoutRow = null;
-//        /**
-//         * @var LayoutColumn $tblPhone
-//         */
-//        foreach ($LayoutColumnArray as $LayoutColumn) {
-//            if ($LayoutRowCount % 3 == 0) {
-//                $LayoutRow = new LayoutRow(array());
-//                $LayoutRowList[] = $LayoutRow;
-//            }
-//            $LayoutRow->addColumn($LayoutColumn);
-//            $LayoutRowCount++;
-//        }
-
         if (!empty($createSubjectStudentList)) {
             return true;
         }

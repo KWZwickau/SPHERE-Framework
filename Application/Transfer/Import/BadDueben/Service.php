@@ -583,6 +583,7 @@ class Service
                                     $level,
                                     $tblSchoolType ? $tblSchoolType : null,
                                     null,
+                                    null,
                                     $remark
                                 );
 

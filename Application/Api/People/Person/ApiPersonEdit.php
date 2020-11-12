@@ -23,6 +23,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSpecialNeeds;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentTechnicalSchool;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Application\People\Person\Person;
@@ -99,6 +100,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('editStudentSpecialNeedsContent');
         $Dispatcher->registerMethod('saveStudentSpecialNeedsContent');
+
+        $Dispatcher->registerMethod('editStudentTechnicalSchoolContent');
+        $Dispatcher->registerMethod('saveStudentTechnicalSchoolContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -1017,6 +1021,70 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditStudentTechnicalSchoolContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentTechnicalSchoolContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editStudentTechnicalSchoolContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveStudentTechnicalSchoolContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentTechnicalSchoolContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveStudentTechnicalSchoolContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelStudentTechnicalSchoolContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'StudentTechnicalSchoolContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadStudentTechnicalSchoolContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @return bool|Well|string
      */
     public function saveCreatePersonContent()
@@ -1535,6 +1603,38 @@ class ApiPersonEdit extends Extension implements IApiInterface
         if (Student::useService()->updateStudentSpecialNeeds($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . ApiPersonReadOnly::pipelineLoadStudentSpecialNeedsContent($PersonId);
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function editStudentTechnicalSchoolContent($PersonId = null)
+    {
+        return (new FrontendStudentTechnicalSchool())->getEditStudentTechnicalSchoolContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function saveStudentTechnicalSchoolContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = $Global->POST['Meta'];
+
+        if (Student::useService()->updateStudentTechnicalSchool($tblPerson, $Meta)) {
+            return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . ApiPersonReadOnly::pipelineLoadStudentTechnicalSchoolContent($PersonId);
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }

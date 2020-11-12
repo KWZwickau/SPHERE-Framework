@@ -23,9 +23,10 @@ class TblType extends Element
     const IDENT_GRUND_SCHULE = 'Grundschule';
     const IDENT_GYMNASIUM = 'Gymnasium';
     const IDENT_OBER_SCHULE = 'Mittelschule / Oberschule';
-    const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'allgemein bildende Förderschule';
+    const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'Förderschule';
 
     const ATTR_NAME = 'Name';
+    const ATTR_SHORT_NAME = 'ShortName';
 
     /**
      * @Column(type="string")
@@ -35,6 +36,10 @@ class TblType extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $ShortName;
 
     /**
      * @return string
@@ -70,5 +75,38 @@ class TblType extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShortName()
+    {
+        return $this->ShortName;
+    }
+
+    /**
+     * @param string $ShortName
+     */
+    public function setShortName($ShortName)
+    {
+        $this->ShortName = $ShortName;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTechnical()
+    {
+        if ($this->getName() == 'Berufliches Gymnasium'
+            || $this->getName() == 'Berufsfachschule'
+            || $this->getName() == 'Berufsschule'
+            || $this->getName() == 'Fachoberschule'
+            || $this->getName() == 'Fachschule'
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

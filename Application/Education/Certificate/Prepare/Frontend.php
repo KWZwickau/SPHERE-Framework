@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\BeGs;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
@@ -20,6 +21,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Abitur\LeavePoints;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -80,6 +82,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
@@ -95,7 +98,10 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -740,6 +746,7 @@ class Frontend extends Extension implements IFrontendInterface
         $description = '';
         $tblPrepareList = false;
         $tblGroup = false;
+        $headTableColumnList = array();
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
             $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
             if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
@@ -778,6 +785,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $showProposalBehaviorGrade = $tblSetting->getValue();
                 } else {
                     $showProposalBehaviorGrade = false;
+                }
+
+                if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                    'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                ) {
+                    $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+                } else {
+                    $useClassRegisterForAbsence = false;
                 }
 
                 $tblTestList = false;
@@ -873,7 +888,11 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                     }
 
-                    list($informationPageList, $pageList) = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup);
+                    // Erstellt zusätzliche "Tabs" für weitere Sonstige Informationen und die Fehlzeiten
+                    /** @noinspection PhpUnusedLocalVariableInspection */
+                    list($informationPageList, $pageList, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList)
+                        = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, $useClassRegisterForAbsence);
+
                     $buttonList[] = new Standard('Sonstige Informationen',
                         '/Education/Certificate/Prepare/Prepare/Setting', null, array(
                             'PrepareId' => $tblPrepare->getId(),
@@ -883,7 +902,13 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     );
                     foreach ($pageList as $item) {
-                        $buttonList[] = new Standard('Sonstige Informationen (Seite ' . $item . ')',
+                        if ($item == 'Absence') {
+                            $text = 'Fehlzeiten';
+                        } else {
+                            $text = 'Sonstige Informationen (Seite ' . $item . ')';
+                        }
+
+                        $buttonList[] = new Standard($text,
                             '/Education/Certificate/Prepare/Prepare/Setting', null, array(
                                 'PrepareId' => $tblPrepare->getId(),
                                 'GroupId' => $tblGroup ? $tblGroup->getId() : null,
@@ -1294,7 +1319,8 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     // Aufteilung der Sonstigen Informationen auf mehrere Seiten
-                    list($informationPageList, $pageList) = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup);
+                    list($informationPageList, $pageList, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList)
+                        = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, $useClassRegisterForAbsence);
 
                     if ($Page == null) {
                         $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen')),
@@ -1319,8 +1345,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $nextPage = null;
                     $isCurrentPage = $Page == null;
                     foreach ($pageList as $item) {
+                        if ($item == 'Absence') {
+                            $text = 'Fehlzeiten';
+                        } else {
+                            $text = 'Sonstige Informationen (Seite ' . $item . ')';
+                        }
+
                         if ($Page == $item) {
-                            $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen (Seite ' . $item . ')')),
+                            $buttonList[] = new Standard(new Info(new Bold($text)),
                                 '/Education/Certificate/Prepare/Prepare/Setting', new Edit(), array(
                                     'PrepareId' => $tblPrepare->getId(),
                                     'GroupId' => $tblGroup ? $tblGroup->getId() : null,
@@ -1331,7 +1363,7 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                             $isCurrentPage = true;
                         } else {
-                            $buttonList[] = new Standard('Sonstige Informationen (Seite ' . $item . ')',
+                            $buttonList[] = new Standard($text,
                                 '/Education/Certificate/Prepare/Prepare/Setting', null, array(
                                     'PrepareId' => $tblPrepare->getId(),
                                     'GroupId' => $tblGroup ? $tblGroup->getId() : null,
@@ -1348,24 +1380,75 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
-                        'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
-                    ) {
-                        $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
-                    } else {
-                        $useClassRegisterForAbsence = false;
-                    }
-
                     $studentTable = array();
-                    if ($Page == null) {
-                        $columnTable = array(
-                            'Number' => '#',
-                            'Name' => 'Name',
-                            'IntegrationButton' => 'Integration',
-                            'Course' => 'Bildungsgang',
-                            'ExcusedDays' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
-                            'UnexcusedDays' => 'U-FZ' // 'unent&shy;schuld&shy;igte FZ'
-                        );
+                    if ($Page == 'Absence') {
+                        $Stage->setDescription('Fehlzeiten festlegen');
+                        if ($useClassRegisterForAbsence) {
+                            $Stage->setMessage(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Bold('Hinweis: ')
+                                    . new Container('Die Fehlzeiten werden im Klassenbuch erfasst. Hier können für fehlende
+                                    Unterrichtseinheiten zusätzliche Tage eingeben werden. Die Fehlzeiten auf dem Zeugnis
+                                    ergeben sich dann aus den <b>"Fehltagen im Klassenbuch"</b> + <b>"die hier eingebenen
+                                    Zusatz-Tage für fehlende Unterrichtseinheiten"</b>.')
+                                    . new Container('Es können nur Zusatz-Tage für Unterrichtseinheiten bei einem Schüler
+                                    erfasst werden, wenn der Schüler eine Zeugnisvorlage mit Fehlzeiten besitzt und im
+                                    Klassenbuch auch entsprechende fehlende Unterrichtseinheiten erfasst wurden.')
+                                    . new Container('&nbsp;')
+                                    . new Container(new Bold(new Exclamation() . ' Bitte speichern Sie die Fehlzeiten erst,
+                                    wenn alle Fehlzeiten im Klassenbuch erfasst wurden. Sie können diese Seite mit
+                                    "Ohne Speichern weiter" überspringen.'))
+                                )
+                            );
+                        } else {
+                            $Stage->setMessage(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Bold('Hinweis: ')
+                                    . new Container('Die Fehlzeiten für die Zeugnisse werden hier erfasst. Bitte tragen
+                                    Sie hier die Fehlzeiten-Tage für das Zeugnis ein. Wurden schon Fehltage im Klassenbuch
+                                    erfasst, werden diese unter <b>"Ganze Tage"</b> angezeigt. Wurden schon fehlende
+                                    Unterrichtseinheiten im Klassenbuch erfasst, werden diese unter <b>"UE"</b> angezeigt.')
+                                    . new Container('Es können nur Fehltage für das Zeugnis erfasst werden, wenn der Schüler
+                                    eine Zeugnisvorlage mit Fehlzeiten besitzt.')
+                                )
+                            );
+                        }
+
+                        $headTableColumnList[] = new TableColumn('Schüler', 4);
+                        $headTableColumnList[] = new TableColumn('Entschuldigte Fehlzeiten', 3);
+                        $headTableColumnList[] = new TableColumn('Unentschuldigte Fehlzeiten', 3);
+
+                        if ($useClassRegisterForAbsence) {
+                            $columnTable = array(
+                                'Number' => '#',
+                                'Name' => 'Name',
+                                'IntegrationButton' => 'Integration',
+                                'Course' => 'Bildungsgang',
+
+                                'ExcusedDays' => 'Ganze Tage',
+                                'ExcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten'),
+                                'ExcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für UE',
+                                    'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden'),
+
+                                'UnexcusedDays' => 'Ganze Tage',
+                                'UnexcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten'),
+                                'UnexcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für UE',
+                                    'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden')
+                            );
+                        } else {
+                            $columnTable = array(
+                                'Number' => '#',
+                                'Name' => 'Name',
+                                'IntegrationButton' => 'Integration',
+                                'Course' => 'Bildungsgang',
+
+                                'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                'ExcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten im Klassenbuch'),
+                                'ExcusedDays' => 'Tage auf dem Zeugnis',
+
+                                'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                'UnexcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten im Klassenbuch'),
+                                'UnexcusedDays' => 'Tage auf dem Zeugnis',
+                            );
+                        }
                     } else {
                         $columnTable = array(
                             'Number' => '#',
@@ -1404,62 +1487,148 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
                                         $tblPerson);
 
-                                    if ($Data === null && $tblPrepareStudent && $Page == null) {
+                                    /**
+                                     * Post-Data
+                                     */
+                                    if ($Data === null && $tblPrepareStudent) {
                                         $Global = $this->getGlobal();
-                                        /*
-                                         * Fehlzeiten
-                                         */
-                                        // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
-                                        if ($Global) {
-                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays'] =
-                                                $tblPrepareStudent && $tblPrepareStudent->getExcusedDays() !== null
-                                                    ? $tblPrepareStudent->getExcusedDays()
-                                                    : Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                                    $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
-                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays'] =
-                                                $tblPrepareStudent && $tblPrepareStudent->getUnexcusedDays() !== null
-                                                    ? $tblPrepareStudent->getUnexcusedDays()
-                                                    : Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                                    $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
-                                        }
 
-                                        /*
-                                        * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
-                                        */
-                                        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                            && $tblConsumer->getAcronym() == 'EVGSM'
-                                            && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
-                                            && strpos($tblCertificateStudent->getCertificate(), 'EVGSM') !== false
-                                        ) {
-                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName'] = $tblDivisionItem->getDisplayName();
+                                        if ($Page == null) {
+                                            /*
+                                            * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
+                                            */
+                                            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                                && $tblConsumer->getAcronym() == 'EVGSM'
+                                                && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
+                                                && strpos($tblCertificateStudent->getCertificate(),
+                                                    'EVGSM') !== false
+                                            ) {
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName']
+                                                    = $tblDivisionItem->getDisplayName();
+                                            }
                                         }
 
                                         $Global->savePost();
                                     }
 
-                                    if ($Page == null) {
-                                        if ($useClassRegisterForAbsence && $tblPrepareStudent
-                                            || ($tblPrepareStudent && $tblPrepareStudent->isApproved())
+                                    if ($Page == 'Absence') {
+                                        $excusedDays = 0;
+                                        $excusedLessons = 0;
+                                        $excusedDaysFromClassRegister = 0;
+                                        $unexcusedDays = 0;
+                                        $unexcusedLessons = 0;
+                                        $unexcusedDaysFromClassRegister = 0;
+
+                                        if ($tblPrepareStudent) {
+                                            $date = new DateTime($tblPrepareItem->getDate());
+
+                                            $excusedDays =  $tblPrepareStudent->getExcusedDays();
+                                            $excusedDaysFromClassRegister = Absence::useService()->getExcusedDaysByPerson(
+                                                $tblPerson,
+                                                $tblDivisionItem,
+                                                $date,
+                                                $excusedLessons
+                                            );
+
+                                            $unexcusedDays =  $tblPrepareStudent->getUnexcusedDays();
+                                            $unexcusedDaysFromClassRegister = Absence::useService()->getUnexcusedDaysByPerson(
+                                                $tblPerson,
+                                                $tblDivisionItem,
+                                                $date,
+                                                $unexcusedLessons
+                                            );
+
+                                            /*
+                                             * Post Fehlzeiten
+                                             */
+                                            if ($Data === null && $tblPrepareStudent) {
+                                                $Global = $this->getGlobal();
+                                                if ($Global) {
+                                                    if ($useClassRegisterForAbsence) {
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDaysFromLessons']
+                                                            = $tblPrepareStudent->getExcusedDaysFromLessons();
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDaysFromLessons']
+                                                            = $tblPrepareStudent->getUnexcusedDaysFromLessons();
+                                                    } else {
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays']
+                                                            = $excusedDays;
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays']
+                                                            = $unexcusedDays;
+                                                    }
+                                                }
+                                                $Global->savePost();
+                                            }
+                                        }
+
+                                        if ($tblPrepareStudent
+                                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                            && (isset($CertificateHasAbsenceList[$tblCertificate->getId()]))
                                         ) {
-                                            $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                                (new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
+                                            if ($useClassRegisterForAbsence) {
+                                                // Fehlzeiten werden im Klassenbuch gepflegt
+                                                if ($excusedDays === null) {
+                                                    $excusedDays = $excusedDaysFromClassRegister;
+                                                }
+                                                if ($unexcusedDays === null) {
+                                                    $unexcusedDays = $unexcusedDaysFromClassRegister;
+                                                }
+
+                                                $studentTable[$tblPerson->getId()]['ExcusedDays'] = $excusedDays;
+                                                $studentTable[$tblPerson->getId()]['ExcusedLessons'] = $excusedLessons;
+
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $unexcusedDays;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedLessons'] = $unexcusedLessons;
+
+                                                // Eingabe nur möglich wenn UEs beim Schüler erfasst wurden
+                                                if (isset($StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_EXCUSED])) {
+                                                    $inputExcusedDaysFromLessons = new NumberField(
+                                                        'Data[' . $tblPrepareStudent->getId() . '][ExcusedDaysFromLessons]',
+                                                        '',
+                                                        ''
+                                                    );
+
+                                                    if ($tblPrepareStudent->isApproved()) {
+                                                        $inputExcusedDaysFromLessons->setDisabled();
+                                                    }
+                                                    $studentTable[$tblPerson->getId()]['ExcusedDaysFromLessons'] = $inputExcusedDaysFromLessons;
+                                                }
+                                                if (isset($StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED])) {
+                                                    $inputUnexcusedDaysFromLessons = new NumberField(
+                                                        'Data[' . $tblPrepareStudent->getId() . '][UnexcusedDaysFromLessons]',
+                                                        '',
+                                                        ''
+                                                    );
+                                                    if ($tblPrepareStudent->isApproved()) {
+                                                        $inputUnexcusedDaysFromLessons->setDisabled();
+                                                    }
+                                                    $studentTable[$tblPerson->getId()]['UnexcusedDaysFromLessons'] = $inputUnexcusedDaysFromLessons;
+                                                }
+                                            } else {
+                                                // Fehlzeiten werden hier (Zeugnisvorbereitung) gepflegt
+                                                $studentTable[$tblPerson->getId()]['ExcusedDaysInClassRegister'] = $excusedDaysFromClassRegister;
+                                                $studentTable[$tblPerson->getId()]['ExcusedLessons'] = $excusedLessons;
+
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDaysInClassRegister'] = $unexcusedDaysFromClassRegister;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedLessons'] = $unexcusedLessons;
+
+                                                $inputExcusedDays = new NumberField(
+                                                    'Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
                                                     '',
-                                                    ''))->setDisabled();
-                                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                                (new NumberField('Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]',
+                                                    ''
+                                                );
+                                                $inputUnexcusedDays = new NumberField(
+                                                    'Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]',
                                                     '',
-                                                    ''))->setDisabled();
-                                        } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                                            $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                                new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
-                                                    '', '');
-                                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                                new NumberField('Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]',
-                                                    '', '');
-                                        } else {
-                                            // keine Zeugnisvorlage ausgewählt
-                                            $studentTable[$tblPerson->getId()]['ExcusedDays'] = '';
-                                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] = '';
+                                                    ''
+                                                );
+                                                if ($tblPrepareStudent->isApproved()) {
+                                                    $inputExcusedDays->setDisabled();
+                                                    $inputUnexcusedDays->setDisabled();
+                                                }
+                                                $studentTable[$tblPerson->getId()]['ExcusedDays'] = $inputExcusedDays;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $inputUnexcusedDays;
+                                            }
+
                                         }
                                     }
 
@@ -1514,10 +1683,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     "width" => "80px",
                                     "targets" => 2
                                 ),
-                                array(
-                                    "width" => "50px",
-                                    "targets" => array(3, 4)
-                                ),
                             ),
                             'order' => array(
                                 array('0', 'asc'),
@@ -1532,6 +1697,20 @@ class Frontend extends Extension implements IFrontendInterface
                         true
                     );
 
+                    $formButtons[] = new Primary('Speichern', new Save());
+                    if ($Page == 'Absence' && !empty($headTableColumnList)) {
+                        $tableData->prependHead(
+                            new TableHead(
+                                new TableRow(
+                                    $headTableColumnList
+                                )
+                            )
+                        );
+
+                        $formButtons[] = new Standard('Ohne Speichern weiter', '/Education/Certificate/Prepare/Prepare/Preview',
+                            null, array('PrepareId' => $PrepareId, 'Route' => $Route = 'Teacher', 'GroupId' => $GroupId));
+                    }
+
                     $form = new Form(
                         new FormGroup(array(
                             new FormRow(array(
@@ -1540,8 +1719,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new FormColumn(new HiddenField('Data[IsSubmit]'))
                             )),
+                            new FormRow(new FormColumn($formButtons))
                         ))
-                        , new Primary('Speichern', new Save())
                     );
 
                     $Stage->setContent(
@@ -2209,6 +2388,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblDivision = $tblPrepare->getServiceTblDivision())
                     && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
                 ) {
+                    $certificateList = [];
                     foreach ($tblStudentList as $tblPerson) {
                         if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                             $isMuted = $isCourseMainDiploma;
@@ -2303,14 +2483,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
                             }
 
-                            $excusedDays = null;
-                            $unexcusedDays = null;
                             $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                             $signer = '';
                             if ($tblPrepareStudent) {
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
-                                $excusedDays = $tblPrepareStudent->getExcusedDays();
-                                $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                                 // überschreiben für Gruppen
                                 if ($tblPrepareStudent->getServiceTblPersonSigner()) {
 //                                    $tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner();
@@ -2326,20 +2502,68 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCertificate = false;
                             }
 
-                            if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                                if ($excusedDays === null) {
-                                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                        $tblDivision,
-                                        new \DateTime($tblPrepare->getDate()));
+                            if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                                'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                            ) {
+                                $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+                            } else {
+                                $useClassRegisterForAbsence = false;
+                            }
+
+                            $excusedDays = null;
+                            $unexcusedDays = null;
+                            if ($tblPrepareStudent && $tblCertificate) {
+                                if (isset($certificateList[$tblCertificate->getId()])) {
+                                    $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
+                                } else {
+                                    $hasCertificateAbsence = Prepare::useService()->hasCertificateAbsence($tblCertificate,
+                                        $tblDivision, $tblPerson);
+                                    $certificateList[$tblCertificate->getId()] = $hasCertificateAbsence;
                                 }
-                                if ($unexcusedDays === null) {
-                                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                        $tblDivision,
-                                        new \DateTime($tblPrepare->getDate()));
+
+                                if ($hasCertificateAbsence) {
+                                    // Fehlzeiten nur Anzeigen, wenn Fehltage auf der Zeugnisvorlage sind
+                                    $excusedDays = $tblPrepareStudent->getExcusedDays();
+                                    $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+                                    if ($useClassRegisterForAbsence) {
+                                        if ($excusedDays === null) {
+                                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
+                                                $tblDivision,
+                                                new DateTime($tblPrepare->getDate()));
+                                        }
+                                        if ($unexcusedDays === null) {
+                                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                                                $tblDivision,
+                                                new DateTime($tblPrepare->getDate()));
+                                        }
+                                        // Zusatz-Tage von fehlenden Unterrichtseinheiten
+                                        $excusedDaysFromLessons = $tblPrepareStudent->getExcusedDaysFromLessons();
+                                        $unexcusedDaysFromLessons = $tblPrepareStudent->getUnexcusedDaysFromLessons();
+                                        if ($excusedDaysFromLessons) {
+                                            $excusedDays = new ToolTip((string)($excusedDays + $excusedDaysFromLessons),
+                                                'Fehltage: ' . $excusedDays . ' + Zusatz-Tage: ' . $excusedDaysFromLessons);
+                                        }
+                                        if ($unexcusedDaysFromLessons) {
+                                            $unexcusedDays = new ToolTip((string)($unexcusedDays + $unexcusedDaysFromLessons),
+                                                'Fehltage: ' . $unexcusedDays . ' + Zusatz-Tage: ' . $unexcusedDaysFromLessons);
+                                        }
+                                    } else {
+                                        if ($excusedDays === null) {
+                                            $excusedDays = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()),
+                                                'Keine entschuldigten Fehltage erfasst');
+                                        }
+                                        if ($unexcusedDays === null) {
+                                            $unexcusedDays = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()),
+                                                'Keine unentschuldigten Fehltage erfasst');
+                                        }
+                                    }
+                                } else {
+                                    $excusedDays = '&nbsp;';
+                                    $unexcusedDays = '&nbsp;';
                                 }
                             } else {
-                                $excusedDays = '';
-                                $unexcusedDays = '';
+                                $excusedDays = '&nbsp;';
+                                $unexcusedDays = '&nbsp;';
                             }
 
                             $number = count($studentTable) + 1;
