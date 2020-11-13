@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\School\Type;
 
 use SPHERE\Application\Education\School\Type\Service\Data;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblCategory;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -35,12 +36,23 @@ class Service extends AbstractService
     }
 
     /**
+     * liefert alle Standard-Schularten
+     *
      * @return bool|TblType[]
      */
     public function getTypeAll()
     {
+        return (new Data($this->getBinding()))->getTypeBasicAll();
+    }
 
-        return (new Data($this->getBinding()))->getTypeAll();
+    /**
+     * @param TblCategory $tblCategory
+     *
+     * @return bool|TblType[]
+     */
+    public function getTypeAllByCategory(TblCategory $tblCategory)
+    {
+        return (new Data($this->getBinding()))->getTypeAllByCategory($tblCategory);
     }
 
     /**
@@ -66,7 +78,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @deprecated
+     * @deprecated use ShortName
      *
      * @param TblType $tblType
      *
@@ -104,5 +116,25 @@ class Service extends AbstractService
                 break;
         }
         return $Short;
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryById($Id)
+    {
+        return (new Data($this->getBinding()))->getCategoryById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return false|TblCategory
+     */
+    public function getCategoryByIdentifier($Identifier)
+    {
+        return (new Data($this->getBinding()))->getCategoryByIdentifier($Identifier);
     }
 }

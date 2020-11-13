@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -27,6 +28,8 @@ class TblType extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_SHORT_NAME = 'ShortName';
+    const ATTR_IS_BASIC = 'IsBasic';
+    const TBL_CATEGORY = 'tblCategory';
 
     /**
      * @Column(type="string")
@@ -40,6 +43,14 @@ class TblType extends Element
      * @Column(type="string")
      */
     protected $ShortName;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsBasic;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblCategory;
 
     /**
      * @return string
@@ -98,15 +109,48 @@ class TblType extends Element
      */
     public function isTechnical()
     {
-        if ($this->getName() == 'Berufliches Gymnasium'
-            || $this->getName() == 'Berufsfachschule'
-            || $this->getName() == 'Berufsschule'
-            || $this->getName() == 'Fachoberschule'
-            || $this->getName() == 'Fachschule'
+        if (($tblCategory = $this->getTblCategory())
+            && $tblCategory->getIdentifier() == TblCategory::TECHNICAL
         ) {
-            return true;
-        } else {
-            return false;
+            return  true;
         }
+
+        return false;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsBasic()
+    {
+        return $this->IsBasic;
+    }
+
+    /**
+     * @param boolean $IsBasic
+     */
+    public function setIsBasic($IsBasic)
+    {
+        $this->IsBasic = $IsBasic;
+    }
+
+    /**
+     * @return bool|TblCategory
+     */
+    public function getTblCategory()
+    {
+        if (null === $this->tblCategory) {
+            return false;
+        } else {
+            return Type::useService()->getCategoryById($this->tblCategory);
+        }
+    }
+
+    /**
+     * @param null|TblCategory $tblCategory
+     */
+    public function setTblCategory(TblCategory $tblCategory = null)
+    {
+        $this->tblCategory = ( null === $tblCategory ? null : $tblCategory->getId() );
     }
 }

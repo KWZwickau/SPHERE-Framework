@@ -516,8 +516,18 @@ class Service extends Support
             } else {
                 $tblStateCompany = false;
             }
-            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
-            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
+
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['Type'])) {
+                $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
+            } else {
+                $tblType = false;
+            }
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['Course'])) {
+                $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
+            } else {
+                $tblCourse = false;
+            }
+
             if ($tblStudentTransferByTypeArrive) {
                 (new Data($this->getBinding()))->updateStudentTransfer(
                     $tblStudentTransferByTypeArrive,
@@ -1517,7 +1527,9 @@ class Service extends Support
         if ($tblStudent) {
             $tblTechnicalCourse = Course::useService()->getTechnicalCourseById($Meta['TechnicalSchool']['serviceTblTechnicalCourse']);
             $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById($Meta['TechnicalSchool']['serviceTblSchoolDiploma']);
+            $tblSchoolType = Type::useService()->getTypeById($Meta['TechnicalSchool']['serviceTblSchoolType']);
             $tblTechnicalDiploma = Course::useService()->getTechnicalDiplomaById($Meta['TechnicalSchool']['serviceTblTechnicalDiploma']);
+            $tblTechnicalType = Type::useService()->getTypeById($Meta['TechnicalSchool']['serviceTblTechnicalType']);
 
             $tblStudentTenseOfLesson = $this->getStudentTenseOfLessonById($Meta['TechnicalSchool']['tblStudentTenseOfLesson']);
             $tblStudentTrainingStatus = $this->getStudentTrainingStatusById($Meta['TechnicalSchool']['tblStudentTrainingStatus']);
@@ -1527,9 +1539,12 @@ class Service extends Support
                     $tblStudentTechnicalSchool,
                     $Meta['TechnicalSchool']['PraxisLessons'],
                     $Meta['TechnicalSchool']['DurationOfTraining'],
+                    $Meta['TechnicalSchool']['Remark'],
                     $tblTechnicalCourse ? $tblTechnicalCourse : null,
                     $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                    $tblSchoolType ? $tblSchoolType : null,
                     $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
+                    $tblTechnicalType ? $tblTechnicalType : null,
                     $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
                     $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null
                 );
@@ -1538,9 +1553,12 @@ class Service extends Support
                 $tblStudentTechnicalSchool = (new Data($this->getBinding()))->createStudentTechnicalSchool(
                     $Meta['TechnicalSchool']['PraxisLessons'],
                     $Meta['TechnicalSchool']['DurationOfTraining'],
+                    $Meta['TechnicalSchool']['Remark'],
                     $tblTechnicalCourse ? $tblTechnicalCourse : null,
                     $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                    $tblSchoolType ? $tblSchoolType : null,
                     $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
+                    $tblTechnicalType ? $tblTechnicalType : null,
                     $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
                     $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null
                 );
