@@ -96,13 +96,20 @@ class ApiStandard extends Extension implements IApiInterface
         $divisionName = $Data['DivisionName'];
         $groupName = $Data['GroupName'];
         $isGroup = false;
+        $hasAbsenceTypeOptions = false;
         if ($divisionName != '') {
             $divisionList = Division::useService()->getDivisionAllByName($divisionName);
             if (empty($divisionList)) {
                 return new Warning('Klasse nicht gefunden', new Exclamation());
             }
 
-            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTime,
+                $tblType ? $tblType : null,
+                $divisionList,
+                array(),
+                $hasAbsenceTypeOptions
+            );
         } elseif ($groupName != '') {
             $isGroup = true;
             $groupList = Group::useService()->getGroupListLike($groupName);
@@ -110,9 +117,21 @@ class ApiStandard extends Extension implements IApiInterface
                 return new Warning('Gruppe nicht gefunden', new Exclamation());
             }
 
-            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, array(), $groupList);
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTime,
+                $tblType ? $tblType : null,
+                array(),
+                $groupList,
+                $hasAbsenceTypeOptions
+            );
         } else {
-            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null);
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTime,
+                $tblType ? $tblType : null,
+                array(),
+                array(),
+                $hasAbsenceTypeOptions
+            );
         }
 
         $title = new Title(
@@ -121,24 +140,26 @@ class ApiStandard extends Extension implements IApiInterface
         );
 
         if (!empty($absenceList)) {
+            $columns = array(
+                'Type' => 'Schulart',
+                'Group' => 'Gruppe',
+                'Division' => 'Klasse',
+                'Person' => 'Schüler',
+                'DateSpan' => 'Zeitraum',
+                'Lessons' => 'Unterrichts&shy;einheiten',
+                'AbsenceType' => 'Typ',
+                'Status' => 'Status',
+                'Remark' => 'Bemerkung'
+            );
+
             if ($isGroup) {
-                $columns = array(
-                    'Type' => 'Schulart',
-                    'Group' => 'Gruppe',
-                    'Person' => 'Schüler',
-                    'DateSpan' => 'Zeitraum',
-                    'Status' => 'Status',
-                    'Remark' => 'Bemerkung'
-                );
+                unset($columns['Division']);
             } else {
-                $columns = array(
-                    'Type' => 'Schulart',
-                    'Division' => 'Klasse',
-                    'Person' => 'Schüler',
-                    'DateSpan' => 'Zeitraum',
-                    'Status' => 'Status',
-                    'Remark' => 'Bemerkung'
-                );
+                unset($columns['Group']);
+            }
+
+            if (!$hasAbsenceTypeOptions) {
+                unset($columns['AbsenceType']);
             }
 
             return new Layout(new LayoutGroup(array(

@@ -10,7 +10,6 @@ namespace SPHERE\Application\Education\Certificate\Approve;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -512,14 +511,10 @@ class Frontend extends Extension implements IFrontendInterface
                             $studentTable[] = array(
                                 'Name' => $tblPerson->getLastFirstName(),
                                 'Course' => $course,
-                                'ExcusedAbsence' => Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                    $tblDivision),
-                                'UnexcusedAbsence' => Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                    $tblDivision),
                                 'Template' => ($tblCertificate
                                     ? new Success(new Enable() . ' ' . $tblCertificate->getName()
                                         . ($tblCertificate->getDescription() ? '<br>' . $tblCertificate->getDescription() : ''))
-                                    : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
+                                    : new Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
                                 'Status' => $status,
                                 'Option' =>
                                     ($tblCertificate ? new External(
@@ -697,14 +692,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Number' => count($studentTable) + 1,
                                 'Name' => $tblPerson->getLastFirstName(),
                                 'Course' => $course,
-                                'ExcusedAbsence' => Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                    $tblDivision),
-                                'UnexcusedAbsence' => Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                    $tblDivision),
                                 'Template' => ($tblCertificate
                                     ? new Success(new Enable() . ' ' . $tblCertificate->getName()
                                         . ($tblCertificate->getDescription() ? '<br>' . $tblCertificate->getDescription() : ''))
-                                    : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
+                                    : new Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
                                 'Status' => $status,
                                 'Option' =>
                                     ($tblCertificate ? new External(
