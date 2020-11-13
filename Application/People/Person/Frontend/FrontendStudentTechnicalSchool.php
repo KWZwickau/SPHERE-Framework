@@ -3,12 +3,15 @@ namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblCategory;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -54,11 +57,16 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                     ? $tblTechnicalCourse->getDisplayName(($tblCommonGender = $tblPerson->getGender()) ? $tblCommonGender : null) : '';
                 $schoolDiploma = ($tblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
                     ? $tblSchoolDiploma->getName() : '';
+                $schoolType = ($tblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
+                    ? $tblSchoolType->getName() : '';
                 $technicalDiploma = ($tblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
                     ? $tblTechnicalDiploma->getName() : '';
+                $technicalType = ($tblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
+                    ? $tblTechnicalType->getName() : '';
 
                 $praxisLessons = $tblStudentTechnicalSchool->getPraxisLessons();
                 $durationOfTraining = $tblStudentTechnicalSchool->getDurationOfTraining();
+                $remark = $tblStudentTechnicalSchool->getRemark();
                 $studentTenseOfLessons = ($tblStudentTenseOfLessons = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
                     ? $tblStudentTenseOfLessons->getName() : '';
                 $studentTrainingStatus = ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
@@ -66,10 +74,13 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
             } else {
                 $technicalCourse = '';
                 $schoolDiploma = '';
+                $schoolType = '';
                 $technicalDiploma = '';
+                $technicalType = '';
 
                 $praxisLessons = '';
                 $durationOfTraining = '';
+                $remark = '';
                 $studentTenseOfLessons = '';
                 $studentTrainingStatus = '';
             }
@@ -78,46 +89,52 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 new LayoutRow(array(
                     new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
-                            'Bildung',
+                            'Schüler - Aufname (für Kamenz-Statistik)',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Bildungsgang / Berufsbezeichnung / Ausbildung', 6),
-                                    self::getLayoutColumnValue($technicalCourse, 6),
+                                    self::getLayoutColumnLabel('Allgemeinbildender Abschluss', 3),
+                                    self::getLayoutColumnValue($schoolDiploma, 3),
+                                    self::getLayoutColumnLabel('An der allgemeinbildenden Schulart', 3),
+                                    self::getLayoutColumnValue($schoolType, 3),
                                 )),
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Allgemeinbildender Abschluss', 6),
-                                    self::getLayoutColumnValue($schoolDiploma, 6),
-                                )),
-                                new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Berufsbildender Abschluss', 6),
-                                    self::getLayoutColumnValue($technicalDiploma, 6),
+                                    self::getLayoutColumnLabel('Berufsbildender Abschluss', 3),
+                                    self::getLayoutColumnValue($technicalDiploma, 3),
+                                    self::getLayoutColumnLabel('An der berufsbildenden Schulart', 3),
+                                    self::getLayoutColumnValue($technicalType, 3),
                                 )),
                             )))
                         ),
-                    ), 8),
+                    )),
+                )),
+                new LayoutRow(array(
                     new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
-                            '',
+                            'Berufsbildende Schulen',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Geleistete Praxisstunden', 8),
-                                    self::getLayoutColumnValue($praxisLessons, 4),
+                                    self::getLayoutColumnLabel('Bildungsgang / Berufsbezeichnung / Ausbildung', 5),
+                                    self::getLayoutColumnValue($technicalCourse, 7),
                                 )),
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Planmäßige Ausbildungsdauer', 8),
-                                    self::getLayoutColumnValue($durationOfTraining, 4),
+                                    self::getLayoutColumnLabel('Zeitform des Unterrichts', 3),
+                                    self::getLayoutColumnValue($studentTenseOfLessons, 3),
+                                    self::getLayoutColumnLabel('Ausbildungsstatus', 3),
+                                    self::getLayoutColumnValue($studentTrainingStatus, 3),
                                 )),
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Zeitform des Unterrichts', 6),
-                                    self::getLayoutColumnValue($studentTenseOfLessons, 6),
+                                    self::getLayoutColumnLabel('Planmäßige Ausbildungsdauer', 3),
+                                    self::getLayoutColumnValue($durationOfTraining, 3),
+                                    self::getLayoutColumnLabel('Geleistete Praxisstunden', 3),
+                                    self::getLayoutColumnValue($praxisLessons, 3),
                                 )),
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Ausbildungsstatus', 6),
-                                    self::getLayoutColumnValue($studentTrainingStatus, 6),
+                                    self::getLayoutColumnLabel('Bemerkungen', 3),
+                                    self::getLayoutColumnValue($remark, 9),
                                 )),
                             )))
                         ),
-                    ), 4),
+                    )),
                 )),
             )));
 
@@ -154,10 +171,15 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                     ? $tblTechnicalCourse->getId() : 0;
                 $Global->POST['Meta']['TechnicalSchool']['serviceTblSchoolDiploma'] = ($tblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
                     ? $tblSchoolDiploma->getId() : 0;
+                $Global->POST['Meta']['TechnicalSchool']['serviceTblSchoolType'] = ($tblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
+                    ? $tblSchoolType->getId() : 0;
                 $Global->POST['Meta']['TechnicalSchool']['serviceTblTechnicalDiploma'] = ($tblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
                     ? $tblTechnicalDiploma->getId() : 0;
+                $Global->POST['Meta']['TechnicalSchool']['serviceTblTechnicalType'] = ($tblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
+                    ? $tblTechnicalType->getId() : 0;
                 $Global->POST['Meta']['TechnicalSchool']['PraxisLessons'] = $tblStudentTechnicalSchool->getPraxisLessons();
                 $Global->POST['Meta']['TechnicalSchool']['DurationOfTraining'] = $tblStudentTechnicalSchool->getDurationOfTraining();
+                $Global->POST['Meta']['TechnicalSchool']['Remark'] = $tblStudentTechnicalSchool->getRemark();
                 $Global->POST['Meta']['TechnicalSchool']['tblStudentTenseOfLesson'] = ($tblStudentTenseOfLessons = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
                     ? $tblStudentTenseOfLessons->getId() : 0;
                 $Global->POST['Meta']['TechnicalSchool']['tblStudentTrainingStatus'] = ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
@@ -195,34 +217,90 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
         $tblStudentTenseOfLessonAll = Student::useService()->getStudentTenseOfLessonAll();
         $tblStudentTrainingStatusAll = Student::useService()->getStudentTrainingStatusAll();
 
+        $tblTypeTechnicalAll = Type::useService()->getTypeAllByCategory(Type::useService()->getCategoryByIdentifier(TblCategory::TECHNICAL));
+        $tblTypeCommonAll = Type::useService()->getTypeAllByCategory(Type::useService()->getCategoryByIdentifier(TblCategory::COMMON));
+        $tblTypeSecondCourseAll = Type::useService()->getTypeAllByCategory(Type::useService()->getCategoryByIdentifier(TblCategory::SECOND_COURSE));
+        if ($tblTypeCommonAll && $tblTypeSecondCourseAll) {
+            $tblTypeCommonAll = array_merge($tblTypeCommonAll, $tblTypeSecondCourseAll);
+        }
+
+        $panelArrive = new Panel(
+            'Schüler - Aufname',
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][serviceTblSchoolDiploma]', 'Höchster Abschluss an einer allgemeinbildenden Schule',
+                            array('{{ Name }}' => $tblSchoolDiplomaAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        , 6),
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][serviceTblSchoolType]', 'An der allgemeinbildenden Schulart (bzw. 2. Bildungsweg)',
+                            array('{{ Name }}' => $tblTypeCommonAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        , 6),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalDiploma]', 'Höchster Abschluss an einer berufsbildenden Schule',
+                            array('{{ Name }}' => $tblTechnicalDiplomaAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        , 6),
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalType]', 'An der berufsbildenden Schulart',
+                            array('{{ Name }}' => $tblTypeTechnicalAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        , 6),
+                ))
+            ))),
+            Panel::PANEL_TYPE_INFO
+        );
+
+        $panelTechnical = new Panel(
+            'Berufsbildende Schulen',
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalCourse]', 'Bildungsgang / Berufsbezeichnung / Ausbildung',
+                            array('{{ Name }}' => $tblTechnicalCourseAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                    ),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][tblStudentTenseOfLesson]', 'Zeitform des Unterrichts',
+                            array('{{ Name }}' => $tblStudentTenseOfLessonAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        , 6),
+                    new LayoutColumn(
+                        (new SelectBox('Meta[TechnicalSchool][tblStudentTrainingStatus]', 'Ausbildungsstatus',
+                            array('{{ Name }}' => $tblStudentTrainingStatusAll)))
+                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        , 6),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Meta[TechnicalSchool][DurationOfTraining]', '36', 'Planmäßige Ausbildungsdauer in Monaten')
+                        , 6),
+                    new LayoutColumn(
+                        new TextField('Meta[TechnicalSchool][PraxisLessons]', '100', 'Geleistete Praxisstunden')
+                        , 6),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextArea('Meta[TechnicalSchool][Remark]', '', 'Bemerkungen')
+                    ),
+                ))
+            ))),
+            Panel::PANEL_TYPE_INFO
+        );
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        new Panel('Bildung', array(
-                            (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalCourse]', 'Bildungsgang / Berufsbezeichnung / Ausbildung',
-                                array('{{ Name }}' => $tblTechnicalCourseAll), null, true, null))
-                                ->configureLibrary(SelectBox::LIBRARY_SELECT2),
-                            (new SelectBox('Meta[TechnicalSchool][serviceTblSchoolDiploma]', 'Höchster Abschluss an einer allgemeinbildenden Schule',
-                                array('{{ Name }}' => $tblSchoolDiplomaAll), null, true, null))
-                                 ->configureLibrary(SelectBox::LIBRARY_SELECT2),
-                            (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalDiploma]', 'Höchster Abschluss an einer berufsbildenden Schule',
-                                array('{{ Name }}' => $tblTechnicalDiplomaAll), null, true, null))
-                            ->configureLibrary(SelectBox::LIBRARY_SELECT2)
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 8),
-                    new FormColumn(
-                        new Panel('&nbsp;', array(
-                            new TextField('Meta[TechnicalSchool][PraxisLessons]', '100', 'Geleistete Praxisstunden'),
-                            new TextField('Meta[TechnicalSchool][DurationOfTraining]', '36', 'Planmäßige Ausbildungsdauer in Monaten'),
-                            (new SelectBox('Meta[TechnicalSchool][tblStudentTenseOfLesson]', 'Zeitform des Unterrichts',
-                                array('{{ Name }}' => $tblStudentTenseOfLessonAll), null, true, null))
-                                ->configureLibrary(SelectBox::LIBRARY_SELECT2),
-                            (new SelectBox('Meta[TechnicalSchool][tblStudentTrainingStatus]', 'Ausbildungsstatus',
-                                array('{{ Name }}' => $tblStudentTrainingStatusAll), null, true, null))
-                                ->configureLibrary(SelectBox::LIBRARY_SELECT2)
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+                    new FormColumn($panelArrive),
+                )),
+                new FormRow(array(
+                    new FormColumn($panelTechnical),
                 )),
                 new FormRow(array(
                     new FormColumn(array(

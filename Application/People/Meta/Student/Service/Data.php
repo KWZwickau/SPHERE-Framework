@@ -5,6 +5,7 @@ use DateTime;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
@@ -1104,9 +1105,12 @@ class Data extends Support
     /**
      * @param $praxisLessons
      * @param $durationOfTraining
+     * @param $remark
      * @param TblTechnicalCourse|null $tblTechnicalCourse
      * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
      * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
      * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
      *
@@ -1115,9 +1119,12 @@ class Data extends Support
     public function createStudentTechnicalSchool(
         $praxisLessons,
         $durationOfTraining,
+        $remark,
         TblTechnicalCourse $tblTechnicalCourse = null,
         TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
         TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
         TblStudentTrainingStatus $tblStudentTrainingStatus = null
     ) {
@@ -1126,9 +1133,12 @@ class Data extends Support
         $Entity = new TblStudentTechnicalSchool();
         $Entity->setPraxisLessons($praxisLessons);
         $Entity->setDurationOfTraining($durationOfTraining);
+        $Entity->setRemark($remark);
         $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
         $Entity->setServiceTblSchoolDiploma($tblSchoolDiploma);
+        $Entity->setServiceTblSchoolType($tblSchoolType);
         $Entity->setServiceTblTechnicalDiploma($tblTechnicalDiploma);
+        $Entity->setServiceTblTechnicalType($tblTechnicalType);
         $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
         $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
 
@@ -1142,9 +1152,12 @@ class Data extends Support
      * @param TblStudentTechnicalSchool $tblStudentTechnicalSchool
      * @param $praxisLessons
      * @param $durationOfTraining
+     * @param $remark
      * @param TblTechnicalCourse|null $tblTechnicalCourse
      * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
      * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
      * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
      *
@@ -1154,9 +1167,12 @@ class Data extends Support
         TblStudentTechnicalSchool $tblStudentTechnicalSchool,
         $praxisLessons,
         $durationOfTraining,
+        $remark,
         TblTechnicalCourse $tblTechnicalCourse = null,
         TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
         TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
         TblStudentTrainingStatus $tblStudentTrainingStatus = null
     ) {
@@ -1169,9 +1185,12 @@ class Data extends Support
 
             $Entity->setPraxisLessons($praxisLessons);
             $Entity->setDurationOfTraining($durationOfTraining);
+            $Entity->setRemark($remark);
             $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
             $Entity->setServiceTblSchoolDiploma($tblSchoolDiploma);
+            $Entity->setServiceTblSchoolType($tblSchoolType);
             $Entity->setServiceTblTechnicalDiploma($tblTechnicalDiploma);
+            $Entity->setServiceTblTechnicalType($tblTechnicalType);
             $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
             $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
 

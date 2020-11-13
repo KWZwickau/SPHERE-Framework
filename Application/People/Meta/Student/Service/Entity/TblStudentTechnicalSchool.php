@@ -9,6 +9,8 @@ use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -30,7 +32,15 @@ class TblStudentTechnicalSchool extends Element
     /**
      * @Column(type="bigint")
      */
+    protected $serviceTblSchoolType;
+    /**
+     * @Column(type="bigint")
+     */
     protected $serviceTblTechnicalDiploma;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblTechnicalType;
     /**
      * @Column(type="string")
      */
@@ -47,6 +57,10 @@ class TblStudentTechnicalSchool extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentTrainingStatus;
+    /**
+     * @Column(type="string")
+     */
+    protected $Remark;
 
     /**
      * @return bool|TblTechnicalCourse
@@ -178,5 +192,61 @@ class TblStudentTechnicalSchool extends Element
     public function setTblStudentTrainingStatus(TblStudentTrainingStatus $tblStudentTrainingStatus = null)
     {
         $this->tblStudentTrainingStatus = ( null === $tblStudentTrainingStatus ? null : $tblStudentTrainingStatus->getId() );
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblSchoolType()
+    {
+        if (null === $this->serviceTblSchoolType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblSchoolType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblSchoolType(TblType $tblType = null)
+    {
+        $this->serviceTblSchoolType = ( null === $tblType ? null : $tblType->getId() );
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblTechnicalType()
+    {
+        if (null === $this->serviceTblTechnicalType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblTechnicalType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblTechnicalType(TblType $tblType = null)
+    {
+        $this->serviceTblTechnicalType = ( null === $tblType ? null : $tblType->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getRemark()
+    {
+        return $this->Remark;
+    }
+
+    /**
+     * @param string $Remark
+     */
+    public function setRemark($Remark)
+    {
+        $this->Remark = $Remark;
     }
 }
