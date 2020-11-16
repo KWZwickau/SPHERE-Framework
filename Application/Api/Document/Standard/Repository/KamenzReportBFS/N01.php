@@ -43,7 +43,7 @@ class N01
                 $blankSpace = 19;
                 break;
             case 'N01_1_1_U':
-                $title = 'N01-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
+                $title = 'N01-1.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
                     deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
@@ -99,7 +99,7 @@ class N01
                 $blankSpace = 19;
                 break;
             case 'N02_1_1_U':
-                $title = 'N02-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
+                $title = 'N02-1.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
                     deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';

@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Reporting\KamenzReport;
 
-use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -269,12 +268,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
-        // todo Validierung der Datenfelder für die Berufsfachschulen
         $content[] = new LayoutColumn(
             KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
         );
-
-//        Debugger::screenDump(KamenzReportService::setKamenzReportBFSContent(array()));
 
         $Stage->setContent(
             new Layout(array(
