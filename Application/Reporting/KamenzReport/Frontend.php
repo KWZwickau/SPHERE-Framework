@@ -247,13 +247,23 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Kamenz-Statistik', 'Berufsfachschule validieren');
         $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
 
-        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik',
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik Teil I',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
             new Download(),
             array(
-                'Type' => 'Berufsfachschule'
+                'Type' => 'Berufsfachschule',
+                'Part' => '1'
             ),
-            'Kamenz-Statistik herunterladen'
+            'Kamenz-Statistik Teil I herunterladen'
+        ));
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik Teil II',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Berufsfachschule',
+                'Part' => '2'
+            ),
+            'Kamenz-Statistik Teil II herunterladen'
         ));
 
         $summary = array();

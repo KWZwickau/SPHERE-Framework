@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Document;
 
+use DateTime;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -40,7 +41,7 @@ abstract class AbstractDocument
     /**
      * @var int
      */
-    private $tblAdressRowCount = 0;
+    private $tblAddressRowCount = 0;
 
     /**
      * @return false|TblPerson
@@ -70,18 +71,20 @@ abstract class AbstractDocument
 
     /**
      * @param array $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    abstract public function buildDocument($pageList = array());
+    abstract public function buildDocument($pageList = array(), $part = '0');
 
     /**
      * @param array $Data
      * @param array $pageList
+     * @param string $part
      *
      * @return IBridgeInterface
      */
-    public function createDocument($Data = array(), $pageList = array())
+    public function createDocument($Data = array(), $pageList = array(), $part = '0')
     {
 
         if (isset($Data['Person']['Id'])) {
@@ -104,7 +107,7 @@ abstract class AbstractDocument
             }
         }
 
-        $this->Document = $this->buildDocument($pageList);
+        $this->Document = $this->buildDocument($pageList, $part);
 
         if (!empty($Data)) {
             $this->Document->setData($Data);
@@ -212,8 +215,8 @@ abstract class AbstractDocument
                 if (( $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT') )) {
                     if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType) )) {
                         $Data['Student']['School']['Enrollment']['Date'] = $tblTransfer->getTransferDate();
-                        $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
-                        $YearShort = (integer)(new \DateTime($tblTransfer->getTransferDate()))->format('y');
+                        $Year = ( new DateTime($tblTransfer->getTransferDate()) )->format('Y');
+                        $YearShort = (integer)(new DateTime($tblTransfer->getTransferDate()))->format('y');
                         $YearString = $Year.'/'.( $YearShort + 1 );
                         $Data['Student']['School']['Enrollment']['Year'] = $YearString;
                         if (($tblStudentSchoolEnrollmentType = $tblTransfer->getTblStudentSchoolEnrollmentType())) {
@@ -252,7 +255,7 @@ abstract class AbstractDocument
 
                 if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
-                    $Year = ( new \DateTime($AttendanceDate) )->format('Y');
+                    $Year = ( new DateTime($AttendanceDate) )->format('Y');
 //                    $YearShort = (integer)(new \DateTime($AttendanceDate))->format('y');
 //                    $YearString = $Year.'/'.( $YearShort + 1 );
                     // nur Kalenderjahr anzeigen
@@ -277,19 +280,19 @@ abstract class AbstractDocument
                                 if ($tblAddress->getTblCity()->getDistrict())
                                 {
                                     $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
-                                    $this->tblAdressRowCount++;
+                                    $this->tblAddressRowCount++;
                                 }
                                 if ($tblAddress->getStreetName())
                                 {
                                     $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
                                         .' '.$tblAddress->getStreetNumber().'<br>';
-                                    $this->tblAdressRowCount++;
+                                    $this->tblAddressRowCount++;
                                 }
                                 if ($tblAddress->getTblCity()->getCode())
                                 {
                                     $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
                                         ' ' . $tblAddress->getTblCity()->getName();
-                                    $this->tblAdressRowCount++;
+                                    $this->tblAddressRowCount++;
                                 }
 
 //                                $Data['Student']['CompanyAddress'] = ($tblAddress->getTblCity()->getDistrict() ? 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>' : '')
@@ -308,11 +311,11 @@ abstract class AbstractDocument
                             ) {
                                 if ($tblCompany->getName()) {
                                     $Data['Student']['Company'] = $tblCompany->getName();
-                                    $this->tblAdressRowCount++;
+                                    $this->tblAddressRowCount++;
                                 }
                                 if ($tblCompany->getExtendedName()) {
                                     $Data['Student']['Company2'] = $tblCompany->getExtendedName();
-                                    $this->tblAdressRowCount++;
+                                    $this->tblAddressRowCount++;
                                 }
                             }
                         }
