@@ -69,6 +69,16 @@ class TblPrepareStudent extends Element
     protected $UnexcusedDays;
 
     /**
+     * @Column(type="integer")
+     */
+    protected $ExcusedDaysFromLessons;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected $UnexcusedDaysFromLessons;
+
+    /**
      * @Column(type="bigint")
      */
     protected $serviceTblPersonSigner;
@@ -227,5 +237,37 @@ class TblPrepareStudent extends Element
     {
 
         $this->serviceTblPersonSigner = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return integer|null
+     */
+    public function getExcusedDaysFromLessons()
+    {
+        return $this->ExcusedDaysFromLessons;
+    }
+
+    /**
+     * @param integer|null $ExcusedDaysFromLessons
+     */
+    public function setExcusedDaysFromLessons($ExcusedDaysFromLessons)
+    {
+        $this->ExcusedDaysFromLessons = $ExcusedDaysFromLessons;
+    }
+
+    /**
+     * @return integer|null
+     */
+    public function getUnexcusedDaysFromLessons()
+    {
+        return $this->UnexcusedDaysFromLessons;
+    }
+
+    /**
+     * @param integer|null $UnexcusedDaysFromLessons
+     */
+    public function setUnexcusedDaysFromLessons($UnexcusedDaysFromLessons)
+    {
+        $this->UnexcusedDaysFromLessons = $UnexcusedDaysFromLessons;
     }
 }

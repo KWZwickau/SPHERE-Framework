@@ -31,12 +31,12 @@ class Setup extends AbstractSetup
      */
     public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
     {
-
         /**
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableAbsence($Schema);
+        $tblAbsence = $this->setTableAbsence($Schema);
+        $this->setTableAbsenceLesson($Schema, $tblAbsence);
 
         /**
          * Migration & Protocol
@@ -87,6 +87,24 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblAbsence', 'Status')) {
             $Table->addColumn('Status', 'smallint');
         }
+
+        $this->createColumn($Table, 'Type', self::FIELD_TYPE_SMALLINT, false, 0);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblAbsence
+     *
+     * @return Table
+     */
+    private function setTableAbsenceLesson(Schema &$Schema, Table $tblAbsence)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAbsenceLesson');
+        $this->createColumn($Table, 'Lesson', self::FIELD_TYPE_INTEGER);
+
+        $this->getConnection()->addForeignKey($Table, $tblAbsence);
 
         return $Table;
     }

@@ -202,8 +202,7 @@ class TableData extends Table
             }
 
             parent::__construct(
-                new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle,
-                $Interactive, null
+                new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, $Interactive, null
             );
         } else {
             if ($Interactive === null) {

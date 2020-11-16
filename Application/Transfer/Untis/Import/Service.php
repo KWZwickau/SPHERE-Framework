@@ -11,6 +11,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Transfer\Untis\Import\Service\Data;
 use SPHERE\Application\Transfer\Untis\Import\Service\Entity\TblUntisImportLectureship;
+use SPHERE\Application\Transfer\Untis\Import\Service\Entity\TblUntisImportStudent;
+use SPHERE\Application\Transfer\Untis\Import\Service\Entity\TblUntisImportStudentCourse;
 use SPHERE\Application\Transfer\Untis\Import\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -62,6 +64,35 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getUntisImportLectureshipById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblUntisImportStudent
+     */
+    public function getUntisImportStudentById($Id)
+    {
+
+        return ( new Data($this->getBinding()) )->getUntisImportStudentById($Id);
+    }
+
+    /**
+     * @param bool $ByAccount
+     *
+     * @return false|TblUntisImportStudent[]
+     */
+    public function getUntisImportStudentAll($ByAccount = false)
+    {
+        if ($ByAccount) {
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                return (new Data($this->getBinding()))->getUntisImportStudentAllByAccount($tblAccount);
+            }
+            return false;
+        } else {
+            return (new Data($this->getBinding()))->getUntisImportStudentAll();
+        }
     }
 
     /**
@@ -171,6 +202,141 @@ class Service extends AbstractService
     public function updateUntisImportLectureshipIsIgnore(TblUntisImportLectureship $tblUntisImportLectureship, $isIgnore = true)
     {
         return ( new Data($this->getBinding()) )->updateUntisImportLectureshipIsIgnore($tblUntisImportLectureship, $isIgnore);
+    }
+
+    /**
+     * @param TblUntisImportStudent $tblUntisImportStudent
+     *
+     * @return bool|TblDivision
+     */
+    public function updateUntisImportStudentDivision(TblUntisImportStudent $tblUntisImportStudent)
+    {
+
+        $tblYear = $tblUntisImportStudent->getServiceTblYear();
+        $tblPerson = $tblUntisImportStudent->getServiceTblPerson();
+        // search Division
+        $tblDivision = false;
+        if ($tblPerson && $tblYear) {
+            $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
+            if ($tblDivision) {
+                $tblDivision = (new Data($this->getBinding()))->updateUntisImportStudentDivision($tblUntisImportStudent,
+                    $tblDivision);
+            }
+        }
+        return ($tblDivision ? $tblDivision : false);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblUntisImportStudent $tblUntisImportStudent
+     * @param null|array $Data
+     * @param bool $Visible
+     *
+     * @return IFormInterface|string
+     */
+    public function updateUntisImportStudentCourse(
+        IFormInterface $Stage = null,
+        TblUntisImportStudent $tblUntisImportStudent,
+        $Data = null,
+        $Visible = false
+//        $arraySubjectName = array()
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+        // Entfernen der Kurse ist vorerst nicht mehr nötig
+//        $this->destroyUntisImportStudent($tblUntisImportStudent);
+
+        for ($i = 1; $i <= 17; $i++) {
+            $tblSubject = null;
+            $SubjectGroup = '';
+            $SubjectName = '';
+
+            $tblUntisImportStudentCourse =
+                Import::useService()->getUntisImportStudentCourseByUntisImportStudentAndNumber($tblUntisImportStudent,
+                    $i);
+
+            if (isset($Data['SubjectId'.$i]) && !empty($Data['SubjectId'.$i])) {
+                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId'.$i]);
+            }
+            if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectGroup'.$i])) {
+                $SubjectGroup = $Data['SubjectGroup'.$i];
+            }
+            if (isset($Data['IsIntensivCourse'.$i]) && !empty($Data['IsIntensivCourse'.$i])) {
+                $IsIntensiveCourse = true;
+            } else {
+                $IsIntensiveCourse = false;
+            }
+            if (isset($Data['IsIgnoreCourse'.$i]) && !empty($Data['IsIgnoreCourse'.$i])) {
+                $IsIgnoreCourse = true;
+            } else {
+                $IsIgnoreCourse = false;
+            }
+
+//            if (isset($arraySubjectName[$i])) {
+//                $SubjectName = $arraySubjectName[$i];
+//            }
+            if ($tblUntisImportStudentCourse) { // update bei vorhandenen Feldern immer ausführen
+//                if ($tblSubject || $SubjectGroup != '' || $IsIgnoreCourse) {
+                (new Data($this->getBinding()))->updateUntisImportStudentCourse($tblUntisImportStudentCourse,
+                    $tblSubject, $SubjectGroup, $IsIntensiveCourse, $IsIgnoreCourse);
+//                }
+            } else {    //create
+                if ($tblSubject || $SubjectGroup != '') {
+                    (new Data($this->getBinding()))->createUntisImportStudentCourse($SubjectGroup, $SubjectName, $i,
+                        $IsIntensiveCourse, $IsIgnoreCourse, $tblUntisImportStudent, $tblSubject);
+                }
+            }
+        }
+
+        $Message = new Success('Änderungen gespeichert');
+        return $Message.new Redirect('/Transfer/Untis/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
+                array('Visible' => $Visible));
+    }
+
+    /**
+     * @param TblUntisImportStudent $tblUntisImportStudent
+     * @param                       $Number
+     *
+     * @return false|TblUntisImportStudentCourse
+     */
+    public function getUntisImportStudentCourseByUntisImportStudentAndNumber(
+        TblUntisImportStudent $tblUntisImportStudent,
+        $Number
+    ) {
+
+        return (new Data($this->getBinding()))->getUntisImportStudentCourseByUntisImportStudentAndNumber(
+            $tblUntisImportStudent, $Number);
+    }
+
+    /**
+     * @param TblUntisImportStudent $tblUntisImportStudent
+     *
+     * @return false|TblUntisImportStudentCourse[]
+     */
+    public function getUntisImportStudentCourseByUntisImportStudent(
+        TblUntisImportStudent $tblUntisImportStudent
+    ) {
+
+        return (new Data($this->getBinding()))->getUntisImportStudentCourseByUntisImportStudent($tblUntisImportStudent);
+    }
+
+    /**
+     * @param TblUntisImportStudent $tblUntisImportStudent
+     * @param bool                     $isIgnore
+     *
+     * @return mixed
+     */
+    public function updateUntisImportStudentIsIgnore(
+        TblUntisImportStudent $tblUntisImportStudent,
+        $isIgnore = true
+    ) {
+        return (new Data($this->getBinding()))->updateUntisImportStudentIsIgnore($tblUntisImportStudent,
+            $isIgnore);
     }
 
     /**
@@ -392,5 +558,151 @@ class Service extends AbstractService
         }
 
         return $LayoutRowList;
+    }
+
+    /**
+     * @param $ImportList
+     * @param $tblYear
+     * @param $tblAccount
+     *
+     * @return bool
+     */
+    public function createUntisImportStudentCourseByImportList($ImportList, $tblYear, $tblAccount)
+    {
+        (new Data($this->getBinding()))->createUntisImportStudentBulk($ImportList, $tblYear, $tblAccount);
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroyUntisImportStudentAll()
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblUntisImportStudentList = Import::useService()->getUntisImportStudentAll(true);
+            if ($tblUntisImportStudentList) {
+                foreach ($tblUntisImportStudentList as $tblUntisImportStudent) {
+                    (new Data($this->getBinding()))->destroyUntisImportStudentCourse($tblUntisImportStudent);
+                }
+            }
+            return (new Data($this->getBinding()))->destroyUntisImportStudentByAccount($tblAccount);
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function importUntisStudentCourse()
+    {
+
+//        $InfoList = array();
+        $tblUntisImportStudentList = $this->getUntisImportStudentAll(true);
+        if ($tblUntisImportStudentList) {
+            $tblDivisionList = array();
+            array_walk($tblUntisImportStudentList,
+                function (TblUntisImportStudent $tblUntisImportStudent) use (&$tblDivisionList) {
+                    // keine ignorierten Klassen
+                    if (!$tblUntisImportStudent->getIsIgnore()) {
+                        if (($tblDivision = $tblUntisImportStudent->getServiceTblDivision())
+                            && !array_key_exists($tblDivision->getId(), $tblDivisionList)
+                        ) {
+                            $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                        }
+                    }
+                });
+
+
+            //remove SubjectStudent (by used Division [clear all Course-Data])
+            if (!empty($tblDivisionList)) {
+                array_walk($tblDivisionList, function (TblDivision $tblDivision) {
+                    $tblSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+                    if ($tblSubjectList) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                                $tblDivision);
+                            if ($tblDivisionSubjectList) {
+                                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                    $tblDivisionStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                    Division::useService()->removeSubjectStudentBulk($tblDivisionStudentList);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+
+            $createSubjectStudentList = array();
+//            $IsTeacherList = array();
+            foreach ($tblUntisImportStudentList as $Key => $tblUntisImportStudent) {
+                $tblDivision = $tblUntisImportStudent->getServiceTblDivision();
+
+                $tblUntisImportStudentCourseList = Import::useService()
+                    ->getUntisImportStudentCourseByUntisImportStudent($tblUntisImportStudent);
+                if ($tblUntisImportStudentCourseList && $tblDivision) {
+                    foreach ($tblUntisImportStudentCourseList as $tblUntisImportStudentCourse) {
+                        $SubjectGroup = $tblUntisImportStudentCourse->getSubjectGroup();
+                        $tblSubject = $tblUntisImportStudentCourse->getServiceTblSubject();
+                        $tblPerson = $tblUntisImportStudent->getServiceTblPerson();
+
+                        if ($SubjectGroup && $tblSubject && !$tblUntisImportStudent->getIsIgnore()) {
+
+                            // insert Subject in Division if not exist
+                            if (!Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                                $tblDivision)
+                            ) {
+                                Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
+                            }
+
+                            // Anlegen von Gruppen / Schülern nur wenn diese nicht Ignoriert werden soll
+                            if (!$tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                                // get Group
+                                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
+                                    $tblDivision, $tblSubject);
+                                if ($tblSubjectGroup) {
+                                    // get DivisionSubject with Group
+                                    $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                        $tblSubject, $tblSubjectGroup);
+                                } else {
+
+                                    // create Group + add/get DivisionSubject
+                                    $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
+                                        $tblSubject, $SubjectGroup,
+                                        $tblUntisImportStudentCourse->getIsIntensiveCourse());
+                                }
+
+                                // nur aktuelle Schüler der Klasse werden zugeordnet
+                                if ($tblPerson && $tblDivision &&
+                                    Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision,
+                                        $tblPerson)
+                                ) {
+                                    if ($tblDivisionSubject) {
+
+                                        // add Subject Teacher
+                                        $createSubjectStudentList[] = array(
+                                            'tblDivisionSubject' => $tblDivisionSubject,
+                                            'tblPerson'          => $tblPerson
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!empty($createSubjectStudentList)) {
+                Division::useService()->addSubjectStudentList($createSubjectStudentList);
+                Import::useService()->destroyUntisImportStudentAll();
+            }
+        }
+
+        if (!empty($createSubjectStudentList)) {
+            return true;
+        }
+        return false;
     }
 }

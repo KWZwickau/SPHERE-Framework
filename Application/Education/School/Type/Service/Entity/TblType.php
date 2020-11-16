@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -23,9 +24,12 @@ class TblType extends Element
     const IDENT_GRUND_SCHULE = 'Grundschule';
     const IDENT_GYMNASIUM = 'Gymnasium';
     const IDENT_OBER_SCHULE = 'Mittelschule / Oberschule';
-    const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'allgemein bildende Förderschule';
+    const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'Förderschule';
 
     const ATTR_NAME = 'Name';
+    const ATTR_SHORT_NAME = 'ShortName';
+    const ATTR_IS_BASIC = 'IsBasic';
+    const TBL_CATEGORY = 'tblCategory';
 
     /**
      * @Column(type="string")
@@ -35,6 +39,18 @@ class TblType extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $ShortName;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsBasic;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblCategory;
 
     /**
      * @return string
@@ -70,5 +86,71 @@ class TblType extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShortName()
+    {
+        return $this->ShortName;
+    }
+
+    /**
+     * @param string $ShortName
+     */
+    public function setShortName($ShortName)
+    {
+        $this->ShortName = $ShortName;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTechnical()
+    {
+        if (($tblCategory = $this->getTblCategory())
+            && $tblCategory->getIdentifier() == TblCategory::TECHNICAL
+        ) {
+            return  true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsBasic()
+    {
+        return $this->IsBasic;
+    }
+
+    /**
+     * @param boolean $IsBasic
+     */
+    public function setIsBasic($IsBasic)
+    {
+        $this->IsBasic = $IsBasic;
+    }
+
+    /**
+     * @return bool|TblCategory
+     */
+    public function getTblCategory()
+    {
+        if (null === $this->tblCategory) {
+            return false;
+        } else {
+            return Type::useService()->getCategoryById($this->tblCategory);
+        }
+    }
+
+    /**
+     * @param null|TblCategory $tblCategory
+     */
+    public function setTblCategory(TblCategory $tblCategory = null)
+    {
+        $this->tblCategory = ( null === $tblCategory ? null : $tblCategory->getId() );
     }
 }

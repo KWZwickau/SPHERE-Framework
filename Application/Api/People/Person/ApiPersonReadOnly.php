@@ -17,6 +17,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSpecialNeeds;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentTechnicalSchool;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -62,6 +63,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadStudentGeneralContent');
         $Dispatcher->registerMethod('loadStudentSubjectContent');
         $Dispatcher->registerMethod('loadStudentSpecialNeedsContent');
+        $Dispatcher->registerMethod('loadStudentTechnicalSchoolContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -436,6 +438,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentTechnicalSchoolContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentTechnicalSchoolContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentTechnicalSchoolContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -619,5 +642,15 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     public function loadStudentSpecialNeedsContent($PersonId = null)
     {
         return FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentTechnicalSchoolContent($PersonId = null)
+    {
+        return FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId);
     }
 }
