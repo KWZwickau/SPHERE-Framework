@@ -21,6 +21,8 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -467,7 +469,6 @@ class KamenzReportService
             $countArray = array();
             $countMigrantsArray = array();
             $countMigrantsNationalityArray = array();
-            $countDivisionStudentArray = array();
             /** @var TblYear[] $tblCurrentYearList */
             foreach ($tblCurrentYearList as $tblYear) {
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
@@ -502,20 +503,33 @@ class KamenzReportService
                                         $hasMigrationBackground, $isInPreparationDivisionForMigrants, $birthDay,
                                         $countArray, $countMigrantsArray, $countMigrantsNationalityArray);
 
-                                    if ($tblStudent) {
+                                    if ($tblStudent && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                                        && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
+                                        && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
+                                    ) {
                                         $levelName = intval($tblLevel->getName());
 
-                                        // todo get real values
-                                        $isFullTime = true;
-                                        $isChangeStudent = false;
-                                        $schoolDiploma = $gender == 'm' ? 'Allgemeine Hochschulreife' : 'Realschulabschluss';
-                                        $schoolType = $gender == 'm' ? 'Gymnasium' : 'Oberschule';
-                                        $technicalDiploma = 'Abschlusszeugnis';
-                                        $technicalType = $gender == 'm' ? 'Beruflisches Gymnasium' : 'Berufsfachschule';
-                                        $hasMigrationBackground = $gender == 'w' ? true : false;
-                                        $course = $gender == 'm' ? 'Erzieher' : 'Fachinformatik';
-                                        $time = 36;
-                                        $support = $gender == 'm' ? 'Lernen' : '&nbsp;';
+                                        $isFullTime = $tblStudentTenseOfLesson == TblStudentTenseOfLesson::FULL_TIME;
+                                        $isChangeStudent = $tblStudentTrainingStatus == TblStudentTrainingStatus::CHANGE_STUDENT;
+                                        $schoolDiploma = ($tblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
+                                            ? $tblSchoolDiploma->getName() : '&nbsp;';
+                                        $schoolType = ($tblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
+                                            ? $tblSchoolType->getName() : '&nbsp;';
+                                        $technicalDiploma = ($tblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
+                                            ? $tblTechnicalDiploma->getName() : '&nbsp;';
+                                        $technicalType = ($tblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
+                                            ? $tblTechnicalType->getName() : '&nbsp;';
+                                        $course = ($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
+                                            ? $tblTechnicalCourse->getName() : '&nbsp;';
+                                        $time = $tblStudentTechnicalSchool->getDurationOfTraining();
+
+                                        if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                            && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+                                        ) {
+                                            $support = $tblSupportFocus->getTblSupportFocusType();
+                                        } else {
+                                            $support = '&nbsp;';
+                                        }
 
                                         self::setDivisionStudentsForTechnicalSchool(
                                             $Content, $tblLevel->getName(),
