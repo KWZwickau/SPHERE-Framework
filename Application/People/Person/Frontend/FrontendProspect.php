@@ -9,6 +9,7 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -235,6 +236,13 @@ class FrontendProspect  extends FrontendReadOnly
         if(($tblSchoolAll = School::useService()->getSchoolAll())){
             foreach($tblSchoolAll as $tblSchool){
                 $tblCompanyList[] = $tblSchool->getServiceTblCompany();
+            }
+        }
+        // if no School in Settings
+        if(empty($tblCompanyList)){
+            // no false
+            if(($tblCompanyListTemp = Company::useService()->getCompanyAll())){
+                $tblCompanyList = $tblCompanyListTemp;
             }
         }
 
