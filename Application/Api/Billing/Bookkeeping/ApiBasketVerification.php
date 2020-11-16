@@ -907,7 +907,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     if(!$FromDate){
                         $FromDate = (new \DateTime())->format('d.m.Y');
                     }
-                    $ToDate = null;
+                    $ToDate = '';
                     // DebtorSelection on ID (Update current one)
                     Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPersonDebtor, $tblPaymentType,
                         $tblDebtorSelection->getTblDebtorPeriodType(), $FromDate, $ToDate,
@@ -918,7 +918,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 } else {
                     // no DebtorSelection on ID (create new one)
                     $FromDate = (new \DateTime())->format('d.m.Y');
-                    $ToDate = null;
+                    $ToDate = '';
 
                     //ToDO richtigen Zahlungszeitraum ziehen
                     $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName('Monatlich');

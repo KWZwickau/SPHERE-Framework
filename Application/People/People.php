@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\People;
 
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IClusterInterface;
@@ -12,6 +13,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -142,11 +144,15 @@ class People implements IClusterInterface
                         }
 
                         $schoolType = $tblDivision->getTypeName();
+                        $CompanyId = 0;
+                        if(($tblCompany = $tblDivision->getServiceTblCompany())){
+                            $CompanyId = $tblCompany->getId();
+                        }
                         $personCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                        if (isset($StudentCountBySchoolType[$schoolType])) {
-                            $StudentCountBySchoolType[$schoolType] += $personCount;
+                        if (isset($StudentCountBySchoolType[$schoolType][$CompanyId])) {
+                            $StudentCountBySchoolType[$schoolType][$CompanyId] += $personCount;
                         } else {
-                            $StudentCountBySchoolType[$schoolType] = $personCount;
+                            $StudentCountBySchoolType[$schoolType][$CompanyId] = $personCount;
                         }
                     }
                 }
@@ -164,8 +170,32 @@ class People implements IClusterInterface
         }
         // Anhängen der Schulartzählung
         if (!empty($StudentCountBySchoolType)) {
-            foreach ($StudentCountBySchoolType as $SchoolType => $Counter) {
-                $tblStudentCounterBySchoolType[] = new Muted(new Small($SchoolType . ': ' . $Counter));
+            foreach($StudentCountBySchoolType as $SchoolType => $CompanyGroup){
+                $RowContent = '';
+                // Mehr als einmal die gleiche Schulart
+                // Zählung nach Institution trennen
+                if(count($CompanyGroup) >= 2){
+                    $tempCounterAllByType = 0;
+                    foreach($CompanyGroup as $tempCounter) {
+                        $tempCounterAllByType += $tempCounter;
+                    }
+                    $RowContent .= new Container(new Muted(new Small($SchoolType.': '.$tempCounterAllByType)));
+                    foreach($CompanyGroup as $CompanyId => $Counter) {
+                        $SchoolName = '-NA-';
+                        if(($tblCompany = Company::useService()->getCompanyById($CompanyId))){
+                            //toDO später mal Schulkürzel
+                            $SchoolName = $tblCompany->getName();
+                        }
+                        $RowContent .= new Container(
+                            new Muted(new Small('&nbsp;&nbsp;- '.$SchoolName.': '.$Counter))
+                        );
+                    }
+                    $tblStudentCounterBySchoolType[] = $RowContent;
+                } else {
+                    foreach($CompanyGroup as $SchoolName => $Counter) {
+                        $tblStudentCounterBySchoolType[] = new Muted(new Small($SchoolType.': '.$Counter));
+                    }
+                }
             }
         }
 

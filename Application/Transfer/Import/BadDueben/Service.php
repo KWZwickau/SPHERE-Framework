@@ -583,6 +583,7 @@ class Service
                                     $level,
                                     $tblSchoolType ? $tblSchoolType : null,
                                     null,
+                                    null,
                                     $remark
                                 );
 
@@ -1516,6 +1517,7 @@ class Service
                                     $tblStudentMedicalRecord,
                                     null,
                                     $tblStudentBilling,
+                                    null,
                                     null,
                                     null,
                                     null,

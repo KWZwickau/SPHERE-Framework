@@ -1034,9 +1034,14 @@ class Service extends AbstractService
                                 $item[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             }
 
+                            // Standard
+                            $item[$Ref]['BookingText'] = 'Sammellastschrift';
+                            // Überschreiben wenn die Einstellungen dies erfordern
                             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
-                                // allgemeinen Buchungstext verwenden
-                                $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $item[$Ref]['ItemName'], $item[$Ref]['ItemNameAndPrice']);
+                                if($tblSetting->getValue()){
+                                    // allgemeinen Buchungstext verwenden
+                                    $item[$Ref]['BookingText'] = $this->getBookingText($tblInvoiceItemDebtor, $tblSetting->getValue(), $item[$Ref]['ItemName'], $item[$Ref]['ItemNameAndPrice']);
+                                }
                             }
                             if(isset($item[$Ref]['ItemName'])){
                                 $item[$Ref]['Price'] = $item[$Ref]['Price'] + $tblInvoiceItemDebtor->getSummaryPriceInt();

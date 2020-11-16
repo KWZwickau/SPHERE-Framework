@@ -84,6 +84,12 @@ class Service extends AbstractService
             foreach ($tblImportList as $tblImport) {
                 $tblPerson = $tblImport->getServiceTblPerson();
                 $tblPersonDebtor = $tblImport->getServiceTblPersonDebtor();
+                if($tblImport->getOwner()){
+                    $Owner = $tblImport->getOwner();
+                } else {
+                    $Owner = $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName();
+                }
+
                 $tblBankAccount = $tblBankReference = false;
                 if($tblPersonDebtor){
                     // Debitor als Beitragszahler hinzufügen
@@ -98,8 +104,7 @@ class Service extends AbstractService
                     }
                     // Kontodaten zum Debitor
                     if($tblImport->getIBAN()){
-                        $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor,
-                            $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName(),
+                        $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor, $Owner,
                             $tblImport->getBank(), $tblImport->getIBAN(), $tblImport->getBIC());
                     }
                 }

@@ -1693,8 +1693,10 @@ class Service extends AbstractService
                                 . $tblTest->getDescription() . ' ('
                                 . strtr(date('D', strtotime($tblTest->getDate())), $trans) . ' ' . date('d.m.y',
                                     strtotime($tblTest->getDate())) . ') - ' . $TeacherAcronym;
-                            $panelData[] = $tblGradeType->isHighlighted()
-                                ? new Bold($content) : $content;
+
+                            $panelData[] = new ToolTip($tblGradeType->isHighlighted()
+                                ? new Bold($content) : $content, 'Erstellt am: ' . $tblTest->getEntityCreate()->format('d.m.Y H:i'));
+
                             $date = new \DateTime($tblTest->getDate());
                         }
                     }

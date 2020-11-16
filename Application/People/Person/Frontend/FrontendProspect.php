@@ -9,6 +9,7 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -16,6 +17,7 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -77,6 +79,8 @@ class FrontendProspect  extends FrontendReadOnly
                     ? $tblProspectReservation->getServiceTblTypeOptionA()->getName() : '';
                 $serviceTblTypeOptionB = $tblProspectReservation->getServiceTblTypeOptionB()
                     ? $tblProspectReservation->getServiceTblTypeOptionB()->getName() : '';
+                $serviceTblCompany = $tblProspectReservation->getServiceTblCompany()
+                    ? $tblProspectReservation->getServiceTblCompany()->getName() : '';
 
                 $remark = $tblProspect->getRemark();
             } else {
@@ -88,6 +92,7 @@ class FrontendProspect  extends FrontendReadOnly
                 $reservationDivision = '';
                 $serviceTblTypeOptionA = '';
                 $serviceTblTypeOptionB = '';
+                $serviceTblCompany = '';
 
                 $remark = '';
             }
@@ -118,6 +123,12 @@ class FrontendProspect  extends FrontendReadOnly
                     self::getLayoutColumnEmpty(4),
                     self::getLayoutColumnLabel('Schulart: Option 2'),
                     self::getLayoutColumnValue($serviceTblTypeOptionB),
+                    self::getLayoutColumnEmpty(4),
+                )),
+                new LayoutRow(array(
+                    self::getLayoutColumnEmpty(4),
+                    self::getLayoutColumnLabel('Schule'),
+                    self::getLayoutColumnValue($serviceTblCompany),
                     self::getLayoutColumnEmpty(4),
                 )),
                 new LayoutRow(array(
@@ -175,6 +186,11 @@ class FrontendProspect  extends FrontendReadOnly
                         ? $tblProspectReservation->getServiceTblTypeOptionB()->getId()
                         : 0
                     );
+                    $Global->POST['Meta']['Reservation']['TblCompany'] = (
+                    $tblProspectReservation->getServiceTblCompany()
+                        ? $tblProspectReservation->getServiceTblCompany()->getId()
+                        : 0
+                    );
                 }
                 $Global->savePost();
             }
@@ -216,6 +232,19 @@ class FrontendProspect  extends FrontendReadOnly
         }
 
         $tblTypeAll = Type::useService()->getTypeAll();
+        $tblCompanyList = array();
+        if(($tblSchoolAll = School::useService()->getSchoolAll())){
+            foreach($tblSchoolAll as $tblSchool){
+                $tblCompanyList[] = $tblSchool->getServiceTblCompany();
+            }
+        }
+        // if no School in Settings
+        if(empty($tblCompanyList)){
+            // no false
+            if(($tblCompanyListTemp = Company::useService()->getCompanyAll())){
+                $tblCompanyList = $tblCompanyListTemp;
+            }
+        }
 
         return new Form(array(
             new FormGroup(array(
@@ -243,6 +272,7 @@ class FrontendProspect  extends FrontendReadOnly
                                 array('{{ Name }} {{ Description }}' => $tblTypeAll), new Education()),
                             new SelectBox('Meta[Reservation][SchoolTypeOptionB]', 'Schulart: Option 2',
                                 array('{{ Name }} {{ Description }}' => $tblTypeAll), new Education()),
+                            new SelectBox('Meta[Reservation][TblCompany]', 'Schule', array('{{ Name }}' => $tblCompanyList)),
                         ), Panel::PANEL_TYPE_INFO)
                     ), 4),
                     new FormColumn(array(

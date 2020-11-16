@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -10,6 +11,9 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -65,6 +69,10 @@ class TblStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentIntegration;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentSpecialNeeds;
 
     /**
      * @Column(type="boolean")
@@ -284,9 +292,9 @@ class TblStudent extends Element
         if (null === $this->SchoolAttendanceStartDate) {
             return false;
         }
-        /** @var \DateTime $SchoolAttendanceStartDate */
+        /** @var DateTime $SchoolAttendanceStartDate */
         $SchoolAttendanceStartDate = $this->SchoolAttendanceStartDate;
-        if ($SchoolAttendanceStartDate instanceof \DateTime) {
+        if ($SchoolAttendanceStartDate instanceof DateTime) {
             return $SchoolAttendanceStartDate->format('d.m.Y');
         } else {
             return (string)$SchoolAttendanceStartDate;
@@ -294,9 +302,9 @@ class TblStudent extends Element
     }
 
     /**
-     * @param null|\DateTime $SchoolAttendanceStartDate
+     * @param null|DateTime $SchoolAttendanceStartDate
      */
-    public function setSchoolAttendanceStartDate(\DateTime $SchoolAttendanceStartDate = null)
+    public function setSchoolAttendanceStartDate(DateTime $SchoolAttendanceStartDate = null)
     {
 
         $this->SchoolAttendanceStartDate = $SchoolAttendanceStartDate;
@@ -465,5 +473,54 @@ class TblStudent extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return bool|TblStudentSpecialNeeds
+     */
+    public function getTblStudentSpecialNeeds()
+    {
+
+        if (null === $this->tblStudentSpecialNeeds) {
+            return false;
+        } else {
+            return Student::useService()->getStudentSpecialNeedsById($this->tblStudentSpecialNeeds);
+        }
+    }
+
+    /**
+     * @param null|TblStudentSpecialNeeds $tblStudentSpecialNeeds
+     */
+    public function setTblStudentSpecialNeeds(TblStudentSpecialNeeds $tblStudentSpecialNeeds = null)
+    {
+
+        $this->tblStudentSpecialNeeds = ( null === $tblStudentSpecialNeeds ? null : $tblStudentSpecialNeeds->getId() );
+    }
+
+    /**
+     * @return int|ToolTip
+     */
+    public function getSchoolAttendanceYear()
+    {
+        // SBJ (Schulbesuchsjahr): automatisch berechnet aus Datum / Jahr  der Ersteinschulung und richtig setzen entsprechend aktuelle Schuljahr (Stichtag vor und nach 1.8)
+        if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+            && ($tblTransfer = Student::useService()->getStudentTransferByType($this, $tblStudentTransferType))
+        ) {
+            $enrollmentDate = $tblTransfer->getTransferDate();
+        } else {
+            $enrollmentDate = false;
+        }
+
+        if ($enrollmentDate) {
+            $enrollmentDateTime = new DateTime($enrollmentDate);
+            $enrollmentYear = intval($enrollmentDateTime->format('Y'));
+            $now = new DateTime('now');
+            $nowYear = intval($now->format('Y'));
+            $endOfPeriod = new DateTime('01.08.' . $nowYear);
+
+            return ($nowYear - $enrollmentYear + ($now > $endOfPeriod ? 1 : 0));
+        } else {
+            return new ToolTip(new Warning(new Exclamation()), 'Bitte pflegen Sie das Ersteinschulungsdatum ein.');
+        }
     }
 }

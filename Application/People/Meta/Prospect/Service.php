@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect;
 
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Prospect\Service\Data;
@@ -57,6 +59,15 @@ class Service extends AbstractService
      */
     public function updateMetaService(TblPerson $tblPerson, $Meta)
     {
+
+        $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
+        $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
+        if(isset($Meta['Reservation']['TblCompany'])){
+            $tblCompany = Company::useService()->getCompanyById($Meta['Reservation']['TblCompany']);
+        } else {
+            $tblCompany = false;
+        }
+
         if (($tblProspect = $this->getProspectByPerson($tblPerson))) {
             (new Data($this->getBinding()))->updateProspectAppointment(
                 $tblProspect->getTblProspectAppointment(),
@@ -64,14 +75,13 @@ class Service extends AbstractService
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
-            $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
-            $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
             (new Data($this->getBinding()))->updateProspectReservation(
                 $tblProspect->getTblProspectReservation(),
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
                 ($OptionA ? $OptionA : null),
-                ($OptionB ? $OptionB : null)
+                ($OptionB ? $OptionB : null),
+                ($tblCompany ? $tblCompany : null)
             );
 
             return (new Data($this->getBinding()))->updateProspect(
@@ -84,13 +94,12 @@ class Service extends AbstractService
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
-            $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
-            $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
             $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
                 ($OptionA ? $OptionA : null),
-                ($OptionB ? $OptionB : null)
+                ($OptionB ? $OptionB : null),
+                ($tblCompany ? $tblCompany : null)
             );
 
             return (new Data($this->getBinding()))->createProspect(
@@ -149,15 +158,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param string $ReservationDate
-     * @param string $InterviewDate
-     * @param string $TrialDate
-     * @param              $ReservationYear
-     * @param              $ReservationDivision
-     * @param TblType|null $tblTypeOptionA
-     * @param TblType|null $tblTypeOptionB
-     * @param              $Remark
+     * @param TblPerson       $tblPerson
+     * @param string          $ReservationDate
+     * @param string          $InterviewDate
+     * @param string          $TrialDate
+     * @param string          $ReservationYear
+     * @param string          $ReservationDivision
+     * @param TblType|null    $tblTypeOptionA
+     * @param TblType|null    $tblTypeOptionB
+     * @param TblCompany|null $tblCompany
+     * @param string          $Remark
      *
      * @return TblProspect
      */
@@ -170,7 +180,8 @@ class Service extends AbstractService
         $ReservationDivision,
         TblType $tblTypeOptionA = null,
         TblType $tblTypeOptionB = null,
-        $Remark
+        TblCompany $tblCompany = null,
+        $Remark = ''
     ) {
 
         $tblProspectAppointment = (new Data($this->getBinding()))->createProspectAppointment(
@@ -182,7 +193,8 @@ class Service extends AbstractService
             $ReservationYear,
             $ReservationDivision,
             $tblTypeOptionA,
-            $tblTypeOptionB
+            $tblTypeOptionB,
+            $tblCompany
         );
         return (new Data($this->getBinding()))->createProspect(
             $tblPerson,

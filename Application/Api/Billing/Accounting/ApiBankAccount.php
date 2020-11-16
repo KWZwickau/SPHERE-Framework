@@ -320,7 +320,8 @@ class ApiBankAccount extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(array(
-                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 9999 9999 9999 99'))->setRequired()
+                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null,
+                            'AA99 9999 9999 9999 9999 9999 9999 9999 99'))->setRequired()
                     ), 6),
 
                     new FormColumn(
@@ -370,6 +371,13 @@ class ApiBankAccount extends Extension implements IApiInterface
                 }
             }
         }
+        if(isset($BankAccount['BIC']) && !empty($BankAccount['BIC'])){
+            // Wird eine BIC angegeben, so muss sie mindestens 8 Zeichen aber höchstens 11 Zeichen besitzen
+            if(strlen($BankAccount['BIC']) < 8 || strlen($BankAccount['BIC']) > 11){
+                $form->setError('BankAccount[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
+                $Error = true;
+            }
+        }
 
         if($Error){
             // Debtor::useFrontend()->getPersonPanel($PersonId).
@@ -417,7 +425,7 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $tblBankAccount = Debtor::useService()->createBankAccount($tblPerson, $BankAccount['Owner'],
-                $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
+                $BankAccount['BankName'], $BankAccount['IBAN'], strtoupper($BankAccount['BIC']));
             if($tblBankAccount){
                 return new Success('Bankverbindung erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
@@ -455,7 +463,7 @@ class ApiBankAccount extends Extension implements IApiInterface
         $IsChange = false;
         if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))){
             $IsChange = Debtor::useService()->changeBankAccount($tblBankAccount, $BankAccount['Owner'],
-                $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
+                $BankAccount['BankName'], $BankAccount['IBAN'], strtoupper($BankAccount['BIC']));
         }
 
         return ($IsChange

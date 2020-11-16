@@ -66,6 +66,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'DebtorFirstName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'DebtorLastName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'DebtorNumber', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);

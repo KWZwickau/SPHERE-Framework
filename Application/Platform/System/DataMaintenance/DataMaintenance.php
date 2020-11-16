@@ -170,7 +170,7 @@ class DataMaintenance
                         new Standard('Alle Sorgeberechtigte '.new Label($CustodyAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView', new EyeOpen(),
                             array('AccountType' => 'CUSTODY'))
                     )),
-                    $IntegrationColumn,
+//                    $IntegrationColumn,
                 ))
             )
         ));

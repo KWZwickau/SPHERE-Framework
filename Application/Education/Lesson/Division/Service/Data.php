@@ -536,13 +536,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear $tblYear
-     * @param string $Name
-     * @param TblLevel|null $tblLevel
+     * @param TblYear         $tblYear
+     * @param string          $Name
+     * @param TblLevel|null   $tblLevel
+     * @param TblCompany|null $tblCompany
      *
      * @return bool
      */
-    public function checkDivisionExists(TblYear $tblYear, $Name, TblLevel $tblLevel = null)
+    public function checkDivisionExists(TblYear $tblYear, $Name, TblLevel $tblLevel = null, TblCompany $tblCompany = null)
     {
 
         if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
@@ -550,6 +551,7 @@ class Data extends AbstractData
                 TblDivision::ATTR_YEAR => $tblYear->getId(),
                 TblDivision::ATTR_NAME => $Name,
                 TblDivision::ATTR_LEVEL => ($tblLevel ? $tblLevel->getId() : null),
+                TblDivision::SERVICE_TBL_COMPANY => ($tblCompany ? $tblCompany->getId() : null),
             ))
         ) {
             return true;
@@ -621,6 +623,7 @@ class Data extends AbstractData
     public function getDivisionTeacherByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
+        /** @var TblDivisionTeacher $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
             array(
                 TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId(),
@@ -637,7 +640,7 @@ class Data extends AbstractData
      */
     public function getDivisionCustodyByDivisionAndPerson(TblDivision $tblDivision, TblPerson $tblPerson)
     {
-
+        /** @var TblDivisionCustody $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
             array(
                 TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId(),
@@ -654,7 +657,7 @@ class Data extends AbstractData
      */
     public function checkSubjectExists($Name, $Description = '')
     {
-
+        /** @var TblLevel $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
             TblSubjectGroup::ATTR_NAME => $Name,
             TblSubjectGroup::ATTR_DESCRIPTION => $Description
@@ -670,7 +673,7 @@ class Data extends AbstractData
      */
     public function checkLevelExists(TblType $tblType, $Name)
     {
-
+        /** @var TblLevel $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
             TblLevel::ATTR_NAME => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
@@ -686,7 +689,7 @@ class Data extends AbstractData
      */
     public function checkSubjectGroupExists($Name, $Description)
     {
-
+        /** @var TblSubjectGroup $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup',
             array(
                 TblSubjectGroup::ATTR_NAME => $Name,
@@ -702,12 +705,12 @@ class Data extends AbstractData
      */
     public function getLevelByServiceTblType(TblType $serviceTblType)
     {
-
-        $Entity = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
+        /** @var TblLevel[] $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
             array(
                 TblLevel::SERVICE_TBL_TYPE => $serviceTblType->getId(),
             ));
-        return ($Entity ? $Entity : false);
+        return ($EntityList ? $EntityList : false);
     }
 
     /**
@@ -2251,7 +2254,7 @@ class Data extends AbstractData
      */
     public function getLevelBy(TblType $serviceTblType, $Name)
     {
-
+        /** @var TblLevel $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
             array(
                 TblLevel::SERVICE_TBL_TYPE => $serviceTblType->getId(),

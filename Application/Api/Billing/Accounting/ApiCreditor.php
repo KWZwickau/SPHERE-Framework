@@ -289,7 +289,9 @@ class ApiCreditor extends Extension implements IApiInterface
                         (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
                     new FormColumn(
-                        (new TextField('Creditor[BIC]', 'BIC', 'BIC'))->setRequired()
+                        (new TextField('Creditor[BIC]', 'BIC', 'BIC', null, '***********'))
+                            ->setCaseToUpper(true)
+                            ->setRequired()
                         , 6),
                 )),
                 new FormRow(array(
@@ -383,9 +385,15 @@ class ApiCreditor extends Extension implements IApiInterface
                 }
             }
         }
+
         if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
-            $form->setError('Creditor[BIC]', 'Bitte geben Sie eine BIC an');
+            $form->setError('Creditor[BIC]', 'Bitte geben Sie die BIC an');
             $Error = true;
+        } else {
+            if(strlen($Creditor['BIC']) < 8){
+                $form->setError('Creditor[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
+                $Error = true;
+            }
         }
 
         if($Error){
@@ -437,7 +445,7 @@ class ApiCreditor extends Extension implements IApiInterface
             $Creditor['Number']
             , $Creditor['Code'], $Creditor['City'], $Creditor['District'], $Creditor['CreditorId'],
             $Creditor['BankName'], $Creditor['IBAN']
-            , $Creditor['BIC']);
+            , strtoupper($Creditor['BIC']));
 
         return ($tblCreditor
             ? new Success('Gläubiger erfolgreich angelegt').self::pipelineCloseModal($Identifier)
@@ -477,7 +485,7 @@ class ApiCreditor extends Extension implements IApiInterface
             $IsChange = Creditor::useService()->changeCreditor($tblCreditor, $Creditor['Owner'], $Creditor['Street']
                 , $Creditor['Number'], $Creditor['Code'], $Creditor['City'], $Creditor['District'],
                 $Creditor['CreditorId']
-                , $Creditor['BankName'], $Creditor['IBAN'], $Creditor['BIC']);
+                , $Creditor['BankName'], $Creditor['IBAN'], strtoupper($Creditor['BIC']));
         }
 
         return ($IsChange

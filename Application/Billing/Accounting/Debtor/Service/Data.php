@@ -625,7 +625,7 @@ class Data extends AbstractData
         TblPaymentType $tblPaymentType,
         TblDebtorPeriodType $tblDebtorPeriodType,
         \DateTime $FromDate,
-        $ToDate = null,
+        \DateTime $ToDate = null,
         TblItemVariant $tblItemVariant = null,
         $Value = '0',
         TblBankAccount $tblBankAccount = null,
