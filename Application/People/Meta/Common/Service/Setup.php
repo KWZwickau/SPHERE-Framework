@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Meta\Common\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
@@ -57,29 +56,29 @@ class Setup extends AbstractSetup
         /**
          * Upgrade Column Gender
          */
-        if( !$Simulate ) {
-            if (
-                $this->hasColumn($tblCommonBirthDates, 'Gender')
-                && $this->hasColumn($tblCommonBirthDates, 'tblCommonGender')
-            ) {
-                Common::useService()->createCommonGender( 'Männlich' );
-                Common::useService()->createCommonGender( 'Weiblich' );
-                $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
-                if ($tblCommonBirthDatesAll) {
-                    foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
-                        if( $tblCommonBirthDates->isGenderInSync() ) {
-                            continue;
-                        }
-                        Common::useService()->updateCommonBirthDates(
-                            $tblCommonBirthDates,
-                            $tblCommonBirthDates->getBirthday(),
-                            $tblCommonBirthDates->getBirthplace(),
-                            $tblCommonBirthDates->getGender()
-                        );
-                    }
-                }
-            }
-        }
+//        if( !$Simulate ) {
+//            if (
+//                $this->hasColumn($tblCommonBirthDates, 'Gender')
+//                && $this->hasColumn($tblCommonBirthDates, 'tblCommonGender')
+//            ) {
+//                Common::useService()->createCommonGender( 'Männlich' );
+//                Common::useService()->createCommonGender( 'Weiblich' );
+//                $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
+//                if ($tblCommonBirthDatesAll) {
+//                    foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
+//                        if( $tblCommonBirthDates->isGenderInSync() ) {
+//                            continue;
+//                        }
+//                        Common::useService()->updateCommonBirthDates(
+//                            $tblCommonBirthDates,
+//                            $tblCommonBirthDates->getBirthday(),
+//                            $tblCommonBirthDates->getBirthplace(),
+//                            $tblCommonBirthDates->getGender()
+//                        );
+//                    }
+//                }
+//            }
+//        }
 
         return $this->getConnection()->getProtocol($Simulate);
     }

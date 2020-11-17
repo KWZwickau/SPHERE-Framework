@@ -72,7 +72,7 @@ class Service extends AbstractService
                 $tblCommon->getTblCommonBirthDates(),
                 $Meta['BirthDates']['Birthday'],
                 $Meta['BirthDates']['Birthplace'],
-                $Meta['BirthDates']['Gender']
+                ($tblCommonGender = $this->getCommonGenderById($Meta['BirthDates']['Gender'])) ? $tblCommonGender : null
             );
             (new Data($this->getBinding()))->updateCommonInformation(
                 $tblCommon->getTblCommonInformation(),
@@ -90,7 +90,7 @@ class Service extends AbstractService
             $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
                 $Meta['BirthDates']['Birthday'],
                 $Meta['BirthDates']['Birthplace'],
-                $Meta['BirthDates']['Gender']
+                ($tblCommonGender = $this->getCommonGenderById($Meta['BirthDates']['Gender'])) ? $tblCommonGender : null
             );
             $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
                 $Meta['Information']['Nationality'],
@@ -122,21 +122,20 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param           $Birthday
-     * @param           $Birthplace
-     * @param           $Gender
-     * @param           $Nationality
-     * @param           $Denomination
-     * @param           $IsAssistance
-     * @param           $AssistanceActivity
-     *
-     * @param           $Remark
+     * @param $Birthday
+     * @param $Birthplace
+     * @param TblCommonGender|null $tblCommonGender
+     * @param $Nationality
+     * @param $Denomination
+     * @param $IsAssistance
+     * @param $AssistanceActivity
+     * @param $Remark
      */
     public function insertMeta(
         TblPerson $tblPerson,
         $Birthday,
         $Birthplace,
-        $Gender,
+        TblCommonGender $tblCommonGender = null,
         $Nationality,
         $Denomination,
         $IsAssistance,
@@ -147,7 +146,7 @@ class Service extends AbstractService
         $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
             $Birthday,
             $Birthplace,
-            $Gender
+            $tblCommonGender
         );
         $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
             $Nationality,
@@ -255,10 +254,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCommonBirthDates $tblCommonBirthDates
-     * @param string              $Birthday
-     * @param string              $Birthplace
-     * @param int                 $Gender
+     * @param TblCommonBirthDates  $tblCommonBirthDates
+     * @param string               $Birthday
+     * @param string               $Birthplace
+     * @param TblCommonGender|null $tblCommonGender
      *
      * @return bool
      */
@@ -266,9 +265,9 @@ class Service extends AbstractService
         TblCommonBirthDates $tblCommonBirthDates,
         $Birthday,
         $Birthplace,
-        $Gender
+        TblCommonGender $tblCommonGender = null
     ) {
-        return (new Data($this->getBinding()))->updateCommonBirthDates( $tblCommonBirthDates, $Birthday, $Birthplace, $Gender );
+        return (new Data($this->getBinding()))->updateCommonBirthDates( $tblCommonBirthDates, $Birthday, $Birthplace, $tblCommonGender );
     }
 
     /**

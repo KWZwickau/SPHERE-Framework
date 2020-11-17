@@ -349,7 +349,7 @@ class Service extends AbstractService
                         $tblCommonBirthDates,
                         $tblCommonBirthDates->getBirthday(),
                         $tblCommonBirthDates->getBirthplace(),
-                        $updateGender->getId()
+                        $updateGender
                     );
                 }
             }

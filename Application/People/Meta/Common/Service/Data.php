@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Common\Service;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
@@ -81,22 +82,22 @@ class Data extends AbstractData
     /**
      * @param string $Birthday
      * @param string $Birthplace
-     * @param int    $Gender
+     * @param TblCommonGender|null $tblCommonGender
      *
      * @return TblCommonBirthDates
      */
     public function createCommonBirthDates(
         $Birthday,
         $Birthplace,
-        $Gender
+        TblCommonGender $tblCommonGender = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCommonBirthDates();
-        $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
+        $Entity->setBirthday(( $Birthday ? new DateTime($Birthday) : null ));
         $Entity->setBirthplace($Birthplace);
-        $Entity->setGender($Gender);
+        $Entity->setTblCommonGender($tblCommonGender);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -246,7 +247,7 @@ class Data extends AbstractData
      * @param TblCommonBirthDates $tblCommonBirthDates
      * @param string              $Birthday
      * @param string              $Birthplace
-     * @param int                 $Gender
+     * @param TblCommonGender|null     $tblCommonGender
      *
      * @return bool
      */
@@ -254,7 +255,7 @@ class Data extends AbstractData
         TblCommonBirthDates $tblCommonBirthDates,
         $Birthday,
         $Birthplace,
-        $Gender
+        TblCommonGender $tblCommonGender = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -262,9 +263,9 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblCommonBirthDates', $tblCommonBirthDates->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
+            $Entity->setBirthday(( $Birthday ? new DateTime($Birthday) : null ));
             $Entity->setBirthplace($Birthplace);
-            $Entity->setGender($Gender);
+            $Entity->setTblCommonGender($tblCommonGender);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

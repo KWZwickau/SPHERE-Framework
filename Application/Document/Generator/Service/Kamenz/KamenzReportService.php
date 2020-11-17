@@ -19,6 +19,7 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
@@ -466,9 +467,6 @@ class KamenzReportService
         self::setGraduateTechnicalSchool($tblPastYearList, $Content, $tblKamenzSchoolType);
 
         if ($tblCurrentYearList) {
-            $countArray = array();
-            $countMigrantsArray = array();
-            $countMigrantsNationalityArray = array();
             /** @var TblYear[] $tblCurrentYearList */
             foreach ($tblCurrentYearList as $tblYear) {
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
@@ -480,15 +478,7 @@ class KamenzReportService
                             if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                                 $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = count($tblPersonList);
                                 foreach ($tblPersonList as $tblPerson) {
-
-                                    $isInPreparationDivisionForMigrants = false;
                                     $tblStudent = $tblPerson->getStudent();
-
-                                    if ($tblStudent
-                                        && $tblStudent->isInPreparationDivisionForMigrants()
-                                    ) {
-                                        $isInPreparationDivisionForMigrants = true;
-                                    }
 
                                     $hasMigrationBackground = false;
                                     if ($tblStudent
@@ -497,15 +487,25 @@ class KamenzReportService
                                         $hasMigrationBackground = true;
                                     }
 
-                                    $gender = false;
-                                    $birthDay = false;
-                                    $nationality = self::countStudentLevels($tblPerson, $tblLevel, $gender,
-                                        $hasMigrationBackground, $isInPreparationDivisionForMigrants, $birthDay,
-                                        $countArray, $countMigrantsArray, $countMigrantsNationalityArray);
+                                    $tblCommonGender = false;
+                                    $birthYear = false;
+                                    $nationality = false;
+                                    if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                                        if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
+                                            $nationality = $tblCommonInformation->getNationality();
+                                        }
+                                        if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                                            $tblCommonGender = $tblCommonBirthDates->getTblCommonGender();
+                                            if (($birthDay = $tblCommonBirthDates->getBirthday())) {
+                                                $birthYear = (new DateTime($birthDay))->format('Y');
+                                            }
+                                        }
+                                    }
 
                                     if ($tblStudent && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
                                         && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
                                         && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
+                                        && $tblCommonGender
                                     ) {
                                         $levelName = intval($tblLevel->getName());
 
@@ -537,7 +537,7 @@ class KamenzReportService
                                             $isFullTime ? 'FullTime' : 'PartTime', $isChangeStudent ? 'ChangeStudent' : 'Student'
                                         );
 
-                                        self::setStudentFocusBFS($tblPerson, $tblLevel, $Content, $gender,
+                                        self::setStudentFocusBFS($tblPerson, $tblLevel, $Content, $tblCommonGender->getShortName(),
                                             $hasMigrationBackground, $isFullTime ? 'F01_1' : 'F01_2'
                                         );
 
@@ -550,7 +550,7 @@ class KamenzReportService
                                                 $schoolDiploma,
                                                 $schoolType,
                                                 $support,
-                                                $gender,
+                                                $tblCommonGender,
                                                 $levelName
                                             );
                                             if ($hasMigrationBackground) {
@@ -560,7 +560,7 @@ class KamenzReportService
                                                     $schoolDiploma,
                                                     $schoolType,
                                                     $support,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                             }
@@ -572,7 +572,7 @@ class KamenzReportService
                                                 $technicalDiploma,
                                                 $technicalType,
                                                 $support,
-                                                $gender,
+                                                $tblCommonGender,
                                                 $levelName
                                             );
                                             if ($hasMigrationBackground) {
@@ -582,19 +582,18 @@ class KamenzReportService
                                                     $schoolDiploma,
                                                     $schoolType,
                                                     $support,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                             }
 
                                             // N03
-                                            if ($birthDay) {
-                                                $birthYear = (new DateTime($birthDay))->format('Y');
+                                            if ($birthYear) {
                                                 self::setBirthYearOrNationalityForTechnicalSchool(
                                                     $Content,
                                                     'N03_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
                                                     $birthYear,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                                 if ($hasMigrationBackground) {
@@ -602,7 +601,7 @@ class KamenzReportService
                                                         $Content,
                                                         'N03_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
                                                         $birthYear,
-                                                        $gender,
+                                                        $tblCommonGender,
                                                         $levelName
                                                     );
                                                 }
@@ -614,7 +613,7 @@ class KamenzReportService
                                                     $Content,
                                                     'N04_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
                                                     $nationality,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                             }
@@ -627,7 +626,7 @@ class KamenzReportService
                                                     $course,
                                                     $time,
                                                     $support,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                                 if ($hasMigrationBackground) {
@@ -637,7 +636,7 @@ class KamenzReportService
                                                         $course,
                                                         $time,
                                                         $support,
-                                                        $gender,
+                                                        $tblCommonGender,
                                                         $levelName
                                                     );
                                                 }
@@ -652,7 +651,7 @@ class KamenzReportService
                                                 $course,
                                                 $time,
                                                 $support,
-                                                $gender,
+                                                $tblCommonGender,
                                                 $levelName
                                             );
                                             if ($hasMigrationBackground) {
@@ -662,20 +661,19 @@ class KamenzReportService
                                                     $course,
                                                     $time,
                                                     $support,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                             }
                                         }
 
                                         // S02
-                                        if ($birthDay) {
-                                            $birthYear = (new DateTime($birthDay))->format('Y');
+                                        if ($birthYear) {
                                             self::setBirthYearOrNationalityForTechnicalSchool(
                                                 $Content,
                                                 'S02_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
                                                 $birthYear,
-                                                $gender,
+                                                $tblCommonGender,
                                                 $levelName
                                             );
                                             if ($hasMigrationBackground) {
@@ -683,7 +681,7 @@ class KamenzReportService
                                                     $Content,
                                                     'S02_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
                                                     $birthYear,
-                                                    $gender,
+                                                    $tblCommonGender,
                                                     $levelName
                                                 );
                                             }
@@ -695,7 +693,7 @@ class KamenzReportService
                                                 $Content,
                                                 'S03_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
                                                 $nationality,
-                                                $gender,
+                                                $tblCommonGender,
                                                 $levelName
                                             );
                                         }
@@ -810,11 +808,7 @@ class KamenzReportService
         return $Content;
     }
 
-    /**
-     * @param array $Content
-     *
-     * @return array
-     */
+
     public static function setKamenzReportFSContent(
         $Content
     ) {
@@ -2414,7 +2408,7 @@ class KamenzReportService
      * @param $schoolDiploma
      * @param $schoolType
      * @param string $support
-     * @param string $gender
+     * @param TblCommonGender $tblCommonGender
      * @param $levelName
      */
     private static function setNewSchoolStarterDiplomaForTechnicalSchool(
@@ -2423,9 +2417,11 @@ class KamenzReportService
         $schoolDiploma,
         $schoolType,
         $support,
-        $gender,
+        TblCommonGender $tblCommonGender,
         $levelName
     ) {
+        $gender = $tblCommonGender->getName();
+        $genderShort = $tblCommonGender->getShortName();
         /**
          * Neuanfänger im Ausbildungsstatus Umschüler im Vollzeitunterricht im Schuljahr 2020/2021 nach allgemeinbildenden
          * Abschlüssen, Schularten, Förderschwerpunkten und Klassenstufen
@@ -2442,10 +2438,10 @@ class KamenzReportService
                 $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount'] = 1;
             }
 
-            if (isset($Content[$name]['TotalCount']['L' . $levelName][$gender])) {
-                $Content[$name]['TotalCount']['L' . $levelName][$gender]++;
+            if (isset($Content[$name]['TotalCount']['L' . $levelName][$genderShort])) {
+                $Content[$name]['TotalCount']['L' . $levelName][$genderShort]++;
             } else {
-                $Content[$name]['TotalCount']['L' . $levelName][$gender] = 1;
+                $Content[$name]['TotalCount']['L' . $levelName][$genderShort] = 1;
             }
             if (isset($Content[$name]['TotalCount']['L' . $levelName]['TotalCount'])) {
                 $Content[$name]['TotalCount']['L' . $levelName]['TotalCount']++;
@@ -2488,16 +2484,18 @@ class KamenzReportService
      * @param $Content
      * @param string $name
      * @param $item
-     * @param $gender
+     * @param TblCommonGender $tblCommonGender
      * @param $levelName
      */
     private static function setBirthYearOrNationalityForTechnicalSchool(
         &$Content,
         $name,
         $item,
-        $gender,
+        TblCommonGender $tblCommonGender,
         $levelName
     ) {
+        $gender = $tblCommonGender->getName();
+        $genderShort = $tblCommonGender->getShortName();
         /**
          * N03-1-A. Neuanfänger im Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht im Schuljahr 2020/2021
          * nach Geburtsjahren und Klassenstufen
@@ -2513,10 +2511,10 @@ class KamenzReportService
             $Content[$name]['Temp'][$item . '_' . $gender]['TotalCount'] = 1;
         }
 
-        if (isset($Content[$name]['TotalCount']['L' . $levelName][$gender])) {
-            $Content[$name]['TotalCount']['L' . $levelName][$gender]++;
+        if (isset($Content[$name]['TotalCount']['L' . $levelName][$genderShort])) {
+            $Content[$name]['TotalCount']['L' . $levelName][$genderShort]++;
         } else {
-            $Content[$name]['TotalCount']['L' . $levelName][$gender] = 1;
+            $Content[$name]['TotalCount']['L' . $levelName][$genderShort] = 1;
         }
         if (isset($Content[$name]['TotalCount']['L' . $levelName]['TotalCount'])) {
             $Content[$name]['TotalCount']['L' . $levelName]['TotalCount']++;
@@ -2560,7 +2558,7 @@ class KamenzReportService
      * @param $course
      * @param $time
      * @param $support
-     * @param $gender
+     * @param TblCommonGender $tblCommonGender
      * @param $levelName
      */
     private static function setCourseForTechnicalSchool(
@@ -2569,9 +2567,11 @@ class KamenzReportService
         $course,
         $time,
         $support,
-        $gender,
+        TblCommonGender $tblCommonGender,
         $levelName
     ) {
+        $gender = $tblCommonGender->getName();
+        $genderShort = $tblCommonGender->getShortName();
         /**
          * N05-1-A. Neuanfänger im Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht im Schuljahr 2020/2021
          * nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und Klassenstufen
@@ -2588,10 +2588,10 @@ class KamenzReportService
                 $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount'] = 1;
             }
 
-            if (isset($Content[$name]['TotalCount']['L' . $levelName][$gender])) {
-                $Content[$name]['TotalCount']['L' . $levelName][$gender]++;
+            if (isset($Content[$name]['TotalCount']['L' . $levelName][$genderShort])) {
+                $Content[$name]['TotalCount']['L' . $levelName][$genderShort]++;
             } else {
-                $Content[$name]['TotalCount']['L' . $levelName][$gender] = 1;
+                $Content[$name]['TotalCount']['L' . $levelName][$genderShort] = 1;
             }
             if (isset($Content[$name]['TotalCount']['L' . $levelName]['TotalCount'])) {
                 $Content[$name]['TotalCount']['L' . $levelName]['TotalCount']++;

@@ -758,7 +758,8 @@ class Service extends AbstractService
         if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
             && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
         ) {
-            $Content['P' . $personId]['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Gender'] = ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                ? $tblCommonGender->getId() : 0;
             $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
             $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
                 ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';

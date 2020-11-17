@@ -164,7 +164,8 @@ abstract class AbstractDocument
             if (($tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()))
                 && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
             ) {
-                $Data['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+                $Data['Person']['Common']['BirthDates']['Gender'] = ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                    ? $tblCommonGender->getId() : 0;
                 $Data['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
                 $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
                     ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
