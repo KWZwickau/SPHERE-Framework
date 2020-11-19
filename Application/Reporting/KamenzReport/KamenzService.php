@@ -71,7 +71,7 @@ class KamenzService
         $count['SchoolEnrollmentType'] = 0;
         $count['SchoolAttendanceStartDate'] = 0;
 
-        // Beruffachshulen
+        // Berufsfachschulen und Fachschulen
         $count['TenseOfLesson'] = 0;
         $count['TrainingStatus'] = 0;
         $count['DurationOfTraining'] = 0;
@@ -241,7 +241,7 @@ class KamenzService
                                             }
                                         }
 
-                                        if ($tblSchoolType->getName() == 'Berufsfachschule') {
+                                        if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
                                             $tblStudentTechnicalSchool = $tblStudent ? $tblStudent->getTblStudentTechnicalSchool() : false;
 
                                             if ($tblStudentTechnicalSchool
@@ -332,10 +332,14 @@ class KamenzService
             }
         }
 
+        if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
+            $count['Religion'] = 0;
+        }
+
         array_unshift($summary, new Info($count['Student'] . ' Schüler besuchen die/das ' . $tblSchoolType->getName() . '.'));
         $summary = self::setSummary($summary, $count);
 
-       if ($tblSchoolType->getName() == 'Berufsfachschule') {
+       if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
            $columns = array(
                'Division' => 'Klasse',
                'Name' => 'Name',

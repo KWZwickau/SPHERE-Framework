@@ -178,7 +178,7 @@ class F01
                 case 2: $text = 'Hören'; break;
                 case 3: $text = 'Sprache'; break;
                 case 4: $text = 'Körperlich-motorische Entwicklung';
-                    $hasBorderTop = $name == 'F01_2';
+//                    $hasBorderTop = $name == 'F01_2';
                     if ($maxLevel == 4) {
                         $paddingTop = '27.8px';
                         $paddingBottom = '27.8px';
@@ -192,7 +192,7 @@ class F01
                     }
                     break;
                 case 5: $text = 'Geistige Entwicklung';
-                    $hasBorderTop = $name == 'F01_1';
+//                    $hasBorderTop = $name == 'F01_1';
                     break;
                 case 6: $text = 'Sozial-emotionale Entwicklung';
                     if ($maxLevel == 4) {
@@ -210,7 +210,7 @@ class F01
                     break;
                 case 7: $text = 'Insgesamt';
                     $isBold = true;
-                    $hasBorderTop = $maxLevel == 3;
+//                    $hasBorderTop = $maxLevel == 3;
                     break;
                 default: $text = '';
             }
@@ -230,7 +230,7 @@ class F01
             $lineSectionList = array();
             for ($j = 1; $j <= $maxLevel; $j++) {
                 if ($schoolTypeName == 'Fachschule' && $name == 'F01_2') {
-                    $textLevel = ($j < 3 ? '1' : '2') . ' / ' . $j . ' . Ausbildungsjahr';
+                    $textLevel = ($j < 3 ? '1' : '2') . ' / ' . $j . ' . AJ';
                 } else {
                     $textLevel = $j;
                 }
@@ -277,6 +277,9 @@ class F01
                 ->styleTextBold($isBold ? 'bold' : 'normal')
                 ->addSection($section);
         }
+
+        $array[] = 'Laut Eintrag im Geburtenregister';
+        $sliceList[] = Common::setFootnotes($array);
 
         return $sliceList;
     }

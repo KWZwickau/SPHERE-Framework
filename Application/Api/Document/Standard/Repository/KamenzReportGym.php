@@ -42,7 +42,14 @@ class KamenzReportGym extends AbstractDocument
         return 'Kamenz-Statistik Gymnasium';
     }
 
-    public function buildDocument($pageList = array())
+    /**
+     *
+     * @param array $pageList
+     * @param string $Part
+     *
+     * @return Frame
+     */
+    public function buildDocument($pageList = array(), $Part = '0')
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

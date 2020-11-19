@@ -66,27 +66,27 @@ class S02
                 $columnName = 'Geburtsjahr';
                 break;
             case 'S03_1_1_A':
-                $title = 'S03-1.1-A. Darunter Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                        deren Herkunftssprache nicht oder nicht </br>' . Common::getBlankSpace(19) . 'ausschließlich
-                        Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
+                $title = 'S03-1.1-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(18)
+                    . ' ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             case 'S03_1_1_U':
-                $title = 'S03-1.1-U. Darunter Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                        deren Herkunftssprache nicht oder nicht ausschließlich</br>' . Common::getBlankSpace(19)
-                    . 'Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
+                $title = 'S03-1.1-U. Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(18)
+                    . ' ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             case 'S03_2_1_A':
-                $title = 'S03-2.1-A. Darunter Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterrricht</u>,
-                        deren Herkunftssprache nicht oder nicht </br>' . Common::getBlankSpace(19) . 'ausschließlich
-                        Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
+                $title = 'S03-2.1-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterrricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(18)
+                    . ' ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             case 'S03_2_1_U':
-                $title = 'S03-2.1-U. Darunter Schüler im <u>Ausbildungsstatus Umschüler im Teilzeitunterrricht</u>,
-                        deren Herkunftssprache nicht oder nicht ausschließlich</br>' . Common::getBlankSpace(19)
-                    . 'Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
+                $title = 'S03-2.1-U. Schüler im <u>Ausbildungsstatus Umschüler im Teilzeitunterrricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(18)
+                    . ' ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             default:

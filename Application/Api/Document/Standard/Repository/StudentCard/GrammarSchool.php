@@ -257,11 +257,13 @@ class GrammarSchool extends AbstractStudentCard
     }
 
     /**
+     *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $Part = '0')
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPage())

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS;
 
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\Common;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
@@ -18,19 +19,52 @@ class S01
      *
      * @return array
      */
-    public static function getContent($name = 'S01')
+    public static function getContent($name)
     {
         switch ($name) {
-            case 'S01':
-                $title = 'S01. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger 
-                    Ausbildungsdauer, Zeitform des Unterrichts, Ausbildungsstatus und
-                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Klassenstufen';
+            case 'S01_1_A':
+                $title = 'S01-1-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
                 break;
-            case 'S01_1':
-                $title = 'S01.1 Darunter Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen,
-                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; planmäßiger Ausbildungsdauer,
-                    Zeitform des Unterrichts, Ausbildungsstatus und Klassenstufen';
+            case 'S01_1_U':
+                $title = 'S01-1-U. Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
+                break;
+            case 'S01_1_1_A':
+                $title = 'S01-1.1-A. Darunter Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
+                    Förderschwerpunkten und</br>' . Common::getBlankSpace(19) . 'Klassenstufen';
+                break;
+            case 'S01_1_1_U':
+                $title = 'S01-1.1-U. Darunter Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
+                    Förderschwerpunkten und Klassenstufen';
+                break;
+            case 'S01_2_A':
+                $title = 'S01-2-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
+                break;
+            case 'S01_2_U':
+                $title = 'S01-2-U. Schüler im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u> 
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
+                break;
+            case 'S01_2_1_A':
+                $title = 'S01-2.1-A. Darunter Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
+                    Förderschwerpunkten und</br>' . Common::getBlankSpace(19) . 'Klassenstufen';
+                break;
+            case 'S01_2_1_U':
+                $title = 'S01-2.1-U. Darunter Schüler im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
+                    Förderschwerpunkten und Klassenstufen';
                 break;
             default:
                 $title = '';
@@ -45,15 +79,58 @@ class S01
                 ->setContent($title)
             );
 
-        $width[0] = '17%';
-        $width[1] = '6%';
-        $width[2] = '6%';
-        $width[3] = '15%';
-        $width[4] = '49%';
-        $width[5] = '7%';
-        $width['gender'] = '3.5%';
+        if (strpos($name, 'S01_1') === false) {
+            $maxLevel = 4;
+        } else {
+            $maxLevel = 3;
+        }
 
-        $padding = '3.8px';
+        $width[0] = '25%';
+        $width[1] = '6%';
+        $width[2] = '14%';
+        $width[3] = '10%';
+        $width[4] = '36%';
+        $width[5] = '9%';
+        $width['Level'] = (floatval(36) / floatval($maxLevel)) . '%';
+
+        $levelSectionList = array();
+        if (strpos($name, 'S01_1') === false) {
+            $levelSectionList[] = (new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('1')
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent('2')
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '50%');
+        }
+        $section = new Section();
+        for ($i = 1; $i <= $maxLevel; $i++) {
+            if (strpos($name, 'S01_1') === false) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent($i . '. AJ')
+                        ->styleBorderRight()
+                        ->stylePaddingTop('24.2px')
+                        ->stylePaddingBottom('25px')
+                        , (floatval(100) / floatval($maxLevel)) . '%');
+            } else {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent($i)
+                        ->styleBorderRight()
+                        ->stylePaddingTop('33px')
+                        ->stylePaddingBottom('34.5px')
+                        , (floatval(100) / floatval($maxLevel)) . '%');
+            }
+        }
+        $levelSectionList[] = $section;
+
+        $paddingTop = '42px';
+        $paddingBottom = '43.5px';
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
@@ -66,313 +143,60 @@ class S01
                 ->addElementColumn((new Element())
                     ->setContent('Bildungsgang')
                     ->styleBorderRight()
-                    ->stylePaddingTop('43.1px')
-                    ->stylePaddingBottom('44.6px')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , $width[0])
                 ->addElementColumn((new Element())
                     ->setContent('Plan-<br/>mäßige<br/>Ausbil-<br/>dungs-<br/>dauer in<br/>Monaten')
                     ->styleBorderRight()
-                    ->stylePaddingTop('1.1px')
-                    ->stylePaddingBottom('1.1px')
                     , $width[1])
                 ->addElementColumn((new Element())
-                    ->setContent('Zeitform<br/>des<br/>Unter-<br/>richts¹')
+                    ->setContent('Förderschwerpunkt')
                     ->styleBorderRight()
-                    ->stylePaddingTop('17.8px')
-                    ->stylePaddingBottom('18.6px')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , $width[2])
                 ->addElementColumn((new Element())
-                    ->setContent('Ausbildungsstatus²')
+                    ->setContent('Geschlecht')
                     ->styleBorderRight()
-                    ->stylePaddingTop('43.1px')
-                    ->stylePaddingBottom('44.6px')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , $width[3])
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Neuanfänger in Klassenstufe')
+                        ->setContent('Schüler in Klassenstufe')
                         ->styleBorderRight()
                         ->styleBorderBottom()
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
                     )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Vollzeit')
-                            ->styleBorderRight()
-                            ->styleBorderBottom()
-                            ->stylePaddingTop($padding)
-                            ->stylePaddingBottom($padding)
-                            , '42.857%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Teilzeit')
-                            ->styleBorderRight()
-                            ->styleBorderBottom()
-                            ->stylePaddingTop($padding)
-                            ->stylePaddingBottom($padding)
-                            , '57.143%')
-                    )
-                    ->addSection((new Section())
-                        ->addSliceColumn((new Slice())
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('1')
-                                    ->stylePaddingTop('9px')
-                                    ->stylePaddingBottom('9px')
-                                    ->styleBorderRight()
-                                    ->styleBorderBottom()
-                                    , '33.333%'
-                                )
-                                ->addElementColumn((new Element())
-                                    ->setContent('2')
-                                    ->stylePaddingTop('9px')
-                                    ->stylePaddingBottom('9px')
-                                    ->styleBorderRight()
-                                    ->styleBorderBottom()
-                                    , '33.333%'
-                                )
-                                ->addElementColumn((new Element())
-                                    ->setContent('3')
-                                    ->stylePaddingTop('9px')
-                                    ->stylePaddingBottom('9px')
-                                    ->styleBorderRight()
-                                    ->styleBorderBottom()
-                                    , '33.333%'
-                                )
-                            )
-                            , '42.857%')
-                        ->addSliceColumn((new Slice())
-                            ->addSection((new Section())
-                                ->addSliceColumn((new Slice())
-                                    ->addSection((new Section())
-                                        ->addElementColumn((new Element())
-                                            ->setContent('1')
-                                            ->styleBorderRight()
-                                            ->styleBorderBottom()
-                                        )
-                                    )
-                                    ->addSection((new Section())
-                                        ->addElementColumn((new Element())
-                                            ->setContent('1. AJ')
-                                            ->styleBorderRight()
-                                            ->styleBorderBottom()
-                                            , '50%'
-                                        )
-                                        ->addElementColumn((new Element())
-                                            ->setContent('2. AJ')
-                                            ->styleBorderRight()
-                                            ->styleBorderBottom()
-                                            , '50%'
-                                        )
-                                    )
-                                    , '50%')
-                                ->addSliceColumn((new Slice())
-                                    ->addSection((new Section())
-                                        ->addElementColumn((new Element())
-                                            ->setContent('2')
-                                            ->styleBorderRight()
-                                            ->styleBorderBottom()
-                                        )
-                                    )
-                                    ->addSection((new Section())
-                                        ->addElementColumn((new Element())
-                                            ->setContent('3. AJ')
-                                            ->styleBorderRight()
-                                            ->styleBorderBottom()
-                                            , '50%'
-                                        )
-                                        ->addElementColumn((new Element())
-                                            ->setContent('4. AJ')
-                                            ->styleBorderRight()
-                                            ->styleBorderBottom()
-                                            , '50%'
-                                        )
-                                    )
-                                    , '50%')
-                            )
-                            , '57.143%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '7.143%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '7.143%')
-                    )
+                    ->addSectionList($levelSectionList)
                     , $width[4])
                 ->addSliceColumn((new Slice())
                     ->styleTextBold()
                     ->addElement((new Element())
                         ->setContent('Insgesamt')
-                        ->styleBorderBottom()
-                        ->stylePaddingTop('34px')
-                        ->stylePaddingBottom('35.5px')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight()
-                            , '50%')
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            , '50%')
+                        ->stylePaddingTop($paddingTop)
+                        ->stylePaddingBottom($paddingBottom)
                     )
                     , $width[5])
             );
 
         for ($i = 0; $i < 6; $i++) {
             $section = new Section();
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.' . $name . '.R' . $i . '.Course is not empty) %}
-                            {{ Content.' . $name . '.R' . $i . '.Course }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->stylePaddingLeft('5px')
-                    ->styleBorderRight()
-                    , $width[0]);
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.' . $name . '.R' . $i . '.Time is not empty) %}
-                            {{ Content.' . $name . '.R' . $i . '.Time }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    , $width[1]);
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.' . $name . '.R' . $i . '.Lesson is not empty) %}
-                            {{ Content.' . $name . '.R' . $i . '.Lesson }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    , $width[2]);
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.' . $name . '.R' . $i . '.Status is not empty) %}
-                            {{ Content.' . $name . '.R' . $i . '.Status }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    , $width[3]);
-
-            for ($j = 1; $j < 8; $j++) {
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.' . $name . '.R' . $i . '.L' . $j . '.m is not empty) %}
-                                {{ Content.' . $name . '.R' . $i . '.L' . $j . '.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBorderRight()
-                        ->styleAlignCenter()
-                        , $width['gender'])
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.' . $name . '.R' . $i . '.L' . $j . '.w is not empty) %}
-                                {{ Content.' . $name . '.R' . $i . '.L' . $j . '.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBorderRight()
-                        ->styleAlignCenter()
-                        , $width['gender']);
+            $preText = 'Content.' . $name . '.R' . $i . '.';
+            Common::setContentElement($section, $preText . 'Course', $width[0], false);
+            Common::setContentElement($section, $preText . 'Time', $width[1], true);
+            Common::setContentElement($section, $preText . 'Support', $width[2], false);
+            Common::setContentElement($section, $preText . 'Gender', $width[3], true);
+            Common::setContentElement($section, $preText . 'L1', $width['Level'], true);
+            Common::setContentElement($section, $preText . 'L2', $width['Level'], true);
+            Common::setContentElement($section, $preText . 'L3', $width['Level'], true);
+            if ($maxLevel > 3) {
+                Common::setContentElement($section, $preText . 'L4', $width['Level'], true);
             }
-
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                                {% if (Content.' . $name . '.R' . $i . '.TotalCount.m is not empty) %}
-                                    {{ Content.' . $name . '.R' . $i . '.TotalCount.m }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->styleAlignCenter()
-                    ->styleTextBold()
-                    , $width['gender'])
-                ->addElementColumn((new Element())
-                    ->setContent('
-                                {% if (Content.' . $name . '.R' . $i . '.TotalCount.w is not empty) %}
-                                    {{ Content.' . $name . '.R' . $i . '.TotalCount.w }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleAlignCenter()
-                    ->styleTextBold()
-                    , $width['gender']);
+            if ($maxLevel == 5) {
+                Common::setContentElement($section, $preText . 'L5', $width['Level'], true);
+            }
+            Common::setContentElement($section, $preText . 'TotalCount', $width[5], true, true);
 
             $sliceList[] = (new Slice())
                 ->styleBorderBottom()
@@ -390,61 +214,45 @@ class S01
                 ->setContent('Insgesamt')
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight()
-                ->stylePaddingTop('26.3px')
-                ->stylePaddingBottom('28px')
-                , '23%')
+                ->stylePaddingTop('36px')
+                ->stylePaddingBottom('36.2px')
+                , '45%')
             ->addSliceColumn((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Vollzeit')
-                    ->styleBorderRight()
-                    ->styleBorderBottom()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('9.6px')
-                )
-                ->addElement((new Element())
-                    ->setContent('Teilzeit')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('9.6px')
-                )
-                , $width[2])
-            ->addSliceColumn((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Azubi/Schüler')
+                    ->setContent('männlich')
                     ->styleBorderRight()
                     ->styleBorderBottom()
                 )
                 ->addElement((new Element())
-                    ->setContent('Umschüler')
+                    ->setContent('weiblich')
                     ->styleBorderRight()
                     ->styleBorderBottom()
                 )
                 ->addElement((new Element())
-                    ->setContent('Azubi/Schüler')
+                    ->setContent('divers')
                     ->styleBorderRight()
                     ->styleBorderBottom()
                 )
                 ->addElement((new Element())
-                    ->setContent('Umschüler')
+                    ->setContent('ohne Angabe¹')
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                )
+                ->addElement((new Element())
+                    ->setContent('insgesamt')
                     ->styleBorderRight()
                 )
                 , $width[3])
-            ->addSliceColumn(self::getTotalSlice($name, 'L1', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L1', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L2', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L2', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L3', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L3', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L4', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L4', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L5', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L5', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L6', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L6', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L7', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'L7', 'w'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'TotalCount', 'm'), $width['gender'])
-            ->addSliceColumn(self::getTotalSlice($name, 'TotalCount', 'w', true), $width['gender']);
+            ->addSliceColumn(Common::setTotalSlice($name, 'L1'), $width['Level'])
+            ->addSliceColumn(Common::setTotalSlice($name, 'L2'), $width['Level'])
+            ->addSliceColumn(Common::setTotalSlice($name, 'L3'), $width['Level']);
+        if ($maxLevel > 3) {
+            $section->addSliceColumn(Common::setTotalSlice($name, 'L4'), $width['Level']);
+        }
+        if ($maxLevel == 5) {
+            $section->addSliceColumn(Common::setTotalSlice($name, 'L5'), $width['Level']);
+        }
+        $section->addSliceColumn(Common::setTotalSlice($name, 'TotalCount', true), $width[5]);
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
@@ -455,71 +263,9 @@ class S01
             ->styleBorderRight()
             ->addSection($section);
 
-        $sliceList[] = (new Slice())
-            ->addElement((new Element())
-                ->setContent(
-                    '1)&nbsp;&nbsp;Bitte signieren: Vollzeitunterricht; Teilzeitunterricht</br>
-                     2)&nbsp;&nbsp;Bitte signieren: Auszubildende/Schüler; Umschüler (Schüler in Maßnahmen der beruflichen Umschulung)'
-                )
-                ->styleMarginTop('15px')
-            );
+        $array[] = 'Laut Eintrag im Geburtenregister';
+        $sliceList[] = Common::setFootnotes($array);
 
         return $sliceList;
-    }
-
-    /**
-     * @param $name
-     * @param $identifier
-     * @param $gender
-     * @param bool $isLastColumn
-     *
-     * @return Slice
-     */
-    private static function getTotalSlice($name, $identifier, $gender, $isLastColumn = false)
-    {
-        return (new Slice())
-            ->addElement((new Element())
-                ->setContent('
-                        {% if (Content.' . $name . '.TotalCount.FullTime.Student.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.' . $name . '.TotalCount.FullTime.Student.' . $identifier . '.' . $gender . ' }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                ->styleBorderRight($isLastColumn ? '0px': '1px')
-                ->styleBorderBottom()
-            )
-            ->addElement((new Element())
-                ->setContent('
-                        {% if (Content.' . $name . '.TotalCount.FullTime.ChangeStudent.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.' . $name . '.TotalCount.FullTime.ChangeStudent.' . $identifier . '.' . $gender . ' }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                ->styleBorderRight($isLastColumn ? '0px': '1px')
-                ->styleBorderBottom()
-            )
-            ->addElement((new Element())
-                ->setContent('
-                        {% if (Content.' . $name . '.TotalCount.PartTime.Student.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.' . $name . '.TotalCount.PartTime.Student.' . $identifier . '.' . $gender . ' }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                ->styleBorderRight($isLastColumn ? '0px': '1px')
-                ->styleBorderBottom()
-            )
-            ->addElement((new Element())
-                ->setContent('
-                        {% if (Content.' . $name . '.TotalCount.PartTime.ChangeStudent.' . $identifier . '.' . $gender . ' is not empty) %}
-                            {{ Content.' . $name . '.TotalCount.PartTime.ChangeStudent.' . $identifier . '.' . $gender . ' }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                ->styleBorderRight($isLastColumn ? '0px': '1px')
-            );
     }
 }

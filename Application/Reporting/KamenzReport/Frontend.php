@@ -311,13 +311,23 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Kamenz-Statistik', 'Fachschule validieren');
         $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
 
-        $Stage->addbutton(new External('Herunterladen: Fachschulstatistik',
+        $Stage->addbutton(new External('Herunterladen: Fachschulstatistik Teil I',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
             new Download(),
             array(
-                'Type' => 'Fachschule'
+                'Type' => 'Fachschule',
+                'Part' => '1'
             ),
-            'Kamenz-Statistik herunterladen'
+            'Kamenz-Statistik Teil I herunterladen'
+        ));
+        $Stage->addbutton(new External('Herunterladen: Fachschulstatistik Teil II',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Fachschule',
+                'Part' => '2'
+            ),
+            'Kamenz-Statistik Teil II herunterladen'
         ));
 
         $summary = array();
@@ -332,7 +342,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
-        // todo Validierung der Datenfelder für die Fachschulen
         $content[] = new LayoutColumn(
             KamenzService::validate(Type::useService()->getTypeByName('Fachschule'), $summary)
         );
