@@ -936,7 +936,9 @@ class Service extends AbstractService
         $tblYearHolidayList = $this->getYearHolidayAllByHoliday($tblHoliday);
         if ($tblYearHolidayList){
             foreach ($tblYearHolidayList as $tblYearHoliday){
-                (new Data($this->getBinding()))->removeYearHoliday($tblYearHoliday);
+                if (($tblYear = $tblYearHoliday->getTblYear())) {
+                    (new Data($this->getBinding()))->removeYearHoliday($tblYear, $tblHoliday);
+                }
             }
         }
 
