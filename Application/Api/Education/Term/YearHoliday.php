@@ -4,6 +4,8 @@ namespace SPHERE\Application\Api\Education\Term;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -71,12 +73,13 @@ class YearHoliday extends Extension implements IApiInterface
 
     /**
      * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
      *
      * @return array
      */
-    public static function getTableContentUsed(TblYear $tblYear)
+    public static function getTableContentUsed(TblYear $tblYear, TblCompany $tblCompany = null)
     {
-        $tblHolidayUsedList = Term::useService()->getHolidayAllByYear($tblYear);
+        $tblHolidayUsedList = Term::useService()->getHolidayAllByYear($tblYear, $tblCompany);
         $usedList = array();
         if ($tblHolidayUsedList) {
             foreach ($tblHolidayUsedList as $tblHolidayUsed) {
@@ -95,12 +98,13 @@ class YearHoliday extends Extension implements IApiInterface
 
     /**
      * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
      *
      * @return array
      */
-    public static function getTableContentAvailable(TblYear $tblYear)
+    public static function getTableContentAvailable(TblYear $tblYear, TblCompany $tblCompany = null)
     {
-        $tblHolidayUsedList = Term::useService()->getHolidayAllByYear($tblYear);
+        $tblHolidayUsedList = Term::useService()->getHolidayAllByYear($tblYear, $tblCompany);
         $tblHolidayAllWhereYears = Term::useService()->getHolidayAllWhereYear($tblYear);
 
         $contentHolidayAvailable = array();
@@ -131,18 +135,20 @@ class YearHoliday extends Extension implements IApiInterface
 
     /**
      * @param null $YearId
+     * @param null $CompanyId
      *
      * @return Layout
      */
-    public static function tableHoliday($YearId = null)
+    public static function tableHoliday($YearId = null, $CompanyId = null)
     {
         // get Content
         $tblYear = Term::useService()->getYearById($YearId);
+        $tblCompany = Company::useService()->getCompanyById($CompanyId);
         $ContentList = false;
         $ContentListAvailable = false;
         if ($tblYear) {
-            $ContentList = self::getTableContentUsed($tblYear);
-            $ContentListAvailable = self::getTableContentAvailable($tblYear);
+            $ContentList = self::getTableContentUsed($tblYear, $tblCompany ? $tblCompany : null);
+            $ContentListAvailable = self::getTableContentAvailable($tblYear, $tblCompany ? $tblCompany : null);
         }
 
         // Select
@@ -156,7 +162,7 @@ class YearHoliday extends Extension implements IApiInterface
                         'ToDate' => $Holiday['ToDate'],
                         'Type' => $Holiday['Type'],
                         'Option' => (new Standard('', self::getEndpoint(), new MinusSign(), array(), 'Entfernen'))
-                            ->ajaxPipelineOnClick(self::pipelineMinus($Holiday['Id'], $tblYear->getId()))
+                            ->ajaxPipelineOnClick(self::pipelineMinus($Holiday['Id'], $tblYear->getId(), $CompanyId))
                     );
                 }
                 // Anzeige
@@ -198,7 +204,7 @@ class YearHoliday extends Extension implements IApiInterface
                         'ToDate' => $Holiday['ToDate'],
                         'Type' => $Holiday['Type'],
                         'Option' => (new Standard('', self::getEndpoint(), new PlusSign(), array(), 'Hinzufügen'))
-                            ->ajaxPipelineOnClick(self::pipelinePlus($Holiday['Id'], $tblYear->getId()))
+                            ->ajaxPipelineOnClick(self::pipelinePlus($Holiday['Id'], $tblYear->getId(), $CompanyId))
                     );
                 }
                 // Anzeige
@@ -216,7 +222,7 @@ class YearHoliday extends Extension implements IApiInterface
                             array(1, 'desc')
                         ),
                         'columnDefs' => array(
-                            array('type' => 'de_date', 'targets' => array(1, 2)),
+                            array('type' => 'de_date', 'targets' => array(0, 1)),
                             array('orderable' => false, 'width' => '1%', 'targets' => -1),
                         ),
                         'responsive' => false
@@ -243,10 +249,11 @@ class YearHoliday extends Extension implements IApiInterface
     /**
      * @param null $Id
      * @param null $YearId
+     * @param null $CompanyId
      *
      * @return Pipeline
      */
-    public static function pipelineMinus($Id = null, $YearId = null)
+    public static function pipelineMinus($Id = null, $YearId = null, $CompanyId = null)
     {
         $Pipeline = new Pipeline();
 
@@ -255,7 +262,8 @@ class YearHoliday extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             self::API_TARGET => 'serviceRemoveHoliday',
             'Id' => $Id,
-            'YearId' => $YearId
+            'YearId' => $YearId,
+            'CompanyId' => $CompanyId
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -263,7 +271,8 @@ class YearHoliday extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
         $Emitter->setPostPayload(array(
             self::API_TARGET => 'tableHoliday',
-            'YearId' => $YearId
+            'YearId' => $YearId,
+            'CompanyId' => $CompanyId
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -273,23 +282,26 @@ class YearHoliday extends Extension implements IApiInterface
     /**
      * @param null $Id
      * @param null $YearId
+     * @param null $CompanyId
      */
-    public function serviceRemoveHoliday($Id = null, $YearId = null)
+    public function serviceRemoveHoliday($Id = null, $YearId = null, $CompanyId = null)
     {
         if (($tblHoliday = Term::useService()->getHolidayById($Id))
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
-            Term::useService()->removeYearHoliday($tblYear, $tblHoliday);
+            $tblCompany = Company::useService()->getCompanyById($CompanyId);
+            Term::useService()->removeYearHoliday($tblYear, $tblHoliday, $tblCompany ? $tblCompany : null);
         }
     }
 
     /**
      * @param null $Id
      * @param null $YearId
+     * @param null $CompanyId
      *
      * @return Pipeline
      */
-    public static function pipelinePlus($Id = null, $YearId = null)
+    public static function pipelinePlus($Id = null, $YearId = null, $CompanyId = null)
     {
         $Pipeline = new Pipeline();
 
@@ -298,7 +310,8 @@ class YearHoliday extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             self::API_TARGET => 'serviceAddHoliday',
             'Id' => $Id,
-            'YearId' => $YearId
+            'YearId' => $YearId,
+            'CompanyId' => $CompanyId
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -306,7 +319,8 @@ class YearHoliday extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
         $Emitter->setPostPayload(array(
             self::API_TARGET => 'tableHoliday',
-            'YearId' => $YearId
+            'YearId' => $YearId,
+            'CompanyId' => $CompanyId
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -316,13 +330,15 @@ class YearHoliday extends Extension implements IApiInterface
     /**
      * @param null $Id
      * @param null $YearId
+     * @param null $CompanyId
      */
-    public function serviceAddHoliday($Id = null, $YearId = null)
+    public function serviceAddHoliday($Id = null, $YearId = null, $CompanyId = null)
     {
         if (($tblHoliday = Term::useService()->getHolidayById($Id))
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
-            Term::useService()->addYearHoliday($tblYear, $tblHoliday);
+            $tblCompany = Company::useService()->getCompanyById($CompanyId);
+            Term::useService()->addYearHoliday($tblYear, $tblHoliday, $tblCompany ? $tblCompany : null);
         }
     }
 }

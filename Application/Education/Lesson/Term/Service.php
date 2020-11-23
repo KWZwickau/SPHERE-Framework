@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term;
 
+use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
@@ -97,7 +98,7 @@ class Service extends AbstractService
     public function getYearAllSinceYears($Year)
     {
 
-        $Now = (new \DateTime('now'))->sub(new \DateInterval('P' . $Year . 'Y'));
+        $Now = (new DateTime('now'))->sub(new \DateInterval('P' . $Year . 'Y'));
 
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
@@ -108,14 +109,14 @@ class Service extends AbstractService
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
                     foreach ($tblPeriodList as $tblPeriod) {
-                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                        if (new DateTime($tblPeriod->getToDate()) > new DateTime($To) || $To == '') {
                             $To = $tblPeriod->getToDate();
                         }
                         if ($tblPeriod) {
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new \DateTime($To) >= new \DateTime($Now->format('d.m.Y'))) {
+                    if (new DateTime($To) >= new DateTime($Now->format('d.m.Y'))) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
                             foreach ($tblYearTempList as $tblYearTemp) {
@@ -140,7 +141,7 @@ class Service extends AbstractService
     public function getYearAllFutureYears($Year)
     {
 
-        $Now = (new \DateTime('now'))->add(new \DateInterval('P' . $Year . 'Y'));
+        $Now = (new DateTime('now'))->add(new \DateInterval('P' . $Year . 'Y'));
 
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
@@ -151,14 +152,14 @@ class Service extends AbstractService
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
                     foreach ($tblPeriodList as $tblPeriod) {
-                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                        if (new DateTime($tblPeriod->getToDate()) > new DateTime($To) || $To == '') {
                             $To = $tblPeriod->getToDate();
                         }
                         if ($tblPeriod) {
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new \DateTime($To) >= new \DateTime($Now->format('d.m.Y'))) {
+                    if (new DateTime($To) >= new DateTime($Now->format('d.m.Y'))) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
                             foreach ($tblYearTempList as $tblYearTemp) {
@@ -271,11 +272,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $Date
+     * @param DateTime $Date
      *
      * @return bool|TblYear[]
      */
-    public function getYearAllByDate(\DateTime $Date)
+    public function getYearAllByDate(DateTime $Date)
     {
 
         $EntityList = array();
@@ -288,18 +289,18 @@ class Service extends AbstractService
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
                     foreach ($tblPeriodList as $tblPeriod) {
-                        if (new \DateTime($tblPeriod->getFromDate()) < new \DateTime($From) || $From == '') {
+                        if (new DateTime($tblPeriod->getFromDate()) < new DateTime($From) || $From == '') {
                             $From = $tblPeriod->getFromDate();
                         }
-                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                        if (new DateTime($tblPeriod->getToDate()) > new DateTime($To) || $To == '') {
                             $To = $tblPeriod->getToDate();
                         }
                         if ($tblPeriod) {
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new \DateTime($From) <= new \DateTime($Date->format('d.m.Y')) &&
-                        new \DateTime($To) >= new \DateTime($Date->format('d.m.Y'))
+                    if (new DateTime($From) <= new DateTime($Date->format('d.m.Y')) &&
+                        new DateTime($To) >= new DateTime($Date->format('d.m.Y'))
                     ) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
@@ -345,7 +346,7 @@ class Service extends AbstractService
     public function getYearByNow()
     {
 
-        $Now = new \DateTime('now');
+        $Now = new DateTime('now');
         return $this->getYearAllByDate($Now);
     }
 
@@ -729,14 +730,24 @@ class Service extends AbstractService
 
     /**
      * @param TblYear $tblYear
-     * @param \DateTime $date
+     * @param DateTime $date
+     * @param TblCompany|null $tblCompany
      *
      * @return false|TblHoliday
      */
-    public function getHolidayByDay(TblYear $tblYear, \DateTime $date)
+    public function getHolidayByDay(TblYear $tblYear, DateTime $date, TblCompany $tblCompany = null)
     {
-
-        return (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date);
+        if ($tblCompany) {
+            if (($tblHoliday = (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, $tblCompany))) {
+                // Unterrichtsfreier Tag an der Schule
+                return $tblHoliday;
+            } else {
+                // Unterrichtsfreier Tag für alle Schulen
+                return (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, null);
+            }
+        } else {
+            return (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, null);
+        }
     }
 
     /**
@@ -750,13 +761,13 @@ class Service extends AbstractService
 
     /**
      * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
      *
      * @return false|TblHoliday[]
      */
-    public function getHolidayAllByYear(TblYear $tblYear)
+    public function getHolidayAllByYear(TblYear $tblYear, TblCompany $tblCompany = null)
     {
-
-        return (new Data($this->getBinding()))->getHolidayAllByYear($tblYear);
+        return (new Data($this->getBinding()))->getHolidayAllByYear($tblYear, $tblCompany);
     }
 
     /**
@@ -772,13 +783,14 @@ class Service extends AbstractService
 
     /**
      * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
      *
      * @return false|TblYearHoliday[]
      */
-    public function getYearHolidayAllByYear(TblYear $tblYear)
+    public function getYearHolidayAllByYear(TblYear $tblYear, TblCompany $tblCompany = null)
     {
 
-        return (new Data($this->getBinding()))->getYearHolidayAllByYear($tblYear);
+        return (new Data($this->getBinding()))->getYearHolidayAllByYear($tblYear, $tblCompany);
     }
 
     /**
@@ -916,12 +928,13 @@ class Service extends AbstractService
     /**
      * @param TblYear $tblYear
      * @param TblHoliday $tblHoliday
+     * @param TblCompany|null $tblCompany
      *
      * @return bool
      */
-    public function removeYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday)
+    public function removeYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday, TblCompany $tblCompany = null)
     {
-        return (new Data($this->getBinding()))->removeYearHoliday($tblYear, $tblHoliday);
+        return (new Data($this->getBinding()))->removeYearHoliday($tblYear, $tblHoliday, $tblCompany);
     }
 
     /**
@@ -937,7 +950,8 @@ class Service extends AbstractService
         if ($tblYearHolidayList){
             foreach ($tblYearHolidayList as $tblYearHoliday){
                 if (($tblYear = $tblYearHoliday->getTblYear())) {
-                    (new Data($this->getBinding()))->removeYearHoliday($tblYear, $tblHoliday);
+                    $tblCompany = $tblYearHoliday->getServiceTblCompany();
+                    (new Data($this->getBinding()))->removeYearHoliday($tblYear, $tblHoliday, $tblCompany ? $tblCompany : null);
                 }
             }
         }
@@ -957,19 +971,19 @@ class Service extends AbstractService
         if (($tblPeriodList = $tblYear->getTblPeriodAll(false, true))) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($startDate) {
-                    if ($startDate > new \DateTime($tblPeriod->getFromDate())) {
-                        $startDate = new \DateTime($tblPeriod->getFromDate());
+                    if ($startDate > new DateTime($tblPeriod->getFromDate())) {
+                        $startDate = new DateTime($tblPeriod->getFromDate());
                     }
                 } else {
-                    $startDate = new \DateTime($tblPeriod->getFromDate());
+                    $startDate = new DateTime($tblPeriod->getFromDate());
                 }
 
                 if ($endDate) {
-                    if ($endDate < new \DateTime($tblPeriod->getToDate())) {
-                        $endDate = new \DateTime($tblPeriod->getToDate());
+                    if ($endDate < new DateTime($tblPeriod->getToDate())) {
+                        $endDate = new DateTime($tblPeriod->getToDate());
                     }
                 } else {
-                    $endDate = new \DateTime($tblPeriod->getToDate());
+                    $endDate = new DateTime($tblPeriod->getToDate());
                 }
             }
         }
@@ -992,6 +1006,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
      * @param $Data
      *
      * @return IFormInterface
@@ -999,6 +1014,7 @@ class Service extends AbstractService
     public function importHolidayFromSystem(
         IFormInterface &$Stage = null,
         TblYear $tblYear,
+        TblCompany $tblCompany = null,
         $Data
     ) {
 
@@ -1010,8 +1026,7 @@ class Service extends AbstractService
         }
 
         $error = false;
-        $tblState = false;
-        if (isset($Data) && !($tblState = BasicData::useService()->getStateById($Data))) {
+        if (!($tblState = BasicData::useService()->getStateById($Data))) {
             $Stage->setError('Data', 'Bitte wählen Sie ein Bundesland aus');
             $error = true;
         }
@@ -1042,7 +1057,7 @@ class Service extends AbstractService
                             }
 
                             if ($tblHoliday) {
-                                (new Data($this->getBinding()))->addYearHoliday($tblYear, $tblHoliday);
+                                (new Data($this->getBinding()))->addYearHoliday($tblYear, $tblHoliday, $tblCompany);
                             }
                         }
                     }

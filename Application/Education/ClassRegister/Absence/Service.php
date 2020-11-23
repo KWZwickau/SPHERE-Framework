@@ -127,7 +127,10 @@ class Service extends AbstractService
         /** @var TblAbsence $item */
         foreach ($list as $item) {
             if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                $days += intval($item->getDays($tillDate, $countLessons));
+                $tblDivisionByAbsence = $item->getServiceTblDivision();
+                $days += intval($item->getDays($tillDate, $countLessons,
+                    ($tblCompany = $tblDivisionByAbsence->getServiceTblCompany()) ? $tblCompany : null
+                ));
             }
         }
 
@@ -162,7 +165,10 @@ class Service extends AbstractService
         /** @var TblAbsence $item */
         foreach ($list as $item) {
             if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                $days += intval($item->getDays($tillDate, $countLessons));
+                $tblDivisionByAbsence = $item->getServiceTblDivision();
+                $days += intval($item->getDays($tillDate, $countLessons,
+                    ($tblCompany = $tblDivisionByAbsence->getServiceTblCompany()) ? $tblCompany : null
+                ));
             }
         }
 
