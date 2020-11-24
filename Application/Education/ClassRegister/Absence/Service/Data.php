@@ -266,7 +266,11 @@ class Data extends AbstractData
             ->from(__NAMESPACE__ . '\Entity\TblAbsence', 't')
             ->where($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->between('t.FromDate', '?1', '?2'),
-                $queryBuilder->expr()->between('t.ToDate', '?1', '?2')
+                $queryBuilder->expr()->between('t.ToDate', '?1', '?2'),
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->lte('t.FromDate', '?1'),
+                    $queryBuilder->expr()->gte('t.ToDate', '?2')
+                )
             ))
             ->setParameter(1, $fromDate)
             ->setParameter(2, $toDate)
@@ -295,6 +299,12 @@ class Data extends AbstractData
         $or = $queryBuilder->expr()->orX();
         $or->add($queryBuilder->expr()->between('t.FromDate', '?1', '?2'));
         $or->add($queryBuilder->expr()->between('t.ToDate', '?1', '?2'));
+        $or->add(
+            $queryBuilder->expr()->andX(
+                $queryBuilder->expr()->lte('t.FromDate', '?1'),
+                $queryBuilder->expr()->gte('t.ToDate', '?2')
+            )
+        );
 
         $and->add($or);
 
