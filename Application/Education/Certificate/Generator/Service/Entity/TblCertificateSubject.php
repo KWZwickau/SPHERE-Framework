@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
@@ -24,6 +26,7 @@ class TblCertificateSubject extends Element
     const ATTR_RANKING = 'Ranking';
     const ATTR_TBL_CERTIFICATE = 'tblCertificate';
     const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const SERVICE_TBL_TECHNICAL_COURSE = 'serviceTblTechnicalCourse';
 
     /**
      * @Column(type="bigint")
@@ -50,6 +53,10 @@ class TblCertificateSubject extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblStudentLiberationCategory;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblTechnicalCourse;
 
     /**
      * @return boolean
@@ -170,5 +177,27 @@ class TblCertificateSubject extends Element
     {
 
         $this->tblCertificate = ( null === $tblCertificate ? null : $tblCertificate->getId() );
+    }
+
+    /**
+     * @return bool|TblTechnicalCourse
+     */
+    public function getServiceTblTechnicalCourse()
+    {
+
+        if (null === $this->serviceTblTechnicalCourse) {
+            return false;
+        } else {
+            return Course::useService()->getTechnicalCourseById($this->serviceTblTechnicalCourse);
+        }
+    }
+
+    /**
+     * @param TblTechnicalCourse|null $serviceTblTechnicalCourse
+     */
+    public function setServiceTblTechnicalCourse(TblTechnicalCourse $serviceTblTechnicalCourse = null)
+    {
+
+        $this->serviceTblTechnicalCourse = ( null === $serviceTblTechnicalCourse ? null : $serviceTblTechnicalCourse->getId() );
     }
 }

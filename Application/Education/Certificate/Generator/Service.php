@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -97,13 +98,14 @@ class Service extends AbstractService
 
     /**
      * @param TblCertificate $tblCertificate
+     * @param TblTechnicalCourse|null $TechnicalCourse
      *
      * @return bool|TblCertificateSubject[]
      */
-    public function getCertificateSubjectAll(TblCertificate $tblCertificate)
+    public function getCertificateSubjectAll(TblCertificate $tblCertificate, $TechnicalCourse = null)
     {
 
-        return (new Data($this->getBinding()))->getCertificateSubjectAll($tblCertificate);
+        return (new Data($this->getBinding()))->getCertificateSubjectAll($tblCertificate, $TechnicalCourse);
     }
 
     /**
@@ -158,10 +160,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Form
-     * @param TblCertificate $tblCertificate
-     * @param array $GradeList
-     * @param array $SubjectList
+     * @param IFormInterface|null     $Form
+     * @param TblCertificate          $tblCertificate
+     * @param array                   $GradeList
+     * @param array                   $SubjectList
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return IFormInterface|string
      */
@@ -169,7 +172,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblCertificate $tblCertificate,
         $GradeList,
-        $SubjectList
+        $SubjectList,
+        TblTechnicalCourse $tblTechnicalCourse = null
     ) {
 
         /**
@@ -211,13 +215,13 @@ class Service extends AbstractService
             foreach ($FieldList as $LaneRanking => $Field) {
                 if (($tblSubject = Subject::useService()->getSubjectById($Field['Subject']))) {
                     $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
-                        $tblCertificate, $LaneIndex, $LaneRanking
+                        $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse
                     );
                     if ($tblCertificateSubject) {
                         // Update
                         (new Data($this->getBinding()))->updateCertificateSubject($tblCertificateSubject,
                             $tblSubject,
-                            isset($Field['IsEssential'])
+                            isset($Field['IsEssential']), $tblTechnicalCourse
 //                            , ((isset($Field['Liberation']) && $Field['Liberation'])
 //                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
 //                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
@@ -230,7 +234,7 @@ class Service extends AbstractService
                         // Create
                         (new Data($this->getBinding()))->createCertificateSubject($tblCertificate,
                             $LaneIndex, $LaneRanking, $tblSubject,
-                            isset($Field['IsEssential'])
+                            isset($Field['IsEssential']), $tblTechnicalCourse
 //                            , ((isset($Field['Liberation']) && $Field['Liberation'])
 //                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
 //                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
@@ -247,7 +251,7 @@ class Service extends AbstractService
                         );
                     } else {
                         if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
-                            $tblCertificate, $LaneIndex, $LaneRanking
+                            $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse
                         ))
                         ) {
                             (new Data($this->getBinding()))->removeCertificateSubject($tblCertificateSubject);
@@ -298,16 +302,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificate $tblCertificate
-     * @param int $LaneIndex
-     * @param int $LaneRanking
+     * @param TblCertificate          $tblCertificate
+     * @param int                     $LaneIndex
+     * @param int                     $LaneRanking
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return bool|TblCertificateSubject
      */
-    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking)
+    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse = null)
     {
 
-        return (new Data($this->getBinding()))->getCertificateSubjectByIndex($tblCertificate, $LaneIndex, $LaneRanking);
+        return (new Data($this->getBinding()))->getCertificateSubjectByIndex($tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse);
     }
 
     /**

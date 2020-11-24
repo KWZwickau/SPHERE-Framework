@@ -95,22 +95,14 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblCertificateSubject');
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'Lane')) {
-            $Table->addColumn('Lane', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'Ranking')) {
-            $Table->addColumn('Ranking', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'IsEssential')) {
-            $Table->addColumn('IsEssential', 'boolean');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblStudentLiberationCategory')) {
-            $Table->addColumn('serviceTblStudentLiberationCategory', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblSubject')) {
-            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
-        }
-        $this->getConnection()->addForeignKey($Table, $tblCertificate);
+        $this->createColumn($Table, 'Lane', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'IsEssential', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'serviceTblStudentLiberationCategory', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblTechnicalCourse', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createForeignKey($Table, $tblCertificate);
 
         return $Table;
     }

@@ -20,6 +20,7 @@ class SDataFachschule
         self::setFsHj($Data);
         self::setFsJ(($Data));
         self::setFsAbs(($Data));
+        self::setFsAbsFhr(($Data));
         self::setFsAbg(($Data));
     }
 
@@ -146,6 +147,34 @@ class SDataFachschule
             $Data->createCertificateInformation($tblCertificate, 'AddAducation', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     */
+    private static function setFsAbsFhr(Data $Data)
+    {
+
+        if (($tblCertificate = $Data->createCertificate('Fachschule Abschlusszeugnis FHR', 'Fachhochschulreife', 'FsAbsFhr',
+            null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeFachschule()))
+        ) {
+            // ToDO hinterlegung irgendwelcher Fächer?
+
+            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
+            // Seite 2
+//            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+//            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+//            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+//            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+//            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+//            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
+            // Seite 3
+//            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 3);
+//            $Data->createCertificateInformation($tblCertificate, 'DateTo', 3);
+//            $Data->createCertificateInformation($tblCertificate, 'AbsYear', 3);
+//            $Data->createCertificateInformation($tblCertificate, 'ProfessionalTitle', 3);
+
         }
     }
 

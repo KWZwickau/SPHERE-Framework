@@ -45,7 +45,7 @@ class FsHjInfo extends FsStyle
             ->addSlice($this->getSchoolHead($personId, 'Halbjahresinformation'))
             ->addSlice($this->getStudentHead($personId, 'Schulhalbjahr', 'folgende Leistungen erreicht:', true))
             ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, '200px', 1, 4))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, '200px', 1, 4))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8))
         ;
 

@@ -483,7 +483,16 @@ abstract class BfsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        $tblTechnicalCourse = null;
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
+                }
+            }
+        }
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
         $tblGradeList = $this->getGrade();
 
         if (!empty($tblCertificateSubjectAll)) {
@@ -660,7 +669,16 @@ abstract class BfsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        $tblTechnicalCourse = null;
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
+                }
+            }
+        }
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
         $tblGradeList = $this->getGrade();
 
         // Anzahl der Abzubildenden Einträge (auch ohne Fach)
@@ -837,7 +855,16 @@ abstract class BfsStyle extends Certificate
             ->stylePaddingBottom('10px')
         );
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        $tblTechnicalCourse = null;
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
+                }
+            }
+        }
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
         $tblGradeList = $this->getGrade();
         $CountSubjectMissing = 0;
         if (!empty($tblCertificateSubjectAll)) {
@@ -979,7 +1006,16 @@ abstract class BfsStyle extends Certificate
     protected function getPraktika($personId, TblCertificate $tblCertificate)
     {
 
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+        $tblTechnicalCourse = null;
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
+                }
+            }
+        }
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
 
         $Subject = array();
 

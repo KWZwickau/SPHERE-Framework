@@ -370,9 +370,8 @@ abstract class FsStyle extends Certificate
      * @param $personId
      *
      * @return Slice
-     * //ToDO maybe remove if not used
      */
-    protected function getStudentHeadAbs($personId)
+    protected function getStudentHeadAbs($personId, $isFhr = false)
     {
 
         $Slice = new Slice();
@@ -500,15 +499,117 @@ abstract class FsStyle extends Certificate
             ->stylePaddingTop('30px')
         );
 
-        $Slice->addElement((new Element())
-            ->setContent('zu führen.' )
-            ->styleAlignCenter()
-            ->styleTextSize('16px')
-            ->stylePaddingTop('30px')
-        );
+        if(!$isFhr){
+            $Slice->addElement((new Element())
+                ->setContent('zu führen.' )
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->stylePaddingTop('30px')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent('zu führen.
+                {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                {% else %}
+                    Frau/Herr
+                {% endif %}
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                 hat die Prüfung zum' )
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->stylePaddingTop('30px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('Erwerb der Fachhochschulreife bestanden und den Bildungsgang' )
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('an der Fachschule erfolgreich abgeschlossen.<sup style="font-size: 80% !important;">1)</sup> Die' )
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('Fachhochschulreife')
+                ->styleAlignCenter()
+                ->styleTextSize('20px')
+                ->styleTextBold()
+                ->stylePaddingTop('10px')
+                ->stylePaddingBottom('10px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('wird zuerkannt. Damit berechtigt dieses Zeugnis zum Studium an einer Fachhochschule' )
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+            );
+            $Slice->addElement((new Element())
+            ->setContent('in der Bundesrepublik Deutschland.<sup style="font-size: 80% !important;">2)</sup>' )
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->stylePaddingBottom('10px')
+            );
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Durchschnittsnote<sup style="font-size: 80% !important;">3)</sup>:')
+                    ->styleMarginTop('15px')
+                , '20%')
 
-
-         
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                , '5%')
+                //ToDO neues Eingabefeld
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P'.$personId.'.Input.Average is not empty) %}
+                                 {{ Content.P'.$personId.'.Input.Average }}
+                             {% else %}
+                                 &ndash;
+                             {% endif %}')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('#BBB')
+                    ->styleMarginTop('15px')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingBottom('1.5px')
+                , '14%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                , '10%')
+                //ToDO neues Eingabefeld
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P'.$personId.'.Input.AverageInWord is not empty) %}
+                                 {{ Content.P'.$personId.'.Input.AverageInWord }}
+                             {% else %}
+                                 &ndash;
+                             {% endif %}')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('#BBB')
+                    ->styleMarginTop('15px')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingBottom('1.5px')
+                , '50%')
+            );
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '25%')
+                ->addElementColumn((new Element())
+                    ->setContent('in Ziffern')
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('4px')
+                    ->styleTextSize('10px')
+                    , '14%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '10%')
+                ->addElementColumn((new Element())
+                    ->setContent('in Worten')
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('4px')
+                    ->styleTextSize('10px')
+                    , '50%')
+            );
+        }
 
         return $Slice;
     }
@@ -1709,14 +1810,24 @@ abstract class FsStyle extends Certificate
 
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P' . $personId . '.Company.Address.City.Name }}')
+                ->setContent('
+                {% if(Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                    {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
                 ->styleAlignCenter()
                 ->styleBorderBottom('0.5px')
                 , '35%')
             ->addElementColumn((new Element())
                 , '30%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P' . $personId . '.Input.Date }}')
+                ->setContent('
+                {% if(Content.P' . $personId . '.Input.Date is not empty) %}
+                    {{ Content.P' . $personId . '.Input.Date }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
                 ->styleAlignCenter()
                 ->styleBorderBottom('0.5px')
                 , '35%')
@@ -2044,14 +2155,15 @@ abstract class FsStyle extends Certificate
     private function getCertificateSubjectByPerson($personId, TblCertificate $tblCertificate)
     {
 
-        //ToDO remove old Version
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
-
+        $tblTechnicalCourse = null;
         if(($tblPerson = Person::useService()->getPersonById($personId))){
             if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                //ToDO Fachschule Bildungsgang / Berufsbezeichung zur erkennung der richtigen Fächereinstellung
+                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
+                }
             }
         }
-        return $tblCertificateSubjectAll;
+
+        return Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
     }
 }
