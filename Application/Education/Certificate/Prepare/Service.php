@@ -876,6 +876,13 @@ class Service extends AbstractService
             }
         }
 
+        // Berufsfachschulen / Fachschulen
+        if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+            if(($tblStudentTenseOfLesson = $tblTechnicalSchool->getTblStudentTenseOfLesson())){
+                $Content['P' . $personId]['Student']['TenseOfLesson'] = $tblStudentTenseOfLesson->getName();
+            }
+        }
+
         $tblYear = false;
         if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
             $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();

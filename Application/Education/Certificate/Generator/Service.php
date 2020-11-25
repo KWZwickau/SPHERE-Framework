@@ -506,7 +506,6 @@ class Service extends AbstractService
             'Content.Input.AddEducation'        => 'TextField',
             'Content.Input.ChosenArea1'         => 'TextField',
             'Content.Input.ChosenArea2'         => 'TextField',
-            'Content.Input.TimeType'            => 'TextField',
 
         );
     }
@@ -582,8 +581,6 @@ class Service extends AbstractService
             'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife (Überschrift)',
             'Content.Input.ChosenArea1'         => 'Wahlbereich 1',
             'Content.Input.ChosenArea2'         => 'Wahlbereich 2',
-            'Content.Input.TimeType'            => 'Vollzeitform / Teilzeitform',
-
         );
     }
 

@@ -469,8 +469,8 @@ abstract class FsStyle extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('in
-                {% if(Content.P' . $personId . '.Input.TimeType is not empty) %}
-                    {{ Content.P' . $personId . '.Input.TimeType }}
+                {% if(Content.P' . $personId . '.Student.TenseOfLesson is not empty) %}
+                    {{ Content.P' . $personId . '.Student.TenseOfLesson }}
                 {% else %}
                     ---
                 {% endif %} besucht und im Schuljahr
@@ -559,7 +559,7 @@ abstract class FsStyle extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                 , '5%')
-                //ToDO neues Eingabefeld
+                //ToDO neues Eingabefeld nur für Abgangszeugnis FHR
                 ->addElementColumn((new Element())
                     ->setContent('{% if(Content.P'.$personId.'.Input.Average is not empty) %}
                                  {{ Content.P'.$personId.'.Input.Average }}
@@ -575,7 +575,7 @@ abstract class FsStyle extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                 , '10%')
-                //ToDO neues Eingabefeld
+                //ToDO neues Eingabefeld nur für Abgangszeugnis FHR
                 ->addElementColumn((new Element())
                     ->setContent('{% if(Content.P'.$personId.'.Input.AverageInWord is not empty) %}
                                  {{ Content.P'.$personId.'.Input.AverageInWord }}
@@ -667,7 +667,6 @@ abstract class FsStyle extends Certificate
             ->styleTextSize('16px')
             ->stylePaddingTop('10px')
         );
-        //toDO FsDestination erhalten
         $Slice->addElement((new Element())
             ->setContent('Fachschule für "Platzhalter"{% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
                     {{ Content.P' . $personId . '.Input.BfsDestination }}
