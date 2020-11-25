@@ -339,7 +339,10 @@ class Service extends ServiceScoreRule
                     $sum = 0;
                     $count = 0;
                     foreach ($tblGradeList as $tblGrade) {
-                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                        if ($tblGrade->getGrade() !== null
+                            && $tblGrade->getGrade() !== ''
+                            && is_numeric($tblGrade->getGrade())
+                        ) {
                             $value = floatval($tblGrade->getGrade());
                             $sum += $value;
                             $count++;
