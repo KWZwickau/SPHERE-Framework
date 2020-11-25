@@ -110,7 +110,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 new LayoutRow(array(
                     new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
-                            'Berufsbildende Schulen',
+                            'Allgemeines',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Bildungsgang / Berufsbezeichnung / Ausbildung', 5),
@@ -256,7 +256,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
         );
 
         $panelTechnical = new Panel(
-            'Berufsbildende Schulen',
+            'Allgemeines',
             new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
