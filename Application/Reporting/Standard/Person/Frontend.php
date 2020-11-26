@@ -1524,7 +1524,8 @@ class Frontend extends Extension implements IFrontendInterface
             (new ApiStandard())->reloadAbsenceContent()
         );
 
-        $datePicker = new DatePicker('Data[Date]', '', 'Datum', new Calendar());
+        $datePickerFrom = new DatePicker('Data[Date]', '', 'Datum von', new Calendar());
+        $datePickerTo = new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar());
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
         $groupTextField = new TextField('Data[GroupName]', '', 'oder Gruppe');
@@ -1538,16 +1539,19 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout (new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    $datePicker, 3
+                                    $datePickerFrom, 2
                                 ),
                                 new LayoutColumn(
-                                    $typeSelectBox, 3
+                                    $datePickerTo, 2
                                 ),
                                 new LayoutColumn(
-                                    $divisionTextField, 3
+                                    $typeSelectBox, 4
                                 ),
                                 new LayoutColumn(
-                                    $groupTextField, 3
+                                    $divisionTextField, 2
+                                ),
+                                new LayoutColumn(
+                                    $groupTextField, 2
                                 ),
                             )),
                             new LayoutRow(array(

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Reporting\Standard;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
@@ -81,11 +82,18 @@ class ApiStandard extends Extension implements IApiInterface
     public function reloadAbsenceContent($Data = null)
     {
         if ($Data['Date'] == null) {
-            $date = (new \DateTime('now'))->format('d.m.Y');
+            $date = (new DateTime('now'))->format('d.m.Y');
         } else {
             $date = $Data['Date'];
         }
-        $dateTime = new \DateTime($date);
+        $dateTimeFrom = new DateTime($date);
+
+        if ($Data['ToDate'] && $Data['ToDate'] != '') {
+            $dateTimeTo = new DateTime($Data['ToDate']);
+        } else {
+            $dateTimeTo = null;
+        }
+
 
         if ($Data['Type'] != null) {
             $tblType = Type::useService()->getTypeById($Data['Type']);
@@ -104,7 +112,8 @@ class ApiStandard extends Extension implements IApiInterface
             }
 
             $absenceList = Absence::useService()->getAbsenceAllByDay(
-                $dateTime,
+                $dateTimeFrom,
+                $dateTimeTo,
                 $tblType ? $tblType : null,
                 $divisionList,
                 array(),
@@ -118,7 +127,8 @@ class ApiStandard extends Extension implements IApiInterface
             }
 
             $absenceList = Absence::useService()->getAbsenceAllByDay(
-                $dateTime,
+                $dateTimeFrom,
+                $dateTimeTo,
                 $tblType ? $tblType : null,
                 array(),
                 $groupList,
@@ -126,7 +136,8 @@ class ApiStandard extends Extension implements IApiInterface
             );
         } else {
             $absenceList = Absence::useService()->getAbsenceAllByDay(
-                $dateTime,
+                $dateTimeFrom,
+                $dateTimeTo,
                 $tblType ? $tblType : null,
                 array(),
                 array(),
@@ -135,7 +146,7 @@ class ApiStandard extends Extension implements IApiInterface
         }
 
         $title = new Title(
-            'Fehlzeiten für den ' . $dateTime->format('d.m.Y')
+            'Fehlzeiten für den ' . $dateTimeFrom->format('d.m.Y')
             . ($tblType ? ', Schulart: ' . $tblType->getName() : '')
         );
 
@@ -170,6 +181,7 @@ class ApiStandard extends Extension implements IApiInterface
                             new Download(),
                             array(
                                 'Date' => $Data['Date'],
+                                'DateTo' => $Data['ToDate'],
                                 'Type' => $Data['Type'],
                                 'DivisionName' => $Data['DivisionName'],
                                 'GroupName' => $Data['GroupName']

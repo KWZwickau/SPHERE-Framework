@@ -3270,14 +3270,15 @@ class Service extends Extension
     }
 
     /**
-     * @param DateTime $dateTime
+     * @param DateTime $dateTimeFrom
+     * @param DateTime|null $dateTimeTo
      * @param null $Type
      * @param string $DivisionName
      * @param string $GroupName
-     *
-     * @return bool|FilePointer
+     * @return false|FilePointer
      */
-    public function createAbsenceListExcel(DateTime $dateTime, $Type = null, $DivisionName = '', $GroupName = '')
+    public function createAbsenceListExcel(DateTime $dateTimeFrom, DateTime $dateTimeTo = null, $Type = null,
+        $DivisionName = '', $GroupName = '')
     {
 
         if ($Type != null) {
@@ -3292,7 +3293,8 @@ class Service extends Extension
             $divisionList = Division::useService()->getDivisionAllByName($DivisionName);
             if (!empty($divisionList)) {
                 $absenceList = Absence::useService()->getAbsenceAllByDay(
-                    $dateTime,
+                    $dateTimeFrom,
+                    $dateTimeTo,
                     $tblType ? $tblType : null,
                     $divisionList,
                     array(),
@@ -3306,7 +3308,8 @@ class Service extends Extension
             $groupList = Group::useService()->getGroupListLike($GroupName);
             if (!empty($groupList)) {
                 $absenceList = Absence::useService()->getAbsenceAllByDay(
-                    $dateTime,
+                    $dateTimeFrom,
+                    $dateTimeTo,
                     $tblType ? $tblType : null,
                     array(),
                     $groupList,
@@ -3317,7 +3320,8 @@ class Service extends Extension
             }
         } else {
             $absenceList = Absence::useService()->getAbsenceAllByDay(
-                $dateTime,
+                $dateTimeFrom,
+                $dateTimeTo,
                 $tblType ? $tblType : null,
                 array(),
                 array(),
@@ -3326,7 +3330,7 @@ class Service extends Extension
         }
 
         if (!empty($absenceList)) {
-            return $this->createExcelByAbsenceList($absenceList, $hasAbsenceTypeOptions, $isGroup, $dateTime);
+            return $this->createExcelByAbsenceList($absenceList, $hasAbsenceTypeOptions, $isGroup, $dateTimeFrom);
         }
 
         return false;

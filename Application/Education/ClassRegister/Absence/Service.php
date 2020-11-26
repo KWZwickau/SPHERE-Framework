@@ -215,16 +215,19 @@ class Service extends AbstractService
     }
 
     /**
-     * @param DateTime $dateTime
+     * @param DateTime $fromDate
+     * @param DateTime|null $toDate
      * @param TblType|null $tblType
      * @param array $divisionList
      * @param array $groupList
      * @param bool $hasAbsenceTypeOptions
      *
      * @return array
+     * @throws \Exception
      */
     public function getAbsenceAllByDay(
-        DateTime $dateTime,
+        DateTime $fromDate,
+        DateTime $toDate = null,
         TblType $tblType = null,
         $divisionList = array(),
         $groupList = array(),
@@ -234,11 +237,16 @@ class Service extends AbstractService
         $tblAbsenceList = array();
         $isGroup = false;
         $groupPersonList = array();
+
+        if ($toDate == null) {
+            $toDate = $fromDate;
+        }
+
         if (!empty($divisionList)
             && ($tblDivisionAll = Division::useService()->getDivisionAll())
         ) {
             foreach ($divisionList as $tblDivision) {
-                if (($tblAbsenceDivisionList = $this->getAbsenceAllByDivision($tblDivision))) {
+                if (($tblAbsenceDivisionList = $this->getAbsenceAllBetweenByDivision($fromDate, $toDate, $tblDivision))) {
                     $tblAbsenceList = array_merge($tblAbsenceList, $tblAbsenceDivisionList);
                 }
             }
@@ -248,31 +256,21 @@ class Service extends AbstractService
                 if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                     foreach ($tblPersonList as $tblPerson) {
                         $groupPersonList[$tblPerson->getId()] = $tblGroup->getName();
-                        if (($tblAbsencePersonList = $this->getAbsenceAllByPerson($tblPerson))) {
+                        if (($tblAbsencePersonList = (new Data($this->getBinding()))->getAbsenceAllBetweenByPerson(
+                            $fromDate, $tblPerson, $toDate))
+                        ) {
                             $tblAbsenceList = array_merge($tblAbsenceList, $tblAbsencePersonList);
                         }
                     }
                 }
             }
         } else {
-            $tblAbsenceList = $this->getAbsenceAll();
+            $tblAbsenceList = $this->getAbsenceAllBetween($fromDate, $toDate);
         }
 
         if ($tblAbsenceList) {
             foreach ($tblAbsenceList as $tblAbsence) {
-                $isAdd = false;
-                $fromDate = new DateTime($tblAbsence->getFromDate());
-                if ($fromDate->format('d.m.Y') == $dateTime->format('d.m.Y')) {
-                    $isAdd = true;
-                } elseif ($tblAbsence->getToDate()) {
-                    $toDate = new DateTime($tblAbsence->getToDate());
-                    if ($fromDate <= $dateTime && $toDate >= $dateTime) {
-                        $isAdd = true;
-                    }
-                }
-
-                if ($isAdd
-                    && ($tblPerson = $tblAbsence->getServiceTblPerson())
+                if (($tblPerson = $tblAbsence->getServiceTblPerson())
                     && ($tblDivision = $tblAbsence->getServiceTblDivision())
                     && ($tblLevel = $tblDivision->getTblLevel())
                     && ($tblTypeItem = $tblLevel->getServiceTblType())
