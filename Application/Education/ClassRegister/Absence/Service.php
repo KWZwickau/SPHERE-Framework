@@ -22,6 +22,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -541,6 +542,15 @@ class Service extends AbstractService
             $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
         }
 
+        $tblPersonStaff = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPersonStaff = $tblPersonAllByAccount[0];
+            }
+        }
+
         if ($tblPerson && $tblDivision) {
             if (($tblAbsence = (new Data($this->getBinding()))->createAbsence(
                 $tblPerson,
@@ -549,7 +559,8 @@ class Service extends AbstractService
                 $Data['ToDate'],
                 $Data['Status'],
                 $Data['Remark'],
-                isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL
+                isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
+                $tblPersonStaff ? $tblPersonStaff : null
             ))) {
                 if (isset($Data['UE'])) {
                     foreach ($Data['UE'] as $lesson => $value) {
@@ -572,13 +583,23 @@ class Service extends AbstractService
      */
     public function updateAbsenceService(TblAbsence $tblAbsence, $Data)
     {
+        $tblPersonStaff = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPersonStaff = $tblPersonAllByAccount[0];
+            }
+        }
+
         if ((new Data($this->getBinding()))->updateAbsence(
             $tblAbsence,
             $Data['FromDate'],
             $Data['ToDate'],
             $Data['Status'],
             $Data['Remark'],
-            isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL
+            isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
+            $tblPersonStaff ? $tblPersonStaff : null
         )) {
             for ($i = 1; $i < 11; $i++) {
                 if (isset($Data['UE'][$i])) {

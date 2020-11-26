@@ -17,6 +17,7 @@ use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -76,6 +77,11 @@ class TblAbsence extends Element
      * @Column(type="smallint")
      */
     protected $Type;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonStaff;
 
     /**
      * @return bool|TblPerson
@@ -358,6 +364,28 @@ class TblAbsence extends Element
     }
 
     /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonStaff()
+    {
+
+        if (null === $this->serviceTblPersonStaff) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonStaff);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonStaff(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonStaff = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
      * @return string
      */
     public function getTypeDisplayShortName()
@@ -399,6 +427,25 @@ class TblAbsence extends Element
             );
 
             return $data[$date->format('w')];
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayStaff()
+    {
+
+        if (($tblPerson = $this->getServiceTblPersonStaff())){
+            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                if ($tblTeacher->getAcronym()) {
+                    return $tblTeacher->getAcronym();
+                }
+            }
+
+            return $tblPerson->getLastName();
         }
 
         return '';

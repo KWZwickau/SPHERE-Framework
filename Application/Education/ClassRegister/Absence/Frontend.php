@@ -543,6 +543,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Lessons' => $tblAbsence->getLessonStringByAbsence(),
                     'Remark' => $tblAbsence->getRemark(),
                     'Status' => $status,
+                    'PersonStaff' => $tblAbsence->getDisplayStaff(),
                     'Option' =>
                         (new Standard(
                             '',
@@ -576,6 +577,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Type' => 'Typ',
                 'Remark' => 'Bemerkung',
+                'PersonStaff' => 'Bearbeiter',
                 'Status' => 'Status',
                 'Option' => ''
             );
@@ -586,6 +588,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Days' => 'Tage',
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Remark' => 'Bemerkung',
+                'PersonStaff' => 'Bearbeiter',
                 'Status' => 'Status',
                 'Option' => ''
             );

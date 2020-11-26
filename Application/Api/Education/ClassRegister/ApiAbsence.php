@@ -901,6 +901,7 @@ class ApiAbsence extends Extension implements IApiInterface
             null,
             array(),
             ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
+            . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
     }
 
@@ -1243,7 +1244,9 @@ class ApiAbsence extends Extension implements IApiInterface
             ApiAbsence::getEndpoint(),
             null,
             array(),
-            ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName(),
+            ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
+            . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+            ,
             null,
             $isWhiteLink ? Link::TYPE_WHITE_LINK : Link::TYPE_LINK
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
