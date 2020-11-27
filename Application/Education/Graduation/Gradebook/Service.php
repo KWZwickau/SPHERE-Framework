@@ -2020,4 +2020,20 @@ class Service extends ServiceScoreRule
                     'GradeTypeId' => $tblNextGradeType ? $tblNextGradeType->getId() : null)
             );
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getSubjectGradesByAllYears(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType
+    ) {
+        // todo Schuljahreswiederholung heraus lassen
+        return (new Data($this->getBinding()))->getSubjectGradesByAllYears($tblPerson, $tblSubject, $tblTestType);
+    }
 }

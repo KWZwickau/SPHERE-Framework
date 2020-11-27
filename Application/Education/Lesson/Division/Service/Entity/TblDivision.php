@@ -210,4 +210,16 @@ class TblDivision extends Element
         }
         return false;
     }
+
+    /**
+     * @return bool
+     */
+    public function isTechnical()
+    {
+        if (($tblType = $this->getType())) {
+            return  $tblType->isTechnical();
+        }
+
+        return false;
+    }
 }

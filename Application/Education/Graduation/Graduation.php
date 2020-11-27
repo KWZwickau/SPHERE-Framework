@@ -86,7 +86,7 @@ class Graduation implements IApplicationInterface
         if (Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Teacher')) {
             $Item['Modul'] = new Bold('Leistungsüberprüfung (Ansicht: Lehrer)');
             $Item['Description'] = 'Verwaltung der Leistungsüberprüfungen (inklusive Kopfnoten und Stichtagsnoten)
-                        , wo der angemeldete Lehrer als Fachlehrer oder Klassenlehrer hinterlegt ist.';
+                        , wo der angemeldete Lehrer als Fachlehrer hinterlegt ist.';
             array_push($TableContent, $Item);
         }
         if (Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Headmaster')) {
