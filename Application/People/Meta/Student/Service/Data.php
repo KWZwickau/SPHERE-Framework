@@ -2,6 +2,10 @@
 namespace SPHERE\Application\People\Meta\Student\Service;
 
 use DateTime;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
@@ -12,6 +16,9 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -394,6 +401,12 @@ class Data extends Support
         $this->createStudentSpecialNeedsLevel('Mittelstufe', 'MIDDLE');
         $this->createStudentSpecialNeedsLevel('Oberstufe', 'UPPER');
         $this->createStudentSpecialNeedsLevel('Werkstufe', 'WORK');
+
+        // Berufsbildende Schulen
+        $this->createStudentTenseOfLesson(TblStudentTenseOfLesson::FULL_TIME, 'Vollzeitunterricht');
+        $this->createStudentTenseOfLesson(TblStudentTenseOfLesson::PART_TIME, 'Teilzeitunterricht');
+        $this->createStudentTrainingStatus(TblStudentTrainingStatus::STUDENT, 'Auszubildende/Schüler');
+        $this->createStudentTrainingStatus(TblStudentTrainingStatus::CHANGE_STUDENT, 'Umschüler');
     }
 
     /**
@@ -1031,6 +1044,155 @@ class Data extends Support
             $Entity->setSign($Sign);
             $Entity->setValidTo($ValidTo);
             $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentTenseOfLesson
+     */
+    public function createStudentTenseOfLesson($Identifier, $Name)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentTenseOfLesson')->findOneBy(array(
+            TblStudentTenseOfLesson::ATTR_IDENTIFIER => $Identifier
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentTenseOfLesson();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentTrainingStatus
+     */
+    public function createStudentTrainingStatus($Identifier, $Name)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentTrainingStatus')->findOneBy(array(
+            TblStudentTrainingStatus::ATTR_IDENTIFIER => $Identifier
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentTrainingStatus();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $praxisLessons
+     * @param $durationOfTraining
+     * @param $remark
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
+     * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
+     * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
+     * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     *
+     * @return TblStudentTechnicalSchool
+     */
+    public function createStudentTechnicalSchool(
+        $praxisLessons,
+        $durationOfTraining,
+        $remark,
+        TblTechnicalCourse $tblTechnicalCourse = null,
+        TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
+        TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
+        TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null
+    ) {
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblStudentTechnicalSchool();
+        $Entity->setPraxisLessons($praxisLessons);
+        $Entity->setDurationOfTraining($durationOfTraining);
+        $Entity->setRemark($remark);
+        $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
+        $Entity->setServiceTblSchoolDiploma($tblSchoolDiploma);
+        $Entity->setServiceTblSchoolType($tblSchoolType);
+        $Entity->setServiceTblTechnicalDiploma($tblTechnicalDiploma);
+        $Entity->setServiceTblTechnicalType($tblTechnicalType);
+        $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
+        $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentTechnicalSchool $tblStudentTechnicalSchool
+     * @param $praxisLessons
+     * @param $durationOfTraining
+     * @param $remark
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
+     * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
+     * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
+     * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     *
+     * @return bool
+     */
+    public function updateStudentTechnicalSchool(
+        TblStudentTechnicalSchool $tblStudentTechnicalSchool,
+        $praxisLessons,
+        $durationOfTraining,
+        $remark,
+        TblTechnicalCourse $tblTechnicalCourse = null,
+        TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
+        TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
+        TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null
+    ) {
+
+        $Manager = $this->getEntityManager();
+        /** @var null|TblStudentTechnicalSchool $Entity */
+        $Entity = $Manager->getEntityById('TblStudentTechnicalSchool', $tblStudentTechnicalSchool->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+
+            $Entity->setPraxisLessons($praxisLessons);
+            $Entity->setDurationOfTraining($durationOfTraining);
+            $Entity->setRemark($remark);
+            $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
+            $Entity->setServiceTblSchoolDiploma($tblSchoolDiploma);
+            $Entity->setServiceTblSchoolType($tblSchoolType);
+            $Entity->setServiceTblTechnicalDiploma($tblTechnicalDiploma);
+            $Entity->setServiceTblTechnicalType($tblTechnicalType);
+            $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
+            $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

@@ -213,4 +213,22 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeSchool($tblSchool);
     }
+
+    /**
+     * @return bool
+     */
+    public function hasConsumerTechnicalSchool()
+    {
+        if (($tblSchoolAll = $this->getSchoolAll())) {
+            foreach($tblSchoolAll as $tblSchool) {
+                if (($tblType = $tblSchool->getServiceTblType())
+                    && $tblType->isTechnical()
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }
