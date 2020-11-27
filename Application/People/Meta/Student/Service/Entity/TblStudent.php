@@ -73,6 +73,10 @@ class TblStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentSpecialNeeds;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentTechnicalSchool;
 
     /**
      * @Column(type="boolean")
@@ -495,6 +499,28 @@ class TblStudent extends Element
     {
 
         $this->tblStudentSpecialNeeds = ( null === $tblStudentSpecialNeeds ? null : $tblStudentSpecialNeeds->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentTechnicalSchool
+     */
+    public function getTblStudentTechnicalSchool()
+    {
+
+        if (null === $this->tblStudentTechnicalSchool) {
+            return false;
+        } else {
+            return Student::useService()->getStudentTechnicalSchoolById($this->tblStudentTechnicalSchool);
+        }
+    }
+
+    /**
+     * @param null|TblStudentTechnicalSchool $tblStudentTechnicalSchool
+     */
+    public function setTblStudentTechnicalSchool(TblStudentTechnicalSchool $tblStudentTechnicalSchool = null)
+    {
+
+        $this->tblStudentTechnicalSchool = ( null === $tblStudentTechnicalSchool ? null : $tblStudentTechnicalSchool->getId() );
     }
 
     /**

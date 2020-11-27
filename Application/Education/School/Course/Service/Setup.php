@@ -28,6 +28,10 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableCourse($Schema);
+        $this->setTableSchoolDiploma($Schema);
+        $this->setTableTechnicalDiploma($Schema);
+        $this->setTableTechnicalCourse($Schema);
+
         /**
          * Migration & Protocol
          */
@@ -57,5 +61,49 @@ class Setup extends AbstractSetup
             $Table->addColumn('Description', 'string');
         }
         return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableTechnicalDiploma(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblTechnicalDiploma');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSchoolDiploma(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblSchoolDiploma');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableTechnicalCourse(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblTechnicalCourse');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'GenderMaleName', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'GenderFemaleName', self::FIELD_TYPE_STRING);
+
+        return $table;
     }
 }

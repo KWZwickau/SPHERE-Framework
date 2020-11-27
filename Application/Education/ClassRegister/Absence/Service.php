@@ -282,7 +282,7 @@ class Service extends AbstractService
                             $tblPerson, $tblAbsence, $resultList);
                     }
 
-                    if (!$hasAbsenceTypeOptions && $this->hasAbsenceTypeOptionsBySchoolType($tblTypeItem)) {
+                    if (!$hasAbsenceTypeOptions && $tblTypeItem->isTechnical()) {
                         $hasAbsenceTypeOptions = true;
                     }
                 }
@@ -501,29 +501,10 @@ class Service extends AbstractService
         if (($tblLevel = $tblDivision->getTblLevel())
             && ($tblSchoolType = $tblLevel->getServiceTblType())
         ) {
-            return $this->hasAbsenceTypeOptionsBySchoolType($tblSchoolType);
+            return $tblSchoolType->isTechnical();
         }
 
         return false;
-    }
-
-    /**
-     * @param TblType $tblSchoolType
-     *
-     * @return bool
-     */
-    public function hasAbsenceTypeOptionsBySchoolType(TblType $tblSchoolType)
-    {
-        if ($tblSchoolType->getName() == 'Berufliches Gymnasium'
-            || $tblSchoolType->getName() == 'Berufsfachschule'
-            || $tblSchoolType->getName() == 'Berufsschule'
-            || $tblSchoolType->getName() == 'Fachoberschule'
-            || $tblSchoolType->getName() == 'Fachschule'
-        ) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
