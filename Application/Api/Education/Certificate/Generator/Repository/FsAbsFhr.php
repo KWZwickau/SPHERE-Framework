@@ -70,7 +70,7 @@ class FsAbsFhr extends FsStyle
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId))
             ->addSlice($this->getChosenArea($personId))
-            ->addSlice($this->getDescriptionBsContent($personId))
+            ->addSlice($this->getDescriptionFsContent($personId))
 //            ->addSlice($this->getTransfer($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')

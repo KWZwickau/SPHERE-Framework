@@ -59,7 +59,7 @@ class FsHjInfo extends FsStyle
             ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
             ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))
             ->addSlice($this->getChosenArea($personId))
-            ->addSlice($this->getDescriptionBsContent($personId))
+            ->addSlice($this->getDescriptionFsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
                 ->stylePaddingTop('281px')
