@@ -540,6 +540,14 @@ abstract class Student extends AbstractData
     }
 
     /**
+     * @return false|TblStudentTechnicalSchool
+     */
+    public function getStudentTechnicalSchoolAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblStudentTechnicalSchool');
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblStudentSpecialNeedsLevel

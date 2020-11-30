@@ -253,6 +253,14 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @return false|TblStudentTechnicalSchool[]
+     */
+    public function getStudentTechnicalSchoolAll()
+    {
+        return (new Data($this->getBinding()))->getStudentTechnicalSchoolAll();
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblStudentSpecialNeedsLevel

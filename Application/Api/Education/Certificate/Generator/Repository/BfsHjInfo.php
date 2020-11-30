@@ -7,11 +7,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class BfsHj
+ * Class BfsHjInfo
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class BfsHj extends BfsStyle
+class BfsHjInfo extends BfsStyle
 {
 
     /**
@@ -44,24 +44,27 @@ class BfsHj extends BfsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSchoolHead($personId, 'Halbjahreszeugnis', true))
-            ->addSlice($this->getStudentHead($personId, 'Schulhalbjahr', 'hat in der gesamten bisherigen Ausbildung folgende Leistungen erreicht:'))
+            ->addSlice($this->getSchoolHead($personId, 'Halbjahresinformation'))
+            ->addSlice($this->getStudentHead($personId, 'Schulhalbjahr', 'folgende Leistungen erreicht:', true))
             ->addSlice($this->getSubjectLineDuty())
             ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Berufsbezogener Bereich', 1, 10))
         ;
 
+//        Debugger::screenDump($pageList[0]->getContent());
+//        exit;
+
         $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId, 'Halbjahreszeugnis', true))
+            ->addSlice($this->getSecondPageHead($personId))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('11px')
+                ->stylePaddingTop('123px')
             ))
-            ->addSlice($this->getIndividuallySignPart($personId))
+            ->addSlice($this->getBottomInformation($personId))
             ->addSlice($this->getBsInfo('20px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
         ;
