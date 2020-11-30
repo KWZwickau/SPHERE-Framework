@@ -309,7 +309,7 @@ abstract class BfsStyle extends Certificate
             )
         );
         $Slice->addElement((new Element())
-            ->setContent('hat von 
+            ->setContent('hat vom 
                 {% if(Content.P' . $personId . '.Input.DateFrom is not empty) %}
                     {{ Content.P' . $personId . '.Input.DateFrom }}
                 {% else %}
@@ -327,7 +327,7 @@ abstract class BfsStyle extends Certificate
             ->stylePaddingTop('10px')
         );
         $Slice->addElement((new Element())
-            ->setContent('Berufsfachschule für {% if(Content.P' . $personId . '.BfsDestination.BsDestination is not empty) %}
+            ->setContent('Berufsfachschule für {% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
                     {{ Content.P' . $personId . '.Input.BfsDestination }}
                 {% else %}
                     ---

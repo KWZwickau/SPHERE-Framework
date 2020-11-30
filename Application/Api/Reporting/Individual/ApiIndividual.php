@@ -28,6 +28,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTechnicalSchool;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
@@ -37,6 +38,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentAuthorized;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -117,10 +119,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'TblGroup_Id',
     );
 
-    // ummappen der Spaltennamen auf "_Name"
+    // ummappen der Spaltennamen "_Id" auf "_Name"
     private $IdSearchList = array(
         'TblLevel_Id',
         'TblGroup_Id',
+        'TblType_Id',
+        'TblTechnicalType_Id',
+        'TblTechnicalDiploma_Id',
     );
 
     // sortierung der Spalten nach Datum
@@ -815,9 +820,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $tblAccount = Account::useService()->getAccountBySession();
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType, $tblAccount) {
 
+                $PostValue = $tblPreset->getPostValue();
                 $Item['Name'] = $tblPreset->getName();
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
-                $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('Filterung hinterlegt') : new SuccessText('Filterung leer'));
+                $Item['IsPost'] = (!empty($PostValue) ? new SuccessText('Filterung hinterlegt') : new SuccessText('Filterung leer'));
                 $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
@@ -974,8 +980,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         if ($tblPresetList) {
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType) {
+                $PostValue = $tblPreset->getPostValue();
                 $Item['Name'] = $tblPreset->getName();
-                $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('hinterlegt') : new SuccessText('leer'));
+                $Item['IsPost'] = (!empty($PostValue) ? new SuccessText('hinterlegt') : new SuccessText('leer'));
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
                 $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
@@ -1210,6 +1217,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Panel( 'Bildung:', new Scrollable( $Block, 245 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Bildung:', new Scrollable( $Block ) );
+                    }
+                }
+                // Ladebedingung -> muss Berufs-, Berufsfach- oder Fachschule eingestellt haben
+                if (School::useService()->hasConsumerTechnicalSchool()){
+                    $Block = $this->getPanelList(new ViewGroupStudentTechnicalSchool(), $WorkSpaceList,
+                        TblWorkSpace::VIEW_TYPE_STUDENT);
+                    if(!empty($Block)){
+                        if(isset($ViewList['ViewGroupStudentTechnicalSchool'])){
+                            $AccordionList[] = new Panel('Schüler Berufsbildende Schulen:', new Scrollable($Block, 300));
+                        } else {
+                            $AccordionList[] = new Dropdown('Schüler Berufsbildende Schulen:', new Scrollable($Block));
+                        }
                     }
                 }
                 $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);

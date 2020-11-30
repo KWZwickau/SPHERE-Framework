@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
  * Class Fs
@@ -225,7 +226,6 @@ abstract class FsStyle extends Certificate
      * @param string $CertificateName
      *
      * @return Slice
-     * //ToDO maybe remove if not used
      */
     protected function getSchoolHeadAbg($personId, $CertificateName = 'Abgangszeugnis', $isChangeableCertificateName = false)
     {
@@ -412,7 +412,7 @@ abstract class FsStyle extends Certificate
             )
         );
         $Slice->addElement((new Element())
-            ->setContent('hat von 
+            ->setContent('hat vom 
                 {% if(Content.P' . $personId . '.Input.DateFrom is not empty) %}
                     {{ Content.P' . $personId . '.Input.DateFrom }}
                 {% else %}
@@ -618,7 +618,6 @@ abstract class FsStyle extends Certificate
      * @param $personId
      *
      * @return Slice
-     * //ToDO maybe remove if not used
      */
     protected function getStudentHeadAbg($personId)
     {
@@ -662,14 +661,25 @@ abstract class FsStyle extends Certificate
         );
         //toDO Zeitraum eintragen & erhalten
         $Slice->addElement((new Element())
-            ->setContent('hat von "Datum1" bis "Datum2" die')
+            ->setContent('hat vom 
+                {% if(Content.P' . $personId . '.Input.DateFrom is not empty) %}
+                    {{ Content.P' . $personId . '.Input.DateFrom }}
+                {% else %}
+                    ---
+                {% endif %}
+                bis 
+                {% if(Content.P' . $personId . '.Input.DateTo is not empty) %}
+                    {{ Content.P' . $personId . '.Input.DateTo }}
+                {% else %}
+                    ---
+                {% endif %} die')
             ->styleAlignCenter()
             ->styleTextSize('16px')
             ->stylePaddingTop('10px')
         );
         $Slice->addElement((new Element())
-            ->setContent('Fachschule für "Platzhalter"{% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
-                    {{ Content.P' . $personId . '.Input.BfsDestination }}
+            ->setContent('Fachschule {% if(Content.P' . $personId . '.Input.FsDestination is not empty) %}
+                    {{ Content.P' . $personId . '.Input.FsDestination }}
                 {% endif %}')
             ->styleAlignCenter()
             ->styleTextSize('20px')
@@ -677,11 +687,16 @@ abstract class FsStyle extends Certificate
             ->stylePaddingTop('10px')
         );
         $Slice->addElement((new Element())
-            ->setContent('besucht und folgende Leistungen erreicht:')
+            ->setContent('in 
+                {% if(Content.P' . $personId . '.Student.TenseOfLesson is not empty) %}
+                    {{ Content.P' . $personId . '.Student.TenseOfLesson }}
+                {% else %}
+                    ---
+                {% endif %} 
+                besucht und folgende Leistungen erreicht:')
             ->styleAlignCenter()
             ->styleTextSize('16px')
             ->stylePaddingTop('10px')
-            ->styleBorderBottom('0.5px')
         );
 
         return $Slice;
@@ -1427,8 +1442,8 @@ abstract class FsStyle extends Certificate
         for($i = 1; $i <= 4; $i++){
             $SubjectSection = (new Section());
             $SubjectSection->addElementColumn((new Element())
-                ->setContent($i.'
-                {% if(Content.P'.$personId.'.Input.WrittenTestSubject'.$i.' is not empty) %}
+                ->setContent(//$i.
+                '{% if(Content.P'.$personId.'.Input.WrittenTestSubject'.$i.' is not empty) %}
                     {{ Content.P'.$personId.'.Input.WrittenTestSubject'.$i.' }}
                 {% else %}
                     &nbsp;
@@ -1487,8 +1502,8 @@ abstract class FsStyle extends Certificate
         for($i = 1; $i <= 1; $i++){
             $SubjectSection = (new Section());
             $SubjectSection->addElementColumn((new Element())
-                ->setContent($i.'
-                {% if(Content.P'.$personId.'.Input.PractiseTestSubject'.$i.' is not empty) %}
+                ->setContent(//$i.
+                '{% if(Content.P'.$personId.'.Input.PractiseTestSubject'.$i.' is not empty) %}
                     {{ Content.P'.$personId.'.Input.PractiseTestSubject'.$i.' }}
                 {% else %}
                     &nbsp;
@@ -1547,8 +1562,8 @@ abstract class FsStyle extends Certificate
         for($i = 1; $i <= 12; $i++){
             $SubjectSection = (new Section());
             $SubjectSection->addElementColumn((new Element())
-                ->setContent($i.'
-                {% if(Content.P'.$personId.'.Input.InformationalExpulsion'.$i.' is not empty) %}
+                ->setContent(// $i.
+                '{% if(Content.P'.$personId.'.Input.InformationalExpulsion'.$i.' is not empty) %}
                     {{ Content.P'.$personId.'.Input.InformationalExpulsion'.$i.' }}
                 {% else %}
                     &nbsp;
@@ -1729,7 +1744,7 @@ abstract class FsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getDescriptionBsContent($personId, $Height = '85px')
+    protected function getDescriptionFsContent($personId, $Height = '85px')
     {
 
         $Slice = new Slice();
@@ -1797,13 +1812,13 @@ abstract class FsStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
-     * @param string $paddingTop
-     * @param bool   $isChairPerson Abgangszeugnis
+     * @param int  $personId
+     * @param bool $isChairPerson Abschlusszeugnis
+     * @param bool $isChairPersonAndDivisionTeacher Abgangszeugnis
      *
      * @return Slice
      */
-    protected function getIndividuallySignPart($personId, $isChairPerson = false)
+    protected function getIndividuallySignPart($personId, $isChairPerson = false, $isChairPersonAndDivisionTeacher = false)
     {
         $Slice = (new Slice());
 
@@ -1877,6 +1892,54 @@ abstract class FsStyle extends Certificate
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Vorsitzende/r des Prüfungsausschusses'
+                    )
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Description }}
+                        {% else %}
+                            Schulleiter/in
+                        {% endif %}'
+                    )
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            );
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '&nbsp;'
+                    )
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop('2px')
+                    ->styleAlignCenter()
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
+                    )
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop('2px')
+                    ->styleAlignCenter()
+                    , '35%')
+            );
+        } elseif($isChairPersonAndDivisionTeacher) {
+            // Abgangszeugnis
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Vorsitzende/r des Prüfungsausschusses'
+                        . new Container('Klassenlehrer/in')
                     )
                     ->styleAlignCenter()
                     ->styleTextSize('11px')

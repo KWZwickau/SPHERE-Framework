@@ -214,8 +214,15 @@ class SDataFachschule
 
         $tblCertificate = $Data->createCertificate('Fachschule Abgangszeugnis', '', 'FsAbg',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeFachschule());
-//        if ($tblCertificate) {
+        if ($tblCertificate) {
             // ToDO hinterlegung irgendwelcher Fächer?
+
+            // Begrenzung Eingabefelder
+            $Var = 'RemarkWithoutTeam';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+                $Data->createCertificateField($tblCertificate, $Var, 100);
+            }
+
 //            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
 //                $row = 1;
 //                $column = 1;
@@ -241,7 +248,7 @@ class SDataFachschule
 //                $Data->setCertificateSubject($tblCertificate, 'TC', $row, $column++);
 //                $Data->setCertificateSubject($tblCertificate, 'INF', $row, $column);
 //            }
-//        }
+        }
     }
 
 }

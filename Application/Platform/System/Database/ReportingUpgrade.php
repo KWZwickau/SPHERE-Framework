@@ -47,6 +47,7 @@ class ReportingUpgrade
         'viewGroupStudentBasic' => 'viewGroupStudentBasic.twig',
 //        'viewGroupStudentIntegration' => 'viewGroupStudentIntegration.twig',
         'viewGroupStudentSubject' => 'viewGroupStudentSubject.twig',
+        'viewGroupStudentTechnicalSchool' => 'viewGroupStudentTechnicalSchool.twig',
         'viewGroupTeacher' => 'viewGroupTeacher.twig',
         'viewPeopleMetaCommon' => 'viewPeopleMetaCommon.twig',
         'viewPerson' => 'viewPerson.twig',
