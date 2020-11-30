@@ -2033,7 +2033,24 @@ class Service extends ServiceScoreRule
         TblSubject $tblSubject,
         TblTestType $tblTestType
     ) {
-        // todo Schuljahreswiederholung heraus lassen
-        return (new Data($this->getBinding()))->getSubjectGradesByAllYears($tblPerson, $tblSubject, $tblTestType);
+
+        $tblGradeList = (new Data($this->getBinding()))->getSubjectGradesByAllYears($tblPerson, $tblSubject, $tblTestType);
+        if ($tblGradeList
+            && ($tblDivisionRepeatList = Division::useService()->getRepeatedDivisionAllByPerson($tblPerson))
+        ) {
+            $resultList = array();
+            // Zensuren vom wiederholten Schuljahr herausfiltern
+            foreach ($tblGradeList as $tblGrade) {
+                if (($tblDivision = $tblGrade->getServiceTblDivision())
+                    && !isset($tblDivisionRepeatList[$tblDivision->getId()])
+                ) {
+                    $resultList[$tblGrade->getId()] = $tblGrade;
+                }
+            }
+
+            return empty($resultList) ? false : $resultList;
+        } else {
+            return $tblGradeList;
+        }
     }
 }

@@ -121,13 +121,18 @@ class ApiGradesAllYears extends Extension implements IApiInterface
         }
 
         $divisionList = array();
+        $tblDivisionRepeatList = Division::useService()->getRepeatedDivisionAllByPerson($tblPerson);
         if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
             && ($tblType = $tblDivision->getType())
             && ($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByPerson($tblPerson))
         ) {
             foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
-                // todo Schuljahreswiederholung heraus lassen
                 if (($tblDivisionItem = $tblDivisionStudent->getTblDivision())) {
+                    // Wiederholte Schuljahr herausfiltern
+                    if ($tblDivisionRepeatList && isset($tblDivisionRepeatList[$tblDivisionItem->getId()])) {
+                        continue;
+                    }
+
                     // Alle Klassen der Schulart finden
                     if (($tblYear = $tblDivisionItem->getServiceTblYear())
                         && ($tblTypeItem = $tblDivisionItem->getType())
