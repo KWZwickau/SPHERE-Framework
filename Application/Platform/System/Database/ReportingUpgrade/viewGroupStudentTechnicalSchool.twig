@@ -1,0 +1,43 @@
+SELECT
+
+-- PersonId to match with all View's // tblStudent
+tS.serviceTblPerson AS TblPerson_Id,
+tS.Id AS TblStudent_Id,
+
+-- serviceTblTechnicalCourse
+-- ToDO Geschlechtsbestimmung in SQL?
+tTC.Name as TblTechnicalCourse_Name,
+-- serviceTblSchoolDiploma
+tSD.Name as TblSchoolDiploma_Name,
+-- serviceTblSchoolType
+tT.Name as TblType_Name,
+tT.Id as TblType_Id,
+-- serviceTblTechnicalDiploma
+tTD.Name as TblTechnicalDiploma_Name,
+tTD.Id as TblTechnicalDiploma_Id,
+-- serviceTblTechnicalType
+tTT.Name as TblTechnicalType_Name,
+tTT.Id as TblTechnicalType_Id,
+
+-- TblStudentTechnicalSchool
+tSTS.PraxisLessons as TblStudentTechnicalSchool_PraxisLessons,
+tSTS.DurationOfTraining as TblStudentTechnicalSchool_DurationOfTraining,
+tSTS.Remark as TblStudentTechnicalSchool_Remark,
+-- TblStudentTensOfLesson
+tSTOL.Name as TblStudentTensOfLesson_Name,
+-- TblStudentTrainingStatus
+tSTSt.Name as TblStudentTrainingStatus_Name
+
+
+FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS
+left join PeopleMeta_{{ ConsumerAcronym }}.tblStudentTechnicalSchool tSTS on tSTS.Id = tS.tblStudentTechnicalSchool
+left join PeopleMeta_{{ ConsumerAcronym }}.tblStudentTenseOfLesson tSTOL on tSTOL.Id = tSTS.tblStudentTenseOfLesson
+left join PeopleMeta_{{ ConsumerAcronym }}.tblStudentTrainingStatus tSTSt on tSTSt.Id = tSTS.tblStudentTrainingStatus
+
+left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalCourse tTC on tTC.Id = tSTS.serviceTblTechnicalCourse
+left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblSchoolDiploma tSD on tSD.Id = tSTS.serviceTblSchoolDiploma
+left join EducationSchoolType_{{ ConsumerAcronym }}.tblType tT on tT.Id = tSTS.serviceTblSchoolType
+left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalDiploma tTD on tTD.Id = tSTS.serviceTblTechnicalDiploma
+left join EducationSchoolType_{{ ConsumerAcronym }}.tblType tTT on tTT.Id = tSTS.serviceTblTechnicalType
+
+WHERE tS.EntityRemove is Null
