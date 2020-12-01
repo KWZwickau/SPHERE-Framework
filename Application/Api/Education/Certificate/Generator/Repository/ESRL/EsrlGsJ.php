@@ -84,7 +84,7 @@ class EsrlGsJ extends EsrlStyle
                     )
                 )
                 ->addSection(
-                    self::getESRLRemark($personId, '220px')
+                    self::getESRLRemark($personId, true, '220px')
                 )
                 ->addSection(
                     self::getESRLMissing($personId)

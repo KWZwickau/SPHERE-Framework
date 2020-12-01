@@ -334,11 +334,12 @@ abstract class EsrlStyle extends Certificate
 
     /**
      * @param        $personId
-     * @param string $Hight
+     * @param bool   $hasGTA
+     * @param string $Height
      *
      * @return Section
      */
-    public function getESRLRemark($personId, $Hight = '100px')
+    public function getESRLRemark($personId, $hasGTA, $Height = '100px')
     {
 
         $Section = new Section();
@@ -346,15 +347,17 @@ abstract class EsrlStyle extends Certificate
             ->setContent('
                 {% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
                     {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }} <br>
-                {% endif %}
-                {% if(Content.P'.$personId.'.Input.GTA is not empty) %}
-                    {{ Content.P'.$personId.'.Input.GTA|nl2br }}
-                {% else %}
-                    &nbsp;
-                {% endif %}
-            ')
+                {% endif %}'
+                . ($hasGTA
+                    ? '{% if(Content.P'.$personId.'.Input.GTA is not empty) %}
+                        {{ Content.P'.$personId.'.Input.GTA|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}'
+                    : '')
+            )
             ->styleAlignJustify()
-            ->styleHeight($Hight)
+            ->styleHeight($Height)
             ->styleMarginTop('20px')
         );
         return $Section;
