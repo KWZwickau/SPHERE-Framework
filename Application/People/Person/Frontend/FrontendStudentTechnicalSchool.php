@@ -18,9 +18,9 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -146,7 +146,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 $content,
                 array($editLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new Hospital()
+                new ClipBoard()
             );
         }
 
@@ -200,7 +200,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
      */
     private function getEditStudentTechnicalSchoolTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new Hospital() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
+        return new Title(new ClipBoard() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 
