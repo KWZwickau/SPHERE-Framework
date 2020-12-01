@@ -431,16 +431,15 @@ abstract class BfsStyle extends Certificate
                 , '35%'
             )
         );
-        //toDO Zeitraum eintragen & erhalten
         $Slice->addElement((new Element())
-            ->setContent('hat von "Datum1" bis "Datum2" die')
+            ->setContent('hat vom {{ Content.P' . $personId . '.Input.DateFrom }}
+                bis {{ Content.P' . $personId . '.Input.DateTo }} die')
             ->styleAlignCenter()
             ->styleTextSize('16px')
             ->stylePaddingTop('10px')
         );
-        //toDO BfsDestination erhalten
         $Slice->addElement((new Element())
-            ->setContent('Berufsfachschule für "Platzhalter"{% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
+            ->setContent('Berufsfachschule für {% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
                     {{ Content.P' . $personId . '.Input.BfsDestination }}
                 {% endif %}')
             ->styleAlignCenter()
@@ -1264,7 +1263,12 @@ abstract class BfsStyle extends Certificate
             // Abgangszeugnis
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Vorsitzende/r des Prüfungsausschusses'
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.Leader.Description is not empty) %}
+                            {{ Content.P' . $personId . '.Leader.Description }}
+                        {% else %}
+                            Vorsitzende/r des Prüfungsausschusses
+                        {% endif %}'
                     )
                     ->styleAlignCenter()
                     ->styleTextSize('11px')
@@ -1276,7 +1280,7 @@ abstract class BfsStyle extends Certificate
                         {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
                             {{ Content.P' . $personId . '.Headmaster.Description }}
                         {% else %}
-                            Schulleiter(in)
+                            Schulleiter/in
                         {% endif %}'
                     )
                     ->styleAlignCenter()
@@ -1286,7 +1290,11 @@ abstract class BfsStyle extends Certificate
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent(
-                        '&nbsp;'
+                        '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
                     )
                     ->styleTextSize('11px')
                     ->stylePaddingTop('2px')

@@ -318,13 +318,16 @@ class Service extends AbstractService
     /**
      * @param TblCertificate $tblCertificate
      * @param TblSubject $tblSubject
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return false|TblCertificateSubject
      */
-    public function getCertificateSubjectBySubject(TblCertificate $tblCertificate, TblSubject $tblSubject)
-    {
-
-        return (new Data($this->getBinding()))->getCertificateSubjectBySubject($tblCertificate, $tblSubject);
+    public function getCertificateSubjectBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject,
+        TblTechnicalCourse $tblTechnicalCourse = null
+    ) {
+        return (new Data($this->getBinding()))->getCertificateSubjectBySubject($tblCertificate, $tblSubject, $tblTechnicalCourse);
     }
 
     /**

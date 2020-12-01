@@ -1134,9 +1134,11 @@ class Service extends AbstractService
                 if ($genderValue == 'M') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
                     $Content['P' . $personId]['Tudor']['Description'] = 'Tutor';
+                    $Content['P' . $personId]['Leader']['Description'] = 'Vorsitzender des Prüfungsausschusses';
                 } elseif ($genderValue == 'F') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
                     $Content['P' . $personId]['Tudor']['Description'] = 'Tutorin';
+                    $Content['P' . $personId]['Leader']['Description'] = 'Vorsitzende des Prüfungsausschusses';
                 }
             }
         }
@@ -1525,6 +1527,17 @@ class Service extends AbstractService
                         $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiter';
                     } elseif ($tblCommonGender->getName() == 'Weiblich') {
                         $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiterin';
+                    }
+                }
+            }
+
+            // weitere Felder (Berufsfachschulen)
+            if (($tblLeaveInformationList = $this->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
+                foreach ($tblLeaveInformationList as $tblLeaveInformation) {
+                    if (($field = $tblLeaveInformation->getField())
+                        && !isset($Content['P' . $personId]['Input'][$field])
+                    ) {
+                        $Content['P' . $personId]['Input'][$field] = $tblLeaveInformation->getValue();
                     }
                 }
             }

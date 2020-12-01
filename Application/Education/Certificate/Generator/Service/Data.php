@@ -683,16 +683,20 @@ class Data extends AbstractData
     /**
      * @param TblCertificate $tblCertificate
      * @param TblSubject $tblSubject
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return false|TblCertificateSubject
      */
-    public function getCertificateSubjectBySubject(TblCertificate $tblCertificate, TblSubject $tblSubject)
-    {
-
+    public function getCertificateSubjectBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject,
+        TblTechnicalCourse $tblTechnicalCourse = null
+    ) {
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateSubject',
             array(
                 TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                TblCertificateSubject::SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                TblCertificateSubject::SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => $tblTechnicalCourse ? $tblTechnicalCourse->getId() : null
             )
         );
     }

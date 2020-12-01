@@ -110,14 +110,13 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Education\Certificate\Prepare
  */
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 {
 
     /**
@@ -4895,7 +4894,10 @@ class Frontend extends Extension implements IFrontendInterface
                         && !$tblLevel->getIsChecked()
                         && ($tblType = $tblLevel->getServiceTblType())
                         && ($tblType->getName() == 'Mittelschule / Oberschule'
-                            || $tblType->getName() == 'Gymnasium')
+                            || $tblType->getName() == 'Gymnasium'
+                            || $tblType->getName() == 'Berufsfachschule'
+                            || $tblType->getName() == 'Fachschule'
+                        )
                         && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
                     ) {
                         foreach ($tblPersonList as $tblPerson) {
@@ -5020,6 +5022,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             }
+                        } elseif ($tblType->getName() == 'Berufsfachschule') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
+                        } elseif ($tblType->getName() == 'Fachschule') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FsAbg');
                         }
                     }
                 }
@@ -5027,13 +5033,31 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
                 $layoutGroups = $this->setLeaveContentForSekTwo(
-                    $tblCertificate ? $tblCertificate : null,
+                    $tblCertificate,
                     $tblLeaveStudent ? $tblLeaveStudent : null,
                     $tblDivision ? $tblDivision : null,
                     $tblPerson ? $tblPerson : null,
                     $stage,
                     $tblType ? $tblType : null,
-                    $tblCourse ? $tblCourse : null);
+                    $tblCourse ? $tblCourse : null
+                );
+
+                $stage->setContent(
+                    new Layout($layoutGroups)
+                );
+            } elseif ($tblCertificate
+                && ($tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'FsAbg')
+            ) {
+                $layoutGroups = $this->setLeaveContentForTechnicalSchool(
+                    $tblCertificate,
+                    $tblLeaveStudent ? $tblLeaveStudent : null,
+                    $tblDivision ? $tblDivision : null,
+                    $tblPerson ? $tblPerson : null,
+                    $Data,
+                    $stage,
+                    $subjectData,
+                    $tblType ? $tblType : null
+                );
 
                 $stage->setContent(
                     new Layout($layoutGroups)
@@ -5048,7 +5072,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $stage,
                     $subjectData,
                     $tblType ? $tblType : null,
-                    $tblCourse ? $tblCourse : null);
+                    $tblCourse ? $tblCourse : null
+                );
 
                 $stage->setContent(
                     new Layout($layoutGroups)
