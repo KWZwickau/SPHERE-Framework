@@ -659,7 +659,6 @@ abstract class FsStyle extends Certificate
                 , '35%'
             )
         );
-        //toDO Zeitraum eintragen & erhalten
         $Slice->addElement((new Element())
             ->setContent('hat vom 
                 {% if(Content.P' . $personId . '.Input.DateFrom is not empty) %}
@@ -687,6 +686,14 @@ abstract class FsStyle extends Certificate
             ->stylePaddingTop('10px')
         );
         $Slice->addElement((new Element())
+            ->setContent('{% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
+                    {{ Content.P' . $personId . '.Input.SubjectArea }}{% if(Content.P' . $personId . '.Input.Focus is not empty) %}, {{ Content.P' . $personId . '.Input.Focus }}{% endif %}
+                {% endif %}')
+            ->styleAlignCenter()
+            ->styleTextSize('20px')
+            ->styleTextBold()
+        );
+        $Slice->addElement((new Element())
             ->setContent('in 
                 {% if(Content.P' . $personId . '.Student.TenseOfLesson is not empty) %}
                     {{ Content.P' . $personId . '.Student.TenseOfLesson }}
@@ -696,7 +703,7 @@ abstract class FsStyle extends Certificate
                 besucht und folgende Leistungen erreicht:')
             ->styleAlignCenter()
             ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('15px')
         );
 
         return $Slice;
@@ -1624,9 +1631,9 @@ abstract class FsStyle extends Certificate
             $SubjectSection->addElementColumn((new Element())
                 ->setContent('
                 {% if(Content.P'.$personId.'.Input.SkilledWork'.$i.' is not empty) %}
-                     Facharbeit: {{ Content.P'.$personId.'.Input.SkilledWork'.$i.' }}
+                     Thema: {{ Content.P'.$personId.'.Input.SkilledWork'.$i.' }}²
                  {% else %}
-                     Facharbeit: &nbsp;
+                     Thema: &nbsp;
                  {% endif %}')
                 ->stylePaddingTop()
                 ->styleMarginTop('10px')
@@ -1639,7 +1646,7 @@ abstract class FsStyle extends Certificate
             $SubjectSection->addElementColumn((new Element())
                 ->setContent('
                 {% if(Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' is not empty) %}
-                     {{ Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' }}
+                     {{ Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' }}²
                  {% else %}
                     &nbsp;
                  {% endif %}')

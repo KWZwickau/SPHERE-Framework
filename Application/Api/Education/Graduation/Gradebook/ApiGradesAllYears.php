@@ -174,7 +174,7 @@ class ApiGradesAllYears extends Extension implements IApiInterface
                                                 'GradeType' => $isHighlighted
                                                     ? new Bold($tblGradeType->getDisplayName())
                                                     : $tblGradeType->getDisplayName(),
-                                                'Division' => $tblDivisionTest ? $tblDivisionTest->getDisplayName() : '',
+//                                                'Division' => $tblDivisionTest ? $tblDivisionTest->getDisplayName() : '',
                                                 'Description' => $tblTest->getDescription(),
                                                 'Grade' => $isHighlighted ? new Bold($value) : $value
                                             );
@@ -192,7 +192,7 @@ class ApiGradesAllYears extends Extension implements IApiInterface
                                             array(
                                                 'Date' => 'Datum',
                                                 'GradeType' => 'Zensuren-Typ',
-                                                'Division' => 'Klasse',
+//                                                'Division' => 'Klasse',
                                                 'Description' => 'Thema',
                                                 'Grade' => 'Zensur'
                                             ),

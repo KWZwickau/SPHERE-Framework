@@ -5056,7 +5056,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $Data,
                     $stage,
                     $subjectData,
-                    $tblType ? $tblType : null
+                    $tblType ? $tblType : null,
+                    $tblCertificate->getCertificate() == 'BfsAbg'
                 );
 
                 $stage->setContent(

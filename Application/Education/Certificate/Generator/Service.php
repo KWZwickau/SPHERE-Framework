@@ -489,6 +489,7 @@ class Service extends AbstractService
             // Berufsfachschule
             'Content.Input.CertificateName'     => 'TextField',
             'Content.Input.BfsDestination'      => 'TextField',
+            'Content.Input.OperationTimeTotal'  => 'TextField',
             'Content.Input.Operation1'          => 'TextField',
             'Content.Input.OperationTime1'      => 'TextField',
             'Content.Input.Operation2'          => 'TextField',
@@ -564,6 +565,7 @@ class Service extends AbstractService
             // Berufsfachschule
             'Content.Input.CertificateName'     => 'Abweichender Zeugnisname (Endjahresinformation)',
             'Content.Input.BfsDestination'      => 'Berufsfachschule für ...',
+            'Content.Input.OperationTimeTotal'  => 'Berufspraktische Ausbildung Dauer in Wochen',
             'Content.Input.Operation1'          => 'Einsatzgebiet 1',
             'Content.Input.OperationTime1'      => 'Einsatzgebiet Dauer in Wochen 1',
             'Content.Input.Operation2'          => 'Einsatzgebiet 2',

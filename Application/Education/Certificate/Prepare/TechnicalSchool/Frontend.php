@@ -68,6 +68,7 @@ class Frontend extends Extension
      * @param Stage $stage
      * @param $subjectData
      * @param TblType|null $tblType
+     * @param bool $isBfs
      *
      * @return mixed
      */
@@ -79,7 +80,8 @@ class Frontend extends Extension
         $Data,
         Stage $stage,
         $subjectData,
-        TblType $tblType = null
+        TblType $tblType = null,
+        $isBfs = true
     ) {
 
         $hasPreviewGrades = false;
@@ -223,19 +225,44 @@ class Frontend extends Extension
                             $gradeText = '';
                         }
 
-                        if (!Generator::useService()->getCertificateSubjectBySubject(
+                        $subjectCategory = '';
+                        if (!($tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject(
                             $tblCertificate,
                             $tblSubjectItem,
                             $tblTechnicalCourse ? $tblTechnicalCourse : null
-                        )) {
+                        ))) {
                             $hasMissingSubjects = true;
-                            $subjectName = new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSubjectItem->getDisplayName() . ' ' . new Ban());
+                            $subjectCategory = '';
+                            $subjectName = new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSubjectItem->getName() . ' ' . new Ban());
                         } else {
-                            $subjectName = $tblSubjectItem->getDisplayName();
+                            $subjectName = $tblSubjectItem->getName();
+                            $ranking = intval($tblCertificateSubject->getRanking());
+                            if ($isBfs) {
+                                if ($ranking <= 4) {
+                                    $subjectCategory = 'Berufsübergreifender';
+                                } elseif ($ranking <= 12) {
+                                    $subjectCategory = 'Berufsbezogener';
+                                } elseif ($ranking <= 14) {
+                                    $subjectCategory = 'Wahlpflicht';
+                                } elseif ($ranking <= 15) {
+                                    $subjectCategory = 'Berufspraktische Ausbildung';
+                                }
+                            } else {
+                                if ($ranking <= 4) {
+                                    $subjectCategory = 'Fachrichtungsübergreifender';
+                                } elseif ($ranking <= 14) {
+                                    $subjectCategory = 'Fachrichtungsbezogener';
+                                } elseif ($ranking <= 16) {
+                                    $subjectCategory = 'Wahlpflicht';
+                                } elseif ($ranking <= 17) {
+                                    $subjectCategory = 'Berufspraktische Ausbildung';
+                                }
+                            }
                         }
 
                         $subjectData[$tblSubjectItem->getAcronym()] = array(
                             'SubjectName' => $subjectName,
+                            'SubjectCategory' => $subjectCategory,
                             'GradeList' => $gradeList,
                             'Average' => $average,
                             'Grade' => $selectComplete,
@@ -324,6 +351,7 @@ class Frontend extends Extension
                     null,
                     array(
                         'SubjectName' => 'Fach',
+                        'SubjectCategory' => 'Bereich',
                         'GradeList' => 'Vornoten (' . TblTask::ALL_YEARS_PERIOD_Name . ')',
                         'Average' => '&#216;',
                         'Grade' => 'Zensur',
@@ -335,17 +363,9 @@ class Frontend extends Extension
                 $subjectTable = false;
             }
 
-
-            $dateFromPicker = (new DatePicker('Data[InformationList][DateFrom]', '', 'Besucht "seit" die Berufsfachschule', new Calendar()))->setRequired();
-            $dateToPicker = (new DatePicker('Data[InformationList][DateTo]', '', 'Besucht "bis" die Berufsfachschule', new Calendar()))->setRequired();
-            $destinationInput = (new TextField('Data[InformationList][BfsDestination]', '', 'Berufsfachschule für ...'))->setRequired();
-
-            $operation1Input = (new TextField('Data[InformationList][Operation1]', '', 'Einsatzgebiet 1'));
-            $operationTime1Input = (new TextField('Data[InformationList][OperationTime1]', '', 'Einsatzgebiet Dauer in Wochen 1'));
-            $operation2Input = (new TextField('Data[InformationList][Operation2]', '', 'Einsatzgebiet 2'));
-            $operationTime2Input = (new TextField('Data[InformationList][OperationTime2]', '', 'Einsatzgebiet Dauer in Wochen 2'));
-            $operation3Input = (new TextField('Data[InformationList][Operation3]', '', 'Einsatzgebiet 3'));
-            $operationTime3Input = (new TextField('Data[InformationList][OperationTime3]', '', 'Einsatzgebiet Dauer in Wochen 3'));
+            $text = $isBfs ? 'Berufsfachschule' : 'Fachschule';
+            $dateFromPicker = (new DatePicker('Data[InformationList][DateFrom]', '', 'Besucht "seit" die ' . $text, new Calendar()))->setRequired();
+            $dateToPicker = (new DatePicker('Data[InformationList][DateTo]', '', 'Besucht "bis" die ' . $text, new Calendar()))->setRequired();
 
             $datePicker = (new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum', new Calendar()))->setRequired();
             $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
@@ -353,17 +373,143 @@ class Frontend extends Extension
             if ($isApproved) {
                 $dateFromPicker->setDisabled();
                 $dateToPicker->setDisabled();
-                $destinationInput->setDisabled();
-
-                $operation1Input->setDisabled();
-                $operationTime1Input->setDisabled();
-                $operation2Input->setDisabled();
-                $operationTime2Input->setDisabled();
-                $operation3Input->setDisabled();
-                $operationTime3Input->setDisabled();
 
                 $datePicker->setDisabled();
                 $remarkTextArea->setDisabled();
+            }
+
+            $panelSkilledWork = false;
+
+            if ($isBfs) {
+                // Berufsfachschule
+                $destinationInput = (new TextField('Data[InformationList][BfsDestination]', '', 'Berufsfachschule für ...'))->setRequired();
+
+                $operationTimeTotal = (new TextField('Data[InformationList][OperationTimeTotal]', '', 'Gesamtdauer in Wochen'));
+                $operation1Input = (new TextField('Data[InformationList][Operation1]', '', 'Einsatzgebiet 1'));
+                $operationTime1Input = (new TextField('Data[InformationList][OperationTime1]', '', 'Einsatzgebiet Dauer in Wochen 1'));
+                $operation2Input = (new TextField('Data[InformationList][Operation2]', '', 'Einsatzgebiet 2'));
+                $operationTime2Input = (new TextField('Data[InformationList][OperationTime2]', '', 'Einsatzgebiet Dauer in Wochen 2'));
+                $operation3Input = (new TextField('Data[InformationList][Operation3]', '', 'Einsatzgebiet 3'));
+                $operationTime3Input = (new TextField('Data[InformationList][OperationTime3]', '', 'Einsatzgebiet Dauer in Wochen 3'));
+
+                if ($isApproved) {
+                    $destinationInput->setDisabled();
+
+                    $operationTimeTotal->setDisabled();
+                    $operation1Input->setDisabled();
+                    $operationTime1Input->setDisabled();
+                    $operation2Input->setDisabled();
+                    $operationTime2Input->setDisabled();
+                    $operation3Input->setDisabled();
+                    $operationTime3Input->setDisabled();
+                }
+
+                $panelEducation = new Panel(
+                    'Ausbildung',
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn($dateFromPicker, 6),
+                            new LayoutColumn($dateToPicker, 6)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn($destinationInput)
+                        )),
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                $panelPraxis = new Panel(
+                    'Berufspraktische Ausbildung',
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn($operationTimeTotal, 12)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn($operation1Input, 6),
+                            new LayoutColumn($operationTime1Input, 6)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn($operation2Input, 6),
+                            new LayoutColumn($operationTime2Input, 6)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn($operation3Input, 6),
+                            new LayoutColumn($operationTime3Input, 6)
+                        )),
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                );
+            } else {
+                // Fachschule
+
+                $destinationInput = (new TextField('Data[InformationList][FsDestination]', '', 'Fachbereich'))->setRequired();
+                $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));
+                $focusInput = (new TextField('Data[InformationList][Focus]', '', 'Schwerpunkt'));
+
+                $jobEducationDuration = (new TextField('Data[InformationList][JobEducationDuration]', '', 'Dauer in Wochen'));
+
+                $skilledWorkInput = (new TextField('Data[InformationList][SkilledWork1]', '', 'Thema'));
+                // todo selectBox mit Noten
+                $skilledWorkGradeInput = (new TextField('Data[InformationList][SkilledWorkGrade1]', '', 'Zensur'));
+
+                if ($isApproved) {
+                    $destinationInput->setDisabled();
+                    $subjectAreaInput->setDisabled();
+                    $focusInput->setDisabled();
+                }
+
+                $panelEducation = new Panel(
+                    'Ausbildung',
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn($dateFromPicker, 6),
+                            new LayoutColumn($dateToPicker, 6)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn($destinationInput, 4),
+                            new LayoutColumn($subjectAreaInput, 4),
+                            new LayoutColumn($focusInput, 4)
+                        )),
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                // todo Schriftliche Komplexprüfung/en
+                // K1 LF1 / LF2 doch eingeben plus note
+                // immer 2 auswählen auf alle Fächer der Zeugnisvorlage eingrenzen (fachbezogener Bereicht)
+
+                // todo Praktische Komplexprüfung
+                // analog Komplexprüfungen
+
+                $panelPraxis = new Panel(
+                    'Berufspraktische Ausbildung',
+                    $jobEducationDuration,
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                // todo Nachrichtliche Ausweisung -> Lernfeld auswählen oder Textinputs?
+                // nachweislich ergibt sich aus den Komplexenprüfungen
+                // keine Eingabe sondern fest aus der Einstellung dürfen keine Notenherauskommen
+                // gibt es nicht
+                // doch automatisch aus der Auswahl der komplexen Prüfungen
+
+                // Zusatzausbildung zum Erwerb der Fachhochschulreife muss raus
+                // todo dafür eingabe als Text input ("Zusatzunterricht Englisch/ Mathe")
+                // Zensur kann auch teilgenommen sein (Zeugnistext)
+
+                // Facharbeit Thema
+                // todo Zensur im Wortlaut ausgeben
+                $panelSkilledWork = new Panel(
+                    'Facharbeit',
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn($skilledWorkInput, 9),
+                            new LayoutColumn($skilledWorkGradeInput, 3)
+                        )),
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                );
+
             }
 
             $otherInformationList[] =  $datePicker;
@@ -387,42 +533,16 @@ class Frontend extends Extension
             }
 
             $form = new Form(new FormGroup(array(
-                $subjectTable ? new FormRow(new FormColumn($subjectTable)) : null,
+                $subjectTable ? new FormRow(new FormColumn(
+                    new Panel('Zensuren', $subjectTable, Panel::PANEL_TYPE_INFO)
+                )) : null,
                 new FormRow(new FormColumn(
-                    new Panel(
-                        'Ausbildung',
-                        new Layout(new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn($dateFromPicker, 6),
-                                new LayoutColumn($dateToPicker, 6)
-                            )),
-                            new LayoutRow(array(
-                                new LayoutColumn($destinationInput)
-                            )),
-                        ))),
-                        Panel::PANEL_TYPE_INFO
-                    )
+                    $panelEducation
                 )),
                 new FormRow(new FormColumn(
-                    new Panel(
-                        'Berufspraktische Ausbildung',
-                        new Layout(new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn($operation1Input, 6),
-                                new LayoutColumn($operationTime1Input, 6)
-                            )),
-                            new LayoutRow(array(
-                                new LayoutColumn($operation2Input, 6),
-                                new LayoutColumn($operationTime2Input, 6)
-                            )),
-                            new LayoutRow(array(
-                                new LayoutColumn($operation3Input, 6),
-                                new LayoutColumn($operationTime3Input, 6)
-                            )),
-                        ))),
-                        Panel::PANEL_TYPE_INFO
-                    )
+                    $panelPraxis
                 )),
+                $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',
