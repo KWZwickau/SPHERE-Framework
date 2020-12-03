@@ -41,7 +41,6 @@ class StudentCourseGPU010 extends AbstractConverter
         $this->setPointer(new FieldPointer('B', 'FileLastName'));
         $this->setPointer(new FieldPointer('H', 'FileFirstName'));
 
-
         $this->setPointer(new FieldPointer('J', 'FileDivision'));
         $this->setPointer(new FieldPointer('J', 'AppDivision'));
         $this->setPointer(new FieldPointer('J', 'DivisionId'));
@@ -85,7 +84,8 @@ class StudentCourseGPU010 extends AbstractConverter
         $tblDivision = Division::useService()->getDivisionById($Result['DivisionId']);
 
         $Result['readableBirthday'] = '';
-        if(($BirthDay = $this->getDateTimeString($Result['Birthday']))){
+        $BirthDay = false;
+        if(isset($Result['Birthday']) && ($BirthDay = $this->getDateTimeString($Result['Birthday']))){
             $Result['readableBirthday'] = $Result['Birthday'].' => '.$BirthDay;
         }
 
@@ -101,7 +101,12 @@ class StudentCourseGPU010 extends AbstractConverter
         } else {
             $this->IsError = true;
             if(!$BirthDay){
-                $Result['AppPerson'] = new Danger(new Ban().'Geburtsdatum nicht zuzuordnen ('.$Result['Birthday'].') FORMAT JJJJMMDD');
+                if(isset($Result['Birthday'])){
+                    $BirthDayString = $Result['Birthday'];
+                } else {
+                    $BirthDayString = 'nicht vorhanden';
+                }
+                $Result['AppPerson'] = new Danger(new Ban().'Geburtsdatum nicht zuzuordnen ('.$BirthDayString.') FORMAT JJJJMMDD');
             } else {
                 $Result['AppPerson'] = new Danger(new Ban().' Name fehlt!');
             }
@@ -156,7 +161,7 @@ class StudentCourseGPU010 extends AbstractConverter
             $this->IsError = true;
             return new Danger(new Ban().' Keine Klasse angegeben!');
         }
-        $this->MatchDivision($Value, $LevelName, $DivisionName);
+        $this->matchDivision($Value, $LevelName, $DivisionName);
         $tblLevel = null;
 
         $tblDivisionList = array();
@@ -222,7 +227,7 @@ class StudentCourseGPU010 extends AbstractConverter
         if ($Value != '') {
             $LevelName = null;
             $DivisionName = null;
-            $this->MatchDivision($Value, $LevelName, $DivisionName);
+            $this->matchDivision($Value, $LevelName, $DivisionName);
             $tblLevel = null;
 
             $tblDivisionList = array();
@@ -271,7 +276,7 @@ class StudentCourseGPU010 extends AbstractConverter
      * @param $LevelName
      * @param $DivisionName
      */
-    protected function MatchDivision($Value, &$LevelName, &$DivisionName)
+    protected function matchDivision($Value, &$LevelName, &$DivisionName)
     {
         // EVAMTL (5 OS)
         if (preg_match('!^([0-9]*?) ([a-zA-Z]*?)$!is', $Value, $Match)) {

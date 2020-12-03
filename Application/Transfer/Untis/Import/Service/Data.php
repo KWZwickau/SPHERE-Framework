@@ -184,7 +184,9 @@ class Data extends AbstractData
         TblYear $tblYear,
         TblAccount $tblAccount
     ) {
-
+// Prepare if needed
+//        // entfernen doppelter Fächer /fachgruppen für eine Person
+//        $existSubjectSubjectGroupList = array();
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {
             foreach ($ImportList as $StudentData) {
@@ -203,9 +205,16 @@ class Data extends AbstractData
                 $SubjectCount = 0;
                 if(isset($StudentData['SubjectList'])){
                     foreach ($StudentData['SubjectList'] as $SubjectData) {
-                        $SubjectCount++;
-                        $this->createUntisImportStudentCourseBulk($Manager, $SubjectData, $SubjectCount,
-                            $tblUntisImportStudent);
+                        // Prepare if needed
+//                        // Fächer und Fachgruppen soll es nur einmal pro Person geben
+//                        if(!in_array($StudentData['EntityPerson']->getId().'x'.$SubjectData['FileSubject'].'x'.
+//                            $SubjectData['SubjectGroup'], $existSubjectSubjectGroupList)){
+                            $SubjectCount++;
+                            $this->createUntisImportStudentCourseBulk($Manager, $SubjectData, $SubjectCount,
+                                $tblUntisImportStudent);
+                            $existSubjectSubjectGroupList[] = $StudentData['EntityPerson']->getId().'x'.
+                                $SubjectData['FileSubject'].'x'.$SubjectData['SubjectGroup'];
+//                        }
                     }
                 }
             }
@@ -263,7 +272,7 @@ class Data extends AbstractData
         $Entity->setSubjectName($Result['FileSubject']);
         $Entity->setSubjectGroup($Result['SubjectGroup']);
         $Entity->setCourseNumber($SubjectNumber);
-        if(strpos($Result['SubjectGroup'], 'L') === 0){
+        if(preg_match('!-[Ll]-!',$Result['SubjectGroup'])){
             $IntensiveCourse = true;
         } else {
             $IntensiveCourse = false;

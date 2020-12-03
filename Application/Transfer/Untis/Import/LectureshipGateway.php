@@ -59,7 +59,6 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -71,6 +70,8 @@ use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
@@ -162,6 +163,35 @@ class LectureshipGateway extends AbstractConverter
             $FileSubjectGroup = $Result['FileSubjectGroup'];
             $AppSubjectGroup = $Result['AppSubjectGroup'];
 
+
+            // Work around Sek II mit einem String als Fach und Fachgruppe
+            // Nur bei Klasse 11 & 12
+            if(preg_match('!^[1][1-2]!is', $FileDivision)){
+                $subjectAcronym = $this->getSubjectAcronym($FileSubject);
+                $subjectGroup = $this->getSubjectGroup($FileSubject);
+                // nur wenn das Fach & die Fachgruppe als String hinterlegt sind
+                if($subjectAcronym && $subjectGroup){
+                    // findes des Fach's über das extrahierte Acronym
+                    if(($SubjectId = $this->fetchSubject($subjectAcronym))){
+                        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+                        if(!$tblSubject){
+                            $tblSubject = null;
+                        }
+                    }
+                    // korrektur des Array Elements
+                    $Result['AppSubject'] = $this->sanitizeSubject($subjectAcronym);
+                    // Sowohl im Array als auch als Variable mitgeben
+                    $Result['FileSubjectGroup'] = $FileSubjectGroup = $subjectGroup;
+                    // Hinterlegung der Fachgruppen, egal ob vorhanden oder nicht, -> wird zur not neu angelegt
+                    $AppSubjectGroup = $subjectGroup;
+                    // Anzeige, welche Gruppen vorhanden sind oder neu angelegt werden
+                    if(!$this->fetchSubjectGroup($subjectGroup)){
+                        $subjectGroup .= new Small(new Small(new Muted(' (wird neu angelegt)')));
+                    }
+                    $Result['AppSubjectGroup'] = $subjectGroup;
+                }
+            }
+
             $ImportRow = array('tblDivision'      => $tblDivision,
                                'tblTeacher'       => $tblTeacher,
                                'tblSubject'       => $tblSubject,
@@ -193,7 +223,7 @@ class LectureshipGateway extends AbstractConverter
         }
         $this->MatchDivision($Value, $LevelName, $DivisionName);
         $tblLevel = null;
-        $tblYear = Term::useService()->getYearById($this->Year);
+        $tblYear = Term::useService()->getYearById($this->Year->getId());
 
         $tblDivisionList = array();
         // search with Level
@@ -260,7 +290,7 @@ class LectureshipGateway extends AbstractConverter
             $DivisionName = null;
             $this->MatchDivision($Value, $LevelName, $DivisionName);
             $tblLevel = null;
-            $tblYear = Term::useService()->getYearById($this->Year);
+            $tblYear = Term::useService()->getYearById($this->Year->getId());
 
             $tblDivisionList = array();
             // search with Level
@@ -349,28 +379,26 @@ class LectureshipGateway extends AbstractConverter
         return '';
     }
 
-//    /**
-//     * @param $Value
-//     *
-//     * @return int|null
-//     */
-//    protected function fetchSubjectGroup($Value)
-//    {
-//        if (preg_match('!^(.+?)$!is', $Value, $Match)) {
-//            $GroupName = $Match[1];
-//            $tblDivision = Division::useService()->getDivisionById($this->Division);
-//            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
-//            if ($tblDivision && $tblSubject) {
-//                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
-//                if ($tblSubjectGroup) {
-//                    return $tblSubjectGroup->getId();
-//                }
-//                return null;
-//            }
-//            return null;
-//        }
-//        return null;
-//    }
+    /**
+     * @param $Value
+     *
+     * @return string
+     */
+    protected function fetchSubjectGroup($Value)
+    {
+        if (preg_match('!^([\w\/]{1,}-[GLgl]-[\d])!', $Value, $Match)) {
+            $GroupName = $Match[1];
+            $tblDivision = Division::useService()->getDivisionById($this->Division);
+            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
+            if ($tblDivision && $tblSubject) {
+                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
+                if ($tblSubjectGroup) {
+                    return $tblSubjectGroup->getName();
+                }
+            }
+        }
+        return '';
+    }
 
     /**
      * @param $Value
@@ -426,14 +454,49 @@ class LectureshipGateway extends AbstractConverter
     /**
      * @param $Value
      *
-     * @return bool|TblSubject
+     * @return null|int
      */
     protected function fetchSubject($Value)
     {
+
         $tblSubject = Subject::useService()->getSubjectByAcronym($Value);
         if ($tblSubject) {
             $this->Subject = $tblSubject->getId();
+        } elseif($Acronym = $this->getSubjectAcronym($Value)) {
+            $tblSubject = Subject::useService()->getSubjectByAcronym($Acronym);
+            if ($tblSubject){
+                $this->Subject = $tblSubject->getId();
+            }
         }
         return ( $tblSubject ? $tblSubject->getId() : null );
+    }
+
+    /**
+     * @param $SubjectString
+     *
+     * @return false|string false| eg. EN | DE
+     */
+    protected function getSubjectAcronym($SubjectString)
+    {
+        if(preg_match('!^([\w\/]{1,})-([GLgl]-[\d])!', $SubjectString, $Match)){
+            return $Match[1];
+        }
+        return false;
+    }
+
+    /**
+     * @param string $SubjectString
+     *
+     * @return false|string false| eg. EN-L-1 | EN-G-1
+     */
+    private function getSubjectGroup($SubjectString = '')
+    {
+
+        if(preg_match('!^([\w\/]{1,}-[GLgl]-[\d])!', $SubjectString, $Match)){
+            if(isset($Match[1])){
+                return $Match[1];
+            }
+        }
+        return false;
     }
 }

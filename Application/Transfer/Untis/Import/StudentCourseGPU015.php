@@ -42,7 +42,6 @@ class StudentCourseGPU015 extends AbstractConverter
 
         $this->setPointer(new FieldPointer('E', 'FileDivision'));
 
-
         $this->scanFile(0);
     }
 
@@ -57,7 +56,7 @@ class StudentCourseGPU015 extends AbstractConverter
                 $L_Group = array();
                 $G_Group = array();
                 foreach($Row['SubjectList'] as $Subject){
-                    if(strpos($Subject['SubjectGroup'], 'L') === 0){
+                    if(preg_match('!-[Ll]-!',$Subject['SubjectGroup'])){
                         $L_Group[] = $Subject;
                     } else {
                         $G_Group[] = $Subject;
@@ -108,7 +107,7 @@ class StudentCourseGPU015 extends AbstractConverter
      */
     protected function sanitizeSubjectGroup($Value)
     {
-        if(preg_match('!^([\w\/]{2,}-[GLgl]-[\d])!', $Value, $Match)){
+        if(preg_match('!^([\w\/]{1,}-[GLgl]-[\d])!', $Value, $Match)){
             if(isset($Match[1])){
                 return $Match[1];
             } else {
