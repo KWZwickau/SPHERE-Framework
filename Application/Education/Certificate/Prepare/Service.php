@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveAdditionalGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
@@ -879,7 +880,7 @@ class Service extends AbstractService
         // Berufsfachschulen / Fachschulen
         if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
             if(($tblStudentTenseOfLesson = $tblTechnicalSchool->getTblStudentTenseOfLesson())){
-                $Content['P' . $personId]['Student']['TenseOfLesson'] = $tblStudentTenseOfLesson->getName();
+                $Content['P' . $personId]['Student']['TenseOfLesson'] = $tblStudentTenseOfLesson->getCertificateName();
             }
         }
 
@@ -1451,13 +1452,18 @@ class Service extends AbstractService
 
         // Abgangszeugnisse
         if ($tblLeaveStudent) {
+            if (($tblSetting = ConsumerSetting::useService()->getSetting(
+                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave'
+            ))) {
+                $isGradeVerbalOnLeave = $tblSetting->getValue();
+            } else {
+                $isGradeVerbalOnLeave = false;
+            }
+
             if (($tblLeaveGradeList = $this->getLeaveGradeAllByLeaveStudent($tblLeaveStudent))) {
                 foreach ($tblLeaveGradeList as $tblLeaveGrade) {
                     if (($tblSubject = $tblLeaveGrade->getServiceTblSubject())) {
-                        if (($tblSetting = ConsumerSetting::useService()->getSetting(
-                                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave'))
-                            && $tblSetting->getValue()
-                        ) {
+                        if ($isGradeVerbalOnLeave) {
                             $grade = $this->getVerbalGrade($tblLeaveGrade->getGrade());
                             $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                         } else {
@@ -1531,13 +1537,19 @@ class Service extends AbstractService
                 }
             }
 
-            // weitere Felder (Berufsfachschulen)
+            // weitere Felder (Berufsfachschulen && Fachschulen)
             if (($tblLeaveInformationList = $this->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                 foreach ($tblLeaveInformationList as $tblLeaveInformation) {
                     if (($field = $tblLeaveInformation->getField())
                         && !isset($Content['P' . $personId]['Input'][$field])
                     ) {
-                        $Content['P' . $personId]['Input'][$field] = $tblLeaveInformation->getValue();
+                        $value = $tblLeaveInformation->getValue();
+                        // Zensuren in Wortlaut darstellen (Abgangszeugnis Fachschule)
+                        if ($isGradeVerbalOnLeave && strpos($field, '_Grade')) {
+                            $value = $this->getVerbalGrade($value);
+                        }
+
+                        $Content['P' . $personId]['Input'][$field] = $value;
                     }
                 }
             }
@@ -3274,10 +3286,53 @@ class Service extends AbstractService
 
             if (isset($Data['InformationList'])) {
                 foreach ($Data['InformationList'] as $field => $value) {
+                    // Zeugnistext umwandeln
+                    if (strpos($field, '_GradeText')) {
+                        if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                            $value = $tblGradeText->getName();
+                        } else {
+                            $value = '';
+                        }
+                    }
+
                     if (($tblLeaveInformation = $this->getLeaveInformationBy($tblLeaveStudent, $field))) {
                         (new Data($this->getBinding()))->updateLeaveInformation($tblLeaveInformation, $value);
                     } else {
                         (new Data($this->getBinding()))->createLeaveInformation($tblLeaveStudent, $field, $value);
+                    }
+                }
+            }
+
+            // Komplexe Prüfungen für Fachschulen
+            if (isset($Data['ExamList'])) {
+                foreach ($Data['ExamList'] as $identifierRanking => $columns) {
+                    $temp = explode('_', $identifierRanking);
+                    $identifier = $temp[0];
+                    $ranking = $temp[1];
+
+                    $tblFirstSubject = false;
+                    $tblSecondSubject = false;
+                    $grade = '';
+                    if (isset($columns['S1'])) {
+                        $tblFirstSubject = Subject::useService()->getSubjectById($columns['S1']);
+                    }
+                    if (isset($columns['S2'])) {
+                        $tblSecondSubject = Subject::useService()->getSubjectById($columns['S2']);
+                    }
+                    if (isset($columns['GradeText'])
+                        && ($tblGradeText = Gradebook::useService()->getGradeTextById($columns['GradeText']))
+                    ) {
+                        $grade = $tblGradeText->getName();
+                    } elseif (isset($columns['Grade'])) {
+                        $grade = $columns['Grade'];
+                    }
+
+                    if (($tblLeaveComplexExam = $this->getLeaveComplexExamBy($tblLeaveStudent, $identifier, $ranking))) {
+                        (new Data($this->getBinding()))->updateLeaveComplexExam($tblLeaveComplexExam, $grade,
+                           $tblFirstSubject ? $tblFirstSubject : null, $tblSecondSubject ? $tblSecondSubject : null);
+                    } else {
+                        (new Data($this->getBinding()))->createLeaveComplexExam($tblLeaveStudent,$identifier, $ranking,
+                            $grade, $tblFirstSubject ? $tblFirstSubject : null, $tblSecondSubject ? $tblSecondSubject : null);
                     }
                 }
             }
@@ -4803,5 +4858,30 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $identifier
+     * @param $ranking
+     *
+     * @return false|TblLeaveComplexExam
+     */
+    public function getLeaveComplexExamBy(
+        TblLeaveStudent $tblLeaveStudent,
+        $identifier,
+        $ranking
+    ) {
+        return (new Data($this->getBinding()))->getLeaveComplexExamBy($tblLeaveStudent, $identifier, $ranking);
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return false|TblLeaveComplexExam[]
+     */
+    public function getLeaveComplexExamAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
+    {
+        return (new Data($this->getBinding()))->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent);
     }
 }

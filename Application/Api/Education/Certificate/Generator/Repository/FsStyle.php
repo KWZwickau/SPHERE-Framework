@@ -1217,6 +1217,8 @@ abstract class FsStyle extends Certificate
     {
         $Slice = (new Slice());
 
+        // Todo muss jetzt aus den sonstigen informationen gelesen werden
+
         // JobEducation
         $Slice->addElement((new Element())
             ->setContent('Zusatzausbildung zum Erwerb der Fachhochschulreife')
@@ -1626,40 +1628,41 @@ abstract class FsStyle extends Certificate
 
         $TextSize = '14px';
 
-        for($i = 1; $i <= 1; $i++){
-            $SubjectSection = (new Section());
-            $SubjectSection->addElementColumn((new Element())
-                ->setContent('
-                {% if(Content.P'.$personId.'.Input.SkilledWork'.$i.' is not empty) %}
-                     Thema: {{ Content.P'.$personId.'.Input.SkilledWork'.$i.' }}²
-                 {% else %}
-                     Thema: &nbsp;
-                 {% endif %}')
-                ->stylePaddingTop()
-                ->styleMarginTop('10px')
-                ->stylePaddingBottom('1px')
-                ->styleTextSize($TextSize)
-                ->styleBorderBottom('0.5px')
-                , '91%');
+        $SubjectSection = (new Section());
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent('
+            {% if(Content.P'.$personId.'.Input.SkilledWork is not empty) %}
+                 Thema: {{ Content.P'.$personId.'.Input.SkilledWork }}²
+             {% else %}
+                 Thema: &ndash;
+             {% endif %}')
+            ->stylePaddingTop()
+            ->styleMarginTop('10px')
+            ->stylePaddingBottom('1px')
+            ->styleTextSize($TextSize)
+            ->styleBorderBottom('0.5px')
+            , '91%');
 
-
-            $SubjectSection->addElementColumn((new Element())
-                ->setContent('
-                {% if(Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' is not empty) %}
-                     {{ Content.P'.$personId.'.Input.SkilledWorkGrade'.$i.' }}²
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent('
+                 {% if(Content.P'.$personId.'.Input.SkilledWork_GradeText is not empty) %}
+                     {{ Content.P'.$personId.'.Input.SkilledWork_GradeText }}²
                  {% else %}
-                    &nbsp;
-                 {% endif %}')
-                // removed Dash for empty -> &ndash;
-                ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
-                ->styleMarginTop('10px')
-                ->stylePaddingTop('2px')
-                ->stylePaddingBottom('1.5px')
-                ->styleTextSize($TextSize)
-                , '9%');
-            $Slice->addSection($SubjectSection);
-        }
+                    {% if(Content.P'.$personId.'.Input.SkilledWork_Grade is not empty) %}
+                        {{ Content.P'.$personId.'.Input.SkilledWork_Grade }}²
+                    {% else %}
+                        &ndash;
+                    {% endif %}
+                 {% endif %}
+             ')
+            ->styleAlignCenter()
+            ->styleBackgroundColor('#BBB')
+            ->styleMarginTop('10px')
+            ->stylePaddingTop('2px')
+            ->stylePaddingBottom('1.5px')
+            ->styleTextSize($TextSize)
+            , '9%');
+        $Slice->addSection($SubjectSection);
 
         $Slice->styleHeight($Height);
 

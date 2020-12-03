@@ -43,6 +43,7 @@ class Setup extends AbstractSetup
         $this->setTableLeaveGrade($Schema,$tblLeaveStudent);
         $this->setTableLeaveInformation($Schema,$tblLeaveStudent);
         $this->setTableLeaveAdditionalGrade($Schema, $tblLeaveStudent, $tblPrepareAdditionalGradeType);
+        $this->setTableLeaveComplexExam($Schema, $tblLeaveStudent);
 
         /**
          * Migration & Protocol
@@ -313,6 +314,27 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblLeaveStudent, true);
         $this->getConnection()->addForeignKey($Table, $tblPrepareAdditionalGradeType, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblLeaveStudent
+     *
+     * @return Table
+     */
+    private function setTableLeaveComplexExam(Schema &$Schema, Table $tblLeaveStudent)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveComplexExam');
+
+        $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'serviceTblFirstSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSecondSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+
+        $this->getConnection()->addForeignKey($Table, $tblLeaveStudent);
 
         return $Table;
     }

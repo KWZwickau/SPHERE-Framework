@@ -59,4 +59,18 @@ class TblStudentTenseOfLesson extends Element
     {
         $this->Identifier = $Identifier;
     }
+
+    /**
+     * @return string
+     */
+    public function getCertificateName()
+    {
+        if ($this->getIdentifier() == self::FULL_TIME) {
+            return 'Vollzeitform';
+        } elseif ($this->getIdentifier() == self::PART_TIME) {
+            return  'Teilzeitform';
+        } else {
+            return $this->getName();
+        }
+    }
 }

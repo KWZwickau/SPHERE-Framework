@@ -7,6 +7,7 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -14,6 +15,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -59,6 +61,10 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension
 {
+    private $subjectList = array();
+    private $selectListGrades = array();
+    private $selectListGradeTexts = array();
+
     /**
      * @param TblCertificate|null $tblCertificate
      * @param TblLeaveStudent|null $tblLeaveStudent
@@ -102,6 +108,18 @@ class Frontend extends Extension
             $tblTechnicalCourse = false;
         }
 
+        // Grades
+        $this->selectListGrades[-1] = '';
+        for ($i = 1; $i < 6; $i++) {
+            $this->selectListGrades[$i] = (string)($i);
+        }
+        $this->selectListGrades[6] = 6;
+
+        // GradeTexts
+        if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
+            $this->selectListGradeTexts = $tblGradeTextList;
+        }
+
         if ($tblCertificate) {
             if ($tblLeaveStudent) {
                 $isApproved = $tblLeaveStudent->isApproved();
@@ -134,19 +152,42 @@ class Frontend extends Extension
                 }
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
+                        $field = $tblLeaveInformation->getField();
+                        $value = $tblLeaveInformation->getValue();
+
+                        // Zeugnistext umwandeln
+                        if (strpos($field, '_GradeText')
+                            && ($tblGradeText = Gradebook::useService()->getGradeTextByName($value))
+                        ) {
+                            $value = $tblGradeText->getId();
+                        }
+
+                        $Global->POST['Data']['InformationList'][$field] = $value;
+                    }
+                }
+                if (($tblLeaveComplexExamList = Prepare::useService()->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent))) {
+                    foreach ($tblLeaveComplexExamList as $tblLeaveComplexExam) {
+                        $identifier = $tblLeaveComplexExam->getIdentifier();
+                        $ranking = $tblLeaveComplexExam->getRanking();
+                        $grade = $tblLeaveComplexExam->getGrade();
+
+                        if (($tblFirstSubject = $tblLeaveComplexExam->getServiceTblFirstSubject())) {
+                            $Global->POST['Data']['ExamList'][$identifier . '_' . $ranking]['S1'] = $tblFirstSubject->getId();
+                        }
+                        if (($tblSecondSubject = $tblLeaveComplexExam->getServiceTblSecondSubject())) {
+                            $Global->POST['Data']['ExamList'][$identifier . '_' . $ranking]['S2'] = $tblSecondSubject->getId();
+                        }
+
+                        if (($tblGradeText = Gradebook::useService()->getGradeTextByName($grade))) {
+                            $Global->POST['Data']['ExamList'][$identifier . '_' . $ranking]['GradeText'] = $tblGradeText->getId();
+                        } else {
+                            $Global->POST['Data']['ExamList'][$identifier . '_' . $ranking]['Grade'] = $grade;
+                        }
                     }
                 }
 
                 $Global->savePost();
             }
-
-            // Grades
-            $selectListGrades[-1] = '';
-            for ($i = 1; $i < 6; $i++) {
-                $selectListGrades[$i] = (string)($i);
-            }
-            $selectListGrades[6] = 6;
 
             if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
                 && $tblDivision
@@ -207,22 +248,18 @@ class Frontend extends Extension
                                 ));
 
                         $selectComplete = (new SelectCompleter('Data[Grades][' . $tblSubjectItem->getId() . '][Grade]',
-                            '', '', $selectListGrades))
+                            '', '', $this->selectListGrades))
                             ->setTabIndex($tabIndex++);
                         if ($tblLeaveStudent && $tblLeaveStudent->isApproved()) {
                             $selectComplete->setDisabled();
                         }
 
                         // Zeugnistext
-                        if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
-                            $gradeText = new SelectBox('Data[Grades][' . $tblSubjectItem->getId() . '][GradeText]',
-                                '', array(TblGradeText::ATTR_NAME => $tblGradeTextList));
+                        $gradeText = new SelectBox('Data[Grades][' . $tblSubjectItem->getId() . '][GradeText]',
+                            '', array(TblGradeText::ATTR_NAME => $this->selectListGradeTexts));
 
-                            if ($tblLeaveStudent && $tblLeaveStudent->isApproved()) {
-                                $gradeText->setDisabled();
-                            }
-                        } else {
-                            $gradeText = '';
+                        if ($tblLeaveStudent && $tblLeaveStudent->isApproved()) {
+                            $gradeText->setDisabled();
                         }
 
                         $subjectCategory = '';
@@ -379,6 +416,9 @@ class Frontend extends Extension
             }
 
             $panelSkilledWork = false;
+            $panelWrittenComplexExams = false;
+            $panelPraxisComplexExams = false;
+            $panelAddEducation = false;
 
             if ($isBfs) {
                 // Berufsfachschule
@@ -448,14 +488,12 @@ class Frontend extends Extension
 
                 $jobEducationDuration = (new TextField('Data[InformationList][JobEducationDuration]', '', 'Dauer in Wochen'));
 
-                $skilledWorkInput = (new TextField('Data[InformationList][SkilledWork1]', '', 'Thema'));
-                // todo selectBox mit Noten
-                $skilledWorkGradeInput = (new TextField('Data[InformationList][SkilledWorkGrade1]', '', 'Zensur'));
-
                 if ($isApproved) {
                     $destinationInput->setDisabled();
                     $subjectAreaInput->setDisabled();
                     $focusInput->setDisabled();
+
+                    $jobEducationDuration->setDisabled();
                 }
 
                 $panelEducation = new Panel(
@@ -474,12 +512,65 @@ class Frontend extends Extension
                     Panel::PANEL_TYPE_INFO
                 );
 
-                // todo Schriftliche Komplexprüfung/en
-                // K1 LF1 / LF2 doch eingeben plus note
-                // immer 2 auswählen auf alle Fächer der Zeugnisvorlage eingrenzen (fachbezogener Bereicht)
+                // Schriftliche Komplexprüfung
+                $this->setSubjectListByTechnicalCourse($tblCertificate, $tblTechnicalCourse ? $tblTechnicalCourse : null);
+                $columns = array(
+                    'Ranking' => '#',
+                    'FirstSubject' => '1. Fach',
+                    'SecondSubject' => '2. Fach',
+                    'Grade' => 'Zensur',
+                    'GradeText' => 'oder Zeugnistext'
+                );
+                $dataWrittenExamList = array();
+                $identifier = TblLeaveComplexExam::IDENTIFIER_WRITTEN;
+                for ($i = 1; $i < 5; $i++) {
+                    $dataWrittenExamList[$i] = array(
+                        'Ranking' => 'K' . $i,
+                        'FirstSubject' => $this->getComplexExamSubjectSelectBox($identifier, $i, 1, $isApproved),
+                        'SecondSubject' => $this->getComplexExamSubjectSelectBox($identifier, $i, 2, $isApproved),
+                        'Grade' => $this->getComplexExamGradeInput($identifier, $i, $isApproved),
+                        'GradeText' => $this->getComplexExamGradeTextSelect($identifier, $i, $isApproved)
+                    );
+                }
+                $panelWrittenComplexExams = new Panel(
+                    'Schriftliche Komplexprüfung',
+                    new TableData(
+                        $dataWrittenExamList,
+                        null,
+                        $columns,
+                        null
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
 
-                // todo Praktische Komplexprüfung
-                // analog Komplexprüfungen
+                // Praktische Komplexprüfung
+                $identifier = TblLeaveComplexExam::IDENTIFIER_PRAXIS;
+
+                $dataPraxisExamList = array();
+                $i = 1;
+                $dataPraxisExamList[$i] = array(
+                    'Ranking' => $i,
+                    'FirstSubject' => $this->getComplexExamSubjectSelectBox($identifier, $i, 1, $isApproved),
+                    'SecondSubject' => $this->getComplexExamSubjectSelectBox($identifier, $i, 2, $isApproved),
+                    'Grade' => $this->getComplexExamGradeInput($identifier, $i, $isApproved),
+                    'GradeText' => $this->getComplexExamGradeTextSelect($identifier, $i, $isApproved)
+                );
+                $panelPraxisComplexExams = new Panel(
+                    'Praktische Komplexprüfung',
+                    new TableData(
+                        $dataPraxisExamList,
+                        null,
+                        $columns,
+                        null
+                    ),
+//                    new Layout(new LayoutGroup(new LayoutRow(array(
+//                        new LayoutColumn($this->getComplexExamSubjectSelectBox($identifier, $i, 1, $isApproved, true), 4),
+//                        new LayoutColumn($this->getComplexExamSubjectSelectBox($identifier, $i, 2, $isApproved, true), 4),
+//                        new LayoutColumn($this->getComplexExamGradeInput($identifier, $i, $isApproved, true), 2),
+//                        new LayoutColumn($this->getComplexExamGradeTextSelect($identifier, $i, $isApproved, true), 2),
+//                    )))),
+                    Panel::PANEL_TYPE_INFO
+                );
 
                 $panelPraxis = new Panel(
                     'Berufspraktische Ausbildung',
@@ -487,29 +578,12 @@ class Frontend extends Extension
                     Panel::PANEL_TYPE_INFO
                 );
 
-                // todo Nachrichtliche Ausweisung -> Lernfeld auswählen oder Textinputs?
-                // nachweislich ergibt sich aus den Komplexenprüfungen
-                // keine Eingabe sondern fest aus der Einstellung dürfen keine Notenherauskommen
-                // gibt es nicht
-                // doch automatisch aus der Auswahl der komplexen Prüfungen
-
                 // Zusatzausbildung zum Erwerb der Fachhochschulreife muss raus
-                // todo dafür eingabe als Text input ("Zusatzunterricht Englisch/ Mathe")
-                // Zensur kann auch teilgenommen sein (Zeugnistext)
+                $panelAddEducation = $this->getPanel('Zusatzausbildung zum Erwerb der Fachhochschulreife',
+                    'AddEducation', 'Zusatzausbildung', $isApproved);
 
                 // Facharbeit Thema
-                // todo Zensur im Wortlaut ausgeben
-                $panelSkilledWork = new Panel(
-                    'Facharbeit',
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn($skilledWorkInput, 9),
-                            new LayoutColumn($skilledWorkGradeInput, 3)
-                        )),
-                    ))),
-                    Panel::PANEL_TYPE_INFO
-                );
-
+                $panelSkilledWork = $this->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
             }
 
             $otherInformationList[] =  $datePicker;
@@ -536,13 +610,12 @@ class Frontend extends Extension
                 $subjectTable ? new FormRow(new FormColumn(
                     new Panel('Zensuren', $subjectTable, Panel::PANEL_TYPE_INFO)
                 )) : null,
-                new FormRow(new FormColumn(
-                    $panelEducation
-                )),
-                new FormRow(new FormColumn(
-                    $panelPraxis
-                )),
+                new FormRow(new FormColumn($panelEducation)),
+                $panelWrittenComplexExams ? new FormRow(new FormColumn($panelWrittenComplexExams)) : null,
+                $panelPraxisComplexExams ? new FormRow(new FormColumn($panelPraxisComplexExams)) : null,
+                new FormRow(new FormColumn($panelPraxis)),
                 $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
+                $panelAddEducation ? new FormRow(new FormColumn($panelAddEducation)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',
@@ -586,5 +659,136 @@ class Frontend extends Extension
         }
 
         return $layoutGroups;
+    }
+
+    /**
+     * @param $identifier
+     * @param $ranking
+     * @param $subjectCount
+     * @param $isApproved
+     * @param bool $hasLabel
+     *
+     * @return SelectBox
+     */
+    private function getComplexExamSubjectSelectBox(
+        $identifier,
+        $ranking,
+        $subjectCount,
+        $isApproved,
+        $hasLabel = false
+    ) {
+        $selectBox = new SelectBox(
+            'Data[ExamList][' . $identifier . '_' . $ranking . '][S' . $subjectCount . ']',
+            $hasLabel ? $subjectCount . '. Fach' : '',
+            array('{{ TechnicalAcronymForCertificateFromName }}' => $this->subjectList)
+        );
+
+        if ($isApproved) {
+            $selectBox->setDisabled();
+        }
+
+        return $selectBox;
+    }
+
+    /**
+     * @param $identifier
+     * @param $ranking
+     * @param $isApproved
+     * @param $hasLabel
+     *
+     * @return SelectCompleter
+     */
+    private function getComplexExamGradeInput(
+        $identifier,
+        $ranking,
+        $isApproved,
+        $hasLabel = false
+    ) {
+        $input = new SelectCompleter(
+            'Data[ExamList][' . $identifier . '_' . $ranking . '][Grade]',
+            $hasLabel ? 'Zensur' : '',
+            '',
+            $this->selectListGrades
+        );
+
+        if ($isApproved) {
+            $input->setDisabled();
+        }
+
+        return $input;
+    }
+
+    /**
+     * @param $identifier
+     * @param $ranking
+     * @param $isApproved
+     * @param $hasLabel
+     *
+     * @return SelectBox
+     */
+    private function getComplexExamGradeTextSelect(
+        $identifier,
+        $ranking,
+        $isApproved,
+        $hasLabel = false
+    ) {
+        $selectBox = new SelectBox('Data[ExamList][' . $identifier . '_' . $ranking . '][GradeText]',
+            $hasLabel ? 'oder Zeugnistext' : '', array(TblGradeText::ATTR_NAME => $this->selectListGradeTexts));
+
+        if ($isApproved) {
+            $selectBox->setDisabled();
+        }
+
+        return $selectBox;
+    }
+
+    /**
+     * @param $panelName
+     * @param $identifier
+     * @param $inputName
+     * @param $isApproved
+     *
+     * @return Panel
+     */
+    private function getPanel($panelName, $identifier, $inputName, $isApproved)
+    {
+        $input = new TextField('Data[InformationList][' . $identifier . ']', '', $inputName);
+        $grade = new SelectCompleter('Data[InformationList][' . $identifier . '_Grade]', 'Zensur', '', $this->selectListGrades);
+        $gradeText = new SelectBox('Data[InformationList][' . $identifier . '_GradeText]', 'oder Zeugnistext',
+            array(TblGradeText::ATTR_NAME => $this->selectListGradeTexts));
+
+        if ($isApproved) {
+            $input->setDisabled();
+            $grade->setDisabled();
+            $gradeText->setDisabled();
+        }
+
+        return new Panel(
+            $panelName,
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($input, 8),
+                new LayoutColumn($grade, 2),
+                new LayoutColumn($gradeText, 2)
+            )))),
+            Panel::PANEL_TYPE_INFO
+        );
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     */
+    private function setSubjectListByTechnicalCourse(TblCertificate $tblCertificate, TblTechnicalCourse $tblTechnicalCourse = null)
+    {
+        $this->subjectList = array();
+        if (($tblCertificateSubjectList = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse))) {
+            foreach ($tblCertificateSubjectList as $tblCertificateSubject) {
+                if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())
+                    && $tblCertificateSubject->getRanking() > 4
+                ) {
+                    $this->subjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+        }
     }
 }

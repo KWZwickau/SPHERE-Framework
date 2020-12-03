@@ -231,7 +231,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $haveToBaseSubject = 14; // (10 * 2) = 20 LF (14 Ist Standard, 15 passen auf das Zeugnis)
                 $chosenSubject = 16; // (2 * 2) = 4 Wahlfächer (3 Wahlfächer passen auf das Zeugnis)
                 $praktSubject = 17; // (1 * 2) = 2 Berufspraktische Ausbildung (1 Fach)
-                $educationSubject = 18; // (1 * 2) = 2 Erwerb der Fachhochschulreife (1 Fach)
+//                $educationSubject = 18; // (1 * 2) = 2 Erwerb der Fachhochschulreife (1 Fach)
 
                 // Berufsübergreifende Pflichtfächer
                 $SubjectLaneAcrossLeft = array();
@@ -274,13 +274,13 @@ class Frontend extends Extension implements IFrontendInterface
                         $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
                     );
                 }
-                // Zusatzausbildung zum Erwerb der Fachhochschulreife
-                $SubjectEducation = array();
-                for ($Run = ($chosenSubject + 2); $Run <= $educationSubject; $Run++) {
-                    array_push($SubjectEducation,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
-                    );
-                }
+//                // Zusatzausbildung zum Erwerb der Fachhochschulreife
+//                $SubjectEducation = array();
+//                for ($Run = ($chosenSubject + 2); $Run <= $educationSubject; $Run++) {
+//                    array_push($SubjectEducation,
+//                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+//                    );
+//                }
 
 
                 $Stage->setContent(
@@ -312,11 +312,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormColumn($SubjectPrakt, 6)
                                 )),
                             ), new FormTitle('Berufspraktische Ausbildung')),
-                            new FormGroup(array(
-                                new FormRow(array(
-                                    new FormColumn($SubjectEducation, 6)
-                                )),
-                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
+//                            new FormGroup(array(
+//                                new FormRow(array(
+//                                    new FormColumn($SubjectEducation, 6)
+//                                )),
+//                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
                 );
             } else {

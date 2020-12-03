@@ -23,6 +23,9 @@ class FsAbg extends FsStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        // leere Seite
+        $pageList[] = new Page();
+
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbg($personId));
         $Page->addSlice($this->getStudentHeadAbg($personId));

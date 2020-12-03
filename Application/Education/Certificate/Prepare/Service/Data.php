@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveAdditionalGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
@@ -1957,5 +1958,124 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblLeaveComplexExam $tblLeaveComplexExam
+     * @param $grade
+     * @param TblSubject|null $tblFirstSubject
+     * @param TblSubject|null $tblSecondSubject
+     *
+     * @return bool
+     */
+    public function updateLeaveComplexExam(
+        TblLeaveComplexExam $tblLeaveComplexExam,
+        $grade,
+        TblSubject $tblFirstSubject = null,
+        TblSubject $tblSecondSubject = null
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblLeaveComplexExam $Entity */
+        $Entity = $Manager->getEntityById('TblLeaveComplexExam', $tblLeaveComplexExam->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($grade);
+            $Entity->setServiceTblFirstSubject($tblFirstSubject);
+           $Entity->setServiceTblSecondSubject($tblSecondSubject);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $identifier
+     * @param $ranking
+     * @param $grade
+     * @param TblSubject|null $tblFirstSubject
+     * @param TblSubject|null $tblSecondSubject
+     *
+     * @return TblLeaveComplexExam
+     */
+    public function createLeaveComplexExam(
+        TblLeaveStudent $tblLeaveStudent,
+        $identifier,
+        $ranking,
+        $grade,
+        TblSubject $tblFirstSubject = null,
+        TblSubject $tblSecondSubject = null
+    ) {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblLeaveComplexExam $Entity */
+        $Entity = $Manager->getEntity('TblLeaveComplexExam')->findOneBy(array(
+            TblLeaveComplexExam::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
+            TblLeaveComplexExam::ATTR_IDENTIFIER => $identifier,
+            TblLeaveComplexExam::ATTR_RANKING => $ranking
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblLeaveComplexExam();
+            $Entity->setTblLeaveStudent($tblLeaveStudent);
+            $Entity->setIdentifier($identifier);
+            $Entity->setRanking($ranking);
+            $Entity->setGrade($grade);
+            $Entity->setServiceTblFirstSubject($tblFirstSubject);
+            $Entity->setServiceTblSecondSubject($tblSecondSubject);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $identifier
+     * @param $ranking
+     *
+     * @return false|TblLeaveComplexExam
+     */
+    public function getLeaveComplexExamBy(
+        TblLeaveStudent $tblLeaveStudent,
+        $identifier,
+        $ranking
+    ) {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblLeaveComplexExam',
+            array(
+                TblLeaveComplexExam::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
+                TblLeaveComplexExam::ATTR_IDENTIFIER => $identifier,
+                TblLeaveComplexExam::ATTR_RANKING => $ranking
+            )
+        );
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return false|TblLeaveComplexExam[]
+     */
+    public function getLeaveComplexExamAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
+    {
+        return $this->getCachedEntityListBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblLeaveComplexExam',
+            array(
+                TblLeaveComplexExam::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId()
+            )
+        );
     }
 }
