@@ -1553,6 +1553,52 @@ class Service extends AbstractService
                     }
                 }
             }
+
+            // Komplexprüfungen für Fachschule
+            if (($tblLeaveComplexExamList = Prepare::useService()->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent))) {
+                $countInformationalExpulsion = 1;
+                $subjectList = array();
+                foreach ($tblLeaveComplexExamList as $tblLeaveComplexExam) {
+                    $identifier = $tblLeaveComplexExam->getIdentifier();
+                    $ranking = $tblLeaveComplexExam->getRanking();
+
+                    $subjects = '';
+                    $tblFirstSubject = $tblLeaveComplexExam->getServiceTblFirstSubject();
+                    $tblSecondSubject = $tblLeaveComplexExam->getServiceTblSecondSubject();
+                    $preText = $identifier == TblLeaveComplexExam::IDENTIFIER_WRITTEN ? 'K' . $ranking . '&nbsp;&nbsp;' : '';
+                    if ($tblFirstSubject || $tblSecondSubject) {
+                        $subjects .= $preText
+                            . ($tblFirstSubject ? $tblFirstSubject->getTechnicalAcronymForCertificateFromName() : '')
+                            . ($tblFirstSubject && $tblSecondSubject ? ' / ' : '')
+                            . ($tblSecondSubject ? $tblSecondSubject->getTechnicalAcronymForCertificateFromName() : '');
+                    }
+
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Subjects'] = $subjects;
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $tblLeaveComplexExam->getGrade();
+
+                    // Nachrichtliche Ausweisung
+                    if ($tblFirstSubject && !isset($subjectList[$tblFirstSubject->getId()])) {
+                        $subjectList[$tblFirstSubject->getId()] = $tblFirstSubject;
+                        $text = $preText . $tblFirstSubject->getName();
+                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                        if (strlen($text) > 90) {
+                            // Fachname nimmt 2 Zeilen ein
+                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . (string)$countInformationalExpulsion] = strlen($text);
+                        }
+                        $countInformationalExpulsion++;
+                    }
+                    if ($tblSecondSubject && !isset($subjectList[$tblSecondSubject->getId()])) {
+                        $subjectList[$tblSecondSubject->getId()] = $tblSecondSubject;
+                        $text = $preText . $tblSecondSubject->getName();
+                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                        if (strlen($text) > 90) {
+                            // Fachname nimmt 2 Zeilen ein
+                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . (string)$countInformationalExpulsion] = strlen($text);
+                        }
+                        $countInformationalExpulsion++;
+                    }
+                }
+            }
         }
 
         return $Content;

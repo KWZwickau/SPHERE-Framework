@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
@@ -29,49 +30,30 @@ class FsAbg extends FsStyle
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbg($personId));
         $Page->addSlice($this->getStudentHeadAbg($personId));
-//        $Page->addSlice($this->getIndividuallySignPart($personId, true));
-
-        $Page->addSlice($this->getSubjectLineDuty());
-        $Page->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, '200px', 1, 4));
-        $Page->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8));
-        
-//        $Page->addSlice($this->getIndividuallySignPart($personId, true));
-
+        $Page->addSlice($this->getSubjectLineDuty('20px'));
+        $Page->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, '220px', 1, 4));
+        $Page->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8, 'auto', 5, 14));
         $pageList[] = $Page;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis'))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 11, '384px'))
-            ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity(), '100px'))
-            ->addSlice($this->getSubjectLineWrittenTest($personId, '160px'))
-            ->addSlice($this->getSubjectLinePractiseTest($personId))
-            ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
-//            ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))
-//            ->addSlice($this->getChosenArea($personId))
-//            ->addSlice($this->getDescriptionBsContent($personId))
-//            ->addSlice($this->getTransfer($personId))
-//            ->addSlice((new Slice())->addElement((new Element())
-//                ->setContent('&nbsp;')
-//                ->stylePaddingTop('82px')
-//            ))
-//            ->addSlice($this->getIndividuallySignPart($personId))
-//            ->addSlice($this->getFsInfo('20px',
-//                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 11, '430px', 5, 14))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 'auto', 15, 16))
+            ->addSlice($this->getSubjectLineComplexExam($personId, 'Schriftliche Komplexprüfung/en', TblLeaveComplexExam::IDENTIFIER_WRITTEN, 4))
+            ->addSlice($this->getSubjectLineComplexExam($personId, 'Praktische Komplexprüfung', TblLeaveComplexExam::IDENTIFIER_PRAXIS, 1))
+            ->addSlice($this->getSubjectLineJobEducationAbg($personId, $this->getCertificateEntity()))
         ;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis'))
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId))
-            ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getFachhochschulreife($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId, '40px'))
-            ->addSlice($this->getIndividuallySignPart($personId, false, true))
-//            ->addSlice((new Slice())->addElement((new Element())
-//                ->setContent('&nbsp;')
-//                ->stylePaddingTop('10px')
-//            ))
-//            ->addSlice($this->getIndividuallySignPart($personId))
+            ->addSlice($this->getSpace('30px'))
+            ->addSlice($this->getIndividuallySignPart($personId, true))
+            ->addSlice($this->getSpace('20px'))
             ->addSlice($this->getFsInfoExtended('5px', '1)', new Container('Das Fach war Gegenstand des Erwerbs der
              Fachhochschulreife.')))
             ->addSlice($this->getFsInfoExtended('5px', '2)', new Container('Das Thema der Facharbeit und die Note

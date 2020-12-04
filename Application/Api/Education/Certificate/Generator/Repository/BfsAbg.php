@@ -2,9 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
-use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -35,15 +33,11 @@ class BfsAbg extends BfsStyle
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis'))
-            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, '220px'))
-            ->addSlice($this->getSubjectLineChosenAbg($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 6, 'auto'))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 'auto', 13, 14))
             ->addSlice($this->getPraktikaAbg($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId, '85px'))
-//            ->addSlice($this->getTransfer($personId))
-            ->addSlice((new Slice())->addElement((new Element())
-                ->setContent('&nbsp;')
-                ->stylePaddingTop('120px')
-            ))
+            ->addSlice($this->getSpace('120px'))
             ->addSlice($this->getIndividuallySignPart($personId, true))
             ->addSlice($this->getBsInfo('85px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))

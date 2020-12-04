@@ -419,6 +419,7 @@ class Frontend extends Extension
             $panelWrittenComplexExams = false;
             $panelPraxisComplexExams = false;
             $panelAddEducation = false;
+            $panelChosenArea = false;
 
             if ($isBfs) {
                 // Berufsfachschule
@@ -488,12 +489,18 @@ class Frontend extends Extension
 
                 $jobEducationDuration = (new TextField('Data[InformationList][JobEducationDuration]', '', 'Dauer in Wochen'));
 
+                $chosenArea1Input = new TextField('Data[InformationList][ChosenArea1]', '', 'Wahlbereich 1');
+                $chosenArea2Input = new TextField('Data[InformationList][ChosenArea2]', '', 'Wahlbereich 2');
+
                 if ($isApproved) {
                     $destinationInput->setDisabled();
                     $subjectAreaInput->setDisabled();
                     $focusInput->setDisabled();
 
                     $jobEducationDuration->setDisabled();
+
+                    $chosenArea1Input->setDisabled();
+                    $chosenArea2Input->setDisabled();
                 }
 
                 $panelEducation = new Panel(
@@ -578,12 +585,22 @@ class Frontend extends Extension
                     Panel::PANEL_TYPE_INFO
                 );
 
+                // Facharbeit Thema
+                $panelSkilledWork = $this->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
+
                 // Zusatzausbildung zum Erwerb der Fachhochschulreife muss raus
                 $panelAddEducation = $this->getPanel('Zusatzausbildung zum Erwerb der Fachhochschulreife',
                     'AddEducation', 'Zusatzausbildung', $isApproved);
 
-                // Facharbeit Thema
-                $panelSkilledWork = $this->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
+                // Wahlbereich
+                $panelChosenArea = new Panel(
+                    'Wahlbereich',
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($chosenArea1Input, 6),
+                        new LayoutColumn($chosenArea2Input, 6)
+                    )))),
+                    Panel::PANEL_TYPE_INFO
+                );
             }
 
             $otherInformationList[] =  $datePicker;
@@ -616,6 +633,7 @@ class Frontend extends Extension
                 new FormRow(new FormColumn($panelPraxis)),
                 $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
                 $panelAddEducation ? new FormRow(new FormColumn($panelAddEducation)) : null,
+                $panelChosenArea ? new FormRow(new FormColumn($panelChosenArea)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',

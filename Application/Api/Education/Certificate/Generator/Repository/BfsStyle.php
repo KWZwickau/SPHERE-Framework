@@ -806,7 +806,7 @@ abstract class BfsStyle extends Certificate
             ->setContent($Title)
             ->styleAlignCenter()
             ->stylePaddingTop('20px')
-            ->stylePaddingBottom('5px')
+            ->stylePaddingBottom('0px')
         );
 
         $tblTechnicalCourse = null;
@@ -1103,97 +1103,6 @@ abstract class BfsStyle extends Certificate
             $Slice = $this->getEmptySubjectField($Slice, $CountSubjectMissing);
         }
 
-        $Slice->styleHeight($Height);
-
-        return $Slice;
-    }
-
-    /**
-     * @param        $personId
-     * @param TblCertificate $tblCertificate
-     * @param string $Height
-     *
-     * @return Slice
-     */
-    protected function getSubjectLineChosenAbg($personId, TblCertificate $tblCertificate, $Height = '130px')
-    {
-        $Slice = (new Slice());
-
-        $Slice->addElement((new Element())
-            ->setContent('Wahlpflichtbereich')
-            ->styleAlignCenter()
-            ->stylePaddingTop('10px')
-            ->stylePaddingBottom('10px')
-        );
-
-        $tblTechnicalCourse = null;
-        if(($tblPerson = Person::useService()->getPersonById($personId))){
-            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
-                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
-                }
-            }
-        }
-
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
-        $tblGradeList = $this->getGrade();
-        $CountSubjectMissing = 0;
-        if (!empty($tblCertificateSubjectAll)) {
-            $SubjectStructure = array();
-            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
-                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-                if ($tblSubject) {
-                    $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
-                    $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
-
-                    if($tblCertificateSubject->getRanking() >= 13
-                        && $tblCertificateSubject->getRanking() < 15) {
-
-                        if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
-                            $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
-                                = $tblSubject->getAcronym();
-                            $SubjectStructure[$RankingString.$LaneString]['SubjectName']
-                                = $tblSubject->getName();
-                        } else {
-                            // Grade Missing, But Subject Essential => Add Subject to Certificate
-                            if ($tblCertificateSubject->isEssential()){
-                                $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
-                                    = $tblSubject->getAcronym();
-                                $SubjectStructure[$RankingString.$LaneString]['SubjectName']
-                                    = $tblSubject->getName();
-                            }
-                        }
-                    }
-                }
-            }
-
-            $SubjectList = array();
-
-            // Anzahl der Abzubildenden Einträge (auch ohne Fach)
-            $CountSubjectMissing = 2;
-            ksort($SubjectStructure);
-            foreach ($SubjectStructure as $RankingLane => $Subject) {
-                $SubjectList[] = $Subject;
-                $CountSubjectMissing--;
-            }
-
-            foreach ($SubjectList as $Subject) {
-                // Jedes Fach auf separate Zeile
-                $this->getSubjectLineAbg($Slice, $Subject['SubjectName'],
-                    '{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                        {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
-                    {% else %}
-                        &ndash;
-                    {% endif %}'
-                );
-            }
-        }
-
-        if($CountSubjectMissing > 0){
-            for($i = 0; $i < $CountSubjectMissing; $i++){
-                $this->getSubjectLineAbg($Slice, '&nbsp;', '&ndash;');
-            }
-        }
         $Slice->styleHeight($Height);
 
         return $Slice;
@@ -1911,5 +1820,15 @@ abstract class BfsStyle extends Certificate
             ->styleBorderRight('0.5px')
             ->styleBorderBottom('0.5px');
         return $TransferSlice;
+    }
+
+    /**
+     * @param string $height
+     *
+     * @return Slice
+     */
+    public function getSpace($height = '20px')
+    {
+        return (new Slice())->styleHeight($height);
     }
 }

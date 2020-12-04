@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
@@ -58,8 +59,8 @@ class FsAbs extends FsStyle
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, '190px', 1, 4))
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8, '282px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity(), '100px'))
-            ->addSlice($this->getSubjectLineWrittenTest($personId, '160px'))
-            ->addSlice($this->getSubjectLinePractiseTest($personId))
+            ->addSlice($this->getSubjectLineComplexExam($personId, 'Schriftliche Komplexprüfung/en', TblLeaveComplexExam::IDENTIFIER_WRITTEN, 4))
+            ->addSlice($this->getSubjectLineComplexExam($personId, 'Praktische Komplexprüfung', TblLeaveComplexExam::IDENTIFIER_PRAXIS, 1))
             ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
 //            ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))
 //            ->addSlice($this->getChosenArea($personId))

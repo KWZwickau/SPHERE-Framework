@@ -2073,8 +2073,10 @@ class Data extends AbstractData
             __METHOD__,
             $this->getEntityManager(),
             'TblLeaveComplexExam',
+            array(TblLeaveComplexExam::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId()),
             array(
-                TblLeaveComplexExam::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId()
+                TblLeaveComplexExam::ATTR_IDENTIFIER => self::ORDER_DESC,
+                TblLeaveComplexExam::ATTR_RANKING => self::ORDER_ASC
             )
         );
     }
