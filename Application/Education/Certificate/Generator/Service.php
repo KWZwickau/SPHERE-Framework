@@ -583,7 +583,7 @@ class Service extends AbstractService
             'Content.Input.ChosenArea'          => 'Wahlplfichtbereich (Überschrift)',
             'Content.Input.JobEducation'        => 'Berufspraktische Ausbildung (Überschrift)',
             'Content.Input.JobEducationDuration'=> 'Berufspraktische Ausbildung (dauer in Wochen)',
-            'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife (Überschrift)',
+            'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife',
             'Content.Input.ChosenArea1'         => 'Wahlbereich 1',
             'Content.Input.ChosenArea2'         => 'Wahlbereich 2',
         );

@@ -1190,8 +1190,12 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingBottom('10px');
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer: 
-                    {{ Content.P' . $personId . '.Input.OperationTime1 + Content.P' . $personId . '.Input.OperationTime2 + Content.P' . $personId . '.Input.OperationTime3 }}
+                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer:
+                    {% if(Content.P' . $personId . '.Input.OperationTimeTotal is not empty) %}
+                        {{ Content.P' . $personId . '.Input.OperationTimeTotal }}
+                    {% else %}
+                        X
+                    {% endif %}
                     Wochen)')
                 ->stylePaddingLeft('5px')
                 , '91%'

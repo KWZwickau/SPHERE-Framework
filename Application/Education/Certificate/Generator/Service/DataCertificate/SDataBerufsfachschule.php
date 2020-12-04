@@ -52,11 +52,12 @@ class SDataBerufsfachschule
             }
         }
 
-        // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
+        // Informationen auf mehrere "Sonstige Informationen" aufgliedern
         // Seite 2
         $Data->createCertificateInformation($tblCertificate, 'BfsDestination', 2);
         $Data->createCertificateInformation($tblCertificate, 'CertificateName', 2);
         // Seite 3
+        $Data->createCertificateInformation($tblCertificate, 'OperationTimeTotal', 3);
         $Data->createCertificateInformation($tblCertificate, 'Operation1', 3);
         $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 3);
         $Data->createCertificateInformation($tblCertificate, 'Operation2', 3);
@@ -98,6 +99,7 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'BfsDestination', 2);
             $Data->createCertificateInformation($tblCertificate, 'CertificateName', 2);
             // Seite 3
+            $Data->createCertificateInformation($tblCertificate, 'OperationTimeTotal', 3);
             $Data->createCertificateInformation($tblCertificate, 'Operation1', 3);
             $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 3);
             $Data->createCertificateInformation($tblCertificate, 'Operation2', 3);
@@ -139,6 +141,7 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'BfsDestination', 2);
             $Data->createCertificateInformation($tblCertificate, 'CertificateName', 2);
             // Seite 3
+            $Data->createCertificateInformation($tblCertificate, 'OperationTimeTotal', 3);
             $Data->createCertificateInformation($tblCertificate, 'Operation1', 3);
             $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 3);
             $Data->createCertificateInformation($tblCertificate, 'Operation2', 3);

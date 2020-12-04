@@ -25,6 +25,7 @@ class BfsJ extends BfsStyle
             'BfsDestination' => 'Berufsfachschule für ...',
             'CertificateName' => 'Abweichender Zeugnisname (Endjahresinformation)',
             // Page 3
+            'OperationTimeTotal' => 'Berufspraktische Ausbildung Dauer in Wochen',
             'Operation1' => 'Einsatzgebiet 1',
             'OperationTime1' => 'Einsatzgebiet Dauer in Wochen 1',
             'Operation2' => 'Einsatzgebiet 2',
