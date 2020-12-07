@@ -1005,6 +1005,7 @@ class Data extends AbstractData
             $tblAccount = $this->getAccountBySession();
         }
 
+        /** @var TblAccount|null $Entity */
         $Entity = $this->getForceEntityById(__Method__, $this->getConnection()->getEntityManager(),
             'TblAccount', $tblAccount->getId());
 
@@ -1118,7 +1119,7 @@ class Data extends AbstractData
      *
      * @return bool|TblAccount[]
      */
-    public function getAccountListByConumser(TblConsumer $tblConsumer)
+    public function getAccountListByConsumer(TblConsumer $tblConsumer)
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),

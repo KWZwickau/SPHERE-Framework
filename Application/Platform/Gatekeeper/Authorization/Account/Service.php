@@ -103,7 +103,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->destroyGroup($tblGroup);
     }
 
-
     /**
      * @param null|string $Session
      *
@@ -771,11 +770,11 @@ class Service extends AbstractService
      *
      * @return bool|TblAccount[]
      */
-    public function getAccountListByActiveConumser()
+    public function getAccountListByActiveConsumer()
     {
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
-        return (new Data($this->getBinding()))->getAccountListByConumser($tblConsumer);
+        return (new Data($this->getBinding()))->getAccountListByConsumer($tblConsumer);
     }
 
     /**
@@ -787,7 +786,7 @@ class Service extends AbstractService
     {
 
         $returnList = array();
-        if(($tblAccountList = $this->getAccountListByActiveConumser())){
+        if(($tblAccountList = $this->getAccountListByActiveConsumer())){
             foreach($tblAccountList as $tblAccount){
 
                 if(($tblIdentificationSet = $tblAccount->getServiceTblIdentification())){
