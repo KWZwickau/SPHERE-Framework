@@ -432,6 +432,10 @@ class Frontend extends Extension
                                         && ($tblLevel->getName() == '9' || $tblLevel->getName() == '10')
                                     ) {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Berufsfachschule') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Fachschule') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     }
                                 } elseif ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
                                     // nur Gymnasium Klasse 11 und 12

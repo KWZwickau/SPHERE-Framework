@@ -807,7 +807,7 @@ abstract class FsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('20px')
             ->styleTextBold()
-            ->stylePaddingTop('20px')
+            ->stylePaddingTop('10px')
         );
 
         return $Slice;
@@ -928,18 +928,19 @@ abstract class FsStyle extends Certificate
      * @param string $Height
      * @param int $SubjectRankingFrom
      * @param int $SubjectRankingTill
+     * @param string $paddingTop
      *
      * @return Slice
      */
     protected function getSubjectLineBaseAbg($personId, TblCertificate $tblCertificate, $Title = '&nbsp;', $StartSubject = 1,
-        $DisplaySubjectAmount = 10, $Height = 'auto', $SubjectRankingFrom = 5, $SubjectRankingTill = 14)
+        $DisplaySubjectAmount = 10, $Height = 'auto', $SubjectRankingFrom = 5, $SubjectRankingTill = 14, $paddingTop = '20px')
     {
         $Slice = (new Slice());
 
         $Slice->addElement((new Element())
             ->setContent($Title)
             ->styleAlignCenter()
-            ->stylePaddingTop('20px')
+            ->stylePaddingTop($paddingTop)
             ->stylePaddingBottom('0px')
         );
 
@@ -1301,13 +1302,14 @@ abstract class FsStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
+     * @param int $personId
      * @param TblCertificate $tblCertificate
      * @param string $Height
+     * @param string $paddingTop
      *
      * @return Slice
      */
-    protected function getSubjectLineJobEducationAbg($personId, TblCertificate $tblCertificate, $Height = 'auto')
+    protected function getSubjectLineJobEducationAbg($personId, TblCertificate $tblCertificate, $Height = 'auto', $paddingTop = '20px')
     {
         $Slice = (new Slice());
 
@@ -1315,7 +1317,7 @@ abstract class FsStyle extends Certificate
         $Slice->addElement((new Element())
             ->setContent('Berufspraktische Ausbildung')
             ->styleAlignCenter()
-            ->stylePaddingTop('20px')
+            ->stylePaddingTop($paddingTop)
             ->stylePaddingBottom('0px')
         );
 
@@ -1573,17 +1575,18 @@ abstract class FsStyle extends Certificate
      * @param $identifier
      * @param $rowsCount
      * @param string $Height
+     * @param string $paddingTop
      *
      * @return Slice
      */
-    protected function getSubjectLineComplexExam($personId, $title, $identifier, $rowsCount, $Height = 'auto')
+    protected function getSubjectLineComplexExam($personId, $title, $identifier, $rowsCount, $Height = 'auto', $paddingTop = '20px')
     {
         $Slice = (new Slice());
 
         $Slice->addElement((new Element())
             ->setContent($title)
             ->styleAlignCenter()
-            ->stylePaddingTop('20px')
+            ->stylePaddingTop($paddingTop)
             ->stylePaddingBottom('0px')
         );
 

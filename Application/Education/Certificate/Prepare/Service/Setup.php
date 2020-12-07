@@ -36,7 +36,7 @@ class Setup extends AbstractSetup
         $tblPrepare = $this->setTableCertificatePrepare($Schema);
         $tblPrepareAdditionalGradeType = $this->setTablePrepareAdditionalGradeType($Schema);
         $this->setTablePrepareGrade($Schema, $tblPrepare);
-        $this->setTablePrepareStudent($Schema, $tblPrepare);
+        $tblPrepareStudent = $this->setTablePrepareStudent($Schema, $tblPrepare);
         $this->setTablePrepareInformation($Schema, $tblPrepare);
         $this->setTablePrepareAdditionalGrade($Schema, $tblPrepare, $tblPrepareAdditionalGradeType);
         $tblLeaveStudent = $this->setTableLeaveStudent($Schema);
@@ -44,6 +44,7 @@ class Setup extends AbstractSetup
         $this->setTableLeaveInformation($Schema,$tblLeaveStudent);
         $this->setTableLeaveAdditionalGrade($Schema, $tblLeaveStudent, $tblPrepareAdditionalGradeType);
         $this->setTableLeaveComplexExam($Schema, $tblLeaveStudent);
+        $this->setTablePrepareComplexExam($Schema, $tblPrepareStudent);
 
         /**
          * Migration & Protocol
@@ -335,6 +336,27 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
 
         $this->getConnection()->addForeignKey($Table, $tblLeaveStudent);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblPrepareStudent
+     *
+     * @return Table
+     */
+    private function setTablePrepareComplexExam(Schema &$Schema, Table $tblPrepareStudent)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblPrepareComplexExam');
+
+        $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'serviceTblFirstSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSecondSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+
+        $this->getConnection()->addForeignKey($Table, $tblPrepareStudent);
 
         return $Table;
     }

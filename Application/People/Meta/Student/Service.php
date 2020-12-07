@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Data;
@@ -1584,5 +1585,36 @@ class Service extends Support
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblTechnicalCourse
+     */
+    public function getTechnicalCourseByPerson(TblPerson $tblPerson)
+    {
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+        ) {
+            return $tblTechnicalSchool->getServiceTblTechnicalCourse();
+        }
+
+        return  false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getTechnicalCourseGenderNameByPerson(TblPerson $tblPerson)
+    {
+        if (($tblTechnicalCourse = $this->getTechnicalCourseByPerson($tblPerson))) {
+            $tblCommonGender = $tblPerson->getGender();
+            return $tblTechnicalCourse->getDisplayName($tblCommonGender ? $tblCommonGender : null);
+        }
+
+        return '';
     }
 }

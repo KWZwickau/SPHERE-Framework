@@ -61,6 +61,9 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\Prepare\Diploma\Setting' , __NAMESPACE__ . '\Frontend::frontendPrepareDiplomaSetting')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Technical\Setting' , __NAMESPACE__ . '\Frontend::frontendPrepareDiplomaTechnicalSetting')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Prepare\Diploma\Abitur\Preview' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturPreview')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

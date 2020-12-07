@@ -210,6 +210,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10'))
                             || (($tblSchoolType->getName() == 'Gymnasium'
                                 && $tblLevel->getName() == '12'))
+                            || $tblSchoolType->getName() == 'Berufsfachschule'
+                            || $tblSchoolType->getName() == 'Fachschule'
                         )
                     ) {
                         $divisionTable[] = array(
@@ -669,9 +671,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     }
                 }
 
+                $tblSchoolType = $tblDivision->getType();
+
                 if ($Route == 'Diploma'
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && $tblSchoolType
                     && $tblSchoolType->getName() == 'Gymnasium'
                 ) {
                     $options = new Standard(
@@ -686,7 +689,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 } else {
                     $options = (new Standard(
                         '', '/Education/Certificate/Prepare/Prepare'
-                        . ($Route == 'Diploma' ? '/Diploma' : '')
+                        . ($Route == 'Diploma'
+                            ? '/Diploma' . ($tblSchoolType
+                                && ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule')
+                                ? '/Technical' : '')
+                            : '')
                         . '/Setting', new Setup(),
                         array(
                             'PrepareId' => $tblPrepareCertificate->getId(),

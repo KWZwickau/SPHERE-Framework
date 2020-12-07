@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStud
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
@@ -2077,6 +2078,127 @@ class Data extends AbstractData
             array(
                 TblLeaveComplexExam::ATTR_IDENTIFIER => self::ORDER_DESC,
                 TblLeaveComplexExam::ATTR_RANKING => self::ORDER_ASC
+            )
+        );
+    }
+
+    /**
+     * @param TblPrepareComplexExam $tblPrepareComplexExam
+     * @param $grade
+     * @param TblSubject|null $tblFirstSubject
+     * @param TblSubject|null $tblSecondSubject
+     *
+     * @return bool
+     */
+    public function updatePrepareComplexExam(
+        TblPrepareComplexExam $tblPrepareComplexExam,
+        $grade,
+        TblSubject $tblFirstSubject = null,
+        TblSubject $tblSecondSubject = null
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareComplexExam $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareComplexExam', $tblPrepareComplexExam->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($grade);
+            $Entity->setServiceTblFirstSubject($tblFirstSubject);
+            $Entity->setServiceTblSecondSubject($tblSecondSubject);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param $identifier
+     * @param $ranking
+     * @param $grade
+     * @param TblSubject|null $tblFirstSubject
+     * @param TblSubject|null $tblSecondSubject
+     *
+     * @return TblPrepareComplexExam
+     */
+    public function createPrepareComplexExam(
+        TblPrepareStudent $tblPrepareStudent,
+        $identifier,
+        $ranking,
+        $grade,
+        TblSubject $tblFirstSubject = null,
+        TblSubject $tblSecondSubject = null
+    ) {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblPrepareComplexExam $Entity */
+        $Entity = $Manager->getEntity('TblPrepareComplexExam')->findOneBy(array(
+            TblPrepareComplexExam::ATTR_TBL_PREPARE_STUDENT => $tblPrepareStudent->getId(),
+            TblPrepareComplexExam::ATTR_IDENTIFIER => $identifier,
+            TblPrepareComplexExam::ATTR_RANKING => $ranking
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblPrepareComplexExam();
+            $Entity->setTblPrepareStudent($tblPrepareStudent);
+            $Entity->setIdentifier($identifier);
+            $Entity->setRanking($ranking);
+            $Entity->setGrade($grade);
+            $Entity->setServiceTblFirstSubject($tblFirstSubject);
+            $Entity->setServiceTblSecondSubject($tblSecondSubject);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param $identifier
+     * @param $ranking
+     *
+     * @return false|TblPrepareComplexExam
+     */
+    public function getPrepareComplexExamBy(
+        TblPrepareStudent $tblPrepareStudent,
+        $identifier,
+        $ranking
+    ) {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblPrepareComplexExam',
+            array(
+                TblPrepareComplexExam::ATTR_TBL_PREPARE_STUDENT => $tblPrepareStudent->getId(),
+                TblPrepareComplexExam::ATTR_IDENTIFIER => $identifier,
+                TblPrepareComplexExam::ATTR_RANKING => $ranking
+            )
+        );
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return false|TblPrepareComplexExam[]
+     */
+    public function getPrepareComplexExamAllByPrepareStudent(TblPrepareStudent $tblPrepareStudent)
+    {
+        return $this->getCachedEntityListBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblPrepareComplexExam',
+            array(TblPrepareComplexExam::ATTR_TBL_PREPARE_STUDENT => $tblPrepareStudent->getId()),
+            array(
+                TblPrepareComplexExam::ATTR_IDENTIFIER => self::ORDER_DESC,
+                TblPrepareComplexExam::ATTR_RANKING => self::ORDER_ASC
             )
         );
     }

@@ -26,15 +26,13 @@ class FsAbs extends FsStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        // leere Seite
+        $pageList[] = new Page();
+
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbs($personId));
         $Page->addSlice($this->getStudentHeadAbs($personId));
-//                ->addSlice($this->getIndividuallySignPart($personId, true))
-//
-//            ->addSlice($this->getSubjectLineDuty())
-//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, false, '200px', 1, 4))
-//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8))
-        ;
+
         //ToDO logik für die Anzeige des Zusatztextes <MITTLERE SCHULABSCHLUSS> auf dem Zeugnis
         if(false){
             $Page->addSlice($this->getSecondarySchoolDiploma($personId));
@@ -52,27 +50,18 @@ class FsAbs extends FsStyle
 
         $pageList[] = $Page;
 
+        $paddingTop = '13px';
+
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis'))
             ->addSlice($this->getSubjectLinePerformance())
-            ->addSlice($this->getSubjectLineDuty('15px'))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, '190px', 1, 4))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8, '282px'))
-            ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity(), '100px'))
-            ->addSlice($this->getSubjectLineComplexExam($personId, 'Schriftliche Komplexprüfung/en', TblLeaveComplexExam::IDENTIFIER_WRITTEN, 4))
-            ->addSlice($this->getSubjectLineComplexExam($personId, 'Praktische Komplexprüfung', TblLeaveComplexExam::IDENTIFIER_PRAXIS, 1))
-            ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
-//            ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))
-//            ->addSlice($this->getChosenArea($personId))
-//            ->addSlice($this->getDescriptionBsContent($personId))
-//            ->addSlice($this->getTransfer($personId))
-//            ->addSlice((new Slice())->addElement((new Element())
-//                ->setContent('&nbsp;')
-//                ->stylePaddingTop('82px')
-//            ))
-//            ->addSlice($this->getIndividuallySignPart($personId))
-//            ->addSlice($this->getFsInfo('20px',
-//                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
+            ->addSlice($this->getSubjectLineDuty('10px'))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, 'auto', 1, 4, $paddingTop))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8, 'auto', 5, 14, $paddingTop))
+            ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 'auto', 15, 16, $paddingTop))
+            ->addSlice($this->getSubjectLineComplexExam($personId, 'Schriftliche Komplexprüfung/en', TblLeaveComplexExam::IDENTIFIER_WRITTEN, 4, 'auto', $paddingTop))
+            ->addSlice($this->getSubjectLineComplexExam($personId, 'Praktische Komplexprüfung', TblLeaveComplexExam::IDENTIFIER_PRAXIS, 1, 'auto', $paddingTop))
+            ->addSlice($this->getSubjectLineJobEducationAbg($personId, $this->getCertificateEntity(), 'auto', $paddingTop))
         ;
 
         $pageList[] = (new Page())
@@ -81,12 +70,10 @@ class FsAbs extends FsStyle
             ->addSlice($this->getSubjectLineSkilledWork($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId))
-//            ->addSlice($this->getTransfer($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
                 ->stylePaddingTop('120px')
             ))
-//            ->addSlice($this->getIndividuallySignPart($personId))
             ->addSlice($this->getFsInfoExtended('10px', '1)', new Container('Dem Zeugnis liegt die Schulordnung Fachschule vom 
             03.08.2017 (SächsGVBl. S. 428), in der jeweils geltenden Fassung, zu Grunde.')
             . new Container('Der Abschluss der Fachschule entspricht der Rahmenvereinbarung über Fachschulen 
