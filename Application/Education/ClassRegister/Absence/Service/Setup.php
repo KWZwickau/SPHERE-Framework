@@ -89,6 +89,7 @@ class Setup extends AbstractSetup
         }
 
         $this->createColumn($Table, 'Type', self::FIELD_TYPE_SMALLINT, false, 0);
+        $this->createColumn($Table, 'serviceTblPersonStaff', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
