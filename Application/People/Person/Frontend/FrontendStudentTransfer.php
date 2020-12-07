@@ -231,17 +231,17 @@ class FrontendStudentTransfer extends FrontendReadOnly
             self::getLayoutColumnValue($arriveStateCompany, 6),
         ));
 
-        // wird im Block für berufsbildende Schulen gepflegt
-        if (!School::useService()->hasConsumerTechnicalSchool()) {
-            $rows[] = new LayoutRow(array(
-                self::getLayoutColumnLabel('Letzte Schulart', 6),
-                self::getLayoutColumnValue($arriveType, 6),
-            ));
-            $rows[] = new LayoutRow(array(
-                self::getLayoutColumnLabel('Letzter Bildungsgang', 6),
-                self::getLayoutColumnValue($arriveCourse, 6),
-            ));
-        }
+//        // wird im Block für berufsbildende Schulen gepflegt
+//        if (!School::useService()->hasConsumerTechnicalSchool()) {
+        $rows[] = new LayoutRow(array(
+            self::getLayoutColumnLabel('Letzte Schulart', 6),
+            self::getLayoutColumnValue($arriveType, 6),
+        ));
+        $rows[] = new LayoutRow(array(
+            self::getLayoutColumnLabel('Letzter Bildungsgang', 6),
+            self::getLayoutColumnValue($arriveCourse, 6),
+        ));
+//        }
 
         $rows[] = new LayoutRow(array(
             self::getLayoutColumnLabel('Datum', 6),
@@ -589,53 +589,53 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 ApiMassReplace::pipelineOpen($Field, $NodeArrive)
             ));
 
-        // wird im Block für berufsbildende Schulen gepflegt
-        if (!School::useService()->hasConsumerTechnicalSchool()) {
-            $arrayArrive[] =
-                ApiMassReplace::receiverField((
-                $Field = new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Type]',
-                    'Letzte Schulart', array(
-                        '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                    ), new Education())
-                ))
-                . ApiMassReplace::receiverModal($Field, $NodeArrive)
-                . new PullRight((new Link('Massen-Änderung',
-                    ApiMassReplace::getEndpoint(), null, array(
-                        ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                        ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL_TYPE,
-                        ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
-                        'Id' => $tblPerson->getId(),
-                        'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
-                        'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                        'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                        'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                        'Node' => $NodeArrive,
-                    )))->ajaxPipelineOnClick(
-                    ApiMassReplace::pipelineOpen($Field, $NodeArrive)
-                ));
-            $arrayArrive[] =
-                ApiMassReplace::receiverField((
-                $Field = new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Course]',
-                    'Letzter Bildungsgang', array(
-                        '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                    ), new Education())
-                ))
-                . ApiMassReplace::receiverModal($Field, $NodeArrive)
-                . new PullRight((new Link('Massen-Änderung',
-                    ApiMassReplace::getEndpoint(), null, array(
-                        ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                        ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_COURSE,
-                        ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
-                        'Id' => $tblPerson->getId(),
-                        'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
-                        'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                        'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                        'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                        'Node' => $NodeArrive,
-                    )))->ajaxPipelineOnClick(
-                    ApiMassReplace::pipelineOpen($Field, $NodeArrive)
-                ));
-        }
+//        // wird im Block für berufsbildende Schulen gepflegt
+//        if (!School::useService()->hasConsumerTechnicalSchool()) {
+        $arrayArrive[] =
+            ApiMassReplace::receiverField((
+            $Field = new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Type]',
+                'Letzte Schulart', array(
+                    '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+                ), new Education())
+            ))
+            . ApiMassReplace::receiverModal($Field, $NodeArrive)
+            . new PullRight((new Link('Massen-Änderung',
+                ApiMassReplace::getEndpoint(), null, array(
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL_TYPE,
+                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
+                    'Id' => $tblPerson->getId(),
+                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                    'Node' => $NodeArrive,
+                )))->ajaxPipelineOnClick(
+                ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+            ));
+        $arrayArrive[] =
+            ApiMassReplace::receiverField((
+            $Field = new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Course]',
+                'Letzter Bildungsgang', array(
+                    '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+                ), new Education())
+            ))
+            . ApiMassReplace::receiverModal($Field, $NodeArrive)
+            . new PullRight((new Link('Massen-Änderung',
+                ApiMassReplace::getEndpoint(), null, array(
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_COURSE,
+                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
+                    'Id' => $tblPerson->getId(),
+                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                    'Node' => $NodeArrive,
+                )))->ajaxPipelineOnClick(
+                ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+            ));
+//        }
 
         $arrayArrive[] =
             ApiMassReplace::receiverField((
