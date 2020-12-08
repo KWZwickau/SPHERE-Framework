@@ -267,12 +267,9 @@ class Service extends AbstractService
     public function getApiUser()
     {
 
-//        $beginn = microtime(true);
-
         // Benutzerliste suchen
-        $UniventionUserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
-
-//        Univention::useFrontend()->getTimeSpan($beginn, 'holen Mandantgefilterte Benutzer aus der API');
+        $Acronym = Account::useService()->getMandantAcronym();
+        $UniventionUserList = (new UniventionUser())->getUserListByProperty('name',$Acronym.'-', true);
 
         $UserUniventionList = array();
         if($UniventionUserList){
@@ -292,9 +289,12 @@ class Service extends AbstractService
                     'schools' => (isset($User['schools']) ? $User['schools'] : array()),
 //                    // set no content so -> get no content
                     'school_classes' => (($User['school_classes']) ? $User['school_classes'] : array()),
-                    'source_uid' => (isset($User['source_uid']) ? $User['source_uid'] : ''),
+                    // Wird nur beim Import mitgegeben, benötigen wir aber nicht
+//                    'source_uid' => (isset($User['source_uid']) ? $User['source_uid'] : ''),
 //                    // get no content
                     'udm_properties' => (isset($User['udm_properties']) ? $User['udm_properties'] : array()),
+                    // Liefert Array zurück, das Feld werden wir nicht benötigen.
+//                    'e-mail' => (isset($User['udm_properties']['e-mail']) ? $User['udm_properties']['e-mail'] : ''),
                 );
             }
         }

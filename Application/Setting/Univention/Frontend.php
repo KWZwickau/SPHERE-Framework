@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -81,11 +80,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Buttons nur bei aktiver API
-        // Removed for Live
-        $Stage->addButton(new Standard('Accounts komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-        $Stage->addButton(new Standard('Accounts hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
-        $Stage->addButton(new Standard('Accounts ändern', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
-        $Stage->addButton(new Standard('Accounts löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+        // Removed for Live //ToDO without Buttons -> no Action!
+//        $Stage->addButton(new Standard('Accounts komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
+//        $Stage->addButton(new Standard('Accounts hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
+//        $Stage->addButton(new Standard('Accounts ändern', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
+//        $Stage->addButton(new Standard('Accounts löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
 
         $UserUniventionList = Univention::useService()->getApiUser();
 
@@ -103,7 +102,6 @@ class Frontend extends Extension implements IFrontendInterface
 
 //        $this->getTimeSpan($beginn, 'holen aller Benutzeraccounts aus der Schulsoftware * vorbereitung, das Werte wie in der API gepflegt werden');
 
-        // Vergleich
         // Zählung
         $count['create'] = 0;
         $count['cantCreate'] = 0;
@@ -112,27 +110,18 @@ class Frontend extends Extension implements IFrontendInterface
         $count['cantUpdate'] = 0;
         $count['delete'] = 0;
         // create: AccountActive welche nicht in der API vorhanden sind
-        //ToDO eigene Variablen, nicht alles in einem Riesen array
         $createList = array();
         $cantCreateList = array();
-//        $ApiList['Create'] = array();
-//        $ApiList['noCreate'] = array();
-
         // update: Accounts welche Vorhanden sind, aber unterschiedliche Werte aufweisen
         $updateList = array();
         $cantUpdateList = array();
-//        $ApiList['Update'] = array();
-//        $ApiList['cantUpdate'] = array();
-
-        // Display changes
         // delete: Accounts, die in der API vorhaden sind, aber nicht in der Schulsoftware
         $deleteList = array();
-//        $ApiList['Delete'] = array();
 
-//        $beginn = microtime(true);
-
+        // Vergleich
         if(!empty($UserSchulsoftwareList)){
             foreach($UserSchulsoftwareList as $AccountActive){
+                // Nutzer in Univention nicht vorhanden (nach Id)
                 if(!isset($UserUniventionList[$AccountActive['record_uid']])
                 ){
                     if(($Error = $this->controlAccount($AccountActive))){
@@ -144,8 +133,9 @@ class Frontend extends Extension implements IFrontendInterface
                         // Lokaler Test
 //                    $createList[] = $AccountActive['name'];
                     }
-                    unset($UserUniventionList[$AccountActive['record_uid']]);
+//                    unset($UserUniventionList[$AccountActive['record_uid']]);
                 } else {
+                    // Vergleich welche User geupdatet werden müssen
                     $Log = array();
                     //ToDO only Update if necessary
                     // compare
@@ -253,7 +243,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if($Upload == 'Update'){
             foreach($updateList as $updateAccount){
-                //ToDO Update nach funktionstüchtigkeit und Feldinformation anpassen
 //                // update with API
                 (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
                     $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
@@ -437,8 +426,6 @@ class Frontend extends Extension implements IFrontendInterface
             $ErrorLog[] = new Bold($Account['name']);
 
             foreach($Account as $Key => $Value){
-
-//                Debugger::screenDump($Key, $Value);
 
                 if(is_array($Value)){
                     //roles
