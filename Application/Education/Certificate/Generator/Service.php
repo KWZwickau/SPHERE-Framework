@@ -510,7 +510,9 @@ class Service extends AbstractService
             'Content.Input.AddEducation'        => 'TextField',
             'Content.Input.ChosenArea1'         => 'TextField',
             'Content.Input.ChosenArea2'         => 'TextField',
-
+            'Content.Input.SkilledWork'         => 'TextField',
+            'Content.Input.SkilledWork_Grade'   => 'SelectCompleter',
+            'Content.Input.SkilledWork_GradeText' => 'SelectBox',
         );
     }
 
@@ -589,6 +591,9 @@ class Service extends AbstractService
             'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife',
             'Content.Input.ChosenArea1'         => 'Wahlbereich 1',
             'Content.Input.ChosenArea2'         => 'Wahlbereich 2',
+            'Content.Input.SkilledWork'         => 'Facharbeit - Thema',
+            'Content.Input.SkilledWork_Grade'   => 'Facharbeit - oder Zensur',
+            'Content.Input.SkilledWork_GradeText' => 'Facharbeit - Zeugnistext',
         );
     }
 

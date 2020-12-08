@@ -660,6 +660,15 @@ class Service extends AbstractService
                                 $value = $Certificate->selectValuesTransfer()[$value];
                             }
 
+                            // Zeugnistext umwandeln
+                            if (strpos($field, '_GradeText')) {
+                                if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                                    $value = $tblGradeText->getName();
+                                } else {
+                                    $value = '';
+                                }
+                            }
+
                             if (trim($value) != '') {
                                 $value = trim($value);
                                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
@@ -5163,6 +5172,15 @@ class Service extends AbstractService
                             && method_exists($Certificate, 'selectValuesTransfer')
                         ) {
                             $value = $Certificate->selectValuesTransfer()[$value];
+                        }
+
+                        // Zeugnistext umwandeln
+                        if (strpos($field, '_GradeText')) {
+                            if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                                $value = $tblGradeText->getName();
+                            } else {
+                                $value = '';
+                            }
                         }
 
                         if (trim($value) != '') {

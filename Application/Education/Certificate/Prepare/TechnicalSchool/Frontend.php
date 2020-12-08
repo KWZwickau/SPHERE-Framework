@@ -1144,6 +1144,7 @@ class Frontend extends Extension
     public function getTabsByType(TblType $tblType = null, $hasFhr = false)
     {
         // todo Berufsfachschule
+        // todo sonstige Informationen dynamisch auslesen
         if ($tblType->getName() == 'Fachschule') {
             $count = 1;
             $tabs = array(
@@ -1197,10 +1198,15 @@ class Frontend extends Extension
                 'TabName' => 'Sonstige Info (Seite 3)',
                 'StageName' => 'Sonstige Informationen (Seite 3)',
             );
-            $tabs[$count] = array(
+            $tabs[$count++] = array(
                 'Identifier' => 'I4',
                 'TabName' => 'Sonstige Info (Seite 4)',
                 'StageName' => 'Sonstige Informationen (Seite 4)',
+            );
+            $tabs[$count] = array(
+                'Identifier' => 'I5',
+                'TabName' => 'Sonstige Info (Seite 5)',
+                'StageName' => 'Sonstige Informationen (Seite 5)',
             );
         } else {
             $tabs = array(

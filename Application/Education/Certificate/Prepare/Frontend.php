@@ -1863,7 +1863,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesTransfer());
-                                    $hasTransfer = true;
+                                } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
+                                    && ($tblGradeText = Gradebook::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
+                                ) {
+                                    // Zeugnistext umwandeln
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] = $tblGradeText->getId();
                                 } else {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()]
                                         = $tblPrepareInformation->getValue();
@@ -2155,6 +2159,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
+                                                } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
+                                                    if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
+                                                        $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);
+                                                    }
                                                 }
                                                 $selectBox = new SelectBox($dataFieldName, '', $selectBoxData);
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
@@ -2169,9 +2177,28 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                         $studentTable[$tblPerson->getId()][$key] = $selectBox;
                                                     }
                                                 }
+                                            } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter') {
+                                                // Zensurenfeld
+                                                $selectCompleterData[-1] = '';
+                                                for ($i = 1; $i < 6; $i++) {
+                                                    $selectCompleterData[$i] = (string)($i);
+                                                }
+                                                $selectCompleterData[6] = 6;
+                                                $selectCompleter = new SelectCompleter($dataFieldName, '', '', $selectCompleterData);
+                                                if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                                    $studentTable[$tblPerson->getId()][$key] = $selectCompleter->setDisabled();
+                                                } else {
+                                                    if ($isApiField) {
+                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+                                                            $selectCompleter,
+                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+                                                        );
+                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key] = $selectCompleter;
+                                                    }
+                                                }
                                             } else {
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                                                    /** @noinspection PhpUndefinedMethodInspection */
                                                     $studentTable[$tblPerson->getId()][$key]
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {

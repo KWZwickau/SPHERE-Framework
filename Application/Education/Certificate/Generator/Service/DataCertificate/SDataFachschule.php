@@ -200,7 +200,11 @@ class SDataFachschule
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
 
-            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork_Grade', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork_GradeText', 4);
+
+            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 5);
         }
     }
 
