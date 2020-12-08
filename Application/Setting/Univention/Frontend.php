@@ -10,7 +10,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -139,7 +138,7 @@ class Frontend extends Extension implements IFrontendInterface
                     // Vergleich welche User geupdatet werden müssen
                     $isUpdate = false;
                     $CompareRow = array(
-                        'User' => $AccountActive['name'],
+                        'User' => new Small(new Small($AccountActive['name'])),
                         'UCS' => array(
                             'firstname' => '',
                             'lastname' => '',
@@ -161,15 +160,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $ExistUser = $UserUniventionList[$AccountActive['record_uid']];
 
                     // Fill TableContent
-                    $CompareRow['UCS']['firstname'] = new Bold('Vorname: ').$ExistUser['firstname'];
-                    $CompareRow['UCS']['lastname'] = new Bold('Nachname: ').$ExistUser['lastname'];
-                    $CompareRow['UCS']['email'] = new Bold('E-Mail: ').$ExistUser['email'];
+                    $CompareRow['UCS']['firstname'] = $ExistUser['firstname'];
+                    $CompareRow['UCS']['lastname'] = $ExistUser['lastname'];
+                    $CompareRow['UCS']['email'] = $ExistUser['email'];
                     if(!empty($ExistUser['roles'])){
-                        $CompareRow['UCS']['roles'] = new Bold('Rolle: ').implode(', ', $ExistUser['roles']);
+                        $CompareRow['UCS']['roles'] = implode(', ', $ExistUser['roles']);
                     } else{
-                        $CompareRow['UCS']['roles'] = new Bold('Rolle: ').'---';
+                        $CompareRow['UCS']['roles'] = '---';
                     }
-                    $CompareRow['UCS']['schools'] = new Bold('Schule: ').implode(', ', $ExistUser['schools']);
+                    $CompareRow['UCS']['schools'] = implode(', ', $ExistUser['schools']);
                     sort($ExistUser['school_classes']);
                     if(!empty($ExistUser['school_classes'])){
                         $ClassString = '';
@@ -180,21 +179,21 @@ class Frontend extends Extension implements IFrontendInterface
                                 $ClassString .= ', '.implode($ClassList);
                             }
                         }
-                        $CompareRow['UCS']['school_classes'] = new Bold('Klassen: ').$ClassString;
+                        $CompareRow['UCS']['school_classes'] = $ClassString;
                     } else {
-                        $CompareRow['UCS']['school_classes'] = new Bold('Klassen: ').'---';
+                        $CompareRow['UCS']['school_classes'] = '---';
                     }
 
 
-                    $CompareRow['SSW']['firstname'] = new Bold('Vorname: ').$AccountActive['firstname'];
-                    $CompareRow['SSW']['lastname'] = new Bold('Nachname: ').$AccountActive['lastname'];
-                    $CompareRow['SSW']['email'] = new Bold('E-Mail: ').$AccountActive['email'];
+                    $CompareRow['SSW']['firstname'] = $AccountActive['firstname'];
+                    $CompareRow['SSW']['lastname'] = $AccountActive['lastname'];
+                    $CompareRow['SSW']['email'] =$AccountActive['email'];
                     if(!empty($AccountActive['roles'])){
-                        $CompareRow['SSW']['roles'] = new Bold('Rolle: ').implode(', ', $AccountActive['roles']);
+                        $CompareRow['SSW']['roles'] = implode(', ', $AccountActive['roles']);
                     } else{
-                        $CompareRow['SSW']['roles'] = new Bold('Rolle: '.'---');
+                        $CompareRow['SSW']['roles'] = '---';
                     }
-                    $CompareRow['SSW']['schools'] = new Bold('Schule: ').implode(', ', $AccountActive['schools']);
+                    $CompareRow['SSW']['schools'] = implode(', ', $AccountActive['schools']);
                     sort($AccountActive['school_classes']);
                     if(!empty($AccountActive['school_classes'])){
                         $ClassString = '';
@@ -205,61 +204,61 @@ class Frontend extends Extension implements IFrontendInterface
                                 $ClassString .= ', '.implode($ClassList);
                             }
                         }
-                        $CompareRow['SSW']['school_classes'] = new Bold('Klassen: ').$ClassString;
+                        $CompareRow['SSW']['school_classes'] = $ClassString;
                     } else {
-                        $CompareRow['SSW']['school_classes'] = new Bold('Klassen: ').'---';
+                        $CompareRow['SSW']['school_classes'] = '---';
                     }
 
 
                     // entscheidung was ein Update erhält
                     if($ExistUser['firstname'] != $AccountActive['firstname']){
                         $isUpdate = true;
-                        $CompareRow['SSW']['firstname'] = new SuccessText($CompareRow['SSW']['firstname']);
+                        $CompareRow['SSW']['firstname'] = new SuccessText(new Bold($CompareRow['SSW']['firstname']));
                     }
                     if($ExistUser['lastname'] != $AccountActive['lastname']){
                         $isUpdate = true;
-                        $CompareRow['SSW']['lastname'] = new SuccessText($CompareRow['SSW']['lastname']);
+                        $CompareRow['SSW']['lastname'] = new SuccessText(new Bold($CompareRow['SSW']['lastname']));
                     }
 //                    if($ExistUser['birthday'] != $AccountActive['birthday']){
 //                        $Log[] = 'Geburtstag: '.new InfoText($ExistUser['birthday']).' -> '.new SuccessText($AccountActive['birthday']);
 //                    }
                     if(strtolower($ExistUser['email']) != strtolower($AccountActive['email'])){
                         $isUpdate = true;
-                        $CompareRow['SSW']['email'] = new SuccessText($CompareRow['SSW']['email']);
+                        $CompareRow['SSW']['email'] = new SuccessText(new Bold($CompareRow['SSW']['email']));
                     }
 
                     if(!empty($ExistUser['roles']) && !empty($AccountActive['roles'])){
                         foreach($AccountActive['roles'] as $activeRole){
                             if(!in_array($activeRole, $ExistUser['roles'])){
                                 $isUpdate = true;;
-                                $CompareRow['SSW']['roles'] = new SuccessText($CompareRow['SSW']['roles']);
+                                $CompareRow['SSW']['roles'] = new SuccessText(new Bold($CompareRow['SSW']['roles']));
                             }
                         }
                     } elseif( empty($ExistUser['roles']) &&  !empty($AccountActive['roles'] )){
                         $isUpdate = true;
-                        $CompareRow['SSW']['roles'] = new SuccessText($CompareRow['SSW']['roles']);
+                        $CompareRow['SSW']['roles'] = new SuccessText(new Bold($CompareRow['SSW']['roles']));
                     } elseif( !empty($ExistUser['roles']) &&  empty($AccountActive['roles'] )){
                         $isUpdate = true;
-                        $CompareRow['SSW']['roles'] = new SuccessText($CompareRow['SSW']['roles']);
+                        $CompareRow['SSW']['roles'] = new SuccessText(new Bold($CompareRow['SSW']['roles']));
                     }
                     if($ExistUser['schools'] != $AccountActive['schools']){
                         $isUpdate = true;
-                        $CompareRow['SSW']['schools'] = new SuccessText($CompareRow['SSW']['schools']);
+                        $CompareRow['SSW']['schools'] = new SuccessText(new Bold($CompareRow['SSW']['schools']));
                     }
 
                     if(!empty($ExistUser['school_classes']) && !empty($AccountActive['school_classes'])){
                         foreach($AccountActive['school_classes'] as $activeRole){
                             if(!in_array($activeRole, $ExistUser['school_classes'])){
                                 $isUpdate = true;
-                                $CompareRow['SSW']['school_classes'] = new SuccessText($CompareRow['SSW']['school_classes']);
+                                $CompareRow['SSW']['school_classes'] = new SuccessText(new Bold($CompareRow['SSW']['school_classes']));
                             }
                         }
                     } elseif( empty($ExistUser['school_classes']) &&  !empty($AccountActive['school_classes'] )){
                         $isUpdate = true;
-                        $CompareRow['SSW']['school_classes'] = new SuccessText($CompareRow['SSW']['school_classes']);
+                        $CompareRow['SSW']['school_classes'] = new SuccessText(new Bold($CompareRow['SSW']['school_classes']));
                     } elseif( !empty($ExistUser['school_classes']) &&  empty($AccountActive['school_classes'] )){
                         $isUpdate = true;
-                        $CompareRow['SSW']['school_classes'] = new SuccessText($CompareRow['SSW']['school_classes']);
+                        $CompareRow['SSW']['school_classes'] = new SuccessText(new Bold($CompareRow['SSW']['school_classes']));
                     }
 
 //                    //ToDO sollte auch mit aufgenommen werden!
@@ -290,21 +289,63 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if($isUpdate){
 
+                        $firstWith = 2;
+                        $secondWith = 10;
                         $CompareRow['UCS'] = new Small(new Small(
-                            new Container($CompareRow['UCS']['firstname'])
-                            .new Container($CompareRow['UCS']['lastname'])
-                            .new Container($CompareRow['UCS']['email'])
-                            .new Container($CompareRow['UCS']['roles'])
-                            .new Container($CompareRow['UCS']['schools'])
-                            .new Container($CompareRow['UCS']['school_classes'])
+                            new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Vorname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['firstname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Nachname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['lastname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('E-Mail:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['email'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['roles'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Schule:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['schools'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Klassen:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
+                                )),
+                            )))
                         ));
                         $CompareRow['SSW'] = new Small(new Small(
-                            new Container($CompareRow['SSW']['firstname'])
-                            .new Container($CompareRow['SSW']['lastname'])
-                            .new Container($CompareRow['SSW']['email'])
-                            .new Container($CompareRow['SSW']['roles'])
-                            .new Container($CompareRow['SSW']['schools'])
-                            .new Container($CompareRow['SSW']['school_classes'])
+                            new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Vorname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['firstname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Nachname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['lastname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('E-Mail:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['email'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['roles'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Schule:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['schools'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Klassen:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
+                                )),
+                            )))
                         ));
                         $CompareRow['SSWCopy'] = $CompareRow['SSW'];
 
@@ -535,8 +576,8 @@ class Frontend extends Extension implements IFrontendInterface
                         "sort" => false,
                         "responsive" => false,
                         'columnDefs' => array(
-                            array('width' => '10%', 'targets' => 0),
-                            array('width' => '30%', 'targets' => array(1,2,3)),
+                            array('width' => '7%', 'targets' => 0),
+                            array('width' => '31%', 'targets' => array(1,2,3)),
                         ),
                         'fixedHeader' => false
                     ))
