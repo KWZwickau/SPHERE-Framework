@@ -531,10 +531,13 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType|null $tblType
+     *
      * @return array
      */
-    public function getFormLabel()
+    public function getFormLabel(TblType $tblType = null)
     {
+        $typeName = $tblType ? $tblType->getName() : '...';
 
         return array(
             'Content.Input.Remark'              => 'Bemerkungen',
@@ -572,8 +575,8 @@ class Service extends AbstractService
             'Content.Input.OperationTime2'      => 'Einsatzgebiet Dauer in Wochen 2',
             'Content.Input.Operation3'          => 'Einsatzgebiet 3',
             'Content.Input.OperationTime3'      => 'Einsatzgebiet Dauer in Wochen 3',
-            'Content.Input.DateFrom'            => 'Besucht "seit" die Berufsfachschule',
-            'Content.Input.DateTo'              => 'Besuchte "bis" die Berufsfachschule',
+            'Content.Input.DateFrom'            => 'Besucht "seit" die ' . $typeName,
+            'Content.Input.DateTo'              => 'Besuchte "bis" die ' . $typeName,
             'Content.Input.AbsYear'             => 'Abschluss im Schuljahr',
             'Content.Input.ProfessionalTitle'   => 'Berufsbezeichnung',
             // Fachschule

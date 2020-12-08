@@ -1790,7 +1790,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
      * @param null|array $informationPageList
      * @param null $GroupId
      */
-    private function getTemplateInformation(
+    protected function getTemplateInformation(
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         &$studentTable,
@@ -1826,7 +1826,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
-                    $FormLabel = Generator::useService()->getFormLabel();
+                    $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
 
                     if ($Data === null) {
                         $Global = $this->getGlobal();
@@ -2873,7 +2873,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
-                    $FormLabel = Generator::useService()->getFormLabel();
+                    $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
 
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
 

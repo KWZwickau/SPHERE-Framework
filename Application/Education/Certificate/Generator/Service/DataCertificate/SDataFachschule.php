@@ -185,24 +185,22 @@ class SDataFachschule
     {
 
         if (($tblCertificate = $Data->createCertificate('Fachschule Abschlusszeugnis', '', 'FsAbs',
-            null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeFachschule()))
+            null, false, false, true, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeFachschule()))
         ) {
             // ToDO hinterlegung irgendwelcher Fächer?
 
-            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
-            // Seite 2
-//            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
-            // Seite 3
-//            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'DateTo', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'AbsYear', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'ProfessionalTitle', 3);
+//            'DateFrom' ist auf Seite 1
+//            'DateTo' ist auf Seite 1
 
+            $Data->createCertificateInformation($tblCertificate, 'FsDestination', 2);
+            $Data->createCertificateInformation($tblCertificate, 'SubjectArea', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Focus', 2);
+
+            $Data->createCertificateInformation($tblCertificate, 'JobEducationDuration', 3);
+            $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
+            $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
+
+            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 4);
         }
     }
 

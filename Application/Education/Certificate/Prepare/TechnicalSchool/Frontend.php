@@ -905,21 +905,26 @@ class Frontend extends Extension
                 'Course' => 'Bildungsgang',
             );
 
+            $informationPageList = null;
             if (isset($tabs[$CurrentTab])) {
-                $tabName = $tabs[$CurrentTab]['TabName'];
-                // Komplexprüfungen
-                if ($tabName == 'K1' || $tabName == 'K2' || $tabName == 'K3' || $tabName == 'K4'
-                    || $tabName == 'P'
+                $tabIdentifier = $tabs[$CurrentTab]['Identifier'];
+                if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4'
+                    || $tabIdentifier == 'P'
                 ) {
+                    // Komplexprüfungen
                     $columnTable['S1'] = '1. Fach';
                     $columnTable['S2'] = '2. Fach';
                     $columnTable['Grade'] = 'Zensur';
                     $columnTable['GradeText'] = 'oder Zeugnistext';
+                } else  {
+                    // Aufteilung der Sonstigen Informationen auf mehrere Seiten
+                    list($informationPageList) = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, false);
                 }
             } else {
-                $tabName = '';
+                $tabIdentifier = '';
             }
 
+            $CertificateList = array();
             foreach ($tblPrepareList as $tblPrepareItem) {
                 if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
                     && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
@@ -938,16 +943,27 @@ class Frontend extends Extension
 
                             $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
                             if ($tblPrepareStudent) {
-
-                                // Schriftliche Komplexprüfung
-                                if ($tabName == 'K1' || $tabName == 'K2' || $tabName == 'K3' || $tabName == 'K4'
+                                if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4'
                                 ) {
-                                    $ranking = substr($tabName, 1, 1);
+                                    // Schriftliche Komplexprüfung
+                                    $ranking = substr($tabIdentifier, 1, 1);
                                     $this->setPrepareComplexExamContent($studentTable, $tblPerson, $tblPrepareStudent,
                                         TblPrepareComplexExam::IDENTIFIER_WRITTEN, $ranking);
-                                } elseif ($tabName == 'P') {
+                                } elseif ($tabIdentifier == 'P') {
+                                    // Praktische Komplexprüfung
                                     $this->setPrepareComplexExamContent($studentTable, $tblPerson, $tblPrepareStudent,
                                         TblPrepareComplexExam::IDENTIFIER_PRAXIS, 1);
+                                } else {
+                                    // Sonstige Informationen
+                                    $page = null;
+                                    if (strlen($tabIdentifier) == 2) {
+                                        $page = intval(substr($tabIdentifier, 1, 1));
+                                    }
+
+                                    $this->getTemplateInformation(
+                                        $tblPrepare, $tblPerson, $studentTable, $columnTable, $Data, $CertificateList,
+                                        $page == 1 ? null : $page, $informationPageList, $GroupId
+                                    );
                                 }
                             }
 
@@ -1017,21 +1033,21 @@ class Frontend extends Extension
                 , new Primary('Speichern', new Save())
             );
 
-//            $service = Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
-//                $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList);
-            $service = $form;
             $nextTab = $CurrentTab + 1;
             if (!isset($tabs[$nextTab])) {
                 $nextTab = null;
             }
 
-            if ($tabName == 'K1' || $tabName == 'K2' || $tabName == 'K3' || $tabName == 'K4'
-                || $tabName == 'P'
+            if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4'
+                || $tabIdentifier == 'P'
             ) {
+                // Komplexprüfungen
                 $service = Prepare::useService()->updatePrepareComplexExamList($form, $tblPrepare,
                     $tblGroup ? $tblGroup : null, $Data, $nextTab, $hasFhr);
             } else {
-                $service = $form;
+                // Sonstige Informationen
+                $service = Prepare::useService()->updateTechnicalDiplomaPrepareInformationList($form, $tblPrepare,
+                    $tblGroup ? $tblGroup : null, $Data, $CertificateList, $nextTab, $hasFhr);
             }
 
             $Stage->setContent(
@@ -1132,22 +1148,27 @@ class Frontend extends Extension
             $count = 1;
             $tabs = array(
                 $count++ => array(
+                    'Identifier' => 'K1',
                     'TabName' => 'K1',
                     'StageName' => 'Schriftliche Komplexprüfung 1',
                 ),
                 $count++ => array(
+                    'Identifier' => 'K2',
                     'TabName' => 'K2',
                     'StageName' => 'Schriftliche Komplexprüfung 2',
                 ),
                 $count++ => array(
+                    'Identifier' => 'K3',
                     'TabName' => 'K3',
                     'StageName' => 'Schriftliche Komplexprüfung 3',
                 ),
                 $count++ => array(
+                    'Identifier' => 'K4',
                     'TabName' => 'K4',
                     'StageName' => 'Schriftliche Komplexprüfung 4',
                 ),
                 $count++ => array(
+                    'Identifier' => 'P',
                     'TabName' => 'P',
                     'StageName' => 'Praktische Komplexprüfung',
                 )
@@ -1155,18 +1176,36 @@ class Frontend extends Extension
 
             if ($hasFhr) {
                 $tabs[$count++] = array(
+                    'Identifier' => 'FHR',
                     'TabName' => 'Fachhochschulreife',
                     'StageName' => 'Fachhochschulreife',
                 );
             }
 
-            $tabs[$count] = array(
-                'TabName' => 'Sonstige Informationen',
+            $tabs[$count++] = array(
+                'Identifier' => 'I1',
+                'TabName' => 'Sonstige Info',
                 'StageName' => 'Sonstige Informationen',
+            );
+            $tabs[$count++] = array(
+                'Identifier' => 'I2',
+                'TabName' => 'Sonstige Info (Seite 2)',
+                'StageName' => 'Sonstige Informationen (Seite 2)',
+            );
+            $tabs[$count++] = array(
+                'Identifier' => 'I3',
+                'TabName' => 'Sonstige Info (Seite 3)',
+                'StageName' => 'Sonstige Informationen (Seite 3)',
+            );
+            $tabs[$count] = array(
+                'Identifier' => 'I4',
+                'TabName' => 'Sonstige Info (Seite 4)',
+                'StageName' => 'Sonstige Informationen (Seite 4)',
             );
         } else {
             $tabs = array(
                 1 => array(
+                    'Identifier' => 'I1',
                     'TabName' => 'Sonstige Informationen',
                     'StageName' => 'Sonstige Informationen',
                 ),

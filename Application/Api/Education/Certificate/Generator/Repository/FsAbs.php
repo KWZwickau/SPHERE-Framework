@@ -15,6 +15,24 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
  */
 class FsAbs extends FsStyle
 {
+    /**
+     * @return array
+     */
+    public function getApiModalColumns()
+    {
+        return array(
+            'DateFrom' => 'Besucht "seit" die Fachschule',
+            'DateTo' => 'Besuchte "bis" die Fachschule',
+
+            'FsDestination' => 'Fachbereich',
+            'SubjectArea' => 'Fachrichtung',
+            'Focus' => 'Schwerpunkt',
+
+            'JobEducationDuration'=> 'Berufspraktische Ausbildung (dauer in Wochen)',
+            'ChosenArea1' => 'Wahlbereich 1',
+            'ChosenArea2' => 'Wahlbereich 2',
+        );
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -70,10 +88,7 @@ class FsAbs extends FsStyle
             ->addSlice($this->getSubjectLineSkilledWork($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId))
-            ->addSlice((new Slice())->addElement((new Element())
-                ->setContent('&nbsp;')
-                ->stylePaddingTop('120px')
-            ))
+            ->addSlice($this->getSpace('170px'))
             ->addSlice($this->getFsInfoExtended('10px', '1)', new Container('Dem Zeugnis liegt die Schulordnung Fachschule vom 
             03.08.2017 (SächsGVBl. S. 428), in der jeweils geltenden Fassung, zu Grunde.')
             . new Container('Der Abschluss der Fachschule entspricht der Rahmenvereinbarung über Fachschulen 

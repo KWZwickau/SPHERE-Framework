@@ -132,10 +132,11 @@ abstract class FsStyle extends Certificate
     /**
      * @param        $personId
      * @param string $CertificateName
+     * @param bool $IsLogo
      *
      * @return Slice
      */
-    protected function getSchoolHeadAbs($personId, $CertificateName = 'Abschlusszeugnis', $isChangeableCertificateName = true, $IsLogo = true)
+    protected function getSchoolHeadAbs($personId, $CertificateName = 'Abschlusszeugnis', $IsLogo = true)
     {
 
         $name = '';
@@ -193,24 +194,11 @@ abstract class FsStyle extends Certificate
         }
 
         $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
-        if($isChangeableCertificateName){
-            $Slice->addElement((new Element())
-                ->setContent('
-                {% if(Content.P' . $personId . '.Input.CertificateName is not empty) %}
-                    {{ Content.P' . $personId . '.Input.CertificateName }}
-                {% else %}
-                '.$CertificateName.'
-                {% endif %}')
-                ->styleAlignCenter()
-                ->styleTextSize('30px')
-            );
-        } else {
-            $Slice->addElement((new Element())
-                ->setContent($CertificateName)
-                ->styleAlignCenter()
-                ->styleTextSize('30px')
-            );
-        }
+        $Slice->addElement((new Element())
+            ->setContent($CertificateName)
+            ->styleAlignCenter()
+            ->styleTextSize('30px')
+        );
         $Slice->addElement((new Element())
             ->setContent('der Fachschule')
             ->styleAlignCenter()
@@ -427,7 +415,7 @@ abstract class FsStyle extends Certificate
                  die')
             ->styleAlignCenter()
             ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
+            ->stylePaddingTop('20px')
         );
         $Slice->addElement((new Element())
             ->setContent('Fachschule {% if(Content.P' . $personId . '.Input.FsDestination is not empty) %}
@@ -474,13 +462,13 @@ abstract class FsStyle extends Certificate
                 {% else %}
                     ---
                 {% endif %} besucht und im Schuljahr
-                {% if(Content.P' . $personId . '.Input.AbsYear is not empty) %}
-                    {{ Content.P' . $personId . '.Input.AbsYear }}
+                {% if(Content.P' . $personId . '.Division.Data.Year is not empty) %}
+                    {{ Content.P' . $personId . '.Division.Data.Year }}
                 {% else %}
                     ---
                 {% endif %}
                 <br/>die Abschlussprüfung bestanden. '.$GenderString.'
-                ist berechtigt, die Berufsbezeichnung') // .new Sup('1'))
+                ist berechtigt, die Berufsbezeichnung')
             ->styleAlignCenter()
             ->styleTextSize('16px')
             ->stylePaddingTop('15px')
@@ -488,8 +476,8 @@ abstract class FsStyle extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('
-                {% if(Content.P' . $personId . '.Input.ProfessionalTitle is not empty) %}
-                    {{ Content.P' . $personId . '.Input.ProfessionalTitle }}
+                {% if(Content.P' . $personId . '.Student.TechnicalCourse is not empty) %}
+                    {{ Content.P' . $personId . '.Student.TechnicalCourse }}
                 {% else %}
                     ---
                 {% endif %}')
@@ -501,7 +489,7 @@ abstract class FsStyle extends Certificate
 
         if(!$isFhr){
             $Slice->addElement((new Element())
-                ->setContent('zu führen.' )
+                ->setContent('zu führen.' . $this->setSup('1)'))
                 ->styleAlignCenter()
                 ->styleTextSize('16px')
                 ->stylePaddingTop('30px')

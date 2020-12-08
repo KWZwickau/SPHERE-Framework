@@ -26,15 +26,12 @@ class FsAbsFhr extends FsStyle
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        // leere Seite
+        $pageList[] = new Page();
+
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbs($personId));
         $Page->addSlice($this->getStudentHeadAbs($personId, true));
-//                ->addSlice($this->getIndividuallySignPart($personId, true))
-//
-//            ->addSlice($this->getSubjectLineDuty())
-//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsübergreifender Bereich', 1, 5, false, '200px', 1, 4))
-//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(),'Fachrichtungsbezogener Bereich', 1, 8))
-        ;
         $Page->addSlice((new Slice())->addElement((new Element())
             ->setContent('&nbsp;')
             ->stylePaddingTop('34px')

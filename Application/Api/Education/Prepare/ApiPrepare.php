@@ -188,14 +188,16 @@ class ApiPrepare extends Extension implements IApiInterface
     {
         $panel = '';
         $FormField = Generator::useService()->getFormField();
-        $FormLabel = Generator::useService()->getFormLabel();
         $KeyFullName = 'Content.Input.' . $Key;
-        $label = isset($FormLabel[$KeyFullName]) ? $FormLabel[$KeyFullName] : '';
+        $label = '';
         $fieldType = isset($FormField[$KeyFullName]) ? $FormField[$KeyFullName] : false;
         $inputField = false;
         if (($tblPrepare = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
         ) {
+            $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
+            $label = isset($FormLabel[$KeyFullName]) ? $FormLabel[$KeyFullName] : '';
+
             $panel = new Panel(
                 'Zeugnisvorbereitung',
                 array(
