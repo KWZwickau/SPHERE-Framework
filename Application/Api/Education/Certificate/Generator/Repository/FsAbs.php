@@ -87,7 +87,7 @@ class FsAbs extends FsStyle
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId))
             ->addSlice($this->getChosenArea($personId))
-            ->addSlice($this->getDescriptionFsContent($personId))
+            ->addSlice($this->getDescriptionFsContent($personId, '90px', true))
             ->addSlice($this->getSpace('170px'))
             ->addSlice($this->getFsInfoExtended('10px', '1)', new Container('Dem Zeugnis liegt die Schulordnung Fachschule vom 
             03.08.2017 (SächsGVBl. S. 428), in der jeweils geltenden Fassung, zu Grunde.')

@@ -513,6 +513,7 @@ class Service extends AbstractService
             'Content.Input.SkilledWork'         => 'TextField',
             'Content.Input.SkilledWork_Grade'   => 'SelectCompleter',
             'Content.Input.SkilledWork_GradeText' => 'SelectBox',
+            'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
         );
     }
 
@@ -594,6 +595,7 @@ class Service extends AbstractService
             'Content.Input.SkilledWork'         => 'Facharbeit - Thema',
             'Content.Input.SkilledWork_Grade'   => 'Facharbeit - oder Zensur',
             'Content.Input.SkilledWork_GradeText' => 'Facharbeit - Zeugnistext',
+            'Content.Input.AdditionalRemarkFhr' => 'Teilnahme an FHR-Prüfung',
         );
     }
 

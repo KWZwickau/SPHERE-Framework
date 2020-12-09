@@ -49,6 +49,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
@@ -1868,6 +1869,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 ) {
                                     // Zeugnistext umwandeln
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] = $tblGradeText->getId();
+                                } elseif ($tblPrepareInformation->getField() == 'AdditionalRemarkFhr') {
+                                    // Checkbox
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()]
+                                        = $tblPrepareInformation->getValue() ? 1 : 0;
                                 } else {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()]
                                         = $tblPrepareInformation->getValue();
@@ -2041,6 +2046,16 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $textSupport;
                         }
 
+                        // Fachschule
+                        if (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr')
+                        ) {
+                            $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
+                                . $technicalCourseName . 'ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                        }
+
                         $Global->savePost();
                     }
 
@@ -2188,14 +2203,31 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
                                                     $studentTable[$tblPerson->getId()][$key] = $selectCompleter->setDisabled();
                                                 } else {
-                                                    if ($isApiField) {
-                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
-                                                            $selectCompleter,
-                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
-                                                        );
-                                                    } else {
+                                                    // noch kein Api verfügbar
+//                                                    if ($isApiField) {
+//                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+//                                                            $selectCompleter,
+//                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+//                                                        );
+//                                                    } else {
                                                         $studentTable[$tblPerson->getId()][$key] = $selectCompleter;
-                                                    }
+//                                                    }
+                                                }
+                                            } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\CheckBox') {
+                                                // funktioniert aktuell nur für das Feld AdditionalRemarkFhr
+                                                // auch noch kein Api verfügbar
+                                                $checkBox = new CheckBox($dataFieldName, 'Erfolglose Teilnahme', 1);
+                                                if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                                    $studentTable[$tblPerson->getId()][$key] = $checkBox->setDisabled();
+                                                } else {
+//                                                    if ($isApiField) {
+//                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+//                                                            $checkBox,
+//                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+//                                                        );
+//                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key] = $checkBox;
+//                                                    }
                                                 }
                                             } else {
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {

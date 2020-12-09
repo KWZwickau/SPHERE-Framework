@@ -1757,15 +1757,34 @@ abstract class FsStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
+     * @param int $personId
      * @param string $Height
      *
+     * @param bool $hasAdditionalRemarkFhr
      * @return Slice
      */
-    protected function getDescriptionFsContent($personId, $Height = '85px')
+    protected function getDescriptionFsContent($personId, $Height = '85px', $hasAdditionalRemarkFhr = false)
     {
 
         $Slice = new Slice();
+
+        // nur auf FsAbs
+        if ($hasAdditionalRemarkFhr) {
+            $postText = '
+            {% if(Content.P' . $personId . '.Input.AdditionalRemarkFhr is not empty) %}
+                </br>
+                {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                    {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                {% else %}
+                    Frau/Herr
+                {% endif %}
+            {{ Content.P' . $personId . '.Person.Data.Name.First }}
+            {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            {{ Content.P'.$personId.'.Input.AdditionalRemarkFhr }}
+            {% endif %}';
+        } else {
+            $postText = '';
+        }
 
         $Slice->styleMarginTop('30px');
         $Slice->stylePaddingTop('5px');
@@ -1779,10 +1798,12 @@ abstract class FsStyle extends Certificate
         );
         $Slice->addElement((new Element())
             ->setContent('{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
-                        {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}')
+                    {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}'
+                . $postText
+            )
             ->styleAlignJustify()
             ->stylePaddingLeft('5px')
             ->stylePaddingRight('5px')

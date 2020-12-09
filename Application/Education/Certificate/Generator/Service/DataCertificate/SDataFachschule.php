@@ -161,20 +161,8 @@ class SDataFachschule
         ) {
             // ToDO hinterlegung irgendwelcher Fächer?
 
-            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
-            // Seite 2
-//            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
-            // Seite 3
-//            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'DateTo', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'AbsYear', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'ProfessionalTitle', 3);
-
+            // Fachhochschulreife auf Seite 6, da es ja Schüler mit und ohne geben kann
+            // + Durchschnittsnote
         }
     }
 
@@ -205,6 +193,7 @@ class SDataFachschule
             $Data->createCertificateInformation($tblCertificate, 'SkilledWork_GradeText', 4);
 
             $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 5);
+            $Data->createCertificateInformation($tblCertificate, 'AdditionalRemarkFhr', 5);
         }
     }
 
@@ -224,32 +213,6 @@ class SDataFachschule
             if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
                 $Data->createCertificateField($tblCertificate, $Var, 100);
             }
-
-//            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
-//                $row = 1;
-//                $column = 1;
-//                $Data->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
-//                $column++;
-//                $Data->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'GRW', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'GEO', $row, $column);
-//
-//                $row = 2;
-//                $column = 1;
-//                $Data->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'RE/e', $row, $column++, false);
-//                $Data->setCertificateSubject($tblCertificate, 'RE/k', $row, $column++, false);
-//                $Data->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
-//                $Data->setCertificateSubject($tblCertificate, 'TC', $row, $column++);
-//                $Data->setCertificateSubject($tblCertificate, 'INF', $row, $column);
-//            }
         }
     }
 

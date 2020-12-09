@@ -823,7 +823,6 @@ class Frontend extends Extension
      * @param null $PrepareId
      * @param null $GroupId
      * @param null $CurrentTab
-     * @param bool $hasFhr
      * @param null $Data
      *
      * @return Stage|string
@@ -832,7 +831,6 @@ class Frontend extends Extension
         $PrepareId = null,
         $GroupId = null,
         $CurrentTab = null,
-        $hasFhr = false,
         $Data = null
     ) {
         if ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId)) {
@@ -869,12 +867,36 @@ class Frontend extends Extension
                 }
             }
 
-            // todo $hasFhr bei $CurrentTab == 0 setzen
             if ($CurrentTab == null) {
                 $CurrentTab = 1;
             }
 
-            $tabs = $this->getTabsByType($tblType ? $tblType : null, $hasFhr);
+            $countInformationPages = 1;
+            $additionalRemarkFhrTab = false;
+            // Aufteilung der Sonstigen Informationen auf mehrere Seiten
+            list($informationPageList) = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, false);
+            if (!empty($informationPageList)) {
+                foreach ($informationPageList as $certificateId => $pageList) {
+                    $countByCertificate = count($pageList);
+                    $countByCertificate++;
+                    if ($countByCertificate > $countInformationPages) {
+                        $countInformationPages = $countByCertificate;
+                    }
+
+                    if (!$additionalRemarkFhrTab) {
+                        foreach ($pageList as $page => $fieldList) {
+                            if (isset($fieldList['AdditionalRemarkFhr'])) {
+                                $additionalRemarkFhrTab = $page;
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $tabs = $this->getTabsByType($tblType ? $tblType : null, $countInformationPages);
+
             $Stage = new Stage('Zeugnisvorbereitung', isset($tabs[$CurrentTab])
                 ? $tabs[$CurrentTab]['StageName'] . ' festlegen' : '');
 
@@ -905,7 +927,6 @@ class Frontend extends Extension
                 'Course' => 'Bildungsgang',
             );
 
-            $informationPageList = null;
             if (isset($tabs[$CurrentTab])) {
                 $tabIdentifier = $tabs[$CurrentTab]['Identifier'];
                 if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4'
@@ -916,9 +937,6 @@ class Frontend extends Extension
                     $columnTable['S2'] = '2. Fach';
                     $columnTable['Grade'] = 'Zensur';
                     $columnTable['GradeText'] = 'oder Zeugnistext';
-                } else  {
-                    // Aufteilung der Sonstigen Informationen auf mehrere Seiten
-                    list($informationPageList) = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, false);
                 }
             } else {
                 $tabIdentifier = '';
@@ -967,14 +985,6 @@ class Frontend extends Extension
                                 }
                             }
 
-                            /*
-                             * Sonstige Informationen der Zeugnisvorlage
-                             */
-//                                    $this->getTemplateInformation($tblPrepareItem, $tblPerson, $studentTable,
-//                                        $columnTable,
-//                                        $Data,
-//                                        $CertificateList);
-
                             // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
                             foreach ($columnTable as $columnKey => $columnName) {
                                 foreach ($studentTable as $personId => $value) {
@@ -999,14 +1009,6 @@ class Frontend extends Extension
                             "width" => "200px",
                             "targets" => 1
                         ),
-//                        array(
-//                            "width" => "80px",
-//                            "targets" => 2
-//                        ),
-//                        array(
-//                            "width" => "50px",
-//                            "targets" => array(3, 4)
-//                        ),
                     ),
                     'order' => array(
                         array('0', 'asc'),
@@ -1043,11 +1045,12 @@ class Frontend extends Extension
             ) {
                 // Komplexprüfungen
                 $service = Prepare::useService()->updatePrepareComplexExamList($form, $tblPrepare,
-                    $tblGroup ? $tblGroup : null, $Data, $nextTab, $hasFhr);
+                    $tblGroup ? $tblGroup : null, $Data, $nextTab);
             } else {
                 // Sonstige Informationen
+                $hasAdditionalRemarkFhr = $additionalRemarkFhrTab && $tabIdentifier == ('I' . $additionalRemarkFhrTab);
                 $service = Prepare::useService()->updateTechnicalDiplomaPrepareInformationList($form, $tblPrepare,
-                    $tblGroup ? $tblGroup : null, $Data, $CertificateList, $nextTab, $hasFhr);
+                    $tblGroup ? $tblGroup : null, $Data, $CertificateList, $nextTab, $hasAdditionalRemarkFhr);
             }
 
             $Stage->setContent(
@@ -1137,16 +1140,16 @@ class Frontend extends Extension
 
     /**
      * @param TblType|null $tblType
-     * @param bool $hasFhr
+     * @param int $countInformationPages
      *
      * @return array
      */
-    public function getTabsByType(TblType $tblType = null, $hasFhr = false)
+    public function getTabsByType(TblType $tblType = null, $countInformationPages = 1)
     {
         // todo Berufsfachschule
-        // todo sonstige Informationen dynamisch auslesen
+        $tabs = array();
+        $count = 1;
         if ($tblType->getName() == 'Fachschule') {
-            $count = 1;
             $tabs = array(
                 $count++ => array(
                     'Identifier' => 'K1',
@@ -1174,47 +1177,15 @@ class Frontend extends Extension
                     'StageName' => 'Praktische Komplexprüfung',
                 )
             );
+        }
 
-            if ($hasFhr) {
-                $tabs[$count++] = array(
-                    'Identifier' => 'FHR',
-                    'TabName' => 'Fachhochschulreife',
-                    'StageName' => 'Fachhochschulreife',
-                );
-            }
-
+        // Sonstige Informationen
+        $informationTabName = 'Sonstige Info';
+        for ($i = 1; $i <= $countInformationPages; $i++) {
             $tabs[$count++] = array(
-                'Identifier' => 'I1',
-                'TabName' => 'Sonstige Info',
-                'StageName' => 'Sonstige Informationen',
-            );
-            $tabs[$count++] = array(
-                'Identifier' => 'I2',
-                'TabName' => 'Sonstige Info (Seite 2)',
-                'StageName' => 'Sonstige Informationen (Seite 2)',
-            );
-            $tabs[$count++] = array(
-                'Identifier' => 'I3',
-                'TabName' => 'Sonstige Info (Seite 3)',
-                'StageName' => 'Sonstige Informationen (Seite 3)',
-            );
-            $tabs[$count++] = array(
-                'Identifier' => 'I4',
-                'TabName' => 'Sonstige Info (Seite 4)',
-                'StageName' => 'Sonstige Informationen (Seite 4)',
-            );
-            $tabs[$count] = array(
-                'Identifier' => 'I5',
-                'TabName' => 'Sonstige Info (Seite 5)',
-                'StageName' => 'Sonstige Informationen (Seite 5)',
-            );
-        } else {
-            $tabs = array(
-                1 => array(
-                    'Identifier' => 'I1',
-                    'TabName' => 'Sonstige Informationen',
-                    'StageName' => 'Sonstige Informationen',
-                ),
+                'Identifier' => 'I' . (string) $i,
+                'TabName' => $informationTabName . ($i > 1 ? ' (Seite ' . $i . ')' : ''),
+                'StageName' => 'Sonstige Informationen' . ($i > 1 ? ' (Seite ' . $i . ')' : ''),
             );
         }
 

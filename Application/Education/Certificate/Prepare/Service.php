@@ -1369,8 +1369,13 @@ class Service extends AbstractService
                             . ($tblSecondSubject ? $tblSecondSubject->getTechnicalAcronymForCertificateFromName() : '');
                     }
 
+                    if ($isGradeVerbalOnDiploma) {
+                        $grade = $this->getVerbalGrade($tblPrepareComplexExam->getGrade());
+                    } else {
+                        $grade = $tblPrepareComplexExam->getGrade();
+                    }
                     $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Subjects'] = $subjects;
-                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $tblPrepareComplexExam->getGrade();
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $grade;
 
                     // Nachrichtliche Ausweisung
                     if ($tblFirstSubject && !isset($subjectList[$tblFirstSubject->getId()])) {
@@ -1642,8 +1647,13 @@ class Service extends AbstractService
                             . ($tblSecondSubject ? $tblSecondSubject->getTechnicalAcronymForCertificateFromName() : '');
                     }
 
+                    if ($isGradeVerbalOnLeave) {
+                        $grade = $this->getVerbalGrade($tblLeaveComplexExam->getGrade());
+                    } else {
+                        $grade = $tblLeaveComplexExam->getGrade();
+                    }
                     $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Subjects'] = $subjects;
-                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $tblLeaveComplexExam->getGrade();
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $grade;
 
                     // Nachrichtliche Ausweisung
                     if ($tblFirstSubject && !isset($subjectList[$tblFirstSubject->getId()])) {
@@ -5031,7 +5041,6 @@ class Service extends AbstractService
      * @param TblGroup|null $tblGroup
      * @param $Data
      * @param null $NextTab
-     * @param false $hasFhr
      *
      * @return IFormInterface|string|null
      */
@@ -5040,8 +5049,7 @@ class Service extends AbstractService
         TblPrepareCertificate $tblPrepare,
         TblGroup $tblGroup = null,
         $Data,
-        $NextTab = null,
-        $hasFhr = false
+        $NextTab = null
     ) {
         /**
          * Skip to Frontend
@@ -5107,8 +5115,7 @@ class Service extends AbstractService
                     array(
                         'PrepareId' => $tblPrepare->getId(),
                         'GroupId' => $tblGroup ? $tblGroup : null,
-                        'CurrentTab' => $NextTab,
-                        'hasFhr' => $hasFhr,
+                        'CurrentTab' => $NextTab
                     )
                 );
         }
@@ -5121,7 +5128,7 @@ class Service extends AbstractService
      * @param $Data
      * @param $CertificateList
      * @param null $NextTab
-     * @param false $hasFhr
+     * @param false $hasAdditionalRemarkFhr
      *
      * @return IFormInterface|string|null
      */
@@ -5132,7 +5139,7 @@ class Service extends AbstractService
         $Data,
         $CertificateList,
         $NextTab = null,
-        $hasFhr = false
+        $hasAdditionalRemarkFhr = false
     ) {
         /**
          * Skip to Frontend
@@ -5156,6 +5163,8 @@ class Service extends AbstractService
                     /** @var Certificate $Certificate */
                     $Certificate = $CertificateList[$tblPerson->getId()];
 
+                    $issetAdditionalRemarkFhr = false;
+
                     /*
                      * Sonstige Informationen
                      */
@@ -5172,6 +5181,9 @@ class Service extends AbstractService
                             && method_exists($Certificate, 'selectValuesTransfer')
                         ) {
                             $value = $Certificate->selectValuesTransfer()[$value];
+                        } elseif ($field == 'AdditionalRemarkFhr') {
+                            $value = 'hat erfolglos an der Prüfung zum Erwerb der Fachhochschulreife teilgenommen.';
+                            $issetAdditionalRemarkFhr = true;
                         }
 
                         // Zeugnistext umwandeln
@@ -5183,28 +5195,30 @@ class Service extends AbstractService
                             }
                         }
 
-                        if (trim($value) != '') {
+                        if (trim($value) != '' || $field = 'RemarkWithoutTeam') {
                             $value = trim($value);
                             if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                                 $field))
                             ) {
-                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
-                                    $field,
-                                    $value);
+                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
                             } else {
-                                (new Data($this->getBinding()))->createPrepareInformation($tblPrepareItem, $tblPerson,
-                                    $field,
-                                    $value);
+                                (new Data($this->getBinding()))->createPrepareInformation($tblPrepareItem, $tblPerson, $field, $value);
                             }
 
                         } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                             $field))
                         ) {
                             // auf Leer zurücksetzen
-                            (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
-                                $field,
-                                $value);
+                            (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
                         }
+                    }
+
+                    // Checkbox auf leer zurücksetzen
+                    if ($hasAdditionalRemarkFhr
+                        && !$issetAdditionalRemarkFhr
+                        && ($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson, 'AdditionalRemarkFhr'))
+                    ) {
+                        (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, 'AdditionalRemarkFhr', '');
                     }
                 }
             }
@@ -5224,8 +5238,7 @@ class Service extends AbstractService
                     array(
                         'PrepareId' => $tblPrepare->getId(),
                         'GroupId' => $tblGroup ? $tblGroup : null,
-                        'CurrentTab' => $NextTab,
-                        'hasFhr' => $hasFhr,
+                        'CurrentTab' => $NextTab
                     )
                 );
         }
