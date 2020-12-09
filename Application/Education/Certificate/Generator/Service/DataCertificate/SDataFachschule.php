@@ -161,8 +161,29 @@ class SDataFachschule
         ) {
             // ToDO hinterlegung irgendwelcher Fächer?
 
+//            'DateFrom' ist auf Seite 1
+//            'DateTo' ist auf Seite 1
+
+            $Data->createCertificateInformation($tblCertificate, 'FsDestination', 2);
+            $Data->createCertificateInformation($tblCertificate, 'SubjectArea', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Focus', 2);
+
+            $Data->createCertificateInformation($tblCertificate, 'JobEducationDuration', 3);
+            $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
+            $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
+
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork_Grade', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork_GradeText', 4);
+
+            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 5);
+
             // Fachhochschulreife auf Seite 6, da es ja Schüler mit und ohne geben kann
             // + Durchschnittsnote
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Average', 6);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation', 6);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Grade', 6);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_GradeText', 6);
         }
     }
 

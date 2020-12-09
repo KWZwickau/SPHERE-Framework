@@ -1022,6 +1022,11 @@ class Service extends AbstractService
                     } else {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                     }
+
+                    if ($tblPrepareInformation->getField() == 'AddEducation_Average') {
+                        $Content['P' . $personId]['Input']['AddEducation_AverageInWord']
+                            = Gradebook::useService()->getAverageInWord($tblPrepareInformation->getValue(), ',');
+                    }
                 }
 
                 // Spezialfall für Förderzeugnisse Lernen
@@ -5195,7 +5200,7 @@ class Service extends AbstractService
                             }
                         }
 
-                        if (trim($value) != '' || $field = 'RemarkWithoutTeam') {
+                        if (trim($value) != '') {
                             $value = trim($value);
                             if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                                 $field))

@@ -83,7 +83,7 @@ class FsAbs extends FsStyle
         ;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis'))
+            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', '3'))
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId))
             ->addSlice($this->getChosenArea($personId))

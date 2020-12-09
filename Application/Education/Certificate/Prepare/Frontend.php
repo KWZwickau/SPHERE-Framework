@@ -2195,10 +2195,21 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter') {
                                                 // Zensurenfeld
                                                 $selectCompleterData[-1] = '';
-                                                for ($i = 1; $i < 6; $i++) {
-                                                    $selectCompleterData[$i] = (string)($i);
+                                                if (strpos($PlaceholderName, '_Average') !== false) {
+                                                    // _Average
+                                                    for ($i = 1; $i < 6; $i++) {
+                                                        for ($j = 0; $j < 10; $j++) {
+                                                            $value = $i . ',' . $j;
+                                                            $selectCompleterData[$value] = $value;
+                                                        }
+                                                    }
+                                                    $selectCompleterData['6,0'] = '6,0';
+                                                } else {
+                                                    // _Grade
+                                                    for ($i = 1; $i <= 6; $i++) {
+                                                        $selectCompleterData[$i] = (string)($i);
+                                                    }
                                                 }
-                                                $selectCompleterData[6] = 6;
                                                 $selectCompleter = new SelectCompleter($dataFieldName, '', '', $selectCompleterData);
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
                                                     $studentTable[$tblPerson->getId()][$key] = $selectCompleter->setDisabled();

@@ -45,7 +45,7 @@ class FsAbg extends FsStyle
         ;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis'))
+            ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis', '3'))
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId))
             ->addSlice($this->getFachhochschulreife($personId))

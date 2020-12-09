@@ -131,12 +131,13 @@ abstract class FsStyle extends Certificate
 
     /**
      * @param        $personId
+     * @param bool   $isFhr
      * @param string $CertificateName
-     * @param bool $IsLogo
+     * @param bool   $IsLogo
      *
      * @return Slice
      */
-    protected function getSchoolHeadAbs($personId, $CertificateName = 'Abschlusszeugnis', $IsLogo = true)
+    protected function getSchoolHeadAbs($personId, $isFhr = false, $CertificateName = 'Abschlusszeugnis', $IsLogo = true)
     {
 
         $name = '';
@@ -205,6 +206,19 @@ abstract class FsStyle extends Certificate
             ->styleTextSize('18px')
             ->stylePaddingTop('7px')
         );
+        if ($isFhr) {
+            $Slice->addElement((new Element())
+                ->setContent('und')
+                ->styleAlignCenter()
+                ->stylePaddingTop('5px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('Zeugnis der Fachhochschulreife')
+                ->styleAlignCenter()
+                ->styleTextSize('22px')
+                ->stylePaddingTop('5px')
+            );
+        }
 
         return $Slice;
     }
@@ -356,6 +370,7 @@ abstract class FsStyle extends Certificate
 
     /**
      * @param $personId
+     * @param bool $isFhr
      *
      * @return Slice
      */
@@ -442,7 +457,7 @@ abstract class FsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('20px')
             ->styleTextBold()
-            ->stylePaddingTop('5px')
+            ->stylePaddingTop('2px')
         );
         $GenderString = 'Er/Sie';
         if(($tblPerson = Person::useService()->getPersonById($personId))){
@@ -515,7 +530,7 @@ abstract class FsStyle extends Certificate
                 ->styleTextSize('16px')
             );
             $Slice->addElement((new Element())
-                ->setContent('an der Fachschule erfolgreich abgeschlossen.<sup style="font-size: 80% !important;">1)</sup> Die' )
+                ->setContent('an der Fachschule erfolgreich abgeschlossen.' . $this->setSup('1)') . ' Die' )
                 ->styleAlignCenter()
                 ->styleTextSize('16px')
             );
@@ -533,27 +548,26 @@ abstract class FsStyle extends Certificate
                 ->styleTextSize('16px')
             );
             $Slice->addElement((new Element())
-            ->setContent('in der Bundesrepublik Deutschland.<sup style="font-size: 80% !important;">2)</sup>' )
+            ->setContent('in der Bundesrepublik Deutschland.' . $this->setSup('2)') )
                 ->styleAlignCenter()
                 ->styleTextSize('16px')
                 ->stylePaddingBottom('10px')
             );
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Durchschnittsnote<sup style="font-size: 80% !important;">3)</sup>:')
+                    ->setContent('Durchschnittsnote' . $this->setSup('3)') . ':')
                     ->styleMarginTop('15px')
                 , '20%')
 
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                 , '5%')
-                //ToDO neues Eingabefeld nur für Abgangszeugnis FHR
                 ->addElementColumn((new Element())
-                    ->setContent('{% if(Content.P'.$personId.'.Input.Average is not empty) %}
-                                 {{ Content.P'.$personId.'.Input.Average }}
-                             {% else %}
-                                 &ndash;
-                             {% endif %}')
+                    ->setContent('{% if(Content.P'.$personId.'.Input.AddEducation_Average is not empty) %}
+                             {{ Content.P'.$personId.'.Input.AddEducation_Average }}
+                         {% else %}
+                             &ndash;
+                         {% endif %}')
                     ->styleAlignCenter()
                     ->styleBackgroundColor('#BBB')
                     ->styleMarginTop('15px')
@@ -563,13 +577,12 @@ abstract class FsStyle extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                 , '10%')
-                //ToDO neues Eingabefeld nur für Abgangszeugnis FHR
                 ->addElementColumn((new Element())
-                    ->setContent('{% if(Content.P'.$personId.'.Input.AverageInWord is not empty) %}
-                                 {{ Content.P'.$personId.'.Input.AverageInWord }}
-                             {% else %}
-                                 &ndash;
-                             {% endif %}')
+                    ->setContent('{% if(Content.P'.$personId.'.Input.AddEducation_AverageInWord is not empty) %}
+                             {{ Content.P'.$personId.'.Input.AddEducation_AverageInWord }}
+                         {% else %}
+                             &ndash;
+                         {% endif %}')
                     ->styleAlignCenter()
                     ->styleBackgroundColor('#BBB')
                     ->styleMarginTop('15px')
@@ -1009,7 +1022,7 @@ abstract class FsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getSecondPageHead($personId, $CertificateName = 'Halbjahresinformation', $isChangeableCertificateName = false)
+    protected function getSecondPageHead($personId, $CertificateName = 'Halbjahresinformation', $page = '2', $isChangeableCertificateName = false)
     {
 
         $Slice = new Slice();
@@ -1046,7 +1059,7 @@ abstract class FsStyle extends Certificate
                 {% endif %}'.
                 '{{ Content.P' . $personId . '.Person.Data.Name.First }}
                 {{ Content.P' . $personId . '.Person.Data.Name.Last }},
-                geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
+                geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - ' . $page . '. Seite')
                 ->styleAlignCenter()
 //            ->styleTextSize('16px')
                 ->stylePaddingTop('20px')
@@ -1637,12 +1650,13 @@ abstract class FsStyle extends Certificate
     }
 
     /**
-     * @param int            $personId
-     * @param string         $Height
+     * @param int $personId
+     * @param string $footNote
+     * @param string $Height
      *
      * @return Slice
      */
-    protected function getSubjectLineSkilledWork($personId, $Height = 'auto')
+    protected function getSubjectLineSkilledWork($personId, $footNote = '2)', $Height = 'auto')
     {
         $Slice = (new Slice());
 
@@ -1656,15 +1670,15 @@ abstract class FsStyle extends Certificate
         $this->getSubjectLineAbg(
             $Slice,
             '{% if(Content.P'.$personId.'.Input.SkilledWork is not empty) %}
-                Thema: {{ Content.P'.$personId.'.Input.SkilledWork }}' . $this->setSup('2)') .'
+                Thema: {{ Content.P'.$personId.'.Input.SkilledWork }}' . $this->setSup($footNote) .'
             {% else %}
                 Thema: &ndash;
             {% endif %}',
             '{% if(Content.P'.$personId.'.Input.SkilledWork_GradeText is not empty) %}
-                 {{ Content.P'.$personId.'.Input.SkilledWork_GradeText }}' . $this->setSup('2)') .'
+                 {{ Content.P'.$personId.'.Input.SkilledWork_GradeText }}' . $this->setSup($footNote) .'
             {% else %}
                {% if(Content.P'.$personId.'.Input.SkilledWork_Grade is not empty) %}
-                   {{ Content.P'.$personId.'.Input.SkilledWork_Grade }}' . $this->setSup('2)') .'
+                   {{ Content.P'.$personId.'.Input.SkilledWork_Grade }}' . $this->setSup($footNote) .'
                {% else %}
                    &ndash;
                {% endif %}
