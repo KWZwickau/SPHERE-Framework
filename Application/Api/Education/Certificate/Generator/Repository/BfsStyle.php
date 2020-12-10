@@ -616,11 +616,12 @@ abstract class BfsStyle extends Certificate
      * @param int $DisplaySubjectAmount
      * @param int $SubjectRankingFrom
      * @param int $SubjectRankingTill
+     * @param string $Height
      *
      * @return Slice
      */
     protected function getSubjectLineAcrossAbs($personId, TblCertificate $tblCertificate, $Title = 'Berufsübergreifender Bereich',
-        $StartSubject = 1, $DisplaySubjectAmount = 6, $SubjectRankingFrom = 1, $SubjectRankingTill = 4)
+        $StartSubject = 1, $DisplaySubjectAmount = 6, $SubjectRankingFrom = 1, $SubjectRankingTill = 4, $Height = '160px')
     {
 
         $Slice = (new Slice());
@@ -643,6 +644,7 @@ abstract class BfsStyle extends Certificate
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
         $tblGradeList = $this->getGrade();
 
+        $count = 0;
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
@@ -690,48 +692,97 @@ abstract class BfsStyle extends Certificate
                 ksort($SubjectListAlign);
                 $SubjectSection = (new Section());
                 if (count($SubjectListAlign) == 1 && isset($SubjectListAlign["02"])) {
-                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                    $count++;
+                    $this->getHalfSubjectLineAbs($SubjectSection, $personId, '&ndash;', '-', false);
                 }
 
                 foreach ($SubjectListAlign as $Lane => $Subject) {
                     if ($Lane > 1){
-                        $SubjectSection->addElementColumn((new Element())
-                            , '2%');
+                        $SubjectSection->addElementColumn((new Element()), '2%');
                     }
 
-                    $this->getHalfSubjectLineAbs($SubjectSection, $personId, $Subject['SubjectName'], $Subject['SubjectAcronym']);
+                    $count++;
+                    $this->getHalfSubjectLineAbs($SubjectSection, $personId, $Subject['SubjectName'],
+                        $Subject['SubjectAcronym'], $Title == 'Berufsbezogener Bereich');
                 }
+
                 if (count($SubjectListAlign) == 1 && isset($SubjectListAlign["01"])) {
-                    $SubjectSection->addElementColumn((new Element()), '52%');
+                    $SubjectSection->addElementColumn((new Element()), '2%');
+                    if ($count < $DisplaySubjectAmount) {
+                        $count++;
+                        $this->getHalfSubjectLineAbs($SubjectSection, $personId, '&ndash;', '-', false);
+                    } else {
+                        $SubjectSection->addElementColumn((new Element()), '49%');
+                    }
                 }
 
                 $Slice->addSection($SubjectSection);
             }
         }
 
-//        $Slice->styleHeight($Height);
+        if ($count < $DisplaySubjectAmount) {
+            $count = (integer) ($count / 2);
+            $count++;
+            for ($count; $count <= ($DisplaySubjectAmount % 2 == 0 ? $DisplaySubjectAmount : $DisplaySubjectAmount + 1) / 2; $count++) {
+                $section = new Section();
+                $this->getHalfSubjectLineAbs($section, $personId, '&ndash;', '-', false);
+                if (($count == ($DisplaySubjectAmount + 1) / 2) && ($DisplaySubjectAmount % 2 == 1)) {
+                    // nur linke Seite
+                    $section->addElementColumn((new Element()), 'auto');
+                } else {
+                    $section->addElementColumn((new Element()), '2%');
+                    $this->getHalfSubjectLineAbs($section, $personId, '&ndash;', '-', false);
+                }
+
+                $Slice->addSection($section);
+            }
+        }
+
+        $Slice->styleHeight($Height);
 
         return $Slice;
     }
 
-    private function getHalfSubjectLineAbs(Section $SubjectSection, $personId, $subjectName, $subjectAcronym)
+    private function getHalfSubjectLineAbs(Section $SubjectSection, $personId, $subjectName, $subjectAcronym, $isSubjectNameShrinkSize)
     {
+        if ($isSubjectNameShrinkSize) {
+            $TextSizeSubject = '9px';
+        } else {
+            $TextSizeSubject = '14px';
+        }
+
         $TextSize = '14px';
-        $TextSizeSmall = '8px';
+        $TextSizeSmall = '9px';
 
         $marginTopSubjectOneRow = '15px';
-        $marginTopGradeOneRow = '10px';
+        $marginTopGradeOneRow = '13px';
         $marginTopSubjectTwoRow = '2px';
         $marginTopGradeTwoRow = '14px';
+
+        $paddingGrade = '2px';
+        $paddingGradeShrinkSize = '5px';
+
+        $len = strlen($subjectName);
+        if (!$isSubjectNameShrinkSize && ($len > 35)) {
+            $marginTopSubject = $marginTopSubjectTwoRow;
+            $marginTopGrade = $marginTopGradeTwoRow;
+        } elseif ($isSubjectNameShrinkSize) {
+            $marginTopSubject = ($len < 50) ? '20px' : '10px';
+            $marginTopGrade = $marginTopGradeOneRow;
+        } else {
+            $marginTopSubject = $marginTopSubjectOneRow;
+            $marginTopGrade = $marginTopGradeOneRow;
+        }
 
         $SubjectSection->addElementColumn((new Element())
             ->setContent($subjectName)
             ->stylePaddingTop()
-            ->styleMarginTop('15px')
+            ->styleMarginTop($marginTopSubject)
             ->stylePaddingBottom('1px')
-            ->styleTextSize($TextSize)
+            ->stylePaddingLeft('2px')
+            ->styleTextSize($TextSizeSubject)
             ->styleBorderBottom('0.5px')
-            , '39%');
+            , '37%');
 
         $SubjectSection->addElementColumn((new Element())
             ->setContent('&nbsp;')
@@ -746,31 +797,30 @@ abstract class BfsStyle extends Certificate
                  {% endif %}')
             ->styleAlignCenter()
             ->styleBackgroundColor('#BBB')
-            ->styleMarginTop('15px')
+            ->styleMarginTop($marginTopGrade)
             ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
                     and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
-                ) %}
-                     5.3px
-                 {% else %}
-                     2px
-                 {% endif %}')
+                ) %}'
+                    . $paddingGradeShrinkSize .
+                '{% else %}'
+                    . $paddingGrade .
+                '{% endif %}')
             ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
                     and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
+                ) %}'
+                . $paddingGradeShrinkSize .
+                '{% else %}'
+                . $paddingGrade .
+                '{% endif %}')
+            ->styleTextSize('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
+                    and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
                 ) %}
-                     5.5px
-                 {% else %}
-                     1.5px
-                 {% endif %}')
-            ->styleTextSize(
-                '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
-                        and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
-                    ) %}
-                         ' . $TextSizeSmall . '
-                     {% else %}
-                         ' . $TextSize . '
-                     {% endif %}'
+                     ' . $TextSizeSmall . '
+                {% else %}
+                    ' . $TextSize . '
+                {% endif %}'
             )
-            , '9%');
+            , '11%');
     }
 
     /**
@@ -1308,7 +1358,7 @@ abstract class BfsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getPraktika($personId, TblCertificate $tblCertificate)
+    protected function getPraktika($personId, TblCertificate $tblCertificate, $isAbs = false)
     {
 
         $tblTechnicalCourse = null;
@@ -1346,7 +1396,7 @@ abstract class BfsStyle extends Certificate
         }
 
         $TextSize = '14px';
-        $TextSizeSmall = '8px';
+        $TextSizeSmall = $isAbs ? '9px' : '8px';
 
         $Slice = new Slice();
         $Slice->styleBorderAll('0.5px');
@@ -1363,7 +1413,7 @@ abstract class BfsStyle extends Certificate
                     {% endif %}
                     Wochen)')
                 ->stylePaddingLeft('5px')
-                , '91%'
+                , 'auto'
             )
             ->addElementColumn((new Element())      //ToDO richtiges Acronym auswählen
                 ->setContent(empty($Subject) ? '&ndash;'
@@ -1399,7 +1449,7 @@ abstract class BfsStyle extends Certificate
                                  ' . $TextSize . '
                              {% endif %}'
                 )
-                , '9%'
+                , $isAbs ? '11%' : '9%'
             )
         );
 

@@ -2053,7 +2053,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         ) {
                             $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
-                                . $technicalCourseName . 'ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
                         }
 
                         // Berufsfachschule
@@ -2062,7 +2062,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         ) {
                             $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
-                                . $technicalCourseName . 'ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
+                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
                         }
 
                         $Global->savePost();
