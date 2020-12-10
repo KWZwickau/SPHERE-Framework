@@ -2476,19 +2476,29 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $certificateList = [];
                     foreach ($tblStudentList as $tblPerson) {
                         if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                            if (($tblType = $tblDivision->getType())) {
+                                $isTechnicalSchool = $tblType->isTechnical();
+                            } else {
+                                $isTechnicalSchool = false;
+                            }
+
                             $isMuted = $isCourseMainDiploma;
                             $course = '';
                             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                                $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                                if ($tblTransferType) {
-                                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                        $tblTransferType);
-                                    if ($tblStudentTransfer) {
-                                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                                        if ($tblCourse) {
-                                            $course = $tblCourse->getName();
-                                            if ($course == 'Hauptschule') {
-                                                $isMuted = false;
+                                if ($isTechnicalSchool) {
+                                    $course = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                                } else {
+                                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                                    if ($tblTransferType) {
+                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                            $tblTransferType);
+                                        if ($tblStudentTransfer) {
+                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                            if ($tblCourse) {
+                                                $course = $tblCourse->getName();
+                                                if ($course == 'Hauptschule') {
+                                                    $isMuted = false;
+                                                }
                                             }
                                         }
                                     }
@@ -2511,7 +2521,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                             $countSubjectGrades = 0;
                             // Zensuren zählen
-                            if ($isDiploma) {
+                            if ($isDiploma && !$isTechnicalSchool) {
                                 if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                                     && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                                         $tblPrepare,
@@ -3094,6 +3104,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
                                 $tblDivisionItem))
                             ) {
+                                if (($tblType = $tblDivisionItem->getType())) {
+                                    $isTechnicalSchool = $tblType->isTechnical();
+                                } else {
+                                    $isTechnicalSchool = false;
+                                }
+
                                 foreach ($tblTestAllByTask as $tblTest) {
                                     $tblSubject = $tblTest->getServiceTblSubject();
                                     if ($tblSubject && $tblTest->getServiceTblDivision()) {
@@ -3114,7 +3130,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                                         if ($tblPerson) {
-                                                            if ($Route == 'Diploma') {
+                                                            if ($Route == 'Diploma' && !$isTechnicalSchool) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
                                                                     $tblSubject, $studentList);
@@ -3147,7 +3163,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                                         // nur Schüler der ausgewählten Klasse
                                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
-                                                            if ($Route == 'Diploma') {
+                                                            if ($Route == 'Diploma' && !$isTechnicalSchool) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
                                                                     $tblSubject, $studentList);
