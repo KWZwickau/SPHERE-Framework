@@ -71,7 +71,7 @@ class FsAbsFhr extends FsStyle
             ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', '3'))
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId, '5)'))
-            ->addSlice($this->getFachhochschulreife($personId))
+            ->addSlice($this->getFachhochschulreifeAbg($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId, '60px'))
             ->addSlice($this->getSpace('50px'))

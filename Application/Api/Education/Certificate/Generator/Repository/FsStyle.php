@@ -1391,11 +1391,10 @@ abstract class FsStyle extends Certificate
 
     /**
      * @param int    $personId
-     * @param string $Height
      *
      * @return Slice
      */
-    protected function getFachhochschulreife($personId, $Height = 'auto')
+    protected function getFachhochschulreifeAbg($personId)
     {
         $Slice = (new Slice());
 
@@ -1425,7 +1424,76 @@ abstract class FsStyle extends Certificate
             {% endif %}'
         );
 
-        $Slice->styleHeight($Height);
+        return $Slice;
+    }
+
+    /**
+     * @param int    $personId
+     *
+     * @return Slice
+     */
+    protected function getFachhochschulreife($personId)
+    {
+        $Slice = (new Slice());
+
+        $Slice->addElement((new Element())
+            ->setContent('Zusatzausbildung zum Erwerb der Fachhochschulreife')
+            ->styleAlignCenter()
+            ->stylePaddingTop('20px')
+            ->stylePaddingBottom('0px')
+            ->styleTextBold()
+        );
+
+        $TextSize = '14px';
+        $TextSizeSmall = '8px';
+        $SubjectSection = (new Section());
+
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.AddEducation is not empty) %}
+                {{ Content.P'.$personId.'.Input.AddEducation }}
+            {% else %}
+                &ndash;
+            {% endif %}')
+            ->stylePaddingTop()
+            ->styleMarginTop('10px')
+            ->stylePaddingBottom('1px')
+            ->styleTextSize($TextSize)
+            ->styleBorderBottom('0.5px')
+            , '91%');
+
+
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.AddEducation_GradeText is not empty) %}
+                 {{ Content.P'.$personId.'.Input.AddEducation_GradeText }}
+            {% else %}
+               {% if(Content.P'.$personId.'.Input.AddEducation_Grade is not empty) %}
+                   {{ Content.P'.$personId.'.Input.AddEducation_Grade }}
+               {% else %}
+                   &ndash;
+               {% endif %}
+            {% endif %}')
+            ->styleAlignCenter()
+            ->styleBackgroundColor('#BBB')
+            ->styleMarginTop('10px')
+            ->stylePaddingTop('{% if(Content.P'.$personId.'.Input.AddEducation_GradeText is not empty) %}
+                     5.3px
+                 {% else %}
+                     2px
+                 {% endif %}')
+            ->stylePaddingBottom('{% if(Content.P'.$personId.'.Input.AddEducation_GradeText is not empty) %}
+                     5.5px
+                 {% else %}
+                     1.5px
+                 {% endif %}')
+            ->styleTextSize(
+                '{% if(Content.P'.$personId.'.Input.AddEducation_GradeText is not empty) %}
+                     ' . $TextSizeSmall . '
+                 {% else %}
+                     ' . $TextSize . '
+                 {% endif %}'
+            )
+            , '9%');
+        $Slice->addSection($SubjectSection);
 
         return $Slice;
     }

@@ -57,7 +57,7 @@ class FsHjInfo extends FsStyle
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 4, '170px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity(), '110px'))
             ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
-            ->addSlice($this->getFachhochschulreife($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getFachhochschulreife($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())

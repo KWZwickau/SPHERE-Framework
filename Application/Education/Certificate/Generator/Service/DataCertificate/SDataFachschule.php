@@ -65,6 +65,10 @@ class SDataFachschule
         $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
         $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
 
+        $Data->createCertificateInformation($tblCertificate, 'AddEducation', 4);
+        $Data->createCertificateInformation($tblCertificate, 'AddEducation_Grade', 4);
+        $Data->createCertificateInformation($tblCertificate, 'AddEducation_GradeText', 4);
+
     }
 
     /**
@@ -106,6 +110,10 @@ class SDataFachschule
             $Data->createCertificateInformation($tblCertificate, 'AddEducation', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
+
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation', 4);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Grade', 4);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_GradeText', 4);
         }
     }
 
@@ -147,6 +155,10 @@ class SDataFachschule
             $Data->createCertificateInformation($tblCertificate, 'AddAducation', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea1', 3);
             $Data->createCertificateInformation($tblCertificate, 'ChosenArea2', 3);
+
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation', 4);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Grade', 4);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_GradeText', 4);
         }
     }
 

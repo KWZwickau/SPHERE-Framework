@@ -48,7 +48,7 @@ class FsAbg extends FsStyle
             ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis', '3'))
             ->addSlice($this->getSubjectLineInformationalExpulsion($personId))
             ->addSlice($this->getSubjectLineSkilledWork($personId))
-            ->addSlice($this->getFachhochschulreife($personId))
+            ->addSlice($this->getFachhochschulreifeAbg($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId, '40px'))
             ->addSlice($this->getSpace('30px'))
