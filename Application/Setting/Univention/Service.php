@@ -172,15 +172,15 @@ class Service extends AbstractService
                     foreach($tblGroupList as $tblGroup) {
                         if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
                             // teacher hat Vorrang
-                            if(!isset($roles[1])){
-                                $roles[1] = $roleList['staff'];
+                            if(!isset($roles[0])){
+                                $roles[0] = $roleList['staff'];
                             }
                         }
                         if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
-                            $roles[1] = $roleList['teacher'];
+                            $roles[0] = $roleList['teacher'];
                         }
                         if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
-                            $roles[1] = $roleList['student'];
+                            $roles[0] = $roleList['student'];
                         }
                         if($tblGroup->isCoreGroup()){
                             $groups[] = $tblGroup->getName();
@@ -201,6 +201,11 @@ class Service extends AbstractService
                 if(!Consumer::useService()->isSchoolSeparated()){
                     // Mandant wird als Schule verwendet
                     $SchoolString = $this->getSchoolString($Acronym);
+                    // Local to test it with DEMOSCHOOL
+                    if($Acronym == 'REF'){
+                        $SchoolString = $this->getSchoolString('DEMOSCHOOL');
+                    }
+
                     $SchoolKeyList[] = $SchoolString;
                     $StudentSchool = $SchoolString;
                 } else {
@@ -220,12 +225,7 @@ class Service extends AbstractService
                 if(!empty($SchoolKeyList)){
                     $SchoolKeyList = array_unique($SchoolKeyList);
                     foreach($SchoolKeyList as $SchoolKey){
-                        // Ref is Demoschool
-                        if($SchoolKey != 'REF'){
-                            $schools[] = $schoolList[$SchoolKey];
-                        } else {
-                            $schools[] = $schoolList['DEMOSCHOOL'];
-                        }
+                        $schools[] = $schoolList[$SchoolKey];
 
                     }
                     $Item['schools'] = implode(',', $schools);
@@ -249,15 +249,13 @@ class Service extends AbstractService
 
                 if($tblDivision){
 //                    $UploadItem['school_classes'][$StudentSchool] = array('DemoClass');
-                    $UploadItem['school_classes'][$StudentSchool][] = $Acronym.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                    $UploadItem['school_classes'][$StudentSchool][] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
 //                    $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
                 } else {
                     if(isset($TeacherClasses[$tblPerson->getId()])){
-                        $SchoolList = $TeacherClasses[$tblPerson->getId()];
-                        foreach($SchoolList as $School => $ClassList){
-                            sort($ClassList);
-                            $Item['school_classes'][$StudentSchool] = $ClassList;
-                        }
+                        $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
+                        sort($SchoolListWithClasses);
+                        $UploadItem['school_classes'] = $SchoolListWithClasses;
                     }
                 }
 
@@ -341,7 +339,7 @@ class Service extends AbstractService
 //                                            $SchoolString .= '-';
 //                                        }
 //                                    }
-                                    $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()][$SchoolString] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][$tblDivision->getId()] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
                                 }
                             }
                         }
