@@ -2056,6 +2056,15 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 . $technicalCourseName . 'ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
                         }
 
+                        // Berufsfachschule
+                        if (!$hasRemarkText
+                            && $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
+                        ) {
+                            $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
+                                . $technicalCourseName . 'ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
+                        }
+
                         $Global->savePost();
                     }
 

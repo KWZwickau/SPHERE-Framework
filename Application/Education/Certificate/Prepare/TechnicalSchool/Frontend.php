@@ -1146,7 +1146,6 @@ class Frontend extends Extension
      */
     public function getTabsByType(TblType $tblType = null, $countInformationPages = 1)
     {
-        // todo Berufsfachschule
         $tabs = array();
         $count = 1;
         if ($tblType->getName() == 'Fachschule') {
@@ -1180,7 +1179,7 @@ class Frontend extends Extension
         }
 
         // Sonstige Informationen
-        $informationTabName = 'Sonstige Info';
+        $informationTabName = $tblType->getName() == 'Fachschule' ?  'Sonstige Info' : 'Sonstige Informationen';
         for ($i = 1; $i <= $countInformationPages; $i++) {
             $tabs[$count++] = array(
                 'Identifier' => 'I' . (string) $i,

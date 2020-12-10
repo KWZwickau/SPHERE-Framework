@@ -162,21 +162,19 @@ class SDataBerufsfachschule
         ) {
             // ToDO hinterlegung irgendwelcher Fächer?
 
-            // andere Eingabe der Informationen
-//            // Inforamtionen auf mehrere "Sonnstige Informationen" aufgliedern
-//            // Seite 2
-//            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
-//            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
-//            // Seite 3
-//            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'DateTo', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'AbsYear', 3);
-//            $Data->createCertificateInformation($tblCertificate, 'ProfessionalTitle', 3);
+//            'DateFrom' ist auf Seite 1
+//            'DateTo' ist auf Seite 1
+//            'BfsDestination' ist auf Seite 1
 
+            $Data->createCertificateInformation($tblCertificate, 'OperationTimeTotal', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
+
+            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 3);
         }
     }
 

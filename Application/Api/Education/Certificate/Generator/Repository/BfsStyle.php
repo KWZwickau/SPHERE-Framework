@@ -100,20 +100,20 @@ abstract class BfsStyle extends Certificate
                 ->styleTextSize('30px')
             );
         }
-        $PreString = 'der Berufsfachschule für';
+
         if($CertificateName === 'Abschlusszeugnis'){
             $PreString = 'der Berufsfachschule';
+        } else {
+            $PreString = 'der Berufsfachschule für' .' {% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
+                    {{ Content.P' . $personId . '.Input.BfsDestination }}
+                {% endif %}';
         }
         $Slice->addElement((new Element())
-            ->setContent($PreString.' {% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
-                    {{ Content.P' . $personId . '.Input.BfsDestination }}
-                {% endif %}')
+            ->setContent($PreString)
             ->stylePaddingTop('4px')
             ->styleAlignCenter()
             ->styleTextSize('22px')
         );
-
-
 
         return $Slice;
     }
@@ -350,8 +350,8 @@ abstract class BfsStyle extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('besucht und im Schuljahr
-                {% if(Content.P' . $personId . '.Input.AbsYear is not empty) %}
-                    {{ Content.P' . $personId . '.Input.AbsYear }}
+                {% if(Content.P' . $personId . '.Division.Data.Year is not empty) %}
+                    {{ Content.P' . $personId . '.Division.Data.Year }}
                 {% else %}
                     ---
                 {% endif %}
@@ -364,8 +364,8 @@ abstract class BfsStyle extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('
-                {% if(Content.P' . $personId . '.Input.ProfessionalTitle is not empty) %}
-                    {{ Content.P' . $personId . '.Input.ProfessionalTitle }}
+                {% if(Content.P' . $personId . '.Student.TechnicalCourse is not empty) %}
+                    {{ Content.P' . $personId . '.Student.TechnicalCourse }}
                 {% else %}
                     ---
                 {% endif %}')
@@ -609,6 +609,171 @@ abstract class BfsStyle extends Certificate
     }
 
     /**
+     * @param $personId
+     * @param TblCertificate $tblCertificate
+     * @param string $Title
+     * @param int $StartSubject
+     * @param int $DisplaySubjectAmount
+     * @param int $SubjectRankingFrom
+     * @param int $SubjectRankingTill
+     *
+     * @return Slice
+     */
+    protected function getSubjectLineAcrossAbs($personId, TblCertificate $tblCertificate, $Title = 'Berufsübergreifender Bereich',
+        $StartSubject = 1, $DisplaySubjectAmount = 6, $SubjectRankingFrom = 1, $SubjectRankingTill = 4)
+    {
+
+        $Slice = (new Slice());
+        $Slice->addElement((new Element())
+            ->setContent($Title)
+            ->styleAlignCenter()
+            ->stylePaddingTop('20px')
+            ->stylePaddingBottom('0px')
+        );
+
+        $tblTechnicalCourse = null;
+        if(($tblPerson = Person::useService()->getPersonById($personId))){
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+                    $tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse();
+                }
+            }
+        }
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
+        $tblGradeList = $this->getGrade();
+
+        if (!empty($tblCertificateSubjectAll)) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
+                    $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
+                    if($tblCertificateSubject->getRanking() >= $SubjectRankingFrom
+                        && $tblCertificateSubject->getRanking() <= $SubjectRankingTill){
+                        // Grade Exists? => Add Subject to Certificate
+                        if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])){
+                            $SubjectStructure[$RankingString][$LaneString]['SubjectAcronym'] = $tblSubject->getAcronym();
+                            $SubjectStructure[$RankingString][$LaneString]['SubjectName'] = $tblSubject->getName();
+                        } else {
+                            // Grade Missing, But Subject Essential => Add Subject to Certificate
+                            if ($tblCertificateSubject->isEssential()){
+                                $SubjectStructure[$RankingString][$LaneString]['SubjectAcronym'] = $tblSubject->getAcronym();
+                                $SubjectStructure[$RankingString][$LaneString]['SubjectName'] = $tblSubject->getName();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Anzahl der Abzubildenden Einträge (auch ohne Fach)
+            $CountSubjectMissing = $DisplaySubjectAmount;
+
+            // Berufsübergreifender Bereich
+            $SubjectList = array();
+            ksort($SubjectStructure);
+            $SubjectCount = 1;
+            foreach ($SubjectStructure as $Ranking => $SubjectListTemp) {
+                foreach ($SubjectListTemp as $Lane => $Subject) {
+                    if($SubjectCount >= $StartSubject
+                        && $CountSubjectMissing != 0){
+                        $SubjectList[$Ranking][$Lane] = $Subject;
+                        $CountSubjectMissing--;
+                    }
+                    $SubjectCount++;
+                }
+            }
+
+            foreach ($SubjectList as $SubjectListAlign) {
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectListAlign);
+                $SubjectSection = (new Section());
+                if (count($SubjectListAlign) == 1 && isset($SubjectListAlign["02"])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($SubjectListAlign as $Lane => $Subject) {
+                    if ($Lane > 1){
+                        $SubjectSection->addElementColumn((new Element())
+                            , '2%');
+                    }
+
+                    $this->getHalfSubjectLineAbs($SubjectSection, $personId, $Subject['SubjectName'], $Subject['SubjectAcronym']);
+                }
+                if (count($SubjectListAlign) == 1 && isset($SubjectListAlign["01"])) {
+                    $SubjectSection->addElementColumn((new Element()), '52%');
+                }
+
+                $Slice->addSection($SubjectSection);
+            }
+        }
+
+//        $Slice->styleHeight($Height);
+
+        return $Slice;
+    }
+
+    private function getHalfSubjectLineAbs(Section $SubjectSection, $personId, $subjectName, $subjectAcronym)
+    {
+        $TextSize = '14px';
+        $TextSizeSmall = '8px';
+
+        $marginTopSubjectOneRow = '15px';
+        $marginTopGradeOneRow = '10px';
+        $marginTopSubjectTwoRow = '2px';
+        $marginTopGradeTwoRow = '14px';
+
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent($subjectName)
+            ->stylePaddingTop()
+            ->styleMarginTop('15px')
+            ->stylePaddingBottom('1px')
+            ->styleTextSize($TextSize)
+            ->styleBorderBottom('0.5px')
+            , '39%');
+
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent('&nbsp;')
+            ->styleTextSize($TextSize)
+            , '1%');
+
+        $SubjectSection->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Grade.Data["'.$subjectAcronym.'"] is not empty) %}
+                     {{ Content.P'.$personId.'.Grade.Data["'.$subjectAcronym.'"] }}
+                 {% else %}
+                     &ndash;
+                 {% endif %}')
+            ->styleAlignCenter()
+            ->styleBackgroundColor('#BBB')
+            ->styleMarginTop('15px')
+            ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
+                    and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
+                ) %}
+                     5.3px
+                 {% else %}
+                     2px
+                 {% endif %}')
+            ->stylePaddingBottom('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
+                    and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
+                ) %}
+                     5.5px
+                 {% else %}
+                     1.5px
+                 {% endif %}')
+            ->styleTextSize(
+                '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
+                    ) %}
+                         ' . $TextSizeSmall . '
+                     {% else %}
+                         ' . $TextSize . '
+                     {% endif %}'
+            )
+            , '9%');
+    }
+
+    /**
      * @return Slice
      */
     protected function getSubjectLinePerformance()
@@ -620,7 +785,7 @@ abstract class BfsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('20px')
             ->styleTextBold()
-            ->stylePaddingTop('20px')
+            ->stylePaddingTop('15px')
         );
 
         return $Slice;
@@ -629,7 +794,7 @@ abstract class BfsStyle extends Certificate
     /**
      * @return Slice
      */
-    protected function getSubjectLineDuty()
+    protected function getSubjectLineDuty($PaddingTop = '30px')
     {
 
         $Slice = (new Slice());
@@ -638,7 +803,7 @@ abstract class BfsStyle extends Certificate
             ->styleAlignCenter()
             ->styleTextSize('18px')
             ->styleTextBold()
-            ->stylePaddingTop('30px')
+            ->stylePaddingTop($PaddingTop)
         );
 
         return $Slice;

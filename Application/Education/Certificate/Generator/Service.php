@@ -499,7 +499,6 @@ class Service extends AbstractService
             'Content.Input.DateFrom'            => 'DatePicker',
             'Content.Input.DateTo'              => 'DatePicker',
             'Content.Input.AbsYear'             => 'TextField',
-            'Content.Input.ProfessionalTitle'   => 'TextField',
             // Fachschule
             'Content.Input.FsDestination'       => 'TextField',
             'Content.Input.SubjectArea'         => 'TextField',
@@ -584,7 +583,6 @@ class Service extends AbstractService
             'Content.Input.DateFrom'            => 'Besucht "seit" die ' . $typeName,
             'Content.Input.DateTo'              => 'Besuchte "bis" die ' . $typeName,
             'Content.Input.AbsYear'             => 'Abschluss im Schuljahr',
-            'Content.Input.ProfessionalTitle'   => 'Berufsbezeichnung',
             // Fachschule
             'Content.Input.FsDestination'       => 'Fachbereich',
             'Content.Input.SubjectArea'         => 'Fachrichtung',

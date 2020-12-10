@@ -17,11 +17,20 @@ class BfsAbs extends BfsStyle
     /**
      * @return array
      */
-    public function selectValuesTransfer()
+    public function getApiModalColumns()
     {
         return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
+            'DateFrom' => 'Besucht "seit" die Fachschule',
+            'DateTo' => 'Besuchte "bis" die Fachschule',
+            'BfsDestination'      => 'Berufsfachschule für ...',
+
+            'OperationTimeTotal' => 'Berufspraktische Ausbildung Dauer in Wochen',
+            'Operation1' => 'Einsatzgebiet 1',
+            'OperationTime1' => 'Einsatzgebiet Dauer in Wochen 1',
+            'Operation2' => 'Einsatzgebiet 2',
+            'OperationTime2' => 'Einsatzgebiet Dauer in Wochen 2',
+            'Operation3' => 'Einsatzgebiet 3',
+            'OperationTime3' => 'Einsatzgebiet Dauer in Wochen 3',
         );
     }
 
@@ -36,27 +45,22 @@ class BfsAbs extends BfsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $pageList[] = (new Page())
-
-            ->addSlice($this->getSchoolHead($personId, 'Abschlusszeugnis', true, true))
+            ->addSlice($this->getSchoolHead($personId, 'Abschlusszeugnis', false, true))
             ->addSlice($this->getStudentHeadAbs($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
                 ->stylePaddingTop('330px')
             ))
             ->addSlice($this->getIndividuallySignPart($personId, true))
-
-//            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity()))
-//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 10))
         ;
 
         $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', true))
+            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', false))
             ->addSlice($this->getSubjectLinePerformance())
-            ->addSlice($this->getSubjectLineDuty())
-            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6, 1, 4))
-            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 14, 5, 12, '310px'))
-            ->addSlice($this->getSubjectLineAcross($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 14, 13, 14, '100px'))
-//            ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
+            ->addSlice($this->getSubjectLineDuty('10px'))
+            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 6, 1, 4))
+            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 14, 5, 12))
+            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 14, 13, 14))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId, '85px'))
             ->addSlice((new Slice())->addElement((new Element())
