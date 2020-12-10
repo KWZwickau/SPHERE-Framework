@@ -107,7 +107,18 @@ class Frontend extends Extension
                 if (($tblGenerateCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblGenerateCertificateType->getIdentifier() == 'DIPLOMA'
                 ) {
-                    $hasDiplomaCertificate = true;
+                    // Prüfungsausschuss nur bei Gy und OS, nicht bei Bfs oder Fs
+                    if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                        foreach ($tblPrepareList as $tblPrepare) {
+                            if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                && ($tblType = $tblDivision->getType())
+                                && ($tblType->getName() == 'Gymnasium' || $tblType->getName() == 'Mittelschule / Oberschule')
+                            ) {
+                                $hasDiplomaCertificate = true;
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 $tableData[] = array(
