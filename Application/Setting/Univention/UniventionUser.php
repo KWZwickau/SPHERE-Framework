@@ -168,17 +168,27 @@ class UniventionUser
     {
         curl_reset($this->curlhandle);
 
+        // Verwendet für die Api "school" das erste element aus der Liste, da keine genauere Auswahl getroffen werden kann
+        $school = current($schools);
+
         $PersonContent = array(
             'name' => $name,
+        // keine reaktion der API auf dieses Feld
 //            'mailPrimaryAddress' => $email,
+        // letze Info email = mailPrimaryAddress,
             'email' => $email,
+            // Weiteres E-Mail feld, welches als UDM Propertie zurück kommt ("e-mail") ist aber ein Array und für unsere Zwecke nicht zu verwenden
+//            'mail' => $email,
             'firstname' => $firstname,
             'lastname' => $lastname,
-            // Try AccountId to find Account again?
+            // AccountId
             'record_uid' => $record_uid,
+            // Orientierung an connexion-ssw
+            'source_uid' => 'connexion-ssw',
             'roles' => $roles,
 //Local Test without schools
-            'schools' => $schools, // test with two array elements
+            'school' => $school, // one school
+            'schools' => $schools, // array school
             'school_classes' => $school_classes,
             // Mandant + AccountId to human resolve problems?
 //            'source_uid' => $source_uid

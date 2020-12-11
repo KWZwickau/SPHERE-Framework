@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -11,6 +10,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -21,9 +21,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
-use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -81,14 +83,13 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Buttons nur bei aktiver API
-        // Removed for Live
-        $Stage->addButton(new Standard('Accounts komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-        $Stage->addButton(new Standard('Accounts hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
-        $Stage->addButton(new Standard('Accounts ändern', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
-        $Stage->addButton(new Standard('Accounts löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+        // Removed for Live //ToDO without Buttons -> no Action!
+//        $Stage->addButton(new Standard('Accounts komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
+//        $Stage->addButton(new Standard('Accounts hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
+//        $Stage->addButton(new Standard('Accounts ändern', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
+//        $Stage->addButton(new Standard('Accounts löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
 
         $UserUniventionList = Univention::useService()->getApiUser();
-
 
 //        $beginn = microtime(true);
         $ErrorLog = array();
@@ -103,7 +104,6 @@ class Frontend extends Extension implements IFrontendInterface
 
 //        $this->getTimeSpan($beginn, 'holen aller Benutzeraccounts aus der Schulsoftware * vorbereitung, das Werte wie in der API gepflegt werden');
 
-        // Vergleich
         // Zählung
         $count['create'] = 0;
         $count['cantCreate'] = 0;
@@ -112,27 +112,20 @@ class Frontend extends Extension implements IFrontendInterface
         $count['cantUpdate'] = 0;
         $count['delete'] = 0;
         // create: AccountActive welche nicht in der API vorhanden sind
-        //ToDO eigene Variablen, nicht alles in einem Riesen array
         $createList = array();
         $cantCreateList = array();
-//        $ApiList['Create'] = array();
-//        $ApiList['noCreate'] = array();
-
         // update: Accounts welche Vorhanden sind, aber unterschiedliche Werte aufweisen
         $updateList = array();
         $cantUpdateList = array();
-//        $ApiList['Update'] = array();
-//        $ApiList['cantUpdate'] = array();
-
-        // Display changes
         // delete: Accounts, die in der API vorhaden sind, aber nicht in der Schulsoftware
         $deleteList = array();
-//        $ApiList['Delete'] = array();
 
-//        $beginn = microtime(true);
-
+        $tblCompareUpdate = array();
+        // Vergleich
         if(!empty($UserSchulsoftwareList)){
             foreach($UserSchulsoftwareList as $AccountActive){
+
+                // Nutzer in Univention nicht vorhanden (nach Id)
                 if(!isset($UserUniventionList[$AccountActive['record_uid']])
                 ){
                     if(($Error = $this->controlAccount($AccountActive))){
@@ -144,35 +137,213 @@ class Frontend extends Extension implements IFrontendInterface
                         // Lokaler Test
 //                    $createList[] = $AccountActive['name'];
                     }
-                    unset($UserUniventionList[$AccountActive['record_uid']]);
+//                    unset($UserUniventionList[$AccountActive['record_uid']]);
                 } else {
-                    $Log = array();
-                    //ToDO only Update if necessary
-                    // compare
+                    // Vergleich welche User geupdatet werden müssen
+                    $isUpdate = false;
+                    $CompareRow = array(
+                        'User' => new Small(new Small($AccountActive['name'])),
+                        'UCS' => array(
+                            'firstname' => '',
+                            'lastname' => '',
+                            'email' => '',
+                            'roles' => '',
+                            'schools' => '',
+                            'school_classes' => '',
+                        ),
+                        'SSW' => array(
+                            'firstname' => '',
+                            'lastname' => '',
+                            'email' => '',
+                            'roles' => '',
+                            'schools' => '',
+                            'school_classes' => '',
+                        ),
+                    );
+
                     $ExistUser = $UserUniventionList[$AccountActive['record_uid']];
+
+                    // Fill TableContent
+                    $CompareRow['UCS']['firstname'] = $ExistUser['firstname'];
+                    $CompareRow['UCS']['lastname'] = $ExistUser['lastname'];
+                    $CompareRow['UCS']['email'] = $ExistUser['email'];
+                    if(!empty($ExistUser['roles'])){
+                        $CompareRow['UCS']['roles'] = implode(', ', $ExistUser['roles']);
+                    } else{
+                        $CompareRow['UCS']['roles'] = '---';
+                    }
+                    $CompareRow['UCS']['schools'] = implode(', ', $ExistUser['schools']);
+                    sort($ExistUser['school_classes']);
+                    if(!empty($ExistUser['school_classes'])){
+                        $ClassString = '';
+                        foreach($ExistUser['school_classes'] as $School => $ClassList) {
+                            sort($ClassList);
+                            if(!$ClassString){
+                                $ClassString = implode(', ', $ClassList);
+                            } else {
+                                $ClassString .= ', '.implode($ClassList);
+                            }
+                        }
+                        $CompareRow['UCS']['school_classes'] = $ClassString;
+                    } else {
+                        $CompareRow['UCS']['school_classes'] = '---';
+                    }
+
+                    $CompareRow['SSW']['firstname'] = $AccountActive['firstname'];
+                    $CompareRow['SSW']['lastname'] = $AccountActive['lastname'];
+                    $CompareRow['SSW']['email'] =$AccountActive['email'];
+                    if(!empty($AccountActive['roles'])){
+                        $CompareRow['SSW']['roles'] = implode(', ', $AccountActive['roles']);
+                    } else{
+                        $CompareRow['SSW']['roles'] = '---';
+                    }
+                    $CompareRow['SSW']['schools'] = implode(', ', $AccountActive['schools']);
+
+                    // Liste Sortieren, aber aktuelle nicht verändern
+                    $ActiveSchoolList = $AccountActive['school_classes'];
+                    sort($ActiveSchoolList);
+                    if(!empty($ActiveSchoolList)){
+                        $ClassString = '';
+                        foreach($ActiveSchoolList as $School => $ClassList) {
+                            sort($ClassList);
+                            if(!$ClassString){
+                                $ClassString = implode(', ', $ClassList);
+                            } else {
+                                $ClassString .= ', '.implode($ClassList);
+                            }
+                        }
+                        $CompareRow['SSW']['school_classes'] = $ClassString;
+                    } else {
+                        $CompareRow['SSW']['school_classes'] = '---';
+                    }
+
+
+                    // entscheidung was ein Update erhält
                     if($ExistUser['firstname'] != $AccountActive['firstname']){
-                        $Log[] = 'Vorname: '.new InfoText($ExistUser['firstname']).' -> '.new SuccessText($AccountActive['firstname']);
+                        $isUpdate = true;
+                        $CompareRow['SSW']['firstname'] = new DangerText(new Bold($CompareRow['SSW']['firstname']));
                     }
                     if($ExistUser['lastname'] != $AccountActive['lastname']){
-                        $Log[] = 'Nachname: '.new InfoText($ExistUser['lastname']).' -> '.new SuccessText($AccountActive['lastname']);
+                        $isUpdate = true;
+                        $CompareRow['SSW']['lastname'] = new DangerText(new Bold($CompareRow['SSW']['lastname']));
                     }
-//                if($ExistUser['birthday'] != $AccountActive['birthday']){
-//                    $Log[] = 'Geburtstag: '.new InfoText($ExistUser['birthday']).' -> '.new SuccessText($AccountActive['birthday']);
-//                }
+//                    if($ExistUser['birthday'] != $AccountActive['birthday']){
+//                        $Log[] = 'Geburtstag: '.new InfoText($ExistUser['birthday']).' -> '.new DangerText($AccountActive['birthday']);
+//                    }
                     if(strtolower($ExistUser['email']) != strtolower($AccountActive['email'])){
-                        $Log[] = 'E-Mail: '.new InfoText($ExistUser['email']).' -> '.new SuccessText($AccountActive['email']);
+                        $isUpdate = true;
+                        $CompareRow['SSW']['email'] = new DangerText(new Bold($CompareRow['SSW']['email']));
                     }
-                    if($ExistUser['roles'] != $AccountActive['roles']){
-                        $Log[] = 'Rolle: '.new InfoText(new Listing($ExistUser['roles'])).' -> '.new SuccessText(new Listing($AccountActive['roles']));
+                    // Vergleich der Rollen in einem Array
+                    if(!empty($ExistUser['roles']) && !empty($AccountActive['roles'])){
+                        foreach($AccountActive['roles'] as $activeRole){
+                            if(!in_array($activeRole, $ExistUser['roles'])){
+                                $isUpdate = true;;
+                                $CompareRow['SSW']['roles'] = new DangerText(new Bold($CompareRow['SSW']['roles']));
+                            }
+                        }
+                    } elseif( empty($ExistUser['roles']) &&  !empty($AccountActive['roles'] )){
+                        $isUpdate = true;
+                        $CompareRow['SSW']['roles'] = new DangerText(new Bold($CompareRow['SSW']['roles']));
+                    } elseif( !empty($ExistUser['roles']) &&  empty($AccountActive['roles'] )){
+                        $isUpdate = true;
+                        $CompareRow['SSW']['roles'] = new DangerText(new Bold($CompareRow['SSW']['roles']));
                     }
                     if($ExistUser['schools'] != $AccountActive['schools']){
-                        $Log[] = 'Schule: '.new InfoText(new Listing($ExistUser['schools'])).' -> '.new SuccessText(new Listing($AccountActive['schools']));
-                    } else {
-                        $AccountActive['schools'] = $ExistUser['schools'];
+                        $isUpdate = true;
+                        $CompareRow['SSW']['schools'] = new DangerText(new Bold($CompareRow['SSW']['schools']));
                     }
-//                if($ExistUser['school_classes'] != $AccountActive['school_classes']){
-//                    $Log[] = 'Klasse(n): '.new InfoText(new Listing($ExistUser['school_classes'])).' -> '.new SuccessText(new Listing($ExistUser['school_classes']));
-//                }
+
+                    // Vergleich der Klassen aus einem doppeltem Array
+                    $SchoolExistCompareList = array();
+                    foreach($ExistUser['school_classes'] as $ClassList){
+                        foreach($ClassList as $Class){
+                            $SchoolExistCompareList[] = $Class;
+                        }
+                    }
+                    $SchoolActiveCompareList = array();
+                    foreach($AccountActive['school_classes'] as $ClassList){
+                        foreach($ClassList as $Class){
+                            $SchoolActiveCompareList[] = $Class;
+                        }
+                    }
+
+
+
+                    // fokus nur auf das erste Array, deswegen doppelter Check
+                    if(array_diff($SchoolExistCompareList, $SchoolActiveCompareList)){
+                        $isUpdate = true;
+                        $CompareRow['SSW']['school_classes'] = new DangerText(new Bold($CompareRow['SSW']['school_classes']));
+                    }
+                    if(array_diff($SchoolActiveCompareList, $SchoolExistCompareList)){
+                        $isUpdate = true;
+                        $CompareRow['SSW']['school_classes'] = new DangerText(new Bold($CompareRow['SSW']['school_classes']));
+                    }
+
+                    if($isUpdate){
+                        // Layout in TableContent
+                        $firstWith = 2;
+                        $secondWith = 10;
+                        $CompareRow['UCS'] = new Small(new Small(
+                            new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Vorname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['firstname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Nachname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['lastname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('E-Mail:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['email'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['roles'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Schule:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['schools'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Klassen:'), $firstWith),
+                                    new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
+                                )),
+                            )))
+                        ));
+                        $CompareRow['SSW'] = new Small(new Small(
+                            new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Vorname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['firstname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Nachname:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['lastname'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('E-Mail:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['email'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['roles'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Schule:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['schools'], $secondWith),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(new Bold('Klassen:'), $firstWith),
+                                    new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
+                                )),
+                            )))
+                        ));
+                        $CompareRow['SSWCopy'] = $CompareRow['SSW'];
+
+                        array_push($tblCompareUpdate, $CompareRow);
+                    }
 
                     $count['allUpdate']++;
 
@@ -181,14 +352,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $count['cantUpdate']++;
                     } else {
 
-                        if(!empty($Log)){
+                        if($isUpdate){
                             $count['update']++;
-                            $AccountActive['UpdateLog'] = $Log;
+//                            $AccountActive['UpdateLog'] = $Log;
                             $updateList[] = $AccountActive;
-//                        $UpdateLog[$AccountActive['record_uid']] = $Log; // brauch ich das noch?
                         } else {
                             // ToDO unveränderte Account's Anzeige etc?
-
                         }
                     }
                 }
@@ -199,17 +368,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $ErrorLog = array_filter($ErrorLog);
-
-//        $this->getTimeSpan($beginn, 'Entscheidung welche Funktionen ausgeführt werden müssen + Frontendvorbereitung');
-
-//        echo 'Api Kommunikation';
-//        Debugger::screenDump($ApiList);
-//        echo'Zählung:';
-//        Debugger::screenDump($count);
-//        echo'ErrorLog:';
-//        Debugger::screenDump($ErrorLog);
-
-//        $beginn = microtime(true);
 
         $returnString = 'Komplett Abgleich';
         if($Upload == 'Create'){
@@ -253,7 +411,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if($Upload == 'Update'){
             foreach($updateList as $updateAccount){
-                //ToDO Update nach funktionstüchtigkeit und Feldinformation anpassen
 //                // update with API
                 (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
                     $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
@@ -312,21 +469,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Frontend Anzeige
         $ContentCreate = array();
-        $ContentUpdate = array();
+//        $ContentUpdate = array();
         $ContentDelete = array();
         if(!empty($createList)){
             foreach($createList as $AccountArray) {
-                $DivisionString = 'Klasse: ';
-                if(count($AccountArray['school_classes']) === 1){
-                    $DivisionString = 'Klasse: '.current(current($AccountArray['school_classes']));
-                } elseif(count($AccountArray['school_classes']) > 1){
-                    $DivisionString = 'Klassen: '.implode(', ', $AccountArray['school_classes']);
-                }
-
-                $ContentCreate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
-                    $AccountArray['firstname'].' '.$AccountArray['lastname'].'<br/>'.
-                    $DivisionString
-                )))->enableHtml();
+                $ContentCreate[] = $AccountArray['name'].' - '.$AccountArray['firstname'].' '.$AccountArray['lastname'];
             }
         }
         if(!empty($updateList)){
@@ -347,11 +494,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(!empty($deleteList)){
             foreach($deleteList as $AccountArray) {
-                $ContentDelete[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
-                    $AccountArray['firstname'].' '.$AccountArray['lastname']
-//                        .'<br/>'.
-//                        $DivisionString.$Account['school_classes']
-                )))->enableHtml();
+                $ContentDelete[] = $AccountArray['name'].' - '.$AccountArray['firstname'].' '.$AccountArray['lastname'];
             }
         }
         // Frontend Anzeige Error/Warnung
@@ -368,48 +511,76 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $Accordion = new Accordion();
+        $Accordion->addItem('Neue Benutzer für Connexion ('.$count['create'].')',
+            new Listing($ContentCreate)
+        );
+        $Accordion->addItem('Benutzer in Connexion entfernen ('.$count['delete'].')',
+            new Listing($ContentDelete)
+        );
+        $Accordion->addItem('Benutzer, die nicht angelegt werden können ('.$count['cantCreate'].')',
+            new Listing($CantCreatePanelContent)
+        );
+        $Accordion->addItem('Benutzer, die nicht bearbeitet werden können ('.$count['cantUpdate'].')',
+            new Listing($CantUpdatePanelContent)
+        );
+        $Accordion->addItem('Benutzer anpassen ('.$count['update'].' von '.$count['allUpdate'].')',
+            new TableData($tblCompareUpdate, null, array(
+                'User' => 'Account',
+                'UCS' => 'Daten aus UCS',
+                'SSW' => 'Daten aus SSW',
+                'SSWCopy' => 'Daten Ergebnis',
+            ), array(
+//                "paging" => false, // Deaktivieren Blättern
+//                "iDisplayLength" => -1,    // Alle Einträge zeigen
+//                "searching" => false, // Deaktivieren Suchen
+//                "info" => false,  // Deaktivieren Such-Info
+                "sort" => false,
+                "responsive" => false,
+                'columnDefs' => array(
+                    array('width' => '7%', 'targets' => 0),
+                    array('width' => '31%', 'targets' => array(1,2,3)),
+                ),
+                'fixedHeader' => false
+            ))
+            , true
+        );
+
         $Stage->setContent(new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Neue Benutzer für Connexion ('.$count['create'].')',
-                        $ContentCreate, Panel::PANEL_TYPE_INFO
+                    new Panel('Übersicht',
+                        new Layout(new LayoutGroup(
+                            new LayoutRow(array(
+                              new LayoutColumn(
+                                  '('.$count['create'].') Neue Benutzer für UCS'
+                              , 2),
+                              new LayoutColumn(
+                                  '('.$count['delete'].') Benutzer in UCS entfernen'
+                              , 2),
+                              new LayoutColumn(
+                                  '('.$count['cantCreate'].') Benutzer, die nicht angelegt werden können'
+                              , 3),
+                            new LayoutColumn(
+                                '('.$count['cantUpdate'].')Benutzer, die nicht bearbeitet werden können'
+                                , 3),
+                            new LayoutColumn(
+                                '('.$count['update'].' von '.$count['allUpdate'].') Benutzer anpassen'
+                                , 2),
+                            ))
+                        ))
+                    , Panel::PANEL_TYPE_INFO
                     )
-                , 4),
-                new LayoutColumn(
-                    new Panel('Benutzer anpassen ('.$count['update'].' von '.$count['allUpdate'].')',
-                        $ContentUpdate, Panel::PANEL_TYPE_PRIMARY
-                    )
-                , 4),
-                new LayoutColumn(
-                    new Panel('Benutzer in Connexion entfernen ('.$count['delete'].')',
-                        $ContentDelete, Panel::PANEL_TYPE_DANGER
-                    )
-                , 4)
+                )
             )),
-            new LayoutRow(array(
+            new LayoutRow(
                 new LayoutColumn(
-                    new Panel('Benutzerm die nicht angelegt werden können ('.$count['cantCreate'].')',
-                        $CantCreatePanelContent, Panel::PANEL_TYPE_WARNING
-                    )
-                , 4),
-                new LayoutColumn(
-                    new Panel('Benutzer, die nicht bearbeitet werden können ('.$count['cantUpdate'].')',
-                        $CantUpdatePanelContent, Panel::PANEL_TYPE_WARNING
-                    )
-                , 4),
-            ))
+                    $Accordion
+                )
+            ),
         ))));
 
-//        $this->getTimeSpan($beginn, 'Frontend anzeigen');
-
         return $Stage;
-    }
-
-    public function getTimeSpan($beginn, $Text = '')
-    {
-        $dauer = microtime(true) - $beginn;
-        $dauer = round($dauer, 2);
-        echo $Text.': '.$dauer.' Sek.)</br>';
     }
 
     /**
@@ -434,11 +605,9 @@ class Frontend extends Extension implements IFrontendInterface
             || empty($Account['roles'])
             || empty($Account['schools'])) {
 
-            $ErrorLog[] = new Bold($Account['name']);
+            $ErrorLog[] = new Bold($Account['name']).' '.new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
 
             foreach($Account as $Key => $Value){
-
-//                Debugger::screenDump($Key, $Value);
 
                 if(is_array($Value)){
                     //roles
@@ -512,26 +681,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         return (!empty($ErrorLog) ? $ErrorLog : false);
     }
-
-//        // Benutzer anlegen
-//        $ErrorLog[] = (new UniventionUser())->createUser('MaxMustermann', 'Kukane', 'Klimpel', '7', array($roleList['student']),
-//            array($schoolList['DEMOSCHOOL'], $schoolList['DEMOSCHOOL2']), $Acronym.'-7');
-//        $ErrorLog[] = (new UniventionUser())->createUser('MustermannMax', 'Valentina', 'Allgaier', '8', array($roleList['staff'],$roleList['teacher']),
-//            array($schoolList['DEMOSCHOOL']), $Acronym.'-8');
-//
-//        // Benutzerliste suchen
-//        $UserList = (new UniventionUser())->getUserListByProperty('name','ref-', true);
-//        Debugger::screenDump($UserList);
-//        // Benutzer entfernen
-//        if($UserList){
-//            foreach($UserList as $ResourceUser){
-//                Debugger::screenDump(utf8_encode($ResourceUser->name));
-//                Debugger::screenDump($ResourceUser->name);
-//                $ErrorLog[] = (new UniventionUser())->deleteUser($ResourceUser->name);
-//            }
-//        }
-//
-//        $ErrorLog[] = (new UniventionUser())->deleteUser('DEMO-login');
 
     /**
      * @return Stage
