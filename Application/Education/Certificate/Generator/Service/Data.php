@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFESH;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataLWSZ;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsfachschule;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFachschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataGym;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataPrimary;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataSecondary;
@@ -35,6 +36,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -61,6 +63,7 @@ class Data extends AbstractData
     private $tblSchoolTypeSecondary;
     private $tblSchoolTypeGym;
     private $tblSchoolTypeBerufsfachschule;
+    private $tblSchoolTypeFachschule;
     private $tblCourseMain;
     private $tblCourseReal;
     private $tblConsumer;
@@ -154,6 +157,14 @@ class Data extends AbstractData
     }
 
     /**
+     * @return TblType
+     */
+    public function getTblSchoolTypeFachschule()
+    {
+        return $this->tblSchoolTypeFachschule;
+    }
+
+    /**
      * @return mixed
      */
     public function getTblCourseMain()
@@ -192,6 +203,7 @@ class Data extends AbstractData
         $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
         $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
         $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
+        $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
         $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
         $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
@@ -267,6 +279,7 @@ class Data extends AbstractData
         $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
         $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
         $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
+        $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
         $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
         $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
 
@@ -285,6 +298,10 @@ class Data extends AbstractData
             break;
             case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE :
                 SDataBerufsfachschule::setCertificateStandard($this);
+                return true;
+            break;
+            case TblCertificate::CERTIFICATE_TYPE_FACHSCHULE :
+                SDataFachschule::setCertificateStandard($this);
                 return true;
             break;
         }
@@ -452,11 +469,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCertificate $tblCertificate
-     * @param int $LaneIndex
-     * @param int $LaneRanking
-     * @param TblSubject $tblSubject
-     * @param bool $IsEssential
+     * @param TblCertificate          $tblCertificate
+     * @param int                     $LaneIndex
+     * @param int                     $LaneRanking
+     * @param TblSubject              $tblSubject
+     * @param bool                    $IsEssential
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return TblCertificateSubject
      */
@@ -465,7 +483,8 @@ class Data extends AbstractData
         $LaneIndex,
         $LaneRanking,
         TblSubject $tblSubject,
-        $IsEssential = false
+        $IsEssential = false,
+        $tblTechnicalCourse = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -481,6 +500,7 @@ class Data extends AbstractData
             $Entity->setRanking($LaneRanking);
             $Entity->setServiceTblSubject($tblSubject);
             $Entity->setEssential($IsEssential);
+            $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -488,16 +508,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCertificateSubject $tblCertificateSubject
-     * @param TblSubject $tblSubject
-     * @param bool $IsEssential
+     * @param TblCertificateSubject   $tblCertificateSubject
+     * @param TblSubject              $tblSubject
+     * @param bool                    $IsEssential
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return bool
      */
     public function updateCertificateSubject(
         TblCertificateSubject $tblCertificateSubject,
         TblSubject $tblSubject,
-        $IsEssential = false
+        $IsEssential = false,
+        $tblTechnicalCourse = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -507,6 +529,7 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setServiceTblSubject($tblSubject);
             $Entity->setEssential($IsEssential);
+            $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -660,12 +683,34 @@ class Data extends AbstractData
     /**
      * @param TblCertificate $tblCertificate
      * @param TblSubject $tblSubject
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return false|TblCertificateSubject
      */
-    public function getCertificateSubjectBySubject(TblCertificate $tblCertificate, TblSubject $tblSubject)
-    {
+    public function getCertificateSubjectBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject,
+        TblTechnicalCourse $tblTechnicalCourse = null
+    ) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateSubject',
+            array(
+                TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateSubject::SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => $tblTechnicalCourse ? $tblTechnicalCourse->getId() : null
+            )
+        );
+    }
 
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblCertificateSubject
+     */
+    public function getCertificateSubjectIgnoreTechnicalCourseBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject
+    ) {
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateSubject',
             array(
                 TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
@@ -675,16 +720,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCertificate $tblCertificate
+     * @param TblCertificate          $tblCertificate
+     * @param TblTechnicalCourse|null $TechnicalCourse
      *
      * @return bool|TblCertificateSubject[]
      */
-    public function getCertificateSubjectAll(TblCertificate $tblCertificate)
+    public function getCertificateSubjectAll(TblCertificate $tblCertificate, $TechnicalCourse = null)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateSubject', array(
-                TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
+                TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => ($TechnicalCourse !== null ? $TechnicalCourse->getId() : null)
             ));
     }
 
@@ -707,17 +754,19 @@ class Data extends AbstractData
      * @param TblCertificate $tblCertificate
      * @param int $LaneIndex
      * @param int $LaneRanking
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return bool|TblCertificateSubject
      */
-    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking)
+    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse = null)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateSubject', array(
                 TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
                 TblCertificateSubject::ATTR_LANE => $LaneIndex,
-                TblCertificateSubject::ATTR_RANKING => $LaneRanking
+                TblCertificateSubject::ATTR_RANKING => $LaneRanking,
+                TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => ($tblTechnicalCourse !== null ? $tblTechnicalCourse->getId() : null)
             ));
     }
 

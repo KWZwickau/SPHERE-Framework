@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -97,13 +98,14 @@ class Service extends AbstractService
 
     /**
      * @param TblCertificate $tblCertificate
+     * @param TblTechnicalCourse|null $TechnicalCourse
      *
      * @return bool|TblCertificateSubject[]
      */
-    public function getCertificateSubjectAll(TblCertificate $tblCertificate)
+    public function getCertificateSubjectAll(TblCertificate $tblCertificate, $TechnicalCourse = null)
     {
 
-        return (new Data($this->getBinding()))->getCertificateSubjectAll($tblCertificate);
+        return (new Data($this->getBinding()))->getCertificateSubjectAll($tblCertificate, $TechnicalCourse);
     }
 
     /**
@@ -158,10 +160,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Form
-     * @param TblCertificate $tblCertificate
-     * @param array $GradeList
-     * @param array $SubjectList
+     * @param IFormInterface|null     $Form
+     * @param TblCertificate          $tblCertificate
+     * @param array                   $GradeList
+     * @param array                   $SubjectList
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return IFormInterface|string
      */
@@ -169,7 +172,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblCertificate $tblCertificate,
         $GradeList,
-        $SubjectList
+        $SubjectList,
+        TblTechnicalCourse $tblTechnicalCourse = null
     ) {
 
         /**
@@ -211,13 +215,13 @@ class Service extends AbstractService
             foreach ($FieldList as $LaneRanking => $Field) {
                 if (($tblSubject = Subject::useService()->getSubjectById($Field['Subject']))) {
                     $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
-                        $tblCertificate, $LaneIndex, $LaneRanking
+                        $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse
                     );
                     if ($tblCertificateSubject) {
                         // Update
                         (new Data($this->getBinding()))->updateCertificateSubject($tblCertificateSubject,
                             $tblSubject,
-                            isset($Field['IsEssential'])
+                            isset($Field['IsEssential']), $tblTechnicalCourse
 //                            , ((isset($Field['Liberation']) && $Field['Liberation'])
 //                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
 //                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
@@ -230,7 +234,7 @@ class Service extends AbstractService
                         // Create
                         (new Data($this->getBinding()))->createCertificateSubject($tblCertificate,
                             $LaneIndex, $LaneRanking, $tblSubject,
-                            isset($Field['IsEssential'])
+                            isset($Field['IsEssential']), $tblTechnicalCourse
 //                            , ((isset($Field['Liberation']) && $Field['Liberation'])
 //                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
 //                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
@@ -247,7 +251,7 @@ class Service extends AbstractService
                         );
                     } else {
                         if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
-                            $tblCertificate, $LaneIndex, $LaneRanking
+                            $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse
                         ))
                         ) {
                             (new Data($this->getBinding()))->removeCertificateSubject($tblCertificateSubject);
@@ -298,16 +302,32 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificate $tblCertificate
-     * @param int $LaneIndex
-     * @param int $LaneRanking
+     * @param TblCertificate          $tblCertificate
+     * @param int                     $LaneIndex
+     * @param int                     $LaneRanking
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
      *
      * @return bool|TblCertificateSubject
      */
-    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking)
+    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse = null)
     {
 
-        return (new Data($this->getBinding()))->getCertificateSubjectByIndex($tblCertificate, $LaneIndex, $LaneRanking);
+        return (new Data($this->getBinding()))->getCertificateSubjectByIndex($tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblSubject $tblSubject
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     *
+     * @return false|TblCertificateSubject
+     */
+    public function getCertificateSubjectBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject,
+        TblTechnicalCourse $tblTechnicalCourse = null
+    ) {
+        return (new Data($this->getBinding()))->getCertificateSubjectBySubject($tblCertificate, $tblSubject, $tblTechnicalCourse);
     }
 
     /**
@@ -316,10 +336,11 @@ class Service extends AbstractService
      *
      * @return false|TblCertificateSubject
      */
-    public function getCertificateSubjectBySubject(TblCertificate $tblCertificate, TblSubject $tblSubject)
-    {
-
-        return (new Data($this->getBinding()))->getCertificateSubjectBySubject($tblCertificate, $tblSubject);
+    public function getCertificateSubjectIgnoreTechnicalCourseBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject
+    ) {
+        return (new Data($this->getBinding()))->getCertificateSubjectIgnoreTechnicalCourseBySubject($tblCertificate, $tblSubject);
     }
 
     /**
@@ -479,13 +500,35 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithParent' => 'TextArea',
             'Content.Input.DialoguesWithUs'     => 'TextArea',
             // Berufsfachschule
-            'Content.Input.BsDestination'       => 'TextField',
+            'Content.Input.CertificateName'     => 'TextField',
+            'Content.Input.BfsDestination'      => 'TextField',
+            'Content.Input.OperationTimeTotal'  => 'TextField',
             'Content.Input.Operation1'          => 'TextField',
             'Content.Input.OperationTime1'      => 'TextField',
             'Content.Input.Operation2'          => 'TextField',
             'Content.Input.OperationTime2'      => 'TextField',
             'Content.Input.Operation3'          => 'TextField',
-            'Content.Input.OperationTime3'      => 'TextField'
+            'Content.Input.OperationTime3'      => 'TextField',
+            'Content.Input.DateFrom'            => 'DatePicker',
+            'Content.Input.DateTo'              => 'DatePicker',
+            'Content.Input.AbsYear'             => 'TextField',
+            // Fachschule
+            'Content.Input.FsDestination'       => 'TextField',
+            'Content.Input.SubjectArea'         => 'TextField',
+            'Content.Input.Focus'               => 'TextField',
+            'Content.Input.ChosenArea'          => 'TextField',
+            'Content.Input.JobEducation'        => 'TextField',
+            'Content.Input.JobEducationDuration'=> 'TextField',
+            'Content.Input.AddEducation'        => 'TextField',
+            'Content.Input.AddEducation_Grade'   => 'SelectCompleter',
+            'Content.Input.AddEducation_GradeText' => 'SelectBox',
+            'Content.Input.AddEducation_Average' => 'SelectCompleter',
+            'Content.Input.ChosenArea1'         => 'TextField',
+            'Content.Input.ChosenArea2'         => 'TextField',
+            'Content.Input.SkilledWork'         => 'TextField',
+            'Content.Input.SkilledWork_Grade'   => 'SelectCompleter',
+            'Content.Input.SkilledWork_GradeText' => 'SelectBox',
+            'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
         );
     }
 
@@ -506,10 +549,13 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType|null $tblType
+     *
      * @return array
      */
-    public function getFormLabel()
+    public function getFormLabel(TblType $tblType = null)
     {
+        $typeName = $tblType ? $tblType->getName() : '...';
 
         return array(
             'Content.Input.Remark'              => 'Bemerkungen',
@@ -538,13 +584,35 @@ class Service extends AbstractService
             'Content.Input.DialoguesWithParent' => 'Im Dialog mit deinen Eltern',
             'Content.Input.DialoguesWithUs'     => 'Im Dialog mit uns',
             // Berufsfachschule
-            'Content.Input.BsDestination'       => 'Berufsfachschule für ...',
+            'Content.Input.CertificateName'     => 'Abweichender Zeugnisname (Endjahresinformation)',
+            'Content.Input.BfsDestination'      => 'Berufsfachschule für ...',
+            'Content.Input.OperationTimeTotal'  => 'Berufspraktische Ausbildung Dauer in Wochen',
             'Content.Input.Operation1'          => 'Einsatzgebiet 1',
             'Content.Input.OperationTime1'      => 'Einsatzgebiet Dauer in Wochen 1',
             'Content.Input.Operation2'          => 'Einsatzgebiet 2',
             'Content.Input.OperationTime2'      => 'Einsatzgebiet Dauer in Wochen 2',
             'Content.Input.Operation3'          => 'Einsatzgebiet 3',
-            'Content.Input.OperationTime3'      => 'Einsatzgebiet Dauer in Wochen 3'
+            'Content.Input.OperationTime3'      => 'Einsatzgebiet Dauer in Wochen 3',
+            'Content.Input.DateFrom'            => 'Besucht "seit" die ' . $typeName,
+            'Content.Input.DateTo'              => 'Besuchte "bis" die ' . $typeName,
+            'Content.Input.AbsYear'             => 'Abschluss im Schuljahr',
+            // Fachschule
+            'Content.Input.FsDestination'       => 'Fachbereich',
+            'Content.Input.SubjectArea'         => 'Fachrichtung',
+            'Content.Input.Focus'               => 'Schwerpunkt',
+            'Content.Input.ChosenArea'          => 'Wahlplfichtbereich (Überschrift)',
+            'Content.Input.JobEducation'        => 'Berufspraktische Ausbildung (Überschrift)',
+            'Content.Input.JobEducationDuration'=> 'Berufspraktische Ausbildung (dauer in Wochen)',
+            'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife',
+            'Content.Input.AddEducation_Grade'   => 'FHR - oder Zensur',
+            'Content.Input.AddEducation_GradeText' => 'FHR - Zeugnistext',
+            'Content.Input.AddEducation_Average' => 'FHR - Durchschnittsnote',
+            'Content.Input.ChosenArea1'         => 'Wahlbereich 1',
+            'Content.Input.ChosenArea2'         => 'Wahlbereich 2',
+            'Content.Input.SkilledWork'         => 'Facharbeit - Thema',
+            'Content.Input.SkilledWork_Grade'   => 'Facharbeit - oder Zensur',
+            'Content.Input.SkilledWork_GradeText' => 'Facharbeit - Zeugnistext',
+            'Content.Input.AdditionalRemarkFhr' => 'Teilnahme an FHR-Prüfung',
         );
     }
 

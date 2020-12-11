@@ -18,12 +18,14 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveAdditionalGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
@@ -658,6 +660,15 @@ class Service extends AbstractService
                                 $value = $Certificate->selectValuesTransfer()[$value];
                             }
 
+                            // Zeugnistext umwandeln
+                            if (strpos($field, '_GradeText')) {
+                                if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                                    $value = $tblGradeText->getName();
+                                } else {
+                                    $value = '';
+                                }
+                            }
+
                             if (trim($value) != '') {
                                 $value = trim($value);
                                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
@@ -725,6 +736,7 @@ class Service extends AbstractService
 
         $tblDivision = false;
         $tblLevel = false;
+        $tblSchoolType = false;
         $tblPrepareStudent = false;
         $tblPersonSigner = false;
         $tblStudent = $tblPerson->getStudent();
@@ -737,6 +749,7 @@ class Service extends AbstractService
 
         if ($tblDivision) {
             $tblLevel = $tblDivision->getTblLevel();
+            $tblSchoolType = $tblDivision->getType();
         }
         $personId = $tblPerson->getId();
 
@@ -877,6 +890,18 @@ class Service extends AbstractService
             }
         }
 
+        // Berufsfachschulen / Fachschulen
+        if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+            if(($tblStudentTenseOfLesson = $tblTechnicalSchool->getTblStudentTenseOfLesson())){
+                $Content['P' . $personId]['Student']['TenseOfLesson'] = $tblStudentTenseOfLesson->getCertificateName();
+            }
+            if (($tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse())) {
+                $tblCommonGender = $tblPerson->getGender();
+                $Content['P' . $personId]['Student']['TechnicalCourse'] = $tblTechnicalCourse->getDisplayName(
+                    $tblCommonGender ? $tblCommonGender : null);
+            }
+        }
+
         $tblYear = false;
         if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
             $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
@@ -998,6 +1023,11 @@ class Service extends AbstractService
                     } else {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                     }
+
+                    if ($tblPrepareInformation->getField() == 'AddEducation_Average') {
+                        $Content['P' . $personId]['Input']['AddEducation_AverageInWord']
+                            = Gradebook::useService()->getAverageInWord($tblPrepareInformation->getValue(), ',');
+                    }
                 }
 
                 // Spezialfall für Förderzeugnisse Lernen
@@ -1084,7 +1114,7 @@ class Service extends AbstractService
                     case 'EGE':
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         if ($tblLevel
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                            && $tblSchoolType
                             && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
                             && ($level = intval($tblLevel->getName()))
                             && $level < 9
@@ -1095,7 +1125,7 @@ class Service extends AbstractService
                     case 'EVAMTL':
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         if ($tblLevel
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                            && $tblSchoolType
                             && $tblSchoolType->getName() != 'Grundschule'
                         ){
                             $divisionTeacherDescription = 'Mentor';
@@ -1103,7 +1133,7 @@ class Service extends AbstractService
                     break;
                     case 'CSW':
                         if ($tblLevel
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                            && $tblSchoolType
                             && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
                         ) {
                             $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName()
@@ -1128,9 +1158,11 @@ class Service extends AbstractService
                 if ($genderValue == 'M') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
                     $Content['P' . $personId]['Tudor']['Description'] = 'Tutor';
+                    $Content['P' . $personId]['Leader']['Description'] = 'Vorsitzender des Prüfungsausschusses';
                 } elseif ($genderValue == 'F') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
                     $Content['P' . $personId]['Tudor']['Description'] = 'Tutorin';
+                    $Content['P' . $personId]['Leader']['Description'] = 'Vorsitzende des Prüfungsausschusses';
                 }
             }
         }
@@ -1191,11 +1223,14 @@ class Service extends AbstractService
             }
 
             // Fachnoten
+            $tblCertificateType = false;
             if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
                 // Abschlusszeugnisse
                 if ($tblGenerateCertificate
                     && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                    && $tblSchoolType->getName() != 'Fachschule'
+                    && $tblSchoolType->getName() != 'Berufsfachschule'
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
@@ -1241,7 +1276,10 @@ class Service extends AbstractService
                                 }
 
                                 // Zensuren im Wortlaut
-                                if ($isGradeVerbal) {
+                                if ($isGradeVerbal
+                                    // Abschlusszeugnisse für Berufsfachschule und Fachschule: Zensuren kommen direkt aus dem Notenauftrag
+                                    || ($tblCertificateType && $tblCertificateType->getIdentifier() == 'DIPLOMA' && $isGradeVerbalOnDiploma)
+                                ) {
                                     if ($tblGradeItem->getTblGradeText()) {
                                         $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
                                             = $tblGradeItem->getTblGradeText()->getName();
@@ -1314,6 +1352,57 @@ class Service extends AbstractService
 
                         $Content['P' . $personId]['AdditionalGrade']['Data'][$tblSubject->getAcronym()]
                             = $grade;
+                    }
+                }
+            }
+
+            // Komplexprüfungen für Fachschule Abschlusszeugnisse
+            if (($tblPrepareComplexExamList = Prepare::useService()->getPrepareComplexExamAllByPrepareStudent($tblPrepareStudent))) {
+                $countInformationalExpulsion = 1;
+                $subjectList = array();
+                foreach ($tblPrepareComplexExamList as $tblPrepareComplexExam) {
+                    $identifier = $tblPrepareComplexExam->getIdentifier();
+                    $ranking = $tblPrepareComplexExam->getRanking();
+
+                    $subjects = '';
+                    $tblFirstSubject = $tblPrepareComplexExam->getServiceTblFirstSubject();
+                    $tblSecondSubject = $tblPrepareComplexExam->getServiceTblSecondSubject();
+                    $preText = $identifier == TblPrepareComplexExam::IDENTIFIER_WRITTEN ? 'K' . $ranking . '&nbsp;&nbsp;' : '';
+                    if ($tblFirstSubject || $tblSecondSubject) {
+                        $subjects .= $preText
+                            . ($tblFirstSubject ? $tblFirstSubject->getTechnicalAcronymForCertificateFromName() : '')
+                            . ($tblFirstSubject && $tblSecondSubject ? ' / ' : '')
+                            . ($tblSecondSubject ? $tblSecondSubject->getTechnicalAcronymForCertificateFromName() : '');
+                    }
+
+                    if ($isGradeVerbalOnDiploma) {
+                        $grade = $this->getVerbalGrade($tblPrepareComplexExam->getGrade());
+                    } else {
+                        $grade = $tblPrepareComplexExam->getGrade();
+                    }
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Subjects'] = $subjects;
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $grade;
+
+                    // Nachrichtliche Ausweisung
+                    if ($tblFirstSubject && !isset($subjectList[$tblFirstSubject->getId()])) {
+                        $subjectList[$tblFirstSubject->getId()] = $tblFirstSubject;
+                        $text = $preText . $tblFirstSubject->getName();
+                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                        if (strlen($text) > 90) {
+                            // Fachname nimmt 2 Zeilen ein
+                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . (string)$countInformationalExpulsion] = strlen($text);
+                        }
+                        $countInformationalExpulsion++;
+                    }
+                    if ($tblSecondSubject && !isset($subjectList[$tblSecondSubject->getId()])) {
+                        $subjectList[$tblSecondSubject->getId()] = $tblSecondSubject;
+                        $text = $preText . $tblSecondSubject->getName();
+                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                        if (strlen($text) > 90) {
+                            // Fachname nimmt 2 Zeilen ein
+                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . (string)$countInformationalExpulsion] = strlen($text);
+                        }
+                        $countInformationalExpulsion++;
                     }
                 }
             }
@@ -1443,13 +1532,18 @@ class Service extends AbstractService
 
         // Abgangszeugnisse
         if ($tblLeaveStudent) {
+            if (($tblSetting = ConsumerSetting::useService()->getSetting(
+                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave'
+            ))) {
+                $isGradeVerbalOnLeave = $tblSetting->getValue();
+            } else {
+                $isGradeVerbalOnLeave = false;
+            }
+
             if (($tblLeaveGradeList = $this->getLeaveGradeAllByLeaveStudent($tblLeaveStudent))) {
                 foreach ($tblLeaveGradeList as $tblLeaveGrade) {
                     if (($tblSubject = $tblLeaveGrade->getServiceTblSubject())) {
-                        if (($tblSetting = ConsumerSetting::useService()->getSetting(
-                                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave'))
-                            && $tblSetting->getValue()
-                        ) {
+                        if ($isGradeVerbalOnLeave) {
                             $grade = $this->getVerbalGrade($tblLeaveGrade->getGrade());
                             $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                         } else {
@@ -1519,6 +1613,74 @@ class Service extends AbstractService
                         $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiter';
                     } elseif ($tblCommonGender->getName() == 'Weiblich') {
                         $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiterin';
+                    }
+                }
+            }
+
+            // weitere Felder (Berufsfachschulen && Fachschulen)
+            if (($tblLeaveInformationList = $this->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
+                foreach ($tblLeaveInformationList as $tblLeaveInformation) {
+                    if (($field = $tblLeaveInformation->getField())
+                        && !isset($Content['P' . $personId]['Input'][$field])
+                    ) {
+                        $value = $tblLeaveInformation->getValue();
+                        // Zensuren in Wortlaut darstellen (Abgangszeugnis Fachschule)
+                        if ($isGradeVerbalOnLeave && strpos($field, '_Grade')) {
+                            $value = $this->getVerbalGrade($value);
+                        }
+
+                        $Content['P' . $personId]['Input'][$field] = $value;
+                    }
+                }
+            }
+
+            // Komplexprüfungen für Fachschule Abgangszeugnis
+            if (($tblLeaveComplexExamList = Prepare::useService()->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent))) {
+                $countInformationalExpulsion = 1;
+                $subjectList = array();
+                foreach ($tblLeaveComplexExamList as $tblLeaveComplexExam) {
+                    $identifier = $tblLeaveComplexExam->getIdentifier();
+                    $ranking = $tblLeaveComplexExam->getRanking();
+
+                    $subjects = '';
+                    $tblFirstSubject = $tblLeaveComplexExam->getServiceTblFirstSubject();
+                    $tblSecondSubject = $tblLeaveComplexExam->getServiceTblSecondSubject();
+                    $preText = $identifier == TblLeaveComplexExam::IDENTIFIER_WRITTEN ? 'K' . $ranking . '&nbsp;&nbsp;' : '';
+                    if ($tblFirstSubject || $tblSecondSubject) {
+                        $subjects .= $preText
+                            . ($tblFirstSubject ? $tblFirstSubject->getTechnicalAcronymForCertificateFromName() : '')
+                            . ($tblFirstSubject && $tblSecondSubject ? ' / ' : '')
+                            . ($tblSecondSubject ? $tblSecondSubject->getTechnicalAcronymForCertificateFromName() : '');
+                    }
+
+                    if ($isGradeVerbalOnLeave) {
+                        $grade = $this->getVerbalGrade($tblLeaveComplexExam->getGrade());
+                    } else {
+                        $grade = $tblLeaveComplexExam->getGrade();
+                    }
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Subjects'] = $subjects;
+                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $grade;
+
+                    // Nachrichtliche Ausweisung
+                    if ($tblFirstSubject && !isset($subjectList[$tblFirstSubject->getId()])) {
+                        $subjectList[$tblFirstSubject->getId()] = $tblFirstSubject;
+                        $text = $preText . $tblFirstSubject->getName();
+                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                        if (strlen($text) > 90) {
+                            // Fachname nimmt 2 Zeilen ein
+                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . (string)$countInformationalExpulsion] = strlen($text);
+                        }
+                        $countInformationalExpulsion++;
+                    }
+                    if ($tblSecondSubject && !isset($subjectList[$tblSecondSubject->getId()])) {
+                        $subjectList[$tblSecondSubject->getId()] = $tblSecondSubject;
+                        $text = $preText . $tblSecondSubject->getName();
+                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                        if (strlen($text) > 90) {
+                            // Fachname nimmt 2 Zeilen ein
+                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . (string)$countInformationalExpulsion] = strlen($text);
+                        }
+                        $countInformationalExpulsion++;
                     }
                 }
             }
@@ -2875,7 +3037,7 @@ class Service extends AbstractService
 
                     foreach ($certificateNameList as $certificateId => $name) {
                         if (($tblCertificate = Setting::useService()->getCertificateById($certificateId))
-                            && !Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)
+                            && !Setting::useService()->getCertificateSubjectIgnoreTechnicalCourseBySubject($tblCertificate, $tblSubject)
                         ) {
                             $subjectList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
 //                                .($isForeignLanguage
@@ -2949,6 +3111,8 @@ class Service extends AbstractService
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
                     && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                 ) {
+                    $tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson);
+
                     ksort($subjects);
                     /** @var TblSubject $tblSubject */
                     foreach ($subjects as $tblSubject) {
@@ -3018,7 +3182,9 @@ class Service extends AbstractService
                         }
 
 
-                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
+                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject,
+                            $tblTechnicalCourse ? $tblTechnicalCourse : null
+                        )) {
                             $resultList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject->getAcronym();
                         }
                     }
@@ -3255,10 +3421,53 @@ class Service extends AbstractService
 
             if (isset($Data['InformationList'])) {
                 foreach ($Data['InformationList'] as $field => $value) {
+                    // Zeugnistext umwandeln
+                    if (strpos($field, '_GradeText')) {
+                        if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                            $value = $tblGradeText->getName();
+                        } else {
+                            $value = '';
+                        }
+                    }
+
                     if (($tblLeaveInformation = $this->getLeaveInformationBy($tblLeaveStudent, $field))) {
                         (new Data($this->getBinding()))->updateLeaveInformation($tblLeaveInformation, $value);
                     } else {
                         (new Data($this->getBinding()))->createLeaveInformation($tblLeaveStudent, $field, $value);
+                    }
+                }
+            }
+
+            // Komplexe Prüfungen für Fachschulen
+            if (isset($Data['ExamList'])) {
+                foreach ($Data['ExamList'] as $identifierRanking => $columns) {
+                    $temp = explode('_', $identifierRanking);
+                    $identifier = $temp[0];
+                    $ranking = $temp[1];
+
+                    $tblFirstSubject = false;
+                    $tblSecondSubject = false;
+                    $grade = '';
+                    if (isset($columns['S1'])) {
+                        $tblFirstSubject = Subject::useService()->getSubjectById($columns['S1']);
+                    }
+                    if (isset($columns['S2'])) {
+                        $tblSecondSubject = Subject::useService()->getSubjectById($columns['S2']);
+                    }
+                    if (isset($columns['GradeText'])
+                        && ($tblGradeText = Gradebook::useService()->getGradeTextById($columns['GradeText']))
+                    ) {
+                        $grade = $tblGradeText->getName();
+                    } elseif (isset($columns['Grade'])) {
+                        $grade = $columns['Grade'];
+                    }
+
+                    if (($tblLeaveComplexExam = $this->getLeaveComplexExamBy($tblLeaveStudent, $identifier, $ranking))) {
+                        (new Data($this->getBinding()))->updateLeaveComplexExam($tblLeaveComplexExam, $grade,
+                           $tblFirstSubject ? $tblFirstSubject : null, $tblSecondSubject ? $tblSecondSubject : null);
+                    } else {
+                        (new Data($this->getBinding()))->createLeaveComplexExam($tblLeaveStudent,$identifier, $ranking,
+                            $grade, $tblFirstSubject ? $tblFirstSubject : null, $tblSecondSubject ? $tblSecondSubject : null);
                     }
                 }
             }
@@ -4784,5 +4993,264 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $identifier
+     * @param $ranking
+     *
+     * @return false|TblLeaveComplexExam
+     */
+    public function getLeaveComplexExamBy(
+        TblLeaveStudent $tblLeaveStudent,
+        $identifier,
+        $ranking
+    ) {
+        return (new Data($this->getBinding()))->getLeaveComplexExamBy($tblLeaveStudent, $identifier, $ranking);
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return false|TblLeaveComplexExam[]
+     */
+    public function getLeaveComplexExamAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
+    {
+        return (new Data($this->getBinding()))->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent);
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param $identifier
+     * @param $ranking
+     *
+     * @return false|TblPrepareComplexExam
+     */
+    public function getPrepareComplexExamBy(
+        TblPrepareStudent $tblPrepareStudent,
+        $identifier,
+        $ranking
+    ) {
+        return (new Data($this->getBinding()))->getPrepareComplexExamBy($tblPrepareStudent, $identifier, $ranking);
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return false|TblPrepareComplexExam[]
+     */
+    public function getPrepareComplexExamAllByPrepareStudent(TblPrepareStudent $tblPrepareStudent)
+    {
+        return (new Data($this->getBinding()))->getPrepareComplexExamAllByPrepareStudent($tblPrepareStudent);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
+     * @param $Data
+     * @param null $NextTab
+     *
+     * @return IFormInterface|string|null
+     */
+    public function updatePrepareComplexExamList(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        TblGroup $tblGroup = null,
+        $Data,
+        $NextTab = null
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $Stage;
+        }
+
+        foreach ($Data as $prepareStudentId => $array) {
+            if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                && is_array($array)
+            ) {
+
+                $this->setSignerFromSignedInPerson($tblPrepareStudent);
+
+                foreach ($array as $identifierRanking => $columns) {
+                    $temp = explode('_', $identifierRanking);
+                    $identifier = $temp[0];
+                    $ranking = $temp[1];
+
+                    $tblFirstSubject = false;
+                    $tblSecondSubject = false;
+                    $grade = '';
+                    if (isset($columns['S1'])) {
+                        $tblFirstSubject = Subject::useService()->getSubjectById($columns['S1']);
+                    }
+                    if (isset($columns['S2'])) {
+                        $tblSecondSubject = Subject::useService()->getSubjectById($columns['S2']);
+                    }
+                    if (isset($columns['GradeText'])
+                        && ($tblGradeText = Gradebook::useService()->getGradeTextById($columns['GradeText']))
+                    ) {
+                        $grade = $tblGradeText->getName();
+                    } elseif (isset($columns['Grade'])) {
+                        $grade = $columns['Grade'];
+                    }
+
+                    if (($tblPrepareComplexExam = $this->getPrepareComplexExamBy($tblPrepareStudent, $identifier, $ranking))) {
+                        (new Data($this->getBinding()))->updatePrepareComplexExam($tblPrepareComplexExam, $grade,
+                            $tblFirstSubject ? $tblFirstSubject : null, $tblSecondSubject ? $tblSecondSubject : null);
+                    } else {
+                        (new Data($this->getBinding()))->createPrepareComplexExam($tblPrepareStudent,$identifier, $ranking,
+                            $grade, $tblFirstSubject ? $tblFirstSubject : null, $tblSecondSubject ? $tblSecondSubject : null);
+                    }
+                }
+            }
+        }
+
+        if ($NextTab == null) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Komplexprüfungen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                    'Route' => 'Diploma'
+                ));
+        } else {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Komplexprüfungen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Technical/Setting',
+                    Redirect::TIMEOUT_SUCCESS,
+                    array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup : null,
+                        'CurrentTab' => $NextTab
+                    )
+                );
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
+     * @param $Data
+     * @param $CertificateList
+     * @param null $NextTab
+     * @param false $hasAdditionalRemarkFhr
+     *
+     * @return IFormInterface|string|null
+     */
+    public function updateTechnicalDiplomaPrepareInformationList(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        TblGroup $tblGroup = null,
+        $Data,
+        $CertificateList,
+        $NextTab = null,
+        $hasAdditionalRemarkFhr = false
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $Stage;
+        }
+
+        foreach ($Data as $prepareStudentId => $array) {
+            if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                && is_array($array)
+            ) {
+
+                $this->setSignerFromSignedInPerson($tblPrepareStudent);
+
+                if (isset($CertificateList[$tblPerson->getId()])) {
+
+                    /** @var Certificate $Certificate */
+                    $Certificate = $CertificateList[$tblPerson->getId()];
+
+                    $issetAdditionalRemarkFhr = false;
+
+                    /*
+                     * Sonstige Informationen
+                     */
+                    foreach ($array as $field => $value) {
+                        if ($field == 'SchoolType'
+                            && method_exists($Certificate, 'selectValuesSchoolType')
+                        ) {
+                            $value = $Certificate->selectValuesSchoolType()[$value];
+                        } elseif ($field == 'Type'
+                            && method_exists($Certificate, 'selectValuesType')
+                        ) {
+                            $value = $Certificate->selectValuesType()[$value];
+                        } elseif ($field == 'Transfer'
+                            && method_exists($Certificate, 'selectValuesTransfer')
+                        ) {
+                            $value = $Certificate->selectValuesTransfer()[$value];
+                        } elseif ($field == 'AdditionalRemarkFhr') {
+                            $value = 'hat erfolglos an der Prüfung zum Erwerb der Fachhochschulreife teilgenommen.';
+                            $issetAdditionalRemarkFhr = true;
+                        }
+
+                        // Zeugnistext umwandeln
+                        if (strpos($field, '_GradeText')) {
+                            if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                                $value = $tblGradeText->getName();
+                            } else {
+                                $value = '';
+                            }
+                        }
+
+                        if (trim($value) != '') {
+                            $value = trim($value);
+                            if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
+                                $field))
+                            ) {
+                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
+                            } else {
+                                (new Data($this->getBinding()))->createPrepareInformation($tblPrepareItem, $tblPerson, $field, $value);
+                            }
+
+                        } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
+                            $field))
+                        ) {
+                            // auf Leer zurücksetzen
+                            (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
+                        }
+                    }
+
+                    // Checkbox auf leer zurücksetzen
+                    if ($hasAdditionalRemarkFhr
+                        && !$issetAdditionalRemarkFhr
+                        && ($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson, 'AdditionalRemarkFhr'))
+                    ) {
+                        (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, 'AdditionalRemarkFhr', '');
+                    }
+                }
+            }
+        }
+
+        if ($NextTab == null) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                    'Route' => 'Diploma'
+                ));
+        } else {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Technical/Setting',
+                    Redirect::TIMEOUT_SUCCESS,
+                    array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup : null,
+                        'CurrentTab' => $NextTab
+                    )
+                );
+        }
     }
 }

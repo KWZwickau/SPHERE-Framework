@@ -98,4 +98,30 @@ class TblSubject extends Element
 
         return $this->getAcronym() . '-' . $this->getName();
     }
+
+    /**
+     * @return string
+     */
+    public function getTechnicalAcronymForCertificateFromName()
+    {
+        $name = $this->getName();
+        if (strpos($name, 'LF') === 0) {
+            $split = explode(' ', $name);
+
+            if (isset($split[0])) {
+                $result = $split[0];
+                if (strlen($result > 2)) {
+                    return $result;
+                } else {
+                    if (isset($split[1])) {
+                        $result .= ' ' . $split[1];
+                        return  $result;
+                    }
+                }
+            }
+        }
+
+        // fallback
+        return $this->getAcronym();
+    }
 }

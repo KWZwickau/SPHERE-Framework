@@ -995,4 +995,23 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         return false;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getSubjectGradesByAllYears(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType
+    ) {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGrade', array(
+            TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
+        ));
+    }
 }

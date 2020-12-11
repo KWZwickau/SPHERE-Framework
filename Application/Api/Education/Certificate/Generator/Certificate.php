@@ -4171,4 +4171,15 @@ abstract class Certificate extends Extension
             );
         return $Slice;
     }
+
+    /**
+     * @param $content
+     * @param string $size
+     *
+     * @return string
+     */
+    public function setSup($content, $size = '60%')
+    {
+        return '<sup style="font-size: ' . $size . ' !important;">' . $content . '</sup>';
+    }
 }

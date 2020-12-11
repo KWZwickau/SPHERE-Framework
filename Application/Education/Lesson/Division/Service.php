@@ -2886,4 +2886,42 @@ class Service extends AbstractService
 
         return empty($list) ? false : $list;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivision[]|false
+     */
+    public function getRepeatedDivisionAllByPerson(TblPerson $tblPerson)
+    {
+        $divisionList = array();
+        $repeatedList = array();
+        if (($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblYear = $tblDivision->getServiceTblYear())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                ) {
+                    if (isset($divisionList[$tblLevel->getId()])) {
+                        list($startDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                        /** @var TblDivision $tblDivisionOld */
+                        $tblDivisionOld = $divisionList[$tblLevel->getId()];
+                        if (($tblYearOld = $tblDivisionOld->getServiceTblYear())) {
+                            list($startDateOld) = Term::useService()->getStartDateAndEndDateOfYear($tblYearOld);
+                            if ($startDate > $startDateOld) {
+                                $divisionList[$tblLevel->getId()] = $tblDivision;
+                                $repeatedList[$tblDivisionOld->getId()] = $tblDivisionOld;
+                            } else {
+                                $repeatedList[$tblDivision->getId()] = $tblDivision;
+                            }
+                        }
+                    } else {
+                        $divisionList[$tblLevel->getId()] = $tblDivision;
+                    }
+                }
+            }
+        }
+
+        return empty($repeatedList) ? false : $repeatedList;
+    }
 }

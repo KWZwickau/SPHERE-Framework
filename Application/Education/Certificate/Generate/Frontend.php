@@ -107,7 +107,18 @@ class Frontend extends Extension
                 if (($tblGenerateCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblGenerateCertificateType->getIdentifier() == 'DIPLOMA'
                 ) {
-                    $hasDiplomaCertificate = true;
+                    // Prüfungsausschuss nur bei Gy und OS, nicht bei Bfs oder Fs
+                    if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                        foreach ($tblPrepareList as $tblPrepare) {
+                            if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                && ($tblType = $tblDivision->getType())
+                                && ($tblType->getName() == 'Gymnasium' || $tblType->getName() == 'Mittelschule / Oberschule')
+                            ) {
+                                $hasDiplomaCertificate = true;
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 $tableData[] = array(
@@ -431,6 +442,10 @@ class Frontend extends Extension
                                         && (($tblLevel = $tblDivision->getTblLevel()))
                                         && ($tblLevel->getName() == '9' || $tblLevel->getName() == '10')
                                     ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Berufsfachschule') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Fachschule') {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     }
                                 } elseif ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
@@ -778,18 +793,28 @@ class Frontend extends Extension
                 foreach ($tblStudentList as $tblPerson) {
                     $isMuted = $isCourseMainDiploma && $isDiploma;
 
-                    $tblCourse = false;
-                    $tblCompany = false;
-                    if (($tblStudent = $tblPerson->getStudent())
-                        && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    ) {
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if ($tblStudentTransfer) {
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision);
-                            if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
-                                $isMuted = false;
+                    if (($tblType = $tblDivision->getType())) {
+                        $isTechnicalSchool = $tblType->isTechnical();
+                    } else {
+                        $isTechnicalSchool = false;
+                    }
+
+                    $courseName = '';
+                    $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision);
+                    if ($isTechnicalSchool) {
+                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                    } else {
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                        ) {
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if ($tblStudentTransfer) {
+                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                    $isMuted = false;
+                                }
+                                $courseName = $tblCourse ? $tblCourse->getName() : '';
                             }
                         }
                     }
@@ -805,8 +830,6 @@ class Frontend extends Extension
                     } else {
                         $checkSubjectsString = '';
                     }
-
-                    $courseName = $tblCourse ? $tblCourse->getName() : '';
 
                     // Primärer Förderschwerpunkt -> zur Hilfe für Auswahl des Zeugnisses
                     $primaryFocus = '';

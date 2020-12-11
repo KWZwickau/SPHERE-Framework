@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -187,14 +188,16 @@ class ApiPrepare extends Extension implements IApiInterface
     {
         $panel = '';
         $FormField = Generator::useService()->getFormField();
-        $FormLabel = Generator::useService()->getFormLabel();
         $KeyFullName = 'Content.Input.' . $Key;
-        $label = isset($FormLabel[$KeyFullName]) ? $FormLabel[$KeyFullName] : '';
+        $label = '';
         $fieldType = isset($FormField[$KeyFullName]) ? $FormField[$KeyFullName] : false;
         $inputField = false;
         if (($tblPrepare = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
         ) {
+            $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
+            $label = isset($FormLabel[$KeyFullName]) ? $FormLabel[$KeyFullName] : '';
+
             $panel = new Panel(
                 'Zeugnisvorbereitung',
                 array(
@@ -222,6 +225,8 @@ class ApiPrepare extends Extension implements IApiInterface
                         );
                     } elseif ($fieldType == 'DatePicker') {
                         $inputField = new DatePicker('Information', '', '');
+                    } elseif ($fieldType == 'TextField') {
+                        $inputField = new TextField('Information', '', '');
                     }
                 }
             }
@@ -235,7 +240,7 @@ class ApiPrepare extends Extension implements IApiInterface
                 'Es werden alle "' . $label . '" auf den gewählten Wert vorausgefüllt. Die Daten müssen anschließend noch gespeichert werden.',
                 new Exclamation()
             )
-            . ($inputField ? new Well(new Form(new FormGroup(array(
+            . ($inputField ? new Well((new Form(new FormGroup(array(
                 new FormRow(
                     new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         '<table><tr><td style="width:200px">&nbsp;' . $label . '</td><td style="width:620px">'
@@ -257,7 +262,7 @@ class ApiPrepare extends Extension implements IApiInterface
                         )
                     )
                 )
-            ))))
+            ))))->disableSubmitAction())
                 : 'Kein passendes Eingabefeld verfügbar!');
     }
 
@@ -361,6 +366,8 @@ class ApiPrepare extends Extension implements IApiInterface
                     );
                 } elseif ($fieldType == 'DatePicker') {
                     return new DatePicker('Data[' . $PrepareStudentId . '][' . $Key . ']', '', '');
+                } elseif ($fieldType == 'TextField') {
+                    return new TextField('Data[' . $PrepareStudentId . '][' . $Key . ']', '', '');
                 }
             }
         }
