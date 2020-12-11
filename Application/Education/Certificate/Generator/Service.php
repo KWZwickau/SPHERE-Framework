@@ -331,6 +331,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCertificate $tblCertificate
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblCertificateSubject
+     */
+    public function getCertificateSubjectIgnoreTechnicalCourseBySubject(
+        TblCertificate $tblCertificate,
+        TblSubject $tblSubject
+    ) {
+        return (new Data($this->getBinding()))->getCertificateSubjectIgnoreTechnicalCourseBySubject($tblCertificate, $tblSubject);
+    }
+
+    /**
      * @param $Identifier
      *
      * @return bool|TblCertificateType

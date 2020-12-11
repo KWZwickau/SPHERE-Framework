@@ -111,6 +111,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -966,18 +967,29 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
                                     );
 
+                                    if (($tblType = $tblDivisionItem->getType())) {
+                                        $isTechnicalSchool = $tblType->isTechnical();
+                                    } else {
+                                        $isTechnicalSchool = false;
+                                    }
+
                                     // Bildungsgang
-                                    $tblCourse = false;
-                                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                                    ) {
-                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                            $tblTransferType);
-                                        if ($tblStudentTransfer) {
-                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                    $courseName = '';
+                                    if ($isTechnicalSchool) {
+                                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                                    } else {
+                                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                        ) {
+                                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                                $tblTransferType);
+                                            if ($tblStudentTransfer) {
+                                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                                $courseName = $tblCourse ? $tblCourse->getName() : '';
+                                            }
                                         }
                                     }
-                                    $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+                                    $studentTable[$tblPerson->getId()]['Course'] = $courseName;
 
                                     if ($tblCurrentGradeType) {
                                         $subjectGradeList = array();
@@ -1478,18 +1490,29 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
                                     );
 
+                                    if (($tblType = $tblDivisionItem->getType())) {
+                                        $isTechnicalSchool = $tblType->isTechnical();
+                                    } else {
+                                        $isTechnicalSchool = false;
+                                    }
+
                                     // Bildungsgang
-                                    $tblCourse = false;
-                                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                                    ) {
-                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                            $tblTransferType);
-                                        if ($tblStudentTransfer) {
-                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                    $courseName = '';
+                                    if ($isTechnicalSchool) {
+                                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                                    } else {
+                                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                        ) {
+                                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                                $tblTransferType);
+                                            if ($tblStudentTransfer) {
+                                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                                $courseName = $tblCourse ? $tblCourse->getName() : '';
+                                            }
                                         }
                                     }
-                                    $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+                                    $studentTable[$tblPerson->getId()]['Course'] = $courseName;
 
                                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
                                         $tblPerson);

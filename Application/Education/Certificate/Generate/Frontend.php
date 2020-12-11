@@ -793,18 +793,28 @@ class Frontend extends Extension
                 foreach ($tblStudentList as $tblPerson) {
                     $isMuted = $isCourseMainDiploma && $isDiploma;
 
-                    $tblCourse = false;
-                    $tblCompany = false;
-                    if (($tblStudent = $tblPerson->getStudent())
-                        && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    ) {
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if ($tblStudentTransfer) {
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision);
-                            if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
-                                $isMuted = false;
+                    if (($tblType = $tblDivision->getType())) {
+                        $isTechnicalSchool = $tblType->isTechnical();
+                    } else {
+                        $isTechnicalSchool = false;
+                    }
+
+                    $courseName = '';
+                    $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision);
+                    if ($isTechnicalSchool) {
+                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                    } else {
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                        ) {
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if ($tblStudentTransfer) {
+                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                    $isMuted = false;
+                                }
+                                $courseName = $tblCourse ? $tblCourse->getName() : '';
                             }
                         }
                     }
@@ -820,8 +830,6 @@ class Frontend extends Extension
                     } else {
                         $checkSubjectsString = '';
                     }
-
-                    $courseName = $tblCourse ? $tblCourse->getName() : '';
 
                     // Primärer Förderschwerpunkt -> zur Hilfe für Auswahl des Zeugnisses
                     $primaryFocus = '';

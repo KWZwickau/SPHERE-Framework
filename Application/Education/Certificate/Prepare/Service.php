@@ -3036,7 +3036,7 @@ class Service extends AbstractService
 
                     foreach ($certificateNameList as $certificateId => $name) {
                         if (($tblCertificate = Setting::useService()->getCertificateById($certificateId))
-                            && !Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)
+                            && !Setting::useService()->getCertificateSubjectIgnoreTechnicalCourseBySubject($tblCertificate, $tblSubject)
                         ) {
                             $subjectList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
 //                                .($isForeignLanguage
@@ -3110,6 +3110,8 @@ class Service extends AbstractService
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
                     && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                 ) {
+                    $tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson);
+
                     ksort($subjects);
                     /** @var TblSubject $tblSubject */
                     foreach ($subjects as $tblSubject) {
@@ -3179,7 +3181,9 @@ class Service extends AbstractService
                         }
 
 
-                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
+                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject,
+                            $tblTechnicalCourse ? $tblTechnicalCourse : null
+                        )) {
                             $resultList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject->getAcronym();
                         }
                     }
