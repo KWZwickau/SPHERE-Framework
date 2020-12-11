@@ -1487,10 +1487,12 @@ class Service extends Extension
             $tblGuardianCommon = Common::useService()->getCommonByPerson($tblGuardianPerson);
             if ($tblGuardianCommon) {
                 if (( $GuardianBirthDates = $tblGuardianCommon->getTblCommonBirthDates() )) {
-                    if ($GuardianBirthDates->getGender() == 1) {
-                        $person = 'V.';
-                    } elseif ($GuardianBirthDates->getGender() == 2) {
-                        $person = 'M.';
+                    if (($tblCommonGender = $GuardianBirthDates->getTblCommonGender())) {
+                        if ($tblCommonGender == 1) {
+                            $person = 'V.';
+                        } elseif ($tblCommonGender == 2) {
+                            $person = 'M.';
+                        }
                     }
                 }
             }

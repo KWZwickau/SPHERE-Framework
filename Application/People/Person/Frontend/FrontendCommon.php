@@ -11,7 +11,6 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -336,10 +335,8 @@ class FrontendCommon extends FrontendReadOnly
         $global->POST['Meta']['BirthDates']['Gender'] = $GenderId;
         $global->savePost();
 
-        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
-            TblCommonBirthDates::VALUE_GENDER_NULL => '',
-            TblCommonBirthDates::VALUE_GENDER_MALE => 'Männlich',
-            TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-        ), new Child());
+        $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
+
+        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child());
     }
 }

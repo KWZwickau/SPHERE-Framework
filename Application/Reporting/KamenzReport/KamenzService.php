@@ -70,6 +70,15 @@ class KamenzService
         $count['ForeignLanguage2'] = 0;
         $count['SchoolEnrollmentType'] = 0;
         $count['SchoolAttendanceStartDate'] = 0;
+
+        // Berufsfachschulen und Fachschulen
+        $count['TenseOfLesson'] = 0;
+        $count['TrainingStatus'] = 0;
+        $count['DurationOfTraining'] = 0;
+        $count['TblTechnicalCourse'] = 0;
+        $count['TblSchoolDiploma'] = 0;
+        $count['TblSchoolType'] = 0;
+
         $studentList = array();
         if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
             foreach ($tblCurrentYearList as $tblYear) {
@@ -231,6 +240,89 @@ class KamenzService
                                                 $count['SchoolAttendanceStartDate']++;
                                             }
                                         }
+
+                                        if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
+                                            $tblStudentTechnicalSchool = $tblStudent ? $tblStudent->getTblStudentTechnicalSchool() : false;
+
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TenseOfLesson']
+                                                    = $tblStudentTenseOfLesson->getName();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['TenseOfLesson']
+                                                    =  new Warning('Keine Zeitform des Unterrichts hinterlegt.',
+                                                    new Exclamation());
+                                                $count['TenseOfLesson']++;
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TrainingStatus']
+                                                    = $tblStudentTrainingStatus->getName();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['TrainingStatus']
+                                                    =  new Warning('Kein Ausbildungsstatus hinterlegt.',
+                                                    new Exclamation());
+                                                $count['TrainingStatus']++;
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentDurationOfTraining = $tblStudentTechnicalSchool->getDurationOfTraining())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['DurationOfTraining']
+                                                    = $tblStudentDurationOfTraining;
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['DurationOfTraining']
+                                                    =  new Warning('Keine planmäßige Ausbildungsdauer hinterlegt.',
+                                                    new Exclamation());
+                                                $count['DurationOfTraining']++;
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TblTechnicalCourse']
+                                                    = $tblStudentTblTechnicalCourse->getName();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['TblTechnicalCourse']
+                                                    =  new Warning('Kein Bildungsgang hinterlegt.',
+                                                    new Exclamation());
+                                                $count['TblTechnicalCourse']++;
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TblSchoolDiploma']
+                                                    = $tblStudentTblSchoolDiploma->getName();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['TblSchoolDiploma']
+                                                    =  new Warning('Kein allgemeinbildender Abschluss hinterlegt.',
+                                                    new Exclamation());
+                                                $count['TblSchoolDiploma']++;
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TblSchoolType']
+                                                    = $tblStudentTblSchoolType->getName();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['TblSchoolType']
+                                                    =  new Warning('Keine allgemeinbildende Schulart hinterlegt.',
+                                                    new Exclamation());
+                                                $count['TblSchoolType']++;
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TblTechnicalDiploma']
+                                                    = $tblStudentTblTechnicalDiploma->getName();
+                                            }
+                                            if ($tblStudentTechnicalSchool
+                                                && ($tblStudentTblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['TblTechnicalType']
+                                                    = $tblStudentTblTechnicalType->getName();
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -240,23 +332,49 @@ class KamenzService
             }
         }
 
+        if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
+            $count['Religion'] = 0;
+        }
+
         array_unshift($summary, new Info($count['Student'] . ' Schüler besuchen die/das ' . $tblSchoolType->getName() . '.'));
         $summary = self::setSummary($summary, $count);
 
-        $columns = array(
-            'Division' => 'Klasse',
-            'Name' => 'Name',
-            'Gender' => 'Geschlecht',
-            'Birthday' => 'Geburtsdatum',
-            'ForeignLanguage1' => '1. FS',
-            'ForeignLanguage2' => '2. FS',
-            'ForeignLanguage3' => '3. FS',
-            'ForeignLanguage4' => '4. FS',
-            'Religion' => 'Religion',
-            'Nationality' => 'Staatsangehörigkeit',
-            'HasMigrationBackground' => 'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
-//            'IsInPreparationDivisionForMigrants' => 'Besucht Vorbereitungsklasse für Migranten'
-        );
+       if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
+           $columns = array(
+               'Division' => 'Klasse',
+               'Name' => 'Name',
+               'Gender' => 'Geschlecht',
+               'Birthday' => 'Geburtsdatum',
+               'ForeignLanguage1' => '1. FS',
+               'ForeignLanguage2' => '2. FS',
+               'ForeignLanguage3' => '3. FS',
+               'ForeignLanguage4' => '4. FS',
+               'Nationality' => 'Staatsangehörigkeit',
+               'HasMigrationBackground' => 'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
+               'TenseOfLesson' => 'Zeitform des Unterrichts',
+               'TrainingStatus' => 'Ausbildungsstatus',
+               'DurationOfTraining' => 'Planmäßige Ausbildungsdauer',
+               'TblTechnicalCourse' => 'Bildungsgang',
+               'TblSchoolDiploma' => 'Allgemeinbildender Abschluss',
+               'TblSchoolType' => 'An der allgemeinbildenden Schulart',
+               'TblTechnicalDiploma' => 'Berufsbildender Abschluss',
+               'TblTechnicalType' => 'An der berufsbildenden Schulart',
+           );
+       } else {
+           $columns = array(
+               'Division' => 'Klasse',
+               'Name' => 'Name',
+               'Gender' => 'Geschlecht',
+               'Birthday' => 'Geburtsdatum',
+               'ForeignLanguage1' => '1. FS',
+               'ForeignLanguage2' => '2. FS',
+               'ForeignLanguage3' => '3. FS',
+               'ForeignLanguage4' => '4. FS',
+               'Religion' => 'Religion',
+               'Nationality' => 'Staatsangehörigkeit',
+               'HasMigrationBackground' => 'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch'
+           );
+       }
 
         if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
             $columns['Orientation'] = 'Neigungskurs';
@@ -283,7 +401,8 @@ class KamenzService
                 'order' => array(array(0, 'asc'), array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 0),
-                    array('type' => 'de_date', 'targets' => array(3,12)),
+//                    array('type' => 'de_date', 'targets' => array(3,12)),
+                    array('type' => 'de_date', 'targets' => array(3)),
                 ),
                 'responsive' => false
             )
@@ -523,6 +642,31 @@ class KamenzService
         }
         if ($count['SchoolEnrollmentType'] > 0) {
             $summary[] = new Warning($count['SchoolEnrollmentType'] . ' Schüler/n ist keine Einschulungsart zugeordnet.'
+                , new Exclamation());
+        }
+        // Berufsfachschule
+        if ($count['TenseOfLesson'] > 0) {
+            $summary[] = new Warning($count['TenseOfLesson'] . ' Schüler/n ist keine Zeitform des Unterrichts zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['TrainingStatus'] > 0) {
+            $summary[] = new Warning($count['TrainingStatus'] . ' Schüler/n ist kein Ausbildungsstatus zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['DurationOfTraining'] > 0) {
+            $summary[] = new Warning($count['DurationOfTraining'] . ' Schüler/n ist keine planmäßige Ausbildungsdauer zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['TblTechnicalCourse'] > 0) {
+            $summary[] = new Warning($count['TblTechnicalCourse'] . ' Schüler/n ist kein Bildungsgang zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['TblSchoolDiploma'] > 0) {
+            $summary[] = new Warning($count['TblSchoolDiploma'] . ' Schüler/n ist kein allgemeinbildender Abschluss zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['TblSchoolType'] > 0) {
+            $summary[] = new Warning($count['TblSchoolType'] . ' Schüler/n ist keine allgemeinbildende Schulart zugeordnet.'
                 , new Exclamation());
         }
 

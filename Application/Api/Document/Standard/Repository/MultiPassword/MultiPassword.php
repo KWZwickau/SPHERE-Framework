@@ -161,11 +161,13 @@ class MultiPassword extends AbstractDocument
     }
 
     /**
-     * @param array $pageList
      *
-     * @return $this|Frame
+     * @param array $pageList
+     * @param string $Part
+     *
+     * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $Part = '0')
     {
 
         // wird jetzt nicht mehr verwendet

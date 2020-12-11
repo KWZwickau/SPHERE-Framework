@@ -23,6 +23,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -800,5 +801,35 @@ class Service extends AbstractService
     ) {
 
         return KamenzReportService::setKamenzReportGymContent($Content);
+    }
+
+    /**
+     * @param $Content
+     *
+     * @return array
+     */
+    public function setKamenzReportBFSContent(
+        $Content
+    ) {
+        if (($tblType = Type::useService()->getTypeByName('Berufsfachschule'))) {
+            return KamenzReportService::setKamenzReportBFSContent($Content, $tblType);
+        } else {
+            return  array();
+        }
+    }
+
+    /**
+     * @param $Content
+     *
+     * @return array
+     */
+    public function setKamenzReportFSContent(
+        $Content
+    ) {
+        if (($tblType = Type::useService()->getTypeByName('Fachschule'))) {
+            return KamenzReportService::setKamenzReportBFSContent($Content, $tblType);
+        } else {
+            return  array();
+        }
     }
 }

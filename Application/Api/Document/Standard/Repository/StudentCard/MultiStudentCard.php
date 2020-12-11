@@ -28,11 +28,13 @@ class MultiStudentCard extends AbstractStudentCard
     }
 
     /**
+     *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $Part = '0')
     {
         $buildDocument = new Document();
         foreach ($pageList as $page)

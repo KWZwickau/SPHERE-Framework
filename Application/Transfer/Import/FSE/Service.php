@@ -895,7 +895,7 @@ class Service
                                         $tblCommonBirthDates,
                                         $tblCommonBirthDates->getBirthday(),
                                         trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
-                                        $tblCommonBirthDates->getTblCommonGender() ? $tblCommonBirthDates->getTblCommonGender()->getId() : 0
+                                        $tblCommonBirthDates->getTblCommonGender() ? $tblCommonBirthDates->getTblCommonGender() : null
                                     );
                                 }
                                 if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
@@ -1020,7 +1020,7 @@ class Service
                                             $tblCommonBirthDates,
                                             $tblCommonBirthDates->getBirthday(),
                                             $tblCommonBirthDates->getBirthplace(),
-                                            2
+                                            Common::useService()->getCommonGenderById(2)
                                         );
                                     }
                                 }
@@ -1058,7 +1058,7 @@ class Service
                                             $tblCommonBirthDates,
                                             $tblCommonBirthDates->getBirthday(),
                                             $tblCommonBirthDates->getBirthplace(),
-                                            1
+                                            Common::useService()->getCommonGenderById(1)
                                         );
                                     }
                                 }

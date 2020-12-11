@@ -22,7 +22,6 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -1257,7 +1256,7 @@ class Service
         }
 
         $tblSalutation = false;
-        $gender = 0;
+        $tblCommonGender = false;
         if($salutation){
             $salutation = strtolower($salutation);
             switch($salutation){
@@ -1265,13 +1264,17 @@ class Service
                 case 'm':
                 case 'h':
                     $tblSalutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_MAN);
-                    $gender = TblCommonGender::VALUE_MALE;
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Männlich');
                 break;
                 case 'frau':
                 case 'w':
                 case 'f':
                     $tblSalutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_WOMAN);
-                    $gender = TblCommonGender::VALUE_FEMALE;
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich');
+                break;
+                case 'd':
+                case 'divers':
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Divers');
                 break;
             }
         }
@@ -1294,7 +1297,7 @@ class Service
             $tblPerson,
             '',
             '',
-            $gender,
+            $tblCommonGender ? $tblCommonGender : null,
             '',
             '',
             $isAssistance,
@@ -1322,6 +1325,7 @@ class Service
     private function setPersonBirth(TblPerson $tblPerson, $birthdayString, $birthPlace, $gender, $nationality, $denomination, $remark, $RunY, $Nr, &$error)
     {
         // controll conform DateTime string
+        $tblCommonGender = false;
         $birthday = $this->checkDate($birthdayString, 'Ungültiges Geburtsdatum:', $RunY, $Nr, $error);
         if($gender != ''){
             $gender = strtolower($gender);
@@ -1329,16 +1333,21 @@ class Service
                 case 'm':
                 case 'männlich':
                 case 'mann':
-                    $gender = TblCommonGender::VALUE_MALE;
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Männlich');
                 break;
                 case 'w':
                 case 'weiblich':
                 case 'frau':
-                    $gender = TblCommonGender::VALUE_FEMALE;
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich');
                 break;
-                default:
-                    // Geschlecht nicht zuweisbar
-                    $gender = '';
+                case 'd':
+                case 'divers':
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Divers');
+                break;
+                case 'o':
+                case 'ohne angabe':
+                    $tblCommonGender = Common::useService()->getCommonGenderByName('Ohne Angabe');
+                    break;
             }
         }
 
@@ -1346,7 +1355,7 @@ class Service
             $tblPerson,
             $birthday,
             $birthPlace,
-            $gender,
+            $tblCommonGender ? $tblCommonGender : null,
             $nationality,
             $denomination,
             TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,

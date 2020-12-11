@@ -53,6 +53,14 @@ class Frontend extends Extension implements IFrontendInterface
             'Gymnasium',  __NAMESPACE__ . '/Validate/GrammarSchool'
         ));
 
+        $Stage->addButton(new Standard(
+            'Berufsfachschule',  __NAMESPACE__ . '/Validate/TechnicalSchool'
+        ));
+
+        $Stage->addButton(new Standard(
+            'Fachschule',  __NAMESPACE__ . '/Validate/AdvancedTechnicalSchool'
+        ));
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -208,6 +216,134 @@ class Frontend extends Extension implements IFrontendInterface
 
         $content[] = new LayoutColumn(
             KamenzService::validate(Type::useService()->getTypeByName('Gymnasium'), $summary)
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $summary
+                        ),
+                    ))
+                ), new Title('Zusammenfassung')),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        $content
+                    )
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public static function frontendValidateTechnicalSchool()
+    {
+
+        $Stage = new Stage('Kamenz-Statistik', 'Berufsfachschule validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
+
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik Teil I',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Berufsfachschule',
+                'Part' => '1'
+            ),
+            'Kamenz-Statistik Teil I herunterladen'
+        ));
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik Teil II',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Berufsfachschule',
+                'Part' => '2'
+            ),
+            'Kamenz-Statistik Teil II herunterladen'
+        ));
+
+        $summary = array();
+
+        $countStudentsWithoutDivision = 0;
+        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+            $content[] = new LayoutColumn($studentsWithoutDivision);
+            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse zugeordnet',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $content[] = new LayoutColumn(
+            KamenzService::validate(Type::useService()->getTypeByName('Berufsfachschule'), $summary)
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $summary
+                        ),
+                    ))
+                ), new Title('Zusammenfassung')),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        $content
+                    )
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public static function frontendValidateAdvancedTechnicalSchool()
+    {
+
+        $Stage = new Stage('Kamenz-Statistik', 'Fachschule validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
+
+        $Stage->addbutton(new External('Herunterladen: Fachschulstatistik Teil I',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Fachschule',
+                'Part' => '1'
+            ),
+            'Kamenz-Statistik Teil I herunterladen'
+        ));
+        $Stage->addbutton(new External('Herunterladen: Fachschulstatistik Teil II',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Fachschule',
+                'Part' => '2'
+            ),
+            'Kamenz-Statistik Teil II herunterladen'
+        ));
+
+        $summary = array();
+
+        $countStudentsWithoutDivision = 0;
+        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+            $content[] = new LayoutColumn($studentsWithoutDivision);
+            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse zugeordnet',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $content[] = new LayoutColumn(
+            KamenzService::validate(Type::useService()->getTypeByName('Fachschule'), $summary)
         );
 
         $Stage->setContent(

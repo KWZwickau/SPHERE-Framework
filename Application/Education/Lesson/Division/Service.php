@@ -2864,4 +2864,26 @@ class Service extends AbstractService
 
         return $resultList;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array|false
+     */
+    public function getMainDivisionAllByPerson(TblPerson $tblPerson)
+    {
+        $list = array();
+        if (($tblDivisionStudentList = (new Data($this->getBinding()))->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && !$tblLevel->getIsChecked()
+                ) {
+                    $list[$tblDivision->getId()] = $tblDivision;
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
+    }
 }

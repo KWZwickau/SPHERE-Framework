@@ -185,25 +185,27 @@ class Creator extends Extension
 
     /**
      * @param AbstractDocument|AbstractStudentCard $DocumentClass
-     * @param array                                $Data
-     * @param array                                $pageList
-     * @param string                               $paperOrientation
-     * @param bool                                 $isDestruction
+     * @param array $Data
+     * @param array $pageList
+     * @param string $paperOrientation
+     * @param bool $isDestruction
+     * @param string $part
      *
      * @return FilePointer
      */
     private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(),
-        $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true)
+        $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true, $part = '0')
     {
 
         ini_set('memory_limit', '1G');
+        set_time_limit(300);
 
         // Create Tmp
         $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary', $isDestruction);
 
         // build before const is set (picture)
         /** @var IBridgeInterface $Content */
-        $Content = $DocumentClass->createDocument($Data, $pageList);
+        $Content = $DocumentClass->createDocument($Data, $pageList, $part);
         /** @var DomPdf $Document */
         $Document = PdfDocument::getPdfDocument($File->getFileLocation());
         $Document->setPaperOrientationParameter(new PaperOrientationParameter($paperOrientation));
@@ -416,11 +418,12 @@ class Creator extends Extension
 
     /**
      * @param string $Type
+     * @param string $Part
      * @param bool $Redirect
      *
      * @return Display|Stage|string
      */
-    public static function createKamenzPdf($Type = '', $Redirect = true)
+    public static function createKamenzPdf($Type = '', $Part = '0', $Redirect = true)
     {
 
         if ($Redirect) {
@@ -428,6 +431,7 @@ class Creator extends Extension
                 '/Api/Document/Standard/KamenzReport/Create',
                 array(
                     'Type' => $Type,
+                    'Part' => $Part,
                     'Redirect' => 0
                 )
             );
@@ -435,6 +439,7 @@ class Creator extends Extension
 
         $Data = array();
         $Document = false;
+        $paperOrientation = self::PAPERORIENTATION_PORTRAIT;
         if ($Type == 'Grundschule') {
             $Document = new Standard\Repository\KamenzReportGS();
             $Data = Generator::useService()->setKamenzReportGsContent($Data);
@@ -444,12 +449,20 @@ class Creator extends Extension
         } elseif ($Type == 'Gymnasium') {
             $Document = new Standard\Repository\KamenzReportGym();
             $Data = Generator::useService()->setKamenzReportGymContent($Data);
+        } elseif ($Type == 'Berufsfachschule') {
+            $Document = new Standard\Repository\KamenzReportBFS();
+            $paperOrientation = self::PAPERORIENTATION_LANDSCAPE;
+            $Data = Generator::useService()->setKamenzReportBFSContent($Data);
+        } elseif ($Type == 'Fachschule') {
+            $Document = new Standard\Repository\KamenzReportFS();
+            $paperOrientation = self::PAPERORIENTATION_LANDSCAPE;
+            $Data = Generator::useService()->setKamenzReportFSContent($Data);
         }
 
         if ($Document) {
-            $File = self::buildDummyFile($Document, $Data);
+            $File = self::buildDummyFile($Document, $Data, array(), $paperOrientation, true, $Part);
 
-            $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
+            $FileName = $Document->getName() . ($Part != '0' ? ' Teil ' . $Part : '') . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);
         }
