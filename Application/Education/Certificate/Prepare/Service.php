@@ -1201,7 +1201,6 @@ class Service extends AbstractService
                 Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
                 true
             );
-            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
             if ($tblPrepareGradeBehaviorList) {
                 foreach ($tblPrepareGradeBehaviorList as $tblPrepareGrade) {
                     if ($tblPrepareGrade->getServiceTblGradeType()) {
