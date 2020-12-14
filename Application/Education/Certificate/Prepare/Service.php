@@ -956,6 +956,7 @@ class Service extends AbstractService
             }
         }
 
+        $tblCertificateType = false;
         if ($tblPrepare
             && ($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
             && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
@@ -1021,7 +1022,16 @@ class Service extends AbstractService
                     } elseif ($isSupportLearningCertificate && $tblPrepareInformation->getField() == 'Support') {
                         $support = $tblPrepareInformation->getValue();
                     } else {
-                        $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
+                        $value = $tblPrepareInformation->getValue();
+                        // Zensuren in Wortlaut darstellen
+                        if (strpos($tblPrepareInformation->getField(), '_Grade')
+                            && ($isGradeVerbal
+                                || ($tblCertificateType && $tblCertificateType->getIdentifier() == 'DIPLOMA' && $isGradeVerbalOnDiploma))
+                        ) {
+                            $value = $this->getVerbalGrade($value);
+                        }
+
+                        $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $value;
                     }
 
                     if ($tblPrepareInformation->getField() == 'AddEducation_Average') {
@@ -1223,11 +1233,9 @@ class Service extends AbstractService
             }
 
             // Fachnoten
-            $tblCertificateType = false;
             if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
                 // Abschlusszeugnisse
-                if ($tblGenerateCertificate
-                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                if ($tblCertificateType
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                     && $tblSchoolType->getName() != 'Fachschule'
                     && $tblSchoolType->getName() != 'Berufsfachschule'
