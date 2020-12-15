@@ -494,7 +494,9 @@ abstract class BfsStyle extends Certificate
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
         $tblGradeList = $this->getGrade();
 
+        $ShowEmpty = true;
         if (!empty($tblCertificateSubjectAll)) {
+            $ShowEmpty = false;
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
@@ -517,6 +519,8 @@ abstract class BfsStyle extends Certificate
                     }
                 }
             }
+
+            //ToDO Anpassung ähnlich SubjectLineAcrossAbs
 
             // Anzahl der Abzubildenden Einträge (auch ohne Fach)
             $CountSubjectMissing = $DisplaySubjectAmount;
@@ -555,7 +559,7 @@ abstract class BfsStyle extends Certificate
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($Subject['SubjectName'])
                         ->stylePaddingTop()
-                        ->styleMarginTop('15px')
+                        ->styleMarginTop('10px')
                         ->stylePaddingBottom('1px')
                         ->styleTextSize($TextSize)
                         ->styleBorderBottom('0.5px')
@@ -569,7 +573,7 @@ abstract class BfsStyle extends Certificate
                              {% endif %}')
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
-                        ->styleMarginTop('15px')
+                        ->styleMarginTop('10px')
                         ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
@@ -601,6 +605,10 @@ abstract class BfsStyle extends Certificate
 
                 $Slice->addSection($SubjectSection);
             }
+        }
+
+        if($ShowEmpty){
+            $this->getEmptyHalfSubjectLine($Slice, 6);
         }
 
         $Slice->styleHeight($Height);
@@ -1221,7 +1229,8 @@ abstract class BfsStyle extends Certificate
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
         $tblGradeList = $this->getGrade();
-        $CountSubjectMissing = 0;
+        // Anzahl der Abzubildenden Einträge (auch ohne Fach)
+        $CountSubjectMissing = 2;
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
@@ -1253,8 +1262,6 @@ abstract class BfsStyle extends Certificate
 
             $SubjectList = array();
 
-            // Anzahl der Abzubildenden Einträge (auch ohne Fach)
-            $CountSubjectMissing = 2;
             ksort($SubjectStructure);
             foreach ($SubjectStructure as $RankingLane => $Subject) {
                 $SubjectList[] = $Subject;
@@ -1348,6 +1355,57 @@ abstract class BfsStyle extends Certificate
                 ->styleTextSize($TextSize)
                 , '9%');
             $Slice->addSection($Section);
+        }
+        return $Slice;
+    }
+
+    private function getEmptyHalfSubjectLine(Slice $Slice, $count = 2)
+    {
+
+        $TextSize = '14px';
+        $Section = new Section();
+        for($i = 0; $i < $count; $i ++){
+            $i++;
+            $Section->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px')
+                , '39%');
+//
+            $Section->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+
+            $Section->addElementColumn((new Element())
+                , '4%');
+            $Section->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop()
+                ->styleMarginTop('10px')
+                ->stylePaddingBottom('1px')
+                ->styleTextSize($TextSize)
+                ->styleBorderBottom('0.5px')
+                , '39%');
+
+            $Section->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('#BBB')
+                ->styleMarginTop('10px')
+                ->stylePaddingTop('2px')
+                ->stylePaddingBottom('1.5px')
+                ->styleTextSize($TextSize)
+                , '9%');
+
+            $Slice->addSection($Section);
+            $Section = new Section();
         }
         return $Slice;
     }

@@ -491,7 +491,8 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblCertificateSubject')->findOneBy(array(
             TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
             TblCertificateSubject::ATTR_LANE => $LaneIndex,
-            TblCertificateSubject::ATTR_RANKING => $LaneRanking
+            TblCertificateSubject::ATTR_RANKING => $LaneRanking,
+            TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => $tblTechnicalCourse
         ));
         if (null === $Entity) {
             $Entity = new TblCertificateSubject();
