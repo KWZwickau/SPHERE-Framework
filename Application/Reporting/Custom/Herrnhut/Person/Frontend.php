@@ -557,7 +557,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($DivisionId = null)
     {
 
-        $Stage = new Stage('EZSH Auswertung', 'Klassenliste');
+        $Stage = new Stage('EZSH Auswertung', 'Klassenlisten');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/ClassList', new ChevronLeft()));
         }
@@ -728,7 +728,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendExtendedClassList($DivisionId = null)
     {
 
-        $Stage = new Stage('EZSH Auswertung', 'Erweiterte Klassenliste');
+        $Stage = new Stage('EZSH Auswertung', 'Erweiterte Klassenlisten');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/ExtendedClassList', new ChevronLeft()));
         }

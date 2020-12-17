@@ -1,8 +1,7 @@
 <?php
-
 namespace SPHERE\Application\Document\Standard\StudentTransfer;
 
-
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -86,7 +85,7 @@ class StudentTransfer extends Extension
     public static function frontendSelectPerson()
     {
 
-        $Stage = new Stage('Schulbescheinigung', 'Schüler auswählen');
+        $Stage = new Stage('Schülerüberweisung', 'Schüler auswählen');
 
         $dataList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
@@ -115,7 +114,7 @@ class StudentTransfer extends Extension
         if ($tblYearList) {
             $YearString .= current($tblYearList)->getYear();
         } else {
-            $YearString .= new ToolTip(new Danger((new \DateTime())->format('Y')),
+            $YearString .= new ToolTip(new Danger((new DateTime())->format('Y')),
                 'Kein Schuljahr mit aktuellem Zeitraum');
         }
         $YearString .= ')';
@@ -165,7 +164,7 @@ class StudentTransfer extends Extension
         if ($tblPerson) {
             $Global->POST['Data']['PersonId'] = $Id;
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
-            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
                 // Schuldaten der Schule des Schülers
@@ -222,7 +221,7 @@ class StudentTransfer extends Extension
                     $EntryDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['SchoolEntry'] = $EntryDate;
                     if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new \DateTime($EntryDate));
+                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
                         if ($tblYearList) {
                             foreach ($tblYearList as $tblYear) {
                                 $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
