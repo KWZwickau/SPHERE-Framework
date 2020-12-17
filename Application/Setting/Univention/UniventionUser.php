@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
-use SPHERE\System\Extension\Repository\Debugger;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 
 class UniventionUser
 {
@@ -94,9 +94,7 @@ class UniventionUser
             // Mandant + AccountId
 //            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );
-        Debugger::screenDump($PersonContent);
         $PersonContent = json_encode($PersonContent);
-        Debugger::screenDump($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -131,18 +129,17 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
-        Debugger::screenDump($Json);
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
         if(isset($StdClassArray['detail'])){
             if(is_string($StdClassArray['detail'])){
-                $Error = $name.' - '.$StdClassArray['detail'];
+                $Error = new Bold($name.': ').$StdClassArray['detail'];
             }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= $name.' - '.$Detail['msg'];
+                        $Error .= new Bold($name.': ').$Detail['msg'];
                     }
                 }
             }
@@ -186,7 +183,6 @@ class UniventionUser
             // Orientierung an connexion-ssw
             'source_uid' => 'connexion-ssw',
             'roles' => $roles,
-//Local Test without schools
             'school' => $school, // one school
             'schools' => $schools, // array school
             'school_classes' => $school_classes,
@@ -194,9 +190,7 @@ class UniventionUser
 //            'source_uid' => $source_uid
         );
 
-        Debugger::screenDump($PersonContent);
         $PersonContent = json_encode($PersonContent);
-        Debugger::screenDump($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -231,18 +225,17 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
-        Debugger::screenDump($Json);
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
         if(isset($StdClassArray['detail'])){
             if(is_string($StdClassArray['detail'])){
-                $Error = $name.' - '.$StdClassArray['detail'];
+                $Error = new Bold($name.': ').$StdClassArray['detail'];
             }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= $name.' - '.$Detail['msg'];
+                        $Error .= new Bold($name.': ').$Detail['msg'];
                     }
                 }
             }
@@ -285,12 +278,12 @@ class UniventionUser
         $Error = null;
         if(isset($StdClassArray['detail'])){
             if(is_string($StdClassArray['detail'])){
-                $Error = $name.' - '.$StdClassArray['detail'];
+                $Error = new Bold($name.': ').$StdClassArray['detail'];
             }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= $name.' - '.$Detail['msg'];
+                        $Error .= new Bold($name.': ').$Detail['msg'];
                     }
                 }
             }
