@@ -1989,28 +1989,28 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Content,
                                 Panel::PANEL_TYPE_INFO
                             )
-                        , 4),
+                        , 3),
                         new LayoutColumn(
                             new Panel(
                                 'Zu kopierende Klassengruppe:',
                                 $Content1,
                                 Panel::PANEL_TYPE_INFO
                             )
-                        , 4),
-//                        new LayoutColumn(
-//                            new Panel(
-//                                'Zu kopierendes pägogisches Tagebuch:',
-//                                $contentDiary,
-//                                Panel::PANEL_TYPE_INFO
-//                            )
-//                        , 3),
+                        , 3),
+                        new LayoutColumn(
+                            new Panel(
+                                'Zu kopierendes pägogisches Tagebuch:',
+                                $contentDiary,
+                                Panel::PANEL_TYPE_INFO
+                            )
+                        , 3),
                         new LayoutColumn(
                             new Panel(
                                 'Anzahl Personen und Fächer:',
                                 $Content2,
                                 Panel::PANEL_TYPE_SUCCESS
                             )
-                        , 4),
+                        , 3),
                     ))
                 )
             )

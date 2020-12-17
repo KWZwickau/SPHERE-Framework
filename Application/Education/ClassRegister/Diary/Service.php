@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Diary;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryDivision;
@@ -9,7 +11,6 @@ use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStud
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Setup;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
@@ -83,13 +84,12 @@ class Service extends AbstractService
 
     /**
      * @param TblGroup $tblGroup
-     * @param TblYear $tblYear
      *
      * @return false|TblGroup[]
      */
-    public function getDiaryAllByGroup(TblGroup $tblGroup, TblYear $tblYear)
+    public function getDiaryAllByGroup(TblGroup $tblGroup)
     {
-        return (new Data($this->getBinding()))->getDiaryAllByGroup($tblGroup, $tblYear);
+        return (new Data($this->getBinding()))->getDiaryAllByGroup($tblGroup);
     }
 
     /**
@@ -140,7 +140,16 @@ class Service extends AbstractService
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
         } else {
-            $form->setSuccess('Data[Date]');
+            // SSW-1156 Einträge die älter als 3 Monate sind dürfen nicht mehr angelegt werden
+            $now = new DateTime('now');
+            $date = new DateTime($Data['Date']);
+            $date->add(new DateInterval('P3M'));
+            if ($date >= $now) {
+                $form->setSuccess('Data[Date]');
+            } else {
+                $error = true;
+                $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an, welches nicht älter als 3 Monate ist');
+            }
         }
 
         return $error ? $form : false;
@@ -297,19 +306,15 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
      *
      * @return TblDiary[]|bool
      */
-    public function getDiaryAllByStudent(TblPerson $tblPerson, TblYear $tblYear)
+    public function getDiaryAllByStudent(TblPerson $tblPerson)
     {
         $resultList = array();
         if (($tblDiaryStudentList = (new Data($this->getBinding()))->getDiaryStudentAllByStudent($tblPerson))) {
             foreach ($tblDiaryStudentList as $tblDiaryStudent) {
-                if (($tblDiary = $tblDiaryStudent->getTblDiary())
-                    && ($tblYearDiary = $tblDiary->getServiceTblYear())
-                    && ($tblYearDiary->getId() == $tblYear->getId())
-                ) {
+                if (($tblDiary = $tblDiaryStudent->getTblDiary())) {
                     $resultList[$tblDiary->getId()] = $tblDiary;
                 }
             }
