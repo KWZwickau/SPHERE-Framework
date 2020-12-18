@@ -57,7 +57,7 @@ class EsrlGsHjOne extends EsrlStyle
                     self::getESRLName($personId)
                 )
                 ->addSection(
-                    self::getESRLRemark($personId, '520px')
+                    self::getESRLRemark($personId, false, '520px')
                 )
                 ->addSection(
                     self::getESRLMissing($personId)

@@ -344,7 +344,16 @@ class Service extends AbstractService
                                     $value = 'kB';
                                 } elseif ($value == 'befreit') {
                                     $value = 'b';
+                                } elseif (strlen($value) > 2) {
+                                    if (strtolower($value) == 'seepferdchen') {
+                                        // Sonderfall Seepferdchen (Schwimmunterricht)
+                                        $value = 'Sp';
+                                    } else {
+                                        // verbale Benotungen einkürzen
+                                        $value = substr($value, 0, 2);
+                                    }
                                 }
+
                                 $Data['Certificate'][$typeId]['Data' . $count]['SubjectGrade'][$acronym]
                                     = $value;
                             } elseif ($tblDocumentSubject->isEssential()) {
