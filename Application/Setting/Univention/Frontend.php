@@ -163,11 +163,25 @@ class Frontend extends Extension implements IFrontendInterface
                     $CompareRow['UCS']['lastname'] = $ExistUser['lastname'];
                     $CompareRow['UCS']['email'] = $ExistUser['email'];
                     if(!empty($ExistUser['roles'])){
-                        $CompareRow['UCS']['roles'] = implode(', ', $ExistUser['roles']);
+                        $RoleShort = array();
+                        foreach($ExistUser['roles'] as $roleTemp){
+                            if(strpos($roleTemp, 'student')) {
+                                $RoleShort[] = 'Schüler';
+                            } elseif(strpos($roleTemp, 'teacher')) {
+                                $RoleShort[] = 'Lehrer';
+                            } elseif(strpos($roleTemp, 'staff')) {
+                                $RoleShort[] = 'Mitarbeiter';
+                            }
+                        }
+                        $CompareRow['UCS']['roles'] = implode(', ', $RoleShort);
                     } else{
                         $CompareRow['UCS']['roles'] = '---';
                     }
-                    $CompareRow['UCS']['schools'] = implode(', ', $ExistUser['schools']);
+                    $SchoolListUCS = array();
+                    foreach($AccountActive['schools'] as $SchoolUCS){
+                        $SchoolListUCS[] = substr($SchoolUCS, (strpos($SchoolUCS, 'schools/') + 8));
+                    }
+                    $CompareRow['UCS']['schools'] = implode(', ', $SchoolListUCS);
                     sort($ExistUser['school_classes']);
                     if(!empty($ExistUser['school_classes'])){
                         $ClassString = '';
@@ -188,11 +202,25 @@ class Frontend extends Extension implements IFrontendInterface
                     $CompareRow['SSW']['lastname'] = $AccountActive['lastname'];
                     $CompareRow['SSW']['email'] =$AccountActive['email'];
                     if(!empty($AccountActive['roles'])){
-                        $CompareRow['SSW']['roles'] = implode(', ', $AccountActive['roles']);
+                        $RoleShort = array();
+                        foreach($AccountActive['roles'] as $roleTemp){
+                            if(strpos($roleTemp, 'student')) {
+                                $RoleShort[] = 'Schüler';
+                            } elseif(strpos($roleTemp, 'teacher')) {
+                                $RoleShort[] = 'Lehrer';
+                            } elseif(strpos($roleTemp, 'staff')) {
+                                $RoleShort[] = 'Mitarbeiter';
+                            }
+                        }
+                        $CompareRow['SSW']['roles'] = implode(', ', $RoleShort);
                     } else{
                         $CompareRow['SSW']['roles'] = '---';
                     }
-                    $CompareRow['SSW']['schools'] = implode(', ', $AccountActive['schools']);
+                    $SchoolListSSW = array();
+                    foreach($AccountActive['schools'] as $SchoolSSW){
+                        $SchoolListSSW[] = substr($SchoolSSW, (strpos($SchoolSSW, 'schools/') + 8));
+                    }
+                    $CompareRow['SSW']['schools'] = implode(', ', $SchoolListSSW);
 
                     // Liste Sortieren, aber aktuelle nicht verändern
                     $ActiveSchoolList = $AccountActive['school_classes'];
@@ -211,7 +239,6 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $CompareRow['SSW']['school_classes'] = '---';
                     }
-
 
                     // entscheidung was ein Update erhält
                     if($ExistUser['firstname'] != $AccountActive['firstname']){
@@ -262,9 +289,6 @@ class Frontend extends Extension implements IFrontendInterface
                             $SchoolActiveCompareList[] = $Class;
                         }
                     }
-
-
-
                     // fokus nur auf das erste Array, deswegen doppelter Check
                     if(array_diff($SchoolExistCompareList, $SchoolActiveCompareList)){
                         $isUpdate = true;
