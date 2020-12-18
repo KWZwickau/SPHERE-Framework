@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Diary;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\View;
@@ -235,7 +237,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivisionList = Division::useService()->getDivisionAll();
 
         $buttonList = Prepare::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $IsGroup, $YearId, $tblYear, false);
+            $IsAllYears, $IsGroup, $YearId, $tblYear, true);
 
         $divisionTable = array();
         if ($IsGroup) {
@@ -708,23 +710,15 @@ class Frontend extends Extension implements IFrontendInterface
         $diaryList = array();
 
         if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-
-            if ($tblYear && ($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, false))) {
+            if (($tblDiaryList = Diary::useService()->getDiaryAllByDivision($tblDivision, true))) {
                 foreach ($tblDiaryList as $tblDiary) {
                     $diaryList[$tblDiary->getId()] = $tblDiary;
                 }
             }
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         } elseif ($tblGroup) {
-            if (($tblYearList = Term::useService()->getYearByNow())) {
-                $tblYear = reset($tblYearList);
-            } else {
-                $tblYear = false;
-            }
-
             // Gruppeneinträge
-            if ($tblYear && ($tblDiaryList = Diary::useService()->getDiaryAllByGroup($tblGroup, $tblYear))) {
+            if (($tblDiaryList = Diary::useService()->getDiaryAllByGroup($tblGroup))) {
                 foreach ($tblDiaryList as $tblDiary) {
                     $diaryList[$tblDiary->getId()] = $tblDiary;
                 }
@@ -732,13 +726,12 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
         } else {
             $tblPersonList = false;
-            $tblYear = false;
         }
 
         // zusätzliche Schülereintrage (z.B. vom Klassenwechsel)
-        if ($tblPersonList && $tblYear) {
+        if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblPerson, $tblYear))) {
+                if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblPerson))) {
                     foreach ($tblDiaryListByStudent as $item) {
                         if (!isset($diaryList[$item->getId()])) {
                             $diaryList[$item->getId()] = $item;
@@ -825,35 +818,48 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        // Optionen
+        if ($tblStudentPerson) {
+            $options = '';
+        } else {
+            // SSW-1156 Einträge die älter als 3 Monate sind dürfen nicht mehr bearbeitet werden
+            $now = new DateTime('now');
+            $date = new DateTime($tblDiary->getDate());
+            $date->add(new DateInterval('P3M'));
+            if ($date >= $now) {
+                $options = (new Standard(
+                    '',
+                    ApiDiary::getEndpoint(),
+                    new Edit(),
+                    array(),
+                    'Bearbeiten'
+                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()));
+            } else {
+                $options = '';
+            }
+
+            $options .= (new Standard(
+                '',
+                ApiDiary::getEndpoint(),
+                new Remove(),
+                array(),
+                'Löschen'
+            ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()));
+        }
+
         return array(
             'Number' => $count,
             'Information' => $tblDiary->getDate()
                 . (($tblDivision = $tblDiary->getServiceTblDivision()) ? '<br> Klasse: ' . $tblDivision->getDisplayName() : '')
                 . (($tblGroup = $tblDiary->getServiceTblGroup()) ? '<br> Gruppe: ' . $tblGroup->getName() : '')
-//                . (($tblYear = $tblDiary->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : '')
+                . (($tblYear = $tblDiary->getServiceTblYear()) ? ' (' . $tblYear->getName() . ')' : '')
                 . (($location = $tblDiary->getLocation()) ? '<br>' . $location : '')
                 . '<br>' . $displayPerson,
             'PersonList' => empty($personList) ? '' : implode('<br>', $personList),
             'Content' => (($subject = $tblDiary->getSubject()) ? new Bold($tblDiary->getSubject()) . '<br><br>' : '')
                 // Zeilenumbrüche berücksichtigen
                 . str_replace("\n", '<br>', $tblDiary->getContent()),
-            'Options' =>
-                $tblStudentPerson
-                    ? ''
-                    : (new Standard(
-                        '',
-                        ApiDiary::getEndpoint(),
-                        new Edit(),
-                        array(),
-                        'Bearbeiten'
-                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenEditDiaryModal($tblDiary->getId()))
-                    . (new Standard(
-                        '',
-                        ApiDiary::getEndpoint(),
-                        new Remove(),
-                        array(),
-                        'Löschen'
-                    ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenDeleteDiaryModal($tblDiary->getId()))
+            'Options' => $options
         );
     }
 }

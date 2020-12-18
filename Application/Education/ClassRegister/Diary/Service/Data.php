@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Diary\Service;
 
+use DateTime;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryDivision;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
@@ -51,7 +52,7 @@ class Data extends AbstractData
         $Entity = new TblDiary();
         $Entity->setSubject($Subject);
         $Entity->setContent($Content);
-        $Entity->setDate($Date ? new \DateTime($Date) : null);
+        $Entity->setDate($Date ? new DateTime($Date) : null);
         $Entity->setLocation($Location);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblYear($tblYear);
@@ -95,7 +96,7 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setSubject($Subject);
             $Entity->setContent($Content);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setLocation($Location);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblYear($tblYear);
@@ -155,15 +156,13 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
-     * @param TblYear $tblYear
      *
      * @return false|TblGroup[]
      */
-    public function getDiaryAllByGroup(TblGroup $tblGroup, TblYear $tblYear)
+    public function getDiaryAllByGroup(TblGroup $tblGroup)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
-            TblDiary::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
-            TblDiary::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
+            TblDiary::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
         ));
     }
 
