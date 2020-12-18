@@ -1,11 +1,13 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
@@ -124,24 +126,6 @@ class Term extends Extension implements IModuleInterface
                     $tblPeriodAll = array();
                 }
 
-                $holidayList = array();
-                $tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($tblYear);
-                if ($tblYearHolidayAllByYear) {
-                    $tblHolidayList = array();
-                    foreach ($tblYearHolidayAllByYear as $tblYearHoliday) {
-                        if (($item = $tblYearHoliday->getTblHoliday())) {
-                            $tblHolidayList[$item->getId()] = $item;
-                        }
-                    }
-                    // sort
-                    $tblHolidayList = $this->getSorter($tblHolidayList)->sortObjectBy('FromDate', new DateTimeSorter());
-                    foreach ($tblHolidayList as $tblHoliday) {
-                        $holidayList[] = $tblHoliday->getName() . ' '
-                            . new Muted(new Small($tblHoliday->getFromDate()
-                                . ($tblHoliday->getToDate() ? ' - ' . $tblHoliday->getToDate() : ' ')));
-                    }
-                }
-
                 list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
                 if ($startDate && $endDate
                     && BasicData::useService()->getHolidayAllBy($startDate, $endDate)
@@ -149,6 +133,15 @@ class Term extends Extension implements IModuleInterface
                     $hasHolidayImportButton = true;
                 } else {
                     $hasHolidayImportButton = false;
+                }
+
+                $holidayList[] = $this->getHolidaysPanelForSchool($tblYear, $hasHolidayImportButton, null);
+                if (($tblSchoolAll = School::useService()->getSchoolAll())) {
+                    foreach ($tblSchoolAll as $tblSchool) {
+                        if (($tblCompany = $tblSchool->getServiceTblCompany())) {
+                            $holidayList[] = $this->getHolidaysPanelForSchool($tblYear, $hasHolidayImportButton, $tblCompany);
+                        }
+                    }
                 }
 
                 array_push($Year, array(
@@ -162,21 +155,7 @@ class Term extends Extension implements IModuleInterface
                         , new Standard('', __NAMESPACE__ . '\Choose\Period', new Clock(),
                         array('Id' => $tblYear->getId()), 'Zeitraum zuweisen'
                     )),
-                    'Holiday' => new Panel(
-                        (empty($holidayList) ?
-                            'Keine Unterrichtsfreie Zeiträume hinterlegt'
-                            : count($holidayList) . ' Unterrichtsfreie Zeiträume'),
-                        $holidayList,
-                        (empty($holidayList) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
-                        (new Standard('', __NAMESPACE__ . '\Holiday\Select', new Holiday(),
-                            array('YearId' => $tblYear->getId()), 'Unterrichtsfreie Zeiträume zuweisen'
-                        ))
-                        . ($hasHolidayImportButton
-                            ? (new Standard('Ferien und Feiertage importieren', __NAMESPACE__ . '\Holiday\Import', null,
-                                array('YearId' => $tblYear->getId())))
-                            : ''
-                        )
-                    ),
+                    'Holiday' => implode('', $holidayList)
                 ));
             });
         }
@@ -208,6 +187,69 @@ class Term extends Extension implements IModuleInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param bool $hasHolidayImportButton
+     * @param TblCompany|null $tblCompany
+     *
+     * @return Panel
+     */
+    private function getHolidaysPanelForSchool(TblYear $tblYear, $hasHolidayImportButton, TblCompany $tblCompany = null)
+    {
+        $holidayList = array();
+        $tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($tblYear, $tblCompany);
+        if ($tblYearHolidayAllByYear) {
+            $tblHolidayList = array();
+            foreach ($tblYearHolidayAllByYear as $tblYearHoliday) {
+                if (($item = $tblYearHoliday->getTblHoliday())) {
+                    $tblHolidayList[$item->getId()] = $item;
+                }
+            }
+            // sort
+            $tblHolidayList = $this->getSorter($tblHolidayList)->sortObjectBy('FromDate', new DateTimeSorter());
+            foreach ($tblHolidayList as $tblHoliday) {
+                $holidayList[] = $tblHoliday->getName() . ' '
+                    . new Muted(new Small($tblHoliday->getFromDate()
+                        . ($tblHoliday->getToDate() ? ' - ' . $tblHoliday->getToDate() : ' ')));
+            }
+        }
+
+
+        $title = $tblCompany ? $tblCompany->getDisplayName() : 'Alle Schulen';
+//        $title .= ' ' . (empty($holidayList)
+//            ? 'Keine Unterrichtsfreie Zeiträume hinterlegt'
+//            : count($holidayList) . ' Unterrichtsfreie Zeiträume');
+
+        return new Panel(
+            $title,
+            $holidayList,
+            $tblCompany ? Panel::PANEL_TYPE_DEFAULT : Panel::PANEL_TYPE_INFO,
+//            Panel::PANEL_TYPE_DEFAULT,
+            (new Standard(
+                '',
+                __NAMESPACE__ . '\Holiday\Select',
+                new Holiday(),
+                array(
+                    'YearId' => $tblYear->getId(),
+                    'CompanyId' => $tblCompany ? $tblCompany->getId() : null
+                ),
+                'Unterrichtsfreie Zeiträume zuweisen'
+            ))
+            . ($hasHolidayImportButton
+                ? (new Standard(
+                    'Ferien und Feiertage importieren',
+                    __NAMESPACE__ . '\Holiday\Import',
+                    null,
+                    array(
+                        'YearId' => $tblYear->getId(),
+                        'CompanyId' => $tblCompany ? $tblCompany->getId() : null
+                    )
+                ))
+                : ''
+            )
+        );
     }
 
     /**

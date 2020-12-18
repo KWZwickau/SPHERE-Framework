@@ -746,6 +746,10 @@ class ApiAbsence extends Extension implements IApiInterface
 
                     // Content der je Klasse erstellen
                     foreach ($tblDivisionList as $tblDivision) {
+                        if (!($tblCompany = $tblDivision->getServiceTblCompany())) {
+                            $tblCompany = null;
+                        }
+
                         $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
 
                         $bodyList[$tblDivision->getId()]['Division'] = (new TableColumn(new Center(new Bold($tblDivision->getDisplayName()))))
@@ -761,7 +765,7 @@ class ApiAbsence extends Extension implements IApiInterface
                                 $Month = (int)$startDate->format('m');
 
                                 $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
-                                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate);
+                                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany);
 
                                 if (!isset($headerList['Day' . $Day])) {
                                     $columnHeader = (new TableColumn(new Center(
@@ -1027,6 +1031,10 @@ class ApiAbsence extends Extension implements IApiInterface
             && ($tblYear = $tblDivision->getServiceTblYear())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
+            if (!($tblCompany = $tblDivision->getServiceTblCompany())) {
+                $tblCompany = null;
+            }
+
             // Begrenzung auf den Zeitraum des aktuellen Schuljahres
             list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             /** @var DateTime $startDateSchoolYear */
@@ -1065,7 +1073,7 @@ class ApiAbsence extends Extension implements IApiInterface
                         $DayAtWeek = (new DateTime(($Day < 10 ? '0'.$Day : $Day).'.'.$Month.'.'.$Year))->format('w');
 
                         $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
-                        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $fetchedDate);
+                        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $fetchedDate, $tblCompany);
 
                         $isCurrentDate = false;
                         if (!isset($headerList['Day' . $Day])) {

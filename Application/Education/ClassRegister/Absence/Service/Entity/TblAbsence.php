@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -216,10 +217,11 @@ class TblAbsence extends Element
     /**
      * @param DateTime $tillDate
      * @param int $countLessons
+     * @param TblCompany|null $tblCompany
      *
      * @return int|string
      */
-    public function getDays(DateTime $tillDate = null, &$countLessons = 0)
+    public function getDays(DateTime $tillDate = null, &$countLessons = 0, TblCompany $tblCompany = null)
     {
         $countDays = 0;
         $lessons = Absence::useService()->getLessonAllByAbsence($this);
@@ -232,13 +234,13 @@ class TblAbsence extends Element
                     $date = $fromDate;
                     while ($date <= $toDate) {
 
-                        $countDays = $this->countThisDay($date, $countDays);
+                        $countDays = $this->countThisDay($date, $countDays, $tblCompany);
 
                         $date = $date->modify('+1 day');
                     }
                 }
             } else {
-                $countDays = $this->countThisDay($fromDate, $countDays);
+                $countDays = $this->countThisDay($fromDate, $countDays, $tblCompany);
             }
         } else {
             if ($tillDate >= $fromDate){
@@ -247,12 +249,12 @@ class TblAbsence extends Element
                     if ($toDate >= $fromDate) {
                         $date = $fromDate;
                         while ($date <= $toDate && $date <= $tillDate) {
-                            $countDays = $this->countThisDay($date, $countDays);
+                            $countDays = $this->countThisDay($date, $countDays, $tblCompany);
                             $date = $date->modify('+1 day');
                         }
                     }
                 } else {
-                    $countDays = $this->countThisDay($fromDate, $countDays);
+                    $countDays = $this->countThisDay($fromDate, $countDays, $tblCompany);
                 }
             }
         }
@@ -275,17 +277,19 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param $date
-     * @param $countDays
+     * @param DateTime $date
+     * @param integer $countDays
+     * @param TblCompany|null $tblCompany
+     *
      * @return mixed
      */
-    private function countThisDay(DateTime $date, $countDays)
+    private function countThisDay(DateTime $date, $countDays, TblCompany $tblCompany = null)
     {
 
         if ($date->format('w') != 0 && $date->format('w') != 6) {
             if ($this->getServiceTblDivision()
                 && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
-                && !Term::useService()->getHolidayByDay($tblYear, $date)
+                && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
             ) {
                 $countDays++;
             }

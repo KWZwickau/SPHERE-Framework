@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Term;
 
 use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
@@ -42,6 +43,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -72,7 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblYearAll = Term::useService()->getYearAll();
         $TableContent = array();
         if ($tblYearAll) {
-            array_walk($tblYearAll, function (TblYear &$tblYear) use (&$TableContent) {
+            array_walk($tblYearAll, function (TblYear $tblYear) use (&$TableContent) {
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll(false, true);
                 $Temp['Year'] = $tblYear->getYear();
@@ -197,7 +199,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPeriodAll = Term::useService()->getPeriodAll();
         $TableContent = array();
         if ($tblPeriodAll) {
-            array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use (&$TableContent) {
+            array_walk($tblPeriodAll, function (TblPeriod $tblPeriod) use (&$TableContent) {
 
                 $Temp['Name'] = $tblPeriod->getName();
                 $Temp['Description'] = $tblPeriod->getDescription();
@@ -669,11 +671,13 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $YearId
+     * @param null $CompanyId
      *
      * @return Stage|string
      */
     public function frontendSelectHoliday(
-        $YearId = null
+        $YearId = null,
+        $CompanyId = null
     ) {
 
         $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Zeiträume zuweisen');
@@ -688,11 +692,20 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Schuljahr',
                                 $tblYear->getName() . ' ' . new Small(new Muted($tblYear->getDescription())),
                                 Panel::PANEL_TYPE_INFO
-                            ), 12
-                        ),
+                            )
+                            , 6),
+                        new LayoutColumn(
+                            new Panel(
+                                'Schule',
+                                ($tblCompany = Company::useService()->getCompanyById($CompanyId))
+                                    ? $tblCompany->getDisplayName()
+                                    : 'Alle Schulen',
+                                Panel::PANEL_TYPE_INFO
+                            )
+                            , 6),
                     ))
                 )),
-            )) . YearHoliday::receiverUsed(YearHoliday::tableHoliday($YearId)));
+            )) . YearHoliday::receiverUsed(YearHoliday::tableHoliday($YearId, $CompanyId)));
 
         } else {
             return $Stage
@@ -744,15 +757,15 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(
                             (Term::useService()->destroyHoliday($tblHoliday)
-                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(
+                                ? new Success(
                                     new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Unterrichtsfreien Tage wurde gelöscht')
                                 . new Redirect('/Education/Lesson/Term/Holiday', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger(new Ban() . ' Die Unterrichtsfreien Tage konnte nicht gelöscht werden')
                                 . new Redirect('/Education/Lesson/Term/Holiday', Redirect::TIMEOUT_ERROR)
                             )
-                        )))
+                        ))
                     )))
                 );
             }
@@ -771,16 +784,18 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $YearId
+     * @param null $CompanyId
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendImportHoliday($YearId = null, $Data = null)
+    public function frontendImportHoliday($YearId = null, $CompanyId = null, $Data = null)
     {
         $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Zeiträume importieren');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         if (($tblYear = Term::useService()->getYearById($YearId))) {
+            $tblCompany = Company::useService()->getCompanyById($CompanyId);
             $list = array();
             if (($tblState = BasicData::useService()->getStateByName('Sachsen'))) {
                 $list[$tblState->getId()] = $tblState->getName();
@@ -802,15 +817,22 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Schuljahr',
                                 $tblYear->getName() . ' ' . new Small(new Muted($tblYear->getDescription())),
                                 Panel::PANEL_TYPE_INFO
-                            ), 12
-                        ),
+                            )
+                            , 6),
+                        new LayoutColumn(
+                            new Panel(
+                                'Schule',
+                                $tblCompany ? $tblCompany->getDisplayName() : 'Alle Schulen',
+                                Panel::PANEL_TYPE_INFO
+                            )
+                            , 6),
                     ))
                 )),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Well(
-                                Term::useService()->importHolidayFromSystem($form, $tblYear, $Data)
+                                Term::useService()->importHolidayFromSystem($form, $tblYear, $tblCompany ? $tblCompany : null, $Data)
                             )
                         ))
                     ))

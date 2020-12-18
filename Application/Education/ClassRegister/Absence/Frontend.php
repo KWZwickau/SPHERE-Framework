@@ -537,7 +537,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $item = array(
                     'FromDate' => $tblAbsence->getFromDate(),
                     'ToDate' => $tblAbsence->getToDate(),
-                    'Days' => ($days = $tblAbsence->getDays()) == 1
+                    'Days' => ($days = $tblAbsence->getDays(
+                        null,
+                        $count,
+                        ($tblCompany = $tblDivision->getServiceTblCompany()) ? $tblCompany : null)) == 1
                         ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
                         : $days,
                     'Lessons' => $tblAbsence->getLessonStringByAbsence(),
