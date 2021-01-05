@@ -8,7 +8,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -61,7 +60,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUnivAPI($Upload = '')
     {
 
-        $Stage = new Stage('Univention', 'Online Verbindung');
+        $Stage = new Stage('Univention', 'Schnittstelle API');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
 
 //        $beginn = microtime(true);
@@ -570,10 +569,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Accordion->addItem('Benutzer in UCS entfernen ('.$count['delete'].')',
             new Listing($ContentDelete)
         );
-        $Accordion->addItem('Benutzer, die nicht angelegt werden können ('.$count['cantCreate'].')',
+        $Accordion->addItem('Benutzer die nicht in UCS angelegt werden können ('.$count['cantCreate'].')',
             new Listing($CantCreatePanelContent)
         );
-        $Accordion->addItem('Benutzer, die nicht angepasst werden können ('.$count['cantUpdate'].')',
+        $Accordion->addItem('Benutzer, die nicht in UCS angepasst werden können ('.$count['cantUpdate'].')',
             new Listing($CantUpdatePanelContent)
         );
         $Accordion->addItem('Benutzer anpassen ('.$count['update'].' von '.$count['allUpdate'].')',
@@ -671,9 +670,8 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                         case 'roles':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                'Mögliche Fehler:</br>'
-                                .'Schüler '.new DangerText('keine aktive Klasse').'</br>'
-                                .'Person in keiner der Folgenen Personengruppen:</br>'
+                                new DangerText('Fehler:').'</br>'
+                                .'Person in keiner der folgenen Personengruppen:</br>'
                                 .new DangerText('Schüler / Mitarbeiter / Lehrer')
                             )))->enableHtml();
                         break;
@@ -681,6 +679,12 @@ class Frontend extends Extension implements IFrontendInterface
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen </br>'
                                 .'oder Schule fehlt in Univention')))->enableHtml();
+                        break;
+                        case 'school_classes':
+                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                new DangerText('Mögliche Fehler:').'</br>'
+                                .'- Schüler ist keiner Klasse zugewiesen </br>'
+                                .'- Leherer hat keinen Lehrauftrag')))->enableHtml();
                         break;
                     }
 
@@ -731,7 +735,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivCSV()
     {
-        $Stage = new Stage('Univention', 'Online Verbindung');
+        $Stage = new Stage('Univention', 'Schnittstelle CSV');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
         $Stage->addButton(new Standard('CSV Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
