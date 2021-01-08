@@ -234,6 +234,10 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
+//        echo '<pre>';
+//        var_dump($Json);
+//        echo '</pre>';
+
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
             return new Bold('Univention: Internal Server Error');
@@ -248,7 +252,7 @@ class UniventionUser
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= new Bold($name.': ').$Detail['msg'];
+                        $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
                     }
                 }
             }

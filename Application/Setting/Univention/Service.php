@@ -326,6 +326,9 @@ class Service extends AbstractService
                         if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
                             foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                                 if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
+                                    if($Acronym == 'REF'){
+                                        $Acronym = 'DEMOSCHOOL';
+                                    }
                                     $SchoolString = $Acronym;
                                     $TeacherSchools[$SchoolString] = $SchoolString;
 //                                    // wichtig für Schulgetrennte Klassen (nicht Mandantenweise) ToDO Vorerst deaktiviert!
@@ -476,7 +479,7 @@ class Service extends AbstractService
     private function getPersonDataExcel($Item, TblPerson $tblPerson, TblYear $tblYear, $Acronym, $TeacherClasses, $TeacherSchools)
     {
 
-        $Item['firstname'] = $tblPerson->getFirstSecondName();
+        $Item['firstname'] = $tblPerson->getFirstName();
         $Item['lastname'] = $tblPerson->getLastName();
 
         // Rollen
