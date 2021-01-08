@@ -129,6 +129,11 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
+        // return Server error as an Error
+        if($Json == 'Internal Server Error'){
+            return new Bold('Univention: Internal Server Error');
+        }
+
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
@@ -190,6 +195,10 @@ class UniventionUser
 //            'source_uid' => $source_uid
         );
 
+        echo '<pre>';
+        var_dump($PersonContent);
+        echo '</pre>';
+
         $PersonContent = json_encode($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
@@ -225,6 +234,10 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
+        // return Server error as an Error
+        if($Json == 'Internal Server Error'){
+            return new Bold('Univention: Internal Server Error');
+        }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
@@ -273,6 +286,10 @@ class UniventionUser
         ));
 
         $Json = $this->execute($this->curlhandle);
+        // return Server error as an Error
+        if($Json == 'Internal Server Error'){
+            return new Bold('Univention: Internal Server Error');
+        }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;

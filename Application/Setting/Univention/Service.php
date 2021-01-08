@@ -254,7 +254,7 @@ class Service extends AbstractService
                 } else {
                     if(isset($TeacherClasses[$tblPerson->getId()])){
                         $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
-                        sort($SchoolListWithClasses);
+                        asort($SchoolListWithClasses);
                         $UploadItem['school_classes'] = $SchoolListWithClasses;
                     }
                 }
@@ -339,7 +339,9 @@ class Service extends AbstractService
 //                                            $SchoolString .= '-';
 //                                        }
 //                                    }
-                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][$tblDivision->getId()] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                    // doppelte werte entfernen
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$SchoolString]);
                                 }
                             }
                         }

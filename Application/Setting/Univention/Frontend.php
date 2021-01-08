@@ -102,6 +102,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $UserUniventionList = Univention::useService()->getApiUser();
 
+        foreach($UserUniventionList as $UserUniventionOne){
+            if($UserUniventionOne['name'] == 'EVSC-Neuwirth'){
+                echo '<pre>';
+                var_dump($UserUniventionOne);
+                echo '</pre>';
+            }
+        }
+
         $UserSchulsoftwareList = array();
         $tblYear = Term::useService()->getYearByNow();
         if($tblYear){
@@ -384,9 +392,9 @@ class Frontend extends Extension implements IFrontendInterface
                             array_push($tblCompareUpdate, $CompareRow);
 
                             $count['update']++;
-//                            if($AccountActive['name'] == 'REF-Lehrer1'){
+                            if($AccountActive['name'] == 'EVSC-Neuwirth'){
                                 $updateList[] = $AccountActive;
-//                            }
+                            }
 
                         } else {
                             $firstWith = 1;
