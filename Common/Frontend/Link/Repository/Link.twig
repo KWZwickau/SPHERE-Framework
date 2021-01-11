@@ -1,10 +1,12 @@
 {% if( Disabled is empty ) %}
     <a id="{{ ElementHash }}"
         {% if( AjaxEventClick is empty ) %} href="{{ UrlBase }}{{ ElementPath }}" {% endif %}
-       class="{{ ElementType }}" data-trigger="hover"
-       data-toggle="popover" data-content="{{ ElementToolTip }}"
+        class="{{ ElementType }}" data-trigger="hover"
+        data-toggle="popover" data-content="{{ ElementToolTip }}"
+{#       target="{{ ElementExternal }}"#}
         {% if( AjaxEventClick is not empty ) %} oncontextmenu="return false;" {% endif %}
-    >{{ ElementIcon }} {{ ElementName }}</a>
+        rel="LinkExternal">{{ ElementIcon }} {{ ElementName }}
+        </a>
 
     {% if( AjaxEventClick is not empty ) %}
         <script language=javascript>
@@ -64,6 +66,21 @@
                         + '<div class="popover-content"></div>'
                         + '</div>'
                 });
+            });
+        });
+    </script>
+{% endif %}
+{% if(ElementExternal is not empty) %}
+    <script>
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
+        {
+            Client.Use("ModAlways", function()
+            {
+                /**
+                 * Activate: External Link
+                 */
+                $('a#{{ ElementHash }}[rel="LinkExternal"]').attr('target', '_blank');
             });
         });
     </script>
