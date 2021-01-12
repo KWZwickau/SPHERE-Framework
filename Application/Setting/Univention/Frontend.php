@@ -106,7 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
 
 //        //toDO wieder entfernen
 //        foreach($UserUniventionList as $UserUniventionOne){
-//            if($UserUniventionOne['name'] == 'EVSR-Eckhardt'){
+//            if($UserUniventionOne['name'] == 'REF-Lehrer1'){
 //                echo '<pre>';
 //                var_dump($UserUniventionOne);
 //                echo '</pre>';
