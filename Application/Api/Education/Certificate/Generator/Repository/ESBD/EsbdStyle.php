@@ -35,10 +35,11 @@ abstract class EsbdStyle extends Certificate
         // Grundschullogo muss kleiner sein, damit genügend Platz um das Sachsenlogo ist
         $height = '50px';
         $isPrimarySchool = true;
-        if(strpos($SchoolName, 'Gymnasium') || strpos($SchoolName, 'Oberschule')){
-            $isPrimarySchool = false;
-            $height = '62px';
-        }
+        // SSW-1217 Ergänzung des Sachsenlogos für Os und Gy
+//        if(strpos($SchoolName, 'Gymnasium') || strpos($SchoolName, 'Oberschule')){
+//            $isPrimarySchool = false;
+//            $height = '62px';
+//        }
         $picturePath = 'Common/Style/Resource/Logo/ESBD.jpg';
 
         $Head = new Slice();

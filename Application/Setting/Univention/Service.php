@@ -151,7 +151,7 @@ class Service extends AbstractService
                 $UploadItem['lastname'] = '';
                 $UploadItem['record_uid'] = $tblAccount->getId();
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
-                $UploadItem['roles'] = '';
+                $UploadItem['roles'] = array();
                 $UploadItem['schools'] = array();
 
 //            $UploadItem['password'] = '';// no passwort transfer
@@ -481,7 +481,7 @@ class Service extends AbstractService
         $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
         $roles = array();
         $groups = array();
-        if(isset($tblGroupList)){
+        if($tblGroupList && !empty($tblGroupList)){
             foreach ($tblGroupList as $tblGroup) {
                 if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
                     $roles[] = 'staff';

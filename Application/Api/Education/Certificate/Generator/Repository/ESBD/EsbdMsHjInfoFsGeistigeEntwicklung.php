@@ -45,7 +45,7 @@ class EsbdMsHjInfoFsGeistigeEntwicklung extends EsbdStyle
         $term = '1. Schulhalbjahr'
     ) {
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer($title, '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', $term))
             ->addSlice($this->getStudentNameConsumer($personId))
@@ -70,7 +70,7 @@ class EsbdMsHjInfoFsGeistigeEntwicklung extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('DIALOGUS')
@@ -83,6 +83,6 @@ class EsbdMsHjInfoFsGeistigeEntwicklung extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', $term))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('42px'));
+            ->addSlice($this->getBottomLineConsumer('25px'));
     }
 }

@@ -40,7 +40,7 @@ class EsbdMsHjFsLernen  extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer('Halbjahreszeugnis der Oberschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
@@ -74,7 +74,7 @@ class EsbdMsHjFsLernen  extends EsbdStyle
             ->addSlice($this->getDateLineConsumer($personId))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
-            ->addSlice($this->getInfoConsumer('30px',
+            ->addSlice($this->getInfoConsumer('20px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                     (6 = ungenügend nur bei der Bewertung der Leistungen)',
@@ -91,7 +91,7 @@ class EsbdMsHjFsLernen  extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('DIALOGUS')
@@ -104,6 +104,6 @@ class EsbdMsHjFsLernen  extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('42px'));
+            ->addSlice($this->getBottomLineConsumer('25px'));
     }
 }

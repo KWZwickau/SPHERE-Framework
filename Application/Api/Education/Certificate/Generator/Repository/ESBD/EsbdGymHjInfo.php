@@ -40,7 +40,7 @@ class EsbdGymHjInfo extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer('Halbjahresinformation des Gymnasiums', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
@@ -61,7 +61,7 @@ class EsbdGymHjInfo extends EsbdStyle
             ->addSlice($this->getDateLineConsumer($personId))
             ->addSlice($this->getSignPartConsumer($personId, false))
             ->addSlice($this->getParentSignConsumer())
-            ->addSlice($this->getInfoConsumer('30px',
+            ->addSlice($this->getInfoConsumer('20px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',
@@ -80,7 +80,7 @@ class EsbdGymHjInfo extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('DIALOGUS')
@@ -94,6 +94,6 @@ class EsbdGymHjInfo extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('42px'));
+            ->addSlice($this->getBottomLineConsumer('25px'));
     }
 }

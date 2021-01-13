@@ -56,7 +56,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer('Kurshalbjahreszeugnis', '5px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -660,7 +660,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('DIALOGUS')
@@ -674,6 +674,6 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
             ->addSlice($this->getDivisionAndYear($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('42px'));
+            ->addSlice($this->getBottomLineConsumer('25px'));
     }
 }

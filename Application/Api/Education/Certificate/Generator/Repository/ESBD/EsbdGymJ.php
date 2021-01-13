@@ -51,7 +51,7 @@ class EsbdGymJ extends EsbdStyle
     public function getPageOne($personId)
     {
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis des Gymnasiums', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId))
             ->addSlice($this->getStudentNameConsumer($personId))
@@ -108,7 +108,7 @@ class EsbdGymJ extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Gymnasium', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('DIALOGUS')
@@ -122,6 +122,6 @@ class EsbdGymJ extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('42px'));
+            ->addSlice($this->getBottomLineConsumer('25px'));
     }
 }

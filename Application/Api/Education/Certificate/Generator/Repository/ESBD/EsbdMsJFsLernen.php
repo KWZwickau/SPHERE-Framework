@@ -51,7 +51,7 @@ class EsbdMsJFsLernen extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice($this->getCertificateHeadConsumer('Jahreszeugnis der Oberschule', '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px'))
             ->addSlice($this->getStudentNameConsumer($personId))
@@ -103,7 +103,7 @@ class EsbdMsJFsLernen extends EsbdStyle
     {
 
         return (new Page())
-            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule'))
+            ->addSlice($this->getHeadConsumer('Evangelisches Schulzentrum Bad Düben - Oberschule', '(staatlich anerkannte Ersatzschule)'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('DIALOGUS')
@@ -116,6 +116,6 @@ class EsbdMsJFsLernen extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', 'Schuljahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('42px'));
+            ->addSlice($this->getBottomLineConsumer('25px'));
     }
 }
