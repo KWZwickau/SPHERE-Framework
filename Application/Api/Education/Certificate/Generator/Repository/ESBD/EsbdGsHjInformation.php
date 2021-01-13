@@ -41,7 +41,7 @@ class EsbdGsHjInformation extends EsbdStyle
             ->addSlice($this->getSubjectLanes($personId)
                 ->styleHeight('155px'))
             ->addSlice($this->getDescriptionHeadConsumer($personId, false))
-            ->addSlice($this->getDescriptionContentConsumer($personId, '300px', '17px'))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '230px', '17px'))
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getDateLineConsumer($personId))
             ->addSlice($this->getSignPartConsumer($personId, false))
