@@ -51,7 +51,7 @@ class Frontend  extends Extension implements IFrontendInterface
     public function frontendClassList($LevelId = null, $YearId = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste');
+        $Stage = new Stage('Auswertung', 'Klassenlisten');
         if (null !== $LevelId || $YearId !== null) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/BadDueben/Person/ClassList', new ChevronLeft()));
         }

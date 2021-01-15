@@ -59,7 +59,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($DivisionId = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste');
+        $Stage = new Stage('Auswertung', 'Klassenlisten');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Schneeberg/Person/ClassList',
                 new ChevronLeft()));
