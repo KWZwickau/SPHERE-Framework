@@ -89,8 +89,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $IsMaintenance = (new \DateTime('now') >= new \DateTime('2020-09-25 10:00:00')
-                       && new \DateTime('now') <= new \DateTime('2020-09-25 23:59:59'));
+        $IsMaintenance = (new \DateTime('now') >= new \DateTime('2021-01-15 10:00:00')
+                       && new \DateTime('now') <= new \DateTime('2021-01-15 23:59:59'));
 //        $IsMaintenance = false;
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;

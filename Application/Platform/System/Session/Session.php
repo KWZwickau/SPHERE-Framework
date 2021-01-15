@@ -196,7 +196,10 @@ class Session extends Extension implements IModuleInterface
                                 'Identifier' => 'Session',
                                 'Option' => ''
                             ), array(
-                                'order' => array(array(0, 'desc')),
+                                'order' => array(
+                                    array(3, 'asc'),
+                                    array(0, 'desc')
+                                ),
                                 'columnDefs' => array(
                                     array('width' => '1%', 'orderable' => false, 'targets' => -1)
                                 )
