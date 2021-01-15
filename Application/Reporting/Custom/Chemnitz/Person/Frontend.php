@@ -58,7 +58,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($DivisionId = null)
     {
 
-        $Stage = new Stage('ESZC Auswertung', 'Klassenliste');
+        $Stage = new Stage('ESZC Auswertung', 'Klassenlisten');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ClassList', new ChevronLeft()));
         }

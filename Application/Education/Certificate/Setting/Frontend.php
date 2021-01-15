@@ -186,7 +186,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->setContent(
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
-                    , $tblTechnicalCourse->getName()),
+                    , ($tblTechnicalCourse ? $tblTechnicalCourse->getName() : '')),
                         Panel::PANEL_TYPE_INFO)
                     . Generator::useService()->createCertificateSetting(
                         new Form(array(

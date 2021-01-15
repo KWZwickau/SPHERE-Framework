@@ -226,7 +226,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDenominationList()
     {
 
-        $Stage = new Stage('Individuelle Auswertung', 'Anwesenheitsliste Elternabende');
+        $Stage = new Stage('Individuelle Auswertung', 'Religionszugehörigkeit');
         $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 

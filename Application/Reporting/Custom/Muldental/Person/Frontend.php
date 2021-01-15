@@ -45,7 +45,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($LevelId = null, $YearId = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste');
+        $Stage = new Stage('Auswertung', 'Klassenlisten');
         if (null !== $LevelId || $YearId !== null) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Muldental/Person/ClassList', new ChevronLeft()));
         }
@@ -134,9 +134,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(0, 'desc'),
                                             array(1, 'asc'),
                                             array(2, 'asc'),
-                                        ),
-                                        "columnDefs" => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
                                         ),
                                     )
                                 )

@@ -254,7 +254,7 @@ class Service extends AbstractService
                 } else {
                     if(isset($TeacherClasses[$tblPerson->getId()])){
                         $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
-                        sort($SchoolListWithClasses);
+                        asort($SchoolListWithClasses);
                         $UploadItem['school_classes'] = $SchoolListWithClasses;
                     }
                 }
@@ -326,6 +326,9 @@ class Service extends AbstractService
                         if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
                             foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                                 if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
+                                    if($Acronym == 'REF'){
+                                        $Acronym = 'DEMOSCHOOL';
+                                    }
                                     $SchoolString = $Acronym;
                                     $TeacherSchools[$SchoolString] = $SchoolString;
 //                                    // wichtig für Schulgetrennte Klassen (nicht Mandantenweise) ToDO Vorerst deaktiviert!
@@ -339,7 +342,9 @@ class Service extends AbstractService
 //                                            $SchoolString .= '-';
 //                                        }
 //                                    }
-                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][$tblDivision->getId()] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                    // doppelte werte entfernen
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$SchoolString]);
                                 }
                             }
                         }
@@ -474,7 +479,7 @@ class Service extends AbstractService
     private function getPersonDataExcel($Item, TblPerson $tblPerson, TblYear $tblYear, $Acronym, $TeacherClasses, $TeacherSchools)
     {
 
-        $Item['firstname'] = $tblPerson->getFirstSecondName();
+        $Item['firstname'] = $tblPerson->getFirstName();
         $Item['lastname'] = $tblPerson->getLastName();
 
         // Rollen
