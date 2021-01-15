@@ -51,6 +51,7 @@ use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\Editor;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -111,7 +112,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -756,6 +756,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         $tblGroup = false;
         $headTableColumnList = array();
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
             $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
             if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
                 $description = 'Gruppe ' . $tblGroup->getName();
@@ -1527,7 +1528,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             /*
                                             * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
                                             */
-                                            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                            if ($tblConsumer
                                                 && $tblConsumer->getAcronym() == 'EVGSM'
                                                 && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
                                                 && strpos($tblCertificateStudent->getCertificate(),
@@ -1698,8 +1699,16 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         }
                     }
 
-                    $tableData = new TableData($studentTable, null, $columnTable,
-                        array(
+                    $SpaceWithFalseTable = '';
+                    // if using false table, need to be space between buttons & table
+                    // same consumer as those who using Editor ad inputfield
+                    if($tblConsumer
+                        && ($tblConsumer->getAcronym() == 'REF' || $tblConsumer->getAcronym() == 'EVAB')
+                    ) {
+                        $Interactive = false;
+                        $SpaceWithFalseTable = new Container('&nbsp;');
+                    } else {
+                        $Interactive = array(
                             "columnDefs" => array(
                                 array(
                                     "width" => "7px",
@@ -1723,8 +1732,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             "info" => false,  // Deaktivieren Such-Info
                             "sort" => false,
                             "responsive" => false
-                        ),
-                        true
+                        );
+                    }
+
+                    $tableData = new TableData($studentTable, null, $columnTable,
+                        $Interactive, true
                     );
 
                     $formButtons[] = new Primary('Speichern', new Save());
@@ -1780,6 +1792,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 new LayoutRow(array(
                                     new LayoutColumn(array(
                                         ApiSupportReadOnly::receiverOverViewModal(),
+                                        $SpaceWithFalseTable,
                                         Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
                                             $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList, $nextPage)
                                     ))
@@ -2272,6 +2285,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                         $studentTable[$tblPerson->getId()][$key] = $checkBox;
 //                                                    }
                                                 }
+                                            } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\Editor') {
+                                                $Editor = new Editor($dataFieldName);
+                                                $studentTable[$tblPerson->getId()][$key] = $Editor;
                                             } else {
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
                                                     $studentTable[$tblPerson->getId()][$key]

@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -338,6 +339,32 @@ abstract class Certificate extends Extension
     {
 
         return $this->Certificate;
+    }
+
+    /**
+     * get Certificate Content
+     * @param TblPerson                  $tblPerson
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
+     *
+     * @return array $Data <br/>
+     * ['Remark'] => Beschreibung
+     */
+    protected function getCertificateData(TblPerson $tblPerson, $tblPrepareCertificate = null)
+    {
+
+        //ToDO add necessary Data (at the moment Editor content)
+        $Data['Remark'] = '';
+        if($tblPrepareCertificate && ($tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepareCertificate,
+                $tblPerson))){
+            foreach($tblPrepareInformationList as $tblPrepareInformation)
+            {
+                if($tblPrepareInformation->getField() == 'Remark'){
+                    $Data['Remark'] = $tblPrepareInformation->getValue();
+                }
+            }
+        }
+
+        return $Data;
     }
 
     /**
@@ -1681,22 +1708,28 @@ abstract class Certificate extends Extension
      * @param string $MarginTop
      * @param string $PreRemark
      * @param string|bool $TextSize
+     * @param string $Remark
      * @return Slice
      */
-    public function getDescriptionContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '', $TextSize = false)
+    public function getDescriptionContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '', $TextSize = false, $Remark = '')
     {
 
         $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
 
         $Element = (new Element());
-        $Element->setContent($PreRemark.
-                    '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+        if($Remark != ''){
+            $Element->setContent($PreRemark.$Remark);
+        } else {
+            $Element->setContent($PreRemark.
+                '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
                         {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                     {% else %}
                         &nbsp;
-                    {% endif %}')
-            ->styleHeight($Height)
-            ->styleMarginTop($MarginTop);
+                    {% endif %}');
+        }
+        $Element->styleHeight($Height);
+        $Element->styleMarginTop($MarginTop);
+        $Element->styleBorderAll();
 
         if($tblSetting && $tblSetting->getValue()){
             $Element->styleAlignJustify();
