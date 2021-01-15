@@ -29,35 +29,35 @@ class Custom implements IApplicationInterface
 
         $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
         // Chemitz
-        if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'ESZC') {
             ChemnitzPerson::registerModule();
         }
         // Coswig
-        if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EVSC') {
             CoswigPerson::registerModule();
         }
         // Herrnhut
-        if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EZSH') {
             HerrnhutPerson::registerModule();
         }
         // Hormersdorf
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
             HormersdorfPerson::registerModule();
         }
         // Muldental
-        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EVAMTL') {
             MuldentalPerson::registerModule();
         }
         // Radebeul
-        if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EVSR') {
             RadebeulPerson::registerModule();
         }
         // Schneeberg
-        if ($consumerAcronym === 'ESS' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'ESS') {
             SchneebergPerson::registerModule();
         }
         // Bad Düben
-        if ($consumerAcronym === 'ESBD' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'ESBD') {
             BadDuebenPerson::registerModule();
         }
         // Annaberg
