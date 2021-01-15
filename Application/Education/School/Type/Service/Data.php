@@ -21,37 +21,15 @@ class Data extends AbstractData
         $tblCategorySecondCourse = $this->createCategory(TblCategory::SECOND_COURSE, 'Schulen des zweiten Bildungsweges');
 
         // todo update entfernen wenn auf allen Mandanten ausgeführt wurde
-        if (($tblType = $this->createType('Berufliches Gymnasium', 'BGy', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BGy', $tblCategoryTechnical, true);
-        }
-        if (($tblType = $this->createType('Berufsfachschule', 'BFS', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BFS', $tblCategoryTechnical, true);
-        }
-        if (($tblType = $this->createType('Berufsschule', 'BS', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BS', $tblCategoryTechnical, true);
-        }
-        if (($tblType = $this->createType('Fachoberschule', 'FOS', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'FOS', $tblCategoryTechnical, true);
-        }
-        if (($tblType = $this->createType('Fachschule', 'FS', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'FS', $tblCategoryTechnical, true);
-        }
-        if (($tblType = $this->createType('Grundschule', 'GS', $tblCategoryCommon, true))) {
-            $this->updateTypeOnce($tblType, 'GS', $tblCategoryCommon, true);
-        }
-        if (($tblType = $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true))) {
-            $this->updateTypeOnce($tblType, 'Gy', $tblCategoryCommon, true);
-        }
-        if (($tblType = $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true))) {
-            $this->updateTypeOnce($tblType, 'OS', $tblCategoryCommon, true);
-        }
-
-        // zusätzlich rename Förderschule
-        if (($tblType = $this->getTypeByName('allgemein bildende Förderschule'))) {
-            $this->updateType($tblType, 'Förderschule', 'FöS', $tblCategoryCommon, true, '');
-        } else {
-            $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
-        }
+        $this->createType('Berufliches Gymnasium', 'BGy', $tblCategoryTechnical, true);
+        $this->createType('Berufsfachschule', 'BFS', $tblCategoryTechnical, true);
+        $this->createType('Berufsschule', 'BS', $tblCategoryTechnical, true);
+        $this->createType('Fachoberschule', 'FOS', $tblCategoryTechnical, true);
+        $this->createType('Fachschule', 'FS', $tblCategoryTechnical, true);
+        $this->createType('Grundschule', 'GS', $tblCategoryCommon, true);
+        $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true);
+        $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true);
+        $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
 
         $this->createType('Gemeinschaftsschule', '', $tblCategoryCommon, true);
 
