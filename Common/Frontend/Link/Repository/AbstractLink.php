@@ -166,6 +166,16 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     }
 
     /**
+     * @return ILinkInterface
+     */
+    public function setExternal()
+    {
+
+        $this->Template->setVariable('ElementExternal', true);
+        return $this;
+    }
+
+    /**
      * only work's with ajax Link
      *
      * @param int $Height

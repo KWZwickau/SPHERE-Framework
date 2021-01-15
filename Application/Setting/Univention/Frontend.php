@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
@@ -27,6 +28,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -101,6 +103,15 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
+
+//        //toDO wieder entfernen
+//        foreach($UserUniventionList as $UserUniventionOne){
+//            if($UserUniventionOne['name'] == 'REF-Lehrer1'){
+//                echo '<pre>';
+//                var_dump($UserUniventionOne);
+//                echo '</pre>';
+//            }
+//        }
 
         $UserSchulsoftwareList = array();
         $tblYear = Term::useService()->getYearByNow();
@@ -384,9 +395,10 @@ class Frontend extends Extension implements IFrontendInterface
                             array_push($tblCompareUpdate, $CompareRow);
 
                             $count['update']++;
-//                            if($AccountActive['name'] == 'REF-Lehrer1'){
+                            //toDO wieder entfernen
+                            if($AccountActive['name'] == 'REF-Lehrer1'){
                                 $updateList[] = $AccountActive;
-//                            }
+                            }
 
                         } else {
                             $firstWith = 1;
@@ -744,9 +756,8 @@ class Frontend extends Extension implements IFrontendInterface
             || empty($Account['roles'])
             || empty($Account['schools'])) {
 
-            $ErrorLog[] = new Bold($Account['name']).' '.new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
-
             $tblMember = false;
+            $tblPerson = false;
             // ausnahme für Lehrer/Mitarbeiter ohne Klasse
             if(($tblAccount = Account::useService()->getAccountById($Account['record_uid']))){
                 $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
@@ -755,6 +766,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblMember = Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup);
                 }
             }
+            if($tblPerson){
+                $PersonId = $tblPerson->getId();
+                $PersonLink = (new Link(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'),
+                    '/People/Person', new Person(), array('Id' => $PersonId)))->setExternal();
+            } else {
+                $PersonLink = new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
+            }
+            $ErrorLog[] = new Bold($Account['name']).' '.$PersonLink;
 
             foreach($Account as $Key => $Value){
                 if(is_array($Value)){

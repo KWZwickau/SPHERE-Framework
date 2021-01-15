@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -71,6 +72,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -835,7 +837,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT);
         $TableContent = array();
         if ($tblUserAccountAll) {
-            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent) {
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent) {
 
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
@@ -843,7 +846,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['Division'] = new Muted('-NA-');
-                $Item['PersonListStudent'] = '';
+                $Item['ActiveInfo'] = new Center(new ToolTip(new InfoIcon(), 'Aktuell kein Schüler'));
                 $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
                         ? ''.$tblUserAccount->getAccountCreator().' - '
                         : new Muted('-NA-  ')
@@ -898,6 +901,9 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!empty($CustodyList)) {
                         $Item['PersonListCustody'] = implode($CustodyList);
                     }
+                    if((Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent))){
+                        $Item['ActiveInfo'] = '';
+                    }
                 }
 
 
@@ -944,11 +950,16 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address'           => 'Adresse',
                                         'PersonListCustody' => 'Sorgeberechtigte',
                                         'Division'          => 'aktuelle Klasse',
+                                        'ActiveInfo'        => 'Info',
                                         'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
                                         'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
                                         'Option'            => ''
                                     ), array(
-                                        'order'      => array(array(1, 'asc')),
+                                        'order'      => array(
+                                            array(6, 'desc'),
+                                            array(1, 'asc')
+
+                                        ),
                                         'columnDefs' => array(
                                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                             array('width' => '142px', 'orderable' => false, 'targets' => -1)
@@ -978,15 +989,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_CUSTODY);
         $TableContent = array();
         if ($tblUserAccountAll) {
-            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent) {
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent) {
 
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
                 $Item['UserPassword'] = '';
                 $Item['Address'] = '';
-                $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
+                $Item['ActiveInfo'] = new ToolTip(new InfoIcon(), 'keine aktiven Schüler');
                 $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
                         ? ''.$tblUserAccount->getAccountCreator().' - '
                         : new Muted('-NA-  ')
@@ -1033,6 +1045,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPersonStudent = $tblRelationship->getServiceTblPersonTo();
                                 if ($tblPersonStudent && $tblPersonStudent->getId() != $tblPerson->getId()) {
                                     $StudentList[] = new Container($tblPersonStudent->getLastFirstName());
+                                    // Gruppenkontrolle
+                                    if((Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroupStudent))){
+                                        $Item['ActiveInfo'] = '';
+                                    }
                                 }
                             }
                         }
@@ -1084,6 +1100,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'UserName'          => 'Account',
                                         'Address'           => 'Adresse',
                                         'PersonListStudent' => 'Sorgeberechtigt für',
+                                        'ActiveInfo'        => 'Info',
                                         'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
                                         'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
                                         'Option'            => ''
