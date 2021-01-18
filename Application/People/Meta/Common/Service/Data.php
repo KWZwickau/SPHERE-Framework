@@ -98,6 +98,7 @@ class Data extends AbstractData
         $Entity->setBirthday(( $Birthday ? new DateTime($Birthday) : null ));
         $Entity->setBirthplace($Birthplace);
         $Entity->setTblCommonGender($tblCommonGender);
+        $Entity->setGender($tblCommonGender ? $tblCommonGender->getId() : 0);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
