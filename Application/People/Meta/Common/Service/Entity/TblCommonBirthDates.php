@@ -119,15 +119,15 @@ class TblCommonBirthDates extends Element
     public function setGender($Gender)
     {
         $this->Gender = $Gender;
-        switch ( $Gender ) {
-            case self::VALUE_GENDER_MALE:
-            case self::VALUE_GENDER_FEMALE:
-                $Gender = Common::useService()->getCommonGenderById($Gender);
-                break;
-            default:
-                $Gender = null;
-        }
-        $this->setTblCommonGender( $Gender );
+//        switch ( $Gender ) {
+//            case self::VALUE_GENDER_MALE:
+//            case self::VALUE_GENDER_FEMALE:
+//                $Gender = Common::useService()->getCommonGenderById($Gender);
+//                break;
+//            default:
+//                $Gender = null;
+//        }
+//        $this->setTblCommonGender( $Gender );
     }
 
     /**
@@ -148,6 +148,7 @@ class TblCommonBirthDates extends Element
      */
     public function setTblCommonGender(TblCommonGender $tblCommonGender = null)
     {
+        $this->setGender($tblCommonGender ? $tblCommonGender->getId() : 0);
 
         $this->tblCommonGender = ( null === $tblCommonGender ? null : $tblCommonGender->getId() );
     }
