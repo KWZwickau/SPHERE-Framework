@@ -44,6 +44,8 @@ class Request extends Extension implements ITypeInterface
         if(isset($Global->REQUEST['htmlEnabledSpecific_Tags'])) {
 //            // beinhaltet ausnahmen
             foreach($Global->REQUEST['htmlEnabledSpecific_Tags'] as $Key => $ArrayString){
+                // String als Array umbauen, damit das korrekte Feld von array_intersect_key gefunden werden kann
+                // array_flip funktioniert bei einem mehrstufigen Array (≠ String) nicht
                 $ArrayString = str_replace(']', '', $ArrayString);
                 $AsArray = preg_split('/\[/', $ArrayString);
                     // dreidimensionales array
@@ -69,7 +71,7 @@ class Request extends Extension implements ITypeInterface
 
             // Ausnahmen separiert
             $requestWithHtmlField = array_intersect_key($Global->REQUEST, $Global->REQUEST['htmlEnabledSpecific_Tags']);
-            array_walk_recursive($requestWithHtmlField, array($this, 'preventXSSHtml'));
+            array_walk_recursive($requestWithHtmlField, array($this, 'preventXSSAllowSpecific'));
             // Ausnahmen Auflistung aus dem Array entfernen
             $fieldSet['htmlEnabledSpecific_Tags'] = true;
             // regulär separiert
@@ -122,7 +124,7 @@ class Request extends Extension implements ITypeInterface
     /**
      * @param $Value
      */
-    protected function preventXSSHtml(&$Value)
+    protected function preventXSSAllowSpecific(&$Value)
     {
 
         $Value = strip_tags($Value, '<p><strong><em><br><span><li><ul>');

@@ -42,63 +42,11 @@ class Post extends Extension implements ITypeInterface
 
         $Global = $this->getGlobal();
 
-//        $ListWithHTML = array();
-//
-//        if(!empty($Global->POST)){
-//            foreach($Global->POST as $Key => &$Value) {
-//                if('htmlEnabledSpecific_Tags' === $Key && !empty($Value)){
-//                    foreach($Value as $FieldName) {
-//                        $ListWithHTML[] = $FieldName;
-//                    }
-//                }
-//            }
-//
-//            foreach($Global->POST as $Key => &$Value) {
-//                if(in_array($Key, $ListWithHTML)){
-//                    $Value = $this->preventXSSExtendWithHtml($Value);
-//                } else {
-//                    if(!empty($Value)){
-//                        if(is_string($Value)){
-//                            $Value = array('0' => $Value);
-//                            $isString = true;
-//                        }
-//                        array_walk_recursive($Value, array($this, 'preventXSS'));
-//
-//                        if(isset($isString)){
-//                            $Value = implode('', $Value);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         if(isset($Global->POST['htmlEnabledSpecific_Tags'])) {
-
-//            foreach($Global->POST as $D0Key => &$dimension){
-//                if(is_string($dimension)){
-//                    $dimension = $this->exceptionDecision($dimension, $D0Key, $ListWithHTML);
-//                } elseif(is_array($dimension)){
-//                    foreach($dimension as $D1Key => &$dimensionOne){
-//                        if(is_string($dimensionOne)){
-//                            $dimensionOne = $this->exceptionDecision($dimensionOne, $D1Key, $ListWithHTML);
-//                        } elseif(is_array($dimensionOne)){
-//                            foreach($dimensionOne as $D2Key => &$dimensionTwo){
-//                                if(is_string($dimensionTwo)){
-//                                    $dimensionTwo = $this->exceptionDecision($dimensionTwo, $D2Key, $ListWithHTML);
-//                                } else{
-//                                    // Post array aktuell nur mit 2 ebenen erlaubt
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            $noDepth = array();
-//            $firstDepth = array();
-//            $secondDepth = array();
             // beinhaltet ausnahmen
             foreach($Global->POST['htmlEnabledSpecific_Tags'] as $Key => $ArrayString){
+                // String als Array umbauen, damit das korrekte Feld von array_intersect_key gefunden werden kann
+                // array_flip funktioniert bei einem mehrstufigen Array (≠ String) nicht
                 $ArrayString = str_replace(']', '', $ArrayString);
                 $AsArray = preg_split('/\[/', $ArrayString);
                     // dreidimensionales array
@@ -119,14 +67,11 @@ class Post extends Extension implements ITypeInterface
                 }
             }
 
-
 //            $fieldSet = array_flip($Global->POST['htmlEnabledSpecific_Tags']);
-            // feld1 => 0
-            // feld2 => 1
             // Ausnahmen separiert
 
             $postWithHtmlField = array_intersect_key($Global->POST, $Global->POST['htmlEnabledSpecific_Tags']);
-            array_walk_recursive($postWithHtmlField, array($this, 'preventXSSHtml'));
+            array_walk_recursive($postWithHtmlField, array($this, 'preventXSSAllowSpecific'));
             // Ausnahmen aus dem Array entfernen
             $fieldSet['htmlEnabledSpecific_Tags'] = true;
             // regulär separiert
@@ -179,39 +124,9 @@ class Post extends Extension implements ITypeInterface
     /**
      * @param $Value
      */
-    protected function preventXSSHtml(&$Value)
+    protected function preventXSSAllowSpecific(&$Value)
     {
 
         $Value = strip_tags($Value, '<p><strong><em><br><span><li><ul>');
     }
-
-//    private function exceptionDecision($Value, $Key, $List)
-//    {
-//
-//        if(in_array($Key, $List)){
-//            $Value = $this->preventXSSExtendHtml($Value);
-//        } else {
-//            $Value = $this->preventXSSExtend($Value);
-//        }
-//        return $Value;
-//
-//    }
-//
-//    /**
-//     * @param $Value
-//     */
-//    protected function preventXSSExtend($Value)
-//    {
-//
-//        return strip_tags($Value);
-//    }
-//
-//    /**
-//     * @param $Value
-//     */
-//    protected function preventXSSExtendHtml($Value)
-//    {
-//
-//        return strip_tags($Value, '<p><strong><em><br><span><li><ul>');
-//    }
 }
