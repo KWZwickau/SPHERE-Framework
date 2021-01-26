@@ -352,6 +352,13 @@ class Service extends AbstractService
                 }
             }
         }
+        // ArrayKey muss immer eine normale Zählung ohne Lücken ergeben 0,1,2,3...
+        foreach($TeacherClasses as $PersonId => &$SchoolString) {
+            foreach($SchoolString as $Acronym => &$ClassList){
+                sort($ClassList);
+            }
+        }
+
         return Univention::useService()->getAccountActive($tblYear, $Acronym, $TeacherSchools, $TeacherClasses, $schoolList, $roleList);
 
     }

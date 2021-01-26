@@ -195,9 +195,9 @@ class UniventionUser
 //            'source_uid' => $source_uid
         );
 
-        echo '<pre>';
-        var_dump($PersonContent);
-        echo '</pre>';
+//        echo '<pre>';
+//        var_dump($PersonContent);
+//        echo '</pre>';
 
         $PersonContent = json_encode($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
@@ -236,6 +236,7 @@ class UniventionUser
         $Json = $this->execute($this->curlhandle);
 //        echo '<pre>';
 //        var_dump($Json);
+//        var_dump((new \DateTime('now'))->format('H:i:s d.m.Y'));
 //        echo '</pre>';
 
         // return Server error as an Error

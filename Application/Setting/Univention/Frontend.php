@@ -87,19 +87,31 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('Univention liefert keine Informationen'));
             return $Stage;
         }
+        $Acronym = Account::useService()->getMandantAcronym();
+        // Mandant ist nicht in der Schulliste
+        if( !array_key_exists($Acronym, $schoolList) && $Acronym != 'REF'){
+            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht für UCS freigeschalten'));
+            return $Stage;
+        }
 
-        //ToDO aktivierung für andere Accounts wenn fertig
+        $IsButtonActive = false;
         if(($tblAccount = Account::useService()->getAccountBySession())){
             if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){
-        // Buttons nur bei aktiver API
-        // Removed for Live //ToDO without Buttons -> no Action!
-//        $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-//        $Stage->addButton(new Standard('Benutzer hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
-        $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
-//        $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+                 // Aktivierung EVSR
+                if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){ // || $Acronym == 'EVSR'
+                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
+                    $Stage->addButton(new Standard('Benutzer hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
+                    $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
+                    $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+                    $IsButtonActive = true;
                 }
             }
+        }
+        if(!$IsButtonActive){
+            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer hinzufügen', '', new Upload()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer anpassen', '', new Upload()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer löschen', '', new Upload()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -395,10 +407,10 @@ class Frontend extends Extension implements IFrontendInterface
                             array_push($tblCompareUpdate, $CompareRow);
 
                             $count['update']++;
-                            //toDO wieder entfernen
-                            if($AccountActive['name'] == 'REF-Lehrer1'){
-                                $updateList[] = $AccountActive;
-                            }
+//                            //toDO wieder entfernen
+//                            if($AccountActive['name'] == 'REF-Lehrer1'){
+//                                $updateList[] = $AccountActive;
+//                            }
 
                         } else {
                             $firstWith = 1;
@@ -585,11 +597,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(!empty($updateList)){
             foreach($updateList as $AccountArray) {
-                // ToDo Display changes that will be happend
-//            $DivisionString = 'Klasse: ';
-//            if(strpos($AccountArray['school_classes'], ',')){
-//                $DivisionString = 'Klassen: ';
-//            }
                 if(isset($AccountArray['UpdateLog'])){
                     $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
                         implode('<br/>', $AccountArray['UpdateLog'])
