@@ -176,12 +176,13 @@ class SecondarySchool extends AbstractStudentCard
             ->addSliceArray($this->setGradeLayoutBody($subjectPosition, $this->getTypeId(), 19, 28, 9));
     }
 
-        /**
-     * @param array $pageList
+    /**
+     * @param array  $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $part = '0')
     {
 
         return (new Frame())->addDocument((new Document())
