@@ -61,7 +61,7 @@ class CswMsJFsLernen extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                        ->styleHeight('50px')
+                        ->styleHeight('30px')
                     )
                 )
                 ->styleMarginTop('15px')
@@ -77,12 +77,12 @@ class CswMsJFsLernen extends Certificate
                 ->styleHeight('250px')
             )
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '110px', '8px'))
-            ->addSlice($this->getTransfer($personId, '13px'))
+            ->addSlice($this->getDescriptionContent($personId, '90px', '8px'))
+            ->addSlice($this->getTransfer($personId, '10px'))
             ->addSlice($this->getDateLine($personId, '10px'))
             ->addSlice($this->getSignPart($personId, true, '25px'))
-            ->addSlice($this->getParentSign('25px'))
-            ->addSlice($this->getInfo('3px',
+            ->addSlice($this->getParentSign('20px'))
+            ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                 (6 = ungenügend nur bei der Bewertung der Leistungen)',
