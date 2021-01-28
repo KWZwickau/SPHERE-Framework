@@ -33,7 +33,7 @@ class EzshMsCourseHjZ extends EzshStyle
                         )
                     )
                     ->addSectionList(
-                        self::getEZSHHeadLine('HALBJAHRESZEUGNIS', 'OBERSCHULE – staatlich genehmigte Ersatzschule')
+                        self::getEZSHHeadLine('HALBJAHRESZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule')
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
