@@ -5,7 +5,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -16,7 +15,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -98,20 +96,20 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblAccount = Account::useService()->getAccountBySession())){
             if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
                  // Aktivierung EVSR
-                if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){ // || $Acronym == 'EVSR'
-                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-                    $Stage->addButton(new Standard('Benutzer hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
-                    $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
-                    $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+                if($Acronym == 'EVSR'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
+//                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
+                    $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
+                    $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
+                    $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
                     $IsButtonActive = true;
                 }
             }
         }
         if(!$IsButtonActive){
-            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer hinzufügen', '', new Upload()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer anpassen', '', new Upload()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer löschen', '', new Upload()))->setDisabled());
+//            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -409,7 +407,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $count['update']++;
 //                            //toDO wieder entfernen
 //                            if($AccountActive['name'] == 'REF-Lehrer1'){
-//                                $updateList[] = $AccountActive;
+                                $updateList[] = $AccountActive;
 //                            }
 
                         } else {
@@ -454,7 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
             $deleteList = $UserUniventionList;
         }
 
-        $returnString = 'Komplett Abgleich';
+        $returnString = '';
         if($Upload == 'Create'){
             $returnString = 'Hinzufügen';
         } elseif($Upload == 'Update'){

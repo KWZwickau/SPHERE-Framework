@@ -249,7 +249,12 @@ class Service extends AbstractService
 
                 if($tblDivision){
 //                    $UploadItem['school_classes'][$StudentSchool] = array('DemoClass');
-                    $UploadItem['school_classes'][$StudentSchool][] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                    $ClassName = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                    $ClassName = str_replace('ä', 'ae', $ClassName);
+                    $ClassName = str_replace('ü', 'ue', $ClassName);
+                    $ClassName = str_replace('ö', 'oe', $ClassName);
+                    $ClassName = str_replace('ß', 'ss', $ClassName);
+                    $UploadItem['school_classes'][$StudentSchool][] = $ClassName;
 //                    $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
                 } else {
                     if(isset($TeacherClasses[$tblPerson->getId()])){
@@ -281,10 +286,14 @@ class Service extends AbstractService
         // Benutzerliste suchen
         $Acronym = Account::useService()->getMandantAcronym();
         $UniventionUserList = (new UniventionUser())->getUserListByProperty('name',$Acronym.'-', true);
-
         $UserUniventionList = array();
         if($UniventionUserList){
+            $EmptyCount = 0;
             foreach($UniventionUserList as $User){
+                // Nutzer ohne record_uid müssen in das Array mit eigenem Key aufgenommen werden
+                if(!$User['record_uid']){
+                    $User['record_uid'] = 'E'.$EmptyCount++;
+                }
                 $UserUniventionList[$User['record_uid']] =
                     // dn, url, ucsschool_roles[], name, school, firstname, lastname, birthday, disabled, email, record_uid,
                     // roles, schools, school_classes, source_uid, udm_properties
@@ -342,7 +351,15 @@ class Service extends AbstractService
 //                                            $SchoolString .= '-';
 //                                        }
 //                                    }
-                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+
+                                    $ClassName = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                                    $ClassName = str_replace('ä', 'ae', $ClassName);
+                                    $ClassName = str_replace('ü', 'ue', $ClassName);
+                                    $ClassName = str_replace('ö', 'oe', $ClassName);
+                                    $ClassName = str_replace('ß', 'ss', $ClassName);
+
+
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][] = $ClassName;
                                     // doppelte werte entfernen
                                     $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$SchoolString]);
                                 }
