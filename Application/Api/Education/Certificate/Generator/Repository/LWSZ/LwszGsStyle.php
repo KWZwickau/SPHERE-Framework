@@ -88,6 +88,46 @@ class LwszGsStyle
         return $Slice;
     }
 
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    public static function getParentSign($MarginTop = '25px')
+    {
+        $ParentSlice = (new Slice());
+        $ParentSlice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Zur Kenntnis genommen:')
+                , '30%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderBottom()
+                , '60%')
+            ->addElementColumn((new Element())
+                , '10%')
+        )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Eltern')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '60%')
+                ->addElementColumn((new Element())
+                    , '10%')
+            )
+            ->styleMarginTop($MarginTop);
+        return $ParentSlice;
+    }
+
+    /**
+     * @param Certificate $certificate
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Page
+     */
     public static function buildSecondPage(Certificate $certificate, TblPerson $tblPerson = null)
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;

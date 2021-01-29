@@ -47,14 +47,14 @@ class CswMsHalbjahresinformation extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId)->styleHeight('260px'))
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '85px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '60px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('25px',
+            ->addSlice($this->getInfo('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                     (6 = ungenügend nur bei der Bewertung der Leistungen)')

@@ -33,7 +33,7 @@ class LwszGsHjInfo extends Certificate
             ->addSlice($this->getGradeLanesSmall($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element()))
-                ->styleHeight('131px')
+                ->styleHeight('122px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -51,11 +51,15 @@ class LwszGsHjInfo extends Certificate
             )
             ->addSlice($this->getDescriptionHead($personId, true))
             // 200px
-            ->addSlice($this->getDescriptionContent($personId, '80px', '5px'))
+            ->addSlice($this->getDescriptionContent($personId, '80px', '17px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element()))
+                ->styleHeight('23px')
+            )
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
-            ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('40px',
+            ->addSlice(LwszGsStyle::getParentSign())
+            ->addSlice($this->getInfo('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
                 (6 = ungenügend nur bei der Bewertung der Leistungen)')
