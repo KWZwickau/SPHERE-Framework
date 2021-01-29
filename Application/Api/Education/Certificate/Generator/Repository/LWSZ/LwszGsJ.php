@@ -49,7 +49,7 @@ class LwszGsJ extends Certificate
                 )
                 ->styleMarginTop('5px')
             )
-            ->addSlice($this->getRatingContent($personId, '110px', '0px', ''))
+            ->addSlice($this->getRatingContent($personId, '100px', '0px', ''))
             ->addSlice((new Slice())
                 ->addElement(( new Element() )
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -65,12 +65,12 @@ class LwszGsJ extends Certificate
                 ->styleHeight('50px')
             )
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '80px', '5px'))
+            ->addSlice($this->getDescriptionContent($personId, '80px', '17px'))
             ->addSlice($this->getTransfer($personId))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true))
-            ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('1px',
+            ->addSlice(LwszGsStyle::getParentSign())
+            ->addSlice($this->getInfo('10px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend
                 (6 = ungenügend nur bei der Bewertung der Leistungen)')

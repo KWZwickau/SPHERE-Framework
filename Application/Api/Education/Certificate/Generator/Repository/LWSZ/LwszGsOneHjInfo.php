@@ -3,7 +3,9 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\LWSZ;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -28,11 +30,19 @@ class LwszGsOneHjInfo extends Certificate
             ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getDescriptionContent($personId, '530px', '20px'))
-            ->addSlice(LwszGsStyle::getMissing($personId))
+            ->addSlice((new Slice())
+                ->addElement((new Element()))
+                ->styleHeight('395px')
+            )
+            ->addSlice($this->getDescriptionHead($personId, true))
+            ->addSlice($this->getDescriptionContent($personId, '80px', '17px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element()))
+                ->styleHeight('23px')
+            )
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
-            ->addSlice($this->getParentSign()
+            ->addSlice(LwszGsStyle::getParentSign()
             );
 
         $pageList[] = LwszGsStyle::buildSecondPage($this, $tblPerson);
