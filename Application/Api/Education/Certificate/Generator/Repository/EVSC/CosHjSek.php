@@ -373,8 +373,8 @@ class CosHjSek extends Certificate
                                     )
                                     ->addElementColumn((new Element())
                                         ->setContent('
-                                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
-                                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                                                {% if(Content.P' . $personId . '.DivisionTeacherList.Description is not empty) %}
+                                                    {{ Content.P' . $personId . '.DivisionTeacherList.Description }}
                                                 {% else %}
                                                     Klassenleiter/in
                                                 {% endif %}
@@ -399,8 +399,8 @@ class CosHjSek extends Certificate
                                     ->addElementColumn((new Element())
                                         , '30%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
-                                                    {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                                        ->setContent('{% if(Content.P' . $personId . '.DivisionTeacherList.Name is not empty) %}
+                                                    {{ Content.P' . $personId . '.DivisionTeacherList.Name }}
                                                 {% else %}
                                                     &nbsp;
                                                 {% endif %}')
