@@ -27,7 +27,10 @@ class CswMsStyle
         $section = new Section();
 
         // Individually Logo
-        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg', 'auto', $height)), '39%');
+        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg', '105px', 'auto'))
+            ->styleAlignCenter()
+            , '17%');
+        $section->addElementColumn((new Element())->setContent('&nbsp;'), '22%');
 
         // Sample
         if($isSample){
