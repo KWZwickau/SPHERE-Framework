@@ -190,6 +190,28 @@ class Frontend extends Extension implements IFrontendInterface
                                 $PaymentType = '';
                                 $ItemName = '';
 
+                                if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+                                    $tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem);
+                                } else {
+                                    $tblItemGroupList = array();
+                                }
+                                $tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                                $IsEntryValide = false;
+                                if(!empty($tblItemGroupList) && !empty($tblPersonGroupList)){
+                                    foreach($tblItemGroupList as $tblItemGroup){
+                                        $tblItemTempGroup = $tblItemGroup->getServiceTblGroup();
+                                        foreach($tblPersonGroupList as $tblGroupTemp){
+                                            if($tblGroupTemp->getId() == $tblItemTempGroup->getId()){
+                                                $IsEntryValide = true;
+                                            }
+                                        }
+                                    }
+                                }
+                                // Einträge die aufgrund nicht zutreffender Gruppen übersprungen werden
+                                if(!$IsEntryValide){
+                                    continue;
+                                }
+
                                 if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
                                     $Debtor = $tblPersonDebtor->getLastFirstName();
                                     if($IsDebtorNumberNeed && !($tblDebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
@@ -237,7 +259,10 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
                                 ))));
                             }
-                            $Item['ContentRow'] = new Listing($ContentSingleRow);
+                            //Für komplett Übersprungene Zahlungszuweisungen soll kein Header erzeugt werden
+                            if(count($ContentSingleRow) > 1){
+                                $Item['ContentRow'] = new Listing($ContentSingleRow);
+                            }
                         }
 
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
