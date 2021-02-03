@@ -70,7 +70,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivAPI($Upload = '')
     {
-
+        set_time_limit(900);
         $Stage = new Stage('Univention', 'Schnittstelle API');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
 
@@ -96,7 +96,8 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblAccount = Account::useService()->getAccountBySession())){
             if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
                  // Aktivierung EVSR
-                if($Acronym == 'EVSR'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
+                if($Acronym == 'EVSR'
+                || $Acronym == 'EVSC'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
 //                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
                     $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
                     $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
@@ -114,12 +115,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $UserUniventionList = Univention::useService()->getApiUser();
 
-//        //toDO wieder entfernen
-//        foreach($UserUniventionList as $UserUniventionOne){
-//            if($UserUniventionOne['name'] == 'REF-Lehrer1'){
-//                echo '<pre>';
-//                var_dump($UserUniventionOne);
-//                echo '</pre>';
+//        $tblAccount = Account::useService()->getAccountBySession();
+//        if($tblAccount->getUsername() == 'Rackel'){
+//            foreach($UserUniventionList as $UserUniventionOne){
+//                if($UserUniventionOne['name'] == 'EVSC-Seifert'){
+//                    var_dump($UserUniventionOne);
+//                }
 //            }
 //        }
 

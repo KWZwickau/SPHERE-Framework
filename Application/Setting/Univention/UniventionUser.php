@@ -131,7 +131,10 @@ class UniventionUser
         $Json = $this->execute($this->curlhandle);
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return new Bold('Univention: Internal Server Error');
+            return $name.' '.new Bold('Univention: Internal Server Error');
+        }
+        if($Json == 'Bad Gateway'){
+            return $name.' '.new Bold('Univention: Bad Gateway');
         }
 
         // Object to Array
@@ -241,7 +244,10 @@ class UniventionUser
 
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return new Bold('Univention: Internal Server Error');
+            return $name.' '.new Bold('Univention: Internal Server Error');
+        }
+        if($Json == 'Bad Gateway'){
+            return $name.' '.new Bold('Univention: Bad Gateway');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
@@ -293,7 +299,10 @@ class UniventionUser
         $Json = $this->execute($this->curlhandle);
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return new Bold('Univention: Internal Server Error');
+            return $name.' '.new Bold('Univention: Internal Server Error');
+        }
+        if($Json == 'Bad Gateway'){
+            return $name.' '.new Bold('Univention: Bad Gateway');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
