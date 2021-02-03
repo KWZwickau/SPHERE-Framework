@@ -199,10 +199,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 $IsEntryValide = false;
                                 if(!empty($tblItemGroupList) && !empty($tblPersonGroupList)){
                                     foreach($tblItemGroupList as $tblItemGroup){
-                                        $tblItemTempGroup = $tblItemGroup->getServiceTblGroup();
-                                        foreach($tblPersonGroupList as $tblGroupTemp){
-                                            if($tblGroupTemp->getId() == $tblItemTempGroup->getId()){
-                                                $IsEntryValide = true;
+                                        if(($tblItemTempGroup = $tblItemGroup->getServiceTblGroup())){
+                                            foreach($tblPersonGroupList as $tblGroupTemp){
+                                                if($tblGroupTemp->getId() == $tblItemTempGroup->getId()){
+                                                    $IsEntryValide = true;
+                                                }
                                             }
                                         }
                                     }
