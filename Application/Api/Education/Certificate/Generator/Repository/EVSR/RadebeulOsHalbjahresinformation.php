@@ -29,13 +29,18 @@ class RadebeulOsHalbjahresinformation extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
+        $gradeFieldWidth = 16;
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $gradeLanesSlice = $this->getGradeLanesForRadebeul(
             $personId,
             self::TEXT_COLOR_BLUE,
-            '10pt'
+            '10pt',
+            'rgb(224,226,231)',
+            false,
+            '20px',
+            $gradeFieldWidth
         );
 
         $subjectLanesSlice = $this->getSubjectLanesForRadebeul(
@@ -45,9 +50,10 @@ class RadebeulOsHalbjahresinformation extends Certificate
             'rgb(224,226,231)',
             false,
             '8px',
-            28,
+            $gradeFieldWidth,
             self::FONT_FAMILY,
-            '205px'
+            '260px',
+            true
         );
 
         return (new Page())

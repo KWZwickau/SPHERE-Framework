@@ -3291,6 +3291,7 @@ abstract class Certificate extends Extension
      * @param int $GradeFieldWidth
      * @param string $fontFamily
      * @param bool|string $height
+     * @param bool $hasSecondLanguageSecondarySchool
      *
      * @return Slice
      */
@@ -3303,10 +3304,10 @@ abstract class Certificate extends Extension
         $MarginTop = '8px',
         $GradeFieldWidth = 28,
         $fontFamily = 'MetaPro',
-        $height = false
+        $height = false,
+        $hasSecondLanguageSecondarySchool = false
     ) {
-
-//        $tblPerson = Person::useService()->getPersonById($personId);
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $widthText = (50 - $GradeFieldWidth - 4) . '%';
         $widthGrade = $GradeFieldWidth . '%';
@@ -3336,25 +3337,55 @@ abstract class Certificate extends Extension
                                 = $tblSubject->getAcronym();
                             $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                                 = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
 
-//                        // Liberation?
-//                        if (
-//                            $tblPerson
-//                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-//                        ) {
-//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-//                            if ($tblStudentLiberationAll) {
-//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
+            $tblSecondForeignLanguageSecondarySchool = false;
+            if ($hasSecondLanguageSecondarySchool
+                && $tblPerson
+                && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            ) {
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                        if ($tblStudentSubject->getTblStudentSubjectRanking()
+                            && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                            && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                        ) {
+                            // Mittelschulzeugnisse
+                            // SSW-484
+                            $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
+                            $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                            if (($tblDivision = $this->getTblDivision())
+                                && ($tblLevel = $tblDivision->getTblLevel())
+                            ) {
+                                $levelName = $tblLevel->getName();
+                            } else {
+                                $levelName = false;
+                            }
+
+                            if ($tillLevel && $fromLevel) {
+                                if (floatval($fromLevel->getName()) <= floatval($levelName)
+                                    && floatval($tillLevel->getName()) >= floatval($levelName)
+                                ) {
+                                    $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                }
+                            } elseif ($tillLevel) {
+                                if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                    $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                }
+                            } elseif ($fromLevel) {
+                                if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                    $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                }
+                            } else {
+                                $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                            }
                         }
                     }
                 }
@@ -3373,7 +3404,29 @@ abstract class Certificate extends Extension
             }
             $SubjectStructure = $SubjectLayout;
 
+            // Mittelschulzeugnisse 2. Fremdsprache anfügen
+            if ($hasSecondLanguageSecondarySchool) {
+                // Zeiger auf letztes Element
+                end($SubjectStructure);
+                $lastItem = &$SubjectStructure[key($SubjectStructure)];
+
+                $column = array(
+                    'SubjectAcronym' => $tblSecondForeignLanguageSecondarySchool
+                        ? $tblSecondForeignLanguageSecondarySchool->getAcronym() : 'SECONDLANGUAGE',
+                    'SubjectName' => $tblSecondForeignLanguageSecondarySchool
+                        ? $tblSecondForeignLanguageSecondarySchool->getName()
+                        : '&ndash;'
+                );
+                //
+                if (isset($lastItem[1])) {
+                    $SubjectStructure[][1] = $column;
+                } else {
+                    $lastItem[1] = $column;
+                }
+            }
+
             $count = 0;
+            $hasAdditionalLine = false;
             foreach ($SubjectStructure as $SubjectList) {
                 // Sort Lane-Ranking (1,2...)
                 ksort($SubjectList);
@@ -3387,21 +3440,33 @@ abstract class Certificate extends Extension
                 $count++;
 
                 foreach ($SubjectList as $Lane => $Subject) {
+                    if ($hasSecondLanguageSecondarySchool
+                        && ($Subject['SubjectAcronym'] == 'SECONDLANGUAGE'
+                            || ($tblSecondForeignLanguageSecondarySchool && $Subject['SubjectAcronym'] == $tblSecondForeignLanguageSecondarySchool->getAcronym())
+                        )
+                    ) {
+                        $hasAdditionalLine['Lane'] = $Lane;
+                        $hasAdditionalLine['Ranking'] = 2;
+                        $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguageSecondarySchool
+                            ? $tblSecondForeignLanguageSecondarySchool->getAcronym() : 'Empty';
+                    }
+
                     if ($Lane > 1) {
                         $SubjectSection->addElementColumn((new Element())
                             , '8%');
                     }
 
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent($Subject['SubjectName'] . ':')
+                        ->setContent($Subject['SubjectName'] . ($Subject['SubjectName'] == '&ndash;' ? '' : ':'))
                         ->styleTextColor($TextColor)
                         ->stylePaddingTop()
                         ->styleMarginTop($count == 1 ? $MarginTop : '4px')
+                        ->styleBorderBottom($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane'] ? '1px' : '0px', $TextColor)
                         ->styleTextSize($TextSize)
                         ->styleFontFamily($fontFamily)
                         , $widthText);
 
-                    if (strlen($Subject['SubjectName']) > 20 && preg_match('!\s!', $Subject['SubjectName'])) {
+                    if ($GradeFieldWidth > 24 && strlen($Subject['SubjectName']) > 20 && preg_match('!\s!', $Subject['SubjectName'])) {
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent('{% if(Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
                                              {{ Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
@@ -3444,6 +3509,39 @@ abstract class Certificate extends Extension
 
                 $SubjectSlice->addSection($SubjectSection);
                 $SectionList[] = $SubjectSection;
+
+                if ($hasAdditionalLine) {
+                    $SubjectSection = (new Section());
+
+                    if ($hasAdditionalLine['Lane'] == 2) {
+                        $SubjectSection->addElementColumn((new Element()), '52%');
+                    }
+
+                    $content = $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)';
+
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent($content)
+                        ->stylePaddingTop('-4px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop('0px')
+                        ->styleMarginBottom('0px')
+                        ->styleTextSize('9px')
+                        ->styleTextColor($TextColor)
+                        ->styleFontFamily($fontFamily)
+                        , $widthText);
+
+                    if ($hasAdditionalLine['Lane'] == 1) {
+                        $SubjectSection->addElementColumn((new Element()), '52%');
+                    }
+
+                    $hasAdditionalLine = false;
+
+                    // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
+//                    $isShrinkMarginTop = true;
+
+                    $SubjectSlice->addSection($SubjectSection);
+                    $SectionList[] = $SubjectSection;
+                }
             }
         }
 
