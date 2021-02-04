@@ -3417,16 +3417,17 @@ abstract class Certificate extends Extension
                         ? $tblSecondForeignLanguageSecondarySchool->getName()
                         : '&ndash;'
                 );
-                //
-                if (isset($lastItem[1])) {
+
+                if (isset($lastItem[1]) && isset($lastItem[2])) {
                     $SubjectStructure[][1] = $column;
+                } elseif (isset($lastItem[1])) {
+                    $lastItem[2] = $column;
                 } else {
                     $lastItem[1] = $column;
                 }
             }
 
             $count = 0;
-            $hasAdditionalLine = false;
             foreach ($SubjectStructure as $SubjectList) {
                 // Sort Lane-Ranking (1,2...)
                 ksort($SubjectList);
@@ -3440,31 +3441,50 @@ abstract class Certificate extends Extension
                 $count++;
 
                 foreach ($SubjectList as $Lane => $Subject) {
-                    if ($hasSecondLanguageSecondarySchool
-                        && ($Subject['SubjectAcronym'] == 'SECONDLANGUAGE'
-                            || ($tblSecondForeignLanguageSecondarySchool && $Subject['SubjectAcronym'] == $tblSecondForeignLanguageSecondarySchool->getAcronym())
-                        )
-                    ) {
-                        $hasAdditionalLine['Lane'] = $Lane;
-                        $hasAdditionalLine['Ranking'] = 2;
-                        $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguageSecondarySchool
-                            ? $tblSecondForeignLanguageSecondarySchool->getAcronym() : 'Empty';
-                    }
-
                     if ($Lane > 1) {
                         $SubjectSection->addElementColumn((new Element())
                             , '8%');
                     }
 
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent($Subject['SubjectName'] . ($Subject['SubjectName'] == '&ndash;' ? '' : ':'))
-                        ->styleTextColor($TextColor)
-                        ->stylePaddingTop()
-                        ->styleMarginTop($count == 1 ? $MarginTop : '4px')
-                        ->styleBorderBottom($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane'] ? '1px' : '0px', $TextColor)
-                        ->styleTextSize($TextSize)
-                        ->styleFontFamily($fontFamily)
-                        , $widthText);
+                    if ($hasSecondLanguageSecondarySchool
+                        && (($tblSecondForeignLanguageSecondarySchool && $Subject['SubjectAcronym'] == $tblSecondForeignLanguageSecondarySchool->getAcronym())
+                            || ($Subject['SubjectAcronym'] == 'SECONDLANGUAGE'))
+                    ) {
+                        $SubjectSection->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent($Subject['SubjectName'] . ($Subject['SubjectName'] == '&ndash;' ? '' : ':'))
+                                    ->styleTextColor($TextColor)
+                                    ->stylePaddingTop()
+                                    ->styleMarginTop($count == 1 ? $MarginTop : '4px')
+                                    ->styleBorderBottom('0.5px', $TextColor)
+                                    ->styleTextSize($TextSize)
+                                    ->styleFontFamily($fontFamily)
+                                    , $widthText)
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('2. Fremdsprache (abschlussorientiert)')
+                                    ->stylePaddingTop('-4px')
+                                    ->stylePaddingBottom('0px')
+                                    ->styleMarginTop('0px')
+                                    ->styleMarginBottom('0px')
+                                    ->styleTextSize('9px')
+                                    ->styleTextColor($TextColor)
+                                    ->styleFontFamily($fontFamily)
+                                    , $widthText)
+                                )
+                        );
+                    } else {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'] . ($Subject['SubjectName'] == '&ndash;' ? '' : ':'))
+                            ->styleTextColor($TextColor)
+                            ->stylePaddingTop()
+                            ->styleMarginTop($count == 1 ? $MarginTop : '4px')
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily($fontFamily)
+                            , $widthText);
+                    }
 
                     if ($GradeFieldWidth > 24 && strlen($Subject['SubjectName']) > 20 && preg_match('!\s!', $Subject['SubjectName'])) {
                         $SubjectSection->addElementColumn((new Element())
@@ -3509,39 +3529,6 @@ abstract class Certificate extends Extension
 
                 $SubjectSlice->addSection($SubjectSection);
                 $SectionList[] = $SubjectSection;
-
-                if ($hasAdditionalLine) {
-                    $SubjectSection = (new Section());
-
-                    if ($hasAdditionalLine['Lane'] == 2) {
-                        $SubjectSection->addElementColumn((new Element()), '52%');
-                    }
-
-                    $content = $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)';
-
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent($content)
-                        ->stylePaddingTop('-4px')
-                        ->stylePaddingBottom('0px')
-                        ->styleMarginTop('0px')
-                        ->styleMarginBottom('0px')
-                        ->styleTextSize('9px')
-                        ->styleTextColor($TextColor)
-                        ->styleFontFamily($fontFamily)
-                        , $widthText);
-
-                    if ($hasAdditionalLine['Lane'] == 1) {
-                        $SubjectSection->addElementColumn((new Element()), '52%');
-                    }
-
-                    $hasAdditionalLine = false;
-
-                    // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
-//                    $isShrinkMarginTop = true;
-
-                    $SubjectSlice->addSection($SubjectSection);
-                    $SectionList[] = $SubjectSection;
-                }
             }
         }
 

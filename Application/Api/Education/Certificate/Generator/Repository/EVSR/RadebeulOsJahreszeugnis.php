@@ -45,7 +45,7 @@ class RadebeulOsJahreszeugnis extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
-        $gradeFieldWidth = 16;
+        $gradeFieldWidth = 18;
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
@@ -68,7 +68,7 @@ class RadebeulOsJahreszeugnis extends Certificate
             '8px',
             $gradeFieldWidth,
             self::FONT_FAMILY,
-            '260px',
+            '265px',
             true
         );
 
@@ -270,7 +270,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleLineHeight(self::LINE_HEIGHT)
                     ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('0px')
-                    ->styleHeight($hasTransfer ? '85px' : '115px'))
+                    ->styleHeight($hasTransfer ? '80px' : '110px'))
             );
 
         if ($hasTransfer) {

@@ -29,7 +29,7 @@ class RadebeulOsHalbjahresinformation extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
-        $gradeFieldWidth = 16;
+        $gradeFieldWidth = 18;
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
@@ -52,7 +52,7 @@ class RadebeulOsHalbjahresinformation extends Certificate
             '8px',
             $gradeFieldWidth,
             self::FONT_FAMILY,
-            '260px',
+            '265px',
             true
         );
 
