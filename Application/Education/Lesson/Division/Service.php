@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionRepresentative;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
@@ -677,6 +678,22 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     *
+     * @return bool
+     */
+    public function removeRepresentativeToDivision(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        $IsSoftRemove = false
+    ) {
+
+        return (new Data($this->getBinding()))->removeRepresentativeToDivision($tblDivision, $tblPerson, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      *
      * @return string
@@ -728,6 +745,36 @@ class Service extends AbstractService
             }
             return (!empty($resultList) ? $resultList : false);
         }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionRepresentative[]
+     */
+    public function getDivisionRepresentativeByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionRepresentativeByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblPerson[]
+     */
+    public function getRepresentativePersonAllByDivision(TblDivision $tblDivision)
+    {
+
+        $tblPersonList = array();
+        if(($tblDivisionRepresentativeList = (new Data($this->getBinding()))->getDivisionRepresentativeByDivision($tblDivision))){
+            foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative){
+                if(($tblPerson = $tblDivisionRepresentative->getServiceTblPerson())){
+                    $tblPersonList[] = $tblPerson;
+                }
+            }
+        }
+        return (!empty($tblPersonList) ? $tblPersonList : false);
     }
 
     /**
@@ -797,6 +844,23 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->addDivisionCustody($tblDivision, $tblPerson, $Description);
+
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param             $Description
+     *
+     * @return null|TblDivisionRepresentative
+     */
+    public function addDivisionRepresentative(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        $Description
+    ) {
+
+        return (new Data($this->getBinding()))->addDivisionRepresentative($tblDivision, $tblPerson, $Description);
 
     }
 
