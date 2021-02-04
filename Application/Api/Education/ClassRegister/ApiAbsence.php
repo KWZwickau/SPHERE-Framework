@@ -653,9 +653,14 @@ class ApiAbsence extends Extension implements IApiInterface
 
         if ($WeekNumber == '') {
             $WeekNumber = (int)(new DateTime('now'))->format('W');
+        } else {
+            $WeekNumber = (int) $WeekNumber;
         }
+
         if ($Year == '') {
             $Year = (int)$currentDate->format('Y');
+        } else {
+            $Year = (int) $Year;
         }
 
         $headerList = array();
