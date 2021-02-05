@@ -4,11 +4,10 @@ namespace SPHERE\Application\Setting\Univention;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
-use SPHERE\Application\Contact\Mail\Mail;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -249,11 +248,7 @@ class Service extends AbstractService
 
                 if($tblDivision){
 //                    $UploadItem['school_classes'][$StudentSchool] = array('DemoClass');
-                    $ClassName = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                    $ClassName = str_replace('ä', 'ae', $ClassName);
-                    $ClassName = str_replace('ü', 'ue', $ClassName);
-                    $ClassName = str_replace('ö', 'oe', $ClassName);
-                    $ClassName = str_replace('ß', 'ss', $ClassName);
+                    $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
                     $UploadItem['school_classes'][$StudentSchool][] = $ClassName;
 //                    $tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
                 } else {
@@ -352,12 +347,7 @@ class Service extends AbstractService
 //                                        }
 //                                    }
 
-                                    $ClassName = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                                    $ClassName = str_replace('ä', 'ae', $ClassName);
-                                    $ClassName = str_replace('ü', 'ue', $ClassName);
-                                    $ClassName = str_replace('ö', 'oe', $ClassName);
-                                    $ClassName = str_replace('ß', 'ss', $ClassName);
-
+                                    $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
 
                                     $TeacherClasses[$tblPersonTeacher->getId()][$SchoolString][] = $ClassName;
                                     // doppelte werte entfernen
@@ -406,18 +396,19 @@ class Service extends AbstractService
                             if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
                                 foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                                     if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
-                                        $SchoolString = '';
-                                        // wichtig für Schulgetrennte Klassen (nicht Mandantenweise)
-                                        if(($tblCompany = $tblDivision->getServiceTblCompany())
-                                            && Consumer::useService()->isSchoolSeparated()){
-                                            if(($tblSchoolType = $tblDivision->getType())){
-                                                $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-                                                $SchoolString = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
-                                                $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId().'_'.$tblSchoolTypeString] = $SchoolString;
-                                                $SchoolString .= '-';
-                                            }
-                                        }
-                                        $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()] = $SchoolString.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+//                                        // wichtig für Schulgetrennte Klassen (nicht Mandantenweise)
+//                                        if(($tblCompany = $tblDivision->getServiceTblCompany())
+//                                            && Consumer::useService()->isSchoolSeparated()){
+//                                            if(($tblSchoolType = $tblDivision->getType())){
+//                                                $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
+//                                                $SchoolString = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
+//                                                $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId().'_'.$tblSchoolTypeString] = $SchoolString;
+//                                                $SchoolString .= '-';
+//                                            }
+//                                        }
+
+                                        $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
+                                        $TeacherClasses[$tblPersonTeacher->getId()][$tblDivision->getId()] = $Acronym.'-'.$ClassName;
                                     }
                                 }
                             }
@@ -586,37 +577,18 @@ class Service extends AbstractService
 
         // Student Search Division
         if ($tblDivision){
-            $Item['school_classes'] = $StudentSchool.'-'.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+            $Item['school_classes'] = $StudentSchool.'-'.$this->getCorrectionClassNameByDivision($tblDivision);
         } else {
             if(isset($TeacherClasses[$tblPerson->getId()])){
                 $ClassList = $TeacherClasses[$tblPerson->getId()];
-                foreach($ClassList as &$Class){
-                    $Class = $StudentSchool.'-'.$Class;
-                }
                 sort($ClassList);
                 $Item['school_classes'] = implode(',', $ClassList);
             }
         }
 
-        if(($ToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
-            // try to get Connexion Mail
-            foreach($ToPersonList as $tblToPerson){
-                if($tblToPerson->isAccountUserAlias()
-                    && ($tblMail = $tblToPerson->getTblMail())){
-                    $Item['mail'] = $tblMail->getAddress();
-                    break;
-                }
-            }
-            // again if no result vor Connexion Mail
-            if($Item['mail'] === ''){
-                foreach($ToPersonList as $tblToPerson){
-                    if($tblToPerson->getTblType()->getName() == TblTypeMail::VALUE_BUSINESS
-                        && ($tblMail = $tblToPerson->getTblMail())){
-                        $Item['mail'] = $tblMail->getAddress();
-                        break;
-                    }
-                }
-            }
+        if($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson)){
+            $tblAccount = current($tblAccountList);
+            $Item['mail'] = $tblAccount->getUserAlias();
         }
         return $Item;
     }
@@ -748,5 +720,20 @@ class Service extends AbstractService
         // ToDO Standard nach Wunsch anpassen
         // Schulen werden in Univention in Mandant zusammen gefasst (Standard)
         return $Acronym;
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     *
+     * @return string
+     */
+    public function getCorrectionClassNameByDivision(TblDivision $tblDivision = null)
+    {
+        $ClassName = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+        $ClassName = str_replace('ä', 'ae', $ClassName);
+        $ClassName = str_replace('ü', 'ue', $ClassName);
+        $ClassName = str_replace('ö', 'oe', $ClassName);
+        $ClassName = str_replace('ß', 'ss', $ClassName);
+        return $ClassName;
     }
 }

@@ -344,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
-                    new Title('Anmeldung CONNEXION (Pilot)'),
+                    new Title('Anmeldung UCS (Pilot)'),
                     new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EVSSN')
                     //. new Link('.', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EKM') // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
                 ))
@@ -434,7 +434,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-            new LayoutColumn(new Warning('Ihr Login von CONNEXION ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+            new LayoutColumn(new Warning('Ihr Login von UCS ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
         ))));
 
         return $Stage;
