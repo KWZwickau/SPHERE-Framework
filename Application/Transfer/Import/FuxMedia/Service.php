@@ -170,8 +170,18 @@ class Service
                     'Kommunikation_Telefon4'              => null,
                     'Kommunikation_Telefon5'              => null,
                     'Kommunikation_Telefon6'              => null,
+                    'Kommunikation_Telefon7'              => null,
+                    'Kommunikation_Telefon8'              => null,
+                    'Kommunikation_Telefon9'              => null,
+                    'Kommunikation_Telefon10'              => null,
+                    'Kommunikation_Telefon11'              => null,
+                    'Kommunikation_Telefon12'              => null,
                     'Kommunikation_Fax'                   => null,
                     'Kommunikation_Email'                 => null,
+                    'Kommunikation_Email1'                 => null,
+                    'Kommunikation_Email2'                 => null,
+                    'Kommunikation_Email3'                 => null,
+                    'Kommunikation_Email4'                 => null,
                     'Beförderung_Fahrtroute'              => null,
                     'Beförderung_Einsteigestelle'         => null,
                     'Fächer_Religionsunterricht'          => null,
@@ -263,7 +273,14 @@ class Service
                     $tblCommonGenderMale = Common::useService()->getCommonGenderByName('Männlich');
                     $tblCommonGenderFemale = Common::useService()->getCommonGenderByName('Weiblich');
 
+                    if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
+                        $consumerAcronym = $tblConsumer->getAcronym();
+                    } else {
+                        $consumerAcronym = '';
+                    }
+
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
 
                         // Student
                         $tblPerson = $this->usePeoplePerson()->insertPerson(
@@ -325,28 +342,6 @@ class Service
 
                                     }
                                 }
-                            }
-
-                            // Student Contact
-                            for ($i = 1; $i < 7; $i++) {
-                                $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon'.$i],
-                                    $RunY)));
-                                if ($PhoneNumber != '') {
-                                    Phone::useService()->insertPhoneToPerson($tblPerson, $PhoneNumber,
-                                        Phone::useService()->getTypeById(1), '');
-                                }
-                            }
-                            $FaxNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Fax'],
-                                $RunY)));
-                            if ($FaxNumber != '') {
-                                Phone::useService()->insertPhoneToPerson($tblPerson, $FaxNumber,
-                                    Phone::useService()->getTypeById(7), '');
-                            }
-                            $MailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email'],
-                                $RunY)));
-                            if ($MailAddress != '') {
-                                Mail::useService()->insertMailToPerson($tblPerson, $MailAddress,
-                                    Mail::useService()->getTypeById(1), '');
                             }
 
                             // Division
@@ -446,9 +441,9 @@ class Service
                             $sibling = trim($Document->getValue($Document->getCell($Location['Schüler_Geschwister'],
                                 $RunY)));
                             $tblSiblingRank = false;
-                            if ($sibling !== '') {
+                            if ($sibling !== '' && $sibling != '0') {
                                 if (!($tblSiblingRank = Relationship::useService()->getSiblingRankById(intval($sibling)))) {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Geschwisterkind konnte nicht angelegt werden.';
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Geschwister konnte nicht angelegt werden.';
                                 }
                             }
 
@@ -545,8 +540,13 @@ class Service
                                 $arriveSchoolId = trim($Document->getValue($Document->getCell($Location['Schüler_abgebende_Schule_ID'],
                                     $RunY)));
                                 if ($arriveSchoolId != '') {
-                                    if (($company = Company::useService()->getCompanyByImportId($arriveSchoolId))) {
-                                        $arriveSchool = $company;
+                                    if (($companyList = Company::useService()->getCompanyListByImportId($arriveSchoolId))) {
+                                        if (count($companyList) == 1) {
+                                            $arriveSchool = current($companyList);
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_abgebende_Schule_ID:' . $arriveSchoolId
+                                                . ' es wurde mehr als eine Schule mit dieser ID gefunden, die abgebende Schule wurde nicht zugewiesen';
+                                        }
                                     } else {
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_abgebende_Schule_ID:' . $arriveSchoolId . ' nicht gefunden.';
                                     }
@@ -567,8 +567,13 @@ class Service
                                 $leaveSchoolId = trim($Document->getValue($Document->getCell($Location['Schüler_aufnehmende_Schule_ID'],
                                     $RunY)));
                                 if ($leaveSchoolId != '') {
-                                    if (($company = Company::useService()->getCompanyByImportId($leaveSchoolId))) {
-                                        $leaveSchool = $company;
+                                    if (($companyList = Company::useService()->getCompanyListByImportId($leaveSchoolId))) {
+                                        if (count($companyList) == 1) {
+                                            $leaveSchool = current($companyList);
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_aufnehmende_Schule_ID:' . $leaveSchoolId
+                                                . ' es wurde mehr als eine Schule mit dieser ID gefunden, die aufnehmende Schule wurde nicht zugewiesen';
+                                        }
                                     } else {
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_aufnehmende_Schule_ID:' . $leaveSchoolId . ' nicht gefunden.';
                                     }
@@ -682,8 +687,9 @@ class Service
                             }
 
                             // Sorgeberechtigte
+                            $personList = array();
                             for ($i = 1; $i < 5; $i++) {
-                                $this->setCustody(
+                                $tblPersonCustody = $this->setCustody(
                                     $i,
                                     $tblPerson,
                                     $tblType,
@@ -697,6 +703,118 @@ class Service
                                     $countCustody,
                                     $countCustodyExists
                                 );
+
+                                if ($tblPersonCustody) {
+                                    $personList['S' . $i]  = $tblPersonCustody;
+                                }
+                            }
+
+                            // Contact
+                            for ($i = 1; $i < 13; $i++) {
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon'.$i],
+                                    $RunY)));
+                                if ($phoneNumber != '') {
+                                    if ($consumerAcronym == 'HOGA') {
+                                        switch ($i) {
+                                            case 1: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                break;
+                                            case 2: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(3);
+                                                break;
+                                            case 3: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            case 4: $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            case 5: $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                break;
+                                            case 6: $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(3);
+                                                break;
+                                            case 7: $tblPersonContact = isset($personList['S4']) ? $personList['S4'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                break;
+                                            case 8: $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            case 9: $tblPersonContact = isset($personList['S4']) ? $personList['S4'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            case 10: $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                break;
+                                            case 11: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            default: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                        }
+
+                                        if (!$tblPersonContact) {
+                                            $tblPersonContact = $tblPerson;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
+                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                        }
+                                    } else {
+                                        $tblPersonContact = $tblPerson;
+                                        $tblPhoneType = Phone::useService()->getTypeById(1);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblPhoneType = Phone::useService()->getTypeById(2);
+                                        }
+                                    }
+
+                                    if (0 === strpos($phoneNumber, '1')) {
+                                        $phoneNumber = '0' . $phoneNumber;
+                                    }
+
+                                    Phone::useService()->insertPhoneToPerson($tblPersonContact, $phoneNumber, $tblPhoneType, '');
+                                }
+                            }
+
+                            $FaxNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Fax'],
+                                $RunY)));
+                            if ($FaxNumber != '') {
+                                Phone::useService()->insertPhoneToPerson($tblPerson, $FaxNumber,
+                                    Phone::useService()->getTypeById(7), '');
+                            }
+
+                            for ($i = 0; $i < 5; $i++) {
+                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email' . ($i == 0 ? '' : $i)],
+                                    $RunY)));
+                                if ($mailAddress != '') {
+                                    if ($consumerAcronym == 'HOGA') {
+                                        switch ($i) {
+                                            case 1:
+                                                $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                break;
+                                            case 2:
+                                                $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                break;
+                                            case 3:
+                                                $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
+                                                break;
+                                            case 4:
+                                                $tblPersonContact = isset($personList['S4']) ? $personList['S4'] : false;
+                                                break;
+                                            default:
+                                                $tblPersonContact = $tblPerson;
+                                        }
+
+                                        if (!$tblPersonContact) {
+                                            $tblPersonContact = $tblPerson;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
+                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                        }
+                                    } else {
+                                        $tblPersonContact = $tblPerson;
+                                    }
+
+                                    Mail::useService()->insertMailToPerson($tblPersonContact, $mailAddress,
+                                        Mail::useService()->getTypeById(1), '');
+                                }
                             }
                         }
                     }
@@ -734,6 +852,8 @@ class Service
      * @param $tblCommonGenderFemale
      * @param $countAdd
      * @param $countExists
+     *
+     * @return TblPerson|bool
      */
     private function setCustody(
         $ranking,
@@ -862,6 +982,8 @@ class Service
                 }
 
                 $countAdd++;
+
+                return $tblPersonCustody;
             } else {
 
                 Relationship::useService()->insertRelationshipToPerson(
@@ -874,8 +996,12 @@ class Service
                 );
 
                 $countExists++;
+
+                return $tblPersonCustodyExists;
             }
         }
+
+        return false;
     }
 
     /**
@@ -1278,38 +1404,43 @@ class Service
                         $companyName = trim($Document->getValue($Document->getCell($Location['Einrichtungsname'], $RunY)));
 
                         if ($companyName) {
-                            $tblCompany = Company::useService()->insertCompany(
-                                $companyName,
-                                '',
-                                '',
-                                trim($Document->getValue($Document->getCell($Location['E.nummer'], $RunY)))
-                            );
-                            if ($tblCompany) {
-                                $countCompany++;
-
-                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
-                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
-                                    $tblCompany
+                            $importId = trim($Document->getValue($Document->getCell($Location['E.nummer'], $RunY)));
+                            if (($tblCompany = Company::useService()->getCompanyByName($companyName, ''))) {
+                                Company::useService()->updateCompanyImportId($tblCompany, $importId);
+                            } else {
+                                $tblCompany = Company::useService()->insertCompany(
+                                    $companyName,
+                                    '',
+                                    '',
+                                    $importId
                                 );
-                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
-                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL'),
-                                    $tblCompany
-                                );
+                                if ($tblCompany) {
+                                    $countCompany++;
 
-                                list($streetName, $streetNumber) = $importService->splitStreet('Straße', $RunY);
-                                $cityName = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
-                                $cityCode = $importService->formatZipCode('Plz', $RunY);
-
-                                if ($streetName != '' && $streetNumber != '' && $cityName != '' && $cityCode != '') {
-                                    Address::useService()->insertAddressToCompany(
-                                        $tblCompany,
-                                        $streetName,
-                                        $streetNumber,
-                                        $cityCode,
-                                        $cityName,
-                                        '',
-                                        ''
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                        \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
+                                        $tblCompany
                                     );
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                        \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL'),
+                                        $tblCompany
+                                    );
+
+                                    list($streetName, $streetNumber) = $importService->splitStreet('Straße', $RunY);
+                                    $cityName = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
+                                    $cityCode = $importService->formatZipCode('Plz', $RunY);
+
+                                    if ($streetName != '' && $streetNumber != '' && $cityName != '' && $cityCode != '') {
+                                        Address::useService()->insertAddressToCompany(
+                                            $tblCompany,
+                                            $streetName,
+                                            $streetNumber,
+                                            $cityCode,
+                                            $cityName,
+                                            '',
+                                            ''
+                                        );
+                                    }
                                 }
                             }
                         }
