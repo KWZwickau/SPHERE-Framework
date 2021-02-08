@@ -891,7 +891,7 @@ class Service extends AbstractService
         }
 
         // Berufsfachschulen / Fachschulen
-        if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+        if($tblStudent && ($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
             if(($tblStudentTenseOfLesson = $tblTechnicalSchool->getTblStudentTenseOfLesson())){
                 $Content['P' . $personId]['Student']['TenseOfLesson'] = $tblStudentTenseOfLesson->getCertificateName();
             }
