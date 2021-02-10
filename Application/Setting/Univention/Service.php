@@ -273,7 +273,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @return array|bool
+     * @return array
      */
     public function getApiUser()
     {
@@ -313,7 +313,7 @@ class Service extends AbstractService
                 );
             }
         }
-        return (!empty($UserUniventionList) ? $UserUniventionList : false);
+        return $UserUniventionList;
     }
 
     public function getSchulsoftwareUser(TblYear $tblYear, $roleList, $schoolList)

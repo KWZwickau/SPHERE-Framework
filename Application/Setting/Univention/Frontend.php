@@ -114,13 +114,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $UserUniventionList = Univention::useService()->getApiUser();
 
-//        $tblAccount = Account::useService()->getAccountBySession();
-//        if($tblAccount->getUsername() == 'Rackel'){
-//            foreach($UserUniventionList as $UserUniventionOne){
-//                if($UserUniventionOne['name'] == 'EVSC-Seifert'){
-//                    var_dump($UserUniventionOne);
-//                }
-//            }
+//        if($tblAccount && $tblAccount->getUsername() == 'Rackel'){
+//            echo "<pre>";
+//            var_dump($UserUniventionList);
+//            echo "</pre>";
 //        }
 
         $UserSchulsoftwareList = array();
