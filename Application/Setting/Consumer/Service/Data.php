@@ -53,7 +53,7 @@ class Data extends AbstractData
             'Allgemein', 'Bei der alphabetischen Sortierung von Namen werden Präpositionen (z.B. von, de, etc.) für die
             Sortierung berücksichtigt [Standard: Ja]', true);
         $this->createSetting('Setting', 'Consumer', 'Service', 'EmergencyNumber', TblSetting::TYPE_BOOLEAN, '0',
-            'Allgemein', 'Notfallnummer wird am Ende der Ansichten aufgelistet. [Standard: Nein]', true);
+            'Allgemein', 'Notfallnummer in der Stammdatenverwaltung wird am Ende der Ansichten aufgelistet. [Standard: Nein]', true);
         // Allgemein non-public
         $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Die Schülernummern werden automatisch vom System erstellt. In diesem Fall können die
