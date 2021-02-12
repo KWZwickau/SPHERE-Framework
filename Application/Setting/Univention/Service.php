@@ -335,17 +335,6 @@ class Service extends AbstractService
                                     }
                                     $SchoolString = $Acronym;
                                     $TeacherSchools[$SchoolString] = $SchoolString;
-//                                    // wichtig für Schulgetrennte Klassen (nicht Mandantenweise) ToDO Vorerst deaktiviert!
-//                                    if(($tblCompany = $tblDivision->getServiceTblCompany())
-//                                        && Consumer::useService()->isSchoolSeparated()){
-//                                        if(($tblSchoolType = $tblDivision->getType())){
-//                                            $tblSchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-//                                            //ToDO Schulstring nach Option verwenden
-//                                            $SchoolString = $Acronym.$tblSchoolTypeString.$tblCompany->getId();
-//                                            $TeacherSchools[$tblPersonTeacher->getId()][$tblCompany->getId().'_'.$tblSchoolTypeString] = $SchoolString;
-//                                            $SchoolString .= '-';
-//                                        }
-//                                    }
 
                                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
 
@@ -359,7 +348,7 @@ class Service extends AbstractService
                 }
             }
         }
-        // ArrayKey muss immer eine normale Zählung ohne Lücken ergeben 0,1,2,3...
+        // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
         foreach($TeacherClasses as $PersonId => &$SchoolString) {
             foreach($SchoolString as $Acronym => &$ClassList){
                 sort($ClassList);
