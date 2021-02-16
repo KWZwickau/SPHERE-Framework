@@ -5,7 +5,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -15,11 +14,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -57,7 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivention()
     {
-        $Stage = new Stage('Univention', '');
+        $Stage = new Stage('UCS', '');
         $Stage->addButton(new Standard('Zurück', '/Setting', new ChevronLeft()));
 
         //ToDO Erklärung der Schnittstelle? + Vorraussetzungen
@@ -72,8 +68,8 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivAPI($Upload = '')
     {
-
-        $Stage = new Stage('Univention', 'Schnittstelle API');
+        set_time_limit(900);
+        $Stage = new Stage('UCS', 'Schnittstelle API');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
 
         // dynamsiche Rollenliste
@@ -84,33 +80,44 @@ class Frontend extends Extension implements IFrontendInterface
 
         // early break if no answer
         if(!is_array($roleList) || !is_array($schoolList)){
-            $Stage->setContent(new Warning('Univention liefert keine Informationen'));
+            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+            return $Stage;
+        }
+        $Acronym = Account::useService()->getMandantAcronym();
+        // Mandant ist nicht in der Schulliste
+        if( !array_key_exists($Acronym, $schoolList) && $Acronym != 'REF'){
+            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht für UCS freigeschalten'));
             return $Stage;
         }
 
-        //ToDO aktivierung für andere Accounts wenn fertig
+        $IsButtonActive = false;
         if(($tblAccount = Account::useService()->getAccountBySession())){
             if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                if(($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)){
-        // Buttons nur bei aktiver API
-        // Removed for Live //ToDO without Buttons -> no Action!
-//        $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-//        $Stage->addButton(new Standard('Benutzer hinzufügen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Create')));
-        $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Update')));
-//        $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'Delete')));
+                 // Aktivierung EVSR
+                if($Acronym == 'EVSR'
+                || $Acronym == 'EVSC'
+                || $Acronym == 'REF'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
+//                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
+                    $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
+                    $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
+                    $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
+                    $IsButtonActive = true;
                 }
             }
+        }
+        if(!$IsButtonActive){
+//            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
+            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
 
-//        //toDO wieder entfernen
-//        foreach($UserUniventionList as $UserUniventionOne){
-//            if($UserUniventionOne['name'] == 'REF-Lehrer1'){
-//                echo '<pre>';
-//                var_dump($UserUniventionOne);
-//                echo '</pre>';
-//            }
+//        if($tblAccount && $tblAccount->getUsername() == 'Rackel'){
+//            echo "<pre>";
+//            var_dump($UserUniventionList);
+//            echo "</pre>";
 //        }
 
         $UserSchulsoftwareList = array();
@@ -395,10 +402,10 @@ class Frontend extends Extension implements IFrontendInterface
                             array_push($tblCompareUpdate, $CompareRow);
 
                             $count['update']++;
-                            //toDO wieder entfernen
-                            if($AccountActive['name'] == 'REF-Lehrer1'){
+//                            //toDO wieder entfernen
+//                            if($AccountActive['name'] == 'REF-Lehrer1'){
                                 $updateList[] = $AccountActive;
-                            }
+//                            }
 
                         } else {
                             $firstWith = 1;
@@ -442,7 +449,7 @@ class Frontend extends Extension implements IFrontendInterface
             $deleteList = $UserUniventionList;
         }
 
-        $returnString = 'Komplett Abgleich';
+        $returnString = '';
         if($Upload == 'Create'){
             $returnString = 'Hinzufügen';
         } elseif($Upload == 'Update'){
@@ -469,7 +476,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .new Panel('Benutzer: Fehler', $ErrorCreateList, Panel::PANEL_TYPE_DANGER);
             }
 
-            $Stage = new Stage('Univention', 'Service');
+            $Stage = new Stage('UCS', 'Service');
             $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
             $Stage->setContent(new Success($returnString.' für '.(count($createList) - count($ErrorCreateList))
                     .' Benutzer durchgeführt')
@@ -491,7 +498,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Warning = new Title('Bearbeiten funktioniert bei folgenden Benutzern nicht:')
                     .new Panel('Benutzer: Fehler', $ErrorUpdateList, Panel::PANEL_TYPE_DANGER);
             }
-            $Stage = new Stage('Univention', 'Service');
+            $Stage = new Stage('UCS', 'Service');
             $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
             $Stage->setContent(new Success($returnString.' für '.(count($updateList) - count($ErrorUpdateList))
                     .' Benutzer durchgeführt')
@@ -515,7 +522,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .new Panel('Benutzer: Fehler', $ErrorDeleteList, Panel::PANEL_TYPE_DANGER);
             }
 
-            $Stage = new Stage('Univention', 'Service');
+            $Stage = new Stage('UCS', 'Service');
             $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
             $Stage->setContent(new Success($returnString.' für '.(count($deleteList) - count($ErrorDeleteList))
                     .' Benutzer durchgeführt')
@@ -524,55 +531,55 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         }
-        if($Upload == 'All'){
-
-            foreach($createList as $createAccount) {
-                // create with API
-                $ErrorCreateList[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
-                    $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
-                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
-            }
-            foreach($updateList as $updateAccount){
-                // update with API
-                $ErrorUpdateList[] = (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
-                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
-                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes']);
-            }
-            foreach($deleteList as $deleteAccount){
-                // delete with API
-                $ErrorDeleteList[] = (new UniventionUser())->deleteUser($deleteAccount);
-            }
-
-            $Stage = new Stage('Univention', 'Service');
-            $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
-
-            $resultAll = 'Folgende änderungen wurden durchgeführt: '
-                .new Container(' Hinzufügen von '.(count($createList) - count($ErrorCreateList)).' Benutzern')
-                .new Container(' Bearbeiten von '.(count($updateList) - count($ErrorUpdateList)).' Benutzern')
-                .new Container(' Löschen von '.(count($deleteList) - count($ErrorDeleteList)).' Benutzern');
-
-            $ErrorCreateList = array_filter($ErrorCreateList);
-            $ErrorUpdateList = array_filter($ErrorUpdateList);
-            $ErrorDeleteList = array_filter($ErrorDeleteList);
-            $Warning = '';
-            if(!empty($ErrorCreateList)){
-                $Warning = new Title('Erstellen funktioniert bei folgenden Benutzern nicht:')
-                    .new Panel('Benutzer: Fehler', $ErrorCreateList, Panel::PANEL_TYPE_DANGER);
-            }
-            if(!empty($ErrorUpdateList)){
-                $Warning .= new Title('Bearbeiten funktioniert bei folgenden Benutzern nicht:')
-                    .new Panel('Benutzer: Fehler', $ErrorUpdateList, Panel::PANEL_TYPE_DANGER);
-            }
-            if(!empty($ErrorDeleteList)){
-                $Warning .= new Title('Löschen funktioniert bei folgenden Benutzern nicht:')
-                    .new Panel('Benutzer: Fehler', $ErrorDeleteList, Panel::PANEL_TYPE_DANGER);
-            }
-
-            $Stage->setContent(new Success($resultAll)
-                .$Warning
-            );
-            return $Stage;
-        }
+//        if($Upload == 'All'){
+//
+//            foreach($createList as $createAccount) {
+//                // create with API
+//                $ErrorCreateList[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
+//                    $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
+//                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
+//            }
+//            foreach($updateList as $updateAccount){
+//                // update with API
+//                $ErrorUpdateList[] = (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
+//                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
+//                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes']);
+//            }
+//            foreach($deleteList as $deleteAccount){
+//                // delete with API
+//                $ErrorDeleteList[] = (new UniventionUser())->deleteUser($deleteAccount);
+//            }
+//
+//            $Stage = new Stage('UCS', 'Service');
+//            $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
+//
+//            $resultAll = 'Folgende änderungen wurden durchgeführt: '
+//                .new Container(' Hinzufügen von '.(count($createList) - count($ErrorCreateList)).' Benutzern')
+//                .new Container(' Bearbeiten von '.(count($updateList) - count($ErrorUpdateList)).' Benutzern')
+//                .new Container(' Löschen von '.(count($deleteList) - count($ErrorDeleteList)).' Benutzern');
+//
+//            $ErrorCreateList = array_filter($ErrorCreateList);
+//            $ErrorUpdateList = array_filter($ErrorUpdateList);
+//            $ErrorDeleteList = array_filter($ErrorDeleteList);
+//            $Warning = '';
+//            if(!empty($ErrorCreateList)){
+//                $Warning = new Title('Erstellen funktioniert bei folgenden Benutzern nicht:')
+//                    .new Panel('Benutzer: Fehler', $ErrorCreateList, Panel::PANEL_TYPE_DANGER);
+//            }
+//            if(!empty($ErrorUpdateList)){
+//                $Warning .= new Title('Bearbeiten funktioniert bei folgenden Benutzern nicht:')
+//                    .new Panel('Benutzer: Fehler', $ErrorUpdateList, Panel::PANEL_TYPE_DANGER);
+//            }
+//            if(!empty($ErrorDeleteList)){
+//                $Warning .= new Title('Löschen funktioniert bei folgenden Benutzern nicht:')
+//                    .new Panel('Benutzer: Fehler', $ErrorDeleteList, Panel::PANEL_TYPE_DANGER);
+//            }
+//
+//            $Stage->setContent(new Success($resultAll)
+//                .$Warning
+//            );
+//            return $Stage;
+//        }
 
         // Frontend Anzeige
         $ContentCreate = array();
@@ -585,11 +592,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(!empty($updateList)){
             foreach($updateList as $AccountArray) {
-                // ToDo Display changes that will be happend
-//            $DivisionString = 'Klasse: ';
-//            if(strpos($AccountArray['school_classes'], ',')){
-//                $DivisionString = 'Klassen: ';
-//            }
                 if(isset($AccountArray['UpdateLog'])){
                     $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
                         implode('<br/>', $AccountArray['UpdateLog'])
@@ -782,7 +784,7 @@ class Frontend extends Extension implements IFrontendInterface
                         case 'email':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 new DangerText('Fehler:').'</br>'
-                                .'keine E-Mail als CONNEXION Benutzername verwendet'
+                                .'keine E-Mail als UCS Benutzername verwendet'
                             )))->enableHtml();
                         break;
                         case 'roles':
@@ -795,7 +797,7 @@ class Frontend extends Extension implements IFrontendInterface
                         case 'schools':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen </br>'
-                                .'oder Schule fehlt in Univention')))->enableHtml();
+                                .'oder Schule fehlt in UCS')))->enableHtml();
                         break;
 
                     }
@@ -820,7 +822,7 @@ class Frontend extends Extension implements IFrontendInterface
                             case 'email':
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                     new DangerText('Fehler:').'</br>'
-                                    .'keine E-Mail als CONNEXION Benutzername verwendet'
+                                    .'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
                             break;
                             case 'lastname':
@@ -861,10 +863,10 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivCSV()
     {
-        $Stage = new Stage('Univention', 'Schnittstelle CSV');
+        $Stage = new Stage('UCS', 'Schnittstelle CSV');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
         $Stage->addButton(new Standard('CSV Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
-        $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Es werden auch Schüler ohne Account hinzugefügt.'));
+        $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
 
         $ErrorLog = array();
         if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
@@ -896,7 +898,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new DangerText(' Keine Schule hinterlegt');
                     $IsError = true;
                 } else {
-                    $Data['schools'] = new SuccessText(new SuccessIcon().' gefunden');
+//                    $Data['schools'] = new SuccessText(new SuccessIcon().' gefunden');
+                    $Data['schools'] = false;
                 }
 
                 if(!$Data['school_classes'] && preg_match("/student/",$Data['roles'])){
@@ -906,9 +909,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new DangerText(' Keine Klasse');
                     $IsError = true;
                 } else {
-                    $Data['school_classes'] = new SuccessText(new SuccessIcon().' gefunden');
+//                    $Data['school_classes'] = new SuccessText(new SuccessIcon().' gefunden');
+                    $Data['school_classes'] = false;
                 }
-
+                if(!$Data['mail']){
+                    $Data['mail'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().'
+                    Keine E-mail als '.new Bold('UCS Benutzername').' gepflegt')))->enableHtml().
+                    new DangerText('kein UCS Benutzername');
+                    $IsError = true;
+                } else {
+                    $Data['mail'] = false;
+//                    $Data['mail'] = new SuccessText(new SuccessIcon().' gefunden');
+                }
                 if($IsError){
                     $ErrorLog[] = $Data;
                 }
@@ -920,8 +932,15 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($ErrorLog as $Notification){
                 $PanelContent = array();
                 $PanelContent[] = 'Person: '.$Notification['firstname'].' '. $Notification['lastname'];
-                $PanelContent[] = 'Schule: '.$Notification['schools'];
-                $PanelContent[] = 'Klasse: '.$Notification['school_classes'];
+                if($Notification['schools']){
+                    $PanelContent[] = 'Schule: '.$Notification['schools'];
+                }
+                if($Notification['school_classes']){
+                    $PanelContent[] = 'Klasse: '.$Notification['school_classes'];
+                }
+                if($Notification['mail']){
+                    $PanelContent[] = 'E-mail: '.$Notification['mail'];
+                }
 
                 $Columnlist[] = new LayoutColumn(
                     new Panel($Notification['name'], $PanelContent)

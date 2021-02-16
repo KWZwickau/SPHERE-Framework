@@ -30,11 +30,12 @@ class StudentCard extends AbstractDocument
     }
 
     /**
-     * @param array $pageList
+     * @param array  $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $part = '0')
     {
         $textSize = '16px';
         $fontFamily = 'MetaPro';

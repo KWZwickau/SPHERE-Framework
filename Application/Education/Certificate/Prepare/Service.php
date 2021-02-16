@@ -891,7 +891,7 @@ class Service extends AbstractService
         }
 
         // Berufsfachschulen / Fachschulen
-        if(($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
+        if($tblStudent && ($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
             if(($tblStudentTenseOfLesson = $tblTechnicalSchool->getTblStudentTenseOfLesson())){
                 $Content['P' . $personId]['Student']['TenseOfLesson'] = $tblStudentTenseOfLesson->getCertificateName();
             }
@@ -1160,6 +1160,32 @@ class Service extends AbstractService
                     default:
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                     break;
+                }
+
+                // Spezialfall: alle Klassenlehrer aus der Klassenverwaltung
+                if ($ConsumerAcronym == 'EVSC') {
+                    if ($tblDivision
+                        && ($tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision))
+                    ) {
+                        $hasMultipleTeachers = count($tblDivisionTeacherList) > 1;
+
+                        $names = array();
+                        $description = $divisionTeacherDescription;
+                        foreach ($tblDivisionTeacherList as $tblTeacher) {
+                            $names[] = trim($tblTeacher->getFirstName() . " " . $tblTeacher->getLastName());
+
+                            if (!$hasMultipleTeachers) {
+                                if (($genderValueTeacher = $this->getGenderByPerson($tblTeacher))
+                                    && $genderValueTeacher == 'F'
+                                ) {
+                                    $description = $divisionTeacherDescription . 'in';
+                                }
+                            }
+                        }
+
+                        $Content['P'.$personId]['DivisionTeacherList']['Name'] = implode(', ' , $names);
+                        $Content['P' . $personId]['DivisionTeacherList']['Description'] = $description;
+                    }
                 }
             }
 

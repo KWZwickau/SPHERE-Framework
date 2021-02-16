@@ -1406,18 +1406,9 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Id'                => $tblDivision->getId(),
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
                                         ), 'Gruppenlehrer festlegen'));
-                                $countSubjectStudent = Division::useService()->countSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
-                                $subText = ' (' . $countSubjectStudent . ' / ' . $studentCount . ' Schüler)';
-                                $text = $tblDivisionSubjectTest->getTblSubjectGroup()->getName()
-                                    . ($countSubjectStudent > 0
-                                        ? new Muted($subText)
-                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning($subText));
-                                $GroupArray[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()]
-                                    = $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
-                                    ? new Bold($text)
-                                    : $text;
 
                                 $tblSubjectPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubjectTest);
+                                $singleGroupStudentCount = 0;
                                 if ($tblSubjectPersonList) {
                                     foreach ($tblSubjectPersonList as $tblSubjectPerson) {
                                         if (($tblSubjectStudent = Division::useService()->getSubjectStudentByDivisionSubjectAndPerson(
@@ -1427,7 +1418,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         ) {
                                             if ($tblSubjectStudent->getServiceTblPerson()) {
                                                 $StudentArray[] = $tblSubjectStudent->getServiceTblPerson()->getLastFirstName();
-                                                $StudentsGroupCount = $StudentsGroupCount + 1;
+                                                if (($tblDivisionStudentTemp = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                                                    $tblDivision, $tblSubjectPerson
+                                                ))
+                                                    && !$tblDivisionStudentTemp->isInActive()
+                                                ) {
+                                                    $StudentsGroupCount = $StudentsGroupCount + 1;
+                                                    $singleGroupStudentCount++;
+                                                }
                                                 if (($tblDivisionSubjectTemp = $tblSubjectStudent->getTblDivisionSubject())
                                                     && ($tblSubjectTemp = $tblDivisionSubjectTemp->getServiceTblSubject())
                                                     && ($tblPerson = $tblSubjectStudent->getServiceTblPerson())
@@ -1459,6 +1457,18 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 }
+
+//                                $countSubjectStudent = Division::useService()->countSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
+                                $subText = ' (' . $singleGroupStudentCount . ' / ' . $studentCount . ' Schüler)';
+                                $text = $tblDivisionSubjectTest->getTblSubjectGroup()->getName()
+                                    . ($singleGroupStudentCount > 0
+                                        ? new Muted($subText)
+                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning($subText));
+                                $GroupArray[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()]
+                                    = $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
+                                    ? new Bold($text)
+                                    : $text;
+
                                 $StudentPanel[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()] = New Panel(
                                     $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
                                         ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())

@@ -1488,9 +1488,9 @@ class Service extends Extension
             if ($tblGuardianCommon) {
                 if (( $GuardianBirthDates = $tblGuardianCommon->getTblCommonBirthDates() )) {
                     if (($tblCommonGender = $GuardianBirthDates->getTblCommonGender())) {
-                        if ($tblCommonGender == 1) {
+                        if ($tblCommonGender->getId() == 1) {
                             $person = 'V.';
-                        } elseif ($tblCommonGender == 2) {
+                        } elseif ($tblCommonGender->getId() == 2) {
                             $person = 'M.';
                         }
                     }

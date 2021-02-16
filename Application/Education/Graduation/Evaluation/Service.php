@@ -535,10 +535,6 @@ class Service extends AbstractService
             return $Stage;
         }
         $Error = false;
-        if (!($tblTestType = Evaluation::useService()->getTestTypeById($Task['Type']))) {
-            $Stage->setError('Task[Type]', 'Bitte wählen Sie eine Kategorie aus');
-            $Error = true;
-        }
         if (isset($Task['Name']) && empty($Task['Name'])) {
             $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
@@ -578,7 +574,7 @@ class Service extends AbstractService
             $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
             (new Data($this->getBinding()))->updateTask(
                 $tblTask,
-                $this->getTestTypeById($Task['Type']),
+                $tblTask->getTblTestType(),
                 $Task['Name'],
                 $Task['Date'],
                 $Task['FromDate'],

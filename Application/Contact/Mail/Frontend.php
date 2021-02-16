@@ -84,22 +84,22 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTypeAll = Mail::useService()->getTypeAll();
 
         // Account exist?
-        $isConnexion = false;
+        $isUCS = false;
         if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
             if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer))){
                 if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
-                    $isConnexion = true;
+                    $isUCS = true;
                 }
             }
         }
 
         $CheckBox = '';
-        if($isConnexion){
+        if($isUCS){
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                $CheckBox = new CheckBox('Address[Alias]', 'E-Mail als CONNEXION Benutzername verwenden', 1);
+                $CheckBox = new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1);
             } else {
-                $CheckBox = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als CONNEXION Benutzername verwenden', 1))
+                $CheckBox = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1))
                     ->setDisabled(), 'Person benötigt ein Benutzerkonto');
             }
         }
@@ -274,7 +274,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 if(($tblToPersonCurrent =  $personArray[$tblPerson->getId()])){
                                     /** @var $tblToPersonCurrent TblToPerson */
                                     if($tblToPersonCurrent->isAccountUserAlias()){
-                                        $content[] = new Check().' CONNEXION Benutzername';
+                                        $content[] = new Check().' UCS Benutzername';
                                     }
                                 }
                             }

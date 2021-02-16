@@ -885,9 +885,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $isEdit
+     *
      * @return Form
      */
-    private function formTask()
+    private function formTask($isEdit = false)
     {
 
         if(!isset($_POST['Task']['Period'])){
@@ -908,20 +910,26 @@ class Frontend extends Extension implements IFrontendInterface
             array_push($tblScoreTypeAll, new TblScoreType());
         }
 
+        $columns = array();
+        if (!$isEdit) {
+            $width = 4;
+            $columns[] =  new FormColumn(
+                (new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)))->setRequired(), $width
+            );
+        } else {
+            $width = 6;
+        }
+        $columns[] = new FormColumn(
+            (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '//verwirrt JK deswegen auskommentiert .new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
+                , array('Name' => $periodList), null, true, null))->setRequired(), $width
+        );
+        $columns[] = new FormColumn(
+            new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
+                array('Name' => $tblScoreTypeAll)), $width
+        );
+
         return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
-                ),
-                new FormColumn(
-                    (new SelectBox('Task[Period]', 'Noten-Zeitraum auswählen '//verwirrt JK deswegen auskommentiert .new ToolTip(new InfoIcon(), 'Berechnungsvorschrift beachtet nur den ausgewählten Zeitraum')
-                        , array('Name' => $periodList), null, true, null))->setRequired(), 4
-                ),
-                new FormColumn(
-                    new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
-                        array('Name' => $tblScoreTypeAll)), 4
-                ),
-            )),
+            new FormRow($columns),
             new FormRow(array(
                 new FormColumn(
                     new TextField('Task[Name]', '', 'Name'), 12
@@ -2926,7 +2934,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         if (!$Global->POST) {
-            $Global->POST['Task']['Type'] = $tblTask->getTblTestType()->getId();
             $Global->POST['Task']['Name'] = $tblTask->getName();
             $Global->POST['Task']['Date'] = $tblTask->getDate();
             $Global->POST['Task']['FromDate'] = $tblTask->getFromDate();
@@ -2936,7 +2943,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $Form = $this->formTask();
+        $Form = $this->formTask(true);
         $Form
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');

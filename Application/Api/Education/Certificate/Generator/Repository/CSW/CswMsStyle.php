@@ -20,32 +20,36 @@ class CswMsStyle
      */
     public static function getHeader($isSample)
     {
-        $pictureHeight = '90px';
+        $height = '66px';
+        $width = '214px';
 
-        if ($isSample) {
-            $header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '25%'
-                    )
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                    )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg',
-                        'auto', $pictureHeight))->styleAlignRight()
-                        , '25%')
-                );
+        $slice = new Slice();
+        $section = new Section();
+
+        // Individually Logo
+        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg', '105px', 'auto'))
+            ->styleAlignCenter()
+            , '17%');
+        $section->addElementColumn((new Element())->setContent('&nbsp;'), '22%');
+
+        // Sample
+        if($isSample){
+            $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
         } else {
-            $header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element()), '75%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW.jpg',
-                        'auto', $pictureHeight))->styleAlignRight()
-                        , '25%')
-                );
+            $section->addElementColumn((new Element()), '22%');
         }
 
-        return $header->styleHeight('50px');
+        // Standard Logo
+        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+            $width, $height))
+            ->styleAlignRight()
+            , '39%');
+
+        $slice->stylePaddingTop('24px');
+        $slice->styleHeight('100px');
+        $slice->addSection($section);
+
+        return $slice;
     }
 
     /**

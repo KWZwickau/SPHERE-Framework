@@ -88,6 +88,46 @@ class LwszGsStyle
         return $Slice;
     }
 
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    public static function getParentSign($MarginTop = '25px')
+    {
+        $ParentSlice = (new Slice());
+        $ParentSlice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Zur Kenntnis genommen:')
+                , '30%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderBottom()
+                , '60%')
+            ->addElementColumn((new Element())
+                , '10%')
+        )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Eltern')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '60%')
+                ->addElementColumn((new Element())
+                    , '10%')
+            )
+            ->styleMarginTop($MarginTop);
+        return $ParentSlice;
+    }
+
+    /**
+     * @param Certificate $certificate
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Page
+     */
     public static function buildSecondPage(Certificate $certificate, TblPerson $tblPerson = null)
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
@@ -124,10 +164,11 @@ class LwszGsStyle
                     ->styleTextSize('12pt')
                     ->styleMarginTop('20px')
                     ->styleAlignJustify()
-                    ->styleHeight('745px')
+//                    ->styleHeight('745px')
+                    ->styleHeight('810px')
                 )
             )
-            ->addSlice($certificate->getSignPart($personId, false))
+//            ->addSlice($certificate->getSignPart($personId, false))
             ->addSlice(self::buildFooter($certificate, $tblPerson));
     }
 
@@ -138,26 +179,67 @@ class LwszGsStyle
      *
      * @return Slice
      */
-    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null, $marginTop = '13px')
+    public static function buildFooter(Certificate $certificate, TblPerson $tblPerson = null)
     {
+        if ($tblPerson) {
+            $personId = $tblPerson->getId();
+        } else {
+            $personId = 0;
+        }
+
         return (new Slice())
-            ->styleMarginTop($marginTop)
             ->addSection((new Section())
                 ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
                     ->styleBorderBottom()
                     , '30%')
                 ->addElementColumn((new Element())
-                    , '70%')
+                    , '40%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                ->setContent(
-                    ($tblPerson ? $tblPerson->getFullName() : '') . ' | '
-                    . ($certificate->getTblDivision() ? 'Klasse ' . $certificate->getTblDivision()->getDisplayName() : '') . ' | '
-                    . (strpos($certificate->getCertificateName(), 'info') ? 'Halbjahresinformation' : 'Jahreszeugnis')
-                )
-                ->styleTextSize('9.5px')
-                ->styleHeight('0px')
-            ));
+                    ->setContent(
+                        ($tblPerson ? $tblPerson->getFullName() : '') . ' | '
+                        . ($certificate->getTblDivision() ? 'Klasse ' . $certificate->getTblDivision()->getDisplayName() : '') . ' | '
+                        . (strpos($certificate->getCertificateName(), 'info') ? 'Halbjahresinformation' : 'Jahreszeugnis')
+                    )
+                    ->styleTextSize('9.5px')
+//                    ->styleHeight('0px')
+                    , '70%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                                {% else %}
+                                    Klassenlehrer(in)
+                                {% endif %}
+                            ')
+                    ->styleAlignCenter()
+                    ->styleTextSize('9.5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '70%')
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                    )
+                    ->styleTextSize('9.5px')
+                    ->stylePaddingTop('2px')
+                    ->styleAlignCenter()
+                    , '30%')
+            )
+            ;
+
     }
 }
