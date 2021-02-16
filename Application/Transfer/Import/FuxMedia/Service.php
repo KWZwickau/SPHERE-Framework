@@ -220,6 +220,11 @@ class Service
                     'Sorgeberechtigter2_GO'               => null,
                     'Sorgeberechtigter2_GD'               => null,
                     'Sorgeberechtigter2_Beruf'            => null,
+                    'Fächer_Profilfach'                   => null,
+                    'Fächer_Neigungskurs'                 => null,
+                );
+
+                $OptionalLocation = array(
                     'Sorgeberechtigter3_Name'             => null,
                     'Sorgeberechtigter3_Vorname'          => null,
                     'Sorgeberechtigter3_Straße'           => null,
@@ -244,13 +249,16 @@ class Service
                     'Sorgeberechtigter4_GO'               => null,
                     'Sorgeberechtigter4_GD'               => null,
                     'Sorgeberechtigter4_Beruf'            => null,
-                    'Fächer_Profilfach'                   => null,
-                    'Fächer_Neigungskurs'                 => null,
                 );
+
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
+                    }
+
+                    if (array_key_exists($Value, $OptionalLocation)) {
+                        $OptionalLocation[$Value] = $RunX;
                     }
                 }
 
@@ -258,6 +266,8 @@ class Service
                  * Import
                  */
                 if (!in_array(null, $Location, true)) {
+                    $Location = array_merge($Location, $OptionalLocation);
+
                     $importService = new ImportService($Location, $Document);
 
                     $countStudent = 0;
@@ -701,7 +711,8 @@ class Service
                                     $tblCommonGenderMale,
                                     $tblCommonGenderFemale,
                                     $countCustody,
-                                    $countCustodyExists
+                                    $countCustodyExists,
+                                    $consumerAcronym
                                 );
 
                                 if ($tblPersonCustody) {
@@ -852,6 +863,7 @@ class Service
      * @param $tblCommonGenderFemale
      * @param $countAdd
      * @param $countExists
+     * @param $consumerAcronym
      *
      * @return TblPerson|bool
      */
@@ -867,34 +879,43 @@ class Service
         $tblCommonGenderMale,
         $tblCommonGenderFemale,
         &$countAdd,
-        &$countExists
+        &$countExists,
+        $consumerAcronym
     ) {
 
         $tblPersonCustody = null;
-        $CustodyFirstName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Vorname'],
-            $RunY)));
-        $CustodyLastName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Name'],
-            $RunY)));
+        $CustodyFirstName = $this->getValue('Sorgeberechtigter' . $ranking . '_Vorname', $Location, $Document, $RunY);
+        $CustodyLastName = $this->getValue('Sorgeberechtigter' . $ranking . '_Name', $Location, $Document, $RunY);
         $cityCode = $importService->formatZipCode('Sorgeberechtigter' . $ranking . '_Plz', $RunY);
         if ($CustodyLastName !== '') {
-            $status = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . ($ranking == 1 ? '' : $ranking) . '_Status'],
-                $RunY)));
-            // Beziehungstyp
-            switch ($status) {
-                case 'FAM':
-                case 'ELT':
-                case 'NMU':
-                case 'NVA': $tblRelationShipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-                    $relationShipRanking = $ranking;
-                    break;
-                default: $tblRelationShipType = Relationship::useService()->getTypeByName('Notfallkontakt');
-                    $relationShipRanking = null;
-            }
-            // alleinerziehend
-            switch ($status) {
-                case 'NMU':
-                case 'NVA': $isSingleParent = true; break;
-                default: $isSingleParent = false;
+            $status = $this->getValue('Sorgeberechtigter' . ($ranking == 1 ? '' : $ranking) . '_Status', $Location, $Document, $RunY);
+            $isSingleParent = false;
+
+            if ($consumerAcronym == 'HOGA') {
+                // Beziehungstyp
+                switch ($status) {
+                    case 'FAM':
+                    case 'ELT':
+                    case 'NMU':
+                    case 'NVA':
+                        $tblRelationShipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                        $relationShipRanking = $ranking;
+                        break;
+                    default:
+                        $tblRelationShipType = Relationship::useService()->getTypeByName('Notfallkontakt');
+                        $relationShipRanking = null;
+                }
+                // alleinerziehend
+                switch ($status) {
+                    case 'AER':
+                        $isSingleParent = true;
+                        break;
+                    default:
+                        $isSingleParent = false;
+                }
+            } else {
+                $tblRelationShipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                $relationShipRanking = $ranking;
             }
 
             $tblPersonCustodyExists = $this->usePeoplePerson()->getPersonExists(
@@ -903,11 +924,22 @@ class Service
                 $cityCode
             );
             if (!$tblPersonCustodyExists) {
+                $gender = strtolower($this->getValue('Sorgeberechtigter' . $ranking . '_Geschlecht', $Location, $Document, $RunY));
+                switch ($gender) {
+                    case 'm': $tblCommonGender = $tblCommonGenderMale;
+                        $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1);
+                        break;
+                    case 'w': $tblCommonGender = $tblCommonGenderFemale;
+                        $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2);
+                        break;
+                    default: $tblCommonGender = false;
+                        $tblSalutation = false;
+                }
+
                 $tblPersonCustody = $this->usePeoplePerson()->insertPerson(
-                    null,
-                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Titel'], $RunY))),
-                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Vorname'],
-                        $RunY))),
+                    $tblSalutation ? $tblSalutation : null,
+                    $this->getValue('Sorgeberechtigter' . $ranking . '_Titel', $Location, $Document, $RunY),
+                    $CustodyFirstName,
                     '',
                     $CustodyLastName,
                     array(
@@ -918,18 +950,10 @@ class Service
                     $tblType->getShortName() . '_Zeile_' . ($RunY + 1) . '_S' . $ranking
                 );
 
-                $gender = strtolower(trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Geschlecht'],
-                    $RunY))));
-                switch ($gender) {
-                    case 'm': $tblCommonGender = $tblCommonGenderMale; break;
-                    case 'w': $tblCommonGender = $tblCommonGenderFemale; break;
-                    default: $tblCommonGender = false;
-                }
-
                 Common::useService()->insertMeta(
                     $tblPersonCustody,
                     $importService->formatDateString('Sorgeberechtigter' . $ranking . '_GD', $RunY, $error),
-                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_GO'], $RunY))),
+                    $this->getValue('Sorgeberechtigter' . $ranking . '_GO', $Location, $Document, $RunY),
                     $tblCommonGender ? $tblCommonGender : null,
                     '',
                     '',
@@ -938,8 +962,7 @@ class Service
                     ''
                 );
 
-                $occupation = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Beruf'],
-                    $RunY)));
+                $occupation = $this->getValue('Sorgeberechtigter' . $ranking . '_Beruf', $Location, $Document, $RunY);
                 if ($occupation) {
                     Custody::useService()->insertMeta($tblPersonCustody, $occupation, '', '');
                 }
@@ -954,11 +977,9 @@ class Service
                 );
 
                 // Sorgeberechtigter1 Address
-                if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Wohnort'],
-                        $RunY))) != ''
-                ) {
-                    $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Straße'],
-                        $RunY)));
+                $city = $this->getValue('Sorgeberechtigter' . $ranking . '_Wohnort', $Location, $Document, $RunY);
+                if ($city != '') {
+                    $Street = $this->getValue('Sorgeberechtigter' . $ranking . '_Straße', $Location, $Document, $RunY);
                     if (preg_match_all('!\d+!', $Street, $matches)) {
                         $pos = strpos($Street, $matches[0][0]);
                         if ($pos !== null) {
@@ -970,10 +991,8 @@ class Service
                                 $StreetName,
                                 $StreetNumber,
                                 $cityCode,
-                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Wohnort'],
-                                    $RunY))),
-                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter' . $ranking . '_Ortsteil'],
-                                    $RunY))),
+                                $city,
+                                $this->getValue('Sorgeberechtigter' . $ranking . '_Ortsteil', $Location, $Document, $RunY),
                                 ''
                             );
 
@@ -1002,6 +1021,23 @@ class Service
         }
 
         return false;
+    }
+
+    /**
+     * @param string $columnName
+     * @param $Location
+     * @param $Document
+     * @param $RunY
+     *
+     * @return string
+     */
+    private function getValue($columnName, $Location, $Document, $RunY)
+    {
+        if ($Location[$columnName] !== null) {
+            return trim($Document->getValue($Document->getCell($Location[$columnName], $RunY)));
+        }
+
+        return '';
     }
 
     /**
