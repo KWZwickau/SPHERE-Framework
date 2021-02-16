@@ -110,7 +110,9 @@ class Service
                             ? ''
                             : trim($Document->getValue($Document->getCell($OptionalLocation['Geburtsdatum'], $RunY)));
                         if ($birthday) {
-                            $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                            if (strpos($birthday, '.') === false) {
+                                $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                            }
                         }
 
                         $addMail = false;
