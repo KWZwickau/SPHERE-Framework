@@ -49,6 +49,7 @@ class Service
         }
         $isAccountAlias = isset($Data['IsAccountAlias']);
         $isTest = isset($Data['IsTest']);
+        $isAddMailWithoutAccount = isset($Data['IsAddMailWithoutAccount']);
 
         if (null !== $File) {
             if ($File->getError()) {
@@ -133,6 +134,8 @@ class Service
                             }
 
                             if ($addMail) {
+                                $personMailIsAccountAlias = false;
+
                                 if ($isAccountAlias) {
                                     $addMail = false;
                                     // findAccounts
@@ -146,6 +149,7 @@ class Service
                                                 && Account::useService()->changeUserAlias($tblAccount, $mail)
                                             ) {
                                                 $addMail = true;
+                                                $personMailIsAccountAlias = true;
                                             } else {
                                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
                                                     . ' Alias konnte nicht am Benutzerkonto gespeichert werden.';
@@ -155,6 +159,9 @@ class Service
                                         $countMissingAccounts++;
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
                                             . ' besitzt kein Benutzerkonto';
+                                        if ($isAddMailWithoutAccount) {
+                                            $addMail = true;
+                                        }
                                     }
                                 }
 
@@ -172,7 +179,7 @@ class Service
                                         }
                                     }
 
-                                    if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $isAccountAlias)) {
+                                    if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $personMailIsAccountAlias)) {
                                         $countAddMail++;
                                     } else {
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';
