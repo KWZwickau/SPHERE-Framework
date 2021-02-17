@@ -2286,7 +2286,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 //                                                    }
                                                 }
                                             } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\Editor') {
-                                                $Editor = new Editor($dataFieldName);
+                                                if ($tblPrepareStudent && $tblPrepareStudent->isApproved()){
+                                                    $Editor = (new Editor($dataFieldName))->setDisabled();
+                                                } else {
+                                                    $Editor = new Editor($dataFieldName);
+                                                }
                                                 $studentTable[$tblPerson->getId()][$key] = $Editor;
                                             } else {
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {

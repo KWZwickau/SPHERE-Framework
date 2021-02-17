@@ -99,6 +99,10 @@ class Editor extends AbstractTextField implements IFieldInterface
         if($this->toolbar){
             $Option = array_merge($Option, array('toolbar' => $this->toolbar));
         }
+        if($this->getDisabled()){
+            $Option['readonly'] = 1;
+        }
+
         $Option = json_encode($Option);
         $this->Template->setVariable('ElementOption', $Option);
 
