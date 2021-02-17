@@ -391,6 +391,7 @@ class Frontend extends Extension implements IFrontendInterface
         $LoginOk = false;
 
         if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
+//            var_dump($_SESSION['samlUserdata']);
             $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
             $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
             $tblAccount = Account::useService()->getAccountById($AccountId);
@@ -403,6 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(new Warning('Ihr Login ist irregulär, bitte wenden Sie sich an einen zuständigen Administrator'))
             ))));
+            return $Stage;
         }
         if(isset($_SESSION['isAuthenticated']) && $_SESSION['isAuthenticated']){
             $LoginOk = true;
