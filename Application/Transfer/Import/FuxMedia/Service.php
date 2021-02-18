@@ -214,18 +214,21 @@ class Service
                     'Sorgeberechtigter1_Geschlecht'       => null,
                     'Sorgeberechtigter1_GO'               => null,
                     'Sorgeberechtigter1_GD'               => null,
-                    'Sorgeberechtigter1_Beruf'            => null,
                     'Sorgeberechtigter2_Status'           => null,
                     'Sorgeberechtigter2_Titel'            => null,
                     'Sorgeberechtigter2_Geschlecht'       => null,
                     'Sorgeberechtigter2_GO'               => null,
                     'Sorgeberechtigter2_GD'               => null,
-                    'Sorgeberechtigter2_Beruf'            => null,
                     'Fächer_Profilfach'                   => null,
                     'Fächer_Neigungskurs'                 => null,
+
+                    'Fächer_Bildungsgang'                 => null,
+                    'Fächer_letzter_Bildungsgang'         => null,
                 );
 
                 $OptionalLocation = array(
+                    'Sorgeberechtigter1_Beruf'            => null,
+                    'Sorgeberechtigter2_Beruf'            => null,
                     'Sorgeberechtigter3_Name'             => null,
                     'Sorgeberechtigter3_Vorname'          => null,
                     'Sorgeberechtigter3_Straße'           => null,
@@ -508,7 +511,7 @@ class Service
                                     );
                                 }
 
-                                $diploma = $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Schulabschluss'],
+                                $diploma = trim($Document->getValue($Document->getCell($Location['Schüler_Schulabschluss'],
                                     $RunY)));
                                 if ($diploma != '') {
                                     switch ($diploma) {
@@ -529,6 +532,33 @@ class Service
                                         );
                                     } else {
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Schulabschluss:' . $diploma . ' nicht gefunden.';
+                                    }
+                                } else {
+                                    $course = trim($Document->getValue($Document->getCell($Location['Fächer_Bildungsgang'],
+                                        $RunY)));
+                                    if ($course != '') {
+                                        switch ($course) {
+                                            case 'HS': $tblCourse = Course::useService()->getCourseByName('Hauptschule'); break;
+                                            case 'RS': $tblCourse = Course::useService()->getCourseByName('Realschule'); break;
+                                            default: $tblCourse = false;
+                                        }
+
+                                        $lastCourse = trim($Document->getValue($Document->getCell($Location['Fächer_letzter_Bildungsgang'],
+                                            $RunY)));
+                                        if ($tblCourse) {
+                                            $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+                                            Student::useService()->insertStudentTransfer(
+                                                $tblStudent,
+                                                $tblStudentTransferType,
+                                                null,
+                                                null,
+                                                $tblCourse,
+                                                '',
+                                                $lastCourse ? 'Letzter Bildungsgang: ' . $lastCourse : ''
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Bildungsgang:' . $course . ' nicht gefunden.';
+                                        }
                                     }
                                 }
 
@@ -726,6 +756,7 @@ class Service
                                 $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon'.$i],
                                     $RunY)));
                                 if ($phoneNumber != '') {
+                                    $remarkPhone = '';
                                     if ($consumerAcronym == 'HOGA') {
                                         switch ($i) {
                                             case 1: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
@@ -770,6 +801,39 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
                                                 . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
                                         }
+                                    } elseif ($consumerAcronym == 'EOSL') {
+                                        switch ($i) {
+                                            case 1: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                break;
+                                            case 2: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                $remarkPhone = 'sonstige';
+                                                break;
+                                            case 3: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            case 4: $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                break;
+                                            case 5: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(3);
+                                                break;
+                                            case 6: $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                $tblPhoneType = Phone::useService()->getTypeById(3);
+                                                break;
+                                            default: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                if (0 === strpos($phoneNumber, '01')) {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                }
+                                        }
+
+                                        if (!$tblPersonContact) {
+                                            $tblPersonContact = $tblPerson;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
+                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                        }
                                     } else {
                                         $tblPersonContact = $tblPerson;
                                         $tblPhoneType = Phone::useService()->getTypeById(1);
@@ -782,7 +846,7 @@ class Service
                                         $phoneNumber = '0' . $phoneNumber;
                                     }
 
-                                    Phone::useService()->insertPhoneToPerson($tblPersonContact, $phoneNumber, $tblPhoneType, '');
+                                    Phone::useService()->insertPhoneToPerson($tblPersonContact, $phoneNumber, $tblPhoneType, $remarkPhone);
                                 }
                             }
 
@@ -810,6 +874,23 @@ class Service
                                                 break;
                                             case 4:
                                                 $tblPersonContact = isset($personList['S4']) ? $personList['S4'] : false;
+                                                break;
+                                            default:
+                                                $tblPersonContact = $tblPerson;
+                                        }
+
+                                        if (!$tblPersonContact) {
+                                            $tblPersonContact = $tblPerson;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
+                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                        }
+                                    } elseif ($consumerAcronym == 'EOSL') {
+                                        switch ($i) {
+                                            case 1:
+                                                $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                break;
+                                            case 2:
+                                                $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
                                                 break;
                                             default:
                                                 $tblPersonContact = $tblPerson;
