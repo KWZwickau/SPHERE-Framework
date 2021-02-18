@@ -19,6 +19,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -1109,6 +1110,7 @@ class Service
                     'Geburtsdatum' => null,
                     'Geburtsort'   => null,
                     'Geburtsname'  => null,
+                    'Staatsangehörigkeit' => null,
                     'Konfession'   => null,
                     'Telefon1'     => null,
                     'Telefon2'     => null,
@@ -1130,6 +1132,9 @@ class Service
                     $tblCommonGenderMale = Common::useService()->getCommonGenderByName('Männlich');
                     $tblCommonGenderFemale = Common::useService()->getCommonGenderByName('Weiblich');
 
+                    $importService = new ImportService($Location, $Document);
+                    $error = array();
+
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
                         if ($lastName) {
@@ -1145,7 +1150,8 @@ class Service
                                 $lastName,
                                 array(
                                     0 => Group::useService()->getGroupById(1),           //Personendaten
-                                    1 => Group::useService()->getGroupById(5)            //Mitarbeiter
+                                    1 => Group::useService()->getGroupById(5),         //Mitarbeiter
+                                    2 => Group::useService()->getGroupByMetaTable('TEACHER')
                                 ),
                                 trim($Document->getValue($Document->getCell($Location['Geburtsname'], $RunY)))
                             );
@@ -1156,19 +1162,25 @@ class Service
                                 // Teacher Common
                                 Common::useService()->insertMeta(
                                     $tblPerson,
-                                    trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
-                                        $RunY))),
+                                    $importService->formatDateString('Geburtsdatum', $RunY, $error),
                                     trim($Document->getValue($Document->getCell($Location['Geburtsort'],
                                         $RunY))),
                                     $gender,
-                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Staatsangehörigkeit'],
+                                        $RunY))),
                                     trim($Document->getValue($Document->getCell($Location['Konfession'],
                                         $RunY))),
                                     0,
                                     '',
-                                    trim($Document->getValue($Document->getCell($Location['Lehrerkürzel'],
-                                        $RunY)))
+                                    ''
                                 );
+
+                                // Teacher Meta
+                                $acronym = trim($Document->getValue($Document->getCell($Location['Lehrerkürzel'],
+                                    $RunY)));
+                                if ($acronym != '') {
+                                    Teacher::useService()->insertTeacher($tblPerson, $acronym);
+                                }
 
                                 // Teacher Address
                                 if (trim($Document->getValue($Document->getCell($Location['Wohnort'],
@@ -1186,8 +1198,7 @@ class Service
                                                 $tblPerson,
                                                 $StreetName,
                                                 $StreetNumber,
-                                                trim($Document->getValue($Document->getCell($Location['Plz'],
-                                                    $RunY))),
+                                                $importService->formatZipCode('Plz', $RunY),
                                                 trim($Document->getValue($Document->getCell($Location['Wohnort'],
                                                     $RunY))),
                                                 trim($Document->getValue($Document->getCell($Location['Ortsteil'],
@@ -1224,7 +1235,15 @@ class Service
                         }
                     }
                     return
-                        new Success('Es wurden '.$countTeacher.' Lehrer erfolgreich angelegt.');
+                        new Success('Es wurden '.$countTeacher.' Lehrer erfolgreich angelegt.')
+                            . (empty($error)
+                                ? ''
+                                : new Panel(
+                                    'Fehler',
+                                    $error,
+                                    Panel::PANEL_TYPE_DANGER
+                                )
+                            );
                 } else {
                     return new Warning(json_encode($Location))
                     . new Danger(
