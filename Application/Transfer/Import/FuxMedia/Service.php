@@ -8,6 +8,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -370,6 +371,8 @@ class Service
                                         if (( $pos = strpos($Division, $Level) ) !== false) {
                                             if (strlen($Division) > ( ( $start = $pos + strlen($Level) ) )) {
                                                 $Division = substr($Division, $start);
+                                            } else {
+                                                $Division = '';
                                             }
                                         }
                                         $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
@@ -1521,10 +1524,22 @@ class Service
                     'Plz'   => null,
                     'Ort'   => null
                 );
+
+                $OptionalLocation = array(
+                    'Telefon' => null,
+                    'Telefax'   => null,
+                    'EMail_Adresse'   => null,
+                    'Internet_Adresse'   => null,
+                );
+
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
+                    }
+
+                    if (array_key_exists($Value, $OptionalLocation)) {
+                        $OptionalLocation[$Value] = $RunX;
                     }
                 }
 
@@ -1535,6 +1550,7 @@ class Service
                  */
                 if (!in_array(null, $Location, true)) {
                     $countCompany = 0;
+                    $Location = array_merge($Location, $OptionalLocation);
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         $companyName = trim($Document->getValue($Document->getCell($Location['Einrichtungsname'], $RunY)));
@@ -1576,6 +1592,26 @@ class Service
                                             '',
                                             ''
                                         );
+                                    }
+
+                                    $phoneNumber = $this->getValue('Telefon', $Location, $Document, $RunY);
+                                    if ($phoneNumber != '') {
+                                        Phone::useService()->insertPhoneToCompany($tblCompany, $phoneNumber, Phone::useService()->getTypeById(3), '');
+                                    }
+
+                                    $faxNumber = $this->getValue('Telefax', $Location, $Document, $RunY);
+                                    if ($faxNumber != '') {
+                                        Phone::useService()->insertPhoneToCompany($tblCompany, $faxNumber, Phone::useService()->getTypeById(8), '');
+                                    }
+
+                                    $mailAddress = $this->getValue('EMail_Adresse', $Location, $Document, $RunY);
+                                    if ($mailAddress != '') {
+                                        Mail::useService()->insertMailToCompany($tblCompany, $mailAddress, Mail::useService()->getTypeById(2), '');
+                                    }
+
+                                    $web = $this->getValue('Internet_Adresse', $Location, $Document, $RunY);
+                                    if ($web != '') {
+                                        Web::useService()->insertWebToCompany($tblCompany, $web, Web::useService()->getTypeById(2), '');
                                     }
                                 }
                             }
