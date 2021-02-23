@@ -77,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new CheckBox('Data[IsAddMailWithoutAccount]', 'Bei ausgewählten Account-Alias, die Emailadresse auch ohne Benutzerkonto anlegen', 1)
+                                                new CheckBox('Data[IsAddMailWithoutAccount]', 'Nur Emailadressen importieren (ohne Account-Alias)', 1)
                                             ),
                                         )),
                                         new FormRow(array(
