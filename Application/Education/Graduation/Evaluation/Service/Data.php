@@ -413,6 +413,7 @@ class Data extends AbstractData
      * @param null $ReturnDate
      * @param null $FinishDate
      * @param TblGradeType $tblGradeType
+     * @param TblPeriod|null $tblPeriod
      *
      * @return bool
      */
@@ -423,7 +424,8 @@ class Data extends AbstractData
         $CorrectionDate = null,
         $ReturnDate = null,
         $FinishDate = null,
-        TblGradeType $tblGradeType = null
+        TblGradeType $tblGradeType = null,
+        TblPeriod $tblPeriod = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -439,6 +441,9 @@ class Data extends AbstractData
             $Entity->setFinishDate($FinishDate ? new \DateTime($FinishDate) : null);
             if ($tblGradeType) {
                 $Entity->setServiceTblGradeType($tblGradeType);
+            }
+            if ($tblPeriod) {
+                $Entity->setServiceTblPeriod($tblPeriod);
             }
 
             $Manager->saveEntity($Entity);

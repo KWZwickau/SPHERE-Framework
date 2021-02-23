@@ -348,6 +348,10 @@ class Service extends AbstractService
 
         $tblTest = $this->getTestById($Id);
         $Error = false;
+        if (!($tblPeriod = Term::useService()->getPeriodById($Test['Period']))) {
+            $Stage->setError('Test[Period]', 'Bitte wählen Sie einen Zeitraum aus');
+            $Error = true;
+        }
         if (!($tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']))) {
             $Stage->setError('Test[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
             $Error = true;
@@ -375,6 +379,19 @@ class Service extends AbstractService
             } else {
                 $isChangeGradesGradeType = false;
             }
+
+            // Change Period of Grades
+            if ($tblTest->getServiceTblPeriod()
+                && $tblPeriod
+                && $tblPeriod->getId() != $tblTest->getServiceTblPeriod()->getId()
+            ) {
+                $isChangeGradesPeriod = true;
+                Gradebook::useService()->updateGradesPeriodByTest($tblTest, $tblPeriod);
+            } else {
+                $isChangeGradesPeriod = false;
+            }
+
+
             (new Data($this->getBinding()))->updateTest(
                 $tblTest,
                 $Test['Description'],
@@ -382,13 +399,18 @@ class Service extends AbstractService
                 isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
                 isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null,
                 isset($Test['FinishDate']) ? $Test['FinishDate'] : null,
-                $tblGradeType ? $tblGradeType : null
+                $tblGradeType ? $tblGradeType : null,
+                $tblPeriod ? $tblPeriod : null
             );
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
                 foreach ($tblTestLinkList as $tblTestItem) {
                     if ($isChangeGradesGradeType) {
                         Gradebook::useService()->updateGradesGradeTypeByTest($tblTestItem, $tblGradeType);
                     }
+                    if ($isChangeGradesPeriod) {
+                        Gradebook::useService()->updateGradesPeriodByTest($tblTestItem, $tblPeriod);
+                    }
+
                     (new Data($this->getBinding()))->updateTest(
                         $tblTestItem,
                         $Test['Description'],
@@ -396,7 +418,8 @@ class Service extends AbstractService
                         isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
                         isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null,
                         isset($Test['FinishDate']) ? $Test['FinishDate'] : null,
-                        $tblGradeType ? $tblGradeType : null
+                        $tblGradeType ? $tblGradeType : null,
+                        $tblPeriod ? $tblPeriod : null
                     );
                 }
             }
