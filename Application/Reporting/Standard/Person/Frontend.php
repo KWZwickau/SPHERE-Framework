@@ -1061,7 +1061,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'Neuanmeldungen/Interessenten');
         $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('PROSPECT'));
-        $PersonList = Person::useService()->createInterestedPersonList();
+        $hasGuardian = false;
+        $hasAuthorizedPerson = false;
+        $PersonList = Person::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson);
         if ($PersonList) {
             $Stage->addButton(
                 new Primary('Herunterladen',
@@ -1071,35 +1073,48 @@ class Frontend extends Extension implements IFrontendInterface
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
+        $columns = array(
+            'RegistrationDate' => 'Anmeldedatum',
+            'InterviewDate'    => 'Aufnahmegespräch ',
+            'TrialDate'        => 'Schnuppertag ',
+            'FirstName'        => 'Vorname',
+            'LastName'         => 'Name',
+            'SchoolYear'       => 'Schuljahr',
+            'DivisionLevel'    => 'Klassenstufe',
+            'TypeOptionA'      => 'Schulart 1',
+            'TypeOptionB'      => 'Schulart 2',
+            'Address'          => 'Adresse',
+            'Birthday'         => 'Geburtsdatum',
+            'Birthplace'       => 'Geburtsort',
+            'Nationality'      => 'Staatsangeh.',
+            'Denomination'     => 'Bekenntnis',
+            'Siblings'         => 'Geschwister',
+            'Custody1'         => 'Sorgeberechtigter 1',
+            'Custody2'         => 'Sorgeberechtigter 2',
+            'Custody3'         => 'Sorgeberechtigter 3'
+        );
+
+        if ($hasGuardian) {
+            $columns['Guardian'] = 'Vormund';
+        }
+        if ($hasAuthorizedPerson) {
+            $columns['AuthorizedPerson'] = 'Bevollmächtigter';
+        }
+
+        $columns = array_merge($columns, array(
+            'Phone'            => 'Telefon Interessent',
+            'PhoneGuardian'    => 'Telefon Sorgeberechtigte',
+            'MailGuardian'     => 'E-Mail Sorgeberechtigte',
+            'Remark'           => 'Bemerkung',
+        ));
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($PersonList, null,
-                                array(
-                                    'RegistrationDate' => 'Anmeldedatum',
-                                    'InterviewDate'    => 'Aufnahmegespräch ',
-                                    'TrialDate'        => 'Schnuppertag ',
-                                    'FirstName'        => 'Vorname',
-                                    'LastName'         => 'Name',
-                                    'SchoolYear'       => 'Schuljahr',
-                                    'DivisionLevel'    => 'Klassenstufe',
-                                    'TypeOptionA'      => 'Schulart 1',
-                                    'TypeOptionB'      => 'Schulart 2',
-                                    'Address'          => 'Adresse',
-                                    'Birthday'         => 'Geburtsdatum',
-                                    'Birthplace'       => 'Geburtsort',
-                                    'Nationality'      => 'Staatsangeh.',
-                                    'Denomination'     => 'Bekenntnis',
-                                    'Siblings'         => 'Geschwister',
-                                    'Father'           => 'Sorgeberechtigter 1',
-                                    'Mother'           => 'Sorgeberechtigter 2',
-                                    'Phone'            => 'Telefon Interessent',
-                                    'PhoneGuardian'    => 'Telefon Sorgeberechtigte',
-                                    'MailGuardian'     => 'E-Mail Sorgeberechtigte',
-                                    'Remark'           => 'Bemerkung',
-                                ),
+                                $columns,
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
