@@ -807,12 +807,14 @@ class Service extends AbstractService
                         $displayPerson = $personFrom;
                     } elseif (($personTo = $tblToPerson->getServiceTblPersonTo())) {
                         $displayPerson = $personTo;
+                    } else {
+                        $displayPerson = false;
                     }
 
                     $result[] = array(
                         'Number' => $count++,
                         'Type' => 'Personenbeziehung',
-                        'Value' =>  $displayPerson->getLastFirstName() . ' (' . $tblType->getName() . ')',
+                        'Value' =>  $displayPerson ? $displayPerson->getLastFirstName() . ' (' . $tblType->getName() . ')' : ' Person nicht mehr vorhanden',
                         'EntityRemove' => $tblToPerson->getEntityRemove()
                     );
 

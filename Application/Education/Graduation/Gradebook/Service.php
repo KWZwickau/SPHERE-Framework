@@ -1626,6 +1626,16 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @param TblTest $tblTest
+     * @param TblPeriod $tblPeriod
+     */
+    public function updateGradesPeriodByTest(TblTest $tblTest, TblPeriod $tblPeriod) {
+        if (($tblGradeList = $this->getGradeAllByTest($tblTest))) {
+            (new Data($this->getBinding()))->updateGradesPeriod($tblPeriod, $tblGradeList);
+        }
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param array          $ParentAccount
      * @param TblAccount     $tblAccountStudent

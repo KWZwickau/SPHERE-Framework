@@ -817,6 +817,35 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     }
 
     /**
+     * @param TblPeriod $tblPeriod
+     * @param $tblGradeList
+     */
+    public function updateGradesPeriod(
+        TblPeriod $tblPeriod,
+        $tblGradeList
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setServiceTblPeriod($tblPeriod);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPersonTeacher
      * @param TblPerson $tblPersonStudent

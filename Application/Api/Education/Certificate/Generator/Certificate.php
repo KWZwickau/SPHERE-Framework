@@ -189,11 +189,11 @@ abstract class Certificate extends Extension
         $tblCertificateList = array_filter($tblCertificateList);
         if(in_array(get_class($this), $tblCertificateList) || $isWidth){
             // breiter (Standard)
-            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
             $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
             if($tblSetting && $tblSetting->getValue() == 1){
                 // normal
-                $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+                $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
             }
         }
 

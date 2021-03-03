@@ -2010,9 +2010,28 @@ abstract class BfsStyle extends Certificate
             )
         );
 
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleAlignCenter()
+                ->styleTextSize('10px')
+                , '60%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                        {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleTextSize('10px')
+                , '40%'
+            )
+        );
+
         $Slice->addElement((new Element())
             ->setContent('&nbsp;')
-            ->styleHeight('30px')
+            ->styleHeight('18px')
         );
 
         $Slice->addSection((new Section())
