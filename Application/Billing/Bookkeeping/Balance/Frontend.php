@@ -506,15 +506,14 @@ class Frontend extends Extension implements IFrontendInterface
                     , 6));
             }
 
-            $tblYear = false;
-            if (($tblYearList = Term::useService()->getYearByNow())) {
-                $tblYear = current($tblYearList);
-            }
+            $tblYearList = Term::useService()->getYearByNow();
             if ($Filter == self::FILTER_CLASS || $Filter == self::FILTER_GROUP) {
                 $tblDivisionList = array();
-                if ($tblYear) {
-                    if (!($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
-                        $tblDivisionList = array();
+                if ($tblYearList) {
+                    foreach($tblYearList as $tblYear){
+                        if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
+                            $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                        }
                     }
                 }
                 if(empty($tblDivisionList)){

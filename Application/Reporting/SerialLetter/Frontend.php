@@ -835,9 +835,8 @@ class Frontend extends Extension implements IFrontendInterface
             // set Year
             $tblYearList = Term::useService()->getYearByNow();
             if ($tblYearList) {
-                foreach ($tblYearList as $tblYear) {
-                    $Global->POST['FilterYear']['TblYear_Id'] = $tblYear->getId();
-                }
+                $tblYear = current($tblYearList);
+                $Global->POST['FilterYear']['TblYear_Id'] = $tblYear->getId();
             }
             $Global->savePost();
 

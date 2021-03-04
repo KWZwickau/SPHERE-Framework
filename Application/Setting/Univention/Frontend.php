@@ -121,10 +121,10 @@ class Frontend extends Extension implements IFrontendInterface
 //        }
 
         $UserSchulsoftwareList = array();
-        $tblYear = Term::useService()->getYearByNow();
-        if($tblYear){
-            $tblYear = current($tblYear);
-            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($tblYear, $roleList, $schoolList);
+        //vorprüfung zur Suche in der Schulsoftware
+        $tblYearList = Term::useService()->getYearByNow();
+        if($tblYearList){
+            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($roleList, $schoolList);
         }
 
         // Zählung

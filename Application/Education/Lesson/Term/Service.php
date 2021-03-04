@@ -209,8 +209,9 @@ class Service extends AbstractService
             $Form->setError('Year[Year]', 'Bitte geben sie ein Jahr an');
             $Error = true;
         } else {
-            if (($tblYear = Term::useService()->checkYearExist($Year['Year']))) {
-                $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits.');
+            if (($tblYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']))) {
+                $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits');
+                $Form->setError('Year[Description]', 'Ändern Sie die Beschreibung um das Jahr wiederholt speichern zu können');
                 $Error = true;
             }
         }
@@ -229,14 +230,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Year
+     * @param string $Year
+     * @param string $Description
      *
      * @return false|TblYear
      */
-    public function checkYearExist($Year)
+    public function checkYearExist($Year, $Description = '')
     {
 
-        return (new Data($this->getBinding()))->checkYearExist($Year);
+        return (new Data($this->getBinding()))->checkYearExist($Year, $Description);
     }
 
     /**
@@ -348,6 +350,57 @@ class Service extends AbstractService
 
         $Now = new DateTime('now');
         return $this->getYearAllByDate($Now);
+    }
+
+    /**
+     * @return string
+     */
+    public function getYearString()
+    {
+        $now = new DateTime();
+        $YearString = (int)$now->format('Y');
+        $YearStringAdd = (int)substr($YearString, 2, 2);
+        $YearStringAdd++;
+        // Standard Schuljahreswechsel -> Jahr wird ein hochgezählt
+        if($now < new DateTime('01.08.'.$YearString)){
+            $YearString--;
+            $YearStringAdd--;
+        }
+        $YearString .= '/'.$YearStringAdd;
+        return $YearString;
+    }
+
+    /**
+     * @return array
+     * Array with 'Key' <br/>
+     * 'PastYear' -> 2020 <br/>
+     * 'PastDisplayYear' -> 2020/21 <br/>
+     * 'CurrentYear' -> 2021 <br/>
+     * 'CurrentDisplayYear' -> 2021/22
+     */
+    public function getYearStringAsArray()
+    {
+        $Date = array();
+        $now = new DateTime();
+        $YearString = (int)$now->format('Y');
+        $YearStringAdd = (int)substr($YearString, 2, 2);
+        $YearStringAdd++;
+        // Standard Schuljahreswechsel -> Jahr wird ein hochgezählt
+        if($now < new DateTime('01.08.'.$YearString)){
+            $YearString--;
+            $YearStringAdd--;
+        }
+
+        $PastYear = $YearString - 1;
+        $PastDisplayYear = ($YearString - 1).'/'.($YearStringAdd - 1);
+        $Date['PastYear'] = $PastYear;
+        $Date['PastDisplayYear'] = $PastDisplayYear;
+
+        $Date['CurrentYear'] = $YearString;
+        $YearString .= '/'.$YearStringAdd;
+        $Date['CurrentDisplayYear'] = $YearString;
+
+        return $Date;
     }
 
     /**
@@ -469,14 +522,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param TblYear $tblYear
+     * @param IFormInterface|null $Form
+     * @param TblYear             $tblYear
      * @param                     $Year
      *
      * @return IFormInterface|string
      */
     public function changeYear(
-        IFormInterface &$Stage = null,
+        IFormInterface &$Form,
         TblYear $tblYear,
         $Year
     ) {
@@ -486,18 +539,19 @@ class Service extends AbstractService
          */
         if (null === $Year
         ) {
-            return $Stage;
+            return $Form;
         }
 
         $Error = false;
 
         if (isset($Year['Year']) && empty($Year['Year'])) {
-            $Stage->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
+            $Form->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
             $Error = true;
         } else {
-            if (($CheckYear = Term::useService()->checkYearExist($Year['Year']))) {
+            if (($CheckYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']))) {
                 if ($tblYear->getId() !== $CheckYear->getId()) {
-                    $Stage->setError('Year[Year]', 'Dieses Schuljahr existiert bereits.');
+                    $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits');
+                    $Form->setError('Year[Description]', 'Ändern Sie die Beschreibung um das Jahr wiederholt speichern zu können');
                     $Error = true;
                 }
             }
@@ -510,14 +564,14 @@ class Service extends AbstractService
                 $Year['Description']
             )
             ) {
-                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                $Form .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
                     . new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_SUCCESS);
             } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                $Form .= new Danger('Änderungen konnten nicht gespeichert werden')
                     . new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
             };
         }
-        return $Stage;
+        return $Form;
     }
 
     /**

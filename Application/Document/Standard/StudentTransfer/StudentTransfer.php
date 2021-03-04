@@ -38,8 +38,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -109,16 +107,6 @@ class StudentTransfer extends Extension
             }
         }
 
-        $YearString = '(SJ ';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $YearString .= current($tblYearList)->getYear();
-        } else {
-            $YearString .= new ToolTip(new Danger((new DateTime())->format('Y')),
-                'Kein Schuljahr mit aktuellem Zeitraum');
-        }
-        $YearString .= ')';
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -130,7 +118,7 @@ class StudentTransfer extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse '.$YearString,
+                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
