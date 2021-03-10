@@ -89,10 +89,19 @@ class Frontend extends Extension implements IFrontendInterface
     public function layoutAccount()
     {
 
-        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+        $tblIdentificationToken = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
         $tblAccountConsumerTokenList = array();
-        if($tblIdentification){
-            $tblAccountConsumerTokenList = Account::useService()->getAccountListByIdentification($tblIdentification);
+        if($tblIdentificationToken){
+            $tblAccountConsumerTokenList = Account::useService()->getAccountListByIdentification($tblIdentificationToken);
+        }
+        if (($tblIdentificationAuthenticatorApp = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP))
+            && ($tblAccountConsumerAuthenticatorAppList = Account::useService()->getAccountListByIdentification($tblIdentificationAuthenticatorApp))
+        ) {
+            if ($tblAccountConsumerTokenList) {
+                $tblAccountConsumerTokenList = array_merge($tblAccountConsumerTokenList, $tblAccountConsumerAuthenticatorAppList);
+            } else {
+                $tblAccountConsumerTokenList = $tblAccountConsumerAuthenticatorAppList;
+            }
         }
         $TableContent = array();
         if ($tblAccountConsumerTokenList) {
@@ -298,22 +307,20 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        // Authenticator App
+        $tblTokenAll[] = new RadioBox('Account[Token]', 'Authenticator App', -1);
+
         // Token Panel
         if ($tblToken){
-            array_unshift($tblTokenAll, new Danger('ODER einen anderen Schlüssel wählen: '));
+            array_unshift($tblTokenAll, new Danger('ODER eine andere Variante auswählen: '));
             array_unshift($tblTokenAll,
                 new RadioBox('Account[Token]',
                     implode(' ', str_split($tblToken->getSerial(), 4)), $tblToken->getId())
             );
-            array_unshift($tblTokenAll, new Danger('AKTUELL hinterlegter Schlüssel, '));
-
-            $PanelToken = new Panel(new Key().' mit folgendem Hardware-Schlüssel', $tblTokenAll
-                , Panel::PANEL_TYPE_INFO);
-        } else {
-            $PanelToken = new Panel(new Person().' mit folgendem Hardware-Schlüssel',
-                $tblTokenAll
-                , Panel::PANEL_TYPE_INFO);
+            array_unshift($tblTokenAll, new Danger('AKTUELL hinterlegter Hardware-Schlüssel, '));
         }
+
+        $PanelToken = new Panel(new Person() . ' mit folgender Authenfizierungsmethode anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
 
         // Person
         if ($tblAccount){
@@ -453,15 +460,16 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
         $tblAccount = Account::useService()->getAccountById($Id);
         if ($tblAccount) {
-
+            $tblIdentification = $tblAccount->getServiceTblIdentification();
             $Global = $this->getGlobal();
             if (!$Global->POST) {
-                $Global->POST['Account']['Identification'] = $tblAccount->getServiceTblIdentification()
-                    ? $tblAccount->getServiceTblIdentification()->getId() : 0;
+//                $Global->POST['Account']['Identification'] = $tblAccount->getServiceTblIdentification()
+//                    ? $tblAccount->getServiceTblIdentification()->getId() : 0;
                 $Global->POST['Account']['Token'] = (
                 $tblAccount->getServiceTblToken()
                     ? $tblAccount->getServiceTblToken()->getId()
-                    : 0
+                    : ($tblIdentification && $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP
+                        ? -1 : 0)
                 );
                 $User = Account::useService()->getUserAllByAccount($tblAccount);
                 if ($User) {
@@ -487,8 +495,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $extraButton = '';
             if($tblSessionAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession()){
-                if($tblIdentification = $tblSessionAccount->getServiceTblIdentification()){
-                    if($tblIdentification->getName() == 'System'){
+                if(($tblIdentificationSession = $tblSessionAccount->getServiceTblIdentification())){
+                    if($tblIdentificationSession->getName() == 'System'){
                         if(isset($_POST['Account']['Identification'])){
                             $extraButton = new Center(new ToggleCheckbox('Alles auswählen/abwählen', $this->formAccount($tblAccount)));
                         }
