@@ -21,7 +21,7 @@ class TwoFactorApp
      */
     public function __construct()
     {
-        $this->tfa = new TwoFactorAuth('Schulsoftware');
+        $this->tfa = new TwoFactorAuth('Schulsoftware', 6, 30, 'sha512');
     }
 
     /**
