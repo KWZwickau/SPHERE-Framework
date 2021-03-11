@@ -7,6 +7,11 @@ require_once( __DIR__.'/../../../../../Library/TwoFactorAuth/demo/loader.php' );
 
 use RobThree\Auth\TwoFactorAuth;
 
+/**
+ * Class TwoFactorApp
+ *
+ * @package SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp
+ */
 class TwoFactorApp
 {
     private $tfa;
@@ -19,17 +24,31 @@ class TwoFactorApp
         $this->tfa = new TwoFactorAuth('Schulsoftware');
     }
 
+    /**
+     * @return string
+     */
     public function createSecret()
     {
         // Though the default is an 80 bits secret (for backwards compatibility reasons) we recommend creating 160+ bits secrets (see RFC 4226 - Algorithm Requirements)
         return $this->tfa->createSecret(160);
     }
 
+    /**
+     * @param $secret
+     *
+     * @return string
+     */
     public function getCode($secret)
     {
         return $this->tfa->getCode($secret);
     }
 
+    /**
+     * @param $secret
+     * @param $code
+     *
+     * @return bool
+     */
     public function verifyCode($secret, $code)
     {
         // Since TOTP codes are based on time("slices") it is very important that the server (but also client) have a correct date/time.
@@ -47,6 +66,12 @@ class TwoFactorApp
         return $this->tfa->verifyCode($secret, $code, $discrepancy);
     }
 
+    /**
+     * @param $secret
+     * @param int $size
+     *
+     * @return string
+     */
     public function getQRCodeImageAsDataUri($secret, $size = 200)
     {
         return $this->tfa->getQRCodeImageAsDataUri('Schulsoftware', $secret, $size);

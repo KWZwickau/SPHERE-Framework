@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\Api\Platform\Gatekeeper\ApiAuthenticatorApp;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -22,6 +23,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
@@ -33,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Publicly;
+use SPHERE\Common\Frontend\Icon\Repository\QrCode;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
@@ -47,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -127,12 +131,14 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
+                $tblIdentification = $tblAccount->getServiceTblIdentification();
+
                 $Item['Username'] = new Listing(array($tblAccount->getUsername()));
                 $Item['Person'] = new Listing(!empty( $PersonList )
                     ? $PersonList
                     : array(new Danger(new Exclamation().new Small(' Keine Person angeben'))));
-                $Item['Authentication'] = new Listing(array($tblAccount->getServiceTblIdentification()
-                    ? $tblAccount->getServiceTblIdentification()->getDescription()
+                $Item['Authentication'] = new Listing(array($tblIdentification
+                    ? $tblIdentification->getDescription()
                     : '')
                 );
                 $Item['Authorization'] = new Listing(!empty( $AuthorizationList )
@@ -144,17 +150,33 @@ class Frontend extends Extension implements IFrontendInterface
                             4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
                         : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
                 ));
-                $Item['Option'] = new Standard('',
+                $Item['Option'] =
+                    ApiAuthenticatorApp::receiverModal()
+                    . (new Standard('',
                         '/Setting/Authorization/Account/Edit',
                         new Edit(), array('Id' => $tblAccount->getId()),
                         'Benutzer '.$tblAccount->getUsername().' bearbeiten'
-                    )
-                    .new Standard('',
+                    ))
+                    . (new Standard('',
                         '/Setting/Authorization/Account/Destroy',
                         new Remove(), array('Id' => $tblAccount->getId()),
                         'Benutzer '.$tblAccount->getUsername().' löschen'
+                    ))
+                    . (new External('',
+                        'SPHERE\Application\Api\Document\Standard\Account\Create',
+                        new Download(),
+                        array('AccountId' => $tblAccount->getId()),
+                        'Download PDF-Anschreiben'
+                    ))
+                    . ($tblIdentification && $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP
+                        ? (new Standard(
+                            '', ApiAuthenticatorApp::getEndpoint(), new Repeat(), array(), 'QR-Code zurücksetzen'
+                        ))->ajaxPipelineOnClick(ApiAuthenticatorApp::pipelineOpenResetQrCodeModal($tblAccount->getId()))
+                        . (new Standard(
+                            '', ApiAuthenticatorApp::getEndpoint(), new QrCode(), array(), 'QR-Code anzeigen'
+                        ))->ajaxPipelineOnClick(ApiAuthenticatorApp::pipelineOpenShowQrCodeModal($tblAccount->getId()))
+                        : ''
                     );
-
                 array_push($TableContent, $Item);
             });
         }
