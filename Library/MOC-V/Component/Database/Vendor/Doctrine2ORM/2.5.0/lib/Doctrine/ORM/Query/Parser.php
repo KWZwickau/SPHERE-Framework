@@ -2419,7 +2419,7 @@ class Parser
 
         $escapeChar = null;
 
-        if ($this->lexer->lookahead['type'] === Lexer::T_ESCAPE) {
+        if (isset($this->lexer->lookahead['type']) && $this->lexer->lookahead['type'] === Lexer::T_ESCAPE) {
             $this->match(Lexer::T_ESCAPE);
             $this->match(Lexer::T_STRING);
 

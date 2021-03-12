@@ -155,8 +155,10 @@ class Frontend extends Extension implements IFrontendInterface
         if (!isset($Global->POST['Year']) && $tblYear) {
             $Global->POST['Year']['Year'] = $tblYear->getYear();
             $Global->POST['Year']['Description'] = $tblYear->getDescription();
-            $Global->savePost();
+        } elseif(!isset($Global->POST['Year'])){
+            $Global->POST['Year']['Year'] = next($YearList);
         }
+        $Global->savePost();
 
         return new Form(
             new FormGroup(array(

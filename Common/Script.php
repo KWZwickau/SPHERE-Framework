@@ -253,7 +253,7 @@ class Script extends Extension
         );
 
         $this->setSource(
-            'jQuery.Select2', '/Library/jQuery.Select2/4.0.3/dist/js/select2.full.min.js',
+            'jQuery.Select2', '/Library/jQuery.Select2/4.0.13/dist/js/select2.full.js',
             "'undefined' !== typeof jQuery.fn.select2"
         );
 

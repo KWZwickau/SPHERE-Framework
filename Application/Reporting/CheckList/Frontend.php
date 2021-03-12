@@ -1512,7 +1512,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             foreach ($tblToPhoneList as $tblToPhone) {
                                                 if (($tblPhone = $tblToPhone->getTblPhone())) {
                                                     $ProspectPhoneList[] = $tblPhone->getNumber()
-                                                        .' '.Phone::useService()->getPhoneTypeShort($tblToPhone)[0];
+                                                        .' '.Phone::useService()->getPhoneTypeShort($tblToPhone);
                                                 }
                                             }
                                             $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
@@ -1531,7 +1531,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                         $GuardianPhoneList = array();
                                                         foreach ($tblToPhoneList as $tblToPhone) {
                                                             if (( $tblPhone = $tblToPhone->getTblPhone() )) {
-                                                                $GuardianPhoneList[] = $tblPhone->getNumber().' '.Phone::useService()->getPhoneTypeShort($tblToPhone)[0];
+                                                                $GuardianPhoneList[] = $tblPhone->getNumber().' '.Phone::useService()->getPhoneTypeShort($tblToPhone);
                                                             }
                                                         }
                                                         $Item[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName()

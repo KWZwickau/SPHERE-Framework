@@ -126,7 +126,7 @@ class Service extends Extension
                         }
                     }
                     if (isset($tblPhoneList[$key])) {
-                        $tblPhoneList[$key] .= ')';
+                        $tblPhoneList[$key] = $tblPhoneList[$key].')';
                     }
                 }
 
@@ -162,8 +162,8 @@ class Service extends Extension
                         }
                     }
                     if (isset($tblMailList[$key])) {
-                        $tblMailList[$key] .= ')';
-                        $tblMailFrontendList[$key] .= ')';
+                        $tblMailList[$key] = $tblMailList[$key].')';
+                        $tblMailFrontendList[$key] = $tblMailFrontendList[$key].')';
                     }
                 }
 
@@ -239,17 +239,17 @@ class Service extends Extension
                                     $tblPhone = $tblToPersonPhone->getTblPhone();
                                     if ($tblPhone) {
                                         if (!$FirstNumber) {
-                                            $tblPhoneList[$key] .= ', '
+                                            $tblPhoneList[$key] = $tblPhoneList[$key].', '
                                                 . $tblPhone->getNumber() . ' ' . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
                                         } else {
-                                            $tblPhoneList[$key] .= ' ('. $tblPhone->getNumber() . ' '
+                                            $tblPhoneList[$key] = $tblPhoneList[$key].' ('. $tblPhone->getNumber() . ' '
                                                 . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
                                             $FirstNumber = false;
                                         }
                                     }
                                 }
                                 if (isset($tblPhoneList[$key])) {
-                                    $tblPhoneList[$key] .= ')';
+                                    $tblPhoneList[$key] = $tblPhoneList[$key].')';
                                 }
                             }
 
@@ -281,8 +281,8 @@ class Service extends Extension
                                     }
                                 }
                                 if (isset($tblMailList[$key])) {
-                                    $tblMailList[$key] .= ')';
-                                    $tblMailFrontendList[$key] .= ')';
+                                    $tblMailList[$key] = $tblMailList[$key].')';
+                                    $tblMailFrontendList[$key] = $tblMailFrontendList[$key].')';
                                 }
                             }
                         }
@@ -292,14 +292,14 @@ class Service extends Extension
                 // Insert PhoneList
                 if (!empty($tblPhoneList)) {
                     ksort($tblPhoneList);
-                    $Item['Phone'] .= implode('<br>', $tblPhoneList);
+                    $Item['Phone'] = $Item['Phone'].implode('<br>', $tblPhoneList);
                     $Item['ExcelPhone'] = $tblPhoneList;
                 }
                 // Insert MailList
                 if (!empty($tblMailList)) {
                     ksort($tblMailList);
                     $Item['ExcelMail'] = $tblMailList;
-                    $Item['Mail'] .= implode('<br>', $tblMailFrontendList);
+                    $Item['Mail'] = $Item['Mail'].implode('<br>', $tblMailFrontendList);
 
                     if (!empty($mailPrivateList)) {
                         ksort($mailPrivateList);
@@ -1739,14 +1739,14 @@ class Service extends Extension
                                     // modify TypeShort
                                     str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                             } else {
-                                $Item['Phone'] .= ', ' . $tblPhone->getNumber() . ' ' .
+                                $Item['Phone'] = $Item['Phone'].', ' . $tblPhone->getNumber() . ' ' .
                                     // modify TypeShort
                                     str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                             }
                         }
                     }
                     if ($Item['Phone'] != '') {
-                        $Item['Phone'] .= ')';
+                        $Item['Phone'] = $Item['Phone'].')';
                     }
                 }
 
@@ -1772,21 +1772,21 @@ class Service extends Extension
                                         if (($tblPhone = $tblToPhone->getTblPhone())) {
                                             $PhoneGuardianListSimple[$tblPhone->getId()] = $tblPhone->getNumber();
                                             if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                // modify TypeShort
+                                                $phoneType = str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                                 $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
                                                     $tblPersonGuardian->getFirstName() . ' ' . $tblPersonGuardian->getLastName() .
-                                                    ' (' . $tblPhone->getNumber() . ' ' .
-                                                    // modify TypeShort
-                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                    ' (' . $tblPhone->getNumber() . ' ' .$phoneType;
                                             } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', ' . $tblPhone->getNumber() . ' ' .
-                                                    // modify TypeShort
-                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                // modify TypeShort
+                                                $phoneType = str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $Item['PhoneGuardian'][$tblPersonGuardian->getId()].', ' . $tblPhone->getNumber() . ' ' .$phoneType;
                                             }
                                         }
                                     }
                                 }
                                 if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $Item['PhoneGuardian'][$tblPersonGuardian->getId()].')';
                                 }
                             }
 
@@ -1822,7 +1822,7 @@ class Service extends Extension
                                     }
                                 }
                                 if (isset($tblMailList[$tblPersonGuardian->getId()])) {
-                                    $tblMailList[$tblPersonGuardian->getId()] .= ')';
+                                    $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].')';
                                 }
                             }
                         }
@@ -1853,7 +1853,7 @@ class Service extends Extension
 
                 // Insert MailList
                 if (!empty($tblMailList)) {
-                    $Item['MailGuardian'] .= implode('<br>', $tblMailList);
+                    $Item['MailGuardian'] = $Item['MailGuardian'].implode('<br>', $tblMailList);
                     $Item['ExcelMailGuardian'] = implode('; ', $tblMailList);
                 }
                 // Insert MailListSimple
@@ -2447,7 +2447,7 @@ class Service extends Extension
                     $DataPerson['LastName'] = '';
                     $DataPerson['FirstName'] = $tblPerson->getFirstName();
                     if ($tblPerson->getSecondName()) {
-                        $DataPerson['FirstName'] .= ' ' . $tblPerson->getSecondName();
+                        $DataPerson['FirstName'] = $DataPerson['FirstName'].' ' . $tblPerson->getSecondName();
                     }
                     $DataPerson['LastName'] = $tblPerson->getLastName();
 
@@ -2516,7 +2516,7 @@ class Service extends Extension
                                                 $DataPerson['PhoneFixedPrivate'] = $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             } else {
-                                                $DataPerson['PhoneFixedPrivate'] .= ', ' . $tblPhone->getNumber()
+                                                $DataPerson['PhoneFixedPrivate'] = $DataPerson['PhoneFixedPrivate'].', ' . $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             }
                                             break;
@@ -2525,7 +2525,7 @@ class Service extends Extension
                                                 $DataPerson['PhoneFixedWork'] = $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             } else {
-                                                $DataPerson['PhoneFixedWork'] .= ', ' . $tblPhone->getNumber()
+                                                $DataPerson['PhoneFixedWork'] = $DataPerson['PhoneFixedWork'].', ' . $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             }
                                             break;
@@ -2534,7 +2534,7 @@ class Service extends Extension
                                                 $DataPerson['PhoneFixedEmergency'] = $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             } else {
-                                                $DataPerson['PhoneFixedEmergency'] .= ', ' . $tblPhone->getNumber()
+                                                $DataPerson['PhoneFixedEmergency'] = $DataPerson['PhoneFixedEmergency'].', ' . $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             }
                                             break;
@@ -2546,7 +2546,7 @@ class Service extends Extension
                                                 $DataPerson['PhoneMobilePrivate'] = $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             } else {
-                                                $DataPerson['PhoneMobilePrivate'] .= ', ' . $tblPhone->getNumber()
+                                                $DataPerson['PhoneMobilePrivate'] = $DataPerson['PhoneMobilePrivate'].', ' . $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             }
                                             break;
@@ -2555,7 +2555,7 @@ class Service extends Extension
                                                 $DataPerson['PhoneMobileWork'] = $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             } else {
-                                                $DataPerson['PhoneMobileWork'] .= ', ' . $tblPhone->getNumber()
+                                                $DataPerson['PhoneMobileWork'] = $DataPerson['PhoneMobileWork'].', ' . $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             }
                                             break;
@@ -2564,7 +2564,7 @@ class Service extends Extension
                                                 $DataPerson['PhoneMobileEmergency'] = $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             } else {
-                                                $DataPerson['PhoneMobileEmergency'] .= ', ' . $tblPhone->getNumber()
+                                                $DataPerson['PhoneMobileEmergency'] = $DataPerson['PhoneMobileEmergency'].', ' . $tblPhone->getNumber()
                                                     . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
                                             }
                                             break;
@@ -2650,14 +2650,14 @@ class Service extends Extension
                                         if (!empty($tblPersonSibling)) {
                                             $SiblingString = $tblPersonSibling->getLastName() . ', ' . $tblPersonSibling->getFirstName();
                                             if ($tblPersonSibling->getSecondName()) {
-                                                $SiblingString .= ' ' . $tblPersonSibling->getSecondName();
+                                                $SiblingString = $SiblingString.' ' . $tblPersonSibling->getSecondName();
                                             }
                                             if (($tblYear = Term::useService()->getYearById($Year[ViewYear::TBL_YEAR_ID]))) {
                                                 if (($SiblingDivision = Student::useService()->getMainDivisionByPersonAndYear($tblPersonSibling, $tblYear))) {
-                                                    $SiblingString .= ' (' . $SiblingDivision->getDisplayName() . ')';
+                                                    $SiblingString = $SiblingString.' (' . $SiblingDivision->getDisplayName() . ')';
                                                 } else {
                                                     if ($Option) {
-                                                        $SiblingString .= ' (Ehemalig)';
+                                                        $SiblingString = $SiblingString.' (Ehemalig)';
                                                     } else {
                                                         $SiblingString = '';
                                                     }
@@ -2699,7 +2699,7 @@ class Service extends Extension
                                 $DataPerson['Custody_'.$i.'_Title'] = $tblPersonCustody->getTitle();
                                 $DataPerson['Custody_'.$i.'_FirstName'] = $tblPersonCustody->getFirstName();
                                 if($tblPersonCustody->getSecondName()){
-                                    $DataPerson['Custody_'.$i.'_FirstName'] .= ' '.$tblPersonCustody->getSecondName();
+                                    $DataPerson['Custody_'.$i.'_FirstName'] = $DataPerson['Custody_'.$i.'_FirstName'].' '.$tblPersonCustody->getSecondName();
                                 }
                                 $DataPerson['Custody_'.$i.'_LastName'] = $tblPersonCustody->getLastName();
 
@@ -2725,23 +2725,23 @@ class Service extends Extension
                                                 switch($PhoneNameCustody) {
                                                     case 'Privat':
                                                         if($DataPerson['Custody_'.$i.'_PhoneFixedPrivate']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] .= ', ';
+                                                            $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] = $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'].', ';
                                                         }
                                                         $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
                                                             .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
                                                         break;
                                                     case 'Geschäftlich':
                                                         if($DataPerson['Custody_'.$i.'_PhoneFixedWork']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneFixedWork'] .= ', ';
+                                                            $DataPerson['Custody_'.$i.'_PhoneFixedWork'] = $DataPerson['Custody_'.$i.'_PhoneFixedWork'].', ';
                                                         }
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedWork'] .= $tblPhoneCustody->getNumber()
+                                                        $DataPerson['Custody_'.$i.'_PhoneFixedWork'] = $DataPerson['Custody_'.$i.'_PhoneFixedWork'].$tblPhoneCustody->getNumber()
                                                             .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
                                                         break;
                                                     case 'Notfall':
                                                         if($DataPerson['Custody_'.$i.'_PhoneFixedEmergency']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] .= ', ';
+                                                            $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] = $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'].', ';
                                                         }
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] .= $tblPhoneCustody->getNumber()
+                                                        $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] = $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'].$tblPhoneCustody->getNumber()
                                                             .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
                                                         break;
                                                 }
@@ -2749,23 +2749,23 @@ class Service extends Extension
                                                 switch($PhoneNameCustody) {
                                                     case 'Privat':
                                                         if($DataPerson['Custody_'.$i.'_PhoneMobilePrivate']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] .= ', ';
+                                                            $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] = $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'].', ';
                                                         }
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] .= $tblPhoneCustody->getNumber()
+                                                        $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] = $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'].$tblPhoneCustody->getNumber()
                                                             .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
                                                         break;
                                                     case 'Geschäftlich':
                                                         if($DataPerson['Custody_'.$i.'_PhoneMobileWork']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneMobileWork'] .= ', ';
+                                                            $DataPerson['Custody_'.$i.'_PhoneMobileWork'] = $DataPerson['Custody_'.$i.'_PhoneMobileWork'].', ';
                                                         }
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobileWork'] .= $tblPhoneCustody->getNumber()
+                                                        $DataPerson['Custody_'.$i.'_PhoneMobileWork'] = $DataPerson['Custody_'.$i.'_PhoneMobileWork'].$tblPhoneCustody->getNumber()
                                                             .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
                                                         break;
                                                     case 'Notfall':
                                                         if($DataPerson['Custody_'.$i.'_PhoneMobileEmergency']){
                                                             $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] = ', ';
                                                         }
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] .= $tblPhoneCustody->getNumber()
+                                                        $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] = $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'].$tblPhoneCustody->getNumber()
                                                             .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
                                                         break;
                                                 }

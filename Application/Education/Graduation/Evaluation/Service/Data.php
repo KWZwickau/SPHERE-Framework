@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -295,10 +296,9 @@ class Data extends AbstractData
     {
 
         $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
-        $queryBuilder->select('t')
-            ->from(__NAMESPACE__ . '\Entity\TblTestType', 't')
-            ->where($queryBuilder->expr()->notLike('t.Identifier', '?1'))
-            ->setParameter(1, '%TASK%');
+        $queryBuilder->select('t')->from(__NAMESPACE__ . '\Entity\TblTestType', 't');
+        $queryBuilder->where($queryBuilder->expr()->notLike('t.Identifier', '?1'));
+        $queryBuilder->setParameter(1, '%TASK%');
 
         $query = $queryBuilder->getQuery();
 

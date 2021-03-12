@@ -560,8 +560,8 @@ class PHPExcel_Shared_String
         if (strlen($str) < 2) {
             return $str;
         }
-        $c0 = ord($str{0});
-        $c1 = ord($str{1});
+        $c0 = ord(substr($str, 0, 1));
+        $c1 = ord(substr($str, 1, 1));
         if ($c0 == 0xfe && $c1 == 0xff) {
             $str = substr($str, 2);
         } elseif ($c0 == 0xff && $c1 == 0xfe) {
@@ -572,11 +572,11 @@ class PHPExcel_Shared_String
         $newstr = '';
         for ($i = 0; $i < $len; $i += 2) {
             if ($bom_be) {
-                $val = ord($str{$i}) << 4;
-                $val += ord($str{$i + 1});
+                $val = ord(substr($str, $i, 1)) << 4;
+                $val += ord(substr($str, $i + 1, 1));
             } else {
-                $val = ord($str{$i + 1}) << 4;
-                $val += ord($str{$i});
+                $val = ord(substr($str, $i + 1, 1)) << 4;
+                $val += ord(substr($str, $i, 1));
             }
             $newstr .= ( $val == 0x228 ) ? "\n" : chr($val);
         }
