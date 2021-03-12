@@ -5,7 +5,12 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp;
 require_once( __DIR__.'/../../../../../Library/TwoFactorAuth/demo/loader.php' );
 \Loader::register('../lib','RobThree\\Auth');
 
+use BaconQrCode\Renderer\Image\Png;
+use BaconQrCode\Writer;
 use RobThree\Auth\TwoFactorAuth;
+
+require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_function.php');
+require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_register.php');
 
 /**
  * Class TwoFactorApp
@@ -14,6 +19,7 @@ use RobThree\Auth\TwoFactorAuth;
  */
 class TwoFactorApp
 {
+    const LABEL = 'Schulsoftware';
     private $tfa;
 
     /**
@@ -21,7 +27,7 @@ class TwoFactorApp
      */
     public function __construct()
     {
-        $this->tfa = new TwoFactorAuth('Schulsoftware', 6, 30, 'sha512');
+        $this->tfa = new TwoFactorAuth(self::LABEL, 6, 30, 'sha512');
     }
 
     /**
@@ -66,14 +72,35 @@ class TwoFactorApp
         return $this->tfa->verifyCode($secret, $code, $discrepancy);
     }
 
+//    /**
+//     * example '<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret, 180) . '">'
+//     *
+//     * @param $secret
+//     * @param int $size
+//     *
+//     * @return string
+//     */
+//    public function getQRCodeImageAsDataUri($secret, $size = 200)
+//    {
+//        return $this->tfa->getQRCodeImageAsDataUri(self::LABEL, $secret, $size);
+//    }
+
     /**
      * @param $secret
      * @param int $size
      *
      * @return string
      */
-    public function getQRCodeImageAsDataUri($secret, $size = 200)
+    public function getBaconQrCode($secret, $size = 200)
     {
-        return $this->tfa->getQRCodeImageAsDataUri('Schulsoftware', $secret, $size);
+        $renderer = new Png();
+        $renderer->setHeight($size);
+        $renderer->setWidth($size);
+
+        $writer = new Writer($renderer);
+
+        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText(self::LABEL, $secret)));
+
+        return '<img src="data:image/png;base64, ' . $qr_image . '" />';
     }
 }

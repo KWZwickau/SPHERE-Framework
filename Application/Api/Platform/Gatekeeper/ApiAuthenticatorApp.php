@@ -128,7 +128,8 @@ class ApiAuthenticatorApp extends Extension implements IApiInterface
 
         return
             new Title('QR-Code für ' . $tblAccount->getUsername())
-            . new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret) . '">');
+//            . new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret) . '">');
+                . new Center($twoFactorApp->getBaconQrCode($secret));
     }
 
     /**
