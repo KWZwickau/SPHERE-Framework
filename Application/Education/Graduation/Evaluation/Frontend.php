@@ -1608,6 +1608,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTest) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
+                $Global->POST['Test']['Period'] = ($tblPeriod = $tblTest->getServiceTblPeriod()) ? $tblPeriod->getId() : 0;
                 $Global->POST['Test']['GradeType'] = ($tblGradeType = $tblTest->getServiceTblGradeType())
                     ? $tblGradeType->getId() : 0;
                 $Global->POST['Test']['Description'] = $tblTest->getDescription();
@@ -1656,11 +1657,25 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            if ($tblDivision
+                && ($tblYear = $tblDivision->getServiceTblYear())
+                && ($tblLevel = $tblDivision->getTblLevel())
+            ) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+            } else {
+                $tblPeriodList = array();
+            }
+
             $Form = new Form(new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('DisplayName' => $tblGradeTypeList)), 12
+                        new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
                     ),
+                    new FormColumn(
+                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('DisplayName' => $tblGradeTypeList)), 6
+                    ),
+                )),
+                new FormRow(array(
                     new FormColumn(
                         new TextField('Test[Description]', '', 'Thema'), 12
                     ),

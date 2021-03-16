@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Transfer\Import\Standard\Mail;
 
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
@@ -74,6 +73,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormRow(array(
                                             new FormColumn(
                                                 new CheckBox('Data[IsAccountAlias]', 'Als Account-Alias verwenden', 1)
+                                            ),
+                                        )),
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new CheckBox('Data[IsAddMailWithoutAccount]', 'Nur Emailadressen importieren (ohne Account-Alias)', 1)
                                             ),
                                         )),
                                         new FormRow(array(

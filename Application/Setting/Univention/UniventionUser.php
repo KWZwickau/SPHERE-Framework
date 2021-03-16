@@ -95,6 +95,10 @@ class UniventionUser
 //            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );
         $PersonContent = json_encode($PersonContent);
+//        echo'<pre>';
+//        echo 'Gesendete Daten:';
+//        var_dump($PersonContent);
+//        echo'</pre>';
 //        $PersonContent = http_build_query($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -129,12 +133,18 @@ class UniventionUser
         - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
          **/
         $Json = $this->execute($this->curlhandle);
+//        echo'<pre>';
+//        var_dump('Zeitstempel: '.(new \DateTime())->format('d.m.Y H:i:s'));
+//        var_dump('Antwort:');
+//        var_dump($Json);
+//        echo'</pre>';
+
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $name.' '.new Bold('Univention: Internal Server Error');
+            return $name.' '.new Bold('UCS: Internal Server Error');
         }
         if($Json == 'Bad Gateway'){
-            return $name.' '.new Bold('Univention: Bad Gateway');
+            return $name.' '.new Bold('UCS: Bad Gateway');
         }
 
         // Object to Array
@@ -244,10 +254,10 @@ class UniventionUser
 
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $name.' '.new Bold('Univention: Internal Server Error');
+            return $name.' '.new Bold('UCS: Internal Server Error');
         }
         if($Json == 'Bad Gateway'){
-            return $name.' '.new Bold('Univention: Bad Gateway');
+            return $name.' '.new Bold('UCS: Bad Gateway');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
@@ -287,6 +297,11 @@ class UniventionUser
             return 'Benutzername nicht gefunden';
         }
 
+//        echo'<pre>';
+//        echo 'Gesendete Daten:';
+//        var_dump($name);
+//        echo'</pre>';
+
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
             CURLOPT_CUSTOMREQUEST => 'DELETE',
@@ -295,14 +310,21 @@ class UniventionUser
             //return the transfer as a string
             CURLOPT_RETURNTRANSFER => TRUE,
         ));
-
+        // prevent "Bad Gateway" for every second try
+        sleep(1);
+//        var_dump('sleep(1)');
         $Json = $this->execute($this->curlhandle);
+//        echo'<pre>';
+//        var_dump('Zeitstempel: '.(new \DateTime())->format('d.m.Y H:i:s'));
+//        var_dump('Antwort:');
+//        var_dump($Json);
+//        echo'</pre>';
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $name.' '.new Bold('Univention: Internal Server Error');
+            return $name.' '.new Bold('UCS: Internal Server Error');
         }
         if($Json == 'Bad Gateway'){
-            return $name.' '.new Bold('Univention: Bad Gateway');
+            return $name.' '.new Bold('UCS: Bad Gateway');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
@@ -378,10 +400,10 @@ class UniventionUser
      *
      * @param  resource    $ch             curl handler
      * @param  int         $retries
-     * @param  bool        $closeAfterDone
+     *
      * @return bool|string @see curl_exec
      */
-    public function execute($ch, $retries = 5, $closeAfterDone = true)
+    public function execute($ch, $retries = 5)
     {
         while ($retries--) {
             $curlResponse = curl_exec($ch);
@@ -389,16 +411,18 @@ class UniventionUser
                 $curlErrno = curl_errno($ch);
                 if (false === in_array($curlErrno, $this->retriableErrorCodes, true) || !$retries) {
                     echo curl_error($ch);
-                    if ($closeAfterDone) {
-                        curl_close($ch);
-                    }
+//                    if ($closeAfterDone) {
+                    curl_close($ch);
+//                    }
                     return null; //throw new \RuntimeException(sprintf('Curl error (code %d): %s', $curlErrno, $curlError));
                 }
                 continue;
             }
-            if ($closeAfterDone) {
-                curl_close($ch);
-            }
+            // Verbindung wird nur für eine Verbindung benötigt
+            // jede weitere Anfrage initialisiert eigene Verbindung
+//            if ($closeAfterDone) {
+            curl_close($ch);
+//            }
             return $curlResponse;
         }
         return false;
