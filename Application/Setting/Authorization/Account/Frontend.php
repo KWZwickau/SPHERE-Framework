@@ -170,7 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                     . ($tblIdentification && $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP
                         ? (new Standard(
-                            '', ApiAuthenticatorApp::getEndpoint(), new Repeat(), array(), 'QR-Code zurücksetzen'
+                            '', ApiAuthenticatorApp::getEndpoint(), new Repeat(), array(), 'QR-Code neu erstellen'
                         ))->ajaxPipelineOnClick(ApiAuthenticatorApp::pipelineOpenResetQrCodeModal($tblAccount->getId()))
                         . (new Standard(
                             '', ApiAuthenticatorApp::getEndpoint(), new QrCode(), array(), 'QR-Code anzeigen'

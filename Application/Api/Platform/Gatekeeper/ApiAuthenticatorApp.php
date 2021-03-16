@@ -169,9 +169,9 @@ class ApiAuthenticatorApp extends Extension implements IApiInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(
-                                new Question() . ' Wollen Sie den QR-Code wirklich zurücksetzen?',
+                                new Question() . ' Wollen Sie den QR-Code wirklich neu erstellen?',
                                 array(
-                                    new Exclamation() . ' Wenn der QR-Code zurückgesetzt wird, kann der Benutzer sich 
+                                    new Exclamation() . ' Wenn der QR-Code neu erstellt wird, kann der Benutzer sich 
                                         nicht mehr mit der zuvor registrierten Authentificator App anmelden. '
                                 ),
                                 Panel::PANEL_TYPE_DANGER
