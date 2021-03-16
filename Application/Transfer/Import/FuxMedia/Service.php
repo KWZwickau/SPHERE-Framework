@@ -143,6 +143,7 @@ class Service
                     'Schüler_Plz'                         => null,
                     'Schüler_Wohnort'                     => null,
                     'Schüler_Ortsteil'                    => null,
+                    'Schüler_Landkreis'                   => null,
                     'Schüler_Geburtsdatum'                => null,
                     'Schüler_Geburtsort'                  => null,
                     'Schüler_Konfession'                  => null,
@@ -175,22 +176,30 @@ class Service
                     'Kommunikation_Telefon7'              => null,
                     'Kommunikation_Telefon8'              => null,
                     'Kommunikation_Telefon9'              => null,
-                    'Kommunikation_Telefon10'              => null,
-                    'Kommunikation_Telefon11'              => null,
-                    'Kommunikation_Telefon12'              => null,
+                    'Kommunikation_Telefon10'             => null,
+                    'Kommunikation_Telefon11'             => null,
+                    'Kommunikation_Telefon12'             => null,
                     'Kommunikation_Fax'                   => null,
                     'Kommunikation_Email'                 => null,
-                    'Kommunikation_Email1'                 => null,
-                    'Kommunikation_Email2'                 => null,
-                    'Kommunikation_Email3'                 => null,
-                    'Kommunikation_Email4'                 => null,
+                    'Kommunikation_Email1'                => null,
+                    'Kommunikation_Email2'                => null,
+                    'Kommunikation_Email3'                => null,
+                    'Kommunikation_Email4'                => null,
+                    'Beförderung_Fahrschüler'             => null,
                     'Beförderung_Fahrtroute'              => null,
                     'Beförderung_Einsteigestelle'         => null,
+                    'Beförderung_Verkehrsmittel'          => null,
                     'Fächer_Religionsunterricht'          => null,
                     'Fächer_Fremdsprache1'                => null,
                     'Fächer_Fremdsprache2'                => null,
                     'Fächer_Fremdsprache3'                => null,
                     'Fächer_Fremdsprache4'                => null,
+                    'Fächer_Arbeitsgemeinschaft1'         => null,
+                    'Fächer_Arbeitsgemeinschaft2'         => null,
+                    'Fächer_Arbeitsgemeinschaft3'         => null,
+                    'Fächer_Arbeitsgemeinschaft4'         => null,
+                    'Zusatzfeld1'                         => null,
+//                    'Zusatzfeld10'                        => null,
 
                     'Schüler_Fotoerlaubnis'               => null,
                     'Schüler_Geschwister'                 => null,
@@ -210,7 +219,7 @@ class Service
                     'Fächer_Fremdsprache3_bis'            => null,
                     'Fächer_Fremdsprache4_von'            => null,
                     'Fächer_Fremdsprache4_bis'            => null,
-                    'Sorgeberechtigter_Status'           => null,
+                    'Sorgeberechtigter_Status'            => null,
                     'Sorgeberechtigter1_Titel'            => null,
                     'Sorgeberechtigter1_Geschlecht'       => null,
                     'Sorgeberechtigter1_GO'               => null,
@@ -352,7 +361,9 @@ class Service
                                                 $RunY))),
                                             trim($Document->getValue($Document->getCell($Location['Schüler_Ortsteil'],
                                                 $RunY))),
-                                            ''
+                                            '',
+                                            trim($Document->getValue($Document->getCell($Location['Schüler_Landkreis'],
+                                                $RunY)))
                                         );
 
                                     }
@@ -390,12 +401,18 @@ class Service
                             $tblStudentLocker = null;
                             $LockerNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfachnummer'],
                                 $RunY)));
+                            if ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                                $LockerLocation = trim($Document->getValue($Document->getCell($Location['Zusatzfeld1'],
+                                    $RunY)));
+                            } else {
+                                $LockerLocation = '';
+                            }
                             $KeyNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfach_Schlüsselnummer'],
                                 $RunY)));
                             if ($LockerNumber !== '' || $KeyNumber !== '') {
                                 $tblStudentLocker = Student::useService()->insertStudentLocker(
                                     $LockerNumber,
-                                    '',
+                                    $LockerLocation,
                                     $KeyNumber
                                 );
                             }
@@ -442,16 +459,23 @@ class Service
                             $tblStudentTransport = null;
                             $route = trim($Document->getValue($Document->getCell($Location['Beförderung_Fahrtroute'],
                                 $RunY)));
+                            if ($route == '') {
+                                $route = trim($Document->getValue($Document->getCell($Location['Beförderung_Verkehrsmittel'],
+                                    $RunY)));
+                            }
                             $stationEntrance = trim($Document->getValue($Document->getCell($Location['Beförderung_Einsteigestelle'],
                                 $RunY)));
                             $transportRemark = trim($Document->getValue($Document->getCell($Location['Beförderung_Hinweise'],
+                                $RunY)));
+                            $isDriverStudent = trim($Document->getValue($Document->getCell($Location['Beförderung_Fahrschüler'],
                                 $RunY)));
                             if ($route !== '' || $stationEntrance !== '' || $transportRemark != '') {
                                 $tblStudentTransport = Student::useService()->insertStudentTransport(
                                     $route,
                                     $stationEntrance,
                                     '',
-                                    $transportRemark ? 'Beförderung Hinweise: ' . $transportRemark : ''
+                                    $transportRemark ? 'Beförderung Hinweise: ' . $transportRemark : '',
+                                    $isDriverStudent == '1'
                                 );
                             }
 
@@ -685,6 +709,24 @@ class Service
                                     }
                                 }
 
+                                // Arbeitsgemeinschaften
+                                for ($i = 1; $i < 5; $i++) {
+                                    $subjectTeam = trim($Document->getValue($Document->getCell($Location['Fächer_Arbeitsgemeinschaft' . $i],
+                                        $RunY)));
+                                    if ($subjectTeam != '' && $subjectTeam != '--') {
+                                        if (($tblSubjectTeam = Subject::useService()->insertSubject($subjectTeam, $subjectTeam))) {
+                                            Student::useService()->addStudentSubject(
+                                                $tblStudent,
+                                                Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'),
+                                                Student::useService()->getStudentSubjectRankingByIdentifier((string) $i),
+                                                $tblSubjectTeam
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Arbeitsgemeinschaft:' . $subjectTeam . ' konnte nicht angelegt werden.';
+                                        }
+                                    }
+                                }
+
                                 for ($i = 1; $i < 5; $i++) {
                                     $subjectLanguage = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache'.$i],
                                         $RunY)));
@@ -837,6 +879,60 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
                                                 . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
                                         }
+                                    } elseif ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                                        switch ($i) {
+                                            case 1: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                $remarkPhone = 'Festnetz Eltern';
+                                                break;
+                                            case 2: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                $remarkPhone = 'Großeltern, Onkel, Tante, Geschwister usw. / oder Fax';
+                                                break;
+                                            case 3: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                if (0 === strpos($phoneNumber, '01')) {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                } else {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(3);
+                                                }
+                                                $remarkPhone = 'Festnetz Arbeit und/oder Handy';
+                                                break;
+                                            case 4: $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                if (0 === strpos($phoneNumber, '01')) {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                } else {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(3);
+                                                }
+                                                $remarkPhone = 'Festnetz Arbeit und/oder Handy';
+                                                break;
+                                            case 5: $tblPersonContact = $tblPerson;
+                                                if (0 === strpos($phoneNumber, '01')) {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                } else {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                }
+                                                $remarkPhone = 'zusätzliche Nummer von Eltern oder Tante, Geschwister, …';
+                                                break;
+                                            case 6: $tblPersonContact = $tblPerson;
+                                                if (0 === strpos($phoneNumber, '01')) {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                } else {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                }
+                                                $remarkPhone = 'zusätzliche Nummer Lebensgefährte/in, Großeltern, …';
+                                                break;
+                                            default: $tblPersonContact = $tblPerson;
+                                                $tblPhoneType = Phone::useService()->getTypeById(1);
+                                                if (0 === strpos($phoneNumber, '01')) {
+                                                    $tblPhoneType = Phone::useService()->getTypeById(2);
+                                                }
+                                        }
+
+                                        if (!$tblPersonContact) {
+                                            $tblPersonContact = $tblPerson;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
+                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                        }
                                     } else {
                                         $tblPersonContact = $tblPerson;
                                         $tblPhoneType = Phone::useService()->getTypeById(1);
@@ -894,6 +990,26 @@ class Service
                                                 break;
                                             case 2:
                                                 $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                break;
+                                            default:
+                                                $tblPersonContact = $tblPerson;
+                                        }
+
+                                        if (!$tblPersonContact) {
+                                            $tblPersonContact = $tblPerson;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
+                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                        }
+                                    } else if ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                                        switch ($i) {
+                                            case 1:
+                                                $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
+                                                break;
+                                            case 2:
+                                                $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
+                                                break;
+                                            case 3:
+                                                $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
                                                 break;
                                             default:
                                                 $tblPersonContact = $tblPerson;
@@ -997,6 +1113,14 @@ class Service
                         break;
                     default:
                         $isSingleParent = false;
+                }
+            } elseif ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                if ($ranking < 3) {
+                    $tblRelationShipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                    $relationShipRanking = $ranking;
+                } else {
+                    $tblRelationShipType = Relationship::useService()->getTypeByName('Notfallkontakt');
+                    $relationShipRanking = null;
                 }
             } else {
                 $tblRelationShipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
@@ -1522,7 +1646,8 @@ class Service
                     'Einrichtungsname'   => null,
                     'Straße'   => null,
                     'Plz'   => null,
-                    'Ort'   => null
+                    'Ort'   => null,
+                    'Ortsteil'   => null
                 );
 
                 $OptionalLocation = array(
@@ -1589,7 +1714,7 @@ class Service
                                             $streetNumber,
                                             $cityCode,
                                             $cityName,
-                                            '',
+                                            trim($Document->getValue($Document->getCell($Location['Ortsteil'], $RunY))),
                                             ''
                                         );
                                     }

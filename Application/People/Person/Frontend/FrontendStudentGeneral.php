@@ -89,6 +89,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
             $transportStationEntrance = '';
             $transportStationExit = '';
             $transportRemark = '';
+            $transportIsDriverStudent = '';
 
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                 if (($tblStudentBilling = $tblStudent->getTblStudentBilling())) {
@@ -107,6 +108,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 }
 
                 if (($tblStudentTransport = $tblStudent->getTblStudentTransport())) {
+                    $transportIsDriverStudent = $tblStudentTransport->getIsDriverStudent() ? 'Ja' : 'Nein';
                     $transportRoute = $tblStudentTransport->getRoute();
                     $transportStationEntrance = $tblStudentTransport->getStationEntrance();
                     $transportStationExit = $tblStudentTransport->getStationExit();
@@ -213,6 +215,10 @@ class FrontendStudentGeneral extends FrontendReadOnly
                             'Schulbeförderung',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
+                                    self::getLayoutColumnLabel('Fahrschüler', 6),
+                                    self::getLayoutColumnValue($transportIsDriverStudent, 6),
+                                )),
+                                new LayoutRow(array(
                                     self::getLayoutColumnLabel('Buslinie', 6),
                                     self::getLayoutColumnValue($transportRoute, 6),
                                 )),
@@ -278,6 +284,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 }
 
                 if (($tblStudentTransport = $tblStudent->getTblStudentTransport())) {
+                    $Global->POST['Meta']['Transport']['IsDriverStudent'] = $tblStudentTransport->getIsDriverStudent() ? 1 : 0;
                     $Global->POST['Meta']['Transport']['Route'] = $tblStudentTransport->getRoute();
                     $Global->POST['Meta']['Transport']['Station']['Entrance'] = $tblStudentTransport->getStationEntrance();
                     $Global->POST['Meta']['Transport']['Station']['Exit'] = $tblStudentTransport->getStationExit();
@@ -419,6 +426,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                     ), 4),
                     new FormColumn(array(
                         new Panel('Schulbeförderung', array(
+                            new CheckBox('Meta[Transport][IsDriverStudent]', 'Fahrschüler', 1),
                             new TextField('Meta[Transport][Route]', 'Buslinie', 'Buslinie', new Bus()),
                             new TextField('Meta[Transport][Station][Entrance]', 'Einstiegshaltestelle',
                                 'Einstiegshaltestelle', new StopSign()),

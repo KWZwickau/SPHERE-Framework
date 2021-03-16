@@ -268,6 +268,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentTransport', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
+        $this->createColumn($Table, 'IsDriverStudent', self::FIELD_TYPE_BOOLEAN, false, false);
         return $Table;
     }
 

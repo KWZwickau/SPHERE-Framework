@@ -860,6 +860,7 @@ class Data extends Support
      * @param string $StationEntrance
      * @param string $StationExit
      * @param string $Remark
+     * @param boolean $IsDriverStudent
      *
      * @return TblStudentTransport
      */
@@ -867,7 +868,8 @@ class Data extends Support
         $Route,
         $StationEntrance,
         $StationExit,
-        $Remark
+        $Remark,
+        $IsDriverStudent
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -877,6 +879,8 @@ class Data extends Support
         $Entity->setStationEntrance($StationEntrance);
         $Entity->setStationExit($StationExit);
         $Entity->setRemark($Remark);
+        $Entity->setIsDriverStudent($IsDriverStudent);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -889,6 +893,7 @@ class Data extends Support
      * @param string              $StationEntrance
      * @param string              $StationExit
      * @param string              $Remark
+     * @param boolean             $IsDriverStudent
      *
      * @return bool
      */
@@ -897,7 +902,8 @@ class Data extends Support
         $Route,
         $StationEntrance,
         $StationExit,
-        $Remark
+        $Remark,
+        $IsDriverStudent
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -909,6 +915,8 @@ class Data extends Support
             $Entity->setStationEntrance($StationEntrance);
             $Entity->setStationExit($StationExit);
             $Entity->setRemark($Remark);
+            $Entity->setIsDriverStudent($IsDriverStudent);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

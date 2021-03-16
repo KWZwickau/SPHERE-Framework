@@ -266,6 +266,7 @@ class Service extends Support
      * @param        $StationEntrance
      * @param        $StationExit
      * @param string $Remark
+     * @param boolean $IsDriverStudent
      *
      * @return TblStudentTransport
      */
@@ -273,14 +274,16 @@ class Service extends Support
         $Route,
         $StationEntrance,
         $StationExit,
-        $Remark = ''
+        $Remark = '',
+        $IsDriverStudent = false
     ) {
 
         return (new Data($this->getBinding()))->createStudentTransport(
             $Route,
             $StationEntrance,
             $StationExit,
-            $Remark
+            $Remark,
+            $IsDriverStudent
         );
     }
 
@@ -823,14 +826,16 @@ class Service extends Support
                     $Meta['Transport']['Route'],
                     $Meta['Transport']['Station']['Entrance'],
                     $Meta['Transport']['Station']['Exit'],
-                    $Meta['Transport']['Remark']
+                    $Meta['Transport']['Remark'],
+                    isset($Meta['Transport']['IsDriverStudent'])
                 );
             } else {
                 $tblStudentTransport = (new Data($this->getBinding()))->createStudentTransport(
                     $Meta['Transport']['Route'],
                     $Meta['Transport']['Station']['Entrance'],
                     $Meta['Transport']['Station']['Exit'],
-                    $Meta['Transport']['Remark']
+                    $Meta['Transport']['Remark'],
+                    isset($Meta['Transport']['IsDriverStudent'])
                 );
             }
 
