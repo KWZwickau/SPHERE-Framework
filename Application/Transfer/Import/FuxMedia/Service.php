@@ -234,6 +234,7 @@ class Service
 
                     'Fächer_Bildungsgang'                 => null,
                     'Fächer_letzter_Bildungsgang'         => null,
+                    'Fächer_Sportbefreiung'               => null,
                 );
 
                 $OptionalLocation = array(
@@ -263,6 +264,7 @@ class Service
                     'Sorgeberechtigter4_GO'               => null,
                     'Sorgeberechtigter4_GD'               => null,
                     'Sorgeberechtigter4_Beruf'            => null,
+                    'Zusatzfeld10'                        => null,
                 );
 
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -409,11 +411,17 @@ class Service
                             }
                             $KeyNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfach_Schlüsselnummer'],
                                 $RunY)));
+                            if ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                                $CombinationLockNumber = $this->getValue('Zusatzfeld10', $Location, $Document, $RunY);
+                            } else {
+                                $CombinationLockNumber = '';
+                            }
                             if ($LockerNumber !== '' || $KeyNumber !== '') {
                                 $tblStudentLocker = Student::useService()->insertStudentLocker(
                                     $LockerNumber,
                                     $LockerLocation,
-                                    $KeyNumber
+                                    $KeyNumber,
+                                    $CombinationLockNumber
                                 );
                             }
 
@@ -768,6 +776,25 @@ class Service
                                         } else {
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Fremdsprache' . $i . ':' . $subjectLanguage . ' nicht gefunden.';
                                         }
+                                    }
+                                }
+
+                                $liberation = trim($Document->getValue($Document->getCell($Location['Fächer_Sportbefreiung'],
+                                    $RunY)));
+                                if ($liberation != '') {
+                                    switch ($liberation) {
+                                        case '0': // nicht befreit
+                                            $tblStudentLiberationType = Student::useService()->getStudentLiberationTypeById(1); break;
+                                        case '1': // vollbefreit
+                                            $tblStudentLiberationType = Student::useService()->getStudentLiberationTypeById(3); break;
+                                        case '2': // teilbefreit
+                                            $tblStudentLiberationType = Student::useService()->getStudentLiberationTypeById(2); break;
+                                        default: $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Sportbefreiung:' . $liberation . ' nicht gefunden.';
+                                            $tblStudentLiberationType = false;
+                                    }
+
+                                    if ($tblStudentLiberationType) {
+                                        Student::useService()->addStudentLiberation($tblStudent, $tblStudentLiberationType);
                                     }
                                 }
                             }

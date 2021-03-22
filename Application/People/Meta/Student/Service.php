@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
@@ -180,19 +181,22 @@ class Service extends Support
      * @param $LockerNumber
      * @param $LockerLocation
      * @param $KeyNumber
+     * @param string $CombinationLockNumber
      *
      * @return TblStudentLocker
      */
     public function insertStudentLocker(
         $LockerNumber,
         $LockerLocation,
-        $KeyNumber
+        $KeyNumber,
+        $CombinationLockNumber = ''
     ) {
 
         return (new Data($this->getBinding()))->createStudentLocker(
             $LockerNumber,
             $LockerLocation,
-            $KeyNumber
+            $KeyNumber,
+            $CombinationLockNumber
         );
     }
 
@@ -797,13 +801,15 @@ class Service extends Support
                     $tblStudent->getTblStudentLocker(),
                     $Meta['Additional']['Locker']['Number'],
                     $Meta['Additional']['Locker']['Location'],
-                    $Meta['Additional']['Locker']['Key']
+                    $Meta['Additional']['Locker']['Key'],
+                    $Meta['Additional']['Locker']['CombinationLockNumber']
                 );
             } else {
                 $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
                     $Meta['Additional']['Locker']['Number'],
                     $Meta['Additional']['Locker']['Location'],
-                    $Meta['Additional']['Locker']['Key']
+                    $Meta['Additional']['Locker']['Key'],
+                    $Meta['Additional']['Locker']['CombinationLockNumber']
                 );
             }
 
@@ -1621,5 +1627,18 @@ class Service extends Support
         }
 
         return '';
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentLiberationType $tblStudentLiberationType
+     *
+     * @return Service\Entity\TblStudentLiberation
+     */
+    public function addStudentLiberation(
+        TblStudent $tblStudent,
+        TblStudentLiberationType $tblStudentLiberationType
+    ) {
+        return (new Data($this->getBinding()))->addStudentLiberation($tblStudent, $tblStudentLiberationType);
     }
 }

@@ -305,6 +305,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentLocker', 'KeyNumber')) {
             $Table->addColumn('KeyNumber', 'string');
         }
+        $this->createColumn($Table, 'CombinationLockNumber', self::FIELD_TYPE_STRING);
         return $Table;
     }
 

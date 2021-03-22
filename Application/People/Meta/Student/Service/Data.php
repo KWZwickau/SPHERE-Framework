@@ -791,13 +791,15 @@ class Data extends Support
      * @param string $LockerNumber
      * @param string $LockerLocation
      * @param string $KeyNumber
+     * @param string $CombinationLockNumber
      *
      * @return TblStudentLocker
      */
     public function createStudentLocker(
         $LockerNumber,
         $LockerLocation,
-        $KeyNumber
+        $KeyNumber,
+        $CombinationLockNumber
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -806,6 +808,8 @@ class Data extends Support
         $Entity->setLockerNumber($LockerNumber);
         $Entity->setLockerLocation($LockerLocation);
         $Entity->setKeyNumber($KeyNumber);
+        $Entity->setCombinationLockNumber($CombinationLockNumber);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -817,6 +821,7 @@ class Data extends Support
      * @param string           $LockerNumber
      * @param string           $LockerLocation
      * @param string           $KeyNumber
+     * @param string           $CombinationLockNumber
      *
      * @return bool
      */
@@ -824,7 +829,8 @@ class Data extends Support
         TblStudentLocker $tblStudentLocker,
         $LockerNumber,
         $LockerLocation,
-        $KeyNumber
+        $KeyNumber,
+        $CombinationLockNumber
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -835,6 +841,8 @@ class Data extends Support
             $Entity->setLockerNumber($LockerNumber);
             $Entity->setLockerLocation($LockerLocation);
             $Entity->setKeyNumber($KeyNumber);
+            $Entity->setCombinationLockNumber($CombinationLockNumber);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
