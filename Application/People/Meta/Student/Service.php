@@ -12,7 +12,10 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Data;
@@ -32,6 +35,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -1558,7 +1563,9 @@ class Service extends Support
                     $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
                     $tblTechnicalType ? $tblTechnicalType : null,
                     $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
-                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null
+                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null,
+                    $Meta['TechnicalSchool']['YearOfSchoolDiploma'],
+                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma']
                 );
             } else {
 
@@ -1572,7 +1579,9 @@ class Service extends Support
                     $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
                     $tblTechnicalType ? $tblTechnicalType : null,
                     $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
-                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null
+                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null,
+                    $Meta['TechnicalSchool']['YearOfSchoolDiploma'],
+                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma']
                 );
 
                 if ($tblStudentTechnicalSchool) {
@@ -1640,5 +1649,51 @@ class Service extends Support
         TblStudentLiberationType $tblStudentLiberationType
     ) {
         return (new Data($this->getBinding()))->addStudentLiberation($tblStudent, $tblStudentLiberationType);
+    }
+
+    /**
+     * @param $praxisLessons
+     * @param $durationOfTraining
+     * @param $remark
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
+     * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
+     * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
+     * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     * @param string $yearOfSchoolDiploma
+     * @param string $yearOfTechnicalDiploma
+     *
+     * @return TblStudentTechnicalSchool
+     */
+    public function insertStudentTechnicalSchool(
+        $praxisLessons,
+        $durationOfTraining,
+        $remark,
+        TblTechnicalCourse $tblTechnicalCourse = null,
+        TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
+        TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
+        TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null,
+        $yearOfSchoolDiploma = '',
+        $yearOfTechnicalDiploma = ''
+    ) {
+        return (new Data($this->getBinding()))->createStudentTechnicalSchool(
+            $praxisLessons,
+            $durationOfTraining,
+            $remark,
+            $tblTechnicalCourse,
+            $tblSchoolDiploma,
+            $tblSchoolType,
+            $tblTechnicalDiploma,
+            $tblTechnicalType,
+            $tblStudentTenseOfLesson,
+            $tblStudentTrainingStatus,
+            $yearOfSchoolDiploma,
+            $yearOfTechnicalDiploma
+        );
     }
 }

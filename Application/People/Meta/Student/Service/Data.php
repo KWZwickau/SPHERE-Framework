@@ -1129,6 +1129,8 @@ class Data extends Support
      * @param TblType|null $tblTechnicalType
      * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     * @param string $yearOfSchoolDiploma
+     * @param string $yearOfTechnicalDiploma
      *
      * @return TblStudentTechnicalSchool
      */
@@ -1142,7 +1144,9 @@ class Data extends Support
         TblTechnicalDiploma $tblTechnicalDiploma = null,
         TblType $tblTechnicalType = null,
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
-        TblStudentTrainingStatus $tblStudentTrainingStatus = null
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null,
+        $yearOfSchoolDiploma = '',
+        $yearOfTechnicalDiploma = ''
     ) {
         $Manager = $this->getEntityManager();
 
@@ -1157,6 +1161,8 @@ class Data extends Support
         $Entity->setServiceTblTechnicalType($tblTechnicalType);
         $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
         $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
+        $Entity->setYearOfSchoolDiploma($yearOfSchoolDiploma);
+        $Entity->setYearOfTechnicalDiploma($yearOfTechnicalDiploma);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -1176,6 +1182,8 @@ class Data extends Support
      * @param TblType|null $tblTechnicalType
      * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     * @param string $yearOfSchoolDiploma
+     * @param string $yearOfTechnicalDiploma
      *
      * @return bool
      */
@@ -1190,7 +1198,9 @@ class Data extends Support
         TblTechnicalDiploma $tblTechnicalDiploma = null,
         TblType $tblTechnicalType = null,
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
-        TblStudentTrainingStatus $tblStudentTrainingStatus = null
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null,
+        $yearOfSchoolDiploma = '',
+        $yearOfTechnicalDiploma = ''
     ) {
 
         $Manager = $this->getEntityManager();
@@ -1209,6 +1219,8 @@ class Data extends Support
             $Entity->setServiceTblTechnicalType($tblTechnicalType);
             $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
             $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
+            $Entity->setYearOfSchoolDiploma($yearOfSchoolDiploma);
+            $Entity->setYearOfTechnicalDiploma($yearOfTechnicalDiploma);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

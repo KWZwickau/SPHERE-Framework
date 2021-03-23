@@ -14,7 +14,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -62,11 +61,11 @@ class Service
         }
 
         $Error = false;
-        if (!isset( $Select['Type'] )) {
+        if (!(Type::useService()->getTypeById($Select['Type'])) && !isset($Select['UseTypeFromImport'])) {
             $Error = true;
             $Stage .= new Warning('Schulart nicht gefunden');
         }
-        if (!isset( $Select['Year'] )) {
+        if (!(Term::useService()->getYearById($Select['Year']))) {
             $Error = true;
             $Stage .= new Warning('Schuljahr nicht gefunden');
         }
@@ -77,14 +76,16 @@ class Service
         return new Redirect($Redirect, 0, array(
             'TypeId' => $Select['Type'],
             'YearId' => $Select['Year'],
+            'UseTypeFromImport' => isset($Select['UseTypeFromImport'])
         ));
     }
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null   $File
-     * @param null                $TypeId
-     * @param null                $YearId
+     * @param UploadedFile|null $File
+     * @param null $TypeId
+     * @param null $YearId
+     * @param null $UseTypeFromImport
      *
      * @return IFormInterface|Danger|string
      */
@@ -92,7 +93,8 @@ class Service
         IFormInterface $Form = null,
         UploadedFile $File = null,
         $TypeId = null,
-        $YearId = null
+        $YearId = null,
+        $UseTypeFromImport = null
     ) {
 
         /**
@@ -235,6 +237,9 @@ class Service
                     'Fächer_Bildungsgang'                 => null,
                     'Fächer_letzter_Bildungsgang'         => null,
                     'Fächer_Sportbefreiung'               => null,
+                    'Schüler_Schulart'                    => null,
+                    'Schüler_Vorbildung'                  => null,
+                    'Schüler_Abschlussjahr_ABS'           => null,
                 );
 
                 $OptionalLocation = array(
@@ -290,7 +295,7 @@ class Service
                     $countCustody = 0;
                     $countCustodyExists = 0;
 
-                    $tblType = Type::useService()->getTypeById($TypeId);
+                    $tblTypeParameter = Type::useService()->getTypeById($TypeId);
                     $tblYear = Term::useService()->getYearById($YearId);
 
                     $tblStudentAgreementCategoryPhoto = Student::useService()->getStudentAgreementCategoryById(1);
@@ -308,6 +313,24 @@ class Service
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
 
+                        $isHofa = false;
+                        if ($UseTypeFromImport) {
+                            $type = trim($Document->getValue($Document->getCell($Location['Schüler_Schulart'], $RunY)));
+                            switch ($type) {
+                                case 'BGY+HOFA': $isHofa = true;
+                                case 'BGY': $tblType = Type::useService()->getTypeByShortName('BGy'); break;
+                                case 'FOS2': $type = 'FOS';
+                                default:
+                                    $tblType = Type::useService()->getTypeByShortName($type); break;
+                            }
+
+                            if (!$tblType) {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Schulart:' . $type . ' konnte nicht gefunden werden.';
+                            }
+                        } else {
+                            $tblType = $tblTypeParameter;
+                        }
+
                         // Student
                         $tblPerson = $this->usePeoplePerson()->insertPerson(
                             $this->usePeoplePerson()->getSalutationById(3),   //Schüler
@@ -320,11 +343,15 @@ class Service
                                 1 => Group::useService()->getGroupById(3)            //Schüler
                             ),
                             '',
-                            $tblType->getShortName() . '_Zeile_' . ($RunY + 1)
+                            ($tblType ? $tblType->getShortName() : 'XX') . '_Zeile_' . ($RunY + 1)
                         );
 
                         if ($tblPerson !== false) {
                             $countStudent++;
+
+                            if ($isHofa && ($tblGroupHofa = Group::useService()->insertGroup('Hotelmanagementschule'))) {
+                                Group::useService()->addGroupPerson($tblGroupHofa, $tblPerson);
+                            }
 
                             // Student Common
                             Common::useService()->insertMeta(
@@ -376,24 +403,29 @@ class Service
                             if (( $Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
                                     $RunY))) ) != ''
                             ) {
-                                $tblLevel = Division::useService()->insertLevel($tblType, $Level);
-                                if ($tblLevel) {
-                                    $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
-                                        $RunY)));
-                                    if ($Division != '') {
-                                        if (( $pos = strpos($Division, $Level) ) !== false) {
-                                            if (strlen($Division) > ( ( $start = $pos + strlen($Level) ) )) {
-                                                $Division = substr($Division, $start);
-                                            } else {
-                                                $Division = '';
+                                if ($tblType) {
+                                    $tblLevel = Division::useService()->insertLevel($tblType, $Level);
+                                    if ($tblLevel) {
+                                        $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
+                                            $RunY)));
+                                        if ($Division != '') {
+                                            if (($pos = strpos($Division, $Level)) !== false) {
+                                                if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+                                                    $Division = substr($Division, $start);
+                                                } else {
+                                                    $Division = '';
+                                                }
+                                            }
+                                            $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
+                                                $Division);
+                                            if ($tblDivision) {
+                                                Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
                                             }
                                         }
-                                        $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
-                                            $Division);
-                                        if ($tblDivision) {
-                                            Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
-                                        }
                                     }
+                                } else {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' da kein Schulart gefunden wurde, kann die Klassestufe: '
+                                        . $Level . ' nicht angelegt werden. Der Schüler wurde keiner Klasse zugewiesen';
                                 }
                             }
 
@@ -502,6 +534,48 @@ class Service
                                 $tblStudentBilling = null;
                             }
 
+                            $preDiploma = trim($Document->getValue($Document->getCell($Location['Schüler_Vorbildung'], $RunY)));
+                            if ($preDiploma) {
+                                switch ($preDiploma) {
+                                    case '10. Klasse GYM':
+                                    case '10.KlasseGYM':
+                                        $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(1);
+                                        $tblSchoolType = Type::useService()->getTypeByShortName('Gy');
+                                        break;
+                                    case 'Abitur':
+                                        $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(2);
+                                        $tblSchoolType = Type::useService()->getTypeByShortName('Gy');
+                                        break;
+                                    case 'Realschule':
+                                        $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(5);
+                                        $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                                        break;
+                                    default:
+                                        $tblSchoolDiploma = null;
+                                        $tblSchoolType = null;
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Vorbildung:' . $preDiploma
+                                            . ' konnte nicht angelegt werden.';
+                                }
+
+                                $preDiplomaYear = trim($Document->getValue($Document->getCell($Location['Schüler_Abschlussjahr_ABS'], $RunY)));
+
+                                $tblStudentTechnicalSchool = Student::useService()->insertStudentTechnicalSchool(
+                                    '',
+                                    '',
+                                    '',
+                                    null,
+                                    $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                                    $tblSchoolType ? $tblSchoolType : null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    $preDiplomaYear
+                                );
+                            } else {
+                                $tblStudentTechnicalSchool = null;
+                            }
+
                             $tblStudentBaptism = null;
                             $tblStudentIntegration = null;
                             $tblStudent = Student::useService()->insertStudent(
@@ -512,7 +586,12 @@ class Service
                                 $tblStudentBilling,
                                 $tblStudentLocker,
                                 $tblStudentBaptism,
-                                $tblStudentIntegration
+                                $tblStudentIntegration,
+                                null,
+                                '',
+                                false,
+                                false,
+                                $tblStudentTechnicalSchool
                             );
 
                             if ($tblStudent) {
@@ -684,7 +763,7 @@ class Service
                                 }
 
                                 // Profilfach
-                                if ($tblType->getShortName() == 'Gy') {
+                                if ($tblType && $tblType->getShortName() == 'Gy') {
                                     $profile = trim($Document->getValue($Document->getCell($Location['Fächer_Profilfach'],
                                         $RunY)));
                                     if ($profile != '') {
@@ -746,7 +825,7 @@ class Service
                                             $tblLevelFrom = false;
                                             if ($levelFrom != '') {
                                                 $level = intval($levelFrom);
-                                                if ($level > 0 && $level < 13) {
+                                                if ($tblType && $level > 0 && $level < 13) {
                                                     $tblLevelFrom = Division::useService()->insertLevel($tblType, $level);
                                                 } else {
                                                     $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Fremdsprache' . $i . '_von:' . $levelFrom . ' nicht gefunden.';
@@ -758,7 +837,7 @@ class Service
                                             $tblLevelTill = false;
                                             if ($levelTill != '') {
                                                 $level = intval($levelTill);
-                                                if ($level > 0 && $level < 13) {
+                                                if ($tblType && $level > 0 && $level < 13) {
                                                     $tblLevelTill = Division::useService()->insertLevel($tblType, $level);
                                                 } else {
                                                     $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Fremdsprache' . $i . '_bis:' . $levelTill . ' nicht gefunden.';
@@ -805,7 +884,7 @@ class Service
                                 $tblPersonCustody = $this->setCustody(
                                     $i,
                                     $tblPerson,
-                                    $tblType,
+                                    $tblType ? $tblType->getShortName() : 'XX',
                                     $Document,
                                     $Location,
                                     $RunY,
@@ -1081,7 +1160,7 @@ class Service
     /**
      * @param $ranking
      * @param TblPerson $tblPerson
-     * @param TblType $tblType
+     * @param $typeShortName
      * @param $Document
      * @param $Location
      * @param $RunY
@@ -1098,7 +1177,7 @@ class Service
     private function setCustody(
         $ranking,
         TblPerson $tblPerson,
-        TblType $tblType,
+        $typeShortName,
         $Document,
         $Location,
         $RunY,
@@ -1183,7 +1262,7 @@ class Service
                         1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
                     ),
                     '',
-                    $tblType->getShortName() . '_Zeile_' . ($RunY + 1) . '_S' . $ranking
+                    $typeShortName . '_Zeile_' . ($RunY + 1) . '_S' . $ranking
                 );
 
                 Common::useService()->insertMeta(

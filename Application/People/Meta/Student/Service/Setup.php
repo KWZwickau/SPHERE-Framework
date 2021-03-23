@@ -987,6 +987,8 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'PraxisLessons', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'DurationOfTraining', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'YearOfSchoolDiploma', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'YearOfTechnicalDiploma', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($table, $tblStudentTenseOfLesson, true);
         $this->createForeignKey($table, $tblStudentTrainingStatus, true);

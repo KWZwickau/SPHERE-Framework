@@ -61,6 +61,14 @@ class TblStudentTechnicalSchool extends Element
      * @Column(type="string")
      */
     protected $Remark;
+    /**
+     * @Column(type="string")
+     */
+    protected $YearOfSchoolDiploma;
+    /**
+     * @Column(type="string")
+     */
+    protected $YearOfTechnicalDiploma;
 
     /**
      * @return bool|TblTechnicalCourse
@@ -248,5 +256,37 @@ class TblStudentTechnicalSchool extends Element
     public function setRemark($Remark)
     {
         $this->Remark = $Remark;
+    }
+
+    /**
+     * @return string
+     */
+    public function getYearOfSchoolDiploma()
+    {
+        return $this->YearOfSchoolDiploma;
+    }
+
+    /**
+     * @param string $YearOfSchoolDiploma
+     */
+    public function setYearOfSchoolDiploma($YearOfSchoolDiploma)
+    {
+        $this->YearOfSchoolDiploma = $YearOfSchoolDiploma;
+    }
+
+    /**
+     * @return string
+     */
+    public function getYearOfTechnicalDiploma()
+    {
+        return $this->YearOfTechnicalDiploma;
+    }
+
+    /**
+     * @param string $YearOfTechnicalDiploma
+     */
+    public function setYearOfTechnicalDiploma($YearOfTechnicalDiploma)
+    {
+        $this->YearOfTechnicalDiploma = $YearOfTechnicalDiploma;
     }
 }

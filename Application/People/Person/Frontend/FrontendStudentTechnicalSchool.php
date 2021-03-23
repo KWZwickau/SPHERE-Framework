@@ -71,6 +71,8 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                     ? $tblStudentTenseOfLessons->getName() : '';
                 $studentTrainingStatus = ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
                     ? $tblStudentTrainingStatus->getName() : '';
+                $yearOfSchoolDiploma = $tblStudentTechnicalSchool->getYearOfSchoolDiploma();
+                $yearOfTechnicalDiploma = $tblStudentTechnicalSchool->getYearOfTechnicalDiploma();
             } else {
                 $technicalCourse = '';
                 $schoolDiploma = '';
@@ -83,6 +85,8 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 $remark = '';
                 $studentTenseOfLessons = '';
                 $studentTrainingStatus = '';
+                $yearOfSchoolDiploma = '';
+                $yearOfTechnicalDiploma = '';
             }
 
             $content = new Layout(new LayoutGroup(array(
@@ -96,12 +100,16 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                                     self::getLayoutColumnValue($schoolDiploma, 3),
                                     self::getLayoutColumnLabel('An der allgemeinbildenden Schulart', 3),
                                     self::getLayoutColumnValue($schoolType, 3),
+                                    self::getLayoutColumnLabel('Abschlussjahr (allgemeinbildend)', 3),
+                                    self::getLayoutColumnValue($yearOfSchoolDiploma, 3),
                                 )),
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Berufsbildender Abschluss', 3),
                                     self::getLayoutColumnValue($technicalDiploma, 3),
                                     self::getLayoutColumnLabel('An der berufsbildenden Schulart', 3),
                                     self::getLayoutColumnValue($technicalType, 3),
+                                    self::getLayoutColumnLabel('Abschlussjahr (berufsbildenden)', 3),
+                                    self::getLayoutColumnValue($yearOfTechnicalDiploma, 3),
                                 )),
                             )))
                         ),
@@ -184,6 +192,8 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                     ? $tblStudentTenseOfLessons->getId() : 0;
                 $Global->POST['Meta']['TechnicalSchool']['tblStudentTrainingStatus'] = ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
                     ? $tblStudentTrainingStatus->getId() : 0;
+                $Global->POST['Meta']['TechnicalSchool']['YearOfSchoolDiploma'] = $tblStudentTechnicalSchool->getYearOfSchoolDiploma();
+                $Global->POST['Meta']['TechnicalSchool']['YearOfTechnicalDiploma'] = $tblStudentTechnicalSchool->getYearOfTechnicalDiploma();
 
                 $Global->savePost();
             }
@@ -232,24 +242,30 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                         (new SelectBox('Meta[TechnicalSchool][serviceTblSchoolDiploma]', 'Höchster Abschluss an einer allgemeinbildenden Schule',
                             array('{{ Name }}' => $tblSchoolDiplomaAll)))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
-                        , 6),
+                        , 4),
                     new LayoutColumn(
                         (new SelectBox('Meta[TechnicalSchool][serviceTblSchoolType]', 'An der allgemeinbildenden Schulart (bzw. 2. Bildungsweg)',
                             array('{{ Name }}' => $tblTypeCommonAll)))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
-                        , 6),
+                        , 4),
+                    new LayoutColumn(
+                        new TextField('Meta[TechnicalSchool][YearOfSchoolDiploma]', '', 'Abschlussjahr der allgemeinbildenden Schule')
+                        , 4),
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
                         (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalDiploma]', 'Höchster Abschluss an einer berufsbildenden Schule',
                             array('{{ Name }}' => $tblTechnicalDiplomaAll)))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
-                        , 6),
+                        , 4),
                     new LayoutColumn(
                         (new SelectBox('Meta[TechnicalSchool][serviceTblTechnicalType]', 'An der berufsbildenden Schulart',
                             array('{{ Name }}' => $tblTypeTechnicalAll)))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
-                        , 6),
+                        , 4),
+                    new LayoutColumn(
+                        new TextField('Meta[TechnicalSchool][YearOfTechnicalDiploma]', '', 'Abschlussjahr der berufsbildenden Schule')
+                        , 4),
                 ))
             ))),
             Panel::PANEL_TYPE_INFO
