@@ -15,6 +15,7 @@ use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalSubjectArea;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -1551,6 +1552,8 @@ class Service extends Support
             $tblStudentTenseOfLesson = $this->getStudentTenseOfLessonById($Meta['TechnicalSchool']['tblStudentTenseOfLesson']);
             $tblStudentTrainingStatus = $this->getStudentTrainingStatusById($Meta['TechnicalSchool']['tblStudentTrainingStatus']);
 
+            $tblTechnicalSubjectArea = Course::useService()->getTechnicalSubjectAreaById($Meta['TechnicalSchool']['serviceTblTechnicalSubjectArea']);
+
             if (($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())) {
                 (new Data($this->getBinding()))->updateStudentTechnicalSchool(
                     $tblStudentTechnicalSchool,
@@ -1565,7 +1568,11 @@ class Service extends Support
                     $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
                     $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null,
                     $Meta['TechnicalSchool']['YearOfSchoolDiploma'],
-                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma']
+                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma'],
+                    $tblTechnicalSubjectArea ? $tblTechnicalSubjectArea : null,
+                    isset($Meta['TechnicalSchool']['HasFinancialAid']),
+                    $Meta['TechnicalSchool']['FinancialAidApplicationYear'],
+                    $Meta['TechnicalSchool']['FinancialAidBureau']
                 );
             } else {
 
@@ -1581,7 +1588,11 @@ class Service extends Support
                     $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
                     $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null,
                     $Meta['TechnicalSchool']['YearOfSchoolDiploma'],
-                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma']
+                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma'],
+                    $tblTechnicalSubjectArea ? $tblTechnicalSubjectArea : null,
+                    isset($Meta['TechnicalSchool']['HasFinancialAid']),
+                    $Meta['TechnicalSchool']['FinancialAidApplicationYear'],
+                    $Meta['TechnicalSchool']['FinancialAidBureau']
                 );
 
                 if ($tblStudentTechnicalSchool) {
@@ -1664,6 +1675,10 @@ class Service extends Support
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
      * @param string $yearOfSchoolDiploma
      * @param string $yearOfTechnicalDiploma
+     * @param TblTechnicalSubjectArea|null $tblTechnicalSubjectArea
+     * @param bool $hasFinancialAid
+     * @param string $financialAidApplicationYear
+     * @param string $financialAidBureau
      *
      * @return TblStudentTechnicalSchool
      */
@@ -1679,7 +1694,11 @@ class Service extends Support
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
         TblStudentTrainingStatus $tblStudentTrainingStatus = null,
         $yearOfSchoolDiploma = '',
-        $yearOfTechnicalDiploma = ''
+        $yearOfTechnicalDiploma = '',
+        TblTechnicalSubjectArea $tblTechnicalSubjectArea = null,
+        $hasFinancialAid = false,
+        $financialAidApplicationYear = '',
+        $financialAidBureau = ''
     ) {
         return (new Data($this->getBinding()))->createStudentTechnicalSchool(
             $praxisLessons,
@@ -1693,7 +1712,11 @@ class Service extends Support
             $tblStudentTenseOfLesson,
             $tblStudentTrainingStatus,
             $yearOfSchoolDiploma,
-            $yearOfTechnicalDiploma
+            $yearOfTechnicalDiploma,
+            $tblTechnicalSubjectArea,
+            $hasFinancialAid,
+            $financialAidApplicationYear,
+            $financialAidBureau
         );
     }
 }

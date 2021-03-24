@@ -5,6 +5,7 @@ use DateTime;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalSubjectArea;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
@@ -1131,6 +1132,10 @@ class Data extends Support
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
      * @param string $yearOfSchoolDiploma
      * @param string $yearOfTechnicalDiploma
+     * @param TblTechnicalSubjectArea|null $tblTechnicalSubjectArea
+     * @param bool $hasFinancialAid
+     * @param string $financialAidApplicationYear
+     * @param string $financialAidBureau
      *
      * @return TblStudentTechnicalSchool
      */
@@ -1146,7 +1151,11 @@ class Data extends Support
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
         TblStudentTrainingStatus $tblStudentTrainingStatus = null,
         $yearOfSchoolDiploma = '',
-        $yearOfTechnicalDiploma = ''
+        $yearOfTechnicalDiploma = '',
+        TblTechnicalSubjectArea $tblTechnicalSubjectArea = null,
+        $hasFinancialAid = false,
+        $financialAidApplicationYear = '',
+        $financialAidBureau = ''
     ) {
         $Manager = $this->getEntityManager();
 
@@ -1163,6 +1172,10 @@ class Data extends Support
         $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
         $Entity->setYearOfSchoolDiploma($yearOfSchoolDiploma);
         $Entity->setYearOfTechnicalDiploma($yearOfTechnicalDiploma);
+        $Entity->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
+        $Entity->setHasFinancialAid($hasFinancialAid);
+        $Entity->setFinancialAidApplicationYear($financialAidApplicationYear);
+        $Entity->setFinancialAidBureau($financialAidBureau);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -1184,6 +1197,10 @@ class Data extends Support
      * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
      * @param string $yearOfSchoolDiploma
      * @param string $yearOfTechnicalDiploma
+     * @param TblTechnicalSubjectArea|null $tblTechnicalSubjectArea
+     * @param bool $hasFinancialAid
+     * @param string $financialAidApplicationYear
+     * @param string $financialAidBureau
      *
      * @return bool
      */
@@ -1200,7 +1217,11 @@ class Data extends Support
         TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
         TblStudentTrainingStatus $tblStudentTrainingStatus = null,
         $yearOfSchoolDiploma = '',
-        $yearOfTechnicalDiploma = ''
+        $yearOfTechnicalDiploma = '',
+        TblTechnicalSubjectArea $tblTechnicalSubjectArea = null,
+        $hasFinancialAid = false,
+        $financialAidApplicationYear = '',
+        $financialAidBureau = ''
     ) {
 
         $Manager = $this->getEntityManager();
@@ -1221,6 +1242,10 @@ class Data extends Support
             $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
             $Entity->setYearOfSchoolDiploma($yearOfSchoolDiploma);
             $Entity->setYearOfTechnicalDiploma($yearOfTechnicalDiploma);
+            $Entity->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
+            $Entity->setHasFinancialAid($hasFinancialAid);
+            $Entity->setFinancialAidApplicationYear($financialAidApplicationYear);
+            $Entity->setFinancialAidBureau($financialAidBureau);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

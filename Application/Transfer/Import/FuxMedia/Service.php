@@ -240,6 +240,10 @@ class Service
                     'Schüler_Schulart'                    => null,
                     'Schüler_Vorbildung'                  => null,
                     'Schüler_Abschlussjahr_ABS'           => null,
+                    'Schüler_Bafoeg'                      => null,
+                    'Schüler_Bafoeg_Beantragungsjahr'     => null,
+                    'Schüler_Bafoeg_Amt'                  => null,
+                    'Schüler_Fachrichtung'                => null,
                 );
 
                 $OptionalLocation = array(
@@ -535,46 +539,54 @@ class Service
                             }
 
                             $preDiploma = trim($Document->getValue($Document->getCell($Location['Schüler_Vorbildung'], $RunY)));
-                            if ($preDiploma) {
-                                switch ($preDiploma) {
-                                    case '10. Klasse GYM':
-                                    case '10.KlasseGYM':
-                                        $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(1);
-                                        $tblSchoolType = Type::useService()->getTypeByShortName('Gy');
-                                        break;
-                                    case 'Abitur':
-                                        $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(2);
-                                        $tblSchoolType = Type::useService()->getTypeByShortName('Gy');
-                                        break;
-                                    case 'Realschule':
-                                        $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(5);
-                                        $tblSchoolType = Type::useService()->getTypeByShortName('OS');
-                                        break;
-                                    default:
-                                        $tblSchoolDiploma = null;
-                                        $tblSchoolType = null;
+                            switch ($preDiploma) {
+                                case '10. Klasse GYM':
+                                case '10.KlasseGYM':
+                                    $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(1);
+                                    $tblSchoolType = Type::useService()->getTypeByShortName('Gy');
+                                    break;
+                                case 'Abitur':
+                                    $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(2);
+                                    $tblSchoolType = Type::useService()->getTypeByShortName('Gy');
+                                    break;
+                                case 'Realschule':
+                                    $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById(5);
+                                    $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                                    break;
+                                default:
+                                    $tblSchoolDiploma = null;
+                                    $tblSchoolType = null;
+                                    if ($preDiploma != '') {
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Vorbildung:' . $preDiploma
                                             . ' konnte nicht angelegt werden.';
-                                }
-
-                                $preDiplomaYear = trim($Document->getValue($Document->getCell($Location['Schüler_Abschlussjahr_ABS'], $RunY)));
-
-                                $tblStudentTechnicalSchool = Student::useService()->insertStudentTechnicalSchool(
-                                    '',
-                                    '',
-                                    '',
-                                    null,
-                                    $tblSchoolDiploma ? $tblSchoolDiploma : null,
-                                    $tblSchoolType ? $tblSchoolType : null,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    $preDiplomaYear
-                                );
-                            } else {
-                                $tblStudentTechnicalSchool = null;
+                                    }
                             }
+
+                            $subjectArea = trim($Document->getValue($Document->getCell($Location['Schüler_Fachrichtung'], $RunY)));
+                            if ($subjectArea != '') {
+                                $tblTechnicalSubjectArea = Course::useService()->createTechnicalSubjectArea($subjectArea, $subjectArea);
+                            } else {
+                                $tblTechnicalSubjectArea = null;
+                            }
+
+                            $tblStudentTechnicalSchool = Student::useService()->insertStudentTechnicalSchool(
+                                '',
+                                '',
+                                '',
+                                null,
+                                $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                                $tblSchoolType ? $tblSchoolType : null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                trim($Document->getValue($Document->getCell($Location['Schüler_Abschlussjahr_ABS'], $RunY))),
+                                '',
+                                $tblTechnicalSubjectArea ? $tblTechnicalSubjectArea : null,
+                                trim($Document->getValue($Document->getCell($Location['Schüler_Bafoeg'], $RunY))) == '1',
+                                trim($Document->getValue($Document->getCell($Location['Schüler_Bafoeg_Beantragungsjahr'], $RunY))),
+                                trim($Document->getValue($Document->getCell($Location['Schüler_Bafoeg_Amt'], $RunY)))
+                            );
 
                             $tblStudentBaptism = null;
                             $tblStudentIntegration = null;
