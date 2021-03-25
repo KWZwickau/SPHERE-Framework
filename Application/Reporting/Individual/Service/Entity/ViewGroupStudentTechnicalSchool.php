@@ -43,9 +43,17 @@ class ViewGroupStudentTechnicalSchool extends AbstractView
     // TechnicalCourse
     const TBL_TECHNICAL_COURSE_NAME = 'TblTechnicalCourse_Name';
     // StudentTechnicalSchool
-    const TBLSTUDENTTECHNICALSCHOOL_PRAXISLESSONS = 'TblStudentTechnicalSchool_PraxisLessons';
-    const TBLSTUDENTTECHNICALSCHOOL_DURATIONOFTRAINING = 'TblStudentTechnicalSchool_DurationOfTraining';
-    const TBLSTUDENTTECHNICALSCHOOL_REMARK = 'TblStudentTechnicalSchool_Remark';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_PRAXIS_LESSONS = 'TblStudentTechnicalSchool_PraxisLessons';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_DURATION_OF_TRAINING = 'TblStudentTechnicalSchool_DurationOfTraining';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_REMARK = 'TblStudentTechnicalSchool_Remark';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_YEAR_OF_SCHOOL_DIPLOMA = 'TblStudentTechnicalSchool_YearOfSchoolDiploma';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_YEAR_OF_TECHNICAL_DIPLOMA = 'TblStudentTechnicalSchool_YearOfTechnicalDiploma';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_HAS_FINANCIAL_AID = 'TblStudentTechnicalSchool_HasFinancialAid';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_FINANCIAL_AID_APPLICATION_YEAR = 'TblStudentTechnicalSchool_FinancialAidApplicationYear';
+    const TBL_STUDENT_TECHNICAL_SCHOOL_FINANCIAL_AID_BUREAU = 'TblStudentTechnicalSchool_FinancialAidBureau';
+    // TechnicalSubjectArea
+    const TBL_TECHNICAL_SUBJECT_AREA_NAME = 'TblTechnicalSubjectArea_Name';
+    const TBL_TECHNICAL_SUBJECT_AREA_ACRONYM = 'TblTechnicalSubjectArea_Acronym';
     // StudentTensOfLesson
     const TBLSTUDENTTENSOFLESSON_NAME = 'TblStudentTensOfLesson_Name';
     // StudentTrainingStatus
@@ -115,6 +123,34 @@ class ViewGroupStudentTechnicalSchool extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblStudentTechnicalSchool_YearOfSchoolDiploma;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTechnicalSchool_YearOfTechnicalDiploma;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTechnicalSchool_HasFinancialAid;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTechnicalSchool_FinancialAidApplicationYear;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTechnicalSchool_FinancialAidBureau;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblTechnicalSubjectArea_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblTechnicalSubjectArea_Acronym;
+    /**
+     * @Column(type="string")
+     */
     protected $TblStudentTensOfLesson_Name;
     /**
      * @Column(type="string")
@@ -140,9 +176,18 @@ class ViewGroupStudentTechnicalSchool extends AbstractView
         $this->setNameDefinition(self::TBL_TECHNICAL_COURSE_NAME, 'Allgemeines BS: Bildungsgang / Berufsbezeichnung / Ausbildung');
         $this->setNameDefinition(self::TBLSTUDENTTENSOFLESSON_NAME, 'Allgemeines BS: Zeitform');
         $this->setNameDefinition(self::TBLSTUDENTTRAININGSTATUS_NAME, 'Allgemeines BS: Ausbildungsstatus');
-        $this->setNameDefinition(self::TBLSTUDENTTECHNICALSCHOOL_DURATIONOFTRAINING, 'Allgemeines BS: Ausbildungsdauer');
-        $this->setNameDefinition(self::TBLSTUDENTTECHNICALSCHOOL_PRAXISLESSONS, 'Allgemeines BS: Praxisstunden');
-        $this->setNameDefinition(self::TBLSTUDENTTECHNICALSCHOOL_REMARK, 'Allgemeines BS: Bemerkung');
+
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_DURATION_OF_TRAINING, 'Allgemeines BS: Ausbildungsdauer');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_PRAXIS_LESSONS, 'Allgemeines BS: Praxisstunden');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_REMARK, 'Allgemeines BS: Bemerkung');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_YEAR_OF_SCHOOL_DIPLOMA, 'Allgemeines BS: Abschlussjahr allgemeinbildend');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_YEAR_OF_TECHNICAL_DIPLOMA, 'Allgemeines BS: Abschlussjahr berufsbildend');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_HAS_FINANCIAL_AID, 'Allgemeines BS: Bafög');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_FINANCIAL_AID_APPLICATION_YEAR, 'Allgemeines BS: Beantragungsjahr');
+        $this->setNameDefinition(self::TBL_STUDENT_TECHNICAL_SCHOOL_FINANCIAL_AID_BUREAU, 'Allgemeines BS: Amt');
+
+        $this->setNameDefinition(self::TBL_TECHNICAL_SUBJECT_AREA_NAME, 'Allgemeines BS: Fachrichtung');
+        $this->setNameDefinition(self::TBL_TECHNICAL_SUBJECT_AREA_ACRONYM, 'Allgemeines BS: Abkürzung Fachrichtung');
 
         //GroupDefinition
         $this->setGroupDefinition('Schüler - Aufnahme BS', array(
@@ -155,9 +200,16 @@ class ViewGroupStudentTechnicalSchool extends AbstractView
             self::TBL_TECHNICAL_COURSE_NAME,
             self::TBLSTUDENTTENSOFLESSON_NAME,
             self::TBLSTUDENTTRAININGSTATUS_NAME,
-            self::TBLSTUDENTTECHNICALSCHOOL_DURATIONOFTRAINING,
-            self::TBLSTUDENTTECHNICALSCHOOL_PRAXISLESSONS,
-            self::TBLSTUDENTTECHNICALSCHOOL_REMARK,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_DURATION_OF_TRAINING,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_PRAXIS_LESSONS,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_REMARK,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_YEAR_OF_SCHOOL_DIPLOMA,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_YEAR_OF_TECHNICAL_DIPLOMA,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_HAS_FINANCIAL_AID,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_FINANCIAL_AID_APPLICATION_YEAR,
+            self::TBL_STUDENT_TECHNICAL_SCHOOL_FINANCIAL_AID_BUREAU,
+            self::TBL_TECHNICAL_SUBJECT_AREA_NAME,
+            self::TBL_TECHNICAL_SUBJECT_AREA_ACRONYM,
         ));
     }
 
@@ -193,6 +245,10 @@ class ViewGroupStudentTechnicalSchool extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_STUDENT_TECHNICAL_SCHOOL_HAS_FINANCIAL_AID:
+                $Data = array( 0 => 'Nein', 1 => 'Ja' );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, true );
+                break;
             case self::TBL_SCHOOL_DIPLOMA_NAME:
                 $Data = Course::useService()->getPropertyList(new TblSchoolDiploma(), TblSchoolDiploma::ATTR_NAME);
                 $Field = parent::getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
