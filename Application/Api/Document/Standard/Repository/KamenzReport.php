@@ -76,7 +76,10 @@ class KamenzReport extends AbstractDocument
                 ->addSliceArray(E11::getContent())
             )
             ->addPage((new Page())
-                ->addSliceArray(F01::getContent())
+                ->addSliceArray(F01::getContent(0,4))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(F01::getContent(5,7))
                 ->addSliceArray(G01::getContent())
             )
         );

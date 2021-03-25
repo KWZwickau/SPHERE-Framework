@@ -20,12 +20,17 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 class F01
 {
     /**
+     * End max 7
+     * @param int $Start
+     * @param int $End
+     *
      * @return Slice[]
      */
-    public static function getContent()
+    public static function getContent($Start = 0, $End = 4)
     {
         $sliceList = array();
-
+        //display Header
+        if($Start == 0){
         $sliceList[] = (new Slice())
             ->styleTextBold()
             ->styleMarginTop('20px')
@@ -114,8 +119,9 @@ class F01
                     , '43.34%'
                 )
             );
+        }
 
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = $Start; $i <= $End; $i++) {
             $isBold = false;
             $paddingTop = '72.1px';
             $paddingBottom = '72.1px';
@@ -212,7 +218,7 @@ class F01
     }
 
     /**
-     * @param $section
+     * @param Section $section
      * @param $text
      * @param $identifier
      * @param $gender

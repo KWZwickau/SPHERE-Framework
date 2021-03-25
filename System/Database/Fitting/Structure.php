@@ -150,11 +150,11 @@ class Structure
             foreach( $TableStatus as $Status ) {
 
                 // correct Collation && ignore view's
-                if( $Status['Collation'] != 'utf8_german2_ci'
+                if( $Status['Collation'] != 'utf8mb4_0900_ai_ci'
                     && !preg_match('!view!', $Status['Name'])
                 ) {
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_german2_ci;" );
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_german2_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8mb4 collate utf8mb4_0900_ai_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8mb4 collate utf8mb4_0900_ai_ci;" );
                 }
             }
         }
