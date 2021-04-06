@@ -63,6 +63,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/BillingDocumentWarning/Create', 'SPHERE\Application\Api\Document\Creator::createBillingDocumentWarningPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Account/Create', 'SPHERE\Application\Api\Document\Creator::createAccountPdf'
+        ));
     }
 
     /**
@@ -193,6 +196,17 @@ class Standard extends Extension implements IModuleInterface
         }
 
         return Creator::createMultiPasswordPdf($Data, Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param null $AccountId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createAccountPdf($AccountId = null, $Redirect = true)
+    {
+        return Creator::createAccountPdf($AccountId, $Redirect);
     }
 
     /**

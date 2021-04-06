@@ -2,10 +2,12 @@
 
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
+use Exception;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -265,6 +267,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
             }
             if (!$tblAccount) {
+                // Check Credential with Authenticator App
+                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
+                $tblAccount = Account::useService()
+                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
+            }
+            if (!$tblAccount) {
                 // Check Credential
                 $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
                 $tblAccount = Account::useService()
@@ -281,6 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Matching Account found?
         if ($tblAccount && $tblIdentification) {
             switch ($tblIdentification->getName()) {
+                case TblIdentification::NAME_AUTHENTICATOR_APP:
                 case TblIdentification::NAME_TOKEN:
                 case TblIdentification::NAME_SYSTEM:
                     return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
@@ -445,6 +454,7 @@ class Frontend extends Extension implements IFrontendInterface
             // Anfragen von SAML müssen Cookies aktiviert haben
             $isCookieAvailable = true;
             switch ($tblIdentification->getName()) {
+                case TblIdentification::NAME_AUTHENTICATOR_APP:
                 case TblIdentification::NAME_TOKEN:
                 case TblIdentification::NAME_SYSTEM:
                     return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId(), null, $isCookieAvailable);
@@ -508,23 +518,21 @@ class Frontend extends Extension implements IFrontendInterface
             return $this->frontendIdentificationCredential();
         }
 
-        // Field Definition
-        $CredentialKeyField = (new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
-            ->setRequired()->setAutoFocus();
+        /**
+         * Anmeldung mit Authenticator App
+         */
+        if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
 
-        // Search for matching Token
-        $FormError = new Container('');
-        if ($CredentialKey) {
-            $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
-            $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
-            if (
-                $tblToken
-                && $tblAccount->getServiceTblToken()
-                && $tblAccount->getServiceTblToken()->getId() == $tblToken->getId()
-            ) {
-                // Credential correct, Token correct -> LOGIN
+            // Field Definition
+            $CredentialKeyField = (new PasswordField('CredentialKey', 'Pin', 'Authenticator App'))
+                ->setRequired()->setAutoFocus();
+
+            $FormError = new Container('');
+            if ($CredentialKey) {
+                // Credential correct, OTP correct -> LOGIN
                 try {
-                    if (Token::useService()->isTokenValid($CredentialKey)) {
+                    $twoFactorApp = new TwoFactorApp();
+                    if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $CredentialKey)) {
                         if (session_status() == PHP_SESSION_ACTIVE) {
                             session_regenerate_id();
                         }
@@ -538,23 +546,73 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                         return $View;
                     } else {
-                        // Error Token invalid
+                        // Error OTP APP invalid
                         $CredentialKeyField->setError('');
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
-                } catch (\Exception $Exception) {
+                } catch (Exception $Exception) {
 
-                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
-                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Authenticator App Error: ' . $Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Authenticator App Error: ' . $Exception->getMessage());
 
-                    // Error Token API Error
+                    // Error OTP APP Error
                     $CredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                 }
-            } else {
-                // Error Token not registered
-                $CredentialKeyField->setError('');
-                $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+            }
+        } else {
+            /**
+             * Anmeldung mit Yubikey (Token oder System)
+             */
+
+            // Field Definition
+            $CredentialKeyField = (new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
+                ->setRequired()->setAutoFocus();
+
+            // Search for matching Token
+            $FormError = new Container('');
+            if ($CredentialKey) {
+                $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
+                $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
+                if (
+                    $tblToken
+                    && $tblAccount->getServiceTblToken()
+                    && $tblAccount->getServiceTblToken()->getId() == $tblToken->getId()
+                ) {
+                    // Credential correct, Token correct -> LOGIN
+                    try {
+                        if (Token::useService()->isTokenValid($CredentialKey)) {
+                            if (session_status() == PHP_SESSION_ACTIVE) {
+                                session_regenerate_id();
+                            }
+                            Account::useService()->createSession($tblAccount, session_id());
+                            $View->setTitle(new Ok() . ' Anmelden');
+                            $View->setContent(
+                                $this->getIdentificationLayout(
+                                    new Headline('Anmelden', 'Bitte warten...')
+                                    . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
+                                )
+                            );
+                            return $View;
+                        } else {
+                            // Error Token invalid
+                            $CredentialKeyField->setError('');
+                            $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                        }
+                    } catch (Exception $Exception) {
+
+                        (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
+                        (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
+
+                        // Error Token API Error
+                        $CredentialKeyField->setError('');
+                        $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                    }
+                } else {
+                    // Error Token not registered
+                    $CredentialKeyField->setError('');
+                    $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                }
             }
         }
 

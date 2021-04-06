@@ -150,10 +150,11 @@ class TblAddress extends Element
 
     /**
      * @param bool $Extended
+     * @param bool $withCommaSeparated
      *
      * @return string
      */
-    public function getGuiTwoRowString($Extended = true)
+    public function getGuiTwoRowString($Extended = true, $withCommaSeparated = true)
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
@@ -171,7 +172,7 @@ class TblAddress extends Element
                         $this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
-                        .',<br>'.$this->getStreetName()
+                        . ($withCommaSeparated ? ',' : '') . '<br>'.$this->getStreetName()
                         .' '.$this->getStreetNumber()
                         .($Extended
                             ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
@@ -183,7 +184,7 @@ class TblAddress extends Element
                         ($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
-                        .',<br>'.$this->getTblCity()->getCode()
+                        . ($withCommaSeparated ? ',' : '') . '<br>'.$this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
                         .($Extended
                             ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
@@ -195,7 +196,7 @@ class TblAddress extends Element
                         $this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
-                        .',<br>'.$this->getStreetName()
+                        . ($withCommaSeparated ? ',' : '') . '<br>'.$this->getStreetName()
                         .' '.$this->getStreetNumber()
                         .($this->getLocation() ? ' ('.$this->getLocation().')' : '');
             }
