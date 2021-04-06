@@ -330,14 +330,13 @@ class Service extends Extension
 
     /**
      * @param array       $PersonList
-     * @param array       $tblPersonList
-     * @param array|false $tblDivisionTeacherList
+     * @param TblPerson[] $tblPersonList
+     * @param TblDivision $tblDivision
      *
      * @return bool|FilePointer
-     * @throws TypeFileException
      * @throws DocumentTypeException
      */
-    public function createClassListExcel($PersonList, $tblPersonList, $tblDivisionTeacherList)
+    public function createClassListExcel($PersonList, $tblPersonList, TblDivision $tblDivision)
     {
 
         if (!empty($PersonList)) {
@@ -441,7 +440,7 @@ class Service extends Extension
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Klassenlehrer:');
-            if($tblDivisionTeacherList){
+            if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
                 $TeacherList = array();
                 /** @var TblDivisionTeacher $tblDivisionTeacher */
                 foreach($tblDivisionTeacherList as $tblDivisionTeacher){
@@ -449,16 +448,25 @@ class Service extends Extension
                         $TeacherList[] = $tblPerson->getFullName();
                     }
                 }
-                $TeacherString = '';
-                if(!empty($TeacherList)){
-                    $TeacherString = implode(', ', $TeacherList);
-                }
+                $TeacherString = implode(', ', $TeacherList);
                 $export->setValue($export->getCell("1", $Row), $TeacherString);
             }
-
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Klassensprecher:');
+            if(($tblDivisionRepresentationList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
+                $Representation = array();
+                foreach($tblDivisionRepresentationList as $tblDivisionRepresentation){
+                    $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
+                    $Description = $tblDivisionRepresentation->getDescription();
+                    $Representation[] = $tblRepresentation->getFirstSecondName().' '.$tblRepresentation->getLastName()
+                        .($Description ? ' ('.$Description.')' : '');
+                }
+                $RepresentationString = implode(', ', $Representation);
+                $export->setValue($export->getCell("1", $Row), $RepresentationString);
+            }
 
             // Legende
-            $Row = $Row - 2;
+            $Row = $Row - 4;
             $export->setValue($export->getCell("11", $Row), 'Abkürzungen Telefon:');
             $Row++;
             $export->setValue($export->getCell("11", $Row), 'p = Privat');
@@ -640,14 +648,14 @@ class Service extends Extension
     }
 
     /**
-     * @param $PersonList
-     * @param $tblPersonList
+     * @param array       $PersonList
+     * @param TblPerson[] $tblPersonList
+     * @param TblDivision $tblDivision
      *
      * @return bool|FilePointer
-     * @throws TypeFileException
      * @throws DocumentTypeException
      */
-    public function createExtendedClassListExcel($PersonList, $tblPersonList)
+    public function createExtendedClassListExcel($PersonList, $tblPersonList, TblDivision $tblDivision)
     {
 
         if (!empty($PersonList)) {
@@ -734,8 +742,35 @@ class Service extends Extension
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
 
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Klassenlehrer:');
+            if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
+                $TeacherList = array();
+                /** @var TblDivisionTeacher $tblDivisionTeacher */
+                foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                    if(($tblPerson = $tblDivisionTeacher->getServiceTblPerson())){
+                        $TeacherList[] = $tblPerson->getFullName();
+                    }
+                }
+                $TeacherString = implode(', ', $TeacherList);
+                $export->setValue($export->getCell("1", $Row), $TeacherString);
+            }
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Klassensprecher:');
+            if(($tblDivisionRepresentationList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
+                $Representation = array();
+                foreach($tblDivisionRepresentationList as $tblDivisionRepresentation){
+                    $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
+                    $Description = $tblDivisionRepresentation->getDescription();
+                    $Representation[] = $tblRepresentation->getFirstSecondName().' '.$tblRepresentation->getLastName()
+                        .($Description ? ' ('.$Description.')' : '');
+                }
+                $RepresentationString = implode(', ', $Representation);
+                $export->setValue($export->getCell("1", $Row), $RepresentationString);
+            }
+
             // Legende
-            $Row = $Row - 2;
+            $Row = $Row - 4;
             $column = 14;
             $export->setValue($export->getCell($column, $Row), 'Abkürzungen Telefon:');
             $Row++;

@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Api\Education\Division\AddDivision;
 use SPHERE\Application\Api\Education\Division\DivisionCustody;
+use SPHERE\Application\Api\Education\Division\DivisionRepresentative;
 use SPHERE\Application\Api\Education\Division\DivisionTeacher;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
@@ -55,6 +56,7 @@ class Education implements IApplicationInterface
         SubjectTeacher::registerApi();
         DivisionTeacher::registerApi();
         DivisionCustody::registerApi();
+        DivisionRepresentative::registerApi();
         YearPeriod::registerApi();
         YearHoliday::registerApi();
         ApiPrepare::registerApi();
