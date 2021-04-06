@@ -3414,15 +3414,32 @@ class Service extends AbstractService
 
         $error = false;
         if (isset($Data['InformationList']['CertificateDate']) && empty($Data['InformationList']['CertificateDate'])) {
-            $Form->setError('Data[InformationList][CertificateDate]', new Exclamation() . ' Bitte geben Sie ein Datum ein.');
+            // bei einem 3 Stufigen Daten-Array lässt sich keine Fehlermeldung setzen
+//            $Form->setError('Data[InformationList][CertificateDate]', new Exclamation() . ' Bitte geben Sie ein Datum ein.');
 
             $error = true;
         }
 
+        // Datum "bis" muss größer sein als Datum "seit"
+        $errorDate = false;
+        if (isset($Data['InformationList']['DateFrom']) && isset($Data['InformationList']['DateTo'])) {
+            $dateFrom = new DateTime($Data['InformationList']['DateFrom']);
+            $dateTo = new DateTime($Data['InformationList']['DateTo']);
+
+            if ($dateFrom > $dateTo) {
+
+                $error = true;
+                $errorDate = true;
+            }
+        }
+
         if ($error) {
+            $text = $errorDate
+                ? 'Das Datum für "Besucht "bis" die Berufsfachschule" muss größer sein als das Datum für "Besucht "seit" die Berufsfachschule".'
+                : 'Es wurden nicht alle Pflichtfelder befüllt. Die Daten wurden nicht gespeichert.';
             $Form->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
-                        'Es wurden nicht alle Pflichtfelder befüllt. Die Daten wurden nicht gespeichert.', new Exclamation())
+                    $text, new Exclamation())
                 ))));
 
             return $Form;
