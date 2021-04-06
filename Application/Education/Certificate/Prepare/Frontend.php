@@ -111,7 +111,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -3107,8 +3106,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     ) {
                         // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
                         foreach ($tblDivisionStudentAll as $tblPerson) {
-                            $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                             if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                                 if (($tblYear = $tblDivision->getServiceTblYear())
                                     && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson,
                                         $tblYear))
@@ -3152,7 +3151,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                                                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                                                        if ($tblPerson) {
+                                                        if ($tblPerson && isset($divisionPersonList[$tblPerson->getId()])) {
                                                             if ($Route == 'Diploma' && !$isTechnicalSchool) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
