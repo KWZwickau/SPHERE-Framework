@@ -151,7 +151,9 @@ class Person
     public function downloadInterestedPersonList()
     {
 
-        $PersonList = ReportingPerson::useService()->createInterestedPersonList();
+        $hasGuardian = false;
+        $hasAuthorizedPerson = false;
+        $PersonList = ReportingPerson::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson);
         if ($PersonList) {
             $firstName = array();
             foreach ($PersonList as $key => $row) {
@@ -162,7 +164,7 @@ class Person
 
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
             if ($tblPersonList) {
-                $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
+                $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList, $hasGuardian, $hasAuthorizedPerson);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Interessentenliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
