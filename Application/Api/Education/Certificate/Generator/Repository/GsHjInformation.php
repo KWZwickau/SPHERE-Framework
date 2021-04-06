@@ -27,6 +27,8 @@ class GsHjInformation extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $Header = $this->getHead($this->isSample());
+        // get Content while building certificate
+        $Data = $this->getCertificateData($tblPerson, $this->getTblPrepareCertificate());
 
         return (new Page())
             ->addSlice(
@@ -48,7 +50,7 @@ class GsHjInformation extends Certificate
             ->addSlice($this->getSubjectLanesSmall($personId)
                 ->styleHeight('126px'))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '200px', '5px'))
+            ->addSlice($this->getDescriptionContent($personId, '200px', '5px', false, false, $Data['Remark']))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
