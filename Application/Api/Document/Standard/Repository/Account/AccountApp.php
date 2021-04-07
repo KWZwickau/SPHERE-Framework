@@ -89,8 +89,8 @@ class AccountApp extends AccountDocument
                     ->styleMarginTop('15px')
                 )
                 ->addElement((new Element())
-                    ->setContent('Die App erzeugt einen 6 stelligen Pin (Einmalpasswort), welcher für eine Zeitbereich 
-                        von 30 Sekunden gültig ist. Geben Sie bitte den 6 stelligen Pin innerhalb des Zeitbereichs in 
+                    ->setContent('Die App erzeugt einen 6 stelligen Sicherheitscode (Einmalpasswort), welcher für eine Zeitbereich 
+                        von 30 Sekunden gültig ist. Geben Sie bitte den 6 stelligen Sicherheitscode innerhalb des Zeitbereichs in 
                         der Schulsoftware in das Feld: "Authenticator App" ein.')
                     ->styleMarginTop('15px')
                 )
