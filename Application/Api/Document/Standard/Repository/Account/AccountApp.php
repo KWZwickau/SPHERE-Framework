@@ -85,7 +85,7 @@ class AccountApp extends AccountDocument
                 )
                 ->addElement((new Element())
 //                    ->setContent(new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret, 180) . '">'))
-                    ->setContent(new Center($twoFactorApp->getBaconQrCode($secret, 180)))
+                    ->setContent(new Center($twoFactorApp->getBaconQrCode($this->tblAccount, $secret, 180)))
                     ->styleMarginTop('15px')
                 )
                 ->addElement((new Element())

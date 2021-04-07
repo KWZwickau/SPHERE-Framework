@@ -8,6 +8,7 @@ require_once( __DIR__.'/../../../../../Library/TwoFactorAuth/demo/loader.php' );
 use BaconQrCode\Renderer\Image\Png;
 use BaconQrCode\Writer;
 use RobThree\Auth\TwoFactorAuth;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 
 require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_function.php');
 require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_register.php');
@@ -27,7 +28,7 @@ class TwoFactorApp
      */
     public function __construct()
     {
-        $this->tfa = new TwoFactorAuth(self::LABEL, 6, 30, 'sha512');
+        $this->tfa = new TwoFactorAuth(self::LABEL, 6, 30);
     }
 
     /**
@@ -86,20 +87,23 @@ class TwoFactorApp
 //    }
 
     /**
-     * @param $secret
-     * @param int $size
+     * @param TblAccount $tblAccount
+     * @param string     $secret
+     * @param int        $size
      *
      * @return string
      */
-    public function getBaconQrCode($secret, $size = 200)
+    public function getBaconQrCode(TblAccount $tblAccount, $secret, $size = 200)
     {
+
+        $User = $tblAccount->getUsername();
         $renderer = new Png();
         $renderer->setHeight($size);
         $renderer->setWidth($size);
 
         $writer = new Writer($renderer);
 
-        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText(self::LABEL, $secret)));
+        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText($User, $secret)));
 
         return '<img src="data:image/png;base64, ' . $qr_image . '" />';
     }

@@ -524,7 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
 
             // Field Definition
-            $CredentialKeyField = (new PasswordField('CredentialKey', 'Pin', 'Authenticator App'))
+            $CredentialKeyField = (new PasswordField('CredentialKey', 'Sicherheitscode', 'Authenticator App'))
                 ->setRequired()->setAutoFocus();
 
             $FormError = new Container('');
