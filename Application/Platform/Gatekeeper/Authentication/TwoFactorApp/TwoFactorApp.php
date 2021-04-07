@@ -28,7 +28,7 @@ class TwoFactorApp
      */
     public function __construct()
     {
-        $this->tfa = new TwoFactorAuth(self::LABEL, 6, 30);
+        $this->tfa = new TwoFactorAuth(self::LABEL);
     }
 
     /**
@@ -103,7 +103,7 @@ class TwoFactorApp
 
         $writer = new Writer($renderer);
 
-        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText($User, $secret)));
+        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText('Schulsoftware:'.$User, $secret)));
 
         return '<img src="data:image/png;base64, ' . $qr_image . '" />';
     }
