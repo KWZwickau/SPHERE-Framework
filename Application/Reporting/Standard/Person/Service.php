@@ -13,9 +13,9 @@ use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
 use PHPExcel_Cell_DataType;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
@@ -118,10 +118,10 @@ class Service extends Extension
                         if ($tblPhone) {
                             if (isset($tblPhoneList[$key])) {
                                 $tblPhoneList[$key] = $tblPhoneList[$key] . ', '
-                                    . $tblPhone->getNumber() . ' ' . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                                    . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
                             } else {
                                 $tblPhoneList[$key] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' ('
-                                    . $tblPhone->getNumber() . ' ' . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                                    . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
                             }
                         }
                     }
@@ -240,10 +240,10 @@ class Service extends Extension
                                     if ($tblPhone) {
                                         if (!$FirstNumber) {
                                             $tblPhoneList[$key] .= ', '
-                                                . $tblPhone->getNumber() . ' ' . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                                                . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
                                         } else {
                                             $tblPhoneList[$key] .= ' ('. $tblPhone->getNumber() . ' '
-                                                . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                                                .Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
                                             $FirstNumber = false;
                                         }
                                     }
@@ -607,28 +607,28 @@ class Service extends Extension
             foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Privat'){
                     $privateList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
-                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                        Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
             }
             $companyList = array();
             foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Geschäftlich'){
                     $companyList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
-                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                        Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
             }
             $secureList = array();
             foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Notfall'){
                     $secureList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
-                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                        Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
             }
             $faxList = array();
             foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Fax'){
                     $faxList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
-                        $this->getShortTypeByTblToPersonPhone($tblToPerson);
+                        Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
             }
             $phoneList = array_merge($privateList, $companyList, $secureList, $faxList);
@@ -1596,52 +1596,34 @@ class Service extends Extension
     }
 
     /**
-     * @param TblToPersonPhone $tblToPerson
+     * @param boolean $hasGuardian
+     * @param boolean $hasAuthorizedPerson
      *
-     * @return string
-     */
-    public function getShortTypeByTblToPersonPhone(TblToPersonPhone $tblToPerson)
-    {
-
-        $result = '';
-        $tblType = $tblToPerson->getTblType();
-        if ($tblType) {
-            switch ($tblType->getName()) {
-                case 'Privat':
-                    $result = 'p';
-                    break;
-                case 'Geschäftlich':
-                    $result = 'g';
-                    break;
-                case 'Notfall':
-                    $result = 'n';
-                    break;
-                case 'Fax':
-                    $result = 'f';
-                    break;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * @return array
      */
-    public function createInterestedPersonList()
+    public function createInterestedPersonList(&$hasGuardian, &$hasAuthorizedPerson)
     {
 
         $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('PROSPECT'));
         $TableContent = array();
         if (!empty($tblPersonList)) {
             $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$hasGuardian, &$hasAuthorizedPerson) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
                 $Item['Phone'] = $Item['PhoneSimple'] = '';
+                $Item['PhoneFixedPrivate'] = '';
+                $Item['PhoneFixedWork'] = '';
+                $Item['PhoneFixedEmergency'] = '';
+                $Item['PhoneMobilePrivate'] = '';
+                $Item['PhoneMobileWork'] = '';
+                $Item['PhoneMobileEmergency'] = '';
+                $Item['Mail'] = '';
+                $Item['MailPrivate'] = '';
+                $Item['MailWork'] = '';
                 $Item['PhoneGuardian'] = $Item['PhoneGuardianSimple'] = '';
                 $Item['TypeOptionA'] = $Item['TypeOptionB'] = '';
                 $Item['DivisionLevel'] = '';
@@ -1651,8 +1633,26 @@ class Service extends Extension
                 $Item['SchoolYear'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
                 $Item['Siblings'] = array();
-                $Item['FatherSalutation'] = $Item['FatherTitle'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
-                $Item['MotherSalutation'] = $Item['MotherTitle'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
+                $Item['Custody1Salutation'] = $Item['Custody1Title'] = $Item['Custody1LastName'] = $Item['Custody1FirstName'] = $Item['Custody1'] = '';
+                $Item['Custody1PhoneFixedPrivate'] = $Item['Custody1PhoneFixedWork'] = $Item['Custody1PhoneFixedEmergency'] = '';
+                $Item['Custody1PhoneMobilePrivate'] = $Item['Custody1PhoneMobileWork'] = $Item['Custody1PhoneMobileEmergency'] = '';
+                $Item['Custody1MailPrivate'] = $Item['Custody1MailWork'] = '';
+                $Item['Custody2Salutation'] = $Item['Custody2Title'] = $Item['Custody2LastName'] = $Item['Custody2FirstName'] = $Item['Custody2'] = '';
+                $Item['Custody2PhoneFixedPrivate'] = $Item['Custody2PhoneFixedWork'] = $Item['Custody2PhoneFixedEmergency'] = '';
+                $Item['Custody2PhoneMobilePrivate'] = $Item['Custody2PhoneMobileWork'] = $Item['Custody2PhoneMobileEmergency'] = '';
+                $Item['Custody2MailPrivate'] = $Item['Custody2MailWork'] = '';
+                $Item['Custody3Salutation'] = $Item['Custody3Title'] = $Item['Custody3LastName'] = $Item['Custody3FirstName'] = $Item['Custody3'] = '';
+                $Item['Custody3PhoneFixedPrivate'] = $Item['Custody3PhoneFixedWork'] = $Item['Custody3PhoneFixedEmergency'] = '';
+                $Item['Custody3PhoneMobilePrivate'] = $Item['Custody3PhoneMobileWork'] = $Item['Custody3PhoneMobileEmergency'] = '';
+                $Item['Custody3MailPrivate'] = $Item['Custody3MailWork'] = '';
+                $Item['GuardianSalutation'] = $Item['GuardianTitle'] = $Item['GuardianLastName'] = $Item['GuardianFirstName'] = $Item['Guardian'] = '';
+                $Item['GuardianPhoneFixedPrivate'] = $Item['GuardianPhoneFixedWork'] = $Item['GuardianPhoneFixedEmergency'] = '';
+                $Item['GuardianPhoneMobilePrivate'] = $Item['GuardianPhoneMobileWork'] = $Item['GuardianPhoneMobileEmergency'] = '';
+                $Item['GuardianMailPrivate'] = $Item['GuardianMailWork'] = '';
+                $Item['AuthorizedPersonSalutation'] = $Item['AuthorizedPersonTitle'] = $Item['AuthorizedPersonLastName'] = $Item['AuthorizedPersonFirstName'] = $Item['AuthorizedPerson'] = '';
+                $Item['AuthorizedPersonPhoneFixedPrivate'] = $Item['AuthorizedPersonPhoneFixedWork'] = $Item['AuthorizedPersonPhoneFixedEmergency'] = '';
+                $Item['AuthorizedPersonPhoneMobilePrivate'] = $Item['AuthorizedPersonPhoneMobileWork'] = $Item['AuthorizedPersonPhoneMobileEmergency'] = '';
+                $Item['AuthorizedPersonMailPrivate'] = $Item['AuthorizedPersonMailWork'] = '';
                 $Item['Remark'] = $Item['RemarkExcel'] = '';
                 $Item['MailGuardian'] = $Item['ExcelMailGuardian'] = $Item['ExcelMailGuardianSimple'] = '';
 
@@ -1749,81 +1749,63 @@ class Service extends Extension
                         $Item['Phone'] .= ')';
                     }
                 }
+                // get Mail by Prospect
+                $tblToMailList = Mail::useService()->getMailAllByPerson($tblPerson);
+                if ($tblToMailList) {
+                    foreach ($tblToMailList as $tblToMail) {
+                        if (($tblMail = $tblToMail->getTblMail())) {
+                            if ($Item['Mail'] == '') {
+                                $Item['Mail'] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' (' . $tblMail->getAddress() . ' ' .
+                                    // modify TypeShort
+                                    str_replace('.', '', Mail::useService()->getMailTypeShort($tblToMail));
+                            } else {
+                                $Item['Mail'] .= ', ' . $tblMail->getAddress() . ' ' .
+                                    // modify TypeShort
+                                    str_replace('.', '', Mail::useService()->getMailTypeShort($tblToMail));
+                            }
+                        }
+                    }
+                    if ($Item['Mail'] != '') {
+                        $Item['Mail'] .= ')';
+                    }
+                }
 
                 if (!empty($PhoneListSimple)) {
                     $Item['PhoneSimple'] = implode('; ', $PhoneListSimple);
                 }
 
-                $father = null;
-                $mother = null;
+                $custody1 = null;
+                $custody2 = null;
+                $custody3 = null;
+                $guardian = null;
+                $authorizedPerson = null;
                 $PhoneGuardianListSimple = array();
                 $MailListSimple = array();
                 $tblMailList = array();
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
-                    foreach ($guardianList as $guardian) {
-                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
+                    foreach ($guardianList as $tblToPerson) {
+                        if (($tblPersonGuardian = $tblToPerson->getServiceTblPersonFrom())
+                            && ($tblType = $tblToPerson->getTblType())
+                            && ($tblType->getName() == 'Sorgeberechtigt' || $tblType->getName() == 'Vormund' || $tblType->getName() == 'Bevollmächtigt')
+                        ) {
                             // get PhoneNumber by Guardian
-                            $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
-                            if ($tblPersonGuardian) {
-                                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
-                                if ($tblToPhoneList) {
-                                    foreach ($tblToPhoneList as $tblToPhone) {
-                                        if (($tblPhone = $tblToPhone->getTblPhone())) {
-                                            $PhoneGuardianListSimple[$tblPhone->getId()] = $tblPhone->getNumber();
-                                            if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
-                                                    $tblPersonGuardian->getFirstName() . ' ' . $tblPersonGuardian->getLastName() .
-                                                    ' (' . $tblPhone->getNumber() . ' ' .
-                                                    // modify TypeShort
-                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
-                                            } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', ' . $tblPhone->getNumber() . ' ' .
-                                                    // modify TypeShort
-                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
-                                            }
-                                        }
-                                    }
-                                }
-                                if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
-                                }
-                            }
-
-                            if (($salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation())) {
-                                if ($salutation->getId() == 1) {
-                                    $father = $guardian->getServiceTblPersonFrom();
-                                } elseif ($salutation->getId() == 2) {
-                                    $mother = $guardian->getServiceTblPersonFrom();
-                                }
-                            } else {
-                                if ($father === null) {
-                                    $father = $guardian->getServiceTblPersonFrom();
-                                } else {
-                                    $mother = $guardian->getServiceTblPersonFrom();
-                                }
-                            }
-
+                            $this->setPhoneNumbers($tblPersonGuardian, $Item, $PhoneGuardianListSimple);
                             //Mail Guardian
-                            $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian);
-                            if ($tblToPersonMailList) {
-                                foreach ($tblToPersonMailList as $tblToPersonMail) {
-                                    $tblMail = $tblToPersonMail->getTblMail();
-                                    if ($tblMail) {
-                                        $MailListSimple[$tblMail->getId()] = $tblMail->getAddress();
-                                        if (isset($tblMailList[$tblPersonGuardian->getId()])) {
-                                            $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].', '
-                                                .$tblMail->getAddress();
-                                        } else {
-                                            $tblMailList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
-                                                $tblPersonGuardian->getLastName().' ('
-                                                .$tblMail->getAddress();
-                                        }
-                                    }
+                            $this->setMails($tblPersonGuardian, $tblMailList, $MailListSimple);
+
+                            if ($tblType->getName() == 'Sorgeberechtigt' && ($ranking = $tblToPerson->getRanking())) {
+                                switch ($ranking) {
+                                    case 1: $custody1 = $tblPersonGuardian; break;
+                                    case 2: $custody2 = $tblPersonGuardian; break;
+                                    case 3: $custody3 = $tblPersonGuardian; break;
                                 }
-                                if (isset($tblMailList[$tblPersonGuardian->getId()])) {
-                                    $tblMailList[$tblPersonGuardian->getId()] .= ')';
-                                }
+                            } elseif ($tblType->getName() == 'Vormund') {
+                                $hasGuardian = true;
+                                $guardian = $tblPersonGuardian;
+                            } elseif ($tblType->getName() == 'Bevollmächtigt') {
+                                $hasAuthorizedPerson = true;
+                                $authorizedPerson = $tblPersonGuardian;
                             }
                         }
                     }
@@ -1836,19 +1818,27 @@ class Service extends Extension
                     $Item['PhoneGuardianSimple'] = implode('; ', $PhoneGuardianListSimple);
                 }
 
-                if ($father !== null) {
-                    $Item['FatherSalutation'] = $father->getSalutation();
-                    $Item['FatherTitle'] = $father->getTitle();
-                    $Item['FatherLastName'] = $father->getLastName();
-                    $Item['FatherFirstName'] = $father->getFirstSecondName();
-                    $Item['Father'] = $father->getFullName();
+                $this->setPersonData('Custody1', $Item, $custody1);
+                $this->setPersonData('Custody2', $Item, $custody2);
+                $this->setPersonData('Custody3', $Item, $custody3);
+                $this->setPhoneNumbersExtended('', $Item, $tblPerson);
+                $this->setPhoneNumbersExtended('Custody1', $Item, $custody1);
+                $this->setPhoneNumbersExtended('Custody2', $Item, $custody2);
+                $this->setPhoneNumbersExtended('Custody3', $Item, $custody3);
+                $this->setMailsExtended('', $Item, $tblPerson);
+                $this->setMailsExtended('Custody1', $Item, $custody1);
+                $this->setMailsExtended('Custody2', $Item, $custody2);
+                $this->setMailsExtended('Custody3', $Item, $custody3);
+
+                if($guardian){
+                    $this->setPersonData('Guardian', $Item, $guardian);
+                    $this->setPhoneNumbersExtended('Guardian', $Item, $guardian);
+                    $this->setMailsExtended('Guardian', $Item, $guardian);
                 }
-                if ($mother !== null) {
-                    $Item['MotherSalutation'] = $mother->getSalutation();
-                    $Item['MotherTitle'] = $mother->getTitle();
-                    $Item['MotherLastName'] = $mother->getLastName();
-                    $Item['MotherFirstName'] = $mother->getFirstSecondName();
-                    $Item['Mother'] = $mother->getFullName();
+                if($authorizedPerson){
+                    $this->setPersonData('AuthorizedPerson', $Item, $authorizedPerson);
+                    $this->setPhoneNumbersExtended('AuthorizedPerson', $Item, $authorizedPerson);
+                    $this->setMailsExtended('AuthorizedPerson', $Item, $authorizedPerson);
                 }
 
                 // Insert MailList
@@ -1869,100 +1859,439 @@ class Service extends Extension
     }
 
     /**
+     * @param $Identifier
+     * @param $Item
+     * @param TblPerson|null $tblPerson
+     */
+    private function setPersonData($Identifier, &$Item, TblPerson $tblPerson = null)
+    {
+        if ($tblPerson !== null) {
+            $Item[$Identifier . 'Salutation'] = $tblPerson->getSalutation();
+            $Item[$Identifier . 'Title'] = $tblPerson->getTitle();
+            $Item[$Identifier . 'LastName'] = $tblPerson->getLastName();
+            $Item[$Identifier . 'FirstName'] = $tblPerson->getFirstSecondName();
+            $Item[$Identifier] = $tblPerson->getFullName();
+        }
+    }
+
+    /**
+     * @param $Identifier
+     * @param $Item
+     * @param TblPerson|null $tblPerson
+     */
+    private function setPhoneNumbersExtended($Identifier, &$Item, TblPerson $tblPerson = null)
+    {
+        if($tblPerson !== null){
+            $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+            if ($tblToPhoneList) {
+                foreach ($tblToPhoneList as $tblToPhone) {
+
+                    if(($tblPhoneType = $tblToPhone->getTblType())
+                        && ($PhoneDescription = $tblPhoneType->getDescription())
+                        && ($PhoneName = $tblPhoneType->getName())
+                        && ($tblPhone = $tblToPhone->getTblPhone())){
+                        if($PhoneDescription == 'Festnetz'){
+                            switch($PhoneName) {
+                                case 'Privat':
+                                    if($Item[$Identifier.'PhoneFixedPrivate']){
+                                        $Item[$Identifier.'PhoneFixedPrivate'] .= ', ';
+                                    }
+                                    $Item[$Identifier.'PhoneFixedPrivate'] = $tblPhone->getNumber();
+                                    break;
+                                case 'Geschäftlich':
+                                    if($Item[$Identifier.'PhoneFixedWork']){
+                                        $Item[$Identifier.'PhoneFixedWork'] .= ', ';
+                                    }
+                                    $Item[$Identifier.'PhoneFixedWork'] .= $tblPhone->getNumber();
+                                    break;
+                                case 'Notfall':
+                                    if($Item[$Identifier.'PhoneFixedEmergency']){
+                                        $Item[$Identifier.'PhoneFixedEmergency'] .= ', ';
+                                    }
+                                    $Item[$Identifier.'PhoneFixedEmergency'] .= $tblPhone->getNumber();
+                                    break;
+                            }
+                        } elseif($PhoneDescription == 'Mobil') {
+                            switch($PhoneName) {
+                                case 'Privat':
+                                    if($Item[$Identifier.'PhoneMobilePrivate']){
+                                        $Item[$Identifier.'PhoneMobilePrivate'] .= ', ';
+                                    }
+                                    $Item[$Identifier.'PhoneMobilePrivate'] .= $tblPhone->getNumber();
+                                    break;
+                                case 'Geschäftlich':
+                                    if($Item[$Identifier.'PhoneMobileWork']){
+                                        $Item[$Identifier.'PhoneMobileWork'] .= ', ';
+                                    }
+                                    $Item[$Identifier.'PhoneMobileWork'] .= $tblPhone->getNumber();
+                                    break;
+                                case 'Notfall':
+                                    if($Item[$Identifier.'PhoneMobileEmergency']){
+                                        $Item[$Identifier.'PhoneMobileEmergency'] = ', ';
+                                    }
+                                    $Item[$Identifier.'PhoneMobileEmergency'] .= $tblPhone->getNumber();
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPersonGuardian
+     * @param $Item
+     * @param $PhoneGuardianListSimple
+     */
+    private function setPhoneNumbers(TblPerson $tblPersonGuardian, &$Item, &$PhoneGuardianListSimple)
+    {
+        $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+        if ($tblToPhoneList) {
+            foreach ($tblToPhoneList as $tblToPhone) {
+                if (($tblPhone = $tblToPhone->getTblPhone())) {
+                    $PhoneGuardianListSimple[$tblPhone->getId()] = $tblPhone->getNumber();
+                    if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                        $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                            $tblPersonGuardian->getFirstName() . ' ' . $tblPersonGuardian->getLastName() .
+                            ' (' . $tblPhone->getNumber() . ' ' .
+                            // modify TypeShort
+                            str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                    } else {
+                        $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', ' . $tblPhone->getNumber() . ' ' .
+                            // modify TypeShort
+                            str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                    }
+                }
+            }
+        }
+        if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+        }
+    }
+
+    /**
+     * @param $Identifier
+     * @param $Item
+     * @param TblPerson|null $tblPerson
+     */
+    private function setMailsExtended($Identifier, &$Item, TblPerson $tblPerson = null)
+    {
+        if($tblPerson !== null){
+            if (($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+                foreach ($tblToPersonList as $tblToPerson) {
+                    $tblType = $tblToPerson->getTblType();
+                    $tblMail = $tblToPerson->getTblMail();
+                    if ($tblType->getName() == TblTypeMail::VALUE_PRIVATE) {
+                        if($Item[$Identifier.'MailPrivate']){
+                            $Item[$Identifier.'MailPrivate'] .= ', ';
+                        }
+                        $Item[$Identifier.'MailPrivate'] = $tblMail->getAddress();
+                    } elseif($tblType->getName() == TblTypeMail::VALUE_BUSINESS) {
+                        if($Item[$Identifier.'MailWork']){
+                            $Item[$Identifier.'MailWork'] .= ', ';
+                        }
+                        $Item[$Identifier.'MailWork'] = $tblMail->getAddress();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPersonGuardian
+     * @param $tblMailList
+     * @param $MailListSimple
+     */
+    private function setMails(TblPerson $tblPersonGuardian, &$tblMailList, &$MailListSimple)
+    {
+        $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian);
+        if ($tblToPersonMailList) {
+            foreach ($tblToPersonMailList as $tblToPersonMail) {
+                $tblMail = $tblToPersonMail->getTblMail();
+                if ($tblMail) {
+                    $MailListSimple[$tblMail->getId()] = $tblMail->getAddress();
+                    if (isset($tblMailList[$tblPersonGuardian->getId()])) {
+                        $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].', '
+                            .$tblMail->getAddress();
+                    } else {
+                        $tblMailList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
+                            $tblPersonGuardian->getLastName().' ('
+                            .$tblMail->getAddress();
+                    }
+                }
+            }
+            if (isset($tblMailList[$tblPersonGuardian->getId()])) {
+                $tblMailList[$tblPersonGuardian->getId()] .= ')';
+            }
+        }
+    }
+
+    /**
      * @param $PersonList
      * @param $tblPersonList
      *
+     * @param $hasGuardian
+     * @param $hasAuthorizedPerson
+     *
      * @return bool|FilePointer
-     * @throws TypeFileException
-     * @throws DocumentTypeException
      */
-    public function createInterestedPersonListExcel($PersonList, $tblPersonList)
+    public function createInterestedPersonListExcel($PersonList, $tblPersonList, &$hasGuardian, &$hasAuthorizedPerson)
     {
 
         if (!empty($PersonList)) {
-
+            $column = 0;
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell(0, 0), "Anmeldedatum");
-            $export->setValue($export->getCell(1, 0), "Aufnahmegespräch");
-            $export->setValue($export->getCell(2, 0), "Schnuppertag");
-            $export->setValue($export->getCell(3, 0), "Vorname");
-            $export->setValue($export->getCell(4, 0), "Name");
-            $export->setValue($export->getCell(5, 0), "Schuljahr");
-            $export->setValue($export->getCell(6, 0), "Klassenstufe");
-            $export->setValue($export->getCell(7, 0), "Schulart 1");
-            $export->setValue($export->getCell(8, 0), "Schulart 2");
-            $export->setValue($export->getCell(9, 0), "Straße");
-            $export->setValue($export->getCell(10, 0), "Hausnummer");
-            $export->setValue($export->getCell(11, 0), "PLZ");
-            $export->setValue($export->getCell(12, 0), "Ort");
-            $export->setValue($export->getCell(13, 0), "Ortsteil");
-            $export->setValue($export->getCell(14, 0), "Geburtsdatum");
-            $export->setValue($export->getCell(15, 0), "Geburtsort");
-            $export->setValue($export->getCell(16, 0), "Staatsangeh.");
-            $export->setValue($export->getCell(17, 0), "Bekenntnis");
-            $export->setValue($export->getCell(18, 0), "Geschwister");
-            $export->setValue($export->getCell(19, 0), "Anrede Sorgeberechtigter 1");
-            $export->setValue($export->getCell(20, 0), "Titel Sorgeberechtigter 1");
-            $export->setValue($export->getCell(21, 0), "Name Sorgeberechtigter 1");
-            $export->setValue($export->getCell(22, 0), "Vorname Sorgeberechtigter 1");
-            $export->setValue($export->getCell(23, 0), "Anrede Sorgeberechtigter 2");
-            $export->setValue($export->getCell(24, 0), "Titel Sorgeberechtigter 1");
-            $export->setValue($export->getCell(25, 0), "Name Sorgeberechtigter 2");
-            $export->setValue($export->getCell(26, 0), "Vorname Sorgeberechtigter 2");
-            $export->setValue($export->getCell(27, 0), "Telefon Interessent");
-            $export->setValue($export->getCell(28, 0), "Telefon Interessent Kurz");
-            $export->setValue($export->getCell(29, 0), "Telefon Sorgeberechtigte");
-            $export->setValue($export->getCell(30, 0), "Telefon Sorgeberechtigte Kurz");
-            $export->setValue($export->getCell(31, 0), "E-Mail Sorgeberechtigte");
-            $export->setValue($export->getCell(32, 0), "E-Mail Sorgeberechtigte Kurz");
-            $export->setValue($export->getCell(33, 0), "Bemerkung");
+            $export->setValue($export->getCell($column++, 0), "Anmeldedatum");
+            $export->setValue($export->getCell($column++, 0), "Aufnahmegespräch");
+            $export->setValue($export->getCell($column++, 0), "Schnuppertag");
+            $export->setValue($export->getCell($column++, 0), "Vorname");
+            $export->setValue($export->getCell($column++, 0), "Name");
+            $export->setValue($export->getCell($column++, 0), "Schuljahr");
+            $export->setValue($export->getCell($column++, 0), "Klassenstufe");
+            $export->setValue($export->getCell($column++, 0), "Schulart 1");
+            $export->setValue($export->getCell($column++, 0), "Schulart 2");
+            $export->setValue($export->getCell($column++, 0), "Straße");
+            $export->setValue($export->getCell($column++, 0), "Hausnummer");
+            $export->setValue($export->getCell($column++, 0), "PLZ");
+            $export->setValue($export->getCell($column++, 0), "Ort");
+            $export->setValue($export->getCell($column++, 0), "Ortsteil");
+            $export->setValue($export->getCell($column++, 0), "Geburtsdatum");
+            $export->setValue($export->getCell($column++, 0), "Geburtsort");
+            $export->setValue($export->getCell($column++, 0), "Staatsangeh.");
+            $export->setValue($export->getCell($column++, 0), "Bekenntnis");
+            $export->setValue($export->getCell($column++, 0), "Geschwister");
+            $export->setValue($export->getCell($column++, 0), "Anrede Sorgeberechtigter 1");
+            $export->setValue($export->getCell($column++, 0), "Titel Sorgeberechtigter 1");
+            $export->setValue($export->getCell($column++, 0), "Name Sorgeberechtigter 1");
+            $export->setValue($export->getCell($column++, 0), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell($column++, 0), "Anrede Sorgeberechtigter 2");
+            $export->setValue($export->getCell($column++, 0), "Titel Sorgeberechtigter 2");
+            $export->setValue($export->getCell($column++, 0), "Name Sorgeberechtigter 2");
+            $export->setValue($export->getCell($column++, 0), "Vorname Sorgeberechtigter 2");
+            $export->setValue($export->getCell($column++, 0), "Anrede Sorgeberechtigter 3");
+            $export->setValue($export->getCell($column++, 0), "Titel Sorgeberechtigter 3");
+            $export->setValue($export->getCell($column++, 0), "Name Sorgeberechtigter 3");
+            $export->setValue($export->getCell($column++, 0), "Vorname Sorgeberechtigter 3");
+
+            if ($hasGuardian) {
+                $export->setValue($export->getCell($column++, 0), "Anrede Vormund");
+                $export->setValue($export->getCell($column++, 0), "Titel Vormund");
+                $export->setValue($export->getCell($column++, 0), "Name Vormund");
+                $export->setValue($export->getCell($column++, 0), "Vorname Vormund");
+            }
+
+            if ($hasAuthorizedPerson) {
+                $export->setValue($export->getCell($column++, 0), "Anrede Bevollmächtigter");
+                $export->setValue($export->getCell($column++, 0), "Titel Bevollmächtigter");
+                $export->setValue($export->getCell($column++, 0), "Name Bevollmächtigter");
+                $export->setValue($export->getCell($column++, 0), "Vorname Bevollmächtigter");
+            }
+
+            $export->setValue($export->getCell($column++, 0), "Telefon Interessent");
+            $export->setValue($export->getCell($column++, 0), "Telefon Interessent Kurz");
+            $export->setValue($export->getCell($column++, 0), "E-Mail Interessent");
+            $export->setValue($export->getCell($column++, 0), "E-Mail Interessent Privat");
+            $export->setValue($export->getCell($column++, 0), "E-Mail Interessent Geschäftlich");
+
+            $export->setValue($export->getCell($column++, 0), "Telefon Privat Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon Privat Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon Geschäftlich Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon Geschäftlich Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon Notfall Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon Notfall Festnetz");
+
+            $export->setValue($export->getCell($column++, 0), "Telefon Sorgeberechtigte");
+            $export->setValue($export->getCell($column++, 0), "Telefon Sorgeberechtigte Kurz");
+
+            $export->setValue($export->getCell($column++, 0), "Telefon S1 Privat Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S1 Privat Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon S1 Geschäftlich Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S1 Geschäftlich Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon S1 Notfall Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S1 Notfall Festnetz");
+
+            $export->setValue($export->getCell($column++, 0), "Telefon S2 Privat Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S2 Privat Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon S2 Geschäftlich Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S2 Geschäftlich Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon S2 Notfall Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S2 Notfall Festnetz");
+
+            $export->setValue($export->getCell($column++, 0), "Telefon S3 Privat Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S3 Privat Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon S3 Geschäftlich Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S3 Geschäftlich Festnetz");
+            $export->setValue($export->getCell($column++, 0), "Telefon S3 Notfall Mobil");
+            $export->setValue($export->getCell($column++, 0), "Telefon S3 Notfall Festnetz");
+
+            if ($hasGuardian){
+                $export->setValue($export->getCell($column++, 0), "Telefon Vormund Privat Mobil");
+                $export->setValue($export->getCell($column++, 0), "Telefon Vormund Privat Festnetz");
+                $export->setValue($export->getCell($column++, 0), "Telefon Vormund Geschäftlich Mobil");
+                $export->setValue($export->getCell($column++, 0), "Telefon Vormund Geschäftlich Festnetz");
+                $export->setValue($export->getCell($column++, 0), "Telefon Vormund Notfall Mobil");
+                $export->setValue($export->getCell($column++, 0), "Telefon Vormund Notfall Festnetz");
+            }
+
+            if ($hasAuthorizedPerson){
+                $export->setValue($export->getCell($column++, 0), "Telefon Bevollmächtigt Privat Mobil");
+                $export->setValue($export->getCell($column++, 0), "Telefon Bevollmächtigt Privat Festnetz");
+                $export->setValue($export->getCell($column++, 0), "Telefon Bevollmächtigt Geschäftlich Mobil");
+                $export->setValue($export->getCell($column++, 0), "Telefon Bevollmächtigt Geschäftlich Festnetz");
+                $export->setValue($export->getCell($column++, 0), "Telefon Bevollmächtigt Notfall Mobil");
+                $export->setValue($export->getCell($column++, 0), "Telefon Bevollmächtigt Notfall Festnetz");
+            }
+
+            $export->setValue($export->getCell($column++, 0), "E-Mail Sorgeberechtigte");
+            $export->setValue($export->getCell($column++, 0), "E-Mail Sorgeberechtigte Kurz");
+            $export->setValue($export->getCell($column++, 0), "E-Mail S1 Privat");
+            $export->setValue($export->getCell($column++, 0), "E-Mail S1 Geschäftlich");
+            $export->setValue($export->getCell($column++, 0), "E-Mail S2 Privat");
+            $export->setValue($export->getCell($column++, 0), "E-Mail S2 Geschäftlich");
+            $export->setValue($export->getCell($column++, 0), "E-Mail S3 Privat");
+            $export->setValue($export->getCell($column++, 0), "E-Mail S3 Geschäftlich");
+            if ($hasGuardian){
+                $export->setValue($export->getCell($column++, 0), "E-Mail Vormund Privat");
+                $export->setValue($export->getCell($column++, 0), "E-Mail Vormund Geschäftlich");
+            }
+            if ($hasAuthorizedPerson){
+                $export->setValue($export->getCell($column++, 0), "E-Mail Bevollmächtigter Privat");
+                $export->setValue($export->getCell($column++, 0), "E-Mail Bevollmächtigter Geschäftlich");
+            }
+            $export->setValue($export->getCell($column, 0), "Bemerkung");
 
             $Row = 1;
             foreach ($PersonList as $PersonData) {
+                $column = 0;
+                $export->setValue($export->getCell($column++, $Row), $PersonData['RegistrationDate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['InterviewDate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TrialDate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['SchoolYear']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['DivisionLevel']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TypeOptionA']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TypeOptionB']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Code']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['City']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['District']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Nationality']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Denomination']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Siblings']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1Salutation']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1Title']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1LastName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1FirstName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2Salutation']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2Title']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2LastName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2FirstName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3Salutation']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3Title']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3LastName']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3FirstName']);
 
-                $export->setValue($export->getCell(0, $Row), $PersonData['RegistrationDate']);
-                $export->setValue($export->getCell(1, $Row), $PersonData['InterviewDate']);
-                $export->setValue($export->getCell(2, $Row), $PersonData['TrialDate']);
-                $export->setValue($export->getCell(3, $Row), $PersonData['FirstName']);
-                $export->setValue($export->getCell(4, $Row), $PersonData['LastName']);
-                $export->setValue($export->getCell(5, $Row), $PersonData['SchoolYear']);
-                $export->setValue($export->getCell(6, $Row), $PersonData['DivisionLevel']);
-                $export->setValue($export->getCell(7, $Row), $PersonData['TypeOptionA']);
-                $export->setValue($export->getCell(8, $Row), $PersonData['TypeOptionB']);
-                $export->setValue($export->getCell(9, $Row), $PersonData['StreetName']);
-                $export->setValue($export->getCell(10, $Row), $PersonData['StreetNumber']);
-                $export->setValue($export->getCell(11, $Row), $PersonData['Code']);
-                $export->setValue($export->getCell(12, $Row), $PersonData['City']);
-                $export->setValue($export->getCell(13, $Row), $PersonData['District']);
-                $export->setValue($export->getCell(14, $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell(15, $Row), $PersonData['Birthplace']);
-                $export->setValue($export->getCell(16, $Row), $PersonData['Nationality']);
-                $export->setValue($export->getCell(17, $Row), $PersonData['Denomination']);
-                $export->setValue($export->getCell(18, $Row), $PersonData['Siblings']);
-                $export->setValue($export->getCell(19, $Row), $PersonData['FatherSalutation']);
-                $export->setValue($export->getCell(20, $Row), $PersonData['FatherTitle']);
-                $export->setValue($export->getCell(21, $Row), $PersonData['FatherLastName']);
-                $export->setValue($export->getCell(22, $Row), $PersonData['FatherFirstName']);
-                $export->setValue($export->getCell(23, $Row), $PersonData['MotherSalutation']);
-                $export->setValue($export->getCell(24, $Row), $PersonData['MotherTitle']);
-                $export->setValue($export->getCell(25, $Row), $PersonData['MotherLastName']);
-                $export->setValue($export->getCell(26, $Row), $PersonData['MotherFirstName']);
-                $export->setValue($export->getCell(27, $Row), $PersonData['Phone']);
-                $export->setValue($export->getCell(28, $Row), $PersonData['PhoneSimple']);
-                $export->setValue($export->getCell(29, $Row), $PersonData['PhoneGuardian']);
-                $export->setValue($export->getCell(30, $Row), $PersonData['PhoneGuardianSimple']);
-                $export->setValue($export->getCell(31, $Row), $PersonData['ExcelMailGuardian']);
-                $export->setValue($export->getCell(32, $Row), $PersonData['ExcelMailGuardianSimple']);
-                $export->setValue($export->getCell(33, $Row), $PersonData['RemarkExcel']);
+                if ($hasGuardian) {
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianSalutation']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianTitle']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianLastName']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianFirstName']);
+                }
+
+                if ($hasAuthorizedPerson) {
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonSalutation']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonTitle']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonLastName']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonFirstName']);
+                }
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Phone']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneSimple']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Mail']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['MailPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['MailWork']);
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneMobilePrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneFixedPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneMobileWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneFixedWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneMobileEmergency']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneFixedEmergency']);
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneGuardian']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['PhoneGuardianSimple']);
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1PhoneMobilePrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1PhoneFixedPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1PhoneMobileWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1PhoneFixedWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1PhoneMobileEmergency']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1PhoneFixedEmergency']);
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2PhoneMobilePrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2PhoneFixedPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2PhoneMobileWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2PhoneFixedWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2PhoneMobileEmergency']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2PhoneFixedEmergency']);
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3PhoneMobilePrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3PhoneFixedPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3PhoneMobileWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3PhoneFixedWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3PhoneMobileEmergency']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3PhoneFixedEmergency']);
+
+                if ($hasGuardian){
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianPhoneMobilePrivate']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianPhoneFixedPrivate']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianPhoneMobileWork']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianPhoneFixedWork']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianPhoneMobileEmergency']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianPhoneFixedEmergency']);
+                }
+                if ($hasAuthorizedPerson){
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonPhoneMobilePrivate']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonPhoneFixedPrivate']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonPhoneMobileWork']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonPhoneFixedWork']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonPhoneMobileEmergency']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonPhoneFixedEmergency']);
+                }
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['ExcelMailGuardian']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['ExcelMailGuardianSimple']);
+
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1MailPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody1MailWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2MailPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody2MailWork']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3MailPrivate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['Custody3MailWork']);
+                if ($hasGuardian){
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianMailPrivate']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['GuardianMailWork']);
+                }
+                if ($hasAuthorizedPerson){
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonMailPrivate']);
+                    $export->setValue($export->getCell($column++, $Row), $PersonData['AuthorizedPersonMailWork']);
+                }
+
+                $export->setValue($export->getCell($column, $Row), $PersonData['RemarkExcel']);
 
                 // WrapText
-                $export->setStyle($export->getCell(33, $Row))->setWrapText();
+                $export->setStyle($export->getCell($column, $Row))->setWrapText();
                 $Row++;
             }
 
-            $export->setStyle($export->getCell(33, 0))->setColumnWidth(50);
+            $export->setStyle($export->getCell($column, 0))->setColumnWidth(50);
 
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Weiblich:');
