@@ -56,7 +56,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
-            if (preg_match('!^[a-z0-9öäüß]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
+            if (preg_match('!^[a-z0-9]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
                 $Username = $tblConsumer->getAcronym().'-'.$Username;
                 if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
                     $Form->setSuccess('Account[Name]', '');

@@ -963,6 +963,8 @@ class Service extends AbstractService
         // cut string with UTF8 encoding
 
         $UserName = $tblConsumer->getAcronym().'-'.$FirstName.$LastName;
+        // replace Specialchar to normal Char like Ä -> A
+        $UserName = $this->convertLetterToCorrectASCII($UserName);
 
         // Rand 1 - 99 with leading 0 if number < 10
         if($AccountType == 'C'){
@@ -1004,6 +1006,7 @@ class Service extends AbstractService
                 $FirstName2 = mb_substr($tblPerson->getFirstName(), 0, 3);
                 $LastName2 = mb_substr($tblPerson->getLastName(), 0, 3);
                 $UserName = $tblConsumer->getAcronym().'-'.$FirstName2.$LastName2;
+                $UserName = $this->convertLetterToCorrectASCII($UserName);
                 $UserNameMod = $UserName.$randNumber;
                 $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                 if (!$tblAccount) {
@@ -1018,6 +1021,84 @@ class Service extends AbstractService
 
 
         return $UserName;
+    }
+
+    /**
+     * @param $String
+     *
+     * @return string
+     */
+    public function convertLetterToCorrectASCII($String)
+    {
+
+        $UpdateArray[] = array('A' => 'Á');
+        $UpdateArray[] = array('A' => 'Â');
+        $UpdateArray[] = array('A' => 'Ã');
+        $UpdateArray[] = array('A' => 'Ä');
+        $UpdateArray[] = array('A' => 'Å');
+        $UpdateArray[] = array('Ae' => 'Æ');
+        $UpdateArray[] = array('C' => 'Ç');
+        $UpdateArray[] = array('D' => 'Ð');
+        $UpdateArray[] = array('E' => 'È');
+        $UpdateArray[] = array('E' => 'É');
+        $UpdateArray[] = array('E' => 'Ê');
+        $UpdateArray[] = array('E' => 'Ë');
+        $UpdateArray[] = array('I' => 'Ì');
+        $UpdateArray[] = array('I' => 'Í');
+        $UpdateArray[] = array('I' => 'Î');
+        $UpdateArray[] = array('I' => 'Ï');
+        $UpdateArray[] = array('N' => 'Ñ');
+        $UpdateArray[] = array('O' => 'Ò');
+        $UpdateArray[] = array('O' => 'Ó');
+        $UpdateArray[] = array('O' => 'Ô');
+        $UpdateArray[] = array('O' => 'Õ');
+        $UpdateArray[] = array('O' => 'Ö');
+        $UpdateArray[] = array('U' => 'Ù');
+        $UpdateArray[] = array('U' => 'Ú');
+        $UpdateArray[] = array('U' => 'Û');
+        $UpdateArray[] = array('U' => 'Ü');
+        $UpdateArray[] = array('Y' => 'Ý');
+        $UpdateArray[] = array('a' => 'à');
+        $UpdateArray[] = array('a' => 'á');
+        $UpdateArray[] = array('a' => 'â');
+        $UpdateArray[] = array('a' => 'ã');
+        $UpdateArray[] = array('a' => 'ä');
+        $UpdateArray[] = array('a' => 'å');
+        $UpdateArray[] = array('ae' => 'æ');
+        $UpdateArray[] = array('c' => 'ç');
+        $UpdateArray[] = array('e' => 'è');
+        $UpdateArray[] = array('e' => 'é');
+        $UpdateArray[] = array('e' => 'ê');
+        $UpdateArray[] = array('e' => 'ë');
+        $UpdateArray[] = array('i' => 'ì');
+        $UpdateArray[] = array('i' => 'í');
+        $UpdateArray[] = array('i' => 'î');
+        $UpdateArray[] = array('i' => 'ï');
+        $UpdateArray[] = array('n' => 'ñ');
+        $UpdateArray[] = array('o' => 'ð');
+        $UpdateArray[] = array('o' => 'ò');
+        $UpdateArray[] = array('o' => 'ó');
+        $UpdateArray[] = array('o' => 'ô');
+        $UpdateArray[] = array('o' => 'õ');
+        $UpdateArray[] = array('o' => 'ö');
+        $UpdateArray[] = array('p' => 'Þ');
+        $UpdateArray[] = array('p' => 'þ');
+        $UpdateArray[] = array('s' => 'ß');
+        $UpdateArray[] = array('u' => 'ù');
+        $UpdateArray[] = array('u' => 'ú');
+        $UpdateArray[] = array('u' => 'û');
+        $UpdateArray[] = array('u' => 'ü');
+        $UpdateArray[] = array('x' => '×');
+        $UpdateArray[] = array('y' => 'ý');
+        $UpdateArray[] = array('y' => 'ÿ');
+
+        foreach($UpdateArray as $LetterCompare) {
+            foreach($LetterCompare as $replace => $search) {
+                $String = str_replace($search, $replace, $String);
+            }
+        }
+
+        return $String;
     }
 
     /**
