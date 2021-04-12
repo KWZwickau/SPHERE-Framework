@@ -110,13 +110,12 @@ class BalanceDownload implements IModuleInterface
                             $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
                             $BasketTypeId = $tblBasketType->getId();
                         }
-                        // Rechnungen zusammengefasst (je Beitragsart)
-                        $PriceList = Balance::useService()->getPriceListByItemAndPerson($tblItem, $Year,
-                            $From, $To, $tblPerson, $BasketTypeId, $PriceList);
-
                         if('-1' == $BasketTypeId){
                             $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
                         }
+                        // Rechnungen zusammengefasst (je Beitragsart)
+                        $PriceList = Balance::useService()->getPriceListByItemAndPerson($tblItem, $Year,
+                            $From, $To, $tblPerson, $BasketTypeId, $PriceList);
                         if(!isset($tblBasketType)){
                             $tblBasketType = Basket::useService()->getBasketTypeById($BasketTypeId);
                         }
