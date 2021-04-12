@@ -265,6 +265,15 @@ class Frontend extends Extension implements IFrontendInterface
             ),
             'Kamenz-Statistik Teil II herunterladen'
         ));
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik Teil III',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Berufsfachschule',
+                'Part' => '3'
+            ),
+            'Kamenz-Statistik Teil III herunterladen'
+        ));
 
         $summary = array();
 
