@@ -36,7 +36,7 @@ class Data extends AbstractData
         $this->createType('Abendgymnasium', '', $tblCategorySecondCourse, true);
         $this->createType('Kolleg', '', $tblCategorySecondCourse, true);
 
-//        $this->createType('Hotelmanagementschule', 'HOFA', $tblCategoryTechnical, true);
+        $this->createType('Hotelmanagementschule', 'HOFA', $tblCategoryTechnical, true);
 
         /**
          * Kamenz BFS, FS
