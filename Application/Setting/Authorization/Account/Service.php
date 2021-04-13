@@ -66,7 +66,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 }
             } else {
                 $Form->setError('Account[Name]',
-                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein');
+                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens
+                    '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
                 $Error = true;
             }
         }
