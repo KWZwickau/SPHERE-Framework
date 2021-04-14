@@ -604,28 +604,22 @@ class Service extends Extension
 
         if ($tblToPersonList) {
             $privateList = array();
+            $companyList = array();
+            $secureList = array();
+            $faxList = array();
             foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Privat'){
                     $privateList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
-            }
-            $companyList = array();
-            foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Geschäftlich'){
                     $companyList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
-            }
-            $secureList = array();
-            foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Notfall'){
                     $secureList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
-            }
-            $faxList = array();
-            foreach ($tblToPersonList as $tblToPerson) {
                 if($tblToPerson->getTblType()->getName() == 'Fax'){
                     $faxList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
