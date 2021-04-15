@@ -69,10 +69,11 @@ class FrontendStudentGeneral extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentGeneralContent($PersonId = null)
+    public static function getStudentGeneralContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -250,8 +251,11 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 )),
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentGeneralContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentGeneralContent($PersonId));
+            }
 
             return TemplateReadOnly::getContent(
                 self::TITLE,

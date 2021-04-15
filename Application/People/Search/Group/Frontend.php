@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -68,8 +69,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
                 // relationship array group by FromPerson
                 $tblRelationshipList = Relationship::useService()->getPersonRelationshipArrayByType($tblRelationshipType);
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
 
-                array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $Acronym, $tblRelationshipList){
+                array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $Acronym, $tblRelationshipList, $tblStudentTransferType){
 
 //                    // Custody
                     $childrenList = array();
@@ -124,6 +126,17 @@ class Frontend extends Extension implements IFrontendInterface
                             $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                         }
                     }
+                    $LeaveDate = '';
+                    if ($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE) {
+                        if(($tblPerson = Person::useService()->getPersonById($contentRow['TblPerson_Id']))){
+                            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                                if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                                    $LeaveDate = $tblStudentTransfer->getTransferDate();
+                                }
+                            }
+                            $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                        }
+                    }
 
                     $item['FullName'] = $contentRow['TblPerson_LastFirstName'];
                     $item['Remark'] = $contentRow['TblCommon_Remark'];
@@ -132,6 +145,8 @@ class Frontend extends Extension implements IFrontendInterface
                         ? $contentRow['Address']
                         : new Warning('Keine Adresse hinterlegt')
                     );
+                    // Archive
+                    $item['LeaveDate'] = $LeaveDate;
                     // Student
                     $item['Division'] = $displayDivisionList;
                     $item['Identifier'] = trim($contentRow['Identifier']);
@@ -174,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
                  $YearNow = current($YearList)->getYear();
             }
 
-            if($tblGroup->getMetaTable() == 'CUSTODY'){
+            if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
                 if($Acronym == 'ESZC'){
                     $ColumnArray = array(
                         'FullName' => 'Name',
@@ -192,7 +207,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
 
-            } elseif ($tblGroup->getMetaTable() == 'STUDENT') {
+            } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT) {
                 $ColumnArray = array(
                     'FullName'   => 'Name',
                     'Address'    => 'Adresse',
@@ -200,7 +215,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Identifier' => 'Schülernummer',
                     'Option'     => '',
                 );
-            } elseif ($tblGroup->getMetaTable() == 'PROSPECT') {
+            } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT) {
                 $ColumnArray = array(
                     'FullName'     => 'Name',
                     'Address'      => 'Adresse',
@@ -210,11 +225,49 @@ class Frontend extends Extension implements IFrontendInterface
                     'School'       => 'Schule',
                     'Option'       => '',
                 );
+            } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE) {
+                $ColumnArray = array(
+                    'FullName'     => 'Name',
+                    'Address'      => 'Adresse',
+                    'LeaveDate'    => 'Abgang',
+                    'Option'       => '',
+                );
             } else {
                 $ColumnArray = array(
                     'FullName' => 'Name',
                     'Address'  => 'Adresse',
                     'Option' => '',
+                );
+            }
+            //Standard order & column definition
+            $orderByColumn = array(0, 'asc');
+            $columnDefs = array(
+                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                array('orderable' => false, 'width' => '60px', 'targets' => -1),
+            );
+            // Student column definition
+            if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
+                $columnDefs = array(
+                    array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                    array('orderable' => false, 'targets' => -2),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                );
+            }
+            // Student column definition
+            if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+                $columnDefs = array(
+                    array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                    array('type' => 'natural', 'targets' => array(2,3)),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                );
+            }
+            // Archive order & column definition
+            if($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE){
+                $orderByColumn = array(2, 'desc');
+                $columnDefs = array(
+                    array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                    array('type' => 'de_date', 'targets' => 2),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
 
@@ -234,13 +287,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(new LayoutColumn(array(
                         new Headline('Verfügbare Personen', 'in dieser Gruppe'),
                         new TableData($tableContent, null, $ColumnArray, array(
-                            'order' => array(
-                                array(0, 'asc')
-                            ),
-                            'columnDefs' => array(
-                                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                array('orderable' => false, 'targets' => -1),
-                            )
+                            'order' => $orderByColumn,
+                            'columnDefs' => $columnDefs
                         ))
                     )))
                 )))

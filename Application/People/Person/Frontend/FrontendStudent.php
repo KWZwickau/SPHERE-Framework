@@ -19,6 +19,7 @@ use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -76,11 +77,29 @@ class FrontendStudent extends FrontendReadOnly
     public static function getStudentTitle($PersonId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
             && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
         ) {
+            $AllowEdit = 1;
             $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId));
+                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
+
+            return TemplateReadOnly::getContent(
+                self::TITLE,
+                new Info('Die Schülerakte ist ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
+                array($showLink),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                new Tag(),
+                true
+            );
+        } // ReadOnly Archive
+         elseif (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_ARCHIVE))
+            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+        ) {
+            $AllowEdit = 0;
+            $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
@@ -97,10 +116,11 @@ class FrontendStudent extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentContent($PersonId = null)
+    public static function getStudentContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -120,42 +140,42 @@ class FrontendStudent extends FrontendReadOnly
             }
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                 self::getStudentBasicContent($PersonId), 'StudentBasicContent'
+                 self::getStudentBasicContent($PersonId, $AllowEdit), 'StudentBasicContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentTransfer::getStudentTransferContent($PersonId), 'StudentTransferContent'
+                FrontendStudentTransfer::getStudentTransferContent($PersonId, $AllowEdit), 'StudentTransferContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentProcess::getStudentProcessContent($PersonId), 'StudentProcessContent'
+                FrontendStudentProcess::getStudentProcessContent($PersonId, $AllowEdit), 'StudentProcessContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId), 'StudentMedicalRecordContent'
+                FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId, $AllowEdit), 'StudentMedicalRecordContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentGeneral::getStudentGeneralContent($PersonId), 'StudentGeneralContent'
+                FrontendStudentGeneral::getStudentGeneralContent($PersonId, $AllowEdit), 'StudentGeneralContent'
             );
 
             if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'WVSZ'
             ) {
                 $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                    FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId), 'StudentSpecialNeedsContent'
+                    FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId, $AllowEdit), 'StudentSpecialNeedsContent'
                 );
             }
 
             if (School::useService()->hasConsumerTechnicalSchool()) {
                 $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                    FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId),
+                    FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId, $AllowEdit),
                     'StudentTechnicalSchoolContent'
                 );
             }
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentSubject::getStudentSubjectContent($PersonId), 'StudentSubjectContent'
+                FrontendStudentSubject::getStudentSubjectContent($PersonId, $AllowEdit), 'StudentSubjectContent'
             );
 
             $content = new Listing($listingContent);
@@ -178,10 +198,11 @@ class FrontendStudent extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentBasicContent($PersonId = null)
+    public static function getStudentBasicContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -228,8 +249,11 @@ class FrontendStudent extends FrontendReadOnly
                 )),
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentBasicContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentBasicContent($PersonId));
+            }
 
             return TemplateReadOnly::getContent(
                 self::TITLE . ' - Grunddaten',

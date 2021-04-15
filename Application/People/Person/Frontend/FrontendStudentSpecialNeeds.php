@@ -37,10 +37,11 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentSpecialNeedsContent($PersonId = null)
+    public static function getStudentSpecialNeedsContent($PersonId = null, $AllowEdit = 1)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
@@ -146,9 +147,12 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                     ), 3),
                 )),
             )));
-            
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentSpecialNeedsContent($PersonId));
+
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentSpecialNeedsContent($PersonId));
+            }
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
