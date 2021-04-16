@@ -126,6 +126,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return string
+     */
+    public function getMailTypeShort(TblToPerson $tblToPerson)
+    {
+
+        $tblType = $tblToPerson->getTblType();
+        if ($tblType) {
+            if ($tblType->getName() == 'Privat') {
+                return 'p.';
+            } elseif ($tblType->getName() == 'Geschäftlich') {
+                return 'g.';
+            }
+        }
+        return '';
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param $Address
      * @param $Type
