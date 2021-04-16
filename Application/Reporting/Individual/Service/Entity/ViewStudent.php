@@ -41,6 +41,7 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_BAPTISM_LOCATION = 'TblStudentBaptism_Location';
     const TBL_STUDENT_BAPTISM_DATE = 'TblStudentBaptism_BaptismDate';
     // Schulbeförderung
+    const TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT = 'TblStudentTransport_IsDriverStudent';
     const TBL_STUDENT_TRANSPORT_ROUTE = 'TblStudentTransport_Route';
     const TBL_STUDENT_TRANSPORT_STATION_ENTRANCE = 'TblStudentTransport_StationEntrance';
     const TBL_STUDENT_TRANSPORT_STATION_EXIT = 'TblStudentTransport_StationExit';
@@ -55,6 +56,7 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
+    const TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER = 'TblStudentLocker_CombinationLockNumber';
     // Einverständnis
     const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
     const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
@@ -103,6 +105,10 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblStudentLocker_CombinationLockNumber;
+    /**
+     * @Column(type="string")
+     */
     protected $TblStudentMedicalRecord_AttendingDoctor;
     /**
      * @Column(type="string")
@@ -132,6 +138,10 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentMedicalRecord_MasernCreatorType;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTransport_IsDriverStudent;
     /**
      * @Column(type="string")
      */
@@ -176,6 +186,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Allgemeines: Schließfachnummer');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_LOCATION, 'Allgemeines: Schließfach Standort');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Allgemeines: Schließfach Schlüssel Nummer');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER, 'Allgemeines: Zahlenschloss Nummer');
 
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR, 'Allgemeines: Behandelnder Arzt');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Allgemeines: Krankheiten / Allergien');
@@ -186,6 +197,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE, 'Masern: Art der Bescheinigung');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE, 'Masern: Bescheinigung durch');
 
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT, 'Allgemeines: Fahrschüler');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_ROUTE, 'Allgemeines: Buslinie');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE, 'Allgemeines: Einstiegshaltestelle');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_EXIT, 'Allgemeines: Ausstiegshaltestelle');
@@ -204,6 +216,7 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
             self::TBL_STUDENT_LOCKER_LOCKER_LOCATION,
             self::TBL_STUDENT_LOCKER_KEY_NUMBER,
+            self::TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER,
             self::TBL_STUDENT_BAPTISM_LOCATION,
             self::TBL_STUDENT_BAPTISM_DATE,
             self::TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR,
@@ -214,6 +227,7 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE,
             self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE,
             self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE,
+            self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT,
             self::TBL_STUDENT_TRANSPORT_ROUTE,
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
@@ -256,6 +270,10 @@ class ViewStudent extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT:
+                $Data = array( 0 => 'Nein', 1 => 'Ja' );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, true );
+                break;
             case self::SIBLINGS_COUNT:
                 $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
                 $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',

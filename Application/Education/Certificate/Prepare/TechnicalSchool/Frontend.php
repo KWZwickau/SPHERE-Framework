@@ -115,6 +115,7 @@ class Frontend extends Extension
             $tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse();
         } else {
             $tblTechnicalCourse = false;
+            $tblStudentTechnicalSchool = false;
         }
 
         // Grades
@@ -159,6 +160,8 @@ class Frontend extends Extension
                         }
                     }
                 }
+
+                $isSetSubjectArea = false;
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
                         $field = $tblLeaveInformation->getField();
@@ -171,9 +174,21 @@ class Frontend extends Extension
                             $value = $tblGradeText->getId();
                         }
 
+                        if ($field == 'SubjectArea') {
+                            $isSetSubjectArea = true;
+                        }
+
                         $Global->POST['Data']['InformationList'][$field] = $value;
                     }
                 }
+
+                if (!$isBfs && !$isSetSubjectArea
+                    && $tblStudentTechnicalSchool
+                    && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+                ) {
+                    $Global->POST['Data']['InformationList']['SubjectArea'] = $tblTechnicalSubjectArea->getName();
+                }
+
                 if (($tblLeaveComplexExamList = Prepare::useService()->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveComplexExamList as $tblLeaveComplexExam) {
                         $identifier = $tblLeaveComplexExam->getIdentifier();
@@ -196,6 +211,17 @@ class Frontend extends Extension
                 }
 
                 $Global->savePost();
+            } else {
+                if (!$isBfs
+                    && $tblStudentTechnicalSchool
+                    && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+                ) {
+                    $Global = $this->getGlobal();
+
+                    $Global->POST['Data']['InformationList']['SubjectArea'] = $tblTechnicalSubjectArea->getName();
+
+                    $Global->savePost();
+                }
             }
 
             if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))

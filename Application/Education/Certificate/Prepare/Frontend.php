@@ -1872,6 +1872,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         $hasTransfer = false;
                         $isTeamSet = false;
                         $hasRemarkText = false;
+                        $isSubjectAreaSet = false;
+                        $tblStudent = $tblPerson->getStudent();
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
                                 if ($tblPrepareInformation->getField() == 'Team' || $tblPrepareInformation->getField() == 'TeamExtra') {
@@ -1880,6 +1882,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                                 if ($tblPrepareInformation->getField() == 'Remark' || $tblPrepareInformation->getField() == 'RemarkWithoutTeam') {
                                     $hasRemarkText = true;
+                                }
+
+                                if ($tblPrepareInformation->getField() == 'SubjectArea') {
+                                    $isSubjectAreaSet = true;
                                 }
 
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
@@ -1935,7 +1941,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                         // Arbeitsgemeinschaften aus der Schülerakte laden
                         if (!$isTeamSet) {
-                            if (($tblStudent = $tblPerson->getStudent())
+                            if ($tblStudent
                                 && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
                                 && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                                     $tblStudent, $tblSubjectType
@@ -2090,6 +2096,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
                                 . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                        }
+                        // Vorsetzen der Fachrichtung bei Fachschulen
+                        if (!$isSubjectAreaSet
+                            && $tblStudent
+                            && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                            && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['SubjectArea'] = $tblTechnicalSubjectArea->getName();
                         }
 
                         // Berufsfachschule

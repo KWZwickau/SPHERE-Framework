@@ -10,6 +10,7 @@ SELECT
 	tSL.LockerNumber AS TblStudentLocker_LockerNumber,
 	tSL.LockerLocation AS TblStudentLocker_LockerLocation,
 	tSL.KeyNumber AS TblStudentLocker_KeyNumber,
+	tSL.CombinationLockNumber AS TblStudentLocker_CombinationLockNumber,
 -- tblStudentMedicalRecord
     tSMR.AttendingDoctor AS TblStudentMedicalRecord_AttendingDoctor,
 	tSMR.Disease AS TblStudentMedicalRecord_Disease,
@@ -20,6 +21,7 @@ SELECT
 	tSMI.TextShort AS TblStudentMedicalRecord_MasernDocumentType,
 	tSMI2.TextShort AS TblStudentMedicalRecord_MasernCreatorType,
 -- tblStudentTransport
+	IF (tST.IsDriverStudent, 'Ja', 'Nein') AS TblStudentTransport_IsDriverStudent,
 	tST.Route AS TblStudentTransport_Route,
 	tST.StationEntrance AS TblStudentTransport_StationEntrance,
 	tST.StationExit AS TblStudentTransport_StationExit,

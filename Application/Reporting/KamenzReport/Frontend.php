@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Reporting\KamenzReport;
 
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\System\Extension\Extension;
@@ -41,25 +42,37 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Kamenz-Statistik', 'Auswählen');
 
-        $Stage->addButton(new Standard(
-            'Grundschule', __NAMESPACE__ . '/Validate/PrimarySchool'
-        ));
+        $typeList = School::useService()->getConsumerSchoolTypeAll();
 
-        $Stage->addButton(new Standard(
-            'Oberschule / Mittelschule',  __NAMESPACE__ . '/Validate/SecondarySchool'
-        ));
+        if (!$typeList || isset($typeList['GS'])) {
+            $Stage->addButton(new Standard(
+                'Grundschule', __NAMESPACE__ . '/Validate/PrimarySchool'
+            ));
+        }
 
-        $Stage->addButton(new Standard(
-            'Gymnasium',  __NAMESPACE__ . '/Validate/GrammarSchool'
-        ));
+        if (!$typeList || isset($typeList['OS'])) {
+            $Stage->addButton(new Standard(
+                'Oberschule / Mittelschule', __NAMESPACE__ . '/Validate/SecondarySchool'
+            ));
+        }
 
-        $Stage->addButton(new Standard(
-            'Berufsfachschule',  __NAMESPACE__ . '/Validate/TechnicalSchool'
-        ));
+        if (!$typeList || isset($typeList['Gy'])) {
+            $Stage->addButton(new Standard(
+                'Gymnasium', __NAMESPACE__ . '/Validate/GrammarSchool'
+            ));
+        }
 
-        $Stage->addButton(new Standard(
-            'Fachschule',  __NAMESPACE__ . '/Validate/AdvancedTechnicalSchool'
-        ));
+        if (!$typeList || isset($typeList['BFS'])) {
+            $Stage->addButton(new Standard(
+                'Berufsfachschule', __NAMESPACE__ . '/Validate/TechnicalSchool'
+            ));
+        }
+
+        if (!$typeList || isset($typeList['FS'])) {
+            $Stage->addButton(new Standard(
+                'Fachschule', __NAMESPACE__ . '/Validate/AdvancedTechnicalSchool'
+            ));
+        }
 
         $Stage->setContent(
             new Layout(
@@ -264,6 +277,15 @@ class Frontend extends Extension implements IFrontendInterface
                 'Part' => '2'
             ),
             'Kamenz-Statistik Teil II herunterladen'
+        ));
+        $Stage->addbutton(new External('Herunterladen: Berufsfachschulstatistik Teil III',
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Berufsfachschule',
+                'Part' => '3'
+            ),
+            'Kamenz-Statistik Teil III herunterladen'
         ));
 
         $summary = array();

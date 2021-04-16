@@ -963,12 +963,15 @@ class Service extends AbstractService
         // cut string with UTF8 encoding
 
         $UserName = $tblConsumer->getAcronym().'-'.$FirstName.$LastName;
+        // replace Specialchar to normal Char like Ä -> A
+        $UserName = $this->convertLetterToCorrectASCII($UserName);
 
-        // Rand 1 - 99 with leading 0 if number < 10
+        // Rand 32 - 99
         if($AccountType == 'C'){
             $randNumber = rand(32, 99);
         }
 
+        // with leading 0 if number < 10
         $randNumber = str_pad($randNumber, 2, '0', STR_PAD_LEFT);
 
         $UserNamePrepare = $UserName.$randNumber;
@@ -979,12 +982,12 @@ class Service extends AbstractService
             if (!$tblAccount) {
                 return $UserNamePrepare;
             } else {
-                $i = 0;
-                while ($tblAccount && $i <= 100) {
-                    $i++;
-                    $randNumber = rand(32, 99);
-                    $randNumber = str_pad($randNumber, 2, '0', STR_PAD_LEFT);
-                    $UserNameMod = $UserName.$randNumber;
+
+                $NumberRange = range(32, 99);
+                shuffle($NumberRange);
+                foreach($NumberRange as $Rng){
+//                    $Rng = str_pad($Rng, 2, '0', STR_PAD_LEFT);
+                    $UserNameMod = $UserName.$Rng;
                     $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                     if (!$tblAccount) {
                         return  $UserNameMod;
@@ -998,26 +1001,117 @@ class Service extends AbstractService
         } elseif($AccountType == 'S'){
             $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
             if (!$tblAccount) {
-                $UserName = $UserNamePrepare;
+                return $UserNamePrepare;
             } else {
                 // second try
+                $NumberRange = range(1, 9);
+                shuffle($NumberRange);
                 $FirstName2 = mb_substr($tblPerson->getFirstName(), 0, 3);
                 $LastName2 = mb_substr($tblPerson->getLastName(), 0, 3);
                 $UserName = $tblConsumer->getAcronym().'-'.$FirstName2.$LastName2;
+                $UserName = $this->convertLetterToCorrectASCII($UserName);
                 $UserNameMod = $UserName.$randNumber;
+                // second try (without shuffleNumber)
                 $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                 if (!$tblAccount) {
                     return $UserNameMod;
-                } else {
-                    $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
-                        ': Benutzeraccount '.$UserName.$randNumber.' existiert bereits';
-                    return false;
                 }
+
+                // Last try add rng Number
+                foreach($NumberRange as $Rng){
+                    $UserNameMod = $UserName.$randNumber.$Rng;
+                    $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
+                    if (!$tblAccount) {
+                        return $UserNameMod;
+                    }
+                }
+                // return ist nicht erfolgt -> keine Freie Nutzernamen.
+                $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                    ': Benutzeraccount '.$UserName.end($NumberRange).' existiert bereits';
+                return false;
             }
         }
 
 
         return $UserName;
+    }
+
+    /**
+     * @param $String
+     *
+     * @return string
+     */
+    public function convertLetterToCorrectASCII($String)
+    {
+
+        $UpdateArray[] = array('A' => 'Á');
+        $UpdateArray[] = array('A' => 'Â');
+        $UpdateArray[] = array('A' => 'Ã');
+        $UpdateArray[] = array('A' => 'Ä');
+        $UpdateArray[] = array('A' => 'Å');
+        $UpdateArray[] = array('Ae' => 'Æ');
+        $UpdateArray[] = array('C' => 'Ç');
+        $UpdateArray[] = array('D' => 'Ð');
+        $UpdateArray[] = array('E' => 'È');
+        $UpdateArray[] = array('E' => 'É');
+        $UpdateArray[] = array('E' => 'Ê');
+        $UpdateArray[] = array('E' => 'Ë');
+        $UpdateArray[] = array('I' => 'Ì');
+        $UpdateArray[] = array('I' => 'Í');
+        $UpdateArray[] = array('I' => 'Î');
+        $UpdateArray[] = array('I' => 'Ï');
+        $UpdateArray[] = array('N' => 'Ñ');
+        $UpdateArray[] = array('O' => 'Ò');
+        $UpdateArray[] = array('O' => 'Ó');
+        $UpdateArray[] = array('O' => 'Ô');
+        $UpdateArray[] = array('O' => 'Õ');
+        $UpdateArray[] = array('O' => 'Ö');
+        $UpdateArray[] = array('U' => 'Ù');
+        $UpdateArray[] = array('U' => 'Ú');
+        $UpdateArray[] = array('U' => 'Û');
+        $UpdateArray[] = array('U' => 'Ü');
+        $UpdateArray[] = array('Y' => 'Ý');
+        $UpdateArray[] = array('a' => 'à');
+        $UpdateArray[] = array('a' => 'á');
+        $UpdateArray[] = array('a' => 'â');
+        $UpdateArray[] = array('a' => 'ã');
+        $UpdateArray[] = array('a' => 'ä');
+        $UpdateArray[] = array('a' => 'å');
+        $UpdateArray[] = array('ae' => 'æ');
+        $UpdateArray[] = array('c' => 'ç');
+        $UpdateArray[] = array('e' => 'è');
+        $UpdateArray[] = array('e' => 'é');
+        $UpdateArray[] = array('e' => 'ê');
+        $UpdateArray[] = array('e' => 'ë');
+        $UpdateArray[] = array('i' => 'ì');
+        $UpdateArray[] = array('i' => 'í');
+        $UpdateArray[] = array('i' => 'î');
+        $UpdateArray[] = array('i' => 'ï');
+        $UpdateArray[] = array('n' => 'ñ');
+        $UpdateArray[] = array('o' => 'ð');
+        $UpdateArray[] = array('o' => 'ò');
+        $UpdateArray[] = array('o' => 'ó');
+        $UpdateArray[] = array('o' => 'ô');
+        $UpdateArray[] = array('o' => 'õ');
+        $UpdateArray[] = array('o' => 'ö');
+        $UpdateArray[] = array('p' => 'Þ');
+        $UpdateArray[] = array('p' => 'þ');
+        $UpdateArray[] = array('s' => 'ß');
+        $UpdateArray[] = array('u' => 'ù');
+        $UpdateArray[] = array('u' => 'ú');
+        $UpdateArray[] = array('u' => 'û');
+        $UpdateArray[] = array('u' => 'ü');
+        $UpdateArray[] = array('x' => '×');
+        $UpdateArray[] = array('y' => 'ý');
+        $UpdateArray[] = array('y' => 'ÿ');
+
+        foreach($UpdateArray as $LetterCompare) {
+            foreach($LetterCompare as $replace => $search) {
+                $String = str_replace($search, $replace, $String);
+            }
+        }
+
+        return $String;
     }
 
     /**

@@ -985,7 +985,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Birthplace'   => 'Geburtsort',
                                 'Address'      => 'Adresse',
                                 'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; V=Vormund'),
+                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund'),
                                 'Mail'         => 'E-Mail',
 
                             ),
@@ -1105,12 +1105,11 @@ class Frontend extends Extension implements IFrontendInterface
             $columns['AuthorizedPerson'] = 'Bevollmächtigter';
         }
 
-        $columns = array_merge($columns, array(
-            'Phone'            => 'Telefon Interessent',
-            'PhoneGuardian'    => 'Telefon Sorgeberechtigte',
-            'MailGuardian'     => 'E-Mail Sorgeberechtigte',
-            'Remark'           => 'Bemerkung',
-        ));
+        $columns['Phone'] = 'Telefon Interessent';
+        $columns['Mail'] = 'E-Mail Interessent';
+        $columns['PhoneGuardian'] = 'Telefon Sorgeberechtigte';
+        $columns['MailGuardian'] = 'E-Mail Sorgeberechtigte';
+        $columns['Remark'] = 'Bemerkung';
 
         $Stage->setContent(
             new Layout(array(
