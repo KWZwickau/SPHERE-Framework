@@ -56,7 +56,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
-            if (preg_match('!^[a-z0-9öäüß]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
+            if (preg_match('!^[a-z0-9]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
                 $Username = $tblConsumer->getAcronym().'-'.$Username;
                 if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
                     $Form->setSuccess('Account[Name]', '');
@@ -66,7 +66,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 }
             } else {
                 $Form->setError('Account[Name]',
-                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein');
+                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens
+                    '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
                 $Error = true;
             }
         }
