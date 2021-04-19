@@ -23,6 +23,15 @@ tTT.Id as TblTechnicalType_Id,
 tSTS.PraxisLessons as TblStudentTechnicalSchool_PraxisLessons,
 tSTS.DurationOfTraining as TblStudentTechnicalSchool_DurationOfTraining,
 tSTS.Remark as TblStudentTechnicalSchool_Remark,
+
+tSTS.YearOfSchoolDiploma as TblStudentTechnicalSchool_YearOfSchoolDiploma,
+tSTS.YearOfTechnicalDiploma as TblStudentTechnicalSchool_YearOfTechnicalDiploma,
+IF (tSTS.HasFinancialAid, 'Ja', 'Nein') as TblStudentTechnicalSchool_HasFinancialAid,
+tSTS.FinancialAidApplicationYear as TblStudentTechnicalSchool_FinancialAidApplicationYear,
+tSTS.FinancialAidBureau as TblStudentTechnicalSchool_FinancialAidBureau,
+-- tblTechnicalSubjectArea
+tTSA.Name as TblTechnicalSubjectArea_Name,
+tTSA.Acronym as TblTechnicalSubjectArea_Acronym,
 -- TblStudentTensOfLesson
 tSTOL.Name as TblStudentTensOfLesson_Name,
 -- TblStudentTrainingStatus
@@ -39,5 +48,6 @@ left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblSchoolDiploma tSD on tS
 left join EducationSchoolType_{{ ConsumerAcronym }}.tblType tT on tT.Id = tSTS.serviceTblSchoolType
 left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalDiploma tTD on tTD.Id = tSTS.serviceTblTechnicalDiploma
 left join EducationSchoolType_{{ ConsumerAcronym }}.tblType tTT on tTT.Id = tSTS.serviceTblTechnicalType
+left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalSubjectArea tTSA on tTSA.Id = tSTS.serviceTblTechnicalSubjectArea
 
 WHERE tS.EntityRemove is Null

@@ -174,6 +174,7 @@ class Service
             'S1_Arbeitsstelle'         => null,
             'S1_Bemerkungen'           => null,
             // account
+            'S1_Debitorennummer'       => null,
             'S1_IBAN'                  => null,
             'S1_BIC'                   => null,
             'S1_Bankname'              => null,
@@ -209,6 +210,7 @@ class Service
             'S2_Arbeitsstelle'         => null,
             'S2_Bemerkungen'           => null,
             // account
+            'S2_Debitorennummer'       => null,
             'S2_IBAN'                  => null,
             'S2_BIC'                   => null,
             'S2_Bankname'              => null,
@@ -271,6 +273,9 @@ class Service
         $countS1Exists = 0;
         $countS2Exists = 0;
 
+        // Definition Bezahlergruppe
+        $tblGroupPayment = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
+
         $error = array();
         $info = array();
         for ($this->RunY = 2; $this->RunY < $Y; $this->RunY++) {
@@ -316,6 +321,7 @@ class Service
             $Identification = $this->getValue('Schüler_Nr');
             $schoolAttendanceStartDate = $this->getValue('Schulpflichtbeginn');
             $enrollmentDate = $this->getValue('Ersteinschulung_Datum');
+            $school = $this->getValue('Schule');
             // medicine
             $tblStudentMedicalRecord = null;
             $disease = $this->getValue('Allergien');
@@ -324,7 +330,7 @@ class Service
             $religion = $this->getValue('Fach_Religion');
             $course = $this->getValue('Bildungsgang');
             $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $disease, $medication,
-                $insurance, $religion, $course, $enrollmentDate, $this->RunY, $Nr, $error);
+                $insurance, $religion, $course, $enrollmentDate, $school, $this->RunY, $Nr, $error);
 
             // division
             $divisionString = $this->getValue('Klasse/Kurs');
@@ -401,13 +407,19 @@ class Service
                     $this->setPersonContact($tblPerson_S1, $emergencyPhone_S1, $emergencyMobile_S1, $privatePhone_S1,
                         $privateMobile_S1, $businessPhone_S1, $businessMobile_S1, $privateMail_S1, $businessMail_S1);
 
+                    // Debtor Number
+                    $debtorNumber_S1 = $this->getValue('S1_Debitorennummer');
+                    if($debtorNumber_S1 != ''){
+                        $this->setPersonDebtorNumber($tblPerson_S1, $debtorNumber_S1);
+                    }
+
                     // Billing
                     $bankName_S1 = $this->getValue('S1_Bankname');
                     $IBAN_S1 = $this->getValue('S1_IBAN');
                     $BIC_S1 = $this->getValue('S1_BIC');
                     // nur vollständige Daten importieren
                     if($bankName_S1 != '' && $IBAN_S1 != '' && $BIC_S1 != ''){
-                        $this->setPersonBankAccount($tblPerson_S1, $bankName_S1, $IBAN_S1, $BIC_S1);
+                        $this->setPersonBankAccount($tblPerson_S1, $bankName_S1, $IBAN_S1, $BIC_S1, $tblGroupPayment);
                     }
                 }
 
@@ -472,13 +484,19 @@ class Service
                     $this->setPersonContact($tblPerson_S2, $emergencyPhone_S2, $emergencyMobile_S2, $privatePhone_S2,
                         $privateMobile_S2, $businessPhone_S2, $businessMobile_S2, $privateMail_S2, $businessMail_S2);
 
+                    // Debtor Number
+                    $debtorNumber_S2 = $this->getValue('S2_Debitorennummer');
+                    if($debtorNumber_S2 != ''){
+                        $this->setPersonDebtorNumber($tblPerson_S2, $debtorNumber_S2);
+                    }
+
                     // Billing
                     $bankName_S2 = $this->getValue('S2_Bankname');
                     $IBAN_S2 = $this->getValue('S2_IBAN');
                     $BIC_S2 = $this->getValue('S2_BIC');
                     // nur vollständige Daten importieren
                     if($bankName_S2 != '' && $IBAN_S2 != '' && $BIC_S2 != ''){
-                        $this->setPersonBankAccount($tblPerson_S2, $bankName_S2, $IBAN_S2, $BIC_S2);
+                        $this->setPersonBankAccount($tblPerson_S2, $bankName_S2, $IBAN_S2, $BIC_S2, $tblGroupPayment);
                     }
                 }
 
@@ -1453,6 +1471,10 @@ class Service
                     case 'berufsfachschule':
                     $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_FACH_SCHULE);
                     break;
+                    case 'bgy':
+                    case 'berufliches gymnasium':
+                    $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_BERUFLICHES_GYMNASIUM);
+                    break;
                     default:
                         $tblSchoolType = false;
                 }
@@ -1484,7 +1506,6 @@ class Service
                     $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Die Schulart ist nicht verwendbar. Schüler keiner
                     Klasse zugeordnet.';
                 }
-
             }
         }
     }
@@ -1588,17 +1609,27 @@ class Service
     }
 
     /**
+     * @param TblPerson     $tblPerson
+     * @param               $debtorNumber
+     */
+    private function setPersonDebtorNumber(TblPerson $tblPerson, $debtorNumber)
+    {
+
+        Debtor::useService()->createDebtorNumber($tblPerson, $debtorNumber);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param string    $bankName
      * @param string    $IBAN
      * @param string    $BIC
+     * @param TblGroup  $tblGroup
      */
-    private function setPersonBankAccount(TblPerson $tblPerson, $bankName, $IBAN, $BIC)
+    private function setPersonBankAccount(TblPerson $tblPerson, $bankName, $IBAN, $BIC, TblGroup $tblGroup)
     {
 
         $Owner = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
         Debtor::useService()->createBankAccount($tblPerson, $Owner, $bankName, $IBAN, $BIC);
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
         Group::useService()->addGroupPerson($tblGroup, $tblPerson);
     }
 
@@ -1612,12 +1643,13 @@ class Service
      * @param string $religion
      * @param string $course
      * @param string $enrollmentDate
+     * @param string $school
      * @param int $RunY
      * @param string $Nr
      * @param array $error
      */
     private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $disease,
-        $medication, $insurance, $religion, $course, $enrollmentDate, $RunY, $Nr, &$error)
+        $medication, $insurance, $religion, $course, $enrollmentDate, $school, $RunY, $Nr, &$error)
     {
         // controll conform DateTime string
         $schoolAttendanceStartDate = $this->checkDate($schoolAttendanceStartDate, 'Ungültiges Schulpflichtbeginn-Datum:', $RunY, $Nr, $error);
@@ -1642,12 +1674,16 @@ class Service
             }
         }
 
-        if($course){
-            $tblCourseType = Course::useService()->getCourseByName($course);
-            if($tblCourseType){
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-                Student::useService()->insertStudentTransfer($tblStudent, $tblStudentTransferType, null, null, $tblCourseType);
-            }
+        if(!($tblCompany = Company::useService()->getCompanyByName($school, ''))){
+            $tblCompany = null;
+        }
+        if(!($tblCourseType = Course::useService()->getCourseByName($course))){
+            $tblCourseType = null;
+        }
+        if($tblCourseType || $tblCompany){
+            $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+            Student::useService()->insertStudentTransfer($tblStudent, $tblStudentTransferType, $tblCompany, null,
+                $tblCourseType);
         }
 
         if ($enrollmentDate) {

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
+use DateTime;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Data;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -498,16 +499,16 @@ class Service extends AbstractService
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         } else {
-            $nowDate = (new \DateTime('now'))->format("Y-m-d");
-            $toDate = new \DateTime($Task['ToDate']);
-            $toDate = $toDate->format('Y-m-d');
-            if ($nowDate && $toDate) {
-                if ($nowDate < $toDate) {
+            $nowDate = new DateTime('now');
+            $toDate = new DateTime($Task['ToDate']);
+            $fromDate = new DateTime($Task['FromDate']);
 
-                } else {
-                    $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
-                    $Error = true;
-                }
+            if ($nowDate > $toDate) {
+                $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
+                $Error = true;
+            } elseif ($fromDate > $toDate) {
+                $Stage->setError('Task[ToDate]', 'Der "Bearbeitungszeitraum bis" darf nicht kleiner sein, als der "Bearbeitungszeitraum von".');
+                $Error = true;
             }
         }
 
@@ -574,16 +575,16 @@ class Service extends AbstractService
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         } else {
-            $nowDate = (new \DateTime('now'))->format("Y-m-d");
-            $toDate = new \DateTime($Task['ToDate']);
-            $toDate = $toDate->format('Y-m-d');
-            if ($nowDate && $toDate) {
-                if ($nowDate < $toDate) {
+            $nowDate = new DateTime('now');
+            $toDate = new DateTime($Task['ToDate']);
+            $fromDate = new DateTime($Task['FromDate']);
 
-                } else {
-                    $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
-                    $Error = true;
-                }
+            if ($nowDate > $toDate) {
+                $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
+                $Error = true;
+            } elseif ($fromDate > $toDate) {
+                $Stage->setError('Task[ToDate]', 'Der "Bearbeitungszeitraum bis" darf nicht kleiner sein, als der "Bearbeitungszeitraum von".');
+                $Error = true;
             }
         }
 
@@ -1162,7 +1163,7 @@ class Service extends AbstractService
             && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
             && ($tblYearList = Term::useService()->getYearByNow())
         ) {
-            $now = new \DateTime('now');
+            $now = new DateTime('now');
             $tblCurrentYear = reset($tblYearList);
             if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
                 foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
@@ -1172,8 +1173,8 @@ class Service extends AbstractService
                     ) {
                         if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivisionItem, $tblTestType))) {
                             foreach ($tblTaskList as $tblTask) {
-                                $taskFromDate = new \DateTime($tblTask->getFromDate());
-                                $taskToDate = new \DateTime($tblTask->getToDate());
+                                $taskFromDate = new DateTime($tblTask->getFromDate());
+                                $taskToDate = new DateTime($tblTask->getToDate());
 
                                 // current Task
                                 if ($now > $taskFromDate
@@ -1275,7 +1276,7 @@ class Service extends AbstractService
         );
 
         $resultList = $taskList;
-        $now = new \DateTime('now');
+        $now = new DateTime('now');
         if ($tblTestList) {
             /** @var TblTest $tblTest */
             foreach ($tblTestList as $tblTest) {
@@ -1283,8 +1284,8 @@ class Service extends AbstractService
                 if (($tblTask = $tblTest->getTblTask())
                     && $tblTask->getFromDate()
                     && $tblTask->getToDate()
-                    && ($fromDate = new \DateTime($tblTask->getFromDate()))
-                    && ($toDate = new \DateTime($tblTask->getToDate()))
+                    && ($fromDate = new DateTime($tblTask->getFromDate()))
+                    && ($toDate = new DateTime($tblTask->getToDate()))
                     && $now > $fromDate
                     && $now < ($toDate->add(new \DateInterval('P1D')))
                 ) {
@@ -1507,14 +1508,14 @@ class Service extends AbstractService
             $tblSubjectGroup
         );
 
-        $now = new \DateTime('now');
+        $now = new DateTime('now');
         if ($tblTestList) {
             /** @var TblTest $tblTest */
             foreach ($tblTestList as $tblTest) {
                 if (($tblTask = $tblTest->getTblTask())
                     && $tblTask->getFromDate()
                     && $tblTask->getToDate()
-                    && ($fromDate = new \DateTime($tblTask->getFromDate()))
+                    && ($fromDate = new DateTime($tblTask->getFromDate()))
                     && $now < $fromDate
                     && $now > ($fromDate->sub(new \DateInterval('P7D')))
                 ) {
@@ -1638,7 +1639,7 @@ class Service extends AbstractService
             $row = array();
             foreach ($testArray as $calendarWeek => $testList) {
                 $panelData = array();
-                $date = new \DateTime();
+                $date = new DateTime();
                 if (!empty($testList)) {
                     /** @var TblTest $tblTest */
                     foreach ($testList as $tblTest) {
@@ -1712,7 +1713,7 @@ class Service extends AbstractService
                             $panelData[] = new ToolTip($tblGradeType->isHighlighted()
                                 ? new Bold($content) : $content, 'Erstellt am: ' . $tblTest->getEntityCreate()->format('d.m.Y H:i'));
 
-                            $date = new \DateTime($tblTest->getDate());
+                            $date = new DateTime($tblTest->getDate());
                         }
                     }
                 }

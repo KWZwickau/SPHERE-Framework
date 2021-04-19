@@ -37,6 +37,7 @@ class Setup extends AbstractSetup
         $tblDivisionSubject = $this->setTableDivisionSubject($Schema, $tblDivision);
         $this->setTableDivisionStudent($Schema, $tblDivision);
         $this->setTableDivisionTeacher($Schema, $tblDivision);
+        $this->setTableDivisionRepresentative($Schema, $tblDivision);
         $this->setTableDivisionCustody($Schema, $tblDivision);
         $tblSubjectGroup = $this->setTableSubjectGroup($Schema);
         $this->setTableSubjectStudent($Schema, $tblDivisionSubject);
@@ -197,6 +198,22 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDivisionTeacher', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        $this->getConnection()->addForeignKey($Table, $tblDivision);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivision
+     *
+     * @return Table
+     */
+    private function setTableDivisionRepresentative(Schema &$Schema, Table $tblDivision)
+    {
+
+        $Table = $this->createTable($Schema, 'tblDivisionRepresentative');
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
         $this->getConnection()->addForeignKey($Table, $tblDivision);
         return $Table;
     }

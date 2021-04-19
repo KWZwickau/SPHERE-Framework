@@ -3,7 +3,6 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
-use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -46,6 +45,8 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -247,6 +248,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                 }
 
+                $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
 
                 $Stage->setContent(
                     new Layout(array(
@@ -258,7 +260,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             Panel::PANEL_TYPE_SUCCESS), 4
                                     ) : ''),
                                 new LayoutColumn(
-                                    new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    new Panel('Klasse', $DivisionPanelContent,
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ),
                                 ($tblDivision->getTypeName() ?
@@ -946,6 +948,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             }
 
+            $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -956,7 +960,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
                             new LayoutColumn(
-                                new Panel('Klasse', (new ClassRegister)->getDivisionString($tblDivision),
+                                new Panel('Klasse', $DivisionPanelContent,
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
                             ($tblDivision->getTypeName() ?
@@ -981,7 +985,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Birthplace'   => 'Geburtsort',
                                 'Address'      => 'Adresse',
                                 'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; V=Vormund'),
+                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund'),
                                 'Mail'         => 'E-Mail',
 
                             ),
@@ -1061,7 +1065,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'Neuanmeldungen/Interessenten');
         $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('PROSPECT'));
-        $PersonList = Person::useService()->createInterestedPersonList();
+        $hasGuardian = false;
+        $hasAuthorizedPerson = false;
+        $PersonList = Person::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson);
         if ($PersonList) {
             $Stage->addButton(
                 new Primary('Herunterladen',
@@ -1071,35 +1077,47 @@ class Frontend extends Extension implements IFrontendInterface
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
+        $columns = array(
+            'RegistrationDate' => 'Anmeldedatum',
+            'InterviewDate'    => 'Aufnahmegespräch ',
+            'TrialDate'        => 'Schnuppertag ',
+            'FirstName'        => 'Vorname',
+            'LastName'         => 'Name',
+            'SchoolYear'       => 'Schuljahr',
+            'DivisionLevel'    => 'Klassenstufe',
+            'TypeOptionA'      => 'Schulart 1',
+            'TypeOptionB'      => 'Schulart 2',
+            'Address'          => 'Adresse',
+            'Birthday'         => 'Geburtsdatum',
+            'Birthplace'       => 'Geburtsort',
+            'Nationality'      => 'Staatsangeh.',
+            'Denomination'     => 'Bekenntnis',
+            'Siblings'         => 'Geschwister',
+            'Custody1'         => 'Sorgeberechtigter 1',
+            'Custody2'         => 'Sorgeberechtigter 2',
+            'Custody3'         => 'Sorgeberechtigter 3'
+        );
+
+        if ($hasGuardian) {
+            $columns['Guardian'] = 'Vormund';
+        }
+        if ($hasAuthorizedPerson) {
+            $columns['AuthorizedPerson'] = 'Bevollmächtigter';
+        }
+
+        $columns['Phone'] = 'Telefon Interessent';
+        $columns['Mail'] = 'E-Mail Interessent';
+        $columns['PhoneGuardian'] = 'Telefon Sorgeberechtigte';
+        $columns['MailGuardian'] = 'E-Mail Sorgeberechtigte';
+        $columns['Remark'] = 'Bemerkung';
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($PersonList, null,
-                                array(
-                                    'RegistrationDate' => 'Anmeldedatum',
-                                    'InterviewDate'    => 'Aufnahmegespräch ',
-                                    'TrialDate'        => 'Schnuppertag ',
-                                    'FirstName'        => 'Vorname',
-                                    'LastName'         => 'Name',
-                                    'SchoolYear'       => 'Schuljahr',
-                                    'DivisionLevel'    => 'Klassenstufe',
-                                    'TypeOptionA'      => 'Schulart 1',
-                                    'TypeOptionB'      => 'Schulart 2',
-                                    'Address'          => 'Adresse',
-                                    'Birthday'         => 'Geburtsdatum',
-                                    'Birthplace'       => 'Geburtsort',
-                                    'Nationality'      => 'Staatsangeh.',
-                                    'Denomination'     => 'Bekenntnis',
-                                    'Siblings'         => 'Geschwister',
-                                    'Father'           => 'Sorgeberechtigter 1',
-                                    'Mother'           => 'Sorgeberechtigter 2',
-                                    'Phone'            => 'Telefon Interessent',
-                                    'PhoneGuardian'    => 'Telefon Sorgeberechtigte',
-                                    'MailGuardian'     => 'E-Mail Sorgeberechtigte',
-                                    'Remark'           => 'Bemerkung',
-                                ),
+                                $columns,
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
@@ -1624,5 +1642,39 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    private function getDivisionPanelContent(TblDivision $tblDivision)
+    {
+
+        $DivisionPanelContent = new Bold($tblDivision->getDisplayName());
+        $DivisionPanelContent .= '<br/>';
+        if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
+            $TeacherArray = array();
+            foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                if($tblPerson = $tblDivisionTeacher->getServiceTblPerson()){
+                    $TeacherArray[] = $tblPerson->getFullName();
+                }
+            }
+            if(!empty($TeacherArray)){
+                $DivisionPanelContent .= new Bold('Klassenlehrer: ').implode(', ', $TeacherArray);
+                $DivisionPanelContent .= '<br/>';
+            }
+        }
+        if(($tblDivisionRepresentationList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
+            $Representation = array();
+            foreach($tblDivisionRepresentationList as $tblDivisionRepresentation){
+                $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
+                $Description = $tblDivisionRepresentation->getDescription();
+                $Representation[] = $tblRepresentation->getFirstSecondName().' '.$tblRepresentation->getLastName().' '.new Muted($Description);
+            }
+            $DivisionPanelContent .= new Bold('Klassensprecher: ').implode(', ', $Representation);
+        }
+        return $DivisionPanelContent;
     }
 }

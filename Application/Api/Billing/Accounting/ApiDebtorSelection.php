@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Billing\Accounting;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Causer\Causer;
@@ -397,7 +398,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $_POST['DebtorSelection']['Variant'] = $PostVariantId;
         }
         if(!isset($_POST['DebtorSelection']['FromDate'])){
-            $_POST['DebtorSelection']['FromDate'] = (new \DateTime())->format('d.m.Y');
+            $_POST['DebtorSelection']['FromDate'] = (new DateTime())->format('d.m.Y');
         }
 
         $RadioBoxListVariant = array();
@@ -796,6 +797,19 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         if(isset($DebtorSelection['FromDate']) && empty($DebtorSelection['FromDate'])){
             $form->setError('DebtorSelection[FromDate]', 'Bitte geben Sie eine Datum an');
             $Error = true;
+        }
+
+        if (isset($DebtorSelection['FromDate'] ) && !empty($DebtorSelection['FromDate'])
+            && isset($DebtorSelection['ToDate'] ) && !empty($DebtorSelection['ToDate'])
+        ) {
+            $entryDate = new DateTime($DebtorSelection['FromDate']);
+            $exitDate = new DateTime($DebtorSelection['ToDate']);
+
+            if ($entryDate > $exitDate) {
+                $form->setError('DebtorSelection[ToDate]', 'Die "Beitragspflicht bis" darf nicht kleiner sein, als die "Beitragspflicht ab".');
+
+                $Error = true;
+            }
         }
 
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){

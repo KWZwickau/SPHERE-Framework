@@ -9,6 +9,7 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -212,8 +213,15 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        // Notfall Kontakte zuerst anzeigen
-        $phoneList = $phoneEmergencyList + $phoneList;
+        $tblSetting = Consumer::useService()->getSetting('Setting', 'Consumer', 'Service', 'EmergencyNumber');
+        if($tblSetting && $tblSetting->getValue() == '1'){
+            // Notfall Kontakte an den Schluss hängen
+            $phoneList = $phoneList + $phoneEmergencyList;
+        } else {
+            // Notfall Kontakte zuerst anzeigen (Standard [Value = 0])
+            $phoneList = $phoneEmergencyList + $phoneList;
+        }
+
 
         if (empty($phoneList)) {
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt')))));

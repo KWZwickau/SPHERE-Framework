@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\Api\Education\Division\AddDivision;
 use SPHERE\Application\Api\Education\Division\DivisionCustody;
+use SPHERE\Application\Api\Education\Division\DivisionRepresentative;
 use SPHERE\Application\Api\Education\Division\DivisionTeacher;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
@@ -491,6 +492,38 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Panel('Klasse', $tblDivision->getDisplayName(), Panel::PANEL_TYPE_INFO)
             . DivisionTeacher::receiverUsed(DivisionTeacher::tablePerson($tblDivision->getId()))
+        );
+
+        return $Stage;
+
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendRepresentativeAdd($Id = null)
+    {
+
+        $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
+        if (!$tblDivision) {
+            $Stage = new Stage('Klassensprecher', 'hinzufügen');
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+            $Stage->setContent(new Warning('Klasse nicht gefunden'));
+            return $Stage.new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+        }
+
+        $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
+
+        $Stage = new Stage('Klassensprecher', $Title);
+        $Stage->setMessage('');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+            array('Id' => $tblDivision->getId())));
+
+        $Stage->setContent(
+            new Panel('Klasse', $tblDivision->getDisplayName(), Panel::PANEL_TYPE_INFO)
+            . DivisionRepresentative::receiverUsed(DivisionRepresentative::tablePerson($tblDivision->getId()))
         );
 
         return $Stage;
@@ -1263,6 +1296,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Book(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Klassenlehrer', '/Education/Lesson/Division/Teacher/Add',
                 new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
+            $Stage->addButton(new Standard('Klassensprecher', '/Education/Lesson/Division/ClassRepresentative/Add',
+                new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Elternvertreter', '/Education/Lesson/Division/Custody/Add',
                 new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
@@ -1298,6 +1333,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPersonList = new Panel('Klassenlehrer', $TeacherList, Panel::PANEL_TYPE_INFO);
             } else {
                 $tblPersonList = new Warning('Kein Klassenlehrer festgelegt');
+            }
+            $tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision);
+            if ($tblDivisionRepresentativeList) {
+                $RepresentativeList = array();
+                foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative){
+                    $tblPersonRepresentative = $tblDivisionRepresentative->getServiceTblPerson();
+                    $Description = $tblDivisionRepresentative->getDescription();
+                    $RepresentativeList[] = $tblPersonRepresentative->getFirstSecondName().' '.$tblPersonRepresentative->getLastName().' '.new Muted($Description);
+                }
+
+
+                $tblRepresentativeList = new Panel('Klassensprecher', $RepresentativeList, Panel::PANEL_TYPE_INFO);
+            } else {
+                $tblRepresentativeList = new Warning('Kein Klassensprecher festgelegt');
             }
             $tblCustodyList = Division::useService()->getCustodyAllByDivision($tblDivision);
             if ($tblCustodyList) {
@@ -1701,6 +1750,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ,
                             ), 9),
                             new LayoutColumn($tblPersonList, 3),
+                            new LayoutColumn($tblRepresentativeList, 3),
                             new LayoutColumn($tblCustodyList, 3)
                         ))
                     ), new Title($TitleClass))

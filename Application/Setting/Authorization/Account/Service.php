@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Authorization\Account;
 
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access as GatekeeperAccess;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
@@ -48,15 +49,22 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $PasswordSafety = trim($Account['PasswordSafety']);
 
         $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
-        if (!isset( $Account['Token'] ) || !( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
-            $tblToken = null;
+
+        $isAuthenticatorApp = false;
+        $tblToken = false;
+        if (isset($Account['Token'])) {
+            if ((int)$Account['Token'] == -1) {
+                $isAuthenticatorApp = true;
+            } else {
+                $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
+            }
         }
 
         if (empty( $Username )) {
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
-            if (preg_match('!^[a-z0-9öäüß]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
+            if (preg_match('!^[a-z0-9]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
                 $Username = $tblConsumer->getAcronym().'-'.$Username;
                 if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
                     $Form->setSuccess('Account[Name]', '');
@@ -66,7 +74,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 }
             } else {
                 $Form->setError('Account[Name]',
-                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein');
+                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens
+                    '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
                 $Error = true;
             }
         }
@@ -107,9 +116,21 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if (!$Error) {
-            $tblAccount = GatekeeperAccount::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer, true);
+            $tblAccount = GatekeeperAccount::useService()->insertAccount(
+                $Username,
+                $Password,
+                $tblToken ? $tblToken : null,
+                $tblConsumer,
+                true,
+                $isAuthenticatorApp
+            );
             if ($tblAccount) {
-                $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName('Token');
+                if ($isAuthenticatorApp) {
+                    $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
+                } else {
+                    // Nutzerkonten ohne Hardware-Schlüssel können sich nicht mehr einlogen
+                    $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+                }
                 GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
@@ -123,7 +144,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                             !$tblRole->isSecure()
                             || (
                                 $tblIdentification->getName() != TblIdentification::NAME_CREDENTIAL
-                                && $tblToken
+                                && ($tblToken || $isAuthenticatorApp)
                             )
                         ) {
                             GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
@@ -167,8 +188,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Password = trim($Account['Password']);
         $PasswordSafety = trim($Account['PasswordSafety']);
 
-        if (!isset( $Account['Token'] ) || !( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
-            $tblToken = null;
+        $isAuthenticatorApp = false;
+        $tblToken = false;
+        if (isset($Account['Token'])) {
+            if ((int)$Account['Token'] == -1) {
+                $isAuthenticatorApp = true;
+            } else {
+                $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
+            }
         }
 
         if (!empty( $Password )) {
@@ -198,17 +225,37 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
         if (!$Error) {
             if ($tblAccount) {
+                $tblIdentification = $tblAccount->getServiceTblIdentification();
+
                 // entfernen aller Rechte nur, wenn ein Token entfernt wird
-                if($tblAccount->getServiceTblToken()){
+                if($tblAccount->getServiceTblToken() || $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP){
                     if($Account['Token'] === '0'){
                         return Account::useFrontend()->frontendConfirmChange($tblAccount->getId(), $Account);
                     }
                 }
 
                 // Edit Token
-                GatekeeperAccount::useService()->changeToken($tblToken, $tblAccount);
+                GatekeeperAccount::useService()->changeToken($tblToken ? $tblToken : null, $tblAccount);
 
-                $tblIdentification = $tblAccount->getServiceTblIdentification();
+                $tblIdentificationToken = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+                $tblIdentificationApp = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
+
+                // Wechsel: von Authenticator App zu Token
+                if ($tblToken && $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
+                    GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
+                    GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationToken);
+                // Wechsel: von Token zu Authenticator App
+                } elseif ($isAuthenticatorApp && $tblIdentification->getName() == TblIdentification::NAME_TOKEN) {
+                    GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
+                    GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationApp);
+
+                    if (!$tblAccount->getAuthenticatorAppSecret()) {
+                        $twoFactorApp = new TwoFactorApp();
+                        GatekeeperAccount::useService()->changeAuthenticatorAppSecret($tblAccount, $twoFactorApp->createSecret());
+                    }
+                }
+
+
                 // there is no reason to delete/change the Identification (Support Account without Identification Error)
 //                // Edit Identification (Authentication)
 //                GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount,
@@ -249,7 +296,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                             !$tblRole->isSecure()
                             || (
                                 $tblIdentification->getName() != TblIdentification::NAME_CREDENTIAL
-                                && $tblToken
+                                && ($tblToken || $isAuthenticatorApp)
                             )
                         ) {
                             GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
@@ -288,8 +335,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Password = trim($Account['Password']);
         $PasswordSafety = trim($Account['PasswordSafety']);
 
-        if (!isset( $Account['Token'] ) || !( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
-            $tblToken = null;
+        $isAuthenticatorApp = false;
+        $tblToken = false;
+        if (isset($Account['Token'])) {
+            if ((int)$Account['Token'] == -1) {
+                $isAuthenticatorApp = true;
+            } else {
+                $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
+            }
         }
 
         if (!empty( $Password )) {
@@ -312,9 +365,18 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         if (!$Error) {
 
             // Edit Token
-            GatekeeperAccount::useService()->changeToken($tblToken, $tblAccount);
+            GatekeeperAccount::useService()->changeToken($tblToken ? $tblToken : null, $tblAccount);
 
             $tblIdentification = $tblAccount->getServiceTblIdentification();
+
+            $tblIdentificationToken = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+
+            // Wechsel: von Authenticator App zu Token
+            if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
+                GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
+                GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationToken);
+            }
+
             // there is no reason to delete/change the Identification (Support Account without Identification Error)
 //                // Edit Identification (Authentication)
 //                GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount,
@@ -354,7 +416,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                         !$tblRole->isSecure()
                         || (
                             $tblIdentification->getName() != TblIdentification::NAME_CREDENTIAL
-                            && $tblToken
+                            && ($tblToken || $isAuthenticatorApp)
                         )
                     ) {
                         GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);

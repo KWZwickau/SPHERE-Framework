@@ -26,12 +26,11 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision);
             $PersonList = ReportingPerson::useService()->createClassList($tblDivision);
             if ($PersonList) {
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createClassListExcel($PersonList, $tblPersonList, $tblDivisionTeacherList);
+                    $fileLocation = ReportingPerson::useService()->createClassListExcel($PersonList, $tblPersonList, $tblDivision);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Klassenliste ".$tblDivision->getDisplayName()
@@ -57,7 +56,7 @@ class Person
             if ($PersonList) {
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($PersonList, $tblPersonList);
+                    $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($PersonList, $tblPersonList, $tblDivision);
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Erweiterte_Klassenliste ".$tblDivision->getDisplayName()
                         ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
@@ -152,7 +151,9 @@ class Person
     public function downloadInterestedPersonList()
     {
 
-        $PersonList = ReportingPerson::useService()->createInterestedPersonList();
+        $hasGuardian = false;
+        $hasAuthorizedPerson = false;
+        $PersonList = ReportingPerson::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson);
         if ($PersonList) {
             $firstName = array();
             foreach ($PersonList as $key => $row) {
@@ -163,7 +164,7 @@ class Person
 
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
             if ($tblPersonList) {
-                $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
+                $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList, $hasGuardian, $hasAuthorizedPerson);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Interessentenliste ".date("Y-m-d H:i:s").".xlsx")->__toString();

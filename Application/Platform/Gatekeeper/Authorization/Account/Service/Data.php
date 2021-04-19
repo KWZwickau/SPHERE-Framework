@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccountInitial;
@@ -40,61 +41,7 @@ class Data extends AbstractData
         $this->createIdentification('Token', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
         $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
-
-//        $tblConsumer = Consumer::useService()->getConsumerById(1);
-//        // Choose the right Identification for Authentication
-//        $tblIdentification = $this->getIdentificationByName('Credential');
-//        $tblRole = Access::useService()->getRoleByName('Administrator');
-//
-//        // Install Administrator
-//        $tblAccount = $this->createAccount('root', 'sphere', null, $tblConsumer);
-//        $this->addAccountAuthentication($tblAccount, $tblIdentification);
-//        $this->addAccountAuthorization($tblAccount, $tblRole);
-//        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-//            $this->setSettingByAccount($tblAccount, 'Surface', 1);
-//        }
-
-/*
-                $tblConsumer = Consumer::useService()->getConsumerById(1);
-                $tblIdentification = $this->getIdentificationByName('System');
-                $tblRole = Access::useService()->getRoleByName('Administrator');
-
-                // System (Gerd)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccdilkui');
-                $tblAccount = $this->createAccount('System', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-
-                // System (Jens)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjge');
-                $tblAccount = $this->createAccount('Kmiezik', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-
-                // System (Sidney)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgt');
-                $tblAccount = $this->createAccount('Rackel', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-
-                // System (Johannes)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgr');
-                $tblAccount = $this->createAccount('Kauschke', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-        */
+        $this->createIdentification('AuthenticatorApp', 'Benutzername / Passwort & Authenticator App', true);
     }
 
     /**
@@ -247,14 +194,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Username
-     * @param string           $Password
-     * @param null|TblToken    $tblToken
+     * @param string $Username
+     * @param string $Password
+     * @param null|TblToken $tblToken
      * @param null|TblConsumer $tblConsumer
+     * @param bool $isAuthenticatorApp
      *
      * @return TblAccount
      */
-    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null)
+    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null, $isAuthenticatorApp = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -264,6 +212,12 @@ class Data extends AbstractData
             $Entity->setPassword(hash('sha256', $Password));
             $Entity->setServiceTblToken($tblToken);
             $Entity->setServiceTblConsumer($tblConsumer);
+
+            if ($isAuthenticatorApp) {
+                $twoFactorApp = new TwoFactorApp();
+                $Entity->setAuthenticatorAppSecret($twoFactorApp->createSecret());
+            }
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -1249,5 +1203,32 @@ class Data extends AbstractData
         return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(), 'TblAccount', array(
             TblAccount::ATTR_USER_ALIAS => $userAlias
         ));
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $secret
+     *
+     * @return bool
+     */
+    public function changeAuthenticatorAppSecret(TblAccount $tblAccount, $secret)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setAuthenticatorAppSecret($secret);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

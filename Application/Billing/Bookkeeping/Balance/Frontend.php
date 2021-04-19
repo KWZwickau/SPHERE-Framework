@@ -242,7 +242,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(!empty($tableContent) && $tblItemList){
 
-            $TableHead['Debtor'] = 'Beitragszahler Test';
+            $TableHead['Debtor'] = 'Beitragszahler';
             $TableHead['Causer'] = 'Beitragsverursacher';
             foreach($tblItemList as $tblItem){
                 $TableHead['Id'.$tblItem->getId()] = $tblItem->getName();
@@ -410,6 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Debtor' => 'Beitragszahler',
                 'Causer' => 'Beitragsverursacher',
                 'Value'  => 'Summe',
+                'Info'  => new EyeOpen(),
             ), array(
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),

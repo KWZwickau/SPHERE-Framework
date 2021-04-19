@@ -268,6 +268,14 @@ class Script extends Extension
         $this->setSource('CookieScript', '/Library/CookieScript/CookieScript.js',
             "'undefined' !== typeof window.hasCookieHinweis"
         );
+        $this->setSource(
+            'tinymce', '/Library/TinyMCE/tinymce.min.js',
+            "'undefined' !== typeof tinymce"
+        );
+        $this->setSource(
+            'jQueryTinymce', '/Library/TinyMCE/jquery.tinymce.min.js',
+            "'undefined' !== typeof jQuery.fn.tinymce"
+        );
 
         /**
          * Module (jQuery plugin)
@@ -374,6 +382,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModCookie', array('CookieScript')
+        );
+        $this->setModule(
+            'ModTinyMCE', array('tinymce', 'jQueryTinymce', 'jQuery')
         );
     }
 

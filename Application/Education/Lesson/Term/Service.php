@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -427,6 +428,19 @@ class Service extends AbstractService
             $Form->setError('Period[To]', 'Bitte geben Sie Ende-Datum an');
             $Error = true;
         }
+
+        if (!$Error) {
+            $dateFrom = new DateTime($Period['From']);
+            $dateTo = new DateTime($Period['To']);
+
+            if ($dateFrom > $dateTo) {
+                $Form->setError('Period[To]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
+        }
+
         $tblPeriod = $this->getPeriodByName($Period['Name']);
         if (!empty($tblPeriod)) {
             if ($tblPeriod->getFromDate() === $Period['From']
@@ -554,6 +568,18 @@ class Service extends AbstractService
         if (isset($Period['To']) && empty($Period['To'])) {
             $Stage->setError('Period[To]', 'Bitte geben Sie ein Enddatum an');
             $Error = true;
+        }
+
+        if (!$Error) {
+            $dateFrom = new DateTime($Period['From']);
+            $dateTo = new DateTime($Period['To']);
+
+            if ($dateFrom > $dateTo) {
+                $Stage->setError('Period[To]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -837,7 +863,18 @@ class Service extends AbstractService
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
+        } elseif (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+            $dateFrom = new DateTime($Data['FromDate']);
+            $dateTo = new DateTime($Data['ToDate']);
+
+            if ($dateFrom > $dateTo) {
+                $Stage->setError('Data[ToDate]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
         }
+
         if (isset($Data['Name']) && empty($Data['Name'])) {
             $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
@@ -885,7 +922,18 @@ class Service extends AbstractService
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
+        } elseif (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+            $dateFrom = new DateTime($Data['FromDate']);
+            $dateTo = new DateTime($Data['ToDate']);
+
+            if ($dateFrom > $dateTo) {
+                $Stage->setError('Data[ToDate]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
         }
+
         if (isset($Data['Name']) && empty($Data['Name'])) {
             $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;

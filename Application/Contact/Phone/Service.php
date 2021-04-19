@@ -114,11 +114,11 @@ class Service extends AbstractService
             if ($tblType->getName() == 'Privat') {
                 return 'p.';
             } elseif ($tblType->getName() == 'Geschäftlich') {
-                return 'd.';
+                return 'g.';
             } elseif ($tblType->getName() == 'Notfall') {
-                return 'N.';
+                return 'n.';
             } elseif ($tblType->getName() == 'Fax') {
-                return 'F.';
+                return 'f.';
             }
         }
         return '';
