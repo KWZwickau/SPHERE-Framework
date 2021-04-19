@@ -1795,7 +1795,7 @@ class Service extends Extension
                         }
                     }
                     if ($Item['Mail'] != '') {
-                        $Item['Mail'] .= ')';
+                        $Item['Mail'] = $Item['Mail'].')';
                     }
                 }
 
@@ -1872,7 +1872,7 @@ class Service extends Extension
 
                 // Insert MailList
                 if (!empty($tblMailList)) {
-                    $Item['MailGuardian'] .= implode('<br>', $tblMailList);
+                    $Item['MailGuardian'] = $Item['MailGuardian'].implode('<br>', $tblMailList);
                     $Item['ExcelMailGuardian'] = implode('; ', $tblMailList);
                 }
                 // Insert MailListSimple
@@ -1923,42 +1923,42 @@ class Service extends Extension
                             switch($PhoneName) {
                                 case 'Privat':
                                     if($Item[$Identifier.'PhoneFixedPrivate']){
-                                        $Item[$Identifier.'PhoneFixedPrivate'] .= ', ';
+                                        $Item[$Identifier.'PhoneFixedPrivate'] = $Item[$Identifier.'PhoneFixedPrivate'].', ';
                                     }
                                     $Item[$Identifier.'PhoneFixedPrivate'] = $tblPhone->getNumber();
                                     break;
                                 case 'Geschäftlich':
                                     if($Item[$Identifier.'PhoneFixedWork']){
-                                        $Item[$Identifier.'PhoneFixedWork'] .= ', ';
+                                        $Item[$Identifier.'PhoneFixedWork'] = $Item[$Identifier.'PhoneFixedWork'].', ';
                                     }
-                                    $Item[$Identifier.'PhoneFixedWork'] .= $tblPhone->getNumber();
+                                    $Item[$Identifier.'PhoneFixedWork'] = $Item[$Identifier.'PhoneFixedWork'].$tblPhone->getNumber();
                                     break;
                                 case 'Notfall':
                                     if($Item[$Identifier.'PhoneFixedEmergency']){
-                                        $Item[$Identifier.'PhoneFixedEmergency'] .= ', ';
+                                        $Item[$Identifier.'PhoneFixedEmergency'] = $Item[$Identifier.'PhoneFixedEmergency'].', ';
                                     }
-                                    $Item[$Identifier.'PhoneFixedEmergency'] .= $tblPhone->getNumber();
+                                    $Item[$Identifier.'PhoneFixedEmergency'] = $Item[$Identifier.'PhoneFixedEmergency'].$tblPhone->getNumber();
                                     break;
                             }
                         } elseif($PhoneDescription == 'Mobil') {
                             switch($PhoneName) {
                                 case 'Privat':
                                     if($Item[$Identifier.'PhoneMobilePrivate']){
-                                        $Item[$Identifier.'PhoneMobilePrivate'] .= ', ';
+                                        $Item[$Identifier.'PhoneMobilePrivate'] = $Item[$Identifier.'PhoneMobilePrivate'].', ';
                                     }
-                                    $Item[$Identifier.'PhoneMobilePrivate'] .= $tblPhone->getNumber();
+                                    $Item[$Identifier.'PhoneMobilePrivate'] = $Item[$Identifier.'PhoneMobilePrivate'].$tblPhone->getNumber();
                                     break;
                                 case 'Geschäftlich':
                                     if($Item[$Identifier.'PhoneMobileWork']){
-                                        $Item[$Identifier.'PhoneMobileWork'] .= ', ';
+                                        $Item[$Identifier.'PhoneMobileWork'] = $Item[$Identifier.'PhoneMobileWork'].', ';
                                     }
-                                    $Item[$Identifier.'PhoneMobileWork'] .= $tblPhone->getNumber();
+                                    $Item[$Identifier.'PhoneMobileWork'] = $Item[$Identifier.'PhoneMobileWork'].$tblPhone->getNumber();
                                     break;
                                 case 'Notfall':
                                     if($Item[$Identifier.'PhoneMobileEmergency']){
-                                        $Item[$Identifier.'PhoneMobileEmergency'] = ', ';
+                                        $Item[$Identifier.'PhoneMobileEmergency'] = $Item[$Identifier.'PhoneMobileEmergency'].', ';
                                     }
-                                    $Item[$Identifier.'PhoneMobileEmergency'] .= $tblPhone->getNumber();
+                                    $Item[$Identifier.'PhoneMobileEmergency'] = $Item[$Identifier.'PhoneMobileEmergency'].$tblPhone->getNumber();
                                     break;
                             }
                         }
@@ -1987,7 +1987,8 @@ class Service extends Extension
                             // modify TypeShort
                             str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                     } else {
-                        $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', ' . $tblPhone->getNumber() . ' ' .
+                        $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $Item['PhoneGuardian'][$tblPersonGuardian->getId()]
+                            .', ' . $tblPhone->getNumber() . ' ' .
                             // modify TypeShort
                             str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                     }
@@ -1995,7 +1996,7 @@ class Service extends Extension
             }
         }
         if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $Item['PhoneGuardian'][$tblPersonGuardian->getId()].')';
         }
     }
 
