@@ -78,6 +78,9 @@ class DomPdf extends Bridge implements IBridgeInterface
     {
 
         $Renderer = new DompdfParser();
+        $Options = $Renderer->getOptions();
+        $Options->set('isRemoteEnabled', true);
+        $Renderer->setOptions($Options);
 //        $Renderer = new DompdfParserNew();
 //        $Renderer->set_option('defaultFont', 'Arial');
 //        $Renderer->set_option('isHtml5ParserEnabled', true);
