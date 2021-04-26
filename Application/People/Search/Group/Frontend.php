@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
@@ -127,6 +128,8 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                     $LeaveDate = '';
+                    $DisplayDivision = '';
+                    $DivisionYear = '';
                     if ($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE) {
                         if(($tblPerson = Person::useService()->getPersonById($contentRow['TblPerson_Id']))){
                             if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
@@ -134,7 +137,25 @@ class Frontend extends Extension implements IFrontendInterface
                                     $LeaveDate = $tblStudentTransfer->getTransferDate();
                                 }
                             }
-                            $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                            // Klassenlisten des Ehemaligen Schülers
+                            if(($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+                                $tblDivisionStudent = current($tblDivisionStudentList);
+                                $FoundDivision = false;
+                                // Sucher der letzten Klasse (nicht Klassenübergreifend: Level !ischecked)
+                                while ($FoundDivision == false && $tblDivisionStudent){
+                                    if(($tblDivision = $tblDivisionStudent->getTblDivision())
+                                        && ($tblLevel = $tblDivision->getTblLevel())
+                                        && !$tblLevel->getIsChecked()
+                                    ){
+                                        $DisplayDivision = $tblDivision->getDisplayName();
+                                        if(($tblYear = $tblDivision->getServiceTblYear())){
+                                            $DivisionYear = $tblYear->getDisplayName();
+                                        }
+                                        $FoundDivision = true;
+                                    }
+                                    $tblDivisionStudent = next($tblDivisionStudentList);
+                                }
+                            }
                         }
                     }
 
@@ -145,8 +166,6 @@ class Frontend extends Extension implements IFrontendInterface
                         ? $contentRow['Address']
                         : new Warning('Keine Adresse hinterlegt')
                     );
-                    // Archive
-                    $item['LeaveDate'] = $LeaveDate;
                     // Student
                     $item['Division'] = $displayDivisionList;
                     $item['Identifier'] = trim($contentRow['Identifier']);
@@ -157,6 +176,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $item['Level'] = $contentRow['Level'];
                     $item['SchoolOption'] = $contentRow['SchoolOption'];
                     $item['School'] = $contentRow['School'];
+                    // Archive
+                    $item['LeaveDate'] = $LeaveDate;
+                    $item['DivisionYear'] = $DivisionYear;
+                    $item['DisplayDivision'] = $DisplayDivision;
 
                     $item['Option'] = new Standard('', '/People/Person', new Edit(),
                             array(
@@ -227,10 +250,12 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE) {
                 $ColumnArray = array(
-                    'FullName'     => 'Name',
-                    'Address'      => 'Adresse',
-                    'LeaveDate'    => 'Abgang',
-                    'Option'       => '',
+                    'FullName'        => 'Name',
+                    'Address'         => 'Adresse',
+                    'DisplayDivision' => 'Abgang mit Klasse',
+                    'DivisionYear'    => 'Abgang Schuljahr',
+                    'LeaveDate'       => 'Abgang Datum',
+                    'Option'          => '',
                 );
             } else {
                 $ColumnArray = array(
@@ -263,10 +288,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
             // Archive order & column definition
             if($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE){
-                $orderByColumn = array(2, 'desc');
+                $orderByColumn = array(array(4, 'desc'));
                 $columnDefs = array(
                     array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-                    array('type' => 'de_date', 'targets' => 2),
+                    array('type' => 'de_date', 'targets' => 4),
                     array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
@@ -284,13 +309,13 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO
                         )
                     )),
-                    new LayoutRow(new LayoutColumn(array(
-                        new Headline('Verfügbare Personen', 'in dieser Gruppe'),
-                        new TableData($tableContent, null, $ColumnArray, array(
-                            'order' => $orderByColumn,
-                            'columnDefs' => $columnDefs
-                        ))
-                    )))
+                        new LayoutRow(new LayoutColumn(array(
+                            new Headline('Verfügbare Personen', 'in dieser Gruppe'),
+                            new TableData($tableContent, null, $ColumnArray, array(
+                                'columnDefs' => $columnDefs,
+                                'order' => $orderByColumn
+                            ))
+                        )))
                 )))
             );
         } else {
