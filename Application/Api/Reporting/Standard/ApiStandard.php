@@ -81,6 +81,16 @@ class ApiStandard extends Extension implements IApiInterface
      */
     public function reloadAbsenceContent($Data = null)
     {
+
+        if($Data == null){
+            // Laden mit Grunddaten (aktueller Tag ohne Zusätze)
+            $Data['Date'] = (new DateTime('now'))->format('d.m.Y');
+            $Data['ToDate'] = '';
+            $Data['Type'] = null;
+            $Data['DivisionName'] = '';
+            $Data['GroupName'] = '';
+        }
+
         if ($Data['Date'] == null) {
             $date = (new DateTime('now'))->format('d.m.Y');
         } else {
@@ -122,6 +132,7 @@ class ApiStandard extends Extension implements IApiInterface
         } elseif ($groupName != '') {
             $isGroup = true;
             $groupList = Group::useService()->getGroupListLike($groupName);
+            var_dump($groupList);
             if (empty($groupList)) {
                 return new Warning('Gruppe nicht gefunden', new Exclamation());
             }
