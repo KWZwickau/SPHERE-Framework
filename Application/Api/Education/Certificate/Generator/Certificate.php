@@ -1729,7 +1729,6 @@ abstract class Certificate extends Extension
         }
         $Element->styleHeight($Height);
         $Element->styleMarginTop($MarginTop);
-        $Element->styleBorderAll();
 
         if($tblSetting && $tblSetting->getValue()){
             $Element->styleAlignJustify();
