@@ -12,6 +12,7 @@ use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -22,8 +23,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -163,9 +166,13 @@ class People implements IClusterInterface
         // Alle Schüler im Schuljahr (Summiert)
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYear) {
-                $tblStudentCounterBySchoolType[] = new Muted(new Small(
-                    Division::useService()->getStudentCountByYear($tblYear)
-                    . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName() . ' '));
+                $Calculation = Division::useService()->getStudentCountByYear($tblYear);
+                $tblStudentCounterBySchoolType[] = (new ToolTip(new Muted(new Small(
+                    (!empty($Calculation['PersonExcludeStudent']) ? new Danger(new EyeOpen()).' ' : '')
+                    .$Calculation['countStudentsByYear']
+                    . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName()
+                    ))
+                    , htmlspecialchars(implode('</br>', $Calculation['PersonExcludeStudent']))))->enableHtml();
             }
         }
         // Anhängen der Schulartzählung
