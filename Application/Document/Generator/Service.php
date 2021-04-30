@@ -386,6 +386,8 @@ class Service extends AbstractService
                 ) {
                     if ($tblPrepareInformation->getValue() == 'wird nicht versetzt') {
                         $transferRemark = 'n.v.';
+                    } elseif ($tblPrepareInformation->getValue() == 'wird versetzt') {
+                        $transferRemark = 'v.';
                     }
                 }
                 $Data['Certificate'][$typeId]['Data' . $count]['TransferRemark'] = $transferRemark;

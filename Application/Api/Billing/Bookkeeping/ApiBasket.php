@@ -478,11 +478,11 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             }
             $tblDivisionList = array();
-            if(($tblYear = Term::useService()->getYearByNow())){
-                // Es sollte nur noch ein Jahr geben.
-                $tblYear = current($tblYear);
-                if(!($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
-                    $tblDivisionList = array();
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                foreach($tblYearList as $tblYear){
+                    if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
+                        $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                    }
                 }
             }
             if(empty($tblDivisionList)){

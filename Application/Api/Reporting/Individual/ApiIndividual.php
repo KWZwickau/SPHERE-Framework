@@ -585,12 +585,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     foreach($tblWorkSpaceList as $tblWorkSpace){
                         // aktuelles Schuljahr finden
                         if($tblWorkSpace->getField() === 'TblYear_Year'){
-                            // Liste aller aktuellen Schuljahre
-                            if(($YearList = Term::useService()->getYearByNow())){
-                                $tblYear = current($YearList);
-                                // Speichern im Post
-                                $PostArray['TblYear_Year[1]'] = $tblYear->getName();
-                            }
+                            // Eintragung in das Post anhand des Kalenders
+                            $Date = Term::useService()->getYearString();
+                            // Speichern im Post
+                            $PostArray['TblYear_Year[1]'] = $Date;
                         }
                     }
                 }
@@ -641,12 +639,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if($Field === 'TblYear_Year'){
             // Nur für Schüler-View
             if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT) {
-                //Liste aller aktuellen Schuljahre
-                if (($YearList = Term::useService()->getYearByNow())) {
-                    $tblYear = current($YearList);
-                    // Speichern im Post
-                    $PostArray['TblYear_Year[1]'] = $tblYear->getName();
-                }
+                // Eintragung in das Post anhand des Kalenders
+                $Date = Term::useService()->getYearString();
+                // Speichern im Post
+                $PostArray['TblYear_Year[1]'] = $Date;
             }
         }
         $Emitter->setPostPayload($PostArray);
@@ -685,12 +681,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 foreach($tblWorkSpaceList as $tblWorkSpace){
                     // aktuelles Schuljahr finden
                     if($tblWorkSpace->getField() === 'TblYear_Year'){
-                        // Liste aller aktuellen Schuljahre
-                        if(($YearList = Term::useService()->getYearByNow())){
-                            $tblYear = current($YearList);
-                            // Speichern im Post
-                            $PostArray['TblYear_Year[1]'] = $tblYear->getName();
-                        }
+                        $Date = Term::useService()->getYearString();
+                        // Speichern im Post
+                        $PostArray['TblYear_Year[1]'] = $Date;
                     }
                 }
             }

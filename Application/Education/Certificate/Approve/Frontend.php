@@ -65,14 +65,24 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Zeugnisse freigeben', 'Übersicht');
 
         $tblYear = false;
+        // getYearByNow() korrekt für aktuelles Jahr
         $tblYearList = Term::useService()->getYearByNow();
         if ($YearId) {
             $tblYear = Term::useService()->getYearById($YearId);
-        } elseif (!$IsAllYears && $tblYearList) {
-            $tblYear = end($tblYearList);
+//        } elseif (!$IsAllYears && $tblYearList) {
+//            $tblYear = end($tblYearList);
         }
 
         if ($tblYearList) {
+
+            if($tblYear || $IsAllYears){
+                $Stage->addButton(new Standard('Aktuelles Schuljahr',
+                    '/Education/Certificate/Approve', new Edit()));
+            } else {
+                $Stage->addButton($buttonList[] = new Standard(new Info(new Bold('Aktuelles Schuljahr')),
+                    '/Education/Certificate/Approve', new Edit()));
+            }
+
             $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
             /** @var TblYear $tblYearItem */
             foreach ($tblYearList as $tblYearItem) {
@@ -106,6 +116,16 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     if ($tblYear && $tblYear->getId() != $tblYearDivision->getId()) {
                         continue;
+                    } elseif($tblYearList){
+                        $keepEntry = false;
+                        foreach($tblYearList as $tblYearTemp){
+                            if($tblYearTemp->getId() == $tblYearDivision->getId()) {
+                                $keepEntry = true;
+                            }
+                        }
+                        if(!$keepEntry){
+                            continue;
+                        }
                     }
 
                     if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy(
@@ -126,6 +146,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     } else {
                         $leaveStudentDivisionList[$tblDivision->getId()] = array(
+                            'Year' => $tblYearDivision->getDisplayName(),
                             'Date' => $date,
                             'CountTotalCertificates' => 1,
                             'CountApprovedCertificates' => $tblLeaveStudent->isApproved() ? 1 : 0,
@@ -150,7 +171,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $status = $this->getApproveStatusText($isLeaveAutomaticallyApproved, $countApproved, $countStudents);
 
                 $prepareList[] = array(
-                    'Year' => $tblYearDivision ? $tblYearDivision->getDisplayName() : '',
+                    'Year' => $item['Year'],
                     'Date' => $item['Date'],
                     'Name' => 'Abgangszeugnis',
                     'Division' => $item['DivisionDisplayName'],
@@ -201,8 +222,22 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if ($tblYear) {
-            $tblPrepareList = Prepare::useService()->getPrepareAllByYear($tblYear);
+        if ($tblYear
+            || (!$IsAllYears && !empty($tblYearList)) ) {
+            if(!$tblYear){
+                $tblPrepareList = array();
+                // aktuelles Jahr
+                foreach($tblYearList as $tblYearTemp){
+                    if(($tblPrepareListTemp = Prepare::useService()->getPrepareAllByYear($tblYearTemp))){
+                        $tblPrepareList = array_merge($tblPrepareList, $tblPrepareListTemp);
+                    }
+                }
+                if(empty($tblPrepareList)){
+                    $tblPrepareList = false;
+                }
+            } else {
+                $tblPrepareList = Prepare::useService()->getPrepareAllByYear($tblYear);
+            }
             if ($tblPrepareList) {
                 foreach ($tblPrepareList as $tblPrepare) {
                     $countStudents = 0;
@@ -231,11 +266,16 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     }
+                    $YearString = '';
+                    if(($tblYearTemp = $tblDivision->getServiceTblYear())){
+                        $YearString = $tblYearTemp->getDisplayName();
+                    }
 
                     $status = $this->getApproveStatusText($isAutomaticallyApproved, $countApproved, $countStudents);
 
                     if ($countStudents > 0) {
                         $prepareList[] = array(
+                            'Year' => $YearString,
                             'Date' => $tblPrepare->getDate(),
                             'Name' => $tblPrepare->getName(),
                             'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
@@ -285,7 +325,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if (!empty($prepareList)) {
+            if (!empty($prepareList) && $tblYear) {
                 $content = new TableData($prepareList, null,
                     array(
                         'Date' => 'Zeugnisdatum',
@@ -304,6 +344,29 @@ class Frontend extends Extension implements IFrontendInterface
                         'columnDefs' => array(
                             array('type' => 'de_date', 'targets' => 0),
                             array('type' => 'natural', 'targets' => 1),
+                        )
+                    )
+                );
+            } elseif(!empty($prepareList)) {
+                $content = new TableData($prepareList, null,
+                    array(
+                        'Year' => 'Schuljahr',
+                        'Date' => 'Zeugnisdatum',
+                        'Division' => 'Klasse',
+                        'Name' => 'Zeugnisauftrag',
+                        'CertificateType' => 'Zeugnistyp',
+                        'Status' => 'Freigaben',
+                        'Option' => ''
+                    ),
+                    array(
+                        'order' => array(
+                            array(0, 'desc'),
+                            array(2, 'asc'),
+                            array(3, 'asc'),
+                        ),
+                        'columnDefs' => array(
+                            array('type' => 'de_date', 'targets' => 0),
+                            array('type' => 'natural', 'targets' => 2),
                         )
                     )
                 );
@@ -400,7 +463,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Schuljahr',
-                                $tblYear ? $tblYear->getDisplayName() : 'Alle Schuljahre',
+                                $tblYear ? $tblYear->getDisplayName() :
+                                    $IsAllYears ? 'Alle Schuljahre' : 'Aktuelles Schuljahr',
                                 Panel::PANEL_TYPE_INFO
                             ),
                         )),

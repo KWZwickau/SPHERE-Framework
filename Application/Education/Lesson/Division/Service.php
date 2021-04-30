@@ -31,6 +31,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -2599,25 +2600,37 @@ class Service extends AbstractService
     /**
      * @param TblYear $tblYear
      *
-     * @return int
+     * @return array
      */
     public function getStudentCountByYear(TblYear $tblYear)
     {
 
+        $Calculation = array();
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $countStudentsByYear = 0;
+        $PersonExcludeStudent = array();
         if (($tblDivisionList = $this->getDivisionAllByYear($tblYear))) {
             foreach ($tblDivisionList as $tblDivision) {
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && !$tblLevel->getIsChecked()
                 ) {
-                    if (($tblStudentList = $this->getStudentAllByDivision($tblDivision))) {
-                        $countStudentsByYear += count ($tblStudentList);
+                    if (($tblPersonList = $this->getStudentAllByDivision($tblDivision))) {
+                        // Anzahl Schüler in Klassen
+                        $countStudentsByYear += count ($tblPersonList);
+                        // Suchen nach Personen die keine Schüler mehr sind
+                        foreach($tblPersonList as $tblPerson){
+                            if(!Group::useService()->existsGroupPerson($tblGroup, $tblPerson)){
+                                $PersonExcludeStudent[] = 'Klasse: '.$tblDivision->getDisplayName().' '.new Bold($tblPerson->getLastFirstName());
+                            }
+                        }
                     }
                 }
             }
         }
+        $Calculation['countStudentsByYear'] = $countStudentsByYear;
+        $Calculation['PersonExcludeStudent'] = $PersonExcludeStudent;
 
-        return $countStudentsByYear;
+        return $Calculation;
     }
 
     /**
