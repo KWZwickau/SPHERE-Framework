@@ -600,17 +600,13 @@ class Service extends AbstractService
 
         $resultPersonList = array();
         if(!empty($tblPersonList)){
-            $tblYearList = Term::useService()->getYearByNow();
-            if($tblYearList){
-                $tblYear = current($tblYearList);
-            } else {
-                $tblYear = false;
-            }
-            if($tblYear){
-                foreach($tblPersonList as $tblPerson){
-                    if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
-                        if($tblType->getName() === $tblDivision->getTypeName()){
-                            $resultPersonList[] = $tblPerson;
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                foreach($tblYearList as $tblYear){
+                    foreach($tblPersonList as $tblPerson){
+                        if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
+                            if($tblType->getName() === $tblDivision->getTypeName()){
+                                $resultPersonList[] = $tblPerson;
+                            }
                         }
                     }
                 }

@@ -23,7 +23,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -3829,19 +3828,15 @@ class Service extends Extension
         $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $tblGroupProspect = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
         $tblPersonStudentAll = Group::useService()->getPersonAllByGroup($tblGroupStudent);
+        $tblYearList = Term::useService()->getYearByNow();
         if (!empty($tblPersonList)) {
-
-            if(($tblYear = Term::useService()->getYearByNow())){
-                $tblYear = current($tblYear);
-            }
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblYear, &$tblPersonStudentAll, $tblGroupStudent, $tblGroupProspect) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$tblPersonStudentAll, $tblYearList, $tblGroupStudent, $tblGroupProspect) {
 //                $IsOneRow = true;
                 $Item['Number'] = '';
                 $Item['Title'] = $tblPerson->getTitle();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
-                /** @var TblYear $tblYear */
-                $Item['Year'] = $tblYear->getYear();
+                $Item['Year'] = '';
 
                 if(($tblClub = Club::useService()->getClubByPerson($tblPerson))){
                     $Item['Number'] = $tblClub->getIdentifier();
@@ -3851,7 +3846,7 @@ class Service extends Extension
                 if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
                     foreach($tblToPersonList as $tblToPerson){
                         // setze Jahr nach möglichen Interessenten zurück
-                        $Item['Year'] = $tblYear->getYear();
+//                        $Item['Year'] = $tblYear->getYear();
                         $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
 
                         if ($tblPersonStudentAll && !empty($tblPersonStudentAll) && $tblPersonStudent) {
@@ -3867,9 +3862,15 @@ class Service extends Extension
                         $Item['activeDivision'] = '';
                         $Item['Type'] = '';
                         $Item['individualPersonGroup'] = '';
-                        if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){
-                            $Item['activeDivision'] = $tblDivision->getDisplayName();
+                        if($tblYearList){
+                            foreach($tblYearList as $tblYear){
+                                if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){
+                                    $Item['activeDivision'] = $tblDivision->getDisplayName();
+                                    $Item['Year'] = $tblYear->getYear();
+                                }
+                            }
                         }
+
                         $PersonGroupList = array();
                         if(($tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPersonStudent))){
                             foreach($tblPersonGroupList as $tblPersonGroup){
@@ -3906,13 +3907,19 @@ class Service extends Extension
             });
             // Füght die Schühler ohne Mitglied an.
             if (!empty($tblPersonStudentAll)) {
-                array_walk($tblPersonStudentAll, function (TblPerson $tblPersonStudent) use (&$TableContent, $tblYear) {
+                array_walk($tblPersonStudentAll, function (TblPerson $tblPersonStudent) use (&$TableContent, $tblYearList) {
                     $Item['Number'] = '';
                     $Item['Title'] = '';
                     $Item['FirstName'] = '';
                     $Item['LastName'] = '';
-                    /** @var TblYear $tblYear */
-                    $Item['Year'] = $tblYear->getYear();
+                    if($tblYearList){
+                        foreach($tblYearList as $tblYear){
+                            if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){
+                                $Item['activeDivision'] = $tblDivision->getDisplayName();
+                                $Item['Year'] = $tblYear->getYear();
+                            }
+                        }
+                    }
                     $Item['StudentFirstName'] = $tblPersonStudent->getFirstSecondName();
                     $Item['StudentLastName'] = $tblPersonStudent->getLastName();
                     $Item['activeDivision'] = '';

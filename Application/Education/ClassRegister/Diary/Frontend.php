@@ -512,8 +512,22 @@ class Frontend extends Extension implements IFrontendInterface
                 'Zurück', $BasicRoute, new ChevronLeft()
             ));
 
-            if (($tblYearList = Term::useService()->getYearByNow())) {
-                $tblYear = reset($tblYearList);
+            if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup)) &&
+                ($tblYearList = Term::useService()->getYearByNow())){
+                $found = false;
+                foreach($tblPersonList as $tblPersonTemp){
+                    foreach($tblYearList as $tblYearTemp)
+                    if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonTemp, $tblYearTemp))){
+                        $tblYear = $tblDivision->getServiceTblYear();
+                        if($tblYear){
+                            $found = true;
+                            continue;
+                        }
+                    }
+                    if($found){
+                        continue;
+                    }
+                }
             } else {
                 $tblYear = false;
             }

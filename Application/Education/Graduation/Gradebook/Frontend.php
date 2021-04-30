@@ -1890,17 +1890,25 @@ class Frontend extends FrontendScoreRule
         $tblScoreType = Gradebook::useService()->getScoreTypeById($Id);
         if ($tblScoreType) {
 
-
-            if ($YearId && ($tblSelectedYear = Term::useService()->getYearById($YearId))) {
+            $yearButtonList = array();
+            if ($YearId && Term::useService()->getYearById($YearId)) {
+                $tblSelectedYear = Term::useService()->getYearById($YearId);
+                $yearButtonList[] = new Standard('Aktuelles Schuljahr', '/Education/Graduation/Gradebook/Type/Select',
+                    null, array('Id' => $tblScoreType->getId()));
+            } elseif($YearId) {
+                // Id kann kein Jahr finden
+                $tblSelectedYear = false;
+                $yearButtonList[] = new Standard(
+                    new Info(new Edit() . ' Aktuelles Schuljahr'),
+                    '/Education/Graduation/Gradebook/Type/Select', null, array('Id' => $tblScoreType->getId()));
             } else {
-                if (($tblYearAllByNow = Term::useService()->getYearByNow())) {
-                    $tblSelectedYear = current($tblYearAllByNow);
-                } else {
-                    $tblSelectedYear = false;
-                }
+                // Aktuelles Schuljahr
+                $tblSelectedYear = null;
+                $yearButtonList[] = new Standard(
+                    new Info(new Edit() . ' Aktuelles Schuljahr'),
+                '/Education/Graduation/Gradebook/Type/Select', null, array('Id' => $tblScoreType->getId()));
             }
 
-            $yearButtonList = array();
             $tblYearList = Term::useService()->getYearAllSinceYears(3);
             if ($tblYearList) {
                 $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
@@ -1923,8 +1931,19 @@ class Frontend extends FrontendScoreRule
             $formGroupList = array();
             $rowList = array();
             $columnList = array();
-            if ($tblSelectedYear) {
-                $tblDivisionList = Division::useService()->getDivisionByYear($tblSelectedYear);
+            if ($tblSelectedYear !== false) {
+                if($tblSelectedYear === null) {
+                    $tblDivisionList = array();
+                    if(($tblYearList = Term::useService()->getYearByNow())){
+                        foreach($tblYearList as $tblYear){
+                            $tblDivisionListTemp = Division::useService()->getDivisionByYear($tblYear);
+                            $tblDivisionList = array_merge($tblDivisionList, $tblDivisionListTemp);
+                        }
+                    }
+                } else {
+                    $tblDivisionList = Division::useService()->getDivisionByYear($tblSelectedYear);
+                }
+
                 if ($tblDivisionList) {
                     $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('DisplayName');
                     /** @var TblDivision $tblDivision */
