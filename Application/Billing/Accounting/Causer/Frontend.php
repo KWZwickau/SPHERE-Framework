@@ -485,7 +485,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $PanelContent = array();
-        $Accordion = '';
+        $Accordion = array();
         if(($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblItem = Item::useService()->getItemById($ItemId))){
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
