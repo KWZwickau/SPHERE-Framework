@@ -1279,7 +1279,7 @@ class Service extends AbstractService
                                 } else {
                                     $grade = $tblPrepareAdditionalGrade->getGrade();
                                     if ((Gradebook::useService()->getGradeTextByName($grade))
-                                        && $grade != 'befreit'
+//                                        && $grade != 'befreit'
                                     ) {
                                         $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                     }
@@ -1328,7 +1328,7 @@ class Service extends AbstractService
 
                                 // bei Zeugnistext als Note Schriftgröße verkleinern
                                 if ($tblGradeItem->getTblGradeText()
-                                    && $tblGradeItem->getTblGradeText()->getName() != 'befreit'
+//                                    && $tblGradeItem->getTblGradeText()->getName() != 'befreit'
                                 ) {
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
                                 }
@@ -1355,7 +1355,7 @@ class Service extends AbstractService
                             } else {
                                 // bei Zeugnistext als Note Schriftgröße verkleinern
                                 if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())
-                                    && $tblPrepareGrade->getGrade() != 'befreit'
+//                                    && $tblPrepareGrade->getGrade() != 'befreit'
                                 ) {
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
                                 }
@@ -1582,7 +1582,7 @@ class Service extends AbstractService
                         } else {
                             // bei Zeugnistext als Note Schriftgröße verkleinern
                             if (Gradebook::useService()->getGradeTextByName($tblLeaveGrade->getGrade())
-                                && $tblLeaveGrade->getGrade() != 'befreit'
+//                                && $tblLeaveGrade->getGrade() != 'befreit'
                             ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblLeaveGrade->getServiceTblSubject()->getAcronym()] = true;
                             }
