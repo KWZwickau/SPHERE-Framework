@@ -1257,6 +1257,8 @@ class Service extends AbstractService
                 }
             }
 
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+
             // Fachnoten
             if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
                 // Abschlusszeugnisse
@@ -1275,11 +1277,14 @@ class Service extends AbstractService
                             if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                                 if ($isGradeVerbalOnDiploma) {
                                     $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
-                                    $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                    if ($tblConsumer && $tblConsumer->getAcronym() != 'EZSH') {
+                                        $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                    }
                                 } else {
                                     $grade = $tblPrepareAdditionalGrade->getGrade();
                                     if ((Gradebook::useService()->getGradeTextByName($grade))
-                                        && $grade != 'befreit'
+                                        && $tblConsumer && $tblConsumer->getAcronym() != 'EZSH'
+//                                        && $grade != 'befreit'
                                     ) {
                                         $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                     }
@@ -1348,10 +1353,14 @@ class Service extends AbstractService
                         if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
-                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                if ($tblConsumer && $tblConsumer->getAcronym() != 'EZSH') {
+                                    $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                }
                             } elseif ($isGradeVerbal) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
-                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                if ($tblConsumer && $tblConsumer->getAcronym() != 'EZSH') {
+                                    $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                }
                             } else {
                                 // bei Zeugnistext als Note Schriftgröße verkleinern
                                 if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())
