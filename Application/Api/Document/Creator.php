@@ -6,6 +6,8 @@ use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
+use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountApp;
+use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountToken;
 use SPHERE\Application\Api\Document\Standard\Repository\Billing\Billing;
 use SPHERE\Application\Api\Document\Standard\Repository\Billing\DocumentWarning;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
@@ -31,6 +33,8 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
@@ -308,7 +312,7 @@ class Creator extends Extension
             );
         }
 
-        $tblAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession();
+        $tblAccount = GatekeeperAccount::useService()->getAccountBySession();
 
         if ($tblAccount
             && ($tblAccountDownloadLock = Consumer::useService()->getAccountDownloadLock($tblAccount, 'StudentCard'))
@@ -945,5 +949,49 @@ class Creator extends Extension
         }
 
         return new Stage('Mahnung', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param int  $AccountId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createAccountPdf($AccountId = null, $Redirect = true)
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/Account/Create',
+                array(
+                    'AccountId' => $AccountId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblAccount = GatekeeperAccount::useService()->getAccountById($AccountId))
+            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
+        ) {
+            if (($tblPersonAllByAccount = GatekeeperAccount::useService()->getPersonAllByAccount($tblAccount))) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            } else {
+                return "Das Benutzerkonto ist keiner Person zugeordnet.";
+            }
+
+            if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
+                $Document = new AccountApp($tblAccount, $tblPerson);
+            } else {
+                $Document = new AccountToken($tblAccount, $tblPerson);
+            }
+
+
+            $File = self::buildDummyFile($Document, array(), array());
+
+            $FileName = $Document->getName() . ' - ' . $tblPerson->getLastFirstName() . ' - ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Kein Benutzerkonto vorhanden!";
     }
 }

@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\People\Person\Frontend;
 
+use DateTime;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -181,5 +182,36 @@ class FrontendClub  extends FrontendReadOnly
                 ))
             ))
         )))->disableSubmitAction();
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param $Meta
+     *
+     * @return bool|Well
+     */
+    public function checkInputCreatePersonContent($Meta, TblPerson $tblPerson = null)
+    {
+        $error = false;
+        $form = $this->getEditClubForm($tblPerson ? $tblPerson : null);
+        if (isset($Meta['EntryDate'] ) && !empty($Meta['EntryDate'])
+            && isset($Meta['ExitDate'] ) && !empty($Meta['ExitDate'])
+        ) {
+            $entryDate = new DateTime($Meta['EntryDate']);
+            $exitDate = new DateTime($Meta['ExitDate']);
+
+            if ($entryDate > $exitDate) {
+                $form->setError('Meta[ExitDate]', 'Das "Austrittsdatum" darf nicht kleiner sein, als das "Eintrittsdatum".');
+
+                $error = true;
+            }
+        }
+
+        if ($error) {
+            return $this->getEditClubTitle($tblPerson ? $tblPerson : null)
+                . new Well($form);
+        } else {
+            return false;
+        }
     }
 }

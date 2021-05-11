@@ -820,26 +820,19 @@ class KamenzReportService
         &$tblPastYearList,
         &$currentYear = false
     ) {
-        // SchoolYears
-        if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
-            $tblCurrentYear = reset($tblCurrentYearList);
-            $currentYearName = $tblCurrentYear->getName();
 
-            if ($currentYearName
-                && ($pos = strpos($currentYearName, '/'))
-            ) {
-                $year[0] = substr($currentYearName, 0, $pos);
-                $year[1] = substr($currentYearName, $pos + 1);
-
-                $currentYear = $year[0];
-
-                $pastYearName = (string)($year[0] - 1) . '/' . (string)($year[1] - 1);
-                $tblPastYearList = Term::useService()->getYearByName($pastYearName);
-                $Content['SchoolYear']['Current'] = $currentYearName;
-                $Content['SchoolYear']['Past'] = $pastYearName;
-                $Content['Year']['Current'] = $currentYear;
-            }
-        }
+        $Date = Term::useService()->getYearStringAsArray();
+        //past year as string
+        $PastDisplayYear = $Date['PastDisplayYear'];
+        //current year as string
+        $CurrentDisplayYear = $Date['CurrentDisplayYear'];
+        //current year exact year
+        $currentYear = $Date['CurrentYear'];
+        $tblCurrentYearList = Term::useService()->getYearByName($CurrentDisplayYear);
+        $tblPastYearList = Term::useService()->getYearByName($PastDisplayYear);
+        $Content['SchoolYear']['Current'] = $CurrentDisplayYear;
+        $Content['SchoolYear']['Past'] = $PastDisplayYear;
+        $Content['Year']['Current'] = $currentYear;
     }
 
     /**

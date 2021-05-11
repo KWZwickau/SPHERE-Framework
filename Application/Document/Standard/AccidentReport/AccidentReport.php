@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Document\Standard\AccidentReport;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -49,9 +50,7 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Sup;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -126,16 +125,6 @@ class AccidentReport extends Extension
             }
         }
 
-        $YearString = '(SJ ';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $YearString .= current($tblYearList)->getYear();
-        } else {
-            $YearString .= new ToolTip(new Danger((new \DateTime())->format('Y')),
-                'Kein Schuljahr mit aktuellem Zeitraum');
-        }
-        $YearString .= ')';
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -147,7 +136,7 @@ class AccidentReport extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse '.$YearString,
+                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
@@ -183,7 +172,7 @@ class AccidentReport extends Extension
         $Global->POST['Data']['TargetAddressCity'] = '01651 Meißen';
         if ($tblPerson) {
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
-            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
 
             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
                 if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
@@ -298,7 +287,7 @@ class AccidentReport extends Extension
                     $EntryDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['SchoolEntry'] = $EntryDate;
                     if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new \DateTime($EntryDate));
+                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
                         if ($tblYearList) {
                             foreach ($tblYearList as $tblYear) {
                                 $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
@@ -601,7 +590,7 @@ class AccidentReport extends Extension
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentDate]',
-                                                            (new \DateTime())->format('d.m.Y'),
+                                                            (new DateTime())->format('d.m.Y'),
                                                             new Sup(12).' Datum des Unfalls')
                                                         , 3),
                                                     new LayoutColumn(
@@ -673,7 +662,7 @@ class AccidentReport extends Extension
                                                         , 6),
                                                     new LayoutColumn(
                                                         new TextField('Data[BreakDate]',
-                                                            (new \DateTime())->format('d.m.Y'),
+                                                            (new DateTime())->format('d.m.Y'),
                                                             'Datum der Unterbrechung')
                                                         , 3),
                                                     new LayoutColumn(
@@ -698,7 +687,7 @@ class AccidentReport extends Extension
                                                         , 9),
                                                     new LayoutColumn(
                                                         new TextField('Data[ReturnDate]',
-                                                            (new \DateTime())->format('d.m.Y'),
+                                                            (new DateTime())->format('d.m.Y'),
                                                             new Sup(18).' Datum der Wiederaufnahme')
                                                         , 3),
                                                 )),
@@ -752,7 +741,7 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new TextField('Data[Date]', (new \DateTime())->format('d.m.Y'),
+                                                        new TextField('Data[Date]', (new DateTime())->format('d.m.Y'),
                                                             'Datum')
                                                         , 3),
                                                     new LayoutColumn(

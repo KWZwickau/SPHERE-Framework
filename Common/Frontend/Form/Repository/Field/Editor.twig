@@ -1,0 +1,25 @@
+<div class="form-group {{ ElementGroup }}">
+    <label for="TextArea-{{ ElementHash }}" style="display: none"></label>
+    <textarea id="TextArea-{{ ElementHash }}" name="{{ ElementName }}"
+              class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}{% if( DisableLineFeed is not empty ) %} DisableLineFeed{% endif %}"
+              placeholder="{{ ElementPlaceholder }}"
+              rows="{{ ElementRows }}"
+        {% if( Disabled is not empty ) %}disabled{% endif %}
+        {% if( Required is not empty ) %}required{% endif %}
+        {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}
+{#        {% if( MaxLength is not empty ) %}maxlength="{{ MaxLength }}"{% endif %}#}
+    >{{ ElementValue }}</textarea>
+
+    <div class="input-group">
+        <input type="hidden" style="display:none; height: 0;" name="htmlEnabledSpecific_Tags[]" value="{{ ElementName }}"/>
+    </div>
+    <script type="text/javascript">
+        //noinspection JSUnresolvedFunction
+        executeScript(function () {
+            Client.Use('ModTinyMCE', function () {
+                jQuery('textarea#TextArea-{{ ElementHash }}').ModTinyMCE({{ ElementOption }});
+            });
+        });
+    </script>
+
+</div>

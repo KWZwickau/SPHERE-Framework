@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -17,6 +18,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -58,10 +60,21 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!$Confirm) {
                     // Personen (Schüler) dürfen aktuell nicht gelöscht werden wenn sie Zensuren oder Zeugnisse besitzen SSW-115
                     $canRemove = true;
+                    $descriptionList = array();
                     if (($tblGradeAll = Gradebook::useService()->getGradeAllBy($tblPerson))) {
                         $canRemove = false;
+                        $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.';
                     } elseif (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
                         $canRemove = false;
+                        $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.';
+                    }
+                    // Person mit Account darf nicht gelöscht werden
+                    if (($AccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                        foreach($AccountList as &$Account){
+                            $Account = $Account->getUsername();
+                        }
+                        $canRemove = false;
+                        $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da ein Account für diese Person Exisitert ('.implode(',', $AccountList).')';
                     }
 
                     if ($canRemove) {
@@ -83,8 +96,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $Stage->setContent(
                         ($canRemove
                             ? ''
-                            : new \SPHERE\Common\Frontend\Message\Repository\Warning(
-                                'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.'
+                            : new Warning(
+                                implode('<br/>', $descriptionList)
                             )
                         )
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
