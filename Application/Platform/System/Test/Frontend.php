@@ -7,14 +7,6 @@ use RecursiveIteratorIterator;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
-use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
-use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
-use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\FieldValueReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
@@ -23,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Success;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\Editor;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
@@ -33,17 +26,15 @@ use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextCaptcha;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title as TitleForm;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
-use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -68,11 +59,9 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
-use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -175,6 +164,25 @@ class Frontend extends Extension implements IFrontendInterface
                 '3' => array('Check' => new CheckBox('ToggleTable3', 'C3', 3),),
                 '4' => array('Check' => new CheckBox('ToggleTable4', 'C4', 4),),
             ), null, array('Check' => 'CheckBox'), null);
+
+        // Editor Beispiel
+        if(!isset($_POST['Feld1'])){
+            $_POST['Feld1'] = '<strong>Wert 1</strong>';
+        }
+        if(!isset($_POST['Feld2'])){
+            $_POST['Feld2'] = '<strong>Wert 2</strong>';
+        }
+        if(!isset($_POST['Feld3'])){
+            $_POST['Feld3'] = '<strong>Wert 3</strong>';
+        }
+        if(!isset($_POST['Feld4'])){
+            $_POST['Feld4'] = '<strong>Wert 4</strong>';
+        }
+
+        $TableEditorList = array();
+        $Editor = array('Description' => 'Inputfelder' ,'first' => new Editor('Feld1'), 'second' => new Editor('Feld2'), 'third' => new TextArea('Feld3'), 'fourth' => new TextField('Feld4'));$TableEditorList[] = $Editor;
+        $Editor = array('Description' => 'Feldobjekt' ,'first' => 'Editor', 'second' => 'Editor 2', 'third' => 'Text Area', 'fourth' => 'Text Filed');$TableEditorList[] = $Editor;
+        $Editor = array('Description' => 'Verhalten' ,'first' => 'behält HTML Tags', 'second' => 'behält HTML Tags', 'third' => 'trimt die HTML Tags weg', 'fourth' => 'trimt die HTML Tags weg');$TableEditorList[] = $Editor;
 
         $Stage->setContent(
             (new Form(
@@ -305,7 +313,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            new Aspect('Aspect')
 //                        ,3),
 //                    ) )
-                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Form-Title')),
+                ), new TitleForm('Form-Title')),
                 array(
                     new Primary('Primary'),
                     new Danger('Danger'),
@@ -314,6 +322,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new BtnStandard('Standard')
                 )
             ))->setConfirm('Wirklich?')
+            .new Form(new FormGroup(new FormRow(array(new FormColumn(
+                new TableData($TableEditorList, null,
+                    array(
+                        'Description' => 'Zeilenbeschreibung',
+                        'first' => 'Spalte 1',
+                        'second' => 'Spalte 2',
+                        'third' => 'Spalte 3',
+                        'fourth' => 'Spalte 4'),
+                    false
+                )),
+            )), new TitleForm('Editor und das '.htmlspecialchars('<tag>').' verhalten mit POST/REQUEST')), new Primary('Abschicken'))
             .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
@@ -438,242 +457,77 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendUpload($FileUpload)
+    public function frontendTestSite()
     {
 
-        $Stage = new Stage('Upload', 'Form-Test');
+//        Debugger::screenDump($_POST);
+        $Stage = new Stage('Test Site', '');
 
-//        $DataList = scandir( __DIR__ );
-//
-//        foreach ($DataList as $Key => &$Data) {
-//            if (strtolower( substr( $Data, -3 ) ) != 'png'
-//                && strtolower( substr( $Data, -3 ) ) != 'jpg'
-//                && strtolower( substr( $Data, -3 ) ) != 'gif'
-//                && strtolower( substr( $Data, -4 ) ) != 'jpeg'
-//            ) {
-//                unset( $DataList[array_search( $Data, $DataList )] );
-//            }
-//        }
-        $PictureList = Test::useService()->getTestPictureAll();
-
-//        $Source = stream_get_contents($PictureList[0]->getImgData());
-
-        //print '<img src="data:image/jpeg;base64,'.base64_encode($Source).'" class="img-responsive"/>';
-
-//        $PictureList = array_values( $DataList );
-
-        $Stage->setContent(
-            Test::useService()->uploadNow(
-                (new Form(
-                    new FormGroup(
-                        new FormRow(array(
-                            new FormColumn(array(
-                                new FileUpload('FileUpload', 'FileUpload', 'FileUpload')
-                            ), 8)
-                        ))
-                    )
-                ))->appendFormButton(new Primary('Hochladen', new Upload())), $FileUpload)
-            .self::pictureShow($PictureList)
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @param $PictureList
-     *
-     * @return Layout
-     */
-    public function pictureShow($PictureList)
-    {
-
-        if (!empty( $PictureList )) {
-//            $this->getDebugger()->screenDump( $PictureList );
-//            /** @var TblTestPicture $Picture */
-//            foreach ($PictureList as $Key => &$Picture) {
-////                $this->getDebugger()->screenDump($Picture);
-//                $Picture = new LayoutColumn(array(
-////                    '<div id="Thumb-'.$Key.'"></div>
-////                    <script type="text/javascript">
-////                        Client.Use("ModAlways", function()
-////                        {
-////                            jQuery("div#Thumb-'.$Key.'").load("/Api/Test/ShowThumbnail?Id='.$Picture->getId().'");
-////                        });
-////                    </script>'
-//                    (new \SPHERE\Application\Api\Test\Frontend())->showThumbnail($Picture->getId())
-//                ), 6);
-//            }
-//
-//            return new Layout(
-//                new LayoutGroup(new LayoutRow($PictureList))
-//            );
-            /** @var TblTestPicture $Picture */
-            foreach ((array)$PictureList as $Index => $Picture) {
-                $PictureList[$Index] = new LayoutColumn(array(
-                    (new \SPHERE\Application\Api\Test\Frontend())->showThumbnail($Picture->getId(), true)
-                ), 3);
-            }
-        } else {
-            $PictureList = array(
-                new LayoutColumn(
-                    new Warning('Keine Bilder hinterlegt')
-                )
-            );
+        // Editor Beispiel
+        if(!isset($_POST['Feld1'])){
+            $_POST['Feld1'] = '<strong>Wert 1</strong>';
+        }
+        if(!isset($_POST['Ebene1']['Feld2'])){
+            $_POST['Ebene1']['Feld2'] = '<em><strong>Wert 2</strong></em>';
+        }
+        if(!isset($_POST['Ebene1']['Ebene2']['Feld3'])){
+            $_POST['Ebene1']['Ebene2']['Feld3'] = '<span style="text-decoration: underline;"><strong>Wert 3</strong></span>';
+        }
+        if(!isset($_POST['Feld4'])){
+            $_POST['Feld4'] = '<strong>Wert 4</strong>';
+        }
+        if(!isset($_POST['Feld5'])){
+            $_POST['Feld5'] = '<strong>Wert 5</strong>';
+        }
+        if(!isset($_POST['Data']['Feld6'])){
+            $_POST['Data']['Feld6'] = '<strong>Wert 6</strong>';
         }
 
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $Picture
-         */
-        foreach ($PictureList as $Picture) {
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($Picture);
-            $LayoutRowCount++;
-        }
-        return new Layout(new LayoutGroup($LayoutRowList));
-
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendPictureDeleteCheck($Id)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Bild');
-        $Stage->setDescription('wirklich entfernen?');
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                            new LayoutColumn(array(
-                                (new \SPHERE\Application\Api\Test\Frontend())->showThumbnail($Id)
-                            ), 4),
-                            new LayoutColumn(array(
-                                new \SPHERE\Common\Frontend\Message\Repository\Warning('Soll das Bild wirklich gelöscht werden?')
-                            ,
-                                new Standard('Löschen', '/Platform/System/Test/Upload/Delete', new Ok(),
-                                    array('Id' => $Id))
-                            ,
-                                new Standard('Abbrechen', '/Platform/System/Test/Upload', new Disable())
-                            ), 8)
-                        )
-                    ))
-            )
+        $TableEditorList = array();
+        $Editor = array(
+            'Description' => 'Inputfelder',
+            'first' => new Editor('Feld1'),
+            'second' => new Editor('Ebene1[Feld2]'),
+            'third' => new Editor('Ebene1[Ebene2][Feld3]'),
+            'fourth' => new TextArea('Feld4'),
+            'fifth' => new TextField('Feld5'),
+            'sixth' => new TextField('Data[Feld6]')
         );
-        return $Stage;
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendPictureDelete($Id)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Bild');
-        $Stage->setDescription('entfernen');
-
-        $tblTestPicture = Test::useService()->getTestPictureById($Id);
-        $Stage->setContent(Test::useService()->deleteTblTestPicture($tblTestPicture));
-
-        return $Stage;
-    }
-
-    public function frontendSandbox()
-    {
-//        $this->getCache(new TwigHandler())->clearCache();
-
-        $Stage = new Stage('SandBox');
-
-//        $Stage->setContent( $this->getTemplate( __DIR__.'/Test.twig' ) );
-
-        $R1 = new ModalReceiver();
-        $R2 = new FieldValueReceiver( (new NumberField( 'NUFF' ))->setDefaultValue(9));
-        $R3 = new BlockReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':/' ));
-        $R4 = new InlineReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':P' ));
-
-        $P = new Pipeline();
-        $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-        $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
-
-        $P->appendEmitter($E2 = new ClientEmitter($R2, 0));
-        $P->appendEmitter($E4 = new ClientEmitter(array($R1, $R4), new Info(':)')));
-
-        $P->appendEmitter($E3 = new ServerEmitter(array($R4, $R3),
-            new Route('SPHERE\Application\Api\Corporation/Similar')));
-        $E3->setGetPayload(array(
-            'MethodName' => 'ajaxContent'
-        ));
-        $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-        $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
-
-        $P->appendEmitter($E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')));
-        $E1->setGetPayload(array(
-            'MethodName' => 'ajaxLayoutSimilarPerson'
-//            'MethodName' => 'ajaxFormDingens'
-        ));
-        $E1->setPostPayload(array(
-            'Reload' => (string)$R1->getIdentifier(),
-            'E4' => (string)$R4->getIdentifier()
-        ));
-        $E1->setLoadingMessage('Bitte warten', 'Inhalte werden geladen..');
-        $E1->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
-
-        $P2 = new Pipeline();
-        $P2->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-        $P2->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
-
-        $P2->appendEmitter($E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')));
-        $E1->setGetPayload(array(
-            'MethodName' => 'ajaxFormDingens'
-        ));
-
+        $TableEditorList[] = $Editor;
+        $Editor = array('Description' => 'Feldobjekt',
+                        'first' => 'Editor',
+                        'second' => 'Editor 2 Ebenen im POST',
+                        'third' => 'Editor 3 Ebenen im POST',
+                        'fourth' => 'Text Area',
+                        'fifth' => 'Text Filed',
+                        'sixth' => 'Text Filed 2 Ebenen im POST'
+        );
+        $TableEditorList[] = $Editor;
+        $Editor = array('Description' => 'Verhalten',
+                        'first' => 'behält HTML Tags',
+                        'second' => 'behält HTML Tags',
+                        'third' => 'behält HTML Tags',
+                        'fourth' => 'trimt die HTML Tags weg',
+                        'fifth' => 'trimt die HTML Tags weg',
+                        'sixth' => 'trimt die HTML Tags weg'
+        );
+        $TableEditorList[] = $Editor;
 
         $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            (new Standard( 'Call', '#' ))->ajaxPipelineOnClick( $P ),
-                            (new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(array(
-                                            $R2
-                                        ))
-                                    )
-                                )
-                            , new Primary('Ajax-Form?')))->ajaxPipelineOnSubmit( $P2 )->setConfirm('Test with Ajax')
-                        ))
-                    )
-                ),
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            $R1,
-                            $R4
-                        ),4),
-                        new LayoutColumn(
-                            $R2
-                        ,4),
-                        new LayoutColumn(
-                            $R3
-                        ,4)
-                    ))
-                )
-            ))
+            new Form(new FormGroup(new FormRow(array(new FormColumn(
+                new TableData($TableEditorList, null,
+                    array(
+                        'Description' => 'Zeilenbeschreibung',
+                        'first'       => 'Spalte 1',
+                        'second'      => 'Spalte 2',
+                        'third'       => 'Spalte 3',
+                        'fourth'      => 'Spalte 4',
+                        'fifth'       => 'Spalte 5',
+                        'sixth'       => 'Spalte 6'
+                    ),
+                    false
+                )),
+            )), new TitleForm('Editor und das '.htmlspecialchars('<tag>').' verhalten mit POST/REQUEST')), new Primary('Abschicken'))
         );
 
         return $Stage;

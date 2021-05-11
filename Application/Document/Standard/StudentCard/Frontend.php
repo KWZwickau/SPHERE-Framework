@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 27.04.2017
- * Time: 09:38
- */
-
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\ApiDownload;
@@ -72,9 +65,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentCard', new Person(),
             array(),
             'Schülerkartei eines Schülers'));
-        $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
-            array(),
-            'Schülerkarteien einer Klasse'));
+        $Url = $_SERVER['REDIRECT_URL'];
+        if(strpos($Url, '/StudentCard/Division')){
+            $Stage->addButton(new Standard(new Info(new Bold('Klasse')), '/Document/Standard/StudentCard/Division',
+                new PersonGroup(), array(), 'Schülerkarteien einer Klasse'));
+        } else {
+            $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
+                array(), 'Schülerkarteien einer Klasse'));
+        }
 
         return $Stage;
     }
@@ -155,16 +153,25 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = self::setButtonList($Stage);
 
         $tblYear = false;
+        // getYearByNow() korrekt für aktuelles Jahr
         $tblYearList = Term::useService()->getYearByNow();
         if ($YearId) {
             $tblYear = Term::useService()->getYearById($YearId);
-        } elseif (!$IsAllYears && $tblYearList) {
-            $tblYear = end($tblYearList);
+//        } elseif ($IsAllYears && $tblYearList) {
+//            $tblYear = end($tblYearList);
         }
 
         $Route = '/Document/Standard/StudentCard/Division';
         $buttonList = array();
         if ($tblYearList) {
+            if($tblYear || $IsAllYears){
+                $buttonList[] = new Standard('Aktuelles Schuljahr',
+                    $Route, new Edit());
+            } else {
+                $buttonList[] = new Standard(new Info(new Bold('Aktuelles Schuljahr')),
+                    $Route, new Edit());
+            }
+
             /** @var TblYear $tblYearItem */
             foreach ($tblYearList as $tblYearItem) {
                 if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {

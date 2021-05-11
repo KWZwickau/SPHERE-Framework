@@ -33,6 +33,9 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Teacher/Add', __NAMESPACE__.'\Frontend::frontendTeacherAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ClassRepresentative/Add', __NAMESPACE__.'\Frontend::frontendRepresentativeAdd'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Custody/Add', __NAMESPACE__.'\Frontend::frontendCustodyAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

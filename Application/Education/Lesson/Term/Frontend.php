@@ -138,18 +138,18 @@ class Frontend extends Extension implements IFrontendInterface
             $this->addYear($YearList, $i);
         }
 
-        // bereits existierende Schuljahr stehen nicht zur Auswahl
-        if (($tblYearAll = Term::useService()->getYearAll())) {
-            foreach ($tblYearAll as $item) {
-                if (!$tblYear && isset($YearList[$item->getYear()])) {
-                    unset($YearList[$item->getYear()]);
-                }
-            }
-        }
-        // Fügt ein leeres Element hinzu (sonst Fehlermeldung)
-        if(count($YearList) <= 1){
-            $YearList[] = '';
-        }
+//        // bereits existierende Schuljahr stehen nicht zur Auswahl
+//        if (($tblYearAll = Term::useService()->getYearAll())) {
+//            foreach ($tblYearAll as $item) {
+//                if (!$tblYear && isset($YearList[$item->getYear()])) {
+//                    unset($YearList[$item->getYear()]);
+//                }
+//            }
+//        }
+//        // Fügt ein leeres Element hinzu (sonst Fehlermeldung)
+//        if(count($YearList) <= 1){
+//            $YearList[] = '';
+//        }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Year']) && $tblYear) {

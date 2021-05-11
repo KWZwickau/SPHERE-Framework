@@ -818,6 +818,19 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $Error = true;
         }
 
+        if (isset($DebtorSelection['FromDate'] ) && !empty($DebtorSelection['FromDate'])
+            && isset($DebtorSelection['ToDate'] ) && !empty($DebtorSelection['ToDate'])
+        ) {
+            $entryDate = new DateTime($DebtorSelection['FromDate']);
+            $exitDate = new DateTime($DebtorSelection['ToDate']);
+
+            if ($entryDate > $exitDate) {
+                $form->setError('DebtorSelection[ToDate]', 'Die "Beitragspflicht bis" darf nicht kleiner sein, als die "Beitragspflicht ab".');
+
+                $Error = true;
+            }
+        }
+
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
             $IsSepaAccountNeed = false;
             if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){

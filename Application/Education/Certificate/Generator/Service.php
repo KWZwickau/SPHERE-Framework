@@ -21,6 +21,7 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -473,7 +474,7 @@ class Service extends AbstractService
     public function getFormField()
     {
 
-        return array(
+        $FieldConfiguration = array(
             'Content.Input.Remark'              => 'TextArea',
             'Content.Input.SecondRemark'        => 'TextArea',
             'Content.Input.RemarkWithoutTeam'   => 'TextArea',
@@ -530,6 +531,15 @@ class Service extends AbstractService
             'Content.Input.SkilledWork_GradeText' => 'SelectBox',
             'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
         );
+
+        $Acronym = Account::useService()->getMandantAcronym();
+        if($Acronym == 'EVAB'
+        || $Acronym == 'REF'
+        ){
+            $FieldConfiguration['Content.Input.Remark'] = 'Editor';
+        }
+
+        return $FieldConfiguration;
     }
 
     /**

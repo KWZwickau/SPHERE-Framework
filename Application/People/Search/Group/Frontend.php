@@ -169,10 +169,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tableContent = array_filter($tableContent);
 
-            $YearNow = '';
-            if (($YearList = Term::useService()->getYearByNow())) {
-                 $YearNow = current($YearList)->getYear();
-            }
+            $Date = Term::useService()->getYearString();
+            $YearNow = $Date;
 
             if($tblGroup->getMetaTable() == 'CUSTODY'){
                 if($Acronym == 'ESZC'){

@@ -3,7 +3,6 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
-use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -46,6 +45,8 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -247,6 +248,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                 }
 
+                $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
 
                 $Stage->setContent(
                     new Layout(array(
@@ -258,7 +260,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             Panel::PANEL_TYPE_SUCCESS), 4
                                     ) : ''),
                                 new LayoutColumn(
-                                    new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    new Panel('Klasse', $DivisionPanelContent,
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ),
                                 ($tblDivision->getTypeName() ?
@@ -946,6 +948,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             }
 
+            $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -956,7 +960,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
                             new LayoutColumn(
-                                new Panel('Klasse', (new ClassRegister)->getDivisionString($tblDivision),
+                                new Panel('Klasse', $DivisionPanelContent,
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
                             ($tblDivision->getTypeName() ?
@@ -1638,5 +1642,39 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    private function getDivisionPanelContent(TblDivision $tblDivision)
+    {
+
+        $DivisionPanelContent = new Bold($tblDivision->getDisplayName());
+        $DivisionPanelContent .= '<br/>';
+        if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
+            $TeacherArray = array();
+            foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                if($tblPerson = $tblDivisionTeacher->getServiceTblPerson()){
+                    $TeacherArray[] = $tblPerson->getFullName();
+                }
+            }
+            if(!empty($TeacherArray)){
+                $DivisionPanelContent .= new Bold('Klassenlehrer: ').implode(', ', $TeacherArray);
+                $DivisionPanelContent .= '<br/>';
+            }
+        }
+        if(($tblDivisionRepresentationList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
+            $Representation = array();
+            foreach($tblDivisionRepresentationList as $tblDivisionRepresentation){
+                $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
+                $Description = $tblDivisionRepresentation->getDescription();
+                $Representation[] = $tblRepresentation->getFirstSecondName().' '.$tblRepresentation->getLastName().' '.new Muted($Description);
+            }
+            $DivisionPanelContent .= new Bold('Klassensprecher: ').implode(', ', $Representation);
+        }
+        return $DivisionPanelContent;
     }
 }

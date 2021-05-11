@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Division\Service;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionRepresentative;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
@@ -280,6 +281,18 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
+     * @return false|TblDivisionRepresentative
+     */
+    public function getDivisionRepresentativeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionRepresentative', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
      * @return false|TblSubjectStudent
      */
     public function getSubjectStudentById($Id)
@@ -324,6 +337,24 @@ class Data extends AbstractData
             }
             $EntityList = array_filter($EntityList);
         }
+
+        return empty($EntityList) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionRepresentative[]
+     */
+    public function getDivisionRepresentativeByDivision(TblDivision $tblDivision)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionRepresentative',
+            array(
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
+            )
+        );
 
         return empty($EntityList) ? false : $EntityList;
     }
@@ -1065,6 +1096,33 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param null $Description
+     *
+     * @return null|object|TblDivisionRepresentative
+     */
+    public function addDivisionRepresentative(TblDivision $tblDivision, TblPerson $tblPerson, $Description = null)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionRepresentative')
+            ->findOneBy(array(
+                TblDivisionRepresentative::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                TblDivisionRepresentative::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDivisionRepresentative();
+            $Entity->setTblDivision($tblDivision);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
      * @param bool $HasGrading
@@ -1308,6 +1366,35 @@ class Data extends AbstractData
             ));
         if (null !== $Entity) {
             /** @var TblDivisionCustody $Entity */
+            if ($IsSoftRemove) {
+                $Manager->removeEntity($Entity);
+            } else {
+                $Manager->killEntity($Entity);
+            }
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     *
+     * @return bool
+     */
+    public function removeRepresentativeToDivision(TblDivision $tblDivision, TblPerson $tblPerson, $IsSoftRemove = false)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionRepresentative')
+            ->findOneBy(array(
+                TblDivisionRepresentative::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                TblDivisionRepresentative::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null !== $Entity) {
+            /** @var TblDivisionRepresentative $Entity */
             if ($IsSoftRemove) {
                 $Manager->removeEntity($Entity);
             } else {

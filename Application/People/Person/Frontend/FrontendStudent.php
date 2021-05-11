@@ -112,7 +112,11 @@ class FrontendStudent extends FrontendReadOnly
                     .new External(
                         'Erstellen der Schulbescheinigung', '\Document\Standard\EnrollmentDocument\Fill',
                         new Download(), array('PersonId' => $tblPerson->getId()),
-                        'Erstellen und Herunterladen einer Schulbescheinigung');
+                        'Erstellen und Herunterladen einer Schulbescheinigung')
+                    .new External(
+                        'Erstellen der Schülerüberweisung', '\Document\Standard\StudentTransfer\Fill',
+                        new Download(), array('Id' => $tblPerson->getId()),
+                        'Erstellen und Herunterladen einer Schülerüberweisung ');
             }
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(

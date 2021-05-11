@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -209,8 +210,9 @@ class Service extends AbstractService
             $Form->setError('Year[Year]', 'Bitte geben sie ein Jahr an');
             $Error = true;
         } else {
-            if (($tblYear = Term::useService()->checkYearExist($Year['Year']))) {
-                $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits.');
+            if (($tblYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']))) {
+                $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits');
+                $Form->setError('Year[Description]', 'Ändern Sie die Beschreibung um das Jahr wiederholt speichern zu können');
                 $Error = true;
             }
         }
@@ -229,14 +231,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Year
+     * @param string $Year
+     * @param string $Description
      *
      * @return false|TblYear
      */
-    public function checkYearExist($Year)
+    public function checkYearExist($Year, $Description = '')
     {
 
-        return (new Data($this->getBinding()))->checkYearExist($Year);
+        return (new Data($this->getBinding()))->checkYearExist($Year, $Description);
     }
 
     /**
@@ -351,6 +354,57 @@ class Service extends AbstractService
     }
 
     /**
+     * @return string
+     */
+    public function getYearString()
+    {
+        $now = new DateTime();
+        $YearString = (int)$now->format('Y');
+        $YearStringAdd = (int)substr($YearString, 2, 2);
+        $YearStringAdd++;
+        // Standard Schuljahreswechsel -> Jahr wird ein hochgezählt
+        if($now < new DateTime('01.08.'.$YearString)){
+            $YearString--;
+            $YearStringAdd--;
+        }
+        $YearString .= '/'.$YearStringAdd;
+        return $YearString;
+    }
+
+    /**
+     * @return array
+     * Array with 'Key' <br/>
+     * 'PastYear' -> 2020 <br/>
+     * 'PastDisplayYear' -> 2020/21 <br/>
+     * 'CurrentYear' -> 2021 <br/>
+     * 'CurrentDisplayYear' -> 2021/22
+     */
+    public function getYearStringAsArray()
+    {
+        $Date = array();
+        $now = new DateTime();
+        $YearString = (int)$now->format('Y');
+        $YearStringAdd = (int)substr($YearString, 2, 2);
+        $YearStringAdd++;
+        // Standard Schuljahreswechsel -> Jahr wird ein hochgezählt
+        if($now < new DateTime('01.08.'.$YearString)){
+            $YearString--;
+            $YearStringAdd--;
+        }
+
+        $PastYear = $YearString - 1;
+        $PastDisplayYear = ($YearString - 1).'/'.($YearStringAdd - 1);
+        $Date['PastYear'] = $PastYear;
+        $Date['PastDisplayYear'] = $PastDisplayYear;
+
+        $Date['CurrentYear'] = $YearString;
+        $YearString .= '/'.$YearStringAdd;
+        $Date['CurrentDisplayYear'] = $YearString;
+
+        return $Date;
+    }
+
+    /**
      * @param $tblYear
      * @param $tblPeriod
      *
@@ -427,6 +481,19 @@ class Service extends AbstractService
             $Form->setError('Period[To]', 'Bitte geben Sie Ende-Datum an');
             $Error = true;
         }
+
+        if (!$Error) {
+            $dateFrom = new DateTime($Period['From']);
+            $dateTo = new DateTime($Period['To']);
+
+            if ($dateFrom > $dateTo) {
+                $Form->setError('Period[To]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
+        }
+
         $tblPeriod = $this->getPeriodByName($Period['Name']);
         if (!empty($tblPeriod)) {
             if ($tblPeriod->getFromDate() === $Period['From']
@@ -469,14 +536,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param TblYear $tblYear
+     * @param IFormInterface|null $Form
+     * @param TblYear             $tblYear
      * @param                     $Year
      *
      * @return IFormInterface|string
      */
     public function changeYear(
-        IFormInterface &$Stage = null,
+        IFormInterface &$Form,
         TblYear $tblYear,
         $Year
     ) {
@@ -486,18 +553,19 @@ class Service extends AbstractService
          */
         if (null === $Year
         ) {
-            return $Stage;
+            return $Form;
         }
 
         $Error = false;
 
         if (isset($Year['Year']) && empty($Year['Year'])) {
-            $Stage->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
+            $Form->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
             $Error = true;
         } else {
-            if (($CheckYear = Term::useService()->checkYearExist($Year['Year']))) {
+            if (($CheckYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']))) {
                 if ($tblYear->getId() !== $CheckYear->getId()) {
-                    $Stage->setError('Year[Year]', 'Dieses Schuljahr existiert bereits.');
+                    $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits');
+                    $Form->setError('Year[Description]', 'Ändern Sie die Beschreibung um das Jahr wiederholt speichern zu können');
                     $Error = true;
                 }
             }
@@ -510,14 +578,14 @@ class Service extends AbstractService
                 $Year['Description']
             )
             ) {
-                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                $Form .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
                     . new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_SUCCESS);
             } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                $Form .= new Danger('Änderungen konnten nicht gespeichert werden')
                     . new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
             };
         }
-        return $Stage;
+        return $Form;
     }
 
     /**
@@ -554,6 +622,18 @@ class Service extends AbstractService
         if (isset($Period['To']) && empty($Period['To'])) {
             $Stage->setError('Period[To]', 'Bitte geben Sie ein Enddatum an');
             $Error = true;
+        }
+
+        if (!$Error) {
+            $dateFrom = new DateTime($Period['From']);
+            $dateTo = new DateTime($Period['To']);
+
+            if ($dateFrom > $dateTo) {
+                $Stage->setError('Period[To]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -837,7 +917,18 @@ class Service extends AbstractService
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
+        } elseif (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+            $dateFrom = new DateTime($Data['FromDate']);
+            $dateTo = new DateTime($Data['ToDate']);
+
+            if ($dateFrom > $dateTo) {
+                $Stage->setError('Data[ToDate]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
         }
+
         if (isset($Data['Name']) && empty($Data['Name'])) {
             $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
@@ -885,7 +976,18 @@ class Service extends AbstractService
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
+        } elseif (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+            $dateFrom = new DateTime($Data['FromDate']);
+            $dateTo = new DateTime($Data['ToDate']);
+
+            if ($dateFrom > $dateTo) {
+                $Stage->setError('Data[ToDate]', new Exclamation()
+                    . ' Das "Datum bis" darf nicht kleiner sein, als das "Datum von".');
+
+                $Error = true;
+            }
         }
+
         if (isset($Data['Name']) && empty($Data['Name'])) {
             $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;

@@ -402,15 +402,17 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Year
+     * @param string $Year
+     * @param string $Description
      *
      * @return false|TblYear
      */
-    public function checkYearExist($Year)
+    public function checkYearExist($Year, $Description = '')
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
-            TblYear::ATTR_YEAR => $Year
+            TblYear::ATTR_YEAR => $Year,
+            TblYear::ATTR_DESCRIPTION => $Description
         ));
 
     }

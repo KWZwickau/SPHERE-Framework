@@ -642,18 +642,20 @@ class Service extends AbstractService
 
 
     /**
-     * @param string           $Username
-     * @param string           $Password
-     * @param null|TblToken    $tblToken
+     * @param string $Username
+     * @param string $Password
+     * @param null|TblToken $tblToken
      * @param null|TblConsumer $tblConsumer
-     * @param bool             $SaveInitialPW
+     * @param bool $SaveInitialPW
+     * @param bool $isAuthenticatorApp
      *
      * @return TblAccount
      */
-    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null, $SaveInitialPW = false)
-    {
+    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null
+        , $SaveInitialPW = false, $isAuthenticatorApp = false
+    ) {
 
-        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer);
+        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer, $isAuthenticatorApp);
         if($SaveInitialPW){
             (new Data($this->getBinding()))->createAccountInitial($tblAccount);
         }
@@ -982,5 +984,16 @@ class Service extends AbstractService
     public function changeUserAlias(TblAccount $tblAccount, $userAlias)
     {
         return (new Data($this->getBinding()))->changeUserAlias($tblAccount, $userAlias);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $secret
+     *
+     * @return bool
+     */
+    public function changeAuthenticatorAppSecret(TblAccount $tblAccount, $secret)
+    {
+        return (new Data($this->getBinding()))->changeAuthenticatorAppSecret($tblAccount, $secret);
     }
 }

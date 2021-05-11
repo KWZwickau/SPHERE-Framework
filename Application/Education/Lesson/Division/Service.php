@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionRepresentative;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
@@ -30,6 +31,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -677,6 +679,22 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     *
+     * @return bool
+     */
+    public function removeRepresentativeToDivision(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        $IsSoftRemove = false
+    ) {
+
+        return (new Data($this->getBinding()))->removeRepresentativeToDivision($tblDivision, $tblPerson, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      *
      * @return string
@@ -728,6 +746,36 @@ class Service extends AbstractService
             }
             return (!empty($resultList) ? $resultList : false);
         }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionRepresentative[]
+     */
+    public function getDivisionRepresentativeByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionRepresentativeByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblPerson[]
+     */
+    public function getRepresentativePersonAllByDivision(TblDivision $tblDivision)
+    {
+
+        $tblPersonList = array();
+        if(($tblDivisionRepresentativeList = (new Data($this->getBinding()))->getDivisionRepresentativeByDivision($tblDivision))){
+            foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative){
+                if(($tblPerson = $tblDivisionRepresentative->getServiceTblPerson())){
+                    $tblPersonList[] = $tblPerson;
+                }
+            }
+        }
+        return (!empty($tblPersonList) ? $tblPersonList : false);
     }
 
     /**
@@ -797,6 +845,23 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->addDivisionCustody($tblDivision, $tblPerson, $Description);
+
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param             $Description
+     *
+     * @return null|TblDivisionRepresentative
+     */
+    public function addDivisionRepresentative(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        $Description
+    ) {
+
+        return (new Data($this->getBinding()))->addDivisionRepresentative($tblDivision, $tblPerson, $Description);
 
     }
 
@@ -2535,25 +2600,37 @@ class Service extends AbstractService
     /**
      * @param TblYear $tblYear
      *
-     * @return int
+     * @return array
      */
     public function getStudentCountByYear(TblYear $tblYear)
     {
 
+        $Calculation = array();
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $countStudentsByYear = 0;
+        $PersonExcludeStudent = array();
         if (($tblDivisionList = $this->getDivisionAllByYear($tblYear))) {
             foreach ($tblDivisionList as $tblDivision) {
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && !$tblLevel->getIsChecked()
                 ) {
-                    if (($tblStudentList = $this->getStudentAllByDivision($tblDivision))) {
-                        $countStudentsByYear += count ($tblStudentList);
+                    if (($tblPersonList = $this->getStudentAllByDivision($tblDivision))) {
+                        // Anzahl Schüler in Klassen
+                        $countStudentsByYear += count ($tblPersonList);
+                        // Suchen nach Personen die keine Schüler mehr sind
+                        foreach($tblPersonList as $tblPerson){
+                            if(!Group::useService()->existsGroupPerson($tblGroup, $tblPerson)){
+                                $PersonExcludeStudent[] = 'Klasse: '.$tblDivision->getDisplayName().' '.new Bold($tblPerson->getLastFirstName());
+                            }
+                        }
                     }
                 }
             }
         }
+        $Calculation['countStudentsByYear'] = $countStudentsByYear;
+        $Calculation['PersonExcludeStudent'] = $PersonExcludeStudent;
 
-        return $countStudentsByYear;
+        return $Calculation;
     }
 
     /**

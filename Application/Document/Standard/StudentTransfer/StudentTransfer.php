@@ -38,8 +38,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -109,16 +107,6 @@ class StudentTransfer extends Extension
             }
         }
 
-        $YearString = '(SJ ';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $YearString .= current($tblYearList)->getYear();
-        } else {
-            $YearString .= new ToolTip(new Danger((new DateTime())->format('Y')),
-                'Kein Schuljahr mit aktuellem Zeitraum');
-        }
-        $YearString .= ')';
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -130,7 +118,7 @@ class StudentTransfer extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse '.$YearString,
+                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
@@ -175,7 +163,7 @@ class StudentTransfer extends Extension
                         $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
                         $tblCitySchool = $tblAddressSchool->getTblCity();
                         if ($tblCitySchool) {
-                            $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode().', '.$tblCitySchool->getName();
+                            $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
                         }
                     }
 
@@ -241,25 +229,40 @@ class StudentTransfer extends Extension
                     $LeaveDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['DateUntil'] = $LeaveDate;
                     if(($tblCompanyLeave = $tblStudentTransfer->getServiceTblCompany())){
-                        // Lange Schulnamen (ab 42 Buchstaben) werden auf 2 Zeilen aufgeteilt
-                        if(strlen($tblCompanyLeave->getName()) >= 42){
-                            // Versuch, nach letztem Leerzeichen zu trennen.
-                            $ShortString = substr($tblCompanyLeave->getName(), 0, 41);
-                            $CutPosition = strripos($ShortString, ' ');
-                            if($CutPosition){
-                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, $CutPosition);
-                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), $CutPosition);
-                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
-                            } else {
-                                // trennt Notalls fest
-                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
-                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
-                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
-                            }
-                        } else {
+//                        // Lange Schulnamen (ab 42 Buchstaben) werden auf 2 Zeilen aufgeteilt
+//                        if(strlen($tblCompanyLeave->getName()) >= 42){
+//                            // Versuch, nach letztem Leerzeichen zu trennen.
+//                            $ShortString = substr($tblCompanyLeave->getName(), 0, 41);
+//                            $CutPosition = strripos($ShortString, ' ');
+//                            if($CutPosition){
+//                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, $CutPosition);
+//                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), $CutPosition);
+//                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+//                            } else {
+//                                // trennt Notalls fest
+//                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
+//                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
+//                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+//                            }
+//                        } else {
+
                             $Global->POST['Data']['NewSchool1'] = $tblCompanyLeave->getName();
                             $Global->POST['Data']['NewSchool2'] = $tblCompanyLeave->getExtendedName();
-                        }
+                            if($tblCompanyLeave->getExtendedName()){
+                                $LineCount = 3;
+                            } else {
+                                $LineCount = 2;
+                            }
+                                if(($tblAddressCompany = Address::useService()->getAddressByCompany($tblCompanyLeave))){
+                                    $Global->POST['Data']['NewSchool'.$LineCount++] = $tblAddressCompany->getStreetName().' '.$tblAddressCompany->getStreetNumber();
+                                    if(($tblCityCompany = $tblAddressCompany->getTblCity())){
+                                        $Global->POST['Data']['NewSchool'.$LineCount] = $tblCityCompany->getCode().' '.$tblCityCompany->getDisplayName();
+                                    }
+                                }
+
+
+
+//                        }
                     }
                 }
             }
@@ -441,6 +444,11 @@ class StudentTransfer extends Extension
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[NewSchool3]', '', '')
+                                                        , 6)
+                                                ),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[NewSchool4]', '', '')
                                                         , 6)
                                                 ),
                                             ))

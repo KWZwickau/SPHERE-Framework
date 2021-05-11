@@ -72,7 +72,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $YearId = null;
         if(($tblYearList = Term::useService()->getYearByNow())){
-            $YearId = current($tblYearList)->getId();
+            // Vorauswahl nur wenn das Jahr eindeutig ist
+            if(count($tblYearList) == 1){
+                $YearId = current($tblYearList)->getId();
+            }
         }
 
         if($YearId !== null){
