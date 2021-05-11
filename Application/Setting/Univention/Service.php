@@ -318,7 +318,7 @@ class Service extends AbstractService
         return $UserUniventionList;
     }
 
-    public function getSchulsoftwareUser(TblYear $tblYear, $roleList, $schoolList)
+    public function getSchulsoftwareUser($roleList, $schoolList)
     {
 
         $Acronym = Account::useService()->getMandantAcronym();
