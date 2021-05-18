@@ -987,6 +987,18 @@ abstract class Certificate extends Extension
         }
     }
 
+    /**
+     * @param $personId
+     * @param bool $isSlice
+     * @param array $languagesWithStartLevel
+     * @param string $TextSize
+     * @param false $IsGradeUnderlined
+     * @param false $hasSecondLanguageDiploma
+     * @param false $hasSecondLanguageSecondarySchool
+     * @param string $backgroundColor
+     *
+     * @return Section[]|Slice
+     */
     protected function getSubjectLanesSmall(
         $personId,
         $isSlice = true,
@@ -994,7 +1006,8 @@ abstract class Certificate extends Extension
         $TextSize = '14px',
         $IsGradeUnderlined = false,
         $hasSecondLanguageDiploma = false,
-        $hasSecondLanguageSecondarySchool = false
+        $hasSecondLanguageSecondarySchool = false,
+        $backgroundColor = '#BBB'
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -1271,7 +1284,7 @@ abstract class Certificate extends Extension
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor($backgroundColor)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -2188,11 +2201,17 @@ abstract class Certificate extends Extension
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
      * @param string $MarginTop
+     * @param string $backgroundColor
      *
      * @return Slice
      */
-    protected function getGradeLanesSmall($personId, $TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '10px')
-    {
+    protected function getGradeLanesSmall(
+        $personId,
+        $TextSize = '14px',
+        $IsGradeUnderlined = false,
+        $MarginTop = '10px',
+        $backgroundColor = '#BBB'
+    ) {
 
         $TextSizeSmall = '8px';
         $paddingTopShrinking = '4.5px';
@@ -2257,7 +2276,7 @@ abstract class Certificate extends Extension
                                          &ndash;
                                      {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor($backgroundColor)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Grade['GradeAcronym'] . '"] is not empty) %}

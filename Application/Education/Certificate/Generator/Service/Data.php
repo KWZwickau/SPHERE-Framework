@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataESZC;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEVAMTL;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEVGSM;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEVMO;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEVSC;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEVSR;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataEZSH;
@@ -255,6 +256,9 @@ class Data extends AbstractData
             }
             if ($tblConsumer->getAcronym() == 'EMSP') {
                 IDataEMSP::setCertificateIndividually($this);
+            }
+            if ($tblConsumer->getAcronym() == 'EVMO') {
+                IDataEVMO::setCertificateIndividually($this);
             }
         }
     }
