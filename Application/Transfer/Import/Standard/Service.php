@@ -33,6 +33,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType as TblTypeRelationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -51,6 +52,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -292,6 +294,22 @@ class Service
             $cityCode = $this->getValue('PLZ');
             $tblPerson = Person::useService()->existsPerson($firstName, $lastName, $cityCode);
             if($tblPerson){
+
+                // Schulverlauf aus zweiter Datei KWS
+                if(($tblAccount =  Account::useService()->getAccountBySession())
+                    && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+                    && $tblConsumer->getAcronym() == 'KWS'
+                ){
+                    // division
+                    $divisionString = $this->getValue('Klasse/Kurs');
+                    $schoolType = $this->getValue('Schulart');
+                    $school = $this->getValue('Schule');
+                    $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
+                    $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($this->RunY + 1))).' Schüler '.$tblPerson->getLastFirstName()
+                        .' wurde im Schuljahr '.$YearString.' in Klasse '.$divisionString.' gesetzt';
+                    continue;
+                }
+
                 $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($this->RunY + 1))).' Schüler '.$tblPerson->getLastFirstName()
                     .' wurde nicht hinzugefügt. "bereits vorhanden"';
                 continue;
