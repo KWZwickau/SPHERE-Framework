@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Billing;
 
+use SPHERE\Application\Api\Billing\Accounting\AccountingDownload;
 use SPHERE\Application\Api\Billing\Accounting\ApiBankAccount;
 use SPHERE\Application\Api\Billing\Accounting\ApiBankReference;
 use SPHERE\Application\Api\Billing\Accounting\ApiCauser;
@@ -48,6 +49,7 @@ class Billing implements IApplicationInterface
         ApiBasketVerification::registerApi();
         ApiInvoiceIsPaid::registerApi();
         BalanceDownload::registerModule();
+        AccountingDownload::registerModule();
         ApiSepa::registerApi();
         Sepa::registerModule();
         ApiDocument::registerApi();
