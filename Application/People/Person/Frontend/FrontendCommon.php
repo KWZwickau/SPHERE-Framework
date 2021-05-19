@@ -17,6 +17,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -72,6 +73,7 @@ class FrontendCommon extends FrontendReadOnly
                 $gender = ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
                     ? $tblCommonGender->getName() : '';
 
+                $AuthorizedToCollect = $tblCommonInformation->getAuthorizedToCollect();
                 $nationality = $tblCommonInformation->getNationality();
                 $denomination = $tblCommonInformation->getDenomination();
                 $isAssistance = $tblCommonInformation->isAssistance();
@@ -89,6 +91,7 @@ class FrontendCommon extends FrontendReadOnly
                 $birthday = '';
                 $birthplace = '';
                 $gender = '';
+                $AuthorizedToCollect = '';
 
                 $nationality = '';
                 $denomination = '';
@@ -112,13 +115,18 @@ class FrontendCommon extends FrontendReadOnly
                     self::getLayoutColumnValue($birthplace),
                     self::getLayoutColumnLabel('Konfession'),
                     self::getLayoutColumnValue($denomination),
-                    self::getLayoutColumnLabel('Mitarbeitbereitschaft - Tätigkeiten'),
+//                    self::getLayoutColumnLabel('Mitarbeitbereitschaft - Tätigkeiten'),
+                    self::getLayoutColumnLabel('Mitarbeitb.&nbsp;-&nbsp;Tätigkeiten'),
                     self::getLayoutColumnValue($assistanceActivity),
                 )),
                 new LayoutRow(array(
                     self::getLayoutColumnLabel('Geschlecht'),
                     self::getLayoutColumnValue($gender),
                     self::getLayoutColumnEmpty(8),
+                )),
+                new LayoutRow(array(
+                    self::getLayoutColumnLabel('Abholberechtigte'),
+                    self::getLayoutColumnValue($AuthorizedToCollect, 10),
                 )),
                 new LayoutRow(array(
                     self::getLayoutColumnLabel('Bemerkungen'),
@@ -166,6 +174,10 @@ class FrontendCommon extends FrontendReadOnly
                 }
 
                 if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
+                    $Global->POST['Meta']['Information']['AuthorizedToCollect'] = $tblCommonInformation->getAuthorizedToCollect();
+                    if($tblCommonInformation->getAuthorizedToCollect()){
+                        $Global->POST['Meta']['Information']['CheckAuthorizedToCollect'] = true;
+                    }
                     $Global->POST['Meta']['Information']['Nationality'] = $tblCommonInformation->getNationality();
                     $Global->POST['Meta']['Information']['Denomination'] = $tblCommonInformation->getDenomination();
                     $Global->POST['Meta']['Information']['IsAssistance'] = $tblCommonInformation->isAssistance();
@@ -226,6 +238,30 @@ class FrontendCommon extends FrontendReadOnly
                 ))
             ))
         ));
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param $Meta
+     *
+     * @return bool|string
+     */
+    public function checkInputCommonContent(TblPerson $tblPerson = null, $Meta = array())
+    {
+        $error = false;
+        $form = $this->getEditCommonForm($tblPerson ? $tblPerson : null);
+        if (isset($Meta['Information']['AuthorizedToCollect'] ) && !empty($Meta['Information']['AuthorizedToCollect'])) {
+            if (!isset($Meta['Information']['CheckAuthorizedToCollect'])){
+                $form->setError('Meta[Information][AuthorizedToCollect]', 'Eingabe erfordert Vollmacht');
+                $error = true;
+            }
+        }
+
+        if ($error) {
+            return $this->getEditCommonTitle($tblPerson ? $tblPerson : null)
+                . new Well($form);
+        }
+        return false;
     }
 
     /**
@@ -318,6 +354,14 @@ class FrontendCommon extends FrontendReadOnly
             ), 3),
             new FormColumn(array(
                 new Panel('Sonstiges', array(
+                    (new TextArea('Meta[Information][AuthorizedToCollect]', '', 'Abholberechtigte'.(new CheckBox('Meta[Information][CheckAuthorizedToCollect]', 'schriftliche Vollmacht liegt vor', 1)), null, 2)),// ->setDisabled()
+
+                    // Test Disabled TextArea verändertes Verhalten beim speichern, bei verwendung müsste dies angepasst werden.
+//                    (new TextArea('Meta[Information][AuthorizedToCollect]', '', 'Abholberechtigte'.(new CheckBox('Meta[Information][CheckAuthorizedToCollect]', 'schriftliche Vollmacht liegt vor', 1, array('Meta[Information][AuthorizedToCollect]'))), null, 2))->setDisabled(),// ->setDisabled()
+                // Alternativ Beispiel, Objekte in einem Arraysegment (Error Problematik)
+//                    (new CheckBox('Meta[Information][CheckAuthorizedToCollect]', 'schriftliche Vollmacht liegt vor', 1, array('Meta[Information][AuthorizedToCollect]'))
+//                    .(new TextArea('Meta[Information][AuthorizedToCollect]', '', 'Abholberechtigte', null, 2))), // ->setDisabled()
+
                     new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
                 ), Panel::PANEL_TYPE_INFO)
             ), 3),
