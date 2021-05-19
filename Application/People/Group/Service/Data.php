@@ -43,6 +43,7 @@ class Data extends AbstractData
         $this->createGroup('Institutionen-Ansprechpartner', 'Institutionen Ansprechpartner', '', true, TblGroup::META_TABLE_COMPANY_CONTACT);
         $this->createGroup('Tutoren/Mentoren', '', '', true, TblGroup::META_TABLE_TUDOR);
         $this->createGroup('Beitragszahler', 'Personen, die für die Fakturierung gezogen werden', '', true, TblGroup::META_TABLE_DEBTOR);
+        $this->createGroup('Ehemalige (Archiv)', 'Ehemalige Schüler', '', true, TblGroup::META_TABLE_ARCHIVE);
     }
 
     /**
