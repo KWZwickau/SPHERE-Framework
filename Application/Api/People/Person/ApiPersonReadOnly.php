@@ -271,10 +271,11 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
     /**
      * @param int $PersonId
+     * @param int $AllowEdit
      *
      * @return Pipeline
      */
-    public static function pipelineLoadStudentContent($PersonId)
+    public static function pipelineLoadStudentContent($PersonId, $AllowEdit = 1)
     {
         $pipeline = new Pipeline(false);
 
@@ -283,7 +284,8 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
             self::API_TARGET => 'loadStudentContent',
         ));
         $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'AllowEdit' => $AllowEdit,
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -559,13 +561,14 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public function loadStudentContent($PersonId = null)
+    public function loadStudentContent($PersonId = null, $AllowEdit = 1)
     {
 
-        return FrontendStudent::getStudentContent($PersonId);
+        return FrontendStudent::getStudentContent($PersonId, $AllowEdit);
     }
 
     /**

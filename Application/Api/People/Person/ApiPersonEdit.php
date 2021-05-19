@@ -1232,6 +1232,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         $Meta = $Global->POST['Meta'];
+        if (($form = (new FrontendCommon())->checkInputCommonContent($tblPerson, $Meta))) {
+            // display Errors on form
+            return $form;
+        }
 
         if (Common::useService()->updateMetaService($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())

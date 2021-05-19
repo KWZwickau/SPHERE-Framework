@@ -349,6 +349,10 @@ class LectureshipGateway extends AbstractConverter
           elseif (preg_match('!^([0-9]*?)(-[0-9]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1] ;
             $DivisionName = substr($Match[2], 1); // Minus entfernen
+        } // HOGA (12dGy/- 20)
+          elseif (preg_match('!^([0-9]*?)([a-zA-Z -/_][a-zA-Z0-9 -/_]*?)$!is', $Value, $Match)) {
+            $LevelName = $Match[1];
+            $DivisionName = trim($Match[2]);
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = null;
