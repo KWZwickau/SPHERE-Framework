@@ -960,9 +960,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         ) {
                             foreach ($tblStudentList as $tblPerson) {
                                 if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                    $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
 
                                     $studentTable[$tblPerson->getId()] = array(
-                                        'Number' => count($studentTable) + 1,
+                                        'Number' => (count($studentTable) + 1) . ' '
+                                            . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                                ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                                    'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                                : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                                         'Name' => $tblPerson->getLastFirstName()
                                             . ($tblGroup
                                                 ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
@@ -1123,8 +1128,6 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             }
                                         }
 
-                                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
-                                            $tblPerson);
                                         // Post setzen
                                         if ($Data === null
                                             && $tblPrepareStudent
@@ -1179,7 +1182,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                     $columnDef = array(
                         array(
-                            "width" => "7px",
+                            "width" => "18px",
                             "targets" => 0
                         ),
                         array(
@@ -1484,8 +1487,13 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         ) {
                             foreach ($tblStudentList as $tblPerson) {
                                 if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                    $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
                                     $studentTable[$tblPerson->getId()] = array(
-                                        'Number' => count($studentTable) + 1,
+                                        'Number' => (count($studentTable) + 1) . ' '
+                                            . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                                ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                                    'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                                : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                                         'Name' => $tblPerson->getLastFirstName()
                                             . ($tblGroup
                                                 ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
@@ -1711,7 +1719,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         $Interactive = array(
                             "columnDefs" => array(
                                 array(
-                                    "width" => "7px",
+                                    "width" => "18px",
                                     "targets" => 0
                                 ),
                                 array(
@@ -4103,8 +4111,16 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         }
                                     }
                                 }
+
+                                $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
+
                                 $studentTable[$tblPerson->getId()] = array(
-                                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : (count($studentTable) + 1)
+                                        . ' '
+                                        . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                            ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                                'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                            : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                                     'Name' => ($isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName())
                                         . ($tblGroup
                                             ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
@@ -4139,7 +4155,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     array(
                         "columnDefs" => array(
                             array(
-                                "width" => "7px",
+                                "width" => "18px",
                                 "targets" => 0
                             ),
                             array(
@@ -4353,7 +4369,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
         $columnDef = array(
             array(
-                "width" => "7px",
+                "width" => "18px",
                 "targets" => 0
             ),
             array(
@@ -4622,7 +4638,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         }
 
                         $studentTable[$tblPerson->getId()] = array(
-                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : (count($studentTable) + 1)
+                                . ' '
+                                . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                    ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                        'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                    : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                             'Name' => ($isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName())
                                 . ($tblGroup
                                     ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
