@@ -27,6 +27,7 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -346,9 +347,51 @@ class Service extends AbstractService
         if(!empty($PriceList)){
             foreach($PriceList as $DebtorId => $CauserList) {
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))){
+                    $MailListDebtor = array();
+                    if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPersonDebtor))){
+                        foreach($tblToPersonList as $tblToPerson){
+                            $Type = $tblToPerson->getTblType()->getName();
+                            $MailListDebtor[$Type][] = $tblToPerson->getTblMail()->getAddress();
+                        }
+                    }
+                    $PrivateMailDebtor = '';
+                    $BusinessMailDebtor = '';
+                    if(!empty($MailListDebtor)){
+                        foreach($MailListDebtor as $Type => $AddressList){
+                            if($Type == 'Privat'){
+                                $PrivateMailDebtor = implode('; ', $AddressList);
+                            } elseif($Type == 'Geschäftlich'){
+                                $BusinessMailDebtor = implode('; ', $AddressList);
+                            }
+                        }
+                    }
                     foreach($CauserList as $CauserId => $ItemContent) {
                         if(($tblPersonCauser = Person::useService()->getPersonById($CauserId))){
                             $Item = array();
+
+                            $MailListCauser = array();
+                            if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPersonCauser))){
+                                foreach($tblToPersonList as $tblToPerson){
+                                    $Type = $tblToPerson->getTblType()->getName();
+                                    $MailListCauser[$Type][] = $tblToPerson->getTblMail()->getAddress();
+                                }
+                            }
+                            $PrivateMailCauser = '';
+                            $BusinessMailCauser = '';
+                            if(!empty($MailListCauser)){
+                                foreach($MailListCauser as $Type => $AddressList){
+                                    if($Type == 'Privat'){
+                                        $PrivateMailCauser = implode('; ', $AddressList);
+                                    } elseif($Type == 'Geschäftlich'){
+                                        $BusinessMailCauser = implode('; ', $AddressList);
+                                    }
+                                }
+                            }
+                            $Item['PrivateMailDebtor'] = $PrivateMailDebtor;
+                            $Item['BusinessMailDebtor'] = $BusinessMailDebtor;
+                            $Item['PrivateMailCauser'] = $PrivateMailCauser;
+                            $Item['BusinessMailCauser'] = $BusinessMailCauser;
+
                             $Item['Value'] = '';
                             // Debtor
                             $Item['DebtorSalutation'] = $tblPersonDebtor->getSalutation();
@@ -409,7 +452,11 @@ class Service extends AbstractService
             foreach($tblItemList as $tblItem){
                 $export->setValue($export->getCell($column++, $row), $tblItem->getName());
             }
-            $export->setValue($export->getCell($column, $row), "Gesamt");
+            $export->setValue($export->getCell($column++, $row), "Gesamt");
+            $export->setValue($export->getCell($column++, $row), "E-Mail Bezahler Privat");
+            $export->setValue($export->getCell($column++, $row), "E-Mail Bezahler Geschäftlich");
+            $export->setValue($export->getCell($column++, $row), "E-Mail Verursacher Privat");
+            $export->setValue($export->getCell($column, $row), "E-Mail Verursacher Geschäftlich");
 
             foreach($PersonList as $PersonData) {
                 $column = 0;
@@ -434,7 +481,12 @@ class Service extends AbstractService
                         $export->setValue($export->getCell($column++, $row), '');
                     }
                 }
-                $export->setValue($export->getCell($column, $row), $PersonData['Summary']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Summary']);
+
+                $export->setValue($export->getCell($column++, $row), $PersonData['PrivateMailDebtor']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['BusinessMailDebtor']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['PrivateMailCauser']);
+                $export->setValue($export->getCell($column, $row), $PersonData['BusinessMailCauser']);
             }
 
             //Column width
