@@ -19,6 +19,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -577,9 +578,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     public static function getSelectBoxDebtor(TblPerson $tblPerson)
     {
 
+        $PersonDebtorList = array();
         $SelectBoxFirstDebtorList = array('0' => 'Nicht ausgewählt');
         $SelectBoxDebtorList = array();
-        if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_DEBTOR))){
             if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType))){
                 foreach($tblRelationshipList as $tblRelationship) {
@@ -597,7 +599,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 }
             }
         }
-        if(($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))){
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN))){
             if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType))){
                 foreach($tblRelationshipList as $tblRelationship) {
@@ -614,7 +616,24 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 }
             }
         }
-        if(($tblRelationshipType = Relationship::useService()->getTypeByName('Bevollmächtigt'))){
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED))){
+            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                $tblRelationshipType))){
+                foreach($tblRelationshipList as $tblRelationship) {
+                    if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()){
+                        $DeborNumber = self::getDebtorNumberByPerson($tblPersonRel);
+                        if($DeborNumber){
+                            $SelectBoxFirstDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        } else {
+                            $DeborNumber = self::getDebtorMissingNumber($tblPersonRel);
+                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                        }
+                        $PersonDebtorList[] = $tblPersonRel;
+                    }
+                }
+            }
+        }
+        if(($tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN_SHIP))){
             if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType))){
                 foreach($tblRelationshipList as $tblRelationship) {
