@@ -2783,7 +2783,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             ),
                                             'Zeugnis als Muster herunterladen'))
                                         // Mittelschule Abschlusszeugnis Realschule
-                                        . (($tblCertificate->getCertificate() == 'MsAbsRs'
+                                        . ((strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false
                                             && $tblPrepareStudent
                                             && !$tblPrepareStudent->isApproved())
                                             ? new Standard(
@@ -2809,7 +2809,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
                             // Mittelschule Abschlusszeugnis Realschule
                             if (!($isDiploma && $isMuted)
-                                && $tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
+                                && $tblCertificate && (strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
                                 && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                             ) {
                                 if (!isset($columnTable['DroppedSubjects'])) {
