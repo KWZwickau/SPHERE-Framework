@@ -200,6 +200,7 @@ abstract class Certificate extends Extension
 
         // SSW-1026 schmaler Zeugnisrand und SSW-1037
         if (strpos(get_class($this), 'GymAbitur') !== false
+            || strpos(get_class($this), 'GymAbgSekII') !== false
             || strpos(get_class($this), 'MsAbs') !== false
             || strpos(get_class($this), 'MsAbg') !== false
         ) {

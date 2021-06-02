@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
@@ -283,6 +284,13 @@ class GymAbgSekII extends Certificate
         $padding = '8.5px';
         $padding2 = '7.5px';
 
+        // Extra Fach aus den Einstellungen der Fächer bei den Zeugnisvorlagen
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII'))) {
+            $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, 1, 1);
+        } else {
+            $tblCertificateSubject = false;
+        }
+
         $slice = new Slice();
         $slice
             ->addSection((new Section())
@@ -500,11 +508,12 @@ class GymAbgSekII extends Certificate
             ->addSection($this->setSubjectRow($personId))
             ->addSection($this->setSubjectRow($personId, 'RELIGION'))
             ->addSection($this->setSubjectRow($personId, 'Sport'))
-            ->addSection($this->setSubjectRow($personId))
+            ->addSection($this->setSubjectRow($personId, $tblCertificateSubject && $tblCertificateSubject->getServiceTblSubject()
+                ? $tblCertificateSubject->getServiceTblSubject()->getName() : '&nbsp;'))
             ->addSection($this->setFieldRow())
-            ->addSection($this->setSubjectRow($personId))
-            ->addSection($this->setSubjectRow($personId))
-            ->addSection($this->setSubjectRow($personId, '&nbsp;', false, true))
+            ->addSection($this->setSubjectRow($personId, 'Astronomie'))
+            ->addSection($this->setSubjectRow($personId, 'Informatik'))
+            ->addSection($this->setSubjectRow($personId, 'Philosophie', false, true))
         ;
 
         $pageList[] = (new Page())
@@ -680,6 +689,9 @@ class GymAbgSekII extends Certificate
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('G/R/W');
+            }
         }
 
         $subjectName .= $postFix;
