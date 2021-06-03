@@ -33,6 +33,9 @@ class SDataSecondary
         self::setMsJRs($Data);
         self::setMsAbsHs($Data);
         self::setMsAbsHsQ($Data);
+        self::setMsAbsLernenHs($Data);
+        self::setMsAbsLernenEquatedHs($Data);
+        self::setMsAbsLernen($Data);
         self::setMsAbsRs($Data);
         self::setMsAbg($Data);
         self::setMsAbgLernen($Data);
@@ -727,6 +730,121 @@ class SDataSecondary
             if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
                     $Data->getTblCourseMain());
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Data $Data
+     */
+    private static function setMsAbsLernenHs(Data $Data)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang', 'MsAbsLernenHs');
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6, false);
+            $Data->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
+        }
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
+                    $Data->getTblCourseMain(), false, true);
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Data $Data
+     */
+    private static function setMsAbsLernenEquatedHs(Data $Data)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis',
+            'Förderschwerpunkt Lernen + Hauptschulabschluss gleichgestellten Abschluss', 'MsAbsLernenEquatedHs');
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6, false);
+            $Data->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
+        }
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
+                    $Data->getTblCourseMain(), false, true);
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
+                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Data $Data
+     */
+    private static function setMsAbsLernen(Data $Data)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Abschluss im Förderschwerpunkt Lernen', 'MsAbsLernen');
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+            $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6, false);
+            $Data->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
+        }
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary() && $Data->getTblCourseMain()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
+                    $Data->getTblCourseMain(), false, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
                     if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
