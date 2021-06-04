@@ -312,7 +312,7 @@ abstract class FsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -347,7 +347,7 @@ abstract class FsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -404,7 +404,7 @@ abstract class FsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -650,7 +650,7 @@ abstract class FsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
