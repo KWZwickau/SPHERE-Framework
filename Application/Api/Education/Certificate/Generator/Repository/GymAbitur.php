@@ -439,13 +439,25 @@ class GymAbitur extends Certificate
         if (($tblExtraSubject = Subject::useService()->getSubjectByAcronym('DSW'))) {
             $slice->addSection($this->setSubjectRow($personId, $tblExtraSubject->getName()));
         }
+
+        // Extra Fach aus den Einstellungen der Fächer bei den Zeugnisvorlagen
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbitur'))) {
+            $tblCertificateSubject1 = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, 1, 1);
+            $tblCertificateSubject2 = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, 2, 1);
+        } else {
+            $tblCertificateSubject1 = false;
+            $tblCertificateSubject2 = false;
+        }
+
         $slice
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'Astronomie', false))
             ->addSection($this->setSubjectRow($personId, 'Informatik', false))
             ->addSection($this->setSubjectRow($personId, 'Philosophie', false))
-            ->addSection($this->setSubjectRow($personId, '&nbsp;', false))
-            ->addSection($this->setSubjectRow($personId, '&nbsp;', false, true));
+            ->addSection($this->setSubjectRow($personId, $tblCertificateSubject1 && $tblCertificateSubject1->getServiceTblSubject()
+                ? $tblCertificateSubject1->getServiceTblSubject()->getName() : '&nbsp;', false))
+            ->addSection($this->setSubjectRow($personId, $tblCertificateSubject2 && $tblCertificateSubject2->getServiceTblSubject()
+                ? $tblCertificateSubject2->getServiceTblSubject()->getName() : '&nbsp;', false, true));
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -964,6 +976,9 @@ class GymAbitur extends Certificate
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('G/R/W');
+            }
         }
 
         if (($tblPerson = Person::useService()->getPersonById($personId))

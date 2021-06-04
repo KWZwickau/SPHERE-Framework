@@ -31,6 +31,11 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Education\Certificate\Generator
+ */
 class Service extends AbstractService
 {
 
@@ -698,13 +703,15 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param TblCertificate $tblCertificate
      * @param $Data
+     * @param $Subject
      *
      * @return IFormInterface|string
      */
     public function updateCertificateReferenceForLanguages(
         IFormInterface $Form,
         TblCertificate $tblCertificate,
-        $Data
+        $Data,
+        $Subject
     ) {
 
         /**
@@ -714,22 +721,57 @@ class Service extends AbstractService
             return $Form;
         }
 
-        foreach ($Data as $ranking => $array) {
-            if (($tblCertificateReferenceForLanguages = $this->getCertificateReferenceForLanguagesByCertificateAndRanking($tblCertificate, $ranking))) {
-                (new Data($this->getBinding()))->updateCertificateReferenceForLanguages(
-                    $tblCertificateReferenceForLanguages,
-                    $array['ToLevel10'],
-                    $array['AfterBasicCourse'],
-                    $array['AfterAdvancedCourse']
-                );
-            } else {
-                (new Data($this->getBinding()))->createCertificateReferenceForLanguages(
-                    $tblCertificate,
-                    $ranking,
-                    $array['ToLevel10'],
-                    $array['AfterBasicCourse'],
-                    $array['AfterAdvancedCourse']
-                );
+        // Gemeinsamer Europäischer Referenzrahmen für Sprachen
+        if ($Data) {
+            foreach ($Data as $ranking => $array) {
+                if (($tblCertificateReferenceForLanguages = $this->getCertificateReferenceForLanguagesByCertificateAndRanking($tblCertificate,
+                    $ranking))) {
+                    (new Data($this->getBinding()))->updateCertificateReferenceForLanguages(
+                        $tblCertificateReferenceForLanguages,
+                        $array['ToLevel10'],
+                        $array['AfterBasicCourse'],
+                        $array['AfterAdvancedCourse']
+                    );
+                } else {
+                    (new Data($this->getBinding()))->createCertificateReferenceForLanguages(
+                        $tblCertificate,
+                        $ranking,
+                        $array['ToLevel10'],
+                        $array['AfterBasicCourse'],
+                        $array['AfterAdvancedCourse']
+                    );
+                }
+            }
+        }
+
+        // Zusätzliche Fächer
+        if ($Subject) {
+            // Fach-Noten
+            foreach ($Subject as $LaneIndex => $FieldList) {
+                foreach ($FieldList as $LaneRanking => $Field) {
+                    if (($tblSubject = Subject::useService()->getSubjectById($Field['Subject']))) {
+                        $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
+                            $tblCertificate, $LaneIndex, $LaneRanking
+                        );
+                        if ($tblCertificateSubject) {
+                            // Update
+                            (new Data($this->getBinding()))->updateCertificateSubject(
+                                $tblCertificateSubject,
+                                $tblSubject,
+                                isset($Field['IsEssential'])
+                            );
+                        } else {
+                            // Create
+                            (new Data($this->getBinding()))->createCertificateSubject(
+                                $tblCertificate,
+                                $LaneIndex,
+                                $LaneRanking,
+                                $tblSubject,
+                                isset($Field['IsEssential'])
+                            );
+                        }
+                    }
+                }
             }
         }
 

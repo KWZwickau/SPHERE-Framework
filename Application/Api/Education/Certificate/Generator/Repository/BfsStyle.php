@@ -207,7 +207,7 @@ abstract class BfsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -242,7 +242,7 @@ abstract class BfsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -298,7 +298,7 @@ abstract class BfsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
@@ -421,7 +421,7 @@ abstract class BfsStyle extends Certificate
                 , '35%'
             )
             ->addElementColumn((new Element())
-                ->setContent('&nbsp')
+                ->setContent('&nbsp;')
                 , '30%'
             )
             ->addElementColumn((new Element())
