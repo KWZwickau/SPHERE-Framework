@@ -4000,8 +4000,9 @@ class Service extends AbstractService
                                 $tblPrepareAdditionalGradeType,
                                 $ranking
                             ))) {
-                                (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                (new Data($this->getBinding()))->updatePrepareAdditionalGradeAndSubject(
                                     $tblPrepareAdditionalGrade,
+                                    $tblSubject,
                                     $value
                                 );
                             } else {
