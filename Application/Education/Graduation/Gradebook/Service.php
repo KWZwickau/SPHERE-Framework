@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -231,7 +232,7 @@ class Service extends ServiceScoreRule
      *
      * @return IFormInterface|Redirect
      */
-    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null, $BasicRoute)
+    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null, $BasicRoute = '')
     {
 
         /**
@@ -378,7 +379,7 @@ class Service extends ServiceScoreRule
         IFormInterface $Stage = null,
         $TestId = null,
         $Grade = null,
-        $BasicRoute,
+        $BasicRoute = '',
         TblScoreType $tblScoreType = null,
         $studentTestList = null,
         TblTest $tblNextTest = null
@@ -782,26 +783,26 @@ class Service extends ServiceScoreRule
         // entfernen aller Noten nach dem Stichtag (bei Stichtagsnotenauftägen)
         if ($taskDate && $tblGradeList) {
             $tempGradeList = array();
-            $taskDate = new \DateTime($taskDate);
+            $taskDate = new DateTime($taskDate);
             foreach ($tblGradeList as $item) {
                 if ($item->getServiceTblTest()) {
                     // Zensuren-Datum
                     if ($item->getServiceTblTest()->isContinues() && $item->getDate()) {
-                        $gradeDate = new \DateTime($item->getDate());
+                        $gradeDate = new DateTime($item->getDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
                         }
                     } // Enddatum des Tests, falls vorhanden
                     elseif ($item->getServiceTblTest()->isContinues() && $item->getServiceTblTest()->getFinishDate()) {
-                        $gradeDate = new \DateTime($item->getServiceTblTest()->getFinishDate());
+                        $gradeDate = new DateTime($item->getServiceTblTest()->getFinishDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
                         }
                     } // Test-Datum
                     elseif ($item->getServiceTblTest()->getDate()) {
-                        $testDate = new \DateTime($item->getServiceTblTest()->getDate());
+                        $testDate = new DateTime($item->getServiceTblTest()->getDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
@@ -1272,8 +1273,14 @@ class Service extends ServiceScoreRule
         /**
          * Skip to Frontend
          */
-        if ($Data === null || $tblYear == null) {
+        if ($Data === null /*|| $tblYear == null*/) {
             return $Stage;
+        }
+
+        // Info, wohin zurück geleitet werden soll
+        $yearIsNull = false;
+        if(null === $tblYear){
+            $yearIsNull = true;
         }
 
         if (is_array($Data)) {
@@ -1308,6 +1315,11 @@ class Service extends ServiceScoreRule
             $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
             foreach ($tblScoreTypeDivisionSubjectList as $tblScoreTypeDivisionSubject) {
                 $tblDivision = $tblScoreTypeDivisionSubject->getServiceTblDivision();
+                // $yearIsNull Jahr nur Indivuduell suchen, wenn es nicht angegeben ist (aktuelles Schuljahr)
+                // dann aber auch für alle Einträge neu setzen, weil sie abweichen können
+                if($tblDivision && $yearIsNull){
+                    $tblYear = $tblDivision->getServiceTblYear();
+                }
                 $tblSubject = $tblScoreTypeDivisionSubject->getServiceTblSubject();
                 if ($tblDivision
                     && $tblSubject
@@ -1330,12 +1342,20 @@ class Service extends ServiceScoreRule
                 }
             }
         }
+        if($yearIsNull){
+            // aktuelles Schuljahr ohne YearId
+            $RedirectArray = array(
+                'Id' => $tblScoreType->getId()
+            );
+        } else {
+            $RedirectArray = array(
+                'Id' => $tblScoreType->getId(),
+                'YearId' => $tblYear->getId()
+            );
+        }
 
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect('/Education/Graduation/Gradebook/Type/Select', Redirect::TIMEOUT_SUCCESS, array(
-            'Id' => $tblScoreType->getId(),
-            'YearId' => $tblYear->getId()
-        ));
+        . new Redirect('/Education/Graduation/Gradebook/Type/Select', Redirect::TIMEOUT_SUCCESS, $RedirectArray);
     }
 
     /**
