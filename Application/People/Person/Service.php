@@ -12,6 +12,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -22,6 +23,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -879,5 +881,268 @@ class Service extends AbstractService
         }
 
         return $result;
+    }
+
+    /**
+     * $tblNationalityAll, $tblDenominationAll
+     *
+     * @return array
+     */
+    public function getCommonInformationForAutoComplete()
+    {
+        $tblCommonInformationAll = Common::useService()->getCommonInformationAll();
+        $tblNationalityAll = array();
+        $tblDenominationAll = array();
+        if ($tblCommonInformationAll) {
+            array_walk($tblCommonInformationAll,
+                function (TblCommonInformation &$tblCommonInformation) use (&$tblNationalityAll, &$tblDenominationAll) {
+
+                    if ($tblCommonInformation->getNationality()) {
+                        if (!in_array($tblCommonInformation->getNationality(), $tblNationalityAll)) {
+                            array_push($tblNationalityAll, $tblCommonInformation->getNationality());
+                        }
+                    }
+                    if ($tblCommonInformation->getDenomination()) {
+                        if (!in_array($tblCommonInformation->getDenomination(), $tblDenominationAll)) {
+                            array_push($tblDenominationAll, $tblCommonInformation->getDenomination());
+                        }
+                    }
+                });
+            $DefaultDenomination = array(
+                'Altkatholisch',
+                'Evangelisch',
+                'Evangelisch-lutherisch',
+                'Evangelisch-reformiert',
+                'Französisch-reformiert',
+                'Freireligiöse Landesgemeinde Baden',
+                'Freireligiöse Landesgemeinde Pfalz',
+                'Israelitische Religionsgemeinschaft Baden',
+                'Römisch-katholisch',
+                'Saarland: israelitisch'
+            );
+            array_walk($DefaultDenomination, function ($Denomination) use (&$tblDenominationAll) {
+
+                if (!in_array($Denomination, $tblDenominationAll)) {
+                    array_push($tblDenominationAll, $Denomination);
+                }
+            });
+        }
+
+        return array($tblNationalityAll, $tblDenominationAll);
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param null $Data
+     *
+     * @return IFormInterface|null
+     */
+    public function CreateFamily(
+        IFormInterface $form = null, $Data = null
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data || empty($Data)) {
+            return $form;
+        }
+
+        $children = array();
+        $custodies = array();
+        $error = false;
+
+        ksort($Data);
+
+        foreach($Data as $key => $person) {
+            $type = substr($key, 0, 1);
+            $ranking = substr($key, 1);
+
+            if ($type == 'C') {
+                // Student / Prospect
+
+                $errorChild = false;
+                $isAdd = false;
+
+                $firstName = $person['FirstName'];
+                $lastName = $person['LastName'];
+                $secondName = $person['SecondName'];
+                $callName = $person['CallName'];
+                $tblGroup = Group::useService()->getGroupById($person['Group']);
+                $birthday = $person['Birthday'];
+                $birthplace = $person['Birthplace'];
+                $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
+                $nationality = $person['Nationality'];
+                $denomination = $person['Denomination'];
+
+                if ($firstName || $lastName || $secondName || $callName || $birthday || $birthplace || $tblCommonGender
+                    || $nationality || $denomination
+                ) {
+                    $isAdd = true;
+                    if (!$firstName) {
+                        $errorChild = true;
+                        // todo funktioniert hier noch nicht
+                        $form->setError('Data[' . $key . '][FirstName]', 'Bitte geben Sie einen Vornamen ein.' );
+                    } else {
+                        $form->setSuccess('Data[' . $key . '][FirstName]');
+                    }
+
+                    if (!$lastName) {
+                        $errorChild = true;
+                        $form->setError('Data[' . $key . '][LastName]', 'Bitte geben Sie einen Nachnamen ein.' );
+                    } else {
+                        $form->setSuccess('Data[' . $key . '][LastName]');
+                    }
+                }
+
+                if ($errorChild) {
+                    $error = true;
+                } elseif ($isAdd) {
+                    $children[$key] = array(
+                        'FirstName' => $firstName,
+                        'LastName' => $lastName,
+                        'SecondName' => $secondName,
+                        'CallName' => $callName,
+                        'tblGroup' => $tblGroup,
+                        'Birthday' => $birthday,
+                        'Birthplace' => $birthplace,
+                        'tblCommonGender' => $tblCommonGender,
+                        'Nationality' => $nationality,
+                        'Denomination' => $denomination,
+                        'IsSibling' => isset($person['IsSibling'])
+                    );
+                }
+            } else {
+                // Custody
+
+                $errorCustody = false;
+                $isAdd = false;
+
+                $tblSalutation = Person::useService()->getSalutationById($person['Salutation']);
+                $title = $person['Title'];
+                $firstName = $person['FirstName'];
+                $lastName = $person['LastName'];
+                $birthName = $person['BirthName'];
+                $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
+                $isSingleParent = isset($person['IsSingleParent']);
+
+                if ($tblSalutation || $title || $firstName || $lastName || $birthName || $tblCommonGender) {
+                    $isAdd = true;
+                    if (!$firstName) {
+                        $errorCustody = true;
+                        $form->setError('Data[' . $key . '][FirstName]', 'Bitte geben Sie einen Vornamen ein.' );
+                    } else {
+                        $form->setSuccess('Data[' . $key . '][FirstName]');
+                    }
+
+                    if (!$lastName) {
+                        $errorCustody = true;
+                        $form->setError('Data[' . $key . '][LastName]', 'Bitte geben Sie einen Nachnamen ein.' );
+                    } else {
+                        $form->setSuccess('Data[' . $key . '][LastName]');
+                    }
+                }
+
+                if ($errorCustody) {
+                    $error = true;
+                } elseif ($isAdd) {
+                    $custodies[$key] = array(
+                        'tblSalutation' => $tblSalutation ? $tblSalutation : null,
+                        'Title' => $title,
+                        'FirstName' => $firstName,
+                        'LastName' => $lastName,
+                        'BirthName' => $birthName,
+                        'tblCommonGender' => $tblCommonGender,
+                        'Ranking' => $ranking,
+                        'IsSingleParent' => $isSingleParent
+                    );
+                }
+            }
+        }
+
+        if ($error) {
+            return $form;
+        } else {
+            $siblingRelationships = array();
+            $custodyRelationships = array();
+            $tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON');
+            $tblGroupCustody = Group::useService()->getGroupByMetaTable('CUSTODY');
+            $tblTypeCustody = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+            $tblTypeSibling = Relationship::useService()->getTypeByName('Geschwisterkind');
+
+            $groups[] = $tblGroupCommon;
+            $groups[] = $tblGroupCustody;
+
+            foreach ($children as $child) {
+                if (($tblPerson = $this->insertPerson(null, '', $child['FirstName'], $child['SecondName'],
+                    $child['LastName'], array($tblGroupCommon), '', '', $child['CallName'])
+                )) {
+                    if (($tblGroup = $child['tblGroup'])) {
+                        Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                    }
+                    Common::useService()->insertMeta(
+                        $tblPerson,
+                        $child['Birthday'],
+                        $child['Birthplace'],
+                        ($tblCommonGender = $child['tblCommonGender']) ? $tblCommonGender : null,
+                        $child['Nationality'],
+                        $child['Denomination'],
+                        false,
+                        '',
+                        ''
+                    );
+
+                    if (isset($child['IsSibling'])) {
+                        $siblingRelationships[] = $tblPerson;
+                    }
+
+                    $custodyRelationships[] = $tblPerson;
+                }
+            }
+            foreach ($custodies as $key => $custody) {
+                if (($tblPerson = $this->insertPerson(($tblSalutation = $custody['tblSalutation']) ? $tblSalutation->getId() : null,
+                    $custody['Title'], $custody['FirstName'], '', $custody['LastName'], $groups, $custody['BirthName'])
+                )) {
+
+                    Common::useService()->insertMeta(
+                        $tblPerson,
+                        '',
+                        '',
+                        ($tblCommonGender = $custody['tblCommonGender']) ? $tblCommonGender : null,
+                        '',
+                        '',
+                        false,
+                        '',
+                        ''
+                    );
+
+                    foreach ($custodyRelationships as $child) {
+                        Relationship::useService()->insertRelationshipToPerson(
+                            $tblPerson,
+                            $child,
+                            $tblTypeCustody,
+                            '',
+                            $custody['Ranking'],
+                            $custody['IsSingleParent']
+                        );
+                    }
+                }
+            }
+
+
+            // Geschwisterkinder
+            while (count($siblingRelationships) > 0) {
+                $tblChildPerson = array_pop($siblingRelationships);
+                foreach ($siblingRelationships as $tblPersonSibling) {
+                    Relationship::useService()->insertRelationshipToPerson(
+                        $tblChildPerson,
+                        $tblPersonSibling,
+                        $tblTypeSibling,
+                        ''
+                    );
+                }
+            }
+        }
+
+        return $form;
     }
 }

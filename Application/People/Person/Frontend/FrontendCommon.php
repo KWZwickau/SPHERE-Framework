@@ -239,43 +239,7 @@ class FrontendCommon extends FrontendReadOnly
         // get all existing City names (without deleted Person's)
         $viewPeopleMetaCommonAll = Common::useService()->getViewPeopleMetaCommonAll();
 
-        $tblCommonInformationAll = Common::useService()->getCommonInformationAll();
-        $tblNationalityAll = array();
-        $tblDenominationAll = array();
-        if ($tblCommonInformationAll) {
-            array_walk($tblCommonInformationAll,
-                function (TblCommonInformation &$tblCommonInformation) use (&$tblNationalityAll, &$tblDenominationAll) {
-
-                    if ($tblCommonInformation->getNationality()) {
-                        if (!in_array($tblCommonInformation->getNationality(), $tblNationalityAll)) {
-                            array_push($tblNationalityAll, $tblCommonInformation->getNationality());
-                        }
-                    }
-                    if ($tblCommonInformation->getDenomination()) {
-                        if (!in_array($tblCommonInformation->getDenomination(), $tblDenominationAll)) {
-                            array_push($tblDenominationAll, $tblCommonInformation->getDenomination());
-                        }
-                    }
-                });
-            $DefaultDenomination = array(
-                'Altkatholisch',
-                'Evangelisch',
-                'Evangelisch-lutherisch',
-                'Evangelisch-reformiert',
-                'Französisch-reformiert',
-                'Freireligiöse Landesgemeinde Baden',
-                'Freireligiöse Landesgemeinde Pfalz',
-                'Israelitische Religionsgemeinschaft Baden',
-                'Römisch-katholisch',
-                'Saarland: israelitisch'
-            );
-            array_walk($DefaultDenomination, function ($Denomination) use (&$tblDenominationAll) {
-
-                if (!in_array($Denomination, $tblDenominationAll)) {
-                    array_push($tblDenominationAll, $Denomination);
-                }
-            });
-        }
+        list($tblNationalityAll, $tblDenominationAll) = Person::useService()->getCommonInformationForAutoComplete();
 
         $genderReceiver = ApiPersonReadOnly::receiverBlock($this->getGenderSelectBox($genderId), 'SelectedGender');
 
