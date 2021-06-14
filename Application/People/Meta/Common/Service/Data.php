@@ -109,6 +109,7 @@ class Data extends AbstractData
      * @param string $Denomination
      * @param int    $IsAssistance
      * @param string $AssistanceActivity
+     * @param string $AuthorizedToCollect
      *
      * @return TblCommonInformation
      */
@@ -116,7 +117,8 @@ class Data extends AbstractData
         $Nationality,
         $Denomination,
         $IsAssistance,
-        $AssistanceActivity
+        $AssistanceActivity,
+        $AuthorizedToCollect
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -126,6 +128,7 @@ class Data extends AbstractData
         $Entity->setDenomination($Denomination);
         $Entity->setAssistance($IsAssistance);
         $Entity->setAssistanceActivity($AssistanceActivity);
+        $Entity->setAuthorizedToCollect($AuthorizedToCollect);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -279,6 +282,7 @@ class Data extends AbstractData
      * @param string               $Denomination
      * @param int                  $IsAssistance
      * @param string               $AssistanceActivity
+     * @param string               $AuthorizedToCollect
      *
      * @return bool
      */
@@ -287,7 +291,8 @@ class Data extends AbstractData
         $Nationality,
         $Denomination,
         $IsAssistance,
-        $AssistanceActivity
+        $AssistanceActivity,
+        $AuthorizedToCollect
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -299,6 +304,7 @@ class Data extends AbstractData
             $Entity->setDenomination($Denomination);
             $Entity->setAssistance($IsAssistance);
             $Entity->setAssistanceActivity($AssistanceActivity);
+            $Entity->setAuthorizedToCollect($AuthorizedToCollect);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

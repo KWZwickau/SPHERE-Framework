@@ -134,19 +134,12 @@ class Setup extends AbstractSetup
     private function setTableCommonInformation(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblCommonInformation');
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'Nationality')) {
-            $Table->addColumn('Nationality', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'Denomination')) {
-            $Table->addColumn('Denomination', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'AssistanceActivity')) {
-            $Table->addColumn('AssistanceActivity', 'text');
-        }
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'IsAssistance')) {
-            $Table->addColumn('IsAssistance', 'smallint');
-        }
+        $Table = $this->createTable($Schema, 'tblCommonInformation');
+        $this->createColumn( $Table, 'Nationality', self::FIELD_TYPE_STRING);
+        $this->createColumn( $Table, 'Denomination', self::FIELD_TYPE_STRING);
+        $this->createColumn( $Table, 'AssistanceActivity', self::FIELD_TYPE_TEXT);
+        $this->createColumn( $Table, 'IsAssistance', self::FIELD_TYPE_SMALLINT);
+        $this->createColumn( $Table, 'AuthorizedToCollect', self::FIELD_TYPE_TEXT);
         return $Table;
     }
 

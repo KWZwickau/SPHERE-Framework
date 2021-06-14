@@ -22,6 +22,7 @@ class TblCommonInformation extends Element
     const ATTR_DENOMINATION = 'Denomination';
     const ATTR_ASSISTANCE_ACTIVITY = 'AssistanceActivity';
     const ATTR_IS_ASSISTANCE = 'IsAssistance';
+    const ATTR_AUTHORIZED_TO_COLLECT = 'AuthorizedToCollect';
     /**
      * @Column(type="string")
      */
@@ -38,6 +39,10 @@ class TblCommonInformation extends Element
      * @Column(type="smallint")
      */
     protected $IsAssistance;
+    /**
+     * @Column(type="text")
+     */
+    protected $AuthorizedToCollect;
 
     /**
      * @return string
@@ -109,5 +114,23 @@ class TblCommonInformation extends Element
     {
 
         $this->Nationality = $Nationality;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthorizedToCollect()
+    {
+
+        return $this->AuthorizedToCollect;
+    }
+
+    /**
+     * @param string $AuthorizedToCollect
+     */
+    public function setAuthorizedToCollect($AuthorizedToCollect)
+    {
+
+        $this->AuthorizedToCollect = $AuthorizedToCollect;
     }
 }

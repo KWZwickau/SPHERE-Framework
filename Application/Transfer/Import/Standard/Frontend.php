@@ -53,11 +53,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Year = (int)$Now->format('Y');
         $YearShort = (int)$Now->format('y');
         $YearList = array(
+            ($Year - 2).'/'.($YearShort - 1) => ($Year - 2).'/'.($YearShort - 1),
             ($Year - 1).'/'.$YearShort => ($Year - 1).'/'.$YearShort,
             $Year.'/'.($YearShort + 1) => $Year.'/'.($YearShort + 1),
             ($Year + 1).'/'.($YearShort + 2) => ($Year + 1).'/'.($YearShort + 2),
             );
-        $_POST['Data']['Year'] = $Year.'/'.($YearShort + 1);
+
+        if((new DateTime())->format('m') < 8) {
+            $_POST['Data']['Year'] = ($Year - 1).'/'.$YearShort;
+        } else {
+            $_POST['Data']['Year'] = $Year.'/'.($YearShort + 1);
+        }
+
 
         $Stage->setContent(
             new Layout(

@@ -53,10 +53,11 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentTechnicalSchoolContent($PersonId = null)
+    public static function getStudentTechnicalSchoolContent($PersonId = null, $AllowEdit = 1)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
@@ -185,8 +186,11 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 )),
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentTechnicalSchoolContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentTechnicalSchoolContent($PersonId));
+            }
 
             return TemplateReadOnly::getContent(
                 self::TITLE,

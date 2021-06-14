@@ -1936,8 +1936,9 @@ class Frontend extends FrontendScoreRule
                     $tblDivisionList = array();
                     if(($tblYearList = Term::useService()->getYearByNow())){
                         foreach($tblYearList as $tblYear){
-                            $tblDivisionListTemp = Division::useService()->getDivisionByYear($tblYear);
-                            $tblDivisionList = array_merge($tblDivisionList, $tblDivisionListTemp);
+                            if (($tblDivisionListTemp = Division::useService()->getDivisionByYear($tblYear))) {
+                                $tblDivisionList = array_merge($tblDivisionList, $tblDivisionListTemp);
+                            }
                         }
                     }
                 } else {

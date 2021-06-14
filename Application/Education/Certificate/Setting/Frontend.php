@@ -111,15 +111,26 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                 }
 
+                $tblSubjectAll = Subject::useService()->getSubjectAll();
+
                 $form = new Form(
-                    new FormGroup($formRows, new FormTitle('Gemeinsamer Europäischer Referenzrahmen für Sprachen')),
+                    array(
+                        new FormGroup(
+                            new FormRow(array(
+                                new FormColumn($this->getSubject($tblCertificate, $tblSubjectAll, 1, 1)),
+                                new FormColumn($this->getSubject($tblCertificate, $tblSubjectAll, 2, 1)),
+                            )),
+                            new FormTitle('Zusätzliche Fächer')
+                        ),
+                        new FormGroup($formRows, new FormTitle('Gemeinsamer Europäischer Referenzrahmen für Sprachen'))
+                    ),
                     new Primary('Speichern')
                 );
 
                 $Stage->setContent(
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()),
                         Panel::PANEL_TYPE_INFO)
-                    . new Well(Generator::useService()->updateCertificateReferenceForLanguages($form, $tblCertificate, $Data))
+                    . new Well(Generator::useService()->updateCertificateReferenceForLanguages($form, $tblCertificate, $Data, $Subject))
                 );
 
             } elseif(preg_match('!Berufsfachschule!', $tblCertificate->getName())) {

@@ -33,6 +33,7 @@ class TblGroup extends Element
     const META_TABLE_COMPANY_CONTACT = 'COMPANY_CONTACT';
     const META_TABLE_TUDOR = 'TUDOR';
     const META_TABLE_DEBTOR = 'DEBTOR';
+    const META_TABLE_ARCHIVE = 'ARCHIVE';
 
     /**
      * @Column(type="string")
