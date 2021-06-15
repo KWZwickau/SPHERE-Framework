@@ -1254,10 +1254,6 @@ class Data extends AbstractData
      * @param bool $isSelected
      *
      * @return bool
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
      */
     public function updatePrepareAdditionalGrade(
         TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
@@ -1271,6 +1267,40 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
+            $Entity->setGrade($grade);
+            $Entity->setSelected($isSelected);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param TblSubject $tblSubject
+     * @param $grade
+     * @param bool $isSelected
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGradeAndSubject(
+        TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
+        TblSubject $tblSubject,
+        $grade,
+        $isSelected = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareAdditionalGrade $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblSubject($tblSubject);
             $Entity->setGrade($grade);
             $Entity->setSelected($isSelected);
 
