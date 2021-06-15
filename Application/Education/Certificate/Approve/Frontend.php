@@ -463,8 +463,13 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Schuljahr',
-                                $tblYear ? $tblYear->getDisplayName() :
-                                    $IsAllYears ? 'Alle Schuljahre' : 'Aktuelles Schuljahr',
+                                ($tblYear
+                                    ? $tblYear->getDisplayName()
+                                    : ($IsAllYears
+                                        ? 'Alle Schuljahre'
+                                        : 'Aktuelles Schuljahr'
+                                    )
+                                ),
                                 Panel::PANEL_TYPE_INFO
                             ),
                         )),
