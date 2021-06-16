@@ -570,7 +570,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Content = new TableData($TemplateTable, null, array(
                 'Typ'         => 'Typ',
-                'Category'         => 'Kategorie',
+                'Category'    => 'Kategorie',
                 'Name'        => 'Name',
                 'Description' => 'Beschreibung',
                 'Option'      => ''

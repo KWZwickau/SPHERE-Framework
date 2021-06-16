@@ -132,7 +132,7 @@ class ApiStandard extends Extension implements IApiInterface
         } elseif ($groupName != '') {
             $isGroup = true;
             $groupList = Group::useService()->getGroupListLike($groupName);
-            var_dump($groupList);
+//            var_dump($groupList);
             if (empty($groupList)) {
                 return new Warning('Gruppe nicht gefunden', new Exclamation());
             }
