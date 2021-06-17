@@ -54,6 +54,10 @@ class TblHandyCap extends Element
      */
     protected $RemarkRating;
     /**
+     * @Column(type="string")
+     */
+    protected $RemarkCertificate;
+    /**
      * @Column(type="boolean")
      */
     protected $IsCanceled;
@@ -213,6 +217,30 @@ class TblHandyCap extends Element
     {
 
         $this->RemarkRating = $RemarkRating;
+    }
+
+    /**
+     * @param bool $WithHTML
+     *
+     * @return string
+     */
+    public function getRemarkCertificate($WithHTML = true)
+    {
+
+        if($WithHTML){
+            return nl2br($this->RemarkCertificate);
+        } else {
+            return $this->RemarkCertificate;
+        }
+    }
+
+    /**
+     * @param string $RemarkCertificate
+     */
+    public function setRemarkCertificate($RemarkCertificate)
+    {
+
+        $this->RemarkCertificate = $RemarkCertificate;
     }
 
     /**

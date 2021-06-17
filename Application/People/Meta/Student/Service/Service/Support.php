@@ -311,9 +311,11 @@ abstract class Support extends Integration
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $RemarkLesson = 'Aufhebung';
             $RemarkRating = 'Aufhebung';
+            $RemarkCertificate = 'Aufhebung';
         } else {
             $RemarkLesson = isset($Data['RemarkLesson']) ? $Data['RemarkLesson'] : '';
             $RemarkRating = isset($Data['RemarkRating']) ? $Data['RemarkRating'] : '';
+            $RemarkCertificate = isset($Data['RemarkCertificate']) ? $Data['RemarkCertificate'] : '';
         }
 
         $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
@@ -321,7 +323,7 @@ abstract class Support extends Integration
 
         if($tblPerson && $Date){
             (new Data($this->getBinding()))->createHandyCap($tblPerson, $Date, $PersonEditor, $LegalBasis, $LearnTarget,
-                $RemarkLesson, $RemarkRating, $IsCanceled);
+                $RemarkLesson, $RemarkRating, $RemarkCertificate, $IsCanceled);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -483,16 +485,18 @@ abstract class Support extends Integration
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $RemarkLesson = 'Aufhebung';
             $RemarkRating = 'Aufhebung';
+            $RemarkCertificate = 'Aufhebung';
         } else {
             $RemarkLesson = isset($Data['RemarkLesson']) ? $Data['RemarkLesson'] : '';
             $RemarkRating = isset($Data['RemarkRating']) ? $Data['RemarkRating'] : '';
+            $RemarkCertificate = isset($Data['RemarkCertificate']) ? $Data['RemarkCertificate'] : '';
         }
         $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
         $LearnTarget = (isset($Data['LearnTarget']) ? $Data['LearnTarget'] : '' );
 
         if($tblHandyCap && $tblPerson && $Date){
             (new Data($this->getBinding()))->updateHandyCap($tblHandyCap, $Date, $PersonEditor, $LegalBasis,
-                $LearnTarget, $RemarkLesson, $RemarkRating, $IsCanceled);
+                $LearnTarget, $RemarkLesson, $RemarkRating, $RemarkCertificate, $IsCanceled);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
