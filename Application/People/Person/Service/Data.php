@@ -46,6 +46,7 @@ class Data extends AbstractData
         $this->createSalutation('Herr', true);
         $this->createSalutation('Frau', true);
         $this->createSalutation('Schüler', true);
+        $this->createSalutation('Schülerin', true);
 
     }
 
