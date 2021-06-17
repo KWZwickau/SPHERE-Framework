@@ -746,6 +746,9 @@ class Data extends AbstractData
             array(
                 TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
                 TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+            ),
+            array(
+                TblTest::ATTR_DATE => self::ORDER_DESC
             )
         );
 
@@ -1086,5 +1089,27 @@ class Data extends AbstractData
             TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblDivisionSubject->getTblSubjectGroup()
                 ? $tblDivisionSubject->getTblSubjectGroup() : null
         )) ? true : false;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return false|TblTest
+     */
+    public function getTestByTaskAndDivisionAndSubject(
+        TblTask $tblTask,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup ? $tblSubjectGroup->getId() : null
+        ));
     }
 }
