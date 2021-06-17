@@ -16,7 +16,7 @@ class EsbdGymHjInfo extends EsbdStyle
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
+     * @return Page[]
      * @internal param bool $IsSample
      *
      */
@@ -94,6 +94,6 @@ class EsbdGymHjInfo extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('25px'));
+            ->addSlice($this->getBottomLineConsumer());
     }
 }

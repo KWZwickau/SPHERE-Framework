@@ -65,10 +65,10 @@ class EsbdGsJa extends EsbdStyle
             ->addSlice($this->getSubjectLanes($personId)
                 ->styleHeight('165px'))
             ->addSlice($this->getDescriptionHeadConsumer($personId, false))
-            ->addSlice($this->getDescriptionContentConsumer($personId, '111px', '17px'))
+            ->addSlice($this->getDescriptionContentConsumer($personId, '111px', '10px'))
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getTransferConsumer($personId, '15px'))
-            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getDateLineConsumer($personId, '15px'))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
             ->addSlice($this->getInfoConsumer('20px',

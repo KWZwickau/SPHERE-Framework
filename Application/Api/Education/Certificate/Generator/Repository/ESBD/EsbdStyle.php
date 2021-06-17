@@ -823,7 +823,7 @@ abstract class EsbdStyle extends Certificate
                 )
                 ->styleAlignJustify()
                 ->styleHeight('190px')
-                ->styleMarginTop('15px')
+                ->styleMarginTop('10px')
                 ->styleTextSize($textSize)
             );
 
@@ -831,7 +831,7 @@ abstract class EsbdStyle extends Certificate
         $SliceUs = (new Slice())
             ->addElement((new Element())
                 ->setContent('Im Dialog mit UNS')
-                ->styleMarginTop('15px')
+                ->styleMarginTop('10px')
                 ->styleTextSize(self::TEXT_SIZE_BIG)
                 ->styleTextBold()
                 ->styleAlignCenter()
@@ -847,7 +847,7 @@ abstract class EsbdStyle extends Certificate
                 )
                 ->styleAlignJustify()
                 ->styleHeight('190px')
-                ->styleMarginTop('15px')
+                ->styleMarginTop('10px')
                 ->styleMarginBottom('10px')
                 ->styleTextSize($textSize)
             )

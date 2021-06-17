@@ -67,7 +67,7 @@ class GsJThree extends Style
                 ->addSection((new Section())
                     ->addSliceColumn(
                         (new Slice())
-                            ->styleHeight('510px')
+                            ->styleHeight('490px')
                             ->addSectionList(self::getSubjectLanesSmall($personId, false, array(), '11pt', true, false, false, '#DDD'))
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
