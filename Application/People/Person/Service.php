@@ -240,6 +240,7 @@ class Service extends AbstractService
      * @param string $FirstName
      * @param string $LastName
      * @param string $Birthday
+     * @param string $Identifier
      *
      * @return bool|TblPerson
      */
@@ -256,14 +257,14 @@ class Service extends AbstractService
                 }
                 $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                if (!$tblCommonBirthDates || !$tblStudent) {
+                if (!$tblStudent || !$tblCommonBirthDates) {
                     continue;
                 }
 
-                if ($Birthday == $tblCommonBirthDates->getBirthday()) {
+                if ($Birthday && $Birthday == $tblCommonBirthDates->getBirthday()) {
                     return $tblPerson;
                 }
-                if ($Identifier == $tblStudent->getIdentifier()) {
+                if ($Identifier && $Identifier == $tblStudent->getIdentifier()) {
                     return $tblPerson;
                 }
             }
