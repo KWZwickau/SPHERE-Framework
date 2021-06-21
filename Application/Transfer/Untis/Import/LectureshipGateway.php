@@ -165,8 +165,8 @@ class LectureshipGateway extends AbstractConverter
 
 
             // Work around Sek II mit einem String als Fach und Fachgruppe
-            // Nur bei Klasse 11 & 12
-            if(preg_match('!^[1][1-2]!is', $FileDivision)){
+            // Nur bei Klasse 11 & 12 & 13
+            if(preg_match('!^[1][1-3]!is', $FileDivision)){
                 $subjectAcronym = $this->getSubjectAcronym($FileSubject);
                 $subjectGroup = $this->getSubjectGroup($FileSubject);
                 // nur wenn das Fach & die Fachgruppe als String hinterlegt sind
