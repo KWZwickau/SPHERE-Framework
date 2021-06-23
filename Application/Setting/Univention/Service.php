@@ -146,7 +146,7 @@ class Service extends AbstractService
             ) {
                 $UploadItem['name'] = $tblAccount->getUsername();
                 $UploadItem['email'] = $tblAccount->getUserAlias();
-                $UploadItem['password'] = $tblAccount->getPassword();
+//                $UploadItem['password'] = $tblAccount->getPassword();
                 $UploadItem['firstname'] = '';
                 $UploadItem['lastname'] = '';
                 $UploadItem['record_uid'] = $tblAccount->getId();

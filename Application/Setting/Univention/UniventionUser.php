@@ -72,12 +72,11 @@ class UniventionUser
      * @param array  $roles
      * @param array  $schools
      * @param array  $school_classes
-     * @param string $password
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $password = '')
+        $schools = array(), $school_classes = array())
     {
         curl_reset($this->curlhandle);
 
@@ -92,14 +91,14 @@ class UniventionUser
             'roles' => $roles,
             'schools' => $schools,
             'school_classes' => $school_classes,
-            'udm_properties' => array('pwdChangeNextLogin' => true),
-            'kelvin_password_hashes' => array(
-                'user_password' => array($password),
-                'samba_nt_password' => 'string',
-                'krb_5_key' => array(),
-                'krb5_key_version_number' => 0,
-                'samba_pwd_last_set' => 0,
-            ),
+//            'udm_properties' => array('pwdChangeNextLogin' => true),
+//            'kelvin_password_hashes' => array(
+//                'user_password' => array($password),
+//                'samba_nt_password' => 'string',
+//                'krb_5_key' => array(),
+//                'krb5_key_version_number' => 0,
+//                'samba_pwd_last_set' => 0,
+//            ),
             // Mandant + AccountId
 //            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );

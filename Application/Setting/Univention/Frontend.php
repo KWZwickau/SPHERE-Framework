@@ -471,7 +471,7 @@ class Frontend extends Extension implements IFrontendInterface
                 // create with API
                 $ErrorCreateList[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
                     $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
-                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes'], $createAccount['password']);
+                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
             }
             $ErrorCreateList = array_filter($ErrorCreateList);
             $Warning = '';
