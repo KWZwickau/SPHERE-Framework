@@ -362,9 +362,10 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param           $Address
-     * @param TblType $tblType
+     * @param TblType   $tblType
      * @param           $Remark
-     * @param bool $IsUserAlias
+     * @param bool      $IsUserAlias
+     * @param bool      $IsBackupMail
      *
      * @return TblToPerson
      */
@@ -373,7 +374,8 @@ class Service extends AbstractService
         $Address,
         TblType $tblType,
         $Remark,
-        $IsUserAlias = false
+        $IsUserAlias = false,
+        $IsBackupMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
@@ -383,12 +385,17 @@ class Service extends AbstractService
                 if (($tblMailTemp = $tblToPerson->getTblMail())
                     && $tblMail->getId() == $tblMailTemp->getId()
                 ) {
-                    return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsUserAlias);
+                    if($IsUserAlias){
+                        return (new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $tblType, $IsUserAlias);
+                    } elseif($IsBackupMail){
+                        return (new Data($this->getBinding()))->updateMailToPersonBackupMail($tblToPerson, $tblType, $IsBackupMail);
+                    } else {
+                        return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsUserAlias, $IsBackupMail);
+                    }
                 }
             }
         }
-
-        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsUserAlias);
+        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsUserAlias, $IsBackupMail);
     }
 
     /**
@@ -587,7 +594,7 @@ class Service extends AbstractService
         $IsAccountUserAlias = false
     ) {
 
-        if ((new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $IsAccountUserAlias)
+        if ((new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $tblToPerson->getTblType(), $IsAccountUserAlias)
         ) {
             return true;
         } else {
@@ -597,7 +604,7 @@ class Service extends AbstractService
 
     /**
      * @param TblToPerson $tblToPerson
-     * @param bool $IsAccountUserAlias
+     * @param bool        $IsAccountBackupMail
      *
      * @return bool
      */
@@ -606,7 +613,7 @@ class Service extends AbstractService
         $IsAccountBackupMail = false
     ) {
 
-        if ((new Data($this->getBinding()))->updateMailToPersonBackupMail($tblToPerson, $IsAccountBackupMail)
+        if ((new Data($this->getBinding()))->updateMailToPersonBackupMail($tblToPerson, $tblToPerson->getTblType(), $IsAccountBackupMail)
         ) {
             return true;
         } else {
@@ -616,10 +623,11 @@ class Service extends AbstractService
 
     /**
      * @param TblToPerson $tblToPerson
-     * @param $Address
-     * @param TblType $tblType
-     * @param $Remark
-     * @param bool $IsAccountUserAlias
+     * @param             $Address
+     * @param TblType     $tblType
+     * @param             $Remark
+     * @param bool        $IsAccountUserAlias
+     * @param bool        $IsAccountBackupMail
      *
      * @return bool
      */
@@ -628,13 +636,15 @@ class Service extends AbstractService
         $Address,
         TblType $tblType,
         $Remark,
-        $IsAccountUserAlias = false
+        $IsAccountUserAlias = false,
+        $IsAccountBackupMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
         if ($tblToPerson->getServiceTblPerson()) {
-            return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsAccountUserAlias);
+            return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark,
+                $IsAccountUserAlias, $IsAccountBackupMail);
         } else {
             return false;
         }

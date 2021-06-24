@@ -356,17 +356,19 @@ class Data extends AbstractData
 
     /**
      * @param TblToPerson $tblToPerson
-     * @param bool $IsAccountUserAlias
+     * @param TblType     $tblType
+     * @param bool        $IsAccountUserAlias
      *
      * @return false|TblToPerson
      */
-    public function updateMailToPersonAlias(TblToPerson $tblToPerson, $IsAccountUserAlias = false)
+    public function updateMailToPersonAlias(TblToPerson $tblToPerson, TblType $tblType, $IsAccountUserAlias = false)
     {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblToPerson $Entity */
         $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
+            $Entity->setTblType($tblType);
             $Entity->setIsAccountUserAlias($IsAccountUserAlias);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -379,17 +381,19 @@ class Data extends AbstractData
 
     /**
      * @param TblToPerson $tblToPerson
+     * @param TblType     $tblType
      * @param bool        $IsAccountBackupMail
      *
      * @return false|TblToPerson
      */
-    public function updateMailToPersonBackupMail(TblToPerson $tblToPerson, $IsAccountBackupMail = false)
+    public function updateMailToPersonBackupMail(TblToPerson $tblToPerson, TblType $tblType, $IsAccountBackupMail = false)
     {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblToPerson $Entity */
         $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
+            $Entity->setTblType($tblType);
             $Entity->setIsAccountBackupMail($IsAccountBackupMail);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
