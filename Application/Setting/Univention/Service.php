@@ -153,6 +153,7 @@ class Service extends AbstractService
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = array();
                 $UploadItem['schools'] = array();
+                $UploadItem['backupMail'] = $tblAccount->getBackupMail();
 
 //            $UploadItem['password'] = '';// no passwort transfer
                 $UploadItem['school_classes'] = array();
