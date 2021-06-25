@@ -614,7 +614,9 @@ class ClassRegister implements IApplicationInterface
             $TeacherArray = array();
             foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                 if($tblPerson = $tblDivisionTeacher->getServiceTblPerson()){
-                    $TeacherArray[] = $tblPerson->getFullName();
+                    $TeacherArray[] = $tblPerson->getFullName()
+                        . (($description = $tblDivisionTeacher->getDescription())
+                            ? ' ' . new Muted($description): '');
                 }
             }
             if(!empty($TeacherArray)){

@@ -1658,7 +1658,8 @@ class Frontend extends Extension implements IFrontendInterface
             $TeacherArray = array();
             foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                 if($tblPerson = $tblDivisionTeacher->getServiceTblPerson()){
-                    $TeacherArray[] = $tblPerson->getFullName();
+                    $Description = $tblDivisionTeacher->getDescription();
+                    $TeacherArray[] = $tblPerson->getFullName() . ($Description ? ' ' . new Muted($Description) : '');
                 }
             }
             if(!empty($TeacherArray)){

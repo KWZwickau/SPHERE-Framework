@@ -353,7 +353,8 @@ class Data extends AbstractData
             'TblDivisionRepresentative',
             array(
                 TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
-            )
+            ),
+            array(Element::ENTITY_CREATE => self::ORDER_ASC)
         );
 
         return empty($EntityList) ? false : $EntityList;
@@ -893,7 +894,9 @@ class Data extends AbstractData
             'TblDivisionCustody',
             array(
                 TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
-            ));
+            ),
+            array(Element::ENTITY_CREATE => self::ORDER_ASC)
+        );
 
 //        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionCustody')->findBy(array(
 //            TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
@@ -2651,9 +2654,8 @@ class Data extends AbstractData
      */
     public function getDivisionTeacherAllByDivision(TblDivision $tblDivision)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionTeacher', array(
             TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
-        ));
+        ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
     }
 }
