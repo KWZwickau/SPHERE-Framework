@@ -1144,7 +1144,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
                                             } elseif ($averageStudent) {
                                                 // Noten aus dem Notendurchschnitt als Vorschlag eintragen
-                                                $hasPreviewGrades = true;
+                                                if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                    $hasPreviewGrades = true;
+                                                }
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = round($averageStudent, 0);
                                             }
 
@@ -4784,7 +4786,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     )
                                                     && $calcValue
                                                 ) {
-                                                    $hasPreviewGrades = true;
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue,
                                                         0);
                                                 }
@@ -4823,7 +4827,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 )
                                                 && $calcValue
                                             ) {
-                                                $hasPreviewGrades = true;
+                                                if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                    $hasPreviewGrades = true;
+                                                }
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
                                             }
                                         }
