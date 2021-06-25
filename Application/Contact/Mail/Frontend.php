@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -294,6 +295,32 @@ class Frontend extends Extension implements IFrontendInterface
                              */
                             foreach ($personArray as $personId => $tblToPerson) {
                                 if (($tblPersonMail = Person::useService()->getPersonById($personId))) {
+
+                                    $DisplayType = '';
+                                    // maybe Cosumer Settings
+                                    if(true){
+                                        //Personenverknüpfung suche nur in Kinderrichtung
+//                                        if(($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPerson, $tblPersonPhone))){
+//                                            $tblType = $tblToPersonRelationship->getTblType();
+//                                            $DisplayType = $tblType->getName();
+//                                            $RelationshipRemark = $tblToPersonRelationship->getRemark();
+//                                        } else
+                                        if(($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonMail,
+                                            $tblPerson))){
+                                            $tblType = $tblToPersonRelationship->getTblType();
+                                            $TypeName = $tblType->getName();
+                                            $RelationshipRemark = $tblToPersonRelationship->getRemark();
+                                            // Display preparation
+                                            if($TypeName){
+                                                $DisplayType = $TypeName;
+                                                if($RelationshipRemark){
+                                                    $DisplayType = $DisplayType.', '.new Small(new Muted($RelationshipRemark));
+                                                }
+                                                $DisplayType = new Container($DisplayType);
+                                            }
+                                        }
+                                    }
+
                                     $content[] = ($tblPerson->getId() != $tblPersonMail->getId()
                                             ? new Link(
                                                 new PersonIcon() . ' ' . $tblPersonMail->getFullName(),
@@ -303,6 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonMail->getFullName())
+                                        .$DisplayType
 //                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
                                         . (($remark = $tblToPerson->getRemark())  ? ' ' . new Small(new Muted($remark)) : '');
                                 }
