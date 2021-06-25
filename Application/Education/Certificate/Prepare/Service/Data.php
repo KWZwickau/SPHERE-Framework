@@ -2232,4 +2232,20 @@ class Data extends AbstractData
             )
         );
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool|false $IsPrinted
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllWherePrintedByPerson(TblPerson $tblPerson, $IsPrinted = false)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+            array(
+                TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareStudent::ATTR_IS_PRINTED => $IsPrinted
+            )
+        );
+    }
 }

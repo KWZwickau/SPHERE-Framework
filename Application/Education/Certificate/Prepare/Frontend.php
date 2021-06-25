@@ -164,6 +164,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
         $divisionTable = array();
         if ($IsGroup) {
+            $Stage->setDescription('Gruppe auswählen');
             // tudorGroups
             if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
@@ -299,6 +300,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         $divisionTable = array();
         if ($tblPerson) {
             if ($IsGroup) {
+                $Stage->setDescription('Gruppe auswählen');
                 if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                 ) {
@@ -415,6 +417,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
         $divisionTable = array();
         if ($IsGroup) {
+            $Stage->setDescription('Gruppe auswählen');
             // tudorGroups
             if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
