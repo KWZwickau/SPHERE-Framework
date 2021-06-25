@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
@@ -274,7 +275,7 @@ class Service extends AbstractService
     public function getYearList($YearsAgo = 3, $YearFuture = 1)
     {
 
-        $Now = new \DateTime();
+        $Now = new DateTime();
         $Year = $Now->format('Y');
         $YearList = array();
         for($i = $YearsAgo; $i > 0; $i--) {
@@ -366,12 +367,12 @@ class Service extends AbstractService
         $Month = $tblBasket->getMonth();
         $Year = $tblBasket->getYear();
         if(($TargetTime = $tblBasket->getTargetTime())){
-            $TargetTime = new \DateTime($TargetTime);
+            $TargetTime = new DateTime($TargetTime);
         } else {
             $TargetTime = null;
         }
         if(($BillTime = $tblBasket->getBillTime())){
-            $BillTime = new \DateTime($BillTime);
+            $BillTime = new DateTime($BillTime);
         } else {
             $BillTime = null;
         }
@@ -759,7 +760,11 @@ class Service extends AbstractService
                 }
                 $item['DebtorPerson'] = '';
                 $item['DebtorNumber'] = '';
-                $item['BasketType'] = '';
+                $item['DebtorStreet'] = '';
+                $item['DebtorStreetNumber'] = '';
+                $item['DebtorCode'] = '';
+                $item['DebtorCity'] = '';
+                $item['BasketDistrict'] = '';
                 if(($tblBasket = $tblInvoice->getServiceTblBasket())){
                     if(($tblBasketType = $tblBasket->getTblBasketType())){
                         $item['BasketType'] = $tblBasketType->getName();
@@ -769,6 +774,17 @@ class Service extends AbstractService
                     /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
                     $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
                     $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                    if(($tblPersonDebtor = $tblInvoiceItemDebtor->getServiceTblPersonDebtor())){
+                        if(($tblAddress = Address::useService()->getAddressByPerson($tblPersonDebtor))){
+                            $item['DebtorStreet'] = $tblAddress->getStreetName();
+                            $item['DebtorStreetNumber'] = $tblAddress->getStreetNumber();
+                            if(($tblCity = $tblAddress->getTblCity())){
+                                $item['DebtorCode'] = $tblCity->getCode();
+                                $item['DebtorCity'] = $tblCity->getName();
+                                $item['BasketDistrict'] = $tblCity->getDistrict();
+                            }
+                        }
+                    }
                     $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
                     $ItemList = array();
                     $PaymentList = array();
@@ -849,6 +865,11 @@ class Service extends AbstractService
 
             $export->setValue($export->getCell($column++, $row), 'Beitragszahler');
             $export->setValue($export->getCell($column++, $row), 'Debitoren-Nr.');
+            $export->setValue($export->getCell($column++, $row), 'Straße');
+            $export->setValue($export->getCell($column++, $row), 'Str. Nr.');
+            $export->setValue($export->getCell($column++, $row), 'PLZ');
+            $export->setValue($export->getCell($column++, $row), 'Stadt');
+            $export->setValue($export->getCell($column++, $row), 'Ortsteil');
             $export->setValue($export->getCell($column++, $row), 'Name der Abrechnung');
             $export->setValue($export->getCell($column++, $row), 'Beitragsverursacher');
             $export->setValue($export->getCell($column++, $row), 'Schülernummer');
@@ -871,6 +892,11 @@ class Service extends AbstractService
 
                 $export->setValue($export->getCell($column++, $row), $result['DebtorPerson']);
                 $export->setValue($export->getCell($column++, $row), $result['DebtorNumber']);
+                $export->setValue($export->getCell($column++, $row), $result['DebtorStreet']);
+                $export->setValue($export->getCell($column++, $row), $result['DebtorStreetNumber']);
+                $export->setValue($export->getCell($column++, $row), $result['DebtorCode']);
+                $export->setValue($export->getCell($column++, $row), $result['DebtorCity']);
+                $export->setValue($export->getCell($column++, $row), $result['BasketDistrict']);
                 $export->setValue($export->getCell($column++, $row), $result['BasketName']);
                 $export->setValue($export->getCell($column++, $row), $result['CauserPerson']);
                 $export->setValue($export->getCell($column++, $row), $result['CauserIdent']);
@@ -898,7 +924,7 @@ class Service extends AbstractService
             }
 
             // Aufsummierung
-            $column = 9;
+            $column = 15;
             $row++;
             $export->setValue($export->getCell($column++, $row), 'Summe');
             $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum['Total'], 2)));
