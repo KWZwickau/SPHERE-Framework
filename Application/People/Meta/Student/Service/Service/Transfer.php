@@ -42,6 +42,17 @@ abstract class Transfer extends Agreement
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblStudentTransfer[]
+     */
+    public function getStudentTransferByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getStudentTransferByCompany($tblCompany);
+    }
+
+    /**
      * @param string $Identifier
      *
      * @return bool|TblStudentTransferType
