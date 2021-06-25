@@ -41,6 +41,8 @@ class StudentCourseGPU010 extends AbstractConverter
         $this->setPointer(new FieldPointer('B', 'FileLastName'));
         $this->setPointer(new FieldPointer('H', 'FileFirstName'));
 
+        $this->setPointer(new FieldPointer('I', 'Identifier'));
+
         $this->setPointer(new FieldPointer('J', 'FileDivision'));
         $this->setPointer(new FieldPointer('J', 'AppDivision'));
         $this->setPointer(new FieldPointer('J', 'DivisionId'));
@@ -89,14 +91,15 @@ class StudentCourseGPU010 extends AbstractConverter
             $Result['readableBirthday'] = $Result['Birthday'].' => '.$BirthDay;
         }
 
-        if(isset($Result['FileFirstName']) && isset($Result['FileLastName']) && $BirthDay){
-            if(($tblPerson = Person::useService()->getPersonByNameAndBirthday($Result['FileFirstName'],
+        if(isset($Result['FileFirstName']) && isset($Result['FileLastName']) && ($BirthDay || $Result['Identifier'])){
+            if(($tblPerson = Person::useService()->getPersonByNameAndBirthdayOrIdentifier($Result['FileFirstName'],
                 $Result['FileLastName'],
-                $BirthDay))){
+                $BirthDay,
+                $Result['Identifier']))){
                 $Result['AppPerson'] = $tblPerson->getLastFirstName();
             } else {
                 $this->IsError = true;
-                $Result['AppPerson'] = new Danger(new Ban().' Person nicht gefunden! (Name + Geburtsdatum)');
+                $Result['AppPerson'] = new Danger(new Ban().' Person nicht gefunden! (Name + Geburtsdatum / Name + Schülernummer)');
             }
         } else {
             $this->IsError = true;
@@ -287,6 +290,11 @@ class StudentCourseGPU010 extends AbstractConverter
         elseif (preg_match('!^([0-9]*?)(-[0-9]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1] ;
             $DivisionName = substr($Match[2], 1); // Minus entfernen
+        }
+        // HOGA (11 BGy-20/4)
+        elseif (preg_match('!^([0-9]*?) ([a-zA-Z0-9/-]*?)$!is', $Value, $Match)) {
+            $LevelName = $Match[1] ;
+            $DivisionName = $Match[2];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = null;

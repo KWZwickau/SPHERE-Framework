@@ -238,6 +238,7 @@ class StudentCourse extends Import implements IFrontendInterface
                                         'FileFirstName'    => 'Datei: Vorname',
                                         'FileLastName'     => 'Datei: Nachname',
                                         'readableBirthday' => 'Datei: Geburtstag',
+                                        'Identifier'       => 'Datei: Schülernummer',
                                         'AppPerson'        => 'Software: Person',
                                         'FileDivision'     => 'Datei: Klasse',
                                         'AppDivision'      => 'Software: Klasse'
