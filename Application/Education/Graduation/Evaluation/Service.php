@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Authorization\Account\Account;
@@ -668,11 +669,29 @@ class Service extends AbstractService
                                 foreach ($Data['Division'] as $divisionId => $divisionValue) {
                                     $tblDivision = Division::useService()->getDivisionById($divisionId);
                                     if ($tblDivision) {
-                                        $behaviorTaskAddList[] = array(
+                                        $behaviorTaskAddList[$divisionId . '_' . $gradeTypeId] = array(
                                             'tblTask' => $tblTask,
                                             'tblDivision' => $tblDivision,
                                             'tblGradeType' => $tblGradeType
                                         );
+                                    }
+                                }
+                            }
+
+                            // add Division All by Type
+                            $tblYear = $tblTask->getServiceTblYear();
+                            if (isset($Data['Type']) && $tblYear) {
+                                foreach ($Data['Type'] as $typeId => $typeValue) {
+                                    if (($tblSchoolType = Type::useService()->getTypeById($typeId))
+                                        && ($tblDivisionListByType = Division::useService()->getDivisionAllByYearAndType($tblYear, $tblSchoolType))
+                                    ) {
+                                        foreach ($tblDivisionListByType as $tblDivisionFromType) {
+                                            $behaviorTaskAddList[$tblDivisionFromType->getId() . '_' . $gradeTypeId] = array(
+                                                'tblTask' => $tblTask,
+                                                'tblDivision' => $tblDivisionFromType,
+                                                'tblGradeType' => $tblGradeType
+                                            );
+                                        }
                                     }
                                 }
                             }
@@ -685,11 +704,12 @@ class Service extends AbstractService
                 if ($tblTestAllByTask) {
                     foreach ($tblTestAllByTask as $tblTest) {
                         $tblDivision = $tblTest->getServiceTblDivision();
-                        if ($tblDivision) {
-                            if (!isset($Data['Division'][$tblDivision->getId()])) {
+                        $tblGradeTypeByTest = $tblTest->getServiceTblGradeType();
+                        if ($tblDivision && $tblGradeTypeByTest) {
+                            if (!isset($behaviorTaskAddList[$tblDivision->getId() . '_' . $tblGradeTypeByTest->getId()])) {
                                 $behaviorTaskRemoveTestList[] = $tblTest;
                             } elseif ($tblTest->getServiceTblGradeType()
-                                && !isset($Data['GradeType'][$tblTest->getServiceTblGradeType()->getId()])
+                                && !isset($Data['GradeType'][$tblGradeTypeByTest->getId()])
                             ) {
                                 // delete single
                                 $behaviorTaskRemoveTestList[] = $tblTest;
@@ -703,40 +723,15 @@ class Service extends AbstractService
 
             } else {
 
-                $tblDivisionList = array();
-                $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
-                if ($tblTestAllByTask) {
-                    foreach ($tblTestAllByTask as $tblTest) {
-                        $tblDivision = $tblTest->getServiceTblDivision();
-                        if ($tblDivision) {
-                            $tblDivisionList[$tblDivision->getId()] = $tblDivision;
-                        }
-                    }
-                }
-
                 $addList = array();
                 $removeList = array();
-
-                // remove
-                if (!empty($tblDivisionList)) {
-                    /** @var TblDivision $tblDivision */
-                    foreach ($tblDivisionList as $tblDivision) {
-                        if (!isset($Data['Division'][$tblDivision->getId()])) {
-                            if (($tblTestAllByTask = $this->getTestAllByTask($tblTask, $tblDivision))) {
-                                foreach ($tblTestAllByTask as $tblTest) {
-                                    $removeList[] = $tblTest;
-                                }
-                            }
-                        }
-                    }
-                }
 
                 // add
                 if ($Data && isset($Data['Division'])) {
                     foreach ($Data['Division'] as $divisionId => $value) {
                         $tblDivision = Division::useService()->getDivisionById($divisionId);
                         if ($tblDivision) {
-                            $addList[] = array(
+                            $addList[$tblDivision->getId()] = array(
                                 'tblTask' => $tblTask,
                                 'tblDivision' => $tblDivision
                             );
@@ -744,8 +739,37 @@ class Service extends AbstractService
                     }
                 }
 
-                (new Data($this->getBinding()))->updateDivisionAppointedDateTaskAsBulk($addList, $removeList);
+                // add Division All by Type
+                $tblYear = $tblTask->getServiceTblYear();
+                if (isset($Data['Type']) && $tblYear) {
+                    foreach ($Data['Type'] as $typeId => $value) {
+                        if (($tblSchoolType = Type::useService()->getTypeById($typeId))
+                            && ($tblDivisionListByType = Division::useService()->getDivisionAllByYearAndType($tblYear, $tblSchoolType))
+                        ) {
+                            foreach ($tblDivisionListByType as $tblDivisionFromType) {
+                                $addList[$tblDivisionFromType->getId()] = array(
+                                    'tblTask' => $tblTask,
+                                    'tblDivision' => $tblDivisionFromType
+                                );
+                            }
+                        }
+                    }
+                }
 
+                // remove
+                $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+                if ($tblTestAllByTask) {
+                    foreach ($tblTestAllByTask as $tblTest) {
+                        $tblDivision = $tblTest->getServiceTblDivision();
+                        if ($tblDivision) {
+                            if (!isset($addList[$tblDivision->getId()])) {
+                                $removeList[] = $tblTest;
+                            }
+                        }
+                    }
+                }
+
+                (new Data($this->getBinding()))->updateDivisionAppointedDateTaskAsBulk($addList, $removeList);
             }
         }
 

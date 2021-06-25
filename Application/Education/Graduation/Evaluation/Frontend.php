@@ -86,6 +86,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
@@ -3146,6 +3147,17 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             $checkBoxList[] = (new CheckBox('Data[Division][' . $key . ']', $value, 1))->setDisabled();
                         }
+                    }
+
+                    if ($hasEdit && !$isLocked && count($divisionList) > 0) {
+                        array_unshift(
+                            $checkBoxList,
+                            new CheckBox(
+                                'Data[Type][' . $typeId . ']',
+                                new Italic('Alle verfügbaren Klassen'),
+                                1
+                            )
+                        );
                     }
 
                     $panel = new Panel($type->getName(), $checkBoxList, Panel::PANEL_TYPE_DEFAULT);
