@@ -146,12 +146,14 @@ class Service extends AbstractService
             ) {
                 $UploadItem['name'] = $tblAccount->getUsername();
                 $UploadItem['email'] = $tblAccount->getUserAlias();
+//                $UploadItem['password'] = $tblAccount->getPassword();
                 $UploadItem['firstname'] = '';
                 $UploadItem['lastname'] = '';
                 $UploadItem['record_uid'] = $tblAccount->getId();
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = array();
                 $UploadItem['schools'] = array();
+                $UploadItem['backupMail'] = $tblAccount->getBackupMail();
 
 //            $UploadItem['password'] = '';// no passwort transfer
                 $UploadItem['school_classes'] = array();
@@ -317,7 +319,7 @@ class Service extends AbstractService
         return $UserUniventionList;
     }
 
-    public function getSchulsoftwareUser(TblYear $tblYear, $roleList, $schoolList)
+    public function getSchulsoftwareUser($roleList, $schoolList)
     {
 
         $Acronym = Account::useService()->getMandantAcronym();

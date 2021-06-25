@@ -48,6 +48,10 @@ class TblAccount extends Element
      * @Column(type="string")
      */
     protected $UserAlias;
+    /**
+     * @Column(type="string")
+     */
+    protected $BackupMail;
 
     /**
      * @Column(type="string")
@@ -171,6 +175,22 @@ class TblAccount extends Element
     public function setUserAlias($UserAlias)
     {
         $this->UserAlias = $UserAlias;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBackupMail()
+    {
+        return $this->BackupMail;
+    }
+
+    /**
+     * @param string $BackupMail
+     */
+    public function setBackupMail($BackupMail)
+    {
+        $this->BackupMail = $BackupMail;
     }
 
     /**
