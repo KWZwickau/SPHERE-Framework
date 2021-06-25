@@ -4,6 +4,7 @@ namespace SPHERE\Application\Corporation\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\People\Group\Group as PeopleGroup;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -387,8 +388,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Institution', 'Löschen');
         if ($Id) {
             if ($Group) {
-                $Stage->addButton(new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group)));
+                $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(), array('Id' => $Group)));
             }
+
             $tblCompany = Company::useService()->getCompanyById($Id);
             if (!$tblCompany) {
                 $Stage->setContent(
@@ -400,9 +402,16 @@ class Frontend extends Extension implements IFrontendInterface
                     )))
                 );
             } else {
+                $removable = true;
+                if(($tblStudentTransfer = Student::useService()->getStudentTransferByCompany($tblCompany))){
+                    $removable = false;
+                }
                 if (!$Confirm) {
+
                     $Stage->setContent(
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                            (!$removable ? new Danger('Institutaion kann nicht gelöscht werden, da Sie in der Schülerakte
+                             verwendet wird ('.count($tblStudentTransfer).')'):'').
                             new Panel('Institution', new Bold($tblCompany->getName().( $tblCompany->getDescription() !== '' ? '&nbsp;&nbsp;'
                                     . new Muted(new Small(new Small($tblCompany->getDescription()))) : '')),
                                 Panel::PANEL_TYPE_INFO),
@@ -412,9 +421,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCompany->getDescription()
                             ),
                                 Panel::PANEL_TYPE_DANGER,
-                                new Standard(
-                                    'Ja', '/Corporation/Company/Destroy', new Ok(),
-                                    array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
+                                ($removable
+                                ?new Standard('Ja', '/Corporation/Company/Destroy', new Ok(),
+                                        array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
+                                    )
+                                :(new Standard('Ja', '#', new Ok()))->setDisabled()
                                 )
                                 . new Standard(
                                     'Nein', '/Corporation/Search/Group', new Disable(), array('Id' => $Group)

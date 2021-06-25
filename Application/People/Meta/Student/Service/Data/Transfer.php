@@ -97,6 +97,20 @@ abstract class Transfer extends Agreement
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblStudentTransfer[]
+     */
+    public function getStudentTransferByCompany(TblCompany $tblCompany)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentTransfer', array(
+                TblStudentTransfer::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
+    }
+
+    /**
      * @param TblStudent                          $tblStudent
      * @param TblStudentTransferType              $tblStudentTransferType
      * @param TblCompany|null                     $tblCompany
