@@ -59,6 +59,7 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -153,6 +154,7 @@ class LectureshipGateway extends AbstractConverter
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
+
         if (!$this->IsError) {
             $tblDivision = ( isset($Result['DivisionId']) && $Result['DivisionId'] !== null ? Division::useService()->getDivisionById($Result['DivisionId']) : null );
             $tblTeacher = ( isset($Result['TeacherId']) && $Result['TeacherId'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId']) : null );
@@ -160,26 +162,27 @@ class LectureshipGateway extends AbstractConverter
             $FileDivision = $Result['FileDivision'];
             $FileTeacher = $Result['FileTeacher'];
             $FileSubject = $Result['FileSubject'];
+            $AppSubject = $Result['AppSubject'];
             $FileSubjectGroup = $Result['FileSubjectGroup'];
             $AppSubjectGroup = $Result['AppSubjectGroup'];
 
 
             // Work around Sek II mit einem String als Fach und Fachgruppe
-            // Nur bei Klasse 11 & 12 & 13
-            if(preg_match('!^[1][1-3]!is', $FileDivision)){
-                $subjectAcronym = $this->getSubjectAcronym($FileSubject);
+            // Nur bei Klasse 11 & 12
+            if(preg_match('!^[1][1-2]!is', $FileDivision)){
+                // (EN-L-1)
+                $subjectAcronym = $this->getSubjectAcronymWithGroup($FileSubject);
                 $subjectGroup = $this->getSubjectGroup($FileSubject);
+
                 // nur wenn das Fach & die Fachgruppe als String hinterlegt sind
                 if($subjectAcronym && $subjectGroup){
                     // findes des Fach's über das extrahierte Acronym
-                    if(($SubjectId = $this->fetchSubject($subjectAcronym))){
-                        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
-                        if(!$tblSubject){
-                            $tblSubject = null;
-                        }
+                    if(!($tblSubject = $this->fetchSubject($subjectAcronym))){
+                        $tblSubject = null;
                     }
                     // korrektur des Array Elements
-                    $Result['AppSubject'] = $this->sanitizeSubject($subjectAcronym);
+//                    $Result['AppSubject'] = $this->sanitizeSubject($subjectAcronym);
+
                     // Sowohl im Array als auch als Variable mitgeben
                     $Result['FileSubjectGroup'] = $FileSubjectGroup = $subjectGroup;
                     // Hinterlegung der Fachgruppen, egal ob vorhanden oder nicht, -> wird zur not neu angelegt
@@ -198,6 +201,7 @@ class LectureshipGateway extends AbstractConverter
                                'FileDivision'     => $FileDivision,
                                'FileTeacher'      => $FileTeacher,
                                'FileSubject'      => $FileSubject,
+                               'AppSubject'       => $AppSubject,
                                'FileSubjectGroup' => $FileSubjectGroup,
                                'AppSubjectGroup'  => $AppSubjectGroup);
             $this->ImportList[] = $ImportRow;
@@ -448,17 +452,24 @@ class LectureshipGateway extends AbstractConverter
             return new Warning(new WarningIcon().' Fach wurde nicht angegeben');
         }
 
-        if (!( $tblSubject = Subject::useService()->getSubjectByAcronym($Value) )) {
-            return new Warning(new WarningIcon().' Das Fach '.$Value.' ist in der Schulsoftware nicht vorhanden');
-        } else {
+
+        if (!( $tblSubject = Subject::useService()->getSubjectByAcronym($Value) )){
+            // (EN-L-1)
+            if(($Acronym = $this->getSubjectAcronymWithGroup($Value))){
+                $tblSubject = Subject::useService()->getSubjectByAcronym($Acronym);
+            }
+        }
+        if($tblSubject){
             return $tblSubject->getAcronym().' - '.$tblSubject->getName();
+        } else {
+            return new Warning(new WarningIcon().' Das Fach '.$Value.' ist in der Schulsoftware nicht vorhanden');
         }
     }
 
     /**
      * @param $Value
      *
-     * @return null|int
+     * @return null|TblSubject
      */
     protected function fetchSubject($Value)
     {
@@ -466,21 +477,16 @@ class LectureshipGateway extends AbstractConverter
         $tblSubject = Subject::useService()->getSubjectByAcronym($Value);
         if ($tblSubject) {
             $this->Subject = $tblSubject->getId();
-        } elseif($Acronym = $this->getSubjectAcronym($Value)) {
-            $tblSubject = Subject::useService()->getSubjectByAcronym($Acronym);
-            if ($tblSubject){
-                $this->Subject = $tblSubject->getId();
-            }
         }
-        return ( $tblSubject ? $tblSubject->getId() : null );
+        return ( $tblSubject ? $tblSubject : null );
     }
 
     /**
-     * @param $SubjectString
+     * @param $SubjectString (EN-L-1)
      *
      * @return false|string false| eg. EN | DE
      */
-    protected function getSubjectAcronym($SubjectString)
+    protected function getSubjectAcronymWithGroup($SubjectString)
     {
         if(preg_match('!^([\w\/]{1,})-([GLgl]-[\d])!', $SubjectString, $Match)){
             return $Match[1];
