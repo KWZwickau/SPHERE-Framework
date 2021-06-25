@@ -33,13 +33,14 @@ class Service extends AbstractService
     public function setupService($doSimulation, $withData, $UTF8)
     {
 
+        // no setup to Install
         $Protocol= '';
-        if(!$withData){
-            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
-        }
-        if (!$doSimulation && $withData) {
-            (new Data($this->getBinding()))->setupDatabaseContent();
-        }
+//        if(!$withData){
+//            $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
+//        }
+//        if (!$doSimulation && $withData) {
+//            (new Data($this->getBinding()))->setupDatabaseContent();
+//        }
         return $Protocol;
     }
 
