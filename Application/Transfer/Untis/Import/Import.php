@@ -7,6 +7,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -14,6 +15,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -93,18 +95,28 @@ class Import extends Extension implements IModuleInterface
 
         $Stage->setContent(
             new Layout(
-                new LayoutGroup(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Warning(
+                                new Container('Bitte beachten Sie die Reihenfolge für den Import:').
+                                new Container('1. Untis-Import für Schüler-Kurse SEK II').
+                                new Container('2. Untis-Import für Lehraufträge')
+                            )
+                        )
+                    ),
                     new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Untis-Import für Schüler-Kurse SEK II:', $PanelStudentCourse
+                                , Panel::PANEL_TYPE_INFO)
+                            , 4),
                         new LayoutColumn(
                             new Panel('Untis-Import für Lehraufträge:', $PanelLectureshipImport
                                 , Panel::PANEL_TYPE_INFO)
                         , 4),
-                        new LayoutColumn(
-                            new Panel('Untis-Import für Schüler-Kurse SEK II:', $PanelStudentCourse
-                                , Panel::PANEL_TYPE_INFO)
-                        , 4),
+
                     ))
-                )
+                ))
             )
         );
 
