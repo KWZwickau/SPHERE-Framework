@@ -118,6 +118,18 @@ class TblTask extends Element
     }
 
     /**
+     * @return false|DateTime
+     */
+    public function getDateTime()
+    {
+        if (null === $this->Date) {
+            return false;
+        }
+
+        return $this->Date;
+    }
+
+    /**
      * @param null|DateTime $Date
      */
     public function setDate(DateTime $Date = null)
