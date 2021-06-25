@@ -1112,6 +1112,10 @@ class ApiSupport extends Extension implements IApiInterface
             new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn('Besonderheiten bei Leistungsbewertungen:', 4),
                     new LayoutColumn($tblHandyCap->getRemarkRating(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Besonderheiten in der Zeugnisvorbereitung:', 4),
+                new LayoutColumn($tblHandyCap->getRemarkCertificate(), 8),
             ))))
         ));
 

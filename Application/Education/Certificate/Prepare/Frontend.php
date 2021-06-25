@@ -5032,6 +5032,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
     }
 
     /**
+     * @param null $YearId
+     *
      * @return Stage
      */
     public function frontendLeaveSelectStudent($YearId = null)
@@ -5409,6 +5411,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         $isApproved = false;
         $hasMissingSubjects = false;
         $hasCertificateGrades = false;
+        $tblAppointedDateTask = false;
 
         if (Student::useService()->getIsSupportByPerson($tblPerson)) {
             $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
@@ -5431,6 +5434,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     'Zeugnis als Muster herunterladen'));
             }
 
+            $certificateDate = false;
+
             // Post setzen
             if ($tblLeaveStudent) {
                 $Global = $this->getGlobal();
@@ -5449,10 +5454,18 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
                         $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
+
+                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $tblLeaveInformation->getValue() != '') {
+                            $certificateDate = new DateTime($tblLeaveInformation->getValue());
+                        }
                     }
                 }
 
                 $Global->savePost();
+            }
+
+            if (!$certificateDate) {
+                $certificateDate = new DateTime('now');
             }
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
@@ -5475,6 +5488,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $selectListPoints[$i] = (string)$i;
                 }
 
+                if ($certificateDate && $tblDivision) {
+                    $tblAppointedDateTask = Evaluation::useService()->getTaskByDivisionAndDateAndInterval($tblDivision, $certificateDate);
+                }
+
                 if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
                     && $tblDivision
                     && ($tblYear = $tblDivision->getServiceTblYear())
@@ -5494,6 +5511,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
                             $gradeList = array();
                             $average = '';
+                            $taskGrade = '';
                             $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                                 $tblDivisionItem,
                                 $tblSubjectItem,
@@ -5536,6 +5554,41 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     }
                                 }
 
+                                $hasNoLeaveGrade = !$tblLeaveStudent || !Prepare::useService()->getLeaveGradeBy($tblLeaveStudent, $tblSubjectItem);
+
+                                $hasTaskGrade = false;
+                                // Stichtagsnote ermitteln falls vorhanden
+                                if ($tblAppointedDateTask
+                                    && ($tblTestFromTask = Evaluation::useService()->getTestByTaskAndDivisionAndSubject(
+                                        $tblAppointedDateTask,
+                                        $tblDivisionItem,
+                                        $tblSubjectItem,
+                                        $tblSubjectGroup ? $tblSubjectGroup : null
+                                    ))
+                                    && ($tblGradeFromTask = Gradebook::useService()->getGradeByTestAndStudent(
+                                        $tblTestFromTask,
+                                        $tblPerson
+                                    ))
+                                ) {
+                                    if ($hasNoLeaveGrade) {
+                                        if (($value = $tblGradeFromTask->getGrade())) {
+                                            $hasPreviewGrades = true;
+                                            $hasTaskGrade = true;
+                                            $Global = $this->getGlobal();
+                                            $Global->POST['Data']['Grades'][$tblSubjectItem->getId()]['Grade'] = $value;
+                                            $Global->savePost();
+                                        } elseif (($gradeTextValue = $tblGradeFromTask->getTblGradeText())) {
+                                            $hasPreviewGrades = true;
+                                            $hasTaskGrade = true;
+                                            $Global = $this->getGlobal();
+                                            $Global->POST['Data']['Grades'][$tblSubjectItem->getId()]['GradeText'] = $gradeTextValue;
+                                            $Global->savePost();
+                                        }
+                                    }
+
+                                    $taskGrade = $tblGradeFromTask->getDisplayGrade();
+                                }
+
                                 /**
                                  * Average
                                  */
@@ -5553,10 +5606,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         strpos($average, '('));
 
                                     // Zensuren voreintragen, wenn noch keine vergeben ist
-                                    if (($average || $average === (float)0) && (!$tblLeaveStudent
-                                            || !Prepare::useService()->getLeaveGradeBy($tblLeaveStudent,
-                                                $tblSubjectItem))
-                                    ) {
+                                    if (($average || $average === (float)0) && $hasNoLeaveGrade && !$hasTaskGrade) {
                                         $hasPreviewGrades = true;
                                         $Global = $this->getGlobal();
                                         $Global->POST['Data']['Grades'][$tblSubjectItem->getId()]['Grade'] =
@@ -5597,6 +5647,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'SubjectName' => $subjectName,
                                 'GradeList' => implode(' | ', $gradeList),
                                 'Average' => $average,
+                                'TaskGrade' => $taskGrade,
                                 'Grade' => $selectComplete,
                                 'GradeText' => $gradeText
                             );
@@ -5688,18 +5739,32 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 }
             }
 
+            if ($tblAppointedDateTask) {
+                $date = $tblAppointedDateTask->getDate();
+                $columns = array(
+                    'SubjectName' => 'Fach',
+                    'GradeList' => 'Noten',
+                    'Average' => '&#216;',
+                    'TaskGrade' => new ToolTip('SN', 'Stichtagsnote vom ' . ($date ? $date : '-')),
+                    'Grade' => 'Zensur',
+                    'GradeText' => 'oder Zeugnistext'
+                );
+            } else {
+                $columns = array(
+                    'SubjectName' => 'Fach',
+                    'GradeList' => 'Noten',
+                    'Average' => '&#216;',
+                    'Grade' => 'Zensur',
+                    'GradeText' => 'oder Zeugnistext'
+                );
+            }
+
             if (!empty($subjectData)) {
                 ksort($subjectData);
                 $subjectTable = new TableData(
                     $subjectData,
                     null,
-                    array(
-                        'SubjectName' => 'Fach',
-                        'GradeList' => 'Noten',
-                        'Average' => '&#216;',
-                        'Grade' => 'Zensur',
-                        'GradeText' => 'oder Zeugnistext'
-                    ),
+                    $columns,
                     null
                 );
             } else {

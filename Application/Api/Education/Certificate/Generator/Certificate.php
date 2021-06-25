@@ -1790,6 +1790,35 @@ abstract class Certificate extends Extension
      * @param string $PreRemark
      * @return Slice
      */
+    public function getSupportSubjectContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '')
+    {
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        $Element->setContent($PreRemark.
+            '{% if(Content.P' . $personId . '.Input.SupportSubject is not empty) %}
+                        {{ Content.P' . $personId . '.Input.SupportSubject|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+            ->styleHeight($Height)
+            ->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+
+        return (new Slice())->addElement($Element);
+    }
+
+    /**
+     * @param $personId
+     * @param string $Height
+     * @param string $MarginTop
+     * @param string $PreRemark
+     * @return Slice
+     */
     public function getRatingContent($personId, $Height = '50px', $MarginTop = '15px', $PreRemark = 'Einschätzung: ')
     {
 

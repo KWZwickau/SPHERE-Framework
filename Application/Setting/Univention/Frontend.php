@@ -125,7 +125,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        }
 
         $UserSchulsoftwareList = array();
-        //vorprüfung zur Suche in der Schulsoftware
+        // Vorraussetzung, es muss ein aktives Schuljahr geben.
         $tblYearList = Term::useService()->getYearByNow();
         if($tblYearList){
             $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($roleList, $schoolList);
@@ -471,7 +471,8 @@ class Frontend extends Extension implements IFrontendInterface
                 // create with API
                 $ErrorCreateList[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
                     $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
-                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
+                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes'],
+                    $createAccount['backupMail']);
             }
             $ErrorCreateList = array_filter($ErrorCreateList);
             $Warning = '';
@@ -758,6 +759,7 @@ class Frontend extends Extension implements IFrontendInterface
             || $Account['lastname'] == ''
             || $Account['email'] == ''
             || $Account['record_uid'] == ''
+            || $Account['backupMail'] == ''
             || empty($Account['school_classes'])
             || empty($Account['roles'])
             || empty($Account['schools'])) {
@@ -785,12 +787,6 @@ class Frontend extends Extension implements IFrontendInterface
                 if(is_array($Value)){
                     $MouseOver = '';
                     switch ($Key){
-                        case 'email':
-                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                new DangerText('Fehler:').'</br>'
-                                .'keine E-Mail als UCS Benutzername verwendet'
-                            )))->enableHtml();
-                        break;
                         case 'roles':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 new DangerText('Fehler:').'</br>'
@@ -827,6 +823,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                     new DangerText('Fehler:').'</br>'
                                     .'keine E-Mail als UCS Benutzername verwendet'
+                                )))->enableHtml();
+                            break;
+                            case 'backupMail':
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    new DangerText('Fehler:').'</br>'
+                                    .'keine Passwort vergessen E-Mail hinterlegt'
                                 )))->enableHtml();
                             break;
                             case 'lastname':

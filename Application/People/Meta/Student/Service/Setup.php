@@ -892,6 +892,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'LearnTarget', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'RemarkLesson', self::FIELD_TYPE_TEXT);
         $this->createColumn($table, 'RemarkRating', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'RemarkCertificate', self::FIELD_TYPE_TEXT);
         $this->createColumn($table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN);
 
         return $table;
