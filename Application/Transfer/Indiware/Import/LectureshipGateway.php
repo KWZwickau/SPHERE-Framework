@@ -496,7 +496,15 @@ class LectureshipGateway extends AbstractConverter
     protected function MatchDivision($Value, &$LevelName, &$DivisionName)
     {
 
-        if (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+        if (strpos($Value, '-') !== false
+            && ($Match = explode('-', $Value))
+            && is_numeric($Match[0])
+            && is_numeric($Match[1])
+        ) {
+            // Klasse 5-2
+            $LevelName = $Match[0];
+            $DivisionName = $Match[1];
+        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
         } elseif (preg_match('!^(.*?)\s([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
