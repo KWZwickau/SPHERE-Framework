@@ -14,11 +14,13 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\MailField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -27,6 +29,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
@@ -50,6 +54,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 
@@ -394,229 +399,408 @@ class FrontendFamily extends FrontendReadOnly
     }
 
     /**
+     * @param array $PersonIdList
+     * @param null $Data
+     *
      * @return Stage
      */
-    public function frontendFamilyAddressCreate()
+    public function frontendFamilyAddressCreate($PersonIdList = array(), $Data = null)
     {
         $stage = new Stage('Familie', 'Kontaktdaten anlegen');
 
+        $columns = array();
+        $count = 1;
+        foreach ($PersonIdList as $Id) {
+            if (($tblPerson = Person::useService()->getPersonById($Id))) {
+                if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)) {
+                    $title = 'Schüler';
+                } elseif (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('PROSPECT'), $tblPerson)) {
+                    $title = 'Interessent';
+                } else {
+                    $title = 'S' . $count++;
+                }
+
+                $columns[] = new LayoutColumn(
+                    new Panel(
+                        $title,
+                        $tblPerson->getFullName(),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                , 3);
+            }
+        }
+
+        $form = $this->getFamilyAddressForm($PersonIdList, null, null);
+
         $stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    new Panel(
-                        'Interessent',
-                        'Max Mustermann',
-                        Panel::PANEL_TYPE_INFO
-                    )
-                , 3),
-                new LayoutColumn(
-                    new Panel(
-                        'S1',
-                        'Frau Theresa Mustermann',
-                        Panel::PANEL_TYPE_INFO
-                    )
-                , 3),
-                new LayoutColumn(
-                    new Panel(
-                        'S2',
-                        'Herr Theo Mustermann',
-                        Panel::PANEL_TYPE_INFO
-                    )
-                , 3),
-            ))))
-            . new Well(
-                new Form(new FormGroup(array(
-                    new FormRow(new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new MapMarker() . ' Adressdaten')
-//                            , new Link('weitere Adresse hinzufügen', '', new Plus()))
-                    )),
-                    new FormRow(new FormColumn(
-                         $this->getAddressPanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
-                    )),
-                    new FormRow(new FormColumn(
-                        $this->getPhonePanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        $this->getPhonePanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        $this->getPhonePanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Mail() . ' E-Mail Adressen')
-                    )),
-                    new FormRow(new FormColumn(
-                        $this->getMailPanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        $this->getMailPanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        $this->getMailPanel()
-                    )),
-                    new FormRow(new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save())
-                    ))
-                )))
-            )
+            new Layout(new LayoutGroup(new LayoutRow($columns)))
+            . new Well(Person::useService()->createFamilyContact($form, $PersonIdList, $Data))
         );
 
         return $stage;
     }
 
     /**
-     * @return Panel
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     *
+     * @return Form
      */
-    private function getAddressPanel()
+    public function getFamilyAddressForm($PersonIdList, $Data, $Errors)
+    {
+        if ($Data) {
+            $countContactTypes = $this->getCountContactTypes($Data);
+            foreach($Data as $key => $item) {
+                $type = substr($key, 0, 1);
+                $ranking = substr($key, 1);
+
+                if ($type == 'A') {
+                    // Adressdaten
+                    if ($ranking == 1) {
+                        $formRows[] = new FormRow(new FormColumn(
+                            new \SPHERE\Common\Frontend\Form\Repository\Title(new MapMarker() . ' Adressdaten')
+                        ));
+                    }
+                    $formRows[] = new FormRow(new FormColumn(
+                        ApiFamilyEdit::receiverBlock($this->getAddressContent($ranking, $PersonIdList, $Data, $Errors,
+                        $countContactTypes[$type] == $ranking), 'AddressContent_' . $ranking)
+                    ));
+                }
+
+                if ($type == 'P') {
+                    // Telefonnummern
+                    if ($ranking == 1) {
+                        $formRows[] = new FormRow(new FormColumn(
+                            new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
+                        ));
+                    }
+                    $formRows[] = new FormRow(new FormColumn(
+                        ApiFamilyEdit::receiverBlock($this->getPhoneContent($ranking, $PersonIdList, $Data, $Errors,
+                            $countContactTypes[$type] == $ranking), 'PhoneContent_' . $ranking)
+                    ));
+                }
+
+                if ($type == 'M') {
+                    // Emailadressen
+                    if ($ranking == 1) {
+                        $formRows[] = new FormRow(new FormColumn(
+                            new \SPHERE\Common\Frontend\Form\Repository\Title(new Envelope() . ' E-Mail Adressen')
+                        ));
+                    }
+                    $formRows[] = new FormRow(new FormColumn(
+                        ApiFamilyEdit::receiverBlock($this->getMailContent($ranking, $PersonIdList, $Data, $Errors,
+                            $countContactTypes[$type] == $ranking), 'MailContent_' . $ranking)
+                    ));
+                }
+            }
+        } else {
+            $formRows[] = new FormRow(new FormColumn(
+                new \SPHERE\Common\Frontend\Form\Repository\Title(new MapMarker() . ' Adressdaten')
+            ));
+            $formRows[] = new FormRow(new FormColumn(
+                ApiFamilyEdit::receiverBlock($this->getAddressContent(1, $PersonIdList, $Data, $Errors), 'AddressContent_1')
+            ));
+
+            $formRows[] = new FormRow(new FormColumn(
+                new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
+            ));
+            $formRows[] = new FormRow(new FormColumn(
+                ApiFamilyEdit::receiverBlock($this->getPhoneContent(1, $PersonIdList, $Data, $Errors), 'PhoneContent_1')
+            ));
+
+            $formRows[] = new FormRow(new FormColumn(
+                new \SPHERE\Common\Frontend\Form\Repository\Title(new Envelope() . ' E-Mail Adressen')
+            ));
+            $formRows[] = new FormRow(new FormColumn(
+                ApiFamilyEdit::receiverBlock($this->getMailContent(1, $PersonIdList, $Data, $Errors), 'MailContent_1')
+            ));
+        }
+
+        $formRows[] = new FormRow(new FormColumn(
+            new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save())
+        ));
+
+        return new Form(new FormGroup($formRows));
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return array
+     */
+    private function getCountContactTypes($Data)
+    {
+        $count['A'] = 0;
+        $count['P'] = 0;
+        $count['M'] = 0;
+
+        foreach($Data as $key => $item) {
+            $type = substr($key, 0, 1);
+            $count[$type]++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     * @param boolean $hasAddButton
+     *
+     * @return string
+     */
+    public function getAddressContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblType = Address::useService()->getTypeAll();
         $tblViewAddressToPersonAll = Address::useService()->getViewAddressToPersonAll();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
 
+        $key = 'A' . $Ranking;
+
         $layoutLeft = new Layout(array(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType), new TileBig(), true))->setRequired(), 4
-                ),
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
+                        array('{{ Name }} {{ Description }}' => $tblType), new TileBig())
+                    , 4),
                 new LayoutColumn(
-                    (new AutoCompleter('Street[Name]', 'Straße', 'Straße', array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker()))->setRequired(), 4
-                ),
+                    $this->getInputField('AutoCompleter', $key, 'StreetName', 'Straße', 'Straße', true, $Errors,
+                        array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker())
+                    , 4),
                 new LayoutColumn(
-                    (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired(), 4
-                ),
+                    $this->getInputField('TextField', $key, 'StreetNumber', 'Hausnummer', 'Hausnummer', true, $Errors,
+                        array(), new MapMarker())
+                    , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl', array('CityCode' => $tblViewAddressToPersonAll), new MapMarker()))->setRequired(), 4
-                ),
+                    $this->getInputField('AutoCompleter', $key, 'CityCode', 'Postleitzahl', 'Postleitzahl', true, $Errors,
+                        array('CityCode' => $tblViewAddressToPersonAll), new MapMarker())
+                    , 4),
                 new LayoutColumn(
-                    (new AutoCompleter('City[Name]', 'Ort', 'Ort', array('CityName' => $tblViewAddressToPersonAll), new MapMarker()))->setRequired(), 4
-                ),
+                    $this->getInputField('AutoCompleter', $key, 'CityName', 'Ort', 'Ort', true, $Errors,
+                        array('CityName' => $tblViewAddressToPersonAll), new MapMarker())
+                    , 4),
                 new LayoutColumn(
-                    new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil', array('CityDistrict' => $tblViewAddressToPersonAll), new MapMarker()), 4
-                )
+                    $this->getInputField('AutoCompleter', $key, 'CityDistrict', 'Ortsteil', 'Ortsteil', false, $Errors,
+                        array('CityDistrict' => $tblViewAddressToPersonAll), new MapMarker())
+                    , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    new AutoCompleter('County', 'Landkreis', 'Landkreis', array('AddressCounty' => $tblViewAddressToPersonAll), new Map()), 4
-                ),
+                    $this->getInputField('AutoCompleter', $key, 'County', 'Landkreis', 'Landkreis', false, $Errors,
+                        array('AddressCounty' => $tblViewAddressToPersonAll), new Map())
+                    , 4),
                 new LayoutColumn(
-                    new SelectBox('State', 'Bundesland', array('Name' => $tblState), new Map()), 4
-                ),
+                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', true, $Errors,
+                        array('Name' => $tblState), new Map())
+                    , 4),
                 new LayoutColumn(
-                    new AutoCompleter('Nation', 'Land', 'Land', array('AddressNation' => $tblViewAddressToPersonAll), new Map()), 4
-                )
+                    $this->getInputField('AutoCompleter', $key, 'Nation', 'Land', 'Land', false, $Errors,
+                        array('AddressNation' => $tblViewAddressToPersonAll), new Map())
+                    , 4),
             ))
         ))));
 
         return new Panel(
             'Neue Adresse',
             array(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn($layoutLeft, 9),
-                    new LayoutColumn(
-//                        new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 8)
-                        new Layout(new LayoutGroup(array(
-                            new LayoutRow(new LayoutColumn(
-                                new CheckBox('Data[Id]', 'Max Mustermann', 1)
-                            )),
-                            new LayoutRow(new LayoutColumn(
-                                new CheckBox('Data[Id]', 'Frau Theresa Mustermann (S1)', 1)
-                            )),
-                            new LayoutRow(new LayoutColumn(
-                                new CheckBox('Data[Id]', 'Herr Theo Mustermann (S2)', 1)
-                            )),
-                        )))
-                    , 3),
-                )))),
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn($layoutLeft, 9),
+                        new LayoutColumn(
+                            new TextArea('Data[A' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 8)
+                        , 3),
+                    )),
+                    new LayoutRow(new LayoutColumn($this->getPersonOptions('Data[A' . $Ranking . '][PersonList]', $PersonIdList)))
+                ))),
             ),
             Panel::PANEL_TYPE_INFO
-        );
+        )
+            . ($hasAddButton
+                ? ApiFamilyEdit::receiverBlock(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere Adresse hinzufügen'))
+                                ->ajaxPipelineOnClick(
+                                    (new ApiFamilyEdit)->pipelineLoadAddressContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
+                                )
+                            , 1),
+                        new LayoutColumn(
+                            new Container('&nbsp;')
+                        )
+                    )))),
+                    'AddressContent_' . ($Ranking + 1))
+                : '');
     }
 
-    private function getPhonePanel()
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     * @param boolean $hasAddButton
+     *
+     * @return string
+     */
+    public function getPhoneContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblPhoneAll = Phone::useService()->getPhoneAll();
         $tblTypeAll = Phone::useService()->getTypeAll();
 
+        $key = 'P' . $Ranking;
+
         return new Panel(
-            'Neue Telefonnummer',
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    (new SelectBox('Type[Type]', 'Typ',
-                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                    ))->setRequired()
-                , 3),
-                new LayoutColumn(
-                    (new AutoCompleter('Number', 'Telefonnummer', 'Telefonnummer',
-                        array('Number' => $tblPhoneAll), new \SPHERE\Common\Frontend\Icon\Repository\Phone()
-                    ))->setRequired()
-                , 3),
-                new LayoutColumn(
-                    '&nbsp;'
+                'Neue Telefonnummer',
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
+                            array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
+                        , 3),
+                    new LayoutColumn(
+                        $this->getInputField('AutoCompleter', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
+                            array('Number' => $tblPhoneAll), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
+                        , 3),
+                    new LayoutColumn(
+                        $this->getPersonOptions('Data[P' . $Ranking . '][PersonList]', $PersonIdList)
+                        , 3),
+                    new LayoutColumn(
+                        new TextArea('Data[P' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
                     , 3),
-                new LayoutColumn(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            new CheckBox('Data[Id]', 'Max Mustermann', 1)
-                        )),
-                        new LayoutRow(new LayoutColumn(
-                            new CheckBox('Data[Id]', 'Frau Theresa Mustermann (S1)', 1)
-                        )),
-                        new LayoutRow(new LayoutColumn(
-                            new CheckBox('Data[Id]', 'Herr Theo Mustermann (S2)', 1)
-                        )),
-                    )))
-                , 3),
-//                new LayoutColumn(
-//                    new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-//                , 3),
-            )))),
-            Panel::PANEL_TYPE_INFO
-        );
+                )))),
+                Panel::PANEL_TYPE_INFO
+            )
+            . ($hasAddButton
+                ? ApiFamilyEdit::receiverBlock(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere Telefonnummer hinzufügen'))
+                                ->ajaxPipelineOnClick(
+                                    (new ApiFamilyEdit)->pipelineLoadPhoneContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
+                                )
+                            , 1),
+                        new LayoutColumn(
+                            new Container('&nbsp;')
+                        )
+                    )))),
+                    'PhoneContent_' . ($Ranking + 1))
+                : '');
     }
 
-    private function getMailPanel()
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     * @param boolean $hasAddButton
+     *
+     * @return string
+     */
+    public function getMailContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblTypeAll = Mail::useService()->getTypeAll();
 
+        $key = 'M' . $Ranking;
+
         return new Panel(
-            'Neue Email-Adresse',
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    (new SelectBox('Type[Type]', 'Typ',
-                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                    ))->setRequired()
-                    , 3),
-                new LayoutColumn(
-                    (new MailField('Address', 'E-Mail Adresse', 'E-Mail Adresse',
-                        new \SPHERE\Common\Frontend\Icon\Repository\Mail()))->setRequired()
-                    , 3),
-                new LayoutColumn(
-                    '&nbsp;'
-                , 3),
-                new LayoutColumn(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            new CheckBox('Data[Id]', 'Max Mustermann', 1)
-                        )),
-                        new LayoutRow(new LayoutColumn(
-                            new CheckBox('Data[Id]', 'Frau Theresa Mustermann (S1)', 1)
-                        )),
-                        new LayoutRow(new LayoutColumn(
-                            new CheckBox('Data[Id]', 'Herr Theo Mustermann (S2)', 1)
-                        )),
-                    )))
-                    , 3),
-//                new LayoutColumn(
-//                    new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-//                    , 3),
-            )))),
-            Panel::PANEL_TYPE_INFO
-        );
+                'Neue E-Mail Adresse',
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
+                            array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
+                        , 3),
+                    new LayoutColumn(
+                        $this->getInputField('MailField', $key, 'Address', 'E-Mail Adresse', 'E-Mail Adresse', true, $Errors,
+                            array(), new \SPHERE\Common\Frontend\Icon\Repository\Mail())
+                        , 3),
+                    new LayoutColumn(
+                        $this->getPersonOptions('Data[M' . $Ranking . '][PersonList]', $PersonIdList)
+                        , 3),
+                    new LayoutColumn(
+                        new TextArea('Data[M' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
+                        , 3),
+                )))),
+                Panel::PANEL_TYPE_INFO
+            )
+            . ($hasAddButton
+                ? ApiFamilyEdit::receiverBlock(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere E-Mail Adresse hinzufügen'))
+                                ->ajaxPipelineOnClick(
+                                    (new ApiFamilyEdit)->pipelineLoadMailContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
+                                )
+                            , 1),
+                        new LayoutColumn(
+                            new Container('&nbsp;')
+                        )
+                    )))),
+                    'MailContent_' . ($Ranking + 1))
+                : '');
+    }
+
+    /**
+     * @param $inputType
+     * @param $key
+     * @param $identifier
+     * @param $label
+     * @param $placeholder
+     * @param $isRequired
+     * @param $Errors
+     * @param array $data
+     * @param null $icon
+     *
+     * @return AbstractField
+     */
+    public function getInputField($inputType, $key, $identifier, $label, $placeholder, $isRequired, $Errors, $data = array(), $icon = null)
+    {
+        switch ($inputType) {
+            case 'SelectBox': $inputField = new SelectBox('Data[' . $key . '][' . $identifier . ']',
+                $label . ($isRequired ? ' ' . new DangerText('*') : ''), $data, $icon);
+                break;
+            case 'AutoCompleter': $inputField = new AutoCompleter('Data[' . $key . '][' . $identifier . ']',
+                $label . ($isRequired ? ' ' . new DangerText('*') : ''), $placeholder, $data, $icon);
+                break;
+            case 'MailField': $inputField = new MailField('Data[' . $key . '][' . $identifier . ']', $placeholder,
+                $label . ($isRequired ? ' ' . new DangerText('*') : ''), $icon);
+                break;
+            case 'TextField':
+            default: $inputField = new TextField('Data[' . $key . '][' . $identifier . ']', $placeholder,
+                $label . ($isRequired ? ' ' . new DangerText('*') : ''), $icon);
+        }
+
+        if (isset($Errors[$key][$identifier])) {
+            if ($Errors[$key][$identifier]['IsError'] == true) {
+                $inputField->setError($Errors[$key][$identifier]['Message']);
+            } else {
+                $inputField->setSuccess($Errors[$key][$identifier]['Message']);
+            }
+        }
+
+        return $inputField;
+    }
+
+    /**
+     * @param $Identifier
+     * @param $PersonIdList
+     *
+     * @return Layout
+     */
+    private function getPersonOptions($Identifier, $PersonIdList)
+    {
+        $rows = array();
+        foreach($PersonIdList as $Id) {
+            if (($tblPerson = Person::useService()->getPersonById($Id))) {
+                $rows[] = new LayoutRow(new LayoutColumn(
+                    new CheckBox($Identifier . '[' . $tblPerson->getId() . ']', $tblPerson->getFullName(), 1)
+                ));
+            }
+        }
+
+        return new Layout(new LayoutGroup($rows));
     }
 }

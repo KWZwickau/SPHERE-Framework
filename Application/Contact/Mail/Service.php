@@ -652,4 +652,29 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
     }
+
+    /**
+     * @param $Address
+     * @param TblType $tblType
+     * @param $Remark
+     * @param array $tblPersonList
+     *
+     * @return bool
+     */
+    public function insertMailToPersonList(
+        $Address,
+        TblType $tblType,
+        $Remark,
+        $tblPersonList = array()
+    ) {
+        if (($tblMail = (new Data($this->getBinding()))->createMail($Address))) {
+            foreach ($tblPersonList as $tblPerson) {
+                (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark);
+            }
+
+            return  true;
+        }
+
+        return false;
+    }
 }

@@ -42,6 +42,10 @@ class ApiFamilyEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('changeSelectedGender');
 
+        $Dispatcher->registerMethod('loadAddressContent');
+        $Dispatcher->registerMethod('loadPhoneContent');
+        $Dispatcher->registerMethod('loadMailContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -203,5 +207,125 @@ class ApiFamilyEdit extends Extension implements IApiInterface
         }
 
         return (new FrontendFamily())->getGenderSelectBox($genderId, $Ranking);
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     *
+     * @return Pipeline
+     */
+    public function pipelineLoadAddressContent($Ranking, $PersonIdList, $Data, $Errors)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AddressContent_' . $Ranking), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadAddressContent',
+        ));
+
+        $ModalEmitter->setPostPayload(array(
+            'Ranking' => $Ranking,
+            'PersonIdList' => $PersonIdList,
+            'Data' => $Data,
+            'Errors' => $Errors
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param null $Data
+     * @param null $Errors
+     *
+     * @return string
+     */
+    public function loadAddressContent($Ranking, $PersonIdList, $Data = null, $Errors = null)
+    {
+        return (new FrontendFamily())->getAddressContent($Ranking, $PersonIdList, $Data, $Errors);
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     *
+     * @return Pipeline
+     */
+    public function pipelineLoadPhoneContent($Ranking, $PersonIdList, $Data, $Errors)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PhoneContent_' . $Ranking), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadPhoneContent',
+        ));
+
+        $ModalEmitter->setPostPayload(array(
+            'Ranking' => $Ranking,
+            'PersonIdList' => $PersonIdList,
+            'Data' => $Data,
+            'Errors' => $Errors
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param null $Data
+     * @param null $Errors
+     *
+     * @return string
+     */
+    public function loadPhoneContent($Ranking, $PersonIdList, $Data = null, $Errors = null)
+    {
+        return (new FrontendFamily())->getPhoneContent($Ranking, $PersonIdList, $Data, $Errors);
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param $Data
+     * @param $Errors
+     *
+     * @return Pipeline
+     */
+    public function pipelineLoadMailContent($Ranking, $PersonIdList, $Data, $Errors)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MailContent_' . $Ranking), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadMailContent',
+        ));
+
+        $ModalEmitter->setPostPayload(array(
+            'Ranking' => $Ranking,
+            'PersonIdList' => $PersonIdList,
+            'Data' => $Data,
+            'Errors' => $Errors
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Ranking
+     * @param $PersonIdList
+     * @param null $Data
+     * @param null $Errors
+     *
+     * @return string
+     */
+    public function loadMailContent($Ranking, $PersonIdList, $Data = null, $Errors = null)
+    {
+        return (new FrontendFamily())->getMailContent($Ranking, $PersonIdList, $Data, $Errors);
     }
 }

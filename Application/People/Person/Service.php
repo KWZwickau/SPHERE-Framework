@@ -17,6 +17,7 @@ use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Frontend\FrontendFamily;
 use SPHERE\Application\People\Person\Service\Data;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -24,8 +25,11 @@ use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -935,7 +939,7 @@ class Service extends AbstractService
      * @param IFormInterface|null $form
      * @param null $Data
      *
-     * @return IFormInterface|null
+     * @return IFormInterface|string|null
      */
     public function CreateFamily(
         IFormInterface $form = null, $Data = null
@@ -1064,6 +1068,7 @@ class Service extends AbstractService
         } else {
             $siblingRelationships = array();
             $custodyRelationships = array();
+            $personIdList = array();
             $tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON');
             $tblGroupCustody = Group::useService()->getGroupByMetaTable('CUSTODY');
             $tblTypeCustody = Relationship::useService()->getTypeByName('Sorgeberechtigt');
@@ -1076,6 +1081,8 @@ class Service extends AbstractService
                 if (($tblPerson = $this->insertPerson(null, '', $child['FirstName'], $child['SecondName'],
                     $child['LastName'], array($tblGroupCommon), '', '', $child['CallName'])
                 )) {
+                    $personIdList[] = $tblPerson->getId();
+
                     if (($tblGroup = $child['tblGroup'])) {
                         Group::useService()->addGroupPerson($tblGroup, $tblPerson);
                     }
@@ -1102,6 +1109,7 @@ class Service extends AbstractService
                 if (($tblPerson = $this->insertPerson(($tblSalutation = $custody['tblSalutation']) ? $tblSalutation->getId() : null,
                     $custody['Title'], $custody['FirstName'], '', $custody['LastName'], $groups, $custody['BirthName'])
                 )) {
+                    $personIdList[] = $tblPerson->getId();
 
                     Common::useService()->insertMeta(
                         $tblPerson,
@@ -1143,6 +1151,240 @@ class Service extends AbstractService
             }
         }
 
+        return new Success('Die Personendaten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/People/Person/Family/CreateAddress', Redirect::TIMEOUT_SUCCESS, array('PersonIdList' => $personIdList));
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param null $PersonIdList
+     * @param null $Data
+     *
+     * @return IFormInterface|string|null
+     */
+    public function CreateFamilyContact(
+        IFormInterface $form = null, $PersonIdList = null, $Data = null
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data || empty($Data)) {
+            return $form;
+        }
+
+        $addressAddList = array();
+        $phoneAddList = array();
+        $mailAddList = array();
+        $hasErrors = false;
+        $Errors = array();
+
+        Debugger::screenDump($Data);
+
+        foreach($Data as $key => $item) {
+            $type = substr($key, 0, 1);
+
+            if ($type == 'A') {
+                // Adressdaten
+
+                $errorAddress = false;
+                $isAdd = false;
+                $tblPersonList = array();
+
+                $tblType = Address::useService()->getTypeById($item['Type']);
+                $streetName = $item['StreetName'];
+                $streetNumber = $item['StreetNumber'];
+                $cityCode = $item['CityCode'];
+                $cityName = $item['CityName'];
+                $cityDistrict = $item['CityDistrict'];
+                $county = $item['County'];
+                $tblState = Address::useService()->getStateById($item['State']);
+                $nation = $item['Nation'];
+                $remark = $item['Remark'];
+
+                if (isset($item['PersonList'])) {
+                    foreach ($item['PersonList'] as $personId => $value) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $tblPersonList[] = $tblPerson;
+                        }
+                    }
+                }
+
+                if ($tblType || $streetName || $streetNumber || $cityCode || $cityName || $cityDistrict || $county
+                    || $tblState || $nation || $remark
+                ) {
+                    $isAdd = true;
+                    $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorAddress);
+                    $this->setMessage($streetName, $key, 'StreetName', 'Bitte geben Sie eine Straße ein.', $Errors, $errorAddress);
+                    $this->setMessage($streetNumber, $key, 'StreetNumber', 'Bitte geben Sie eine Hausnummer ein.', $Errors, $errorAddress);
+                    $this->setMessage($cityCode, $key, 'CityCode', 'Bitte geben Sie eine Postleitzahl ein.', $Errors, $errorAddress);
+                    $this->setMessage($cityName, $key, 'CityName', 'Bitte geben Sie einen Ort ein.', $Errors, $errorAddress);
+                }
+
+                // todo Prüfungen alle Personen muss mindestens eine Hauptadresse zugewiesen werden
+                // es darf pro Person nur eine Hauptadresse zugewiesen werden
+                // es muss mindestens eine Person ausgewählt sein
+
+                if ($errorAddress) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $addressAddList[$key] = array(
+                        'tblType' => $tblType,
+                        'StreetName' => $streetName,
+                        'StreetNumber' => $streetNumber,
+                        'CityCode' => $cityCode,
+                        'CityName' => $cityName,
+                        'CityDistrict' => $cityDistrict,
+                        'County' => $county,
+                        'tblState' => $tblState,
+                        'Nation' => $nation,
+                        'Remark' => $remark,
+                        'tblPersonList' => $tblPersonList
+                    );
+                }
+            } elseif ($type == 'P') {
+                // Telefonnummern
+
+                $errorPhone = false;
+                $isAdd = false;
+                $tblPersonList = array();
+
+                $tblType = Phone::useService()->getTypeById($item['Type']);
+                $address = $item['Number'];
+                $remark = $item['Remark'];
+
+                if (isset($item['PersonList'])) {
+                    foreach ($item['PersonList'] as $personId => $value) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $tblPersonList[] = $tblPerson;
+                        }
+                    }
+                }
+
+                if ($tblType || $address || $remark) {
+                    $isAdd = true;
+                    $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorPhone);
+                    $this->setMessage($address, $key, 'Number', 'Bitte geben Sie eine Telefonnummer ein.', $Errors, $errorPhone);
+                }
+
+                // todo es muss mindestens eine Person ausgewählt werden
+
+                if ($errorPhone) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $phoneAddList[$key] = array(
+                        'tblType' => $tblType,
+                        'Number' => $address,
+                        'Remark' => $remark,
+                        'tblPersonList' => $tblPersonList
+                    );
+                }
+            } elseif ($type == 'M') {
+                // Emailadressen
+
+                $errorMail = false;
+                $isAdd = false;
+                $tblPersonList = array();
+
+                $tblType = Mail::useService()->getTypeById($item['Type']);
+                $address = $item['Address'];
+                $remark = $item['Remark'];
+
+                if (isset($item['PersonList'])) {
+                    foreach ($item['PersonList'] as $personId => $value) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $tblPersonList[] = $tblPerson;
+                        }
+                    }
+                }
+
+                if ($tblType || $address || $remark) {
+                    $isAdd = true;
+                    $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorMail);
+                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine E-Mail Adresse ein.', $Errors, $errorMail);
+                }
+
+                // todo es muss mindestens eine Person ausgewählt werden
+
+                if ($errorMail) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $mailAddList[$key] = array(
+                        'tblType' => $tblType,
+                        'Address' => $address,
+                        'Remark' => $remark,
+                        'tblPersonList' => $tblPersonList
+                    );
+                }
+            }
+        }
+
+        if ($hasErrors) {
+            return (new FrontendFamily())->getFamilyAddressForm($PersonIdList, $Data, $Errors);
+        } else {
+            // todo test create
+            foreach ($addressAddList as $address) {
+                $tblState = $address['tblState'];
+                Address::useService()->insertAddressToPersonList(
+                    $address['tblType'],
+                    $address['StreetName'],
+                    $address['StreetNumber'],
+                    $address['CityCode'],
+                    $address['CityName'],
+                    $address['CityDistrict'],
+                    $address['County'],
+                    $address['Nation'],
+                    $address['tblPersonList'],
+                    $tblState ? $tblState : null,
+                    $address['Remark']
+                );
+            }
+
+            foreach ($phoneAddList as $phone) {
+                Phone::useService()->insertPhoneToPersonList(
+                    $phone['Number'],
+                    $phone['tblType'],
+                    $phone['Remark'],
+                    $phone['tblPersonList']
+                );
+            }
+
+            foreach ($mailAddList as $mail) {
+                Mail::useService()->insertMailToPersonList(
+                    $mail['Address'],
+                    $mail['tblType'],
+                    $mail['Remark'],
+                    $mail['tblPersonList']
+                );
+            }
+
+            // todo return success
+            // weiterleiten zum 1. Kind
+        }
+
         return $form;
+    }
+
+    /**
+     * @param $variable
+     * @param $key
+     * @param $identifier
+     * @param $message
+     * @param $Errors
+     * @param $errorAddress
+     */
+    private function setMessage($variable, $key, $identifier, $message, &$Errors, &$errorAddress)
+    {
+        if (!$variable) {
+            $errorAddress = true;
+            $Errors[$key][$identifier] = array(
+                'IsError' => true,
+                'Message' => $message
+            );
+        } else {
+            $Errors[$key][$identifier] = array(
+                'IsError' => false,
+                'Message' => ''
+            );
+        }
     }
 }
