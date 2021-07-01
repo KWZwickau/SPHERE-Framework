@@ -29,7 +29,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -1173,12 +1172,11 @@ class Service extends AbstractService
         }
 
         $addressAddList = array();
+        $mainAddressPersonList = array();
         $phoneAddList = array();
         $mailAddList = array();
         $hasErrors = false;
         $Errors = array();
-
-        Debugger::screenDump($Data);
 
         foreach($Data as $key => $item) {
             $type = substr($key, 0, 1);
@@ -1201,10 +1199,16 @@ class Service extends AbstractService
                 $nation = $item['Nation'];
                 $remark = $item['Remark'];
 
+                $countPersons = 0;
                 if (isset($item['PersonList'])) {
                     foreach ($item['PersonList'] as $personId => $value) {
                         if (($tblPerson = Person::useService()->getPersonById($personId))) {
                             $tblPersonList[] = $tblPerson;
+                            $countPersons++;
+
+                            if ($tblType && $tblType->getName() == 'Hauptadresse') {
+                                $mainAddressPersonList[$personId][] = 1;
+                            }
                         }
                     }
                 }
@@ -1218,11 +1222,12 @@ class Service extends AbstractService
                     $this->setMessage($streetNumber, $key, 'StreetNumber', 'Bitte geben Sie eine Hausnummer ein.', $Errors, $errorAddress);
                     $this->setMessage($cityCode, $key, 'CityCode', 'Bitte geben Sie eine Postleitzahl ein.', $Errors, $errorAddress);
                     $this->setMessage($cityName, $key, 'CityName', 'Bitte geben Sie einen Ort ein.', $Errors, $errorAddress);
-                }
 
-                // todo Prüfungen alle Personen muss mindestens eine Hauptadresse zugewiesen werden
-                // es darf pro Person nur eine Hauptadresse zugewiesen werden
-                // es muss mindestens eine Person ausgewählt sein
+                    if ($countPersons == 0) {
+                        $errorAddress = true;
+                        $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese Adresse aus.';
+                    }
+                }
 
                 if ($errorAddress) {
                     $hasErrors = true;
@@ -1252,10 +1257,12 @@ class Service extends AbstractService
                 $address = $item['Number'];
                 $remark = $item['Remark'];
 
+                $countPersons = 0;
                 if (isset($item['PersonList'])) {
                     foreach ($item['PersonList'] as $personId => $value) {
                         if (($tblPerson = Person::useService()->getPersonById($personId))) {
                             $tblPersonList[] = $tblPerson;
+                            $countPersons++;
                         }
                     }
                 }
@@ -1264,9 +1271,12 @@ class Service extends AbstractService
                     $isAdd = true;
                     $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorPhone);
                     $this->setMessage($address, $key, 'Number', 'Bitte geben Sie eine Telefonnummer ein.', $Errors, $errorPhone);
-                }
 
-                // todo es muss mindestens eine Person ausgewählt werden
+                    if ($countPersons == 0) {
+                        $errorPhone = true;
+                        $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese Telefonnummer aus.';
+                    }
+                }
 
                 if ($errorPhone) {
                     $hasErrors = true;
@@ -1289,10 +1299,12 @@ class Service extends AbstractService
                 $address = $item['Address'];
                 $remark = $item['Remark'];
 
+                $countPersons = 0;
                 if (isset($item['PersonList'])) {
                     foreach ($item['PersonList'] as $personId => $value) {
                         if (($tblPerson = Person::useService()->getPersonById($personId))) {
                             $tblPersonList[] = $tblPerson;
+                            $countPersons++;
                         }
                     }
                 }
@@ -1301,9 +1313,12 @@ class Service extends AbstractService
                     $isAdd = true;
                     $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorMail);
                     $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine E-Mail Adresse ein.', $Errors, $errorMail);
-                }
 
-                // todo es muss mindestens eine Person ausgewählt werden
+                    if ($countPersons == 0) {
+                        $errorMail = true;
+                        $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese E-Mail Adresse aus.';
+                    }
+                }
 
                 if ($errorMail) {
                     $hasErrors = true;
@@ -1318,10 +1333,23 @@ class Service extends AbstractService
             }
         }
 
+        // Prüfungen alle Personen muss mindestens eine Hauptadresse zugewiesen werden,
+        // weiterhin darf pro Person nur eine Hauptadresse zugewiesen werden
+        foreach ($PersonIdList as $Id) {
+            if (($tblPerson = Person::useService()->getPersonById($Id))) {
+                if (!isset($mainAddressPersonList[$Id])) {
+                    $hasErrors = true;
+                    $Errors['Address'][] = 'Bitte geben Sie für: ' . $tblPerson->getFullName() . ' eine Hauptadresse an.';
+                } elseif (count($mainAddressPersonList[$Id]) != 1) {
+                    $hasErrors = true;
+                    $Errors['Address'][] = $tblPerson->getFullName() . ' darf nur eine Hauptadresse besitzen.';
+                }
+            }
+        }
+
         if ($hasErrors) {
             return (new FrontendFamily())->getFamilyAddressForm($PersonIdList, $Data, $Errors);
         } else {
-            // todo test create
             foreach ($addressAddList as $address) {
                 $tblState = $address['tblState'];
                 Address::useService()->insertAddressToPersonList(
@@ -1357,11 +1385,9 @@ class Service extends AbstractService
                 );
             }
 
-            // todo return success
-            // weiterleiten zum 1. Kind
+            return new Success('Die Kontaktdaten wurden erfolgreich gespeichert.')
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $PersonIdList[0]));
         }
-
-        return $form;
     }
 
     /**

@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Envelope;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
@@ -596,7 +597,7 @@ class FrontendFamily extends FrontendReadOnly
                         array('AddressCounty' => $tblViewAddressToPersonAll), new Map())
                     , 4),
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', true, $Errors,
+                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', false, $Errors,
                         array('Name' => $tblState), new Map())
                     , 4),
                 new LayoutColumn(
@@ -608,34 +609,37 @@ class FrontendFamily extends FrontendReadOnly
 
         return new Panel(
             'Neue Adresse',
-            array(
-                new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn($layoutLeft, 9),
-                        new LayoutColumn(
-                            new TextArea('Data[A' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 8)
-                        , 3),
-                    )),
-                    new LayoutRow(new LayoutColumn($this->getPersonOptions('Data[A' . $Ranking . '][PersonList]', $PersonIdList)))
-                ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn($layoutLeft, 9),
+                    new LayoutColumn(
+                        new TextArea('Data[A' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 8)
+                    , 3),
+                )),
+                new LayoutRow(new LayoutColumn($this->getPersonOptions('Data[A' . $Ranking . '][PersonList]', $PersonIdList)))
+            )))
+            . (isset($Errors[$key]['Message'])
+                ? new Danger($Errors[$key]['Message'], new Exclamation())
+                : ''
             ),
             Panel::PANEL_TYPE_INFO
         )
-            . ($hasAddButton
-                ? ApiFamilyEdit::receiverBlock(
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere Adresse hinzufügen'))
-                                ->ajaxPipelineOnClick(
-                                    (new ApiFamilyEdit)->pipelineLoadAddressContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
-                                )
-                            , 1),
-                        new LayoutColumn(
-                            new Container('&nbsp;')
-                        )
-                    )))),
-                    'AddressContent_' . ($Ranking + 1))
-                : '');
+        . ($hasAddButton && isset($Errors['Address']) ? new Danger(implode('</br>', $Errors['Address'])) : '')
+        . ($hasAddButton
+            ? ApiFamilyEdit::receiverBlock(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere Adresse hinzufügen'))
+                            ->ajaxPipelineOnClick(
+                                (new ApiFamilyEdit)->pipelineLoadAddressContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
+                            )
+                        , 1),
+                    new LayoutColumn(
+                        new Container('&nbsp;')
+                    )
+                )))),
+                'AddressContent_' . ($Ranking + 1))
+            : '');
     }
 
     /**
@@ -655,40 +659,45 @@ class FrontendFamily extends FrontendReadOnly
         $key = 'P' . $Ranking;
 
         return new Panel(
-                'Neue Telefonnummer',
+            'Neue Telefonnummer',
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
+                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
+                    , 3),
+                new LayoutColumn(
+                    $this->getInputField('AutoCompleter', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
+                        array('Number' => $tblPhoneAll), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
+                    , 3),
+                new LayoutColumn(
+                    $this->getPersonOptions('Data[P' . $Ranking . '][PersonList]', $PersonIdList)
+                    , 3),
+                new LayoutColumn(
+                    new TextArea('Data[P' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
+                , 3),
+            ))))
+            . (isset($Errors[$key]['Message'])
+                ? new Danger($Errors[$key]['Message'], new Exclamation())
+                : ''
+            ),
+            Panel::PANEL_TYPE_INFO
+        )
+        . ($hasAddButton
+            ? ApiFamilyEdit::receiverBlock(
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                            array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
-                        , 3),
+                        (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere Telefonnummer hinzufügen'))
+                            ->ajaxPipelineOnClick(
+                                (new ApiFamilyEdit)->pipelineLoadPhoneContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
+                            )
+                        , 1),
                     new LayoutColumn(
-                        $this->getInputField('AutoCompleter', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
-                            array('Number' => $tblPhoneAll), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
-                        , 3),
-                    new LayoutColumn(
-                        $this->getPersonOptions('Data[P' . $Ranking . '][PersonList]', $PersonIdList)
-                        , 3),
-                    new LayoutColumn(
-                        new TextArea('Data[P' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
-                    , 3),
+                        new Container('&nbsp;')
+                    )
                 )))),
-                Panel::PANEL_TYPE_INFO
-            )
-            . ($hasAddButton
-                ? ApiFamilyEdit::receiverBlock(
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere Telefonnummer hinzufügen'))
-                                ->ajaxPipelineOnClick(
-                                    (new ApiFamilyEdit)->pipelineLoadPhoneContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
-                                )
-                            , 1),
-                        new LayoutColumn(
-                            new Container('&nbsp;')
-                        )
-                    )))),
-                    'PhoneContent_' . ($Ranking + 1))
-                : '');
+                'PhoneContent_' . ($Ranking + 1))
+            : ''
+        );
     }
 
     /**
@@ -707,40 +716,44 @@ class FrontendFamily extends FrontendReadOnly
         $key = 'M' . $Ranking;
 
         return new Panel(
-                'Neue E-Mail Adresse',
+            'Neue E-Mail Adresse',
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
+                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
+                    , 3),
+                new LayoutColumn(
+                    $this->getInputField('MailField', $key, 'Address', 'E-Mail Adresse', 'E-Mail Adresse', true, $Errors,
+                        array(), new \SPHERE\Common\Frontend\Icon\Repository\Mail())
+                    , 3),
+                new LayoutColumn(
+                    $this->getPersonOptions('Data[M' . $Ranking . '][PersonList]', $PersonIdList)
+                    , 3),
+                new LayoutColumn(
+                    new TextArea('Data[M' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
+                    , 3),
+            ))))
+            . (isset($Errors[$key]['Message'])
+                ? new Danger($Errors[$key]['Message'], new Exclamation())
+                : ''
+            ),
+            Panel::PANEL_TYPE_INFO
+        )
+        . ($hasAddButton
+            ? ApiFamilyEdit::receiverBlock(
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                            array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
-                        , 3),
+                        (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere E-Mail Adresse hinzufügen'))
+                            ->ajaxPipelineOnClick(
+                                (new ApiFamilyEdit)->pipelineLoadMailContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
+                            )
+                        , 1),
                     new LayoutColumn(
-                        $this->getInputField('MailField', $key, 'Address', 'E-Mail Adresse', 'E-Mail Adresse', true, $Errors,
-                            array(), new \SPHERE\Common\Frontend\Icon\Repository\Mail())
-                        , 3),
-                    new LayoutColumn(
-                        $this->getPersonOptions('Data[M' . $Ranking . '][PersonList]', $PersonIdList)
-                        , 3),
-                    new LayoutColumn(
-                        new TextArea('Data[M' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
-                        , 3),
+                        new Container('&nbsp;')
+                    )
                 )))),
-                Panel::PANEL_TYPE_INFO
-            )
-            . ($hasAddButton
-                ? ApiFamilyEdit::receiverBlock(
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Eine weitere E-Mail Adresse hinzufügen'))
-                                ->ajaxPipelineOnClick(
-                                    (new ApiFamilyEdit)->pipelineLoadMailContent(($Ranking + 1), $PersonIdList, $Data, $Errors)
-                                )
-                            , 1),
-                        new LayoutColumn(
-                            new Container('&nbsp;')
-                        )
-                    )))),
-                    'MailContent_' . ($Ranking + 1))
-                : '');
+                'MailContent_' . ($Ranking + 1))
+            : '');
     }
 
     /**
