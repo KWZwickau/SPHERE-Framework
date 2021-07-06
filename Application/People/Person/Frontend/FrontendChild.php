@@ -52,14 +52,14 @@ class FrontendChild extends FrontendReadOnly
             if (($tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Child', 'AuthorizedToCollectGroups'))
                 && ($value = $tblSetting->getValue())
             ) {
-                $AuthorizedToCollectGroups = explode(', ', $value);
+                $AuthorizedToCollectGroups = explode(',', $value);
             } else {
                 $AuthorizedToCollectGroups = array();
             }
             $AuthorizedToCollectGroups[] = 'Schüler';
             $hasBlockChild = false;
             foreach ($AuthorizedToCollectGroups as $group) {
-                if (($tblGroup = Group::useService()->getGroupByName($group))
+                if (($tblGroup = Group::useService()->getGroupByName(trim($group)))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
                     $hasBlockChild = true;
