@@ -130,10 +130,12 @@ class ApiFamilyEdit extends Extension implements IApiInterface
 
     /**
      * @param $Ranking
+     * @param $Data
+     * @param $Errors
      *
      * @return Pipeline
      */
-    public function pipelineLoadChildContent($Ranking)
+    public function pipelineLoadChildContent($Ranking, $Data, $Errors)
     {
 //        $Global = $this->getGlobal();
 //        $IsSibling = isset($Global->POST['IsSibling']);
@@ -145,7 +147,9 @@ class ApiFamilyEdit extends Extension implements IApiInterface
         ));
 
         $ModalEmitter->setPostPayload(array(
-            'Ranking' => $Ranking
+            'Ranking' => $Ranking,
+            'Data' => $Data,
+            'Errors' => $Errors
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -154,12 +158,14 @@ class ApiFamilyEdit extends Extension implements IApiInterface
 
     /**
      * @param $Ranking
+     * @param $Data
+     * @param $Errors
      *
      * @return string
      */
-    public function loadChildContent($Ranking)
+    public function loadChildContent($Ranking, $Data, $Errors)
     {
-        return (new FrontendFamily())->getChildContent($Ranking);
+        return (new FrontendFamily())->getChildContent($Ranking, $Data, $Errors);
     }
 
     /**

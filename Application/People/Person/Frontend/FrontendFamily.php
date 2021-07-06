@@ -75,7 +75,7 @@ class FrontendFamily extends FrontendReadOnly
     {
         $stage = new Stage('Familie', 'Personen anlegen');
 
-        $stage->setContent(new Well(Person::useService()->createFamily($this->formCreateFamily(), $Data)));
+        $stage->setContent(new Well(Person::useService()->createFamily($this->formCreateFamily($Data, array()), $Data)));
 
         return $stage;
     }
@@ -184,48 +184,91 @@ class FrontendFamily extends FrontendReadOnly
     }
 
     /**
+     * @param $Data
+     * @param $Errors
+     *
      * @return Form
      */
-    public function formCreateFamily()
+    public function formCreateFamily($Data, $Errors)
     {
         $tblSalutationAll = Person::useService()->getSalutationAll();
 
-        $panelChild = ApiFamilyEdit::receiverBlock($this->getChildContent(1), 'ChildContent_1');
-        $form = new Form(array(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        $panelChild
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $this->getPanelCustody(1, $tblSalutationAll)
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $this->getPanelCustody(2, $tblSalutationAll)
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()))
-                    ),
-                )),
-            ))
+        $formRows = array();
+        if (isset($Errors['Person'])) {
+            $formRows[] = new FormRow(new FormColumn(new Danger(implode('</br>', $Errors['Person']))));
+        }
+
+        if ($Data) {
+            $countPersons = $this->getCountPersons($Data);
+            foreach($Data as $key => $item) {
+                $type = substr($key, 0, 1);
+                $ranking = substr($key, 1);
+
+                if ($type == 'C') {
+                    // Schüler / Interessent
+
+                    $formRows[] = new FormRow(new FormColumn(
+                        ApiFamilyEdit::receiverBlock($this->getChildContent($ranking, $Data, $Errors,
+                            $countPersons[$type] == $ranking), 'ChildContent_' . $ranking)
+                    ));
+                }
+            }
+        } else {
+            $formRows[] = new FormRow(new FormColumn(
+                ApiFamilyEdit::receiverBlock($this->getChildContent(1, $Data, $Errors), 'ChildContent_1')
+            ));
+        }
+
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                $this->getPanelCustody(1, $tblSalutationAll, $Errors)
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                $this->getPanelCustody(2, $tblSalutationAll, $Errors)
+            ),
         ));
 
-        return $form;
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                (new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()))
+            ),
+        ));
+
+        return new Form(new FormGroup($formRows));
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return array
+     */
+    private function getCountPersons($Data)
+    {
+        $count['C'] = 0;
+        $count['S'] = 0;
+
+        foreach($Data as $key => $item) {
+            $type = substr($key, 0, 1);
+            $count[$type]++;
+        }
+
+        return $count;
     }
 
     /**
      * @param $Ranking
+     * @param $Data
+     * @param $Errors
+     * @param bool $hasAddButton
      *
      * @return string
      */
-    public function getChildContent($Ranking)
+    public function getChildContent($Ranking, $Data, $Errors, $hasAddButton = true)
     {
+        $key = 'C' . $Ranking;
+
         $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
         $tblBirthplaceAll = array();
         if ($tblCommonBirthDatesAll) {
@@ -250,14 +293,14 @@ class FrontendFamily extends FrontendReadOnly
             $tblGroupList[] = $tblGroupProspect;
 
             $global = $this->getGlobal();
-            $global->POST['Data']['C' . $Ranking]['Group'] = $tblGroupProspect->getId();
-            $global->POST['Data']['C' . $Ranking]['IsSibling'] = 1;
+            $global->POST['Data'][$key]['Group'] = $tblGroupProspect->getId();
+            $global->POST['Data'][$key]['IsSibling'] = 1;
 
             $global->savePost();
         }
 
-        $firstNameInput = (new TextField('Data[C' . $Ranking . '][FirstName]', 'Vorname', 'Vorname'));
-        $lastNameInput = (new TextField('Data[C' . $Ranking . '][LastName]', 'Nachname', 'Nachname'));
+        $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
+        $lastNameInput = $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors);
 
         $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent());
         $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent());
@@ -318,31 +361,36 @@ class FrontendFamily extends FrontendReadOnly
             ))),
             Panel::PANEL_TYPE_INFO
         )
-            . ApiFamilyEdit::receiverBlock(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Ein weiteres Kind hinzufügen'))
-                            ->ajaxPipelineOnClick(
-                                (new ApiFamilyEdit)->pipelineLoadChildContent(($Ranking + 1))
-                            )
-                    , 1),
-                    new LayoutColumn(
-                        new Container('&nbsp;')
-                    )
-                )))),
-                'ChildContent_' . ($Ranking + 1)
-            );
+        . ($hasAddButton
+            ? ApiFamilyEdit::receiverBlock(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    (new Primary('', ApiFamilyEdit::getEndpoint(), new Plus(), array(), 'Ein weiteres Kind hinzufügen'))
+                        ->ajaxPipelineOnClick(
+                            (new ApiFamilyEdit)->pipelineLoadChildContent(($Ranking + 1), $Data, $Errors)
+                        )
+                , 1),
+                new LayoutColumn(
+                    new Container('&nbsp;')
+                )
+            )))),
+            'ChildContent_' . ($Ranking + 1))
+            : '');
     }
 
     /**
      * @param int $Ranking
      * @param TblSalutation|false $tblSalutationAll
+     * @param $Errors
+     *
      * @return Panel
      */
-    private function getPanelCustody($Ranking, $tblSalutationAll)
+    private function getPanelCustody($Ranking, $tblSalutationAll, $Errors)
     {
+        $key = 'S' . $Ranking;
+
         $title = new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn('Sorgeberechtigter - S' . $Ranking, 3),
+            new LayoutColumn('Sorgeberechtigter', 3),
             new LayoutColumn(new CheckBox('Data[S' . $Ranking . '][IsSingleParent]', 'alleinerziehend', 1), 3)
         ))));
 
@@ -363,12 +411,11 @@ class FrontendFamily extends FrontendReadOnly
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        (new TextField('Data[S' . $Ranking . '][FirstName]', 'Vorname', 'Vorname')), 3
-//                        (new TextField('Data[S' . $Ranking . '_FirstName]', 'Vorname', 'Vorname')), 3
-                    ),
+                        $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors)
+                        , 3),
                     new LayoutColumn(
-                        (new TextField('Data[S' . $Ranking . '][LastName]', 'Nachname', 'Nachname')), 3
-                    ),
+                        $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors)
+                        , 3),
                     new LayoutColumn(
                         new TextField('Data[S' . $Ranking . '][BirthName]', 'Geburtsname', 'Geburtsname'), 3
                     ),

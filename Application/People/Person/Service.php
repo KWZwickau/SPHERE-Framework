@@ -24,6 +24,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -952,13 +953,27 @@ class Service extends AbstractService
 
         $children = array();
         $custodies = array();
-        $error = false;
+        $hasErrors = false;
+        $Errors = array();
+        $rankingCustodyList = array(
+            1 => false,
+            2 => false,
+        );
+        $personIdList = array();
 
         ksort($Data);
 
+        if (($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Relationship', 'GenderOfS1'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $genderSetting = Common::useService()->getCommonGenderById($value);
+        } else {
+            $genderSetting = false;
+        }
+
         foreach($Data as $key => $person) {
             $type = substr($key, 0, 1);
-            $ranking = substr($key, 1);
+//            $ranking = substr($key, 1);
 
             if ($type == 'C') {
                 // Student / Prospect
@@ -981,24 +996,12 @@ class Service extends AbstractService
                     || $nationality || $denomination
                 ) {
                     $isAdd = true;
-                    if (!$firstName) {
-                        $errorChild = true;
-                        // todo funktioniert hier noch nicht
-                        $form->setError('Data[' . $key . '][FirstName]', 'Bitte geben Sie einen Vornamen ein.' );
-                    } else {
-                        $form->setSuccess('Data[' . $key . '][FirstName]');
-                    }
-
-                    if (!$lastName) {
-                        $errorChild = true;
-                        $form->setError('Data[' . $key . '][LastName]', 'Bitte geben Sie einen Nachnamen ein.' );
-                    } else {
-                        $form->setSuccess('Data[' . $key . '][LastName]');
-                    }
+                    $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorChild);
+                    $this->setMessage($lastName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorChild);
                 }
 
                 if ($errorChild) {
-                    $error = true;
+                    $hasErrors = true;
                 } elseif ($isAdd) {
                     $children[$key] = array(
                         'FirstName' => $firstName,
@@ -1030,24 +1033,25 @@ class Service extends AbstractService
 
                 if ($tblSalutation || $title || $firstName || $lastName || $birthName || $tblCommonGender) {
                     $isAdd = true;
-                    if (!$firstName) {
-                        $errorCustody = true;
-                        $form->setError('Data[' . $key . '][FirstName]', 'Bitte geben Sie einen Vornamen ein.' );
-                    } else {
-                        $form->setSuccess('Data[' . $key . '][FirstName]');
-                    }
-
-                    if (!$lastName) {
-                        $errorCustody = true;
-                        $form->setError('Data[' . $key . '][LastName]', 'Bitte geben Sie einen Nachnamen ein.' );
-                    } else {
-                        $form->setSuccess('Data[' . $key . '][LastName]');
-                    }
+                    $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorCustody);
+                    $this->setMessage($firstName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorCustody);
                 }
 
                 if ($errorCustody) {
-                    $error = true;
+                    $hasErrors = true;
                 } elseif ($isAdd) {
+                    $rankingCustody = 3;
+                    // S1 ermitteln
+                    if ($tblCommonGender && $genderSetting && $tblCommonGender->getId() == $genderSetting->getId()
+                        && !$rankingCustodyList[1]
+                    ) {
+                        $rankingCustody = 1;
+                        $rankingCustodyList[1] = true;
+                    } elseif (!$rankingCustodyList[2]) {
+                        $rankingCustody = 2;
+                        $rankingCustodyList[2] = true;
+                    }
+
                     $custodies[$key] = array(
                         'tblSalutation' => $tblSalutation ? $tblSalutation : null,
                         'Title' => $title,
@@ -1055,19 +1059,18 @@ class Service extends AbstractService
                         'LastName' => $lastName,
                         'BirthName' => $birthName,
                         'tblCommonGender' => $tblCommonGender,
-                        'Ranking' => $ranking,
+                        'Ranking' => $rankingCustody,
                         'IsSingleParent' => $isSingleParent
                     );
                 }
             }
         }
 
-        if ($error) {
-            return $form;
+        if ($hasErrors) {
+            return (new FrontendFamily())->formCreateFamily($Data, $Errors);
         } else {
             $siblingRelationships = array();
             $custodyRelationships = array();
-            $personIdList = array();
             $tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON');
             $tblGroupCustody = Group::useService()->getGroupByMetaTable('CUSTODY');
             $tblTypeCustody = Relationship::useService()->getTypeByName('Sorgeberechtigt');
@@ -1150,8 +1153,16 @@ class Service extends AbstractService
             }
         }
 
-        return new Success('Die Personendaten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-            . new Redirect('/People/Person/Family/CreateAddress', Redirect::TIMEOUT_SUCCESS, array('PersonIdList' => $personIdList));
+        if (count($personIdList) > 0) {
+            return new Success('Die Personendaten wurden erfolgreich gespeichert',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/People/Person/Family/CreateAddress', Redirect::TIMEOUT_SUCCESS,
+                    array('PersonIdList' => $personIdList));
+        } else {
+            // es muss mindestens eine Person angelegt werden
+            $Errors['Person'][] = 'Bitte legen Sie mindestens eine Person an.';
+            return (new FrontendFamily())->formCreateFamily($Data, $Errors);
+        }
     }
 
     /**
