@@ -46,7 +46,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -82,10 +81,11 @@ class FrontendFamily extends FrontendReadOnly
 
     /**
      * @param $Person
+     * @param $key
      *
      * @return string
      */
-    public function loadSimilarPersonContent($Person)
+    public function loadSimilarPersonContent($Person, $key)
     {
         if ((!isset($Person['FirstName']) || empty($Person['FirstName']))
             || (!isset($Person['LastName']) || empty($Person['LastName']))
@@ -159,27 +159,13 @@ class FrontendFamily extends FrontendReadOnly
                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                     )));
 
-                return ApiFamilyEdit::pipelineLoadSimilarPersonMessage(count($TableList), '', $Table->getHash()) . (string)$Table; // . $InfoPersonPipeline;
+                $Table->setHash('Ähnliche Personen' . $key);
+
+                return new Danger(new Bold(count($TableList) . ' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?'))
+                    . (string) $Table;
             }
 
-            return ApiFamilyEdit::pipelineLoadSimilarPersonMessage(0, $Person['FirstName'] . ' ' . $Person['LastName'], '') . '';
-        }
-    }
-
-    /**
-     * @param $countSimilarPerson
-     * @param $name
-     * @param $hash
-     *
-     * @return Danger|Success
-     */
-    public static function getSimilarPersonMessage($countSimilarPerson, $name, $hash) {
-        if ($countSimilarPerson > 0) {
-            return new Danger(new Bold($countSimilarPerson . ' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?')
-                . new Link('Zur Liste springen', null, null, array(), false, $hash)
-            );
-        } else {
-            return new Success('Keine Personen zu ' . $name . ' gefunden');
+            return new Success('Keine Personen zu ' . $Person['FirstName'] . ' ' . $Person['LastName'] . ' gefunden');
         }
     }
 
@@ -273,7 +259,7 @@ class FrontendFamily extends FrontendReadOnly
         $tblBirthplaceAll = array();
         if ($tblCommonBirthDatesAll) {
             array_walk($tblCommonBirthDatesAll,
-                function (TblCommonBirthDates &$tblCommonBirthDates) use (&$tblBirthplaceAll) {
+                function (TblCommonBirthDates $tblCommonBirthDates) use (&$tblBirthplaceAll) {
 
                     if ($tblCommonBirthDates->getBirthplace()) {
                         if (!in_array($tblCommonBirthDates->getBirthplace(), $tblBirthplaceAll)) {
@@ -302,8 +288,8 @@ class FrontendFamily extends FrontendReadOnly
         $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
         $lastNameInput = $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors);
 
-        $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent());
-        $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent());
+        $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
+        $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
 
         $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
 
@@ -355,7 +341,7 @@ class FrontendFamily extends FrontendReadOnly
                 )),
                 new LayoutRow((array(
                     new LayoutColumn(
-                        ApiFamilyEdit::receiverBlock('', 'SimilarPersonMessage')
+                        ApiFamilyEdit::receiverBlock('', 'SimilarPersonContent_' . $key)
                     )
                 )))
             ))),
@@ -396,6 +382,12 @@ class FrontendFamily extends FrontendReadOnly
 
         $genderReceiver = ApiFamilyEdit::receiverBlock($this->getGenderSelectBox(0, $Ranking), 'SelectedGender' . $Ranking);
 
+        $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
+        $lastNameInput = $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors);
+
+        $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
+        $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
+
         return new Panel(
             $title,
             new Layout(new LayoutGroup(array(
@@ -411,10 +403,10 @@ class FrontendFamily extends FrontendReadOnly
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors)
+                        $firstNameInput
                         , 3),
                     new LayoutColumn(
-                        $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors)
+                        $lastNameInput
                         , 3),
                     new LayoutColumn(
                         new TextField('Data[S' . $Ranking . '][BirthName]', 'Geburtsname', 'Geburtsname'), 3
@@ -423,6 +415,11 @@ class FrontendFamily extends FrontendReadOnly
                         $genderReceiver, 3
                     ),
                 )),
+                new LayoutRow((array(
+                    new LayoutColumn(
+                        ApiFamilyEdit::receiverBlock('', 'SimilarPersonContent_' . $key)
+                    )
+                )))
             ))),
             Panel::PANEL_TYPE_INFO
         );
@@ -457,7 +454,6 @@ class FrontendFamily extends FrontendReadOnly
         $stage = new Stage('Familie', 'Kontaktdaten anlegen');
 
         $columns = array();
-        $count = 1;
         foreach ($PersonIdList as $Id) {
             if (($tblPerson = Person::useService()->getPersonById($Id))) {
                 if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)) {
@@ -465,7 +461,7 @@ class FrontendFamily extends FrontendReadOnly
                 } elseif (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('PROSPECT'), $tblPerson)) {
                     $title = 'Interessent';
                 } else {
-                    $title = 'S' . $count++;
+                    $title = 'Sorgeberechtigter';
                 }
 
                 $columns[] = new LayoutColumn(

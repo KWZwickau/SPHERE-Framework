@@ -12,8 +12,6 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -36,7 +34,6 @@ class ApiFamilyEdit extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadSimilarPersonContent');
-        $Dispatcher->registerMethod('loadSimilarPersonMessage');
 
         $Dispatcher->registerMethod('loadChildContent');
 
@@ -61,14 +58,19 @@ class ApiFamilyEdit extends Extension implements IApiInterface
     }
 
     /**
+     * @param $key
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadSimilarPersonContent()
+    public static function pipelineLoadSimilarPersonContent($key)
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SimilarPersonContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SimilarPersonContent_' . $key), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadSimilarPersonContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'key' => $key
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -76,56 +78,19 @@ class ApiFamilyEdit extends Extension implements IApiInterface
     }
 
     /**
+     * @param $key
+     *
      * @return string
      */
-    public function loadSimilarPersonContent()
+    public function loadSimilarPersonContent($key)
     {
         $Global = $this->getGlobal();
         $Data = $Global->POST['Data'];
 
-        $Person['FirstName'] = $Data['Child']['FirstName'];
-        $Person['LastName'] = $Data['Child']['LastName'];
+        $Person['FirstName'] = $Data[$key]['FirstName'];
+        $Person['LastName'] = $Data[$key]['LastName'];
 
-        return (new FrontendFamily())->loadSimilarPersonContent($Person);
-    }
-
-    /**
-     * @param $countSimilarPerson
-     * @param $name
-     * @param $hash
-     *
-     * @return Pipeline
-     */
-    public static function pipelineLoadSimilarPersonMessage($countSimilarPerson, $name, $hash)
-    {
-        $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SimilarPersonMessage'), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadSimilarPersonMessage',
-        ));
-
-        $ModalEmitter->setPostPayload(array(
-            'countSimilarPerson' => intval($countSimilarPerson),
-            'name' => $name,
-            'hash' => $hash
-        ));
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param integer $countSimilarPerson
-     * @param string $name
-     * @param $hash
-     *
-     * @return Danger|Success
-     */
-    public function loadSimilarPersonMessage($countSimilarPerson, $name, $hash)
-    {
-        // todo kommt nicht hier an
-//        var_dump('hallo');
-        return FrontendFamily::getSimilarPersonMessage($countSimilarPerson, $name, $hash);
+        return (new FrontendFamily())->loadSimilarPersonContent($Person, $key);
     }
 
     /**
