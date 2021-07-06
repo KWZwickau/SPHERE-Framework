@@ -139,7 +139,10 @@ class Setup extends AbstractSetup
         $this->createColumn( $Table, 'Denomination', self::FIELD_TYPE_STRING);
         $this->createColumn( $Table, 'AssistanceActivity', self::FIELD_TYPE_TEXT);
         $this->createColumn( $Table, 'IsAssistance', self::FIELD_TYPE_SMALLINT);
-        $this->createColumn( $Table, 'AuthorizedToCollect', self::FIELD_TYPE_TEXT);
+        if ($Table->hasColumn('AuthorizedToCollect')) {
+            $Table->dropColumn('AuthorizedToCollect');
+        }
+
         return $Table;
     }
 

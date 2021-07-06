@@ -589,6 +589,12 @@ class Service extends Extension
                     $Item['PhoneAuthorizedExcel'] = $this->getPhoneList($tblPersonA, true);
                 }
 
+                if (($tblChild = $tblPerson->getChild())) {
+                    $Item['AuthorizedToCollect'] = $tblChild->getAuthorizedToCollect();
+                } else {
+                    $Item['AuthorizedToCollect'] = '';
+                }
+
                 array_push($TableContent, $Item);
             });
         }
@@ -691,6 +697,8 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, "0"), "Bevollmächtigt");
                 $export->setValue($export->getCell($column, "0"), "Tel. Bevollmächtigt");
             }
+            $column++;
+            $export->setValue($export->getCell($column, "0"), "Abholberechtigte");
 
             $Row = 1;
 
@@ -721,6 +729,8 @@ class Service extends Extension
                     $export->setValue($export->getCell($column++, $Row), $PersonData['Authorized']);
                     $export->setValue($export->getCell($column, $Row), $PersonData['PhoneAuthorizedExcel']);
                 }
+                $column++;
+                $export->setValue($export->getCell($column, $Row), $PersonData['AuthorizedToCollect']);
 
                 $Row++;
             }

@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
@@ -50,6 +51,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadTeacherContent');
         $Dispatcher->registerMethod('loadCustodyContent');
         $Dispatcher->registerMethod('loadClubContent');
+        $Dispatcher->registerMethod('loadChildContent');
 
         $Dispatcher->registerMethod('loadIntegrationTitle');
         $Dispatcher->registerMethod('loadIntegrationContent');
@@ -461,6 +463,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadChildContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ChildContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadChildContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -655,5 +678,15 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     public function loadStudentTechnicalSchoolContent($PersonId = null)
     {
         return FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadChildContent($PersonId = null)
+    {
+        return FrontendChild::getChildContent($PersonId);
     }
 }

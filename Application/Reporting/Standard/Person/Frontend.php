@@ -248,6 +248,8 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                 }
 
+                $tableHead['AuthorizedToCollect'] = 'Abholberechtigte';
+
                 $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
 
                 $Stage->setContent(
