@@ -182,6 +182,10 @@ class FrontendFamily extends FrontendReadOnly
         $formRows = array();
         if (isset($Errors['Person'])) {
             $formRows[] = new FormRow(new FormColumn(new Danger(implode('</br>', $Errors['Person']))));
+        } elseif ($Errors) {
+            $formRows[] = new FormRow(new FormColumn(
+                new Danger('Die Daten wurden nicht gespeichert. Bitte überprüfen Sie die unteren Fehlermeldungen.', new Exclamation())
+            ));
         }
 
         if ($Data) {
@@ -494,6 +498,12 @@ class FrontendFamily extends FrontendReadOnly
     public function getFamilyAddressForm($PersonIdList, $Data, $Errors)
     {
         if ($Data) {
+            if ($Errors) {
+                $formRows[] = new FormRow(new FormColumn(
+                    new Danger('Die Daten wurden nicht gespeichert. Bitte überprüfen Sie die unteren Fehlermeldungen.', new Exclamation())
+                ));
+            }
+
             $countContactTypes = $this->getCountContactTypes($Data);
             foreach($Data as $key => $item) {
                 $type = substr($key, 0, 1);
