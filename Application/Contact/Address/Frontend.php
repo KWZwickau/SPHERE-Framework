@@ -391,8 +391,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonAddress->getFullName())
-//                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
-                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new Small(new Muted($remark)) : '');
+                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonAddress, $tblToPerson->getRemark());
                                 }
                             }
 
