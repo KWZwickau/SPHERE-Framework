@@ -823,6 +823,7 @@ class Data extends AbstractData
                     case 'SYSTEM':
                         $Timeout = ( 60 * 60 * 4 );
                         break;
+                    case 'AUTHENTICATORAPP':
                     case 'TOKEN':
                         $Timeout = ( 60 * 60 );
                         break;

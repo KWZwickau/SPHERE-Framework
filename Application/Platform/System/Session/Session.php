@@ -108,6 +108,7 @@ class Session extends Extension implements IModuleInterface
                     case 'System':
                         $loginTime = (60 * 60 * 4);
                         break;
+                    case 'AuthenticatorApp':
                     case 'Token':
                         $loginTime = (60 * 60);
                         break;
