@@ -39,6 +39,8 @@ class ApiFamilyEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('changeSelectedGender');
 
+        $Dispatcher->registerMethod('loadSiblingCheckBox');
+
         $Dispatcher->registerMethod('loadAddressContent');
         $Dispatcher->registerMethod('loadPhoneContent');
         $Dispatcher->registerMethod('loadMailContent');
@@ -130,7 +132,8 @@ class ApiFamilyEdit extends Extension implements IApiInterface
      */
     public function loadChildContent($Ranking, $Data, $Errors)
     {
-        return (new FrontendFamily())->getChildContent($Ranking, $Data, $Errors);
+        return (new FrontendFamily())->getChildContent($Ranking, $Data, $Errors)
+            . ($Ranking == '2' ? self::pipelineLoadSiblingCheckBox('1') : '');
     }
 
     /**
@@ -218,6 +221,37 @@ class ApiFamilyEdit extends Extension implements IApiInterface
     public function loadAddressContent($Ranking, $PersonIdList, $Data = null, $Errors = null)
     {
         return (new FrontendFamily())->getAddressContent($Ranking, $PersonIdList, $Data, $Errors);
+    }
+
+    /**
+     * @param $Ranking
+     *
+     * @return Pipeline
+     */
+    public function pipelineLoadSiblingCheckBox($Ranking)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SiblingCheckBox_' . $Ranking), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSiblingCheckBox',
+        ));
+
+        $ModalEmitter->setPostPayload(array(
+            'Ranking' => $Ranking
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Ranking
+     *
+     * @return string
+     */
+    public function loadSiblingCheckBox($Ranking)
+    {
+        return (new FrontendFamily())->getSiblingCheckBox($Ranking);
     }
 
     /**

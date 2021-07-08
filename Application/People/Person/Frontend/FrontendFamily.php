@@ -199,13 +199,13 @@ class FrontendFamily extends FrontendReadOnly
 
                     $formRows[] = new FormRow(new FormColumn(
                         ApiFamilyEdit::receiverBlock($this->getChildContent($ranking, $Data, $Errors,
-                            $countPersons[$type] == $ranking), 'ChildContent_' . $ranking)
+                            $countPersons[$type] == $ranking, $countPersons['C'] != 1), 'ChildContent_' . $ranking)
                     ));
                 }
             }
         } else {
             $formRows[] = new FormRow(new FormColumn(
-                ApiFamilyEdit::receiverBlock($this->getChildContent(1, $Data, $Errors), 'ChildContent_1')
+                ApiFamilyEdit::receiverBlock($this->getChildContent(1, $Data, $Errors, true, false), 'ChildContent_1')
             ));
         }
 
@@ -252,10 +252,11 @@ class FrontendFamily extends FrontendReadOnly
      * @param $Data
      * @param $Errors
      * @param bool $hasAddButton
+     * @param bool $hasSiblingOption
      *
      * @return string
      */
-    public function getChildContent($Ranking, $Data, $Errors, $hasAddButton = true)
+    public function getChildContent($Ranking, $Data, $Errors, $hasAddButton = true, $hasSiblingOption = true)
     {
         $key = 'C' . $Ranking;
 
@@ -284,7 +285,6 @@ class FrontendFamily extends FrontendReadOnly
 
             $global = $this->getGlobal();
             $global->POST['Data'][$key]['Group'] = $tblGroupProspect->getId();
-            $global->POST['Data'][$key]['IsSibling'] = 1;
 
             $global->savePost();
         }
@@ -297,10 +297,17 @@ class FrontendFamily extends FrontendReadOnly
 
         $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
 
-        $title = new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn('Kind', 3),
-            new LayoutColumn(new CheckBox('Data[C' . $Ranking . '][IsSibling]', 'Geschwisterkind', 1), 3)
-        ))));
+        if ($hasSiblingOption) {
+            $title = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Kind', 3),
+                new LayoutColumn($this->getSiblingCheckBox($Ranking), 3)
+            ))));
+        } else {
+            $title = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Kind', 3),
+                new LayoutColumn(ApiFamilyEdit::receiverBlock('', 'SiblingCheckBox_' . $Ranking), 3)
+            ))));
+        }
 
         return new Panel(
             $title,
@@ -366,6 +373,22 @@ class FrontendFamily extends FrontendReadOnly
             )))),
             'ChildContent_' . ($Ranking + 1))
             : '');
+    }
+
+    /**
+     * @param $Ranking
+     *
+     * @return CheckBox
+     */
+    public function getSiblingCheckBox($Ranking)
+    {
+        $key = 'C' . $Ranking;
+
+        $global = $this->getGlobal();
+        $global->POST['Data'][$key]['IsSibling'] = 1;
+        $global->savePost();
+
+        return new CheckBox('Data[C' . $Ranking . '][IsSibling]', 'Geschwisterkind', 1);
     }
 
     /**
