@@ -39,10 +39,6 @@ class TblCommonInformation extends Element
      * @Column(type="smallint")
      */
     protected $IsAssistance;
-    /**
-     * @Column(type="text")
-     */
-    protected $AuthorizedToCollect;
 
     /**
      * @return string
@@ -114,23 +110,5 @@ class TblCommonInformation extends Element
     {
 
         $this->Nationality = $Nationality;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAuthorizedToCollect()
-    {
-
-        return $this->AuthorizedToCollect;
-    }
-
-    /**
-     * @param string $AuthorizedToCollect
-     */
-    public function setAuthorizedToCollect($AuthorizedToCollect)
-    {
-
-        $this->AuthorizedToCollect = $AuthorizedToCollect;
     }
 }
