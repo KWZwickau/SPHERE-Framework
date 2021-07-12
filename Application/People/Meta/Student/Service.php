@@ -1342,6 +1342,32 @@ class Service extends Support
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByPersonAndYearAndIsNotInActive(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $tblDivisionList = array();
+
+        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+        if ($tblDivisionStudentList) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getTblDivision() && !$tblDivisionStudent->isInActive()) {
+                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                        $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
+                    }
+                }
+            }
+        }
+
+        return empty($tblDivisionList) ? false : $tblDivisionList;
+    }
+
+    /**
      * @param array $EntityList
      * @param array $ProtocolList
      *
