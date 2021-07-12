@@ -1732,7 +1732,7 @@ abstract class Certificate extends Extension
 
         $Element = (new Element());
         if($Remark != ''){
-            $Element->setContent($PreRemark.$Remark);
+            $Element->setContent($PreRemark.nl2br($Remark));
         } else {
             $Element->setContent($PreRemark.
                 '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}

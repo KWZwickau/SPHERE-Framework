@@ -540,7 +540,7 @@ class Service extends AbstractService
 
         $Acronym = Account::useService()->getMandantAcronym();
         if($Acronym == 'EVAB'
-        || $Acronym == 'REF'
+//        || $Acronym == 'REF'
         ){
             $FieldConfiguration['Content.Input.Remark'] = 'Editor';
         }
