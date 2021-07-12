@@ -500,6 +500,7 @@ class Service extends AbstractService
             'Content.Input.PerformanceGroup'    => 'TextField',
             'Content.Input.Arrangement'         => 'TextArea',
             'Content.Input.Support'             => 'TextArea',
+            'Content.Input.SupportSubject'      => 'TextArea',
             'Content.Input.DivisionName'        => 'TextField',
             'Content.Input.StudentLetter'       => 'TextArea',
             'Content.Input.DialoguesWithYou'    => 'TextArea',
@@ -539,7 +540,7 @@ class Service extends AbstractService
 
         $Acronym = Account::useService()->getMandantAcronym();
         if($Acronym == 'EVAB'
-        || $Acronym == 'REF'
+//        || $Acronym == 'REF'
         ){
             $FieldConfiguration['Content.Input.Remark'] = 'Editor';
         }
@@ -593,6 +594,7 @@ class Service extends AbstractService
             'Content.Input.PerformanceGroup'    => 'Leistungsgruppe',
             'Content.Input.Arrangement'         => 'Besonderes Engagement',
             'Content.Input.Support'             => 'Inklusive Unterrichtung',
+            'Content.Input.SupportSubject'      => 'Thema der lebenspraktisch orientierten Komplexen Leistung',
             'Content.Input.DivisionName'        => 'Klasse',
             'Content.Input.StudentLetter'       => 'Schülerbrief',
             'Content.Input.DialoguesWithYou'    => 'Im Dialog mit dir',

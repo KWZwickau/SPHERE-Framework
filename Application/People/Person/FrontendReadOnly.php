@@ -14,6 +14,7 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
@@ -96,6 +97,10 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $commonContent = ApiPersonReadOnly::receiverBlock(
                 FrontendCommon::getCommonContent($Id), 'CommonContent'
+            );
+
+            $childContent = ApiPersonReadOnly::receiverBlock(
+                FrontendChild::getChildContent($Id), 'ChildContent'
             );
 
             $prospectContent = ApiPersonReadOnly::receiverBlock(
@@ -198,6 +203,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 ($validationMessage ? $validationMessage : '')
                 . $basicContent
                 . $commonContent
+                . $childContent
                 . $prospectContent
                 . $teacherContent
                 . $studentContent

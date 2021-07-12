@@ -41,6 +41,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success as SuccessLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -49,20 +50,27 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Education\Certificate\Setting
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int   $Certificate
+     * @param int $Certificate
      * @param array $Grade
      * @param array $Subject
      * @param array $Data
-     * @param null  $tblTechnicalCourseId
+     * @param null $tblTechnicalCourseId
+     * @param bool $loadStandardFromNoConsumer
      *
      * @return Stage|string
      */
-    public function frontendCertificateSetting($Certificate = 0, $Grade = array(), $Subject = array(), $Data = null, $tblTechnicalCourseId = null)
-    {
+    public function frontendCertificateSetting($Certificate = 0, $Grade = array(), $Subject = array(), $Data = null,
+        $tblTechnicalCourseId = null, $loadStandardFromNoConsumer = false
+    ) {
 
         $Stage = new Stage('Einstellungen', 'Vorlage bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Setting/Template', new ChevronLeft()));
@@ -76,6 +84,24 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if (( $tblCertificate = Generator::useService()->getCertificateById($Certificate) )) {
+
+            if ($tblTechnicalCourse
+                && !$loadStandardFromNoConsumer
+                && !Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse) // für den Bildungsgang dürfen noch keine Fächer eingestellt sein
+                && Generator::useService()->getCertificateSubjectAll($tblCertificate) // es muss Fächereinstellungen ohne Bildungsgang geben
+            ) {
+                $Stage->addButton(new Standard(
+                    'Fächer von ohne Bildungsgang / Berufsbezeichnung / Ausbildung laden',
+                    '/Education/Certificate/Setting/Configuration',
+                    null,
+                    array(
+                        'Certificate' => $Certificate,
+                        'tblTechnicalCourseId' => $tblTechnicalCourseId,
+                        'loadStandardFromNoConsumer' => true
+                    )
+                ));
+            }
+
             // Spezial Fall Abiturzeugnis
             if ($tblCertificate->getCertificate() == 'GymAbitur') {
                 if (($tblCertificateReferenceForLanguagesList = Generator::useService()->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate))) {
@@ -156,11 +182,11 @@ class Frontend extends Extension implements IFrontendInterface
                 for ($Run = 1; $Run <= $haveToAcrossSubject; $Run++) {
                     array_push($SubjectLaneAcrossLeft,
                         $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run,
-                            ($Run == 1 ? 'Linke Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse)
+                            ($Run == 1 ? 'Linke Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneAcrossRight,
                         $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run,
-                            ($Run == 1 ? 'Rechte Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse)
+                            ($Run == 1 ? 'Rechte Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
                 // Berufsbezogene Pflichtfächer
@@ -169,10 +195,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $countLF = 1;
                 for ($Run = ($haveToAcrossSubject + 1); $Run <= $haveToBaseSubject; $Run++) {
                     array_push($SubjectLaneBaseLeft,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', 'LF'.$countLF++, $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', 'LF'.$countLF++,
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneBaseRight,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', 'LF'.$countLF++, $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', 'LF'.$countLF++,
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
                 // Wahlfächer
@@ -180,17 +208,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $SubjectLaneChosenRight = array();
                 for ($Run = ($haveToBaseSubject + 1); $Run <= $chosenSubject; $Run++) {
                     array_push($SubjectLaneChosenLeft,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneChosenRight,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
                 // Berufspratische Ausbildung
                 $SubjectPrakt = array();
                 for ($Run = ($chosenSubject + 1); $Run <= $praktSubject; $Run++) {
                     array_push($SubjectPrakt,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
 
@@ -199,6 +230,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
                     , ($tblTechnicalCourse ? $tblTechnicalCourse->getName() : '')),
                         Panel::PANEL_TYPE_INFO)
+                    . ($loadStandardFromNoConsumer && $tblTechnicalCourse
+                        ? new Warning('Es wurden die Fächereinstellungen von ohne "Bildungsgang / Berufsbezeichnung / Ausbildung" 
+                            voreingetragen. Bitte Speichern Sie diese Fächereinstellung am Ende der Seite (unten) um die
+                            Fächereinstellung für: ' . $tblTechnicalCourse->getName() . ' zu übernehmen.')
+                        : ''
+                    )
                     . Generator::useService()->createCertificateSetting(
                         new Form(array(
                             new FormGroup(array(
@@ -249,10 +286,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $SubjectLaneAcrossRight = array();
                 for ($Run = 1; $Run <= $haveToAcrossSubject; $Run++) {
                     array_push($SubjectLaneAcrossLeft,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneAcrossRight,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
                 // Berufsbezogene Pflichtfächer
@@ -261,10 +300,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $countLF = 1;
                 for ($Run = ($haveToAcrossSubject + 1); $Run <= $haveToBaseSubject; $Run++) {
                     array_push($SubjectLaneBaseLeft,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', 'LF'.$countLF++, $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', 'LF'.$countLF++,
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneBaseRight,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', 'LF'.$countLF++, $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', 'LF'.$countLF++,
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
                 // Wahlfächer
@@ -272,24 +313,28 @@ class Frontend extends Extension implements IFrontendInterface
                 $SubjectLaneChosenRight = array();
                 for ($Run = ($haveToBaseSubject + 1); $Run <= $chosenSubject; $Run++) {
                     array_push($SubjectLaneChosenLeft,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneChosenRight,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
                 // Berufspratische Ausbildung
                 $SubjectPrakt = array();
                 for ($Run = ($chosenSubject + 1); $Run <= $praktSubject; $Run++) {
                     array_push($SubjectPrakt,
-                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
 //                // Zusatzausbildung zum Erwerb der Fachhochschulreife
 //                $SubjectEducation = array();
 //                for ($Run = ($chosenSubject + 2); $Run <= $educationSubject; $Run++) {
 //                    array_push($SubjectEducation,
-//                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '', $tblTechnicalCourse)
+//                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+//                           $tblTechnicalCourse, $loadStandardFromNoConsumer)
 //                    );
 //                }
 
@@ -297,6 +342,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
                     , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
                         Panel::PANEL_TYPE_INFO)
+                    . ($loadStandardFromNoConsumer && $tblTechnicalCourse
+                        ? new Warning('Es wurden die Fächereinstellungen von ohne "Bildungsgang / Berufsbezeichnung / Ausbildung" 
+                            voreingetragen. Bitte Speichern Sie diese Fächereinstellung am Ende der Seite (unten) um die
+                            Fächereinstellung für: ' . $tblTechnicalCourse->getName() . ' zu übernehmen.')
+                        : ''
+                    )
                     . Generator::useService()->createCertificateSetting(
                         new Form(array(
                             new FormGroup(array(
@@ -354,11 +405,11 @@ class Frontend extends Extension implements IFrontendInterface
                 for ($Run = 1; $Run <= $LaneLength; $Run++) {
                     array_push($SubjectLaneLeft,
                         $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run,
-                            ($Run == 1 ? 'Linke Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse)
+                            ($Run == 1 ? 'Linke Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                     array_push($SubjectLaneRight,
                         $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run,
-                            ($Run == 1 ? 'Rechte Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse)
+                            ($Run == 1 ? 'Rechte Zeugnis-Spalte' : ''), 'Subject', '', $tblTechnicalCourse, $loadStandardFromNoConsumer)
                     );
                 }
 
@@ -432,14 +483,15 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblCertificate          $tblCertificate
-     * @param TblSubject[]            $tblSubjectAll
-     * @param int                     $LaneIndex [1..n]
-     * @param int                     $LaneRanking [1..n]
-     * @param string                  $LaneTitle
-     * @param string                  $FieldName
-     * @param string                  $PreFach
+     * @param TblCertificate $tblCertificate
+     * @param TblSubject[] $tblSubjectAll
+     * @param int $LaneIndex [1..n]
+     * @param int $LaneRanking [1..n]
+     * @param string $LaneTitle
+     * @param string $FieldName
+     * @param string $PreSubject
      * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param bool $loadStandardFromNoConsumer
      *
      * @return Panel
      */
@@ -450,14 +502,15 @@ class Frontend extends Extension implements IFrontendInterface
         $LaneRanking,
         $LaneTitle = '',
         $FieldName = 'Subject',
-        $PreFach = '',
-        $tblTechnicalCourse = null
+        $PreSubject = '',
+        $tblTechnicalCourse = null,
+        $loadStandardFromNoConsumer = false
     ) {
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST[$FieldName][$LaneIndex][$LaneRanking] )) {
             if (( $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
-                $tblCertificate, $LaneIndex, $LaneRanking, $tblTechnicalCourse
+                $tblCertificate, $LaneIndex, $LaneRanking, $loadStandardFromNoConsumer ? null : $tblTechnicalCourse
             ) )
             ) {
                 $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Subject'] =
@@ -475,7 +528,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Panel($LaneTitle, array(
-            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Subject]', ($PreFach? $PreFach.' ' : '').'Fach',
+            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Subject]', ($PreSubject? $PreSubject.' ' : '').'Fach',
                 array('{{ Acronym }} - {{ Name }}' => $tblSubjectAll)
             ),
             new CheckBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][IsEssential]',

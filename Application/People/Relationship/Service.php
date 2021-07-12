@@ -18,7 +18,10 @@ use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPers
 use SPHERE\Application\People\Relationship\Service\Setup;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -769,5 +772,65 @@ class Service extends AbstractService
     public function updateRelationshipRanking($modifyList)
     {
         return (new Data($this->getBinding()))->updateRelationshipRanking($modifyList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonContact
+     * @param $remarkContact
+     *
+     * @return string
+     */
+    public function getRelationshipInformationForContact(TblPerson $tblPerson, TblPerson $tblPersonContact, $remarkContact)
+    {
+        // abhängig von beziehungstyp
+        // Sorgeb. Bevol. Vormund -> beim From -> Kind
+        // Geschwisterkind beide Richtungen
+        // der Rest weglassen
+
+        $result = '';
+        if(($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonContact, $tblPerson))){
+            $tblRelationshipType = $tblToPersonRelationship->getTblType();
+            $typeName = $tblRelationshipType->getName();
+            $remarkRelationship = $tblToPersonRelationship->getRemark();
+
+            switch ($typeName) {
+                case 'Sorgeberechtigt':
+                case 'Bevollmächtigt':
+                case 'Vormund':
+                case 'Geschwisterkind':
+                    $result = ' (' . $typeName
+                        . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
+                        . ')';
+                    break;
+                default:
+                    $result = $remarkRelationship ? ' (' . new Small(new Muted($remarkRelationship)) . ')' : '';
+            }
+        } elseif (($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPerson, $tblPersonContact))){
+            $tblRelationshipType = $tblToPersonRelationship->getTblType();
+            $typeName = $tblRelationshipType->getName();
+            $remarkRelationship = $tblToPersonRelationship->getRemark();
+
+            switch ($typeName) {
+                case 'Geschwisterkind':
+                    $result = ' (' . $typeName
+                        . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
+                        . ')';
+                    break;
+                case 'Sorgeberechtigt':
+                case 'Bevollmächtigt':
+                case 'Vormund':
+                    $result = ' (Kind'
+                        . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
+                        . ')';
+                    break;
+                default:
+                    $result = $remarkRelationship ? ' (' . new Small(new Muted($remarkRelationship)) . ')' : '';
+            }
+        }
+
+        $result.= $remarkContact ? new Container(new Small(new Muted($remarkContact))) : '';
+
+        return $result;
     }
 }

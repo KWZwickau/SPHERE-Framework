@@ -240,6 +240,42 @@ class Service extends AbstractService
      * @param string $FirstName
      * @param string $LastName
      * @param string $Birthday
+     * @param string $Identifier
+     *
+     * @return bool|TblPerson
+     */
+    public function getPersonByNameAndBirthdayOrIdentifier($FirstName, $LastName, $Birthday, $Identifier)
+    {
+
+        $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
+
+        if ($tblPersonList) {
+            foreach ($tblPersonList as $tblPerson) {
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if (!$tblCommon) {
+                    continue;
+                }
+                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if (!$tblStudent || !$tblCommonBirthDates) {
+                    continue;
+                }
+
+                if ($Birthday && $Birthday == $tblCommonBirthDates->getBirthday()) {
+                    return $tblPerson;
+                }
+                if ($Identifier && $Identifier == $tblStudent->getIdentifier()) {
+                    return $tblPerson;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param string $FirstName
+     * @param string $LastName
+     * @param string $Birthday
      *
      * @return bool|TblPerson[]
      */

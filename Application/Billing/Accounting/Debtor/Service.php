@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Debtor;
 
+use DateTime;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Data;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
@@ -259,6 +260,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPersonDebtor
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPersonDebtor(TblPerson $tblPersonDebtor)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByPersonDebtor($tblPersonDebtor);
+    }
+
+    /**
      * @param TblItem $tblItem
      *
      * @return false|TblDebtorSelection[]
@@ -508,13 +520,13 @@ class Service extends AbstractService
         $Value = str_replace(',', '.', $Value);
 
         //Pflichtfeld
-        $FromDate = new \DateTime($FromDate);
+        $FromDate = new DateTime($FromDate);
         // (kein Pflichtfeld)
         // hiermit kann das ToDate wieder entfernt werden
         if(!$ToDate){
             $ToDate = null;
         } else {
-            $ToDate = new \DateTime($ToDate);
+            $ToDate = new DateTime($ToDate);
         }
 
         // nicht benötigte Informationen entfernen

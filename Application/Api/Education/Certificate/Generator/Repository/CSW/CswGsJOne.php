@@ -23,7 +23,8 @@ class CswGsJOne extends Certificate
     {
         return array(
             1 => "wird versetzt",
-            2 => "wird nicht versetzt"
+            2 => "wird nicht versetzt",
+            3 => "kein Versetzungsvermerk"
         );
     }
 
@@ -55,7 +56,7 @@ class CswGsJOne extends Certificate
             ->addSlice($this->getDescriptionContent($personId, $hasTransfer ? '506px' : '530px', '20px'));
 
         if ($hasTransfer) {
-            $page->addSlice($this->getTransfer($personId));
+            $page->addSlice($this->getTransferCustom($personId));
         }
 
         $page
@@ -93,5 +94,36 @@ class CswGsJOne extends Certificate
         $pageList[] = CswGsStyle::buildSecondPage($tblPerson);
 
         return $pageList;
+    }
+
+    public function getTransferCustom($personId, $MarginTop = '5px')
+    {
+        $TransferSlice = (new Slice());
+        $TransferSlice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent(
+                    '{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        Versetzungsvermerk:
+                    {% endif %}')
+                , '22%')
+            ->addElementColumn((new Element())
+                ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        {{ Content.P' . $personId . '.Input.Transfer }}.
+                    {% else %}
+                          &nbsp;
+                    {% endif %}')
+                ->styleBorderBottom(
+                    '{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        1px
+                    {% else %}
+                        0px
+                    {% endif %}'
+                )
+                , '58%')
+            ->addElementColumn((new Element())
+                , '20%')
+        )
+            ->styleMarginTop($MarginTop);
+        return $TransferSlice;
     }
 }

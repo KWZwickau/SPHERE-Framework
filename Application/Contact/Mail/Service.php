@@ -247,6 +247,7 @@ class Service extends AbstractService
      * @param           $Address
      * @param           $Type
      * @param bool      $IsAccountUserAlias
+     * @param bool      $IsAccountBackupMail
      * @param string    $ErrorString
      *
      * @return bool
@@ -256,6 +257,7 @@ class Service extends AbstractService
         $Address,
         $Type,
         $IsAccountUserAlias = false,
+        $IsAccountBackupMail = false,
         &$ErrorString = ''
     ) {
 
@@ -270,43 +272,55 @@ class Service extends AbstractService
         }
 
         if (($tblToPerson = (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark']))) {
-            if($IsAccountUserAlias){
-                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                    $tblAccount = current($tblAccountList);
-                    // remove existing entry's
-                    if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
-                        foreach($tblToPersonList as $tblToPersonTemp){
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+                $tblAccount = current($tblAccountList);
+                // remove existing entry's
+                if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
+                    foreach($tblToPersonList as $tblToPersonTemp){
+                        if($IsAccountUserAlias){
                             if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountUserAlias()){
-                                Account::useService()->changeUserAlias($tblAccount,'');
+                                Account::useService()->changeUserAlias($tblAccount, '');
                                 Mail::useService()->updateMailToPersonAlias($tblToPersonTemp, false);
                             }
                         }
-                    }
-
-                    // prüfen ob Alias eineindeutig ist
-                    if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Address))) {
-                        foreach ($tblAccountList as $item) {
-                            if ($tblAccount->getId() != $item->getId()) {
-                                if($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
-                                    $PersonString = 'Person nicht gefunden';
-                                    if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
-                                        $foundPerson = current($tblPersonList);
-                                        /** @var TblPerson $foundPerson */
-                                        $PersonString = $foundPerson->getFirstName().', '.$foundPerson->getLastName();
-                                    }
-                                    $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet. ('.($item->getUsername().' - '.$PersonString.')');
-                                } else {
-                                    $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet.';
-                                }
+                        if($IsAccountBackupMail){
+                            if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountBackupMail()){
+                                Account::useService()->changeBackupMail($tblAccount, '');
+                                Mail::useService()->updateMailToPersonBackupMail($tblToPersonTemp, false);
                             }
                         }
                     }
-                    if((Account::useService()->changeUserAlias($tblAccount, $Address))){
-                        Mail::useService()->updateMailToPersonAlias($tblToPerson, $IsAccountUserAlias);
-                    }
-                } else {
-                    $ErrorString = 'Person hat keinen Benutzeraccount';
                 }
+
+                // prüfen ob Alias eineindeutig ist
+                if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Address))) {
+                    foreach ($tblAccountList as $item) {
+                        if ($tblAccount->getId() != $item->getId()) {
+                            if($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
+                                $PersonString = 'Person nicht gefunden';
+                                if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
+                                    $foundPerson = current($tblPersonList);
+                                    /** @var TblPerson $foundPerson */
+                                    $PersonString = $foundPerson->getFirstName().', '.$foundPerson->getLastName();
+                                }
+                                $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet. ('.($item->getUsername().' - '.$PersonString.')');
+                            } else {
+                                $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet.';
+                            }
+                        }
+                    }
+                }
+
+                if($IsAccountUserAlias
+                && (Account::useService()->changeUserAlias($tblAccount, $Address))){
+                    Mail::useService()->updateMailToPersonAlias($tblToPerson, $IsAccountUserAlias);
+                }
+                if($IsAccountBackupMail
+                && (Account::useService()->changeBackupMail($tblAccount, $Address))){
+                    Mail::useService()->updateMailToPersonBackupMail($tblToPerson, $IsAccountBackupMail);
+                }
+            } else {
+                $ErrorString = 'Person hat keinen Benutzeraccount';
             }
             return true;
         } else {
@@ -348,9 +362,10 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param           $Address
-     * @param TblType $tblType
+     * @param TblType   $tblType
      * @param           $Remark
-     * @param bool $IsUserAlias
+     * @param bool      $IsUserAlias
+     * @param bool      $IsBackupMail
      *
      * @return TblToPerson
      */
@@ -359,7 +374,8 @@ class Service extends AbstractService
         $Address,
         TblType $tblType,
         $Remark,
-        $IsUserAlias = false
+        $IsUserAlias = false,
+        $IsBackupMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
@@ -369,12 +385,17 @@ class Service extends AbstractService
                 if (($tblMailTemp = $tblToPerson->getTblMail())
                     && $tblMail->getId() == $tblMailTemp->getId()
                 ) {
-                    return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsUserAlias);
+                    if($IsUserAlias){
+                        return (new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $tblType, $IsUserAlias);
+                    } elseif($IsBackupMail){
+                        return (new Data($this->getBinding()))->updateMailToPersonBackupMail($tblToPerson, $tblType, $IsBackupMail);
+                    } else {
+                        return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsUserAlias, $IsBackupMail);
+                    }
                 }
             }
         }
-
-        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsUserAlias);
+        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsUserAlias, $IsBackupMail);
     }
 
     /**
@@ -401,6 +422,7 @@ class Service extends AbstractService
      * @param             $Address
      * @param             $Type
      * @param bool        $IsAccountUserAlias
+     * @param bool        $IsAccountBackupMail
      * @param string      $ErrorString
      *
      * @return bool
@@ -410,6 +432,7 @@ class Service extends AbstractService
         $Address,
         $Type,
         $IsAccountUserAlias = false,
+        $IsAccountBackupMail = false,
         &$ErrorString = ''
     ) {
 
@@ -420,24 +443,53 @@ class Service extends AbstractService
         if ($tblToPerson->getServiceTblPerson()
             && ($tblType = $this->getTypeById($Type['Type']))
         ) {
-            if(!$IsAccountUserAlias){
-                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblToPerson->getServiceTblPerson()))){
-                    $tblAccount = current($tblAccountList);
-                    Account::useService()->changeUserAlias($tblAccount, '');
+
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblToPerson->getServiceTblPerson()))){
+                $tblAccount = current($tblAccountList);
+                if(!$IsAccountUserAlias && !$IsAccountBackupMail){
+                    if($tblAccount->getUserAlias() == $Address){
+                        Account::useService()->changeUserAlias($tblAccount, '');
+                    }
+                    if($tblAccount->getBackupMail() == $Address){
+                        Account::useService()->changeBackupMail($tblAccount, '');
+                    }
+                    return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
+                        $tblType, $Type['Remark'], $IsAccountUserAlias, $IsAccountBackupMail);
+                } elseif(!$IsAccountUserAlias) {
+                    if($tblAccount->getUserAlias() == $Address){
+                        Account::useService()->changeUserAlias($tblAccount, '');
+                    }
+                } elseif(!$IsAccountBackupMail){
+                    if($tblAccount->getBackupMail() == $Address){
+                        Account::useService()->changeBackupMail($tblAccount, '');
+                    }
                 }
-                return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
-                    $tblType, $Type['Remark'], $IsAccountUserAlias);
+
+                if($IsAccountUserAlias){
+                    Account::useService()->changeUserAlias($tblAccount, $Address);
+                }
+                if($IsAccountBackupMail){
+                    Account::useService()->changeBackupMail($tblAccount, $Address);
+                }
             }
-            // update
-            if ((new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
-                $tblType, $Type['Remark'], $IsAccountUserAlias)
-            ){
+
+
+            if($IsAccountBackupMail){
+                $this->updateBackupMail($tblToPerson, $Address);
+            }
+            if($IsAccountUserAlias){
                 $this->updateAlias($tblToPerson, $Address, $ErrorString);
                 if($ErrorString){
                     // bei Fehlern den Aliasflag entfernen
                     (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
-                        $tblType, $Type['Remark'], false);
+                        $tblType, $Type['Remark'], false, $IsAccountBackupMail);
                 }
+            }
+
+            // update
+            if ((new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
+                $tblType, $Type['Remark'], $IsAccountUserAlias, $IsAccountBackupMail)
+            ){
                 return true;
             }
         }
@@ -499,6 +551,40 @@ class Service extends AbstractService
 
     /**
      * @param TblToPerson $tblToPerson
+     * @param string      $BackupMail
+     *
+     * @return bool
+     */
+    private function updateBackupMail(TblToPerson $tblToPerson, $BackupMail)
+    {
+        $isBackupMail = false;
+        if($BackupMail){
+            $isBackupMail = true;
+        }
+
+        if (($tblPerson = $tblToPerson->getServiceTblPerson())
+            && ($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+            $tblAccount = current($tblAccountList);
+            // remove existing entry's
+            if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblToPerson->getServiceTblPerson()))){
+                foreach($tblToPersonList as $tblToPersonTemp){
+                    if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountBackupMail()){
+                        Account::useService()->changeBackupMail($tblAccount,'');
+                        Mail::useService()->updateMailToPersonBackupMail($tblToPersonTemp, false);
+                    }
+                }
+            }
+
+
+            if ((Account::useService()->changeBackupMail($tblAccount, $BackupMail))){
+                return Mail::useService()->updateMailToPersonBackupMail($tblToPerson, $isBackupMail);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
      * @param bool $IsAccountUserAlias
      *
      * @return bool
@@ -508,7 +594,7 @@ class Service extends AbstractService
         $IsAccountUserAlias = false
     ) {
 
-        if ((new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $IsAccountUserAlias)
+        if ((new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $tblToPerson->getTblType(), $IsAccountUserAlias)
         ) {
             return true;
         } else {
@@ -518,10 +604,30 @@ class Service extends AbstractService
 
     /**
      * @param TblToPerson $tblToPerson
-     * @param $Address
-     * @param TblType $tblType
-     * @param $Remark
-     * @param bool $IsAccountUserAlias
+     * @param bool        $IsAccountBackupMail
+     *
+     * @return bool
+     */
+    public function updateMailToPersonBackupMail(
+        TblToPerson $tblToPerson,
+        $IsAccountBackupMail = false
+    ) {
+
+        if ((new Data($this->getBinding()))->updateMailToPersonBackupMail($tblToPerson, $tblToPerson->getTblType(), $IsAccountBackupMail)
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param             $Address
+     * @param TblType     $tblType
+     * @param             $Remark
+     * @param bool        $IsAccountUserAlias
+     * @param bool        $IsAccountBackupMail
      *
      * @return bool
      */
@@ -530,13 +636,15 @@ class Service extends AbstractService
         $Address,
         TblType $tblType,
         $Remark,
-        $IsAccountUserAlias = false
+        $IsAccountUserAlias = false,
+        $IsAccountBackupMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
         if ($tblToPerson->getServiceTblPerson()) {
-            return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsAccountUserAlias);
+            return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark,
+                $IsAccountUserAlias, $IsAccountBackupMail);
         } else {
             return false;
         }
@@ -608,10 +716,14 @@ class Service extends AbstractService
     public function removeMailToPerson(TblToPerson $tblToPerson, $IsSoftRemove = false)
     {
 
-        if($tblToPerson->isAccountUserAlias()){
-            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblToPerson->getServiceTblPerson()))){
-                $tblAccount = current($tblAccountList);
+
+        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblToPerson->getServiceTblPerson()))){
+            $tblAccount = current($tblAccountList);
+            if($tblToPerson->isAccountUserAlias()){
                 Account::useService()->changeUserAlias($tblAccount, '');
+            }
+            if($tblToPerson->isAccountBackupMail()){
+                Account::useService()->changeBackupMail($tblAccount, '');
             }
         }
         return (new Data($this->getBinding()))->removeMailToPerson($tblToPerson, $IsSoftRemove);

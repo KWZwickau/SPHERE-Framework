@@ -823,6 +823,7 @@ class Data extends AbstractData
                     case 'SYSTEM':
                         $Timeout = ( 60 * 60 * 4 );
                         break;
+                    case 'AUTHENTICATORAPP':
                     case 'TOKEN':
                         $Timeout = ( 60 * 60 );
                         break;
@@ -1186,6 +1187,35 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setUserAlias($userAlias);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $BackupMail
+     *
+     * @return bool
+     */
+    public function changeBackupMail(TblAccount $tblAccount, $BackupMail)
+    {
+
+        if($BackupMail === ''){
+            $BackupMail = null;
+        }
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setBackupMail($BackupMail);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

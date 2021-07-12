@@ -658,25 +658,31 @@ class MsAbsRs extends Certificate
             }
 
             if ($pictureAddress !== '') {
+//                $IsSample = false;
                 if ($IsSample) {
                     $Header = (new Slice())
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
-                                , '39%')
-                            ->addElementColumn((new Element\Sample())
-                                ->styleTextSize('30px')
-                            )
+                                , '61%')
+
                             ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                                 '214px', '66px'))
                                 ->styleAlignRight()
                                 , '39%')
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element\Sample())
+                                ->styleTextSize('30px')
+                                ->styleAlignCenter()
+                                ->styleHeight('0px')
+                            )
                         );
                 } else {
                     $Header = (new Slice())
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
-                                , '39%')
-                            ->addElementColumn((new Element()), '22%')
+                                , '61%')
+//                            ->addElementColumn((new Element()), '22%')
                             ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                                 '214px', '66px'))
                                 ->styleAlignRight()

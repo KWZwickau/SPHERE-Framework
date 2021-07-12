@@ -83,8 +83,7 @@ class Service extends AbstractService
                 $Meta['Information']['Nationality'],
                 $Meta['Information']['Denomination'],
                 $Meta['Information']['IsAssistance'],
-                $Meta['Information']['AssistanceActivity'],
-                $Meta['Information']['AuthorizedToCollect']
+                $Meta['Information']['AssistanceActivity']
             );
 
             return (new Data($this->getBinding()))->updateCommon(
@@ -101,8 +100,7 @@ class Service extends AbstractService
                 $Meta['Information']['Nationality'],
                 $Meta['Information']['Denomination'],
                 $Meta['Information']['IsAssistance'],
-                $Meta['Information']['AssistanceActivity'],
-                $Meta['Information']['AuthorizedToCollect']
+                $Meta['Information']['AssistanceActivity']
             );
 
             return (new Data($this->getBinding()))->createCommon(
@@ -136,7 +134,6 @@ class Service extends AbstractService
      * @param $IsAssistance
      * @param $AssistanceActivity
      * @param $Remark
-     * @param $AuthorizedToCollect
      */
     public function insertMeta(
         TblPerson $tblPerson,
@@ -147,8 +144,7 @@ class Service extends AbstractService
         $Denomination,
         $IsAssistance,
         $AssistanceActivity,
-        $Remark,
-        $AuthorizedToCollect = ''
+        $Remark
     ) {
 
         $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
@@ -160,8 +156,7 @@ class Service extends AbstractService
             $Nationality,
             $Denomination,
             $IsAssistance,
-            $AssistanceActivity,
-            $AuthorizedToCollect
+            $AssistanceActivity
         );
         (new Data($this->getBinding()))->createCommon(
             $tblPerson,
@@ -285,7 +280,6 @@ class Service extends AbstractService
      * @param string               $Denomination
      * @param int                  $IsAssistance
      * @param string               $AssistanceActivity
-     * @param                      $AuthorizedToCollect
      *
      * @return bool
      */
@@ -294,10 +288,9 @@ class Service extends AbstractService
         $Nationality,
         $Denomination,
         $IsAssistance,
-        $AssistanceActivity,
-        $AuthorizedToCollect = ''
+        $AssistanceActivity
     ) {
-        return (new Data($this->getBinding()))->updateCommonInformation($tblCommonInformation, $Nationality, $Denomination, $IsAssistance, $AssistanceActivity, $AuthorizedToCollect);
+        return (new Data($this->getBinding()))->updateCommonInformation($tblCommonInformation, $Nationality, $Denomination, $IsAssistance, $AssistanceActivity);
     }
 
     /**

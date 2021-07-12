@@ -988,6 +988,17 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
+     * @param string     $BackupMail
+     *
+     * @return bool
+     */
+    public function changeBackupMail(TblAccount $tblAccount, $BackupMail)
+    {
+        return (new Data($this->getBinding()))->changeBackupMail($tblAccount, $BackupMail);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
      * @param $secret
      *
      * @return bool

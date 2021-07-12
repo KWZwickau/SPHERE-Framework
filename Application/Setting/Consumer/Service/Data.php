@@ -60,6 +60,9 @@ class Data extends AbstractData
              Schülernummern nicht per Hand vergeben werden. [Standard: Nein]');
         $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString', TblSetting::TYPE_STRING,
             TblAddress::VALUE_PLZ_ORT_OT_STR_NR, 'Allgemein', 'Reihenfolge der Adressanzeige [Standard: PLZ_ORT_OT_STR_NR]');
+        $this->createSetting('People', 'Meta', 'Child', 'AuthorizedToCollectGroups', TblSetting::TYPE_STRING, '', 'Allgemein',
+            'Für folgende zusätzliche Personengruppen (mit Komma getrennt) wird der Block Abholberechtigte mit angezeigt. [Standard: ]',
+            true);
 
         // Indiware non-public
         $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek',

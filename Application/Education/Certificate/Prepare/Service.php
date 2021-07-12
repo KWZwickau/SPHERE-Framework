@@ -1008,8 +1008,12 @@ class Service extends AbstractService
                     } elseif ($tblPrepareInformation->getField() == 'Remark') {
                         $remark = $tblPrepareInformation->getValue();
                     } elseif ($tblPrepareInformation->getField() == 'Transfer') {
-                        $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
-                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                        if ($tblPrepareInformation->getValue() == 'kein Versetzungsvermerk') {
+                            // SSW-1380  Spezialfall CSW Grumbach
+                        } else {
+                            $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
+                                . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                        }
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         // SSWHD-262
                         if ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
@@ -4000,8 +4004,9 @@ class Service extends AbstractService
                                 $tblPrepareAdditionalGradeType,
                                 $ranking
                             ))) {
-                                (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                (new Data($this->getBinding()))->updatePrepareAdditionalGradeAndSubject(
                                     $tblPrepareAdditionalGrade,
+                                    $tblSubject,
                                     $value
                                 );
                             } else {
@@ -5311,5 +5316,16 @@ class Service extends AbstractService
                     )
                 );
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool|false $IsPrinted
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllWherePrintedByPerson(TblPerson $tblPerson, $IsPrinted = false)
+    {
+        return (new Data($this->getBinding()))->getPrepareStudentAllWherePrintedByPerson($tblPerson, $IsPrinted);
     }
 }

@@ -120,7 +120,7 @@ class MsAbgGeistigeEntwicklung extends Certificate
                     ->setContent(
                         new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
                         . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes und')
-                        . new Container('§ 63 der Schulordnung Ober- und Abendoberschulen')
+                        . new Container('§ 64 der Schulordnung Ober- und Abendoberschulen')
                         . new Container('die Oberschule.')
                     )
                     ->styleMarginTop('8px')

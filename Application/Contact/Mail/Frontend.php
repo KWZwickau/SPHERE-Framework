@@ -38,7 +38,6 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
@@ -67,6 +66,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global = $this->getGlobal();
                 $Global->POST['Address']['Mail'] = $tblToPerson->getTblMail()->getAddress();
                 $Global->POST['Address']['Alias'] = $tblToPerson->isAccountUserAlias();
+                $Global->POST['Address']['BackupMail'] = $tblToPerson->isAccountBackupMail();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
                 $Global->savePost();
@@ -83,7 +83,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblTypeAll = Mail::useService()->getTypeAll();
 
-        // Account exist?
+        // Consumer with UCS?
         $isUCS = false;
         if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
             if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer))){
@@ -93,13 +93,18 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $CheckBox = '';
+        $CheckBoxAlias = '';
+        $CheckBoxBackupMail = '';
         if($isUCS){
+            // Account exist?
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                $CheckBox = new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1);
+                $CheckBoxAlias = new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1);
+                $CheckBoxBackupMail = new CheckBox('Address[BackupMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1);
             } else {
-                $CheckBox = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1))
+                $CheckBoxAlias = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1))
+                    ->setDisabled(), 'Person benötigt ein Benutzerkonto');
+                $CheckBoxBackupMail = new ToolTip((new CheckBox('Address[BackupMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1))
                     ->setDisabled(), 'Person benötigt ein Benutzerkonto');
             }
         }
@@ -114,7 +119,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ))->setRequired(),
                                 (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired(),
-                                $CheckBox
+                                $CheckBoxAlias,
+                                $CheckBoxBackupMail
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
@@ -276,6 +282,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     if($tblToPersonCurrent->isAccountUserAlias()){
                                         $content[] = new Check().' UCS Benutzername';
                                     }
+                                    if($tblToPersonCurrent->isAccountBackupMail()){
+                                        $content[] = new Check().' UCS "Passwort vergessen"';
+                                    }
                                 }
                             }
 
@@ -293,8 +302,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonMail->getFullName())
-//                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
-                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new Small(new Muted($remark)) : '');
+                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonMail, $tblToPerson->getRemark());
                                 }
                             }
 

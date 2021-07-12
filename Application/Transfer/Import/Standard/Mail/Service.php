@@ -48,6 +48,7 @@ class Service
             return $Form;
         }
         $isAccountAlias = isset($Data['IsAccountAlias']);
+        $isAccountBackupMail = isset($Data['IsAccountBackupMail']);
         $isTest = isset($Data['IsTest']);
         $isAddMailWithoutAccount = isset($Data['IsAddMailWithoutAccount']);
 
@@ -74,6 +75,7 @@ class Service
                  */
                 $Location = array(
                     'Benutzername' => null,
+                    'PW-Reset' => null,
                     'Vorname' => null,
                     'Nachname' => null
                 );
@@ -106,6 +108,8 @@ class Service
                         $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
                         $mail = trim($Document->getValue($Document->getCell($Location['Benutzername'], $RunY)));
                         $mail = str_replace(' ', '', $mail);
+                        $backupMail = trim($Document->getValue($Document->getCell($Location['PW-Reset'], $RunY)));
+                        $backupMail = str_replace(' ', '', $backupMail);
 
                         $birthday = $OptionalLocation['Geburtsdatum'] == null
                             ? ''
@@ -135,8 +139,9 @@ class Service
 
                             if ($addMail) {
                                 $personMailIsAccountAlias = false;
+                                $personMailIsBackupMail = false;
 
-                                if ($isAccountAlias) {
+                                if ($isAccountAlias || $isAccountBackupMail) {
                                     $addMail = false;
                                     // findAccounts
                                     if ($tblPerson
@@ -144,17 +149,32 @@ class Service
                                         && count($tblAccountList) == 1
                                     ) {
                                         $countAccounts++;
-                                        if (!$isTest) {
-                                            if (($tblAccount = current($tblAccountList))
-                                                && Account::useService()->changeUserAlias($tblAccount, $mail)
-                                            ) {
-                                                $addMail = true;
-                                                $personMailIsAccountAlias = true;
-                                            } else {
-                                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
-                                                    . ' Alias konnte nicht am Benutzerkonto gespeichert werden.';
+                                        $tblAccount = current($tblAccountList);
+                                        if($isAccountAlias && $tblAccount){
+                                            if (!$isTest) {
+                                                if ( Account::useService()->changeUserAlias($tblAccount, $mail)
+                                                ) {
+                                                    $addMail = true;
+                                                    $personMailIsAccountAlias = true;
+                                                } else {
+                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
+                                                        . ' Alias konnte nicht am Benutzerkonto gespeichert werden.';
+                                                }
                                             }
                                         }
+                                        if($isAccountBackupMail && $tblAccount){
+                                            if (!$isTest) {
+                                                if (Account::useService()->changeBackupMail($tblAccount, $backupMail)
+                                                ) {
+                                                    $addMail = true;
+                                                    $personMailIsBackupMail = true;
+                                                } else {
+                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
+                                                        . ' Passwort vergessen E-Mail konnte nicht am Benutzerkonto gespeichert werden.';
+                                                }
+                                            }
+                                        }
+
                                     } else {
                                         $countMissingAccounts++;
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
@@ -173,16 +193,36 @@ class Service
                                         foreach ($tblMailToPersonList as $tblToPerson) {
                                             if ($tblToPerson->isAccountUserAlias()) {
                                                 \SPHERE\Application\Contact\Mail\Mail::useService()->updateMailToPersonService(
-                                                    $tblToPerson, $tblToPerson->getTblMail()->getAddress(), $tblToPerson->getTblType(), $tblToPerson->getRemark(), false
+                                                    $tblToPerson, $tblToPerson->getTblMail()->getAddress(),
+                                                    $tblToPerson->getTblType(), $tblToPerson->getRemark(),
+                                                    false, $tblToPerson->isAccountBackupMail()
+                                                );
+                                            }
+                                        }
+                                    }
+                                    // alle Emailadressen der Person mit isAccountBackupMail zurücksetzen
+                                    if ($isAccountBackupMail
+                                        && (($tblMailToPersonList = \SPHERE\Application\Contact\Mail\Mail::useService()->getMailAllByPerson($tblPerson)))
+                                    ) {
+                                        foreach ($tblMailToPersonList as $tblToPerson) {
+                                            if ($tblToPerson->isAccountBackupMail()) {
+                                                \SPHERE\Application\Contact\Mail\Mail::useService()->updateMailToPersonService(
+                                                    $tblToPerson, $tblToPerson->getTblMail()->getAddress(),
+                                                    $tblToPerson->getTblType(), $tblToPerson->getRemark(),
+                                                    $tblToPerson->isAccountUserAlias(), false
                                                 );
                                             }
                                         }
                                     }
 
-                                    if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $personMailIsAccountAlias)) {
-                                        $countAddMail++;
-                                    } else {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';
+
+
+                                    if($isAccountAlias || $isAccountBackupMail){
+                                        if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $personMailIsAccountAlias, $personMailIsBackupMail)) {
+                                            $countAddMail++;
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';
+                                        }
                                     }
                                 }
                             }

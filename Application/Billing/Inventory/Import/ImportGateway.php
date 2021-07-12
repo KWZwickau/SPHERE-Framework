@@ -333,7 +333,7 @@ class ImportGateway extends AbstractConverter
     {
         $iban = strtoupper(str_replace(' ', '', $Value));
         // Todo Wie gehen wir mit fehlerwerten um?
-        if (preg_match('!(DE)([0-9]){20}!is', $iban, $Match)){
+        if (preg_match('!^(DE)([0-9]){20}!is', $iban, $Match)){
             // IBAN mit leerzeichen anzeigen
             $ibanDisplay = $Match[0];
             $countLetter = strlen($ibanDisplay);
@@ -343,6 +343,10 @@ class ImportGateway extends AbstractConverter
             }
             $ibanDisplay = implode('&nbsp;', $IBANParts);
             return new Success($ibanDisplay, null, false, 2, 0);
+        }
+        // Iban ohne DE am Anfang
+        if(!preg_match('!^(DE)!is', $iban, $Match)){
+            return new Success($iban, null, false, 2, 0);
         }
 
         // Fehlerzählung
