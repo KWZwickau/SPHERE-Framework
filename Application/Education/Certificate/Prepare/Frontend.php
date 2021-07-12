@@ -3157,8 +3157,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                 $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                                 if (($tblYear = $tblDivision->getServiceTblYear())
-                                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson,
-                                        $tblYear))
+                                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYearAndIsNotInActive(
+                                        $tblPerson,
+                                        $tblYear
+                                    ))
                                 ) {
                                     foreach ($tblPersonDivisionList as $tblDivisionItem) {
                                         if (!isset($divisionList[$tblDivisionItem->getId()])) {
