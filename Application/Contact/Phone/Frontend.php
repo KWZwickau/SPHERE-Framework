@@ -26,7 +26,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -36,7 +35,6 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 
@@ -281,31 +279,6 @@ class Frontend extends Extension implements IFrontendInterface
                              */
                             foreach ($personArray as $personId => $tblToPerson) {
                                 if (($tblPersonPhone = Person::useService()->getPersonById($personId))) {
-                                    $DisplayType = '';
-                                    // maybe Cosumer Settings
-                                    if(true){
-                                        //Personenverknüpfung suche nur in Kinderrichtung (Personen brauchen die Information nicht)
-//                                        if(($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPerson, $tblPersonPhone))){
-//                                            $tblType = $tblToPersonRelationship->getTblType();
-//                                            $DisplayType = $tblType->getName();
-//                                            $RelationshipRemark = $tblToPersonRelationship->getRemark();
-//                                        } else
-                                        if(($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonPhone, $tblPerson))){
-                                            $tblType = $tblToPersonRelationship->getTblType();
-                                            $TypeName = $tblType->getName();
-                                            $RelationshipRemark = $tblToPersonRelationship->getRemark();
-                                            // Display preparation
-                                            if($TypeName){
-                                                $DisplayType = $TypeName;
-                                                if($RelationshipRemark){
-                                                    $DisplayType = $DisplayType.', '.new Small(new Muted($RelationshipRemark));
-                                                }
-                                                $DisplayType = new Container($DisplayType);
-                                            }
-                                        }
-                                    }
-
-
                                     $content[] = ($tblPerson->getId() != $tblPersonPhone->getId()
                                             ? new Link(
                                                 new PersonIcon() . ' ' . $tblPersonPhone->getFullName(),
@@ -315,9 +288,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonPhone->getFullName())
-                                        .$DisplayType
-//                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
-                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new Small(new Muted($remark)) : '');
+                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonPhone, $tblToPerson->getRemark());
                                 }
                             }
 
