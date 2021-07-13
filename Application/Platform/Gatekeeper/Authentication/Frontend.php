@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
+use DateTime;
 use Exception;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -92,15 +93,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Willkommen', '', '');
         $Date = '2021-07-12 ';
-        $IsMaintenance = (new \DateTime('now') >= new \DateTime($Date.'15:00:00')
-                       && new \DateTime('now') <= new \DateTime($Date.'23:59:59'));
+        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'15:00:00')
+                       && new DateTime('now') <= new DateTime($Date.'23:59:59'));
 //        $IsMaintenance = false;
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
-        $IsEqual = false;
+        $IsChangePassword = false;
         $IsNavigationAssistance = false;
 
-        $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -119,30 +119,37 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        if ($tblAccount && $tblIdentificationSearch) {
-            $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
-            if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
-                if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
-                    // Alle TblUserAccounts erhalten direktlink Button
-                    $IsNavigationAssistance = true;
-                    $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
-                    if ($tblUserAccount) {
-                        $Password = $tblUserAccount->getAccountPassword();
-                        if ($tblAccount->getPassword() == $Password) {
-                            $IsEqual = true;
-                        }
+        if ($tblAccount) {
+            if (($tblIdentification = $tblAccount->getServiceTblIdentification())
+                && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
+            ) {
+                // Alle TblUserAccounts erhalten direktlink Button
+                $IsNavigationAssistance = true;
+
+                // Eltern und Schüler funktionieren anders als die anderen Accounts
+                if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
+                    $Password = $tblUserAccount->getAccountPassword();
+                    if ($tblAccount->getPassword() == $Password) {
+                        $IsChangePassword = true;
                     }
+                }
+            } else {
+                if (Account::useService()->isAccountPWInitial($tblAccount)
+                    // Standard-Passwort
+                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
+                ) {
+                    $IsChangePassword = true;
                 }
             }
         }
         $maintenanceMessage = '';
         if ($IsMaintenance) {
-            $now = new \DateTime();
-            if ($now >= new \DateTime('22:00')) {
+            $now = new DateTime();
+            if ($now >= new DateTime('22:00')) {
                 $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung ('.$now->format('d.m.Y').') laufende Wartungsarbeiten seit 22:00');
-            } elseif ($now >= new \DateTime('20:00')) {
+            } elseif ($now >= new DateTime('20:00')) {
                 $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
-            } elseif ($now >= new \DateTime('9:00')) {
+            } elseif ($now >= new DateTime('9:00')) {
                 $maintenanceMessage = new Warning(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
             }
         }
@@ -159,7 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .($IsEqual
+            .($IsChangePassword
                 ? $this->layoutPasswordChange()
                 : ''
             )
