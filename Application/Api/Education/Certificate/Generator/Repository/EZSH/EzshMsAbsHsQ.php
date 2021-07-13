@@ -124,7 +124,7 @@ class EzshMsAbsHsQ extends EzshStyle
                     ->styleMarginTop('30px')
                     ->styleTextSize('20px')
                     ->styleTextBold()
-                    ->styleFontFamily(self::FONT_FAMILY)
+                    ->styleFontFamily(self::FONT_FAMILY_BOLD)
                     ->styleLineHeight(self::LINE_HEIGHT)
                 )
                 ->addElement((new Element())
