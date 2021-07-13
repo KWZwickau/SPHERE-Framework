@@ -228,7 +228,9 @@ class BlockI extends AbstractBlock
                                 $midTerm = '-2';
                             }
 
-                            $prepareStudentList[$tblLevel->getName() . $midTerm] = $tblPrepareStudent;
+                            if (!isset($prepareStudentList[$tblLevel->getName() . $midTerm])) {
+                                $prepareStudentList[$tblLevel->getName() . $midTerm] = $tblPrepareStudent;
+                            }
                         }
                     }
                 }
