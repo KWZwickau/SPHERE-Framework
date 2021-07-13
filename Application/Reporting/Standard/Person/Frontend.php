@@ -1043,7 +1043,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return bool|Panel
      */
-    private function getInActiveStudentPanel(TblDivision $tblDivision)
+    public function getInActiveStudentPanel(TblDivision $tblDivision)
     {
         $inActiveStudentList = array();
         if (($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {

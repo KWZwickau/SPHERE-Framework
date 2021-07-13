@@ -488,6 +488,9 @@ class ClassRegister implements IApplicationInterface
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
+                            ($inActivePanel = \SPHERE\Application\Reporting\Standard\Person\Person::useFrontend()->getInActiveStudentPanel($tblDivision))
+                                ? new LayoutColumn($inActivePanel)
+                                : null,
                             new LayoutColumn($buttonList),
                             new LayoutColumn(array(
                                 new TableData($studentTable, null, array(
