@@ -88,8 +88,42 @@ class Service extends AbstractService
      */
     public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null, $isForced = false)
     {
+        // Sortier-Reihenfolge
+        // Sorg1, Sorg2, Sorg3, Vormund, Bevollmächtigter, Geschwisterkinder (eigene Beziehungen), Geschwisterkinder (andersrum), Rest
 
-        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced);
+        $resultList = array();
+        if (($list  = (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced))) {
+            $count['Sorgeberechtigt'] = 4;
+            $count['Vormund'] = 10;
+            $count['Bevollmächtigt'] = 100;
+            $count['Geschwisterkind'] = 1000;
+            $count['Rest'] = 10000;
+
+            foreach ($list as $tblToPerson) {
+                if (($tblTypeRelationship = $tblToPerson->getTblType())) {
+                    switch ($tblTypeRelationship->getName()) {
+                        case 'Sorgeberechtigt':
+                            if (($ranking = $tblToPerson->getRanking())) {
+                                $resultList[intval($ranking)] = $tblToPerson;
+                            } else {
+                                $resultList[$count['Sorgeberechtigt']++] = $tblToPerson;
+                            }
+                            break;
+                        case 'Vormund':
+                        case 'Bevollmächtigt':
+                        case 'Geschwisterkind':
+                            $resultList[$count[$tblTypeRelationship->getName()]++] = $tblToPerson;
+                            break;
+                        default:
+                            $resultList[$count['Rest']++] = $tblToPerson;
+                    }
+                }
+            }
+
+            ksort($resultList);
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
