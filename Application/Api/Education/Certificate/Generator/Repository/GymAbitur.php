@@ -877,7 +877,7 @@ class GymAbitur extends Certificate
                 )
                 ->styleBorderAll()
             )
-            ->addSlice($this->setPointsOverview('180px'))
+            ->addSlice($this->setPointsOverview('165px'))
             ->addSlice($this->getInfoForBlockII())
         ;
 
@@ -1181,11 +1181,7 @@ class GymAbitur extends Certificate
                             $i))
                     ) {
                         if (($tblSubject = $verbalExamGrade->getServiceTblSubject())) {
-                            if ($tblSubject->getAcronym() == 'GRW') {
-                                $subjectName = $i . '. ' . 'GK/RE/Wirtschaft';
-                            } else {
-                                $subjectName = $i . '. ' . $tblSubject->getName();
-                            }
+                            $subjectName = $i . '. ' . $tblSubject->getName();
                         }
 
                         $verbalExam = ($isBellUsed && $i == 5 ? '(' : '')
@@ -1221,6 +1217,16 @@ class GymAbitur extends Certificate
                 }
             }
 
+            if (strpos($subjectName, 'Gemeinschaftskunde / Rechtserziehung / Wirtschaft')
+                || strpos($subjectName, 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft')
+            ) {
+                $paddingTop = '8.5px';
+                $paddingBottom = '8.5px';
+            } else {
+                $paddingTop = '0px';
+                $paddingBottom = '0px';
+            }
+
             $section
                 ->addElementColumn((new Element())
                     ->setContent($subjectName)
@@ -1236,6 +1242,8 @@ class GymAbitur extends Certificate
                     ->styleBorderTop()
                     ->styleBorderBottom($i < 5 ? '0px' : '1px')
                     ->styleBackgroundColor($i <4 ? $color : '#FFF')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , '17.5%')
                 ->addElementColumn((new Element())
                     ->setContent($verbalExam)
@@ -1244,6 +1252,8 @@ class GymAbitur extends Certificate
                     ->styleBorderTop()
                     ->styleBorderBottom($i < 5 ? '0px' : '1px')
                     ->styleBackgroundColor($i > 3 ? $color : '#FFF')
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , '17.5%')
                 ->addElementColumn((new Element())
                     ->setContent($extraVerbalExam)
@@ -1252,6 +1262,8 @@ class GymAbitur extends Certificate
                     ->styleBorderTop()
                     ->styleBorderBottom($i < 5 ? '0px' : '1px')
                     ->styleBackgroundColor($color)
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , '17.5%')
                 ->addElementColumn((new Element())
                     ->setContent($total)
@@ -1261,6 +1273,8 @@ class GymAbitur extends Certificate
                     ->styleBorderBottom($i < 5 ? '0px' : '1px')
                     ->styleBorderRight()
                     ->styleBackgroundColor($color)
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
                     , '17.5%');
 
             $sectionList[] = $section;

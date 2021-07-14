@@ -278,6 +278,12 @@ class BlockI extends AbstractBlock
                         $tblPrepareAdditionalGradeType
                     );
 
+                    // Es kann sein das der Schüler das Fach in ein vorherigen Schuljahr hatte
+                    if (!$hasSubject && $tblPrepareAdditionalGrade) {
+                        $hasSubject = true;
+                        $course = 'GK';
+                    }
+
                     $tabIndex = $level * 1000 + $term * 100 + $this->count++;
                     if ($hasSubject && $this->View == BlockIView::EDIT_GRADES) {
                         if ($tblPrepareAdditionalGrade) {
