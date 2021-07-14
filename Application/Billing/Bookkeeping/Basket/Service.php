@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use DateTime;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
@@ -273,13 +274,13 @@ class Service extends AbstractService
     {
 
         if($TargetTime){
-            $TargetTime = new \DateTime($TargetTime);
+            $TargetTime = new DateTime($TargetTime);
         } else {
             // now if no input (fallback)
-            $TargetTime = new \DateTime();
+            $TargetTime = new DateTime();
         }
         if($BillTime){
-            $BillTime = new \DateTime($BillTime);
+            $BillTime = new DateTime($BillTime);
         } else {
             $BillTime = null;
         }
@@ -443,13 +444,13 @@ class Service extends AbstractService
 
                         // entfernen aller Personen, die keine Zahlungszuweisung im Abrechnungszeitraum haben.
                         if(($From = $tblDebtorSelection->getFromDate())
-                            && new \DateTime($From) > new \DateTime($tblBasket->getTargetTime())){
+                            && new DateTime($From) > new DateTime($tblBasket->getTargetTime())){
                             $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Gültig ab: '.$From.' >
                              Fälligkeitsdatum '.$tblBasket->getTargetTime().new Bold(' (noch nicht Aktiv)');
                             continue;
                         }
                         if(($To = $tblDebtorSelection->getToDate())
-                            && new \DateTime($To) < new \DateTime($tblBasket->getTargetTime())){
+                            && new DateTime($To) < new DateTime($tblBasket->getTargetTime())){
                             $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Gültig bis: '.$To.' <
                              Fälligkeitsdatum '.$tblBasket->getTargetTime().new Bold(' (nicht mehr Aktiv)');
                             continue;
@@ -495,7 +496,7 @@ class Service extends AbstractService
                         $Item['Price'] = $tblDebtorSelection->getValue();
                         // change to selected variant
                         if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                            if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
+                            if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new DateTime($tblBasket->getTargetTime())))){
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
                         }
@@ -504,7 +505,7 @@ class Service extends AbstractService
                         if($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift'
                         && $IsSepa){
                             if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
-                                if(new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
+                                if(new DateTime($tblBankReference->getReferenceDate()) > new DateTime($tblBasket->getTargetTime())){
                                     // Datum der Referenz liegt noch in der Zukunft
                                     $IsNoDebtorSelection = true;
                                 }
@@ -632,9 +633,9 @@ class Service extends AbstractService
     {
 
         // String to DateTime object
-        $TargetTime = new \DateTime($TargetTime);
+        $TargetTime = new DateTime($TargetTime);
         if($BillTime){
-            $BillTime = new \DateTime($BillTime);
+            $BillTime = new DateTime($BillTime);
         } else {
             $BillTime = null;
         }
@@ -827,6 +828,9 @@ class Service extends AbstractService
         $this->destroyBasketItemBulk($tblBasket);
         // remove all BasketVerification
         $this->destroyBasketVerificationBulk($tblBasket);
+
+        // Remove Invoice / InvoiceItemDebtor
+        Invoice::useService()->destroyInvoiceByBasket($tblBasket);
 
         return (new Data($this->getBinding()))->destroyBasket($tblBasket);
     }
