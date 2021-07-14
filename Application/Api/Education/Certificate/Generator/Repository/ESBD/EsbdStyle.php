@@ -351,6 +351,33 @@ abstract class EsbdStyle extends Certificate
 
     /**
      * @param $personId
+     * @param string $Height
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getRatingConsumer($personId, $Height = '70px', $MarginTop = '15px')
+    {
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        $Element->setContent('Einschätzung: {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                    {{ Content.P' . $personId . '.Input.Rating }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleHeight($Height)
+            ->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+
+        return (new Slice())->addElement($Element);
+    }
+
+    /**
+     * @param $personId
      * @param string $MarginTop
      *
      * @return Slice

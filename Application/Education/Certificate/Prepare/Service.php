@@ -1158,6 +1158,7 @@ class Service extends AbstractService
                     break;
                     case 'FESH':
                     case 'ESS':
+                    case 'ESBD':
                         $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
                             . " " . $tblPersonSigner->getLastName());
                     break;

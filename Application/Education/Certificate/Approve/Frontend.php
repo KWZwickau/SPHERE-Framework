@@ -114,7 +114,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
                     && (($tblYearDivision = $tblDivision->getServiceTblYear()))
                 ) {
-                    if ($tblYear && $tblYear->getId() != $tblYearDivision->getId()) {
+                    if ($IsAllYears) {
+                        // bei alle Schuljahre alle Abgangszeugnisse anzeigen
+                    } elseif ($tblYear && $tblYear->getId() != $tblYearDivision->getId()) {
                         continue;
                     } elseif($tblYearList){
                         $keepEntry = false;
