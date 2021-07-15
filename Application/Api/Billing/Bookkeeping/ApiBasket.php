@@ -532,14 +532,13 @@ class ApiBasket extends Extension implements IApiInterface
             }
             return array(
                 new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList, Panel::PANEL_TYPE_INFO),
-                new Panel('Schuljahr für Personen Filterung',
+                new Panel('Erweiterte Personenfilterung', array(
                     (new SelectBox('Basket[SchoolYear]', 'Schuljahr', array('{{ Year }} {{ Description }}' => $YearList)))
-                    ->ajaxPipelineOnChange(ApiBasket::pipelineLoadPersonFilterSelect($receiverPersonFilter))
+                        ->ajaxPipelineOnChange(ApiBasket::pipelineLoadPersonFilterSelect($receiverPersonFilter)),
+                    $receiverPersonFilter)
                     , Panel::PANEL_TYPE_INFO
                 ),
-                $receiverPersonFilter,
-                new Bold('Zahlungszeitraum '.new DangerText('*')),
-                new Panel('', $PeriodRadioBox, Panel::PANEL_TYPE_INFO),
+                new Panel('Zahlungszeitraum '.new DangerText('*'), $PeriodRadioBox, Panel::PANEL_TYPE_INFO),
             );
         }
     }
@@ -591,7 +590,7 @@ class ApiBasket extends Extension implements IApiInterface
                     }
                 } else {
                     // fallback if error
-                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))){
+                    if(Basket::useService()->getBasketByName($Basket['Name'])){
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
                         $Error = true;
@@ -990,9 +989,9 @@ class ApiBasket extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $YearId
+     * @param array $Basket
      *
-     * @return Panel
+     * @return string
      */
     public function reloadPersonFilterSelect($Basket = array())
     {
@@ -1040,9 +1039,7 @@ class ApiBasket extends Extension implements IApiInterface
             $tblTypeList[] = new TblType();
         }
 
-        return new Panel('Erweiterte Personenfilterung', array(
-        new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)),
-        new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
-        ), Panel::PANEL_TYPE_INFO);
+        return new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)).
+        new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList));
     }
 }
