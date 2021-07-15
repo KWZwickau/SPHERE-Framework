@@ -4,8 +4,6 @@ namespace SPHERE\Application\Setting\Authorization\Account;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiAuthenticatorApp;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -13,7 +11,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -34,13 +31,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
-use SPHERE\Common\Frontend\Icon\Repository\Publicly;
 use SPHERE\Common\Frontend\Icon\Repository\QrCode;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -62,7 +57,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Frontend
@@ -244,52 +238,9 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function formAccount(TblAccount $tblAccount = null)
     {
-
-//        $TeacherRole = array(
-//            'Bildung: Klassenbuch (Lehrer)' => false,
-//            'Bildung: pädagogisches Tagebuch (Klassenlehrer)' => false,
-//            'Bildung: Zensurenvergabe (Lehrer)' => false,
-//            'Bildung: Zeugnis (Drucken - Klassenlehrer)' => false,
-//            'Bildung: Zeugnis (Vorbereitung - Klassenlehrer)' => false,
-//            'Einstellungen: Benutzer' => false
-//        );
-
         $tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        // Role
-        $tblRoleAll = Access::useService()->getRoleAll();
-        $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
-        if ($tblRoleAll){
-            array_walk($tblRoleAll, function(TblRole &$tblRole) use(&$TeacherRole){
-//                if(array_key_exists($tblRole->getName(), $TeacherRole)){
-//                    $TeacherRole[$tblRole->getName()] = 'Account[Role]['.$tblRole->getId().']';
-//                }
-
-                if ($tblRole->isInternal()){
-                    $tblRole = false;
-                } else {
-                    if (!$tblRole->isIndividual()
-                        || (
-                            ($tblAccount = Account::useService()->getAccountBySession())
-                            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
-                            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))
-                        )
-                    ){
-                        $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']',
-                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
-                            $tblRole->getId()
-                        );
-                    } else {
-                        $tblRole = false;
-                    }
-                }
-            });
-            $tblRoleAll = array_filter($tblRoleAll);
-        } else {
-            $tblRoleAll = array();
-        }
-
-//        $TeacherRole
+        $tblRoleAll = Account::useService()->getRoleCheckBoxList('Account[Role]');
 
         // Token
         $Global = $this->getGlobal();

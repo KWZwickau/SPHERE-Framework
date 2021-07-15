@@ -3,20 +3,26 @@ namespace SPHERE\Application\Setting\Authorization\Account;
 
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access as GatekeeperAccess;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token as GatekeeperToken;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Publicly;
+use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Service
@@ -435,5 +441,44 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
         return $Stage->setContent(new Danger('Das Benutzerkonto konnte nicht geändert werden')
             .new Redirect('/Setting/Authorization/Account/Edit', Redirect::TIMEOUT_ERROR, array('Id' => $tblAccount->getId())));
+    }
+
+    /**
+     * @param string $dataName
+     *
+     * @return array|bool|TblRole[]
+     */
+    public function getRoleCheckBoxList($dataName = 'Account[Role]')
+    {
+        // Role
+        $tblRoleAll = Access::useService()->getRoleAll();
+        $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
+        if ($tblRoleAll){
+            array_walk($tblRoleAll, function(TblRole &$tblRole) use(&$TeacherRole, $dataName){
+                if ($tblRole->isInternal()){
+                    $tblRole = false;
+                } else {
+                    if (!$tblRole->isIndividual()
+                        || (
+                            ($tblAccount = Account::useService()->getAccountBySession())
+                            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+                            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))
+                        )
+                    ){
+                        $tblRole = new CheckBox($dataName . '['.$tblRole->getId().']',
+                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
+                            $tblRole->getId()
+                        );
+                    } else {
+                        $tblRole = false;
+                    }
+                }
+            });
+            $tblRoleAll = array_filter($tblRoleAll);
+        } else {
+            $tblRoleAll = array();
+        }
+
+        return $tblRoleAll;
     }
 }
