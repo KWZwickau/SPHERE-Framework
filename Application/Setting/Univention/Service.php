@@ -354,7 +354,9 @@ class Service extends AbstractService
             }
         }
         // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
-        foreach($TeacherClasses as $PersonId => &$SchoolString) {
+        // Key PersonId
+        foreach($TeacherClasses as &$SchoolString) {
+            // Key Acronym
             foreach($SchoolString as $Acronym => &$ClassList){
                 sort($ClassList);
             }
@@ -411,6 +413,7 @@ class Service extends AbstractService
                 $UploadItem['roles'] = '';
                 $UploadItem['schools'] = '';
                 $UploadItem['mail'] = '';
+                $UploadItem['BackupMail'] = '';
                 $UploadItem['groupArray'] = '';
 
                 $UploadItem['password'] = '';
@@ -449,6 +452,7 @@ class Service extends AbstractService
                     $Item['password'] = '';
                     $Item['school_classes'] = '';
                     $Item['mail'] = '';
+                    $Item['BackupMail'] = '';
                     $Item['groupArray'] = '';
 
                     $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym, $TeacherClasses, $TeacherSchools);
@@ -571,6 +575,7 @@ class Service extends AbstractService
         if($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson)){
             $tblAccount = current($tblAccountList);
             $Item['mail'] = $tblAccount->getUserAlias();
+            $Item['BackupMail'] = $tblAccount->getBackupMail();
         }
         return $Item;
     }
@@ -597,7 +602,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), "Benutzername");
             $export->setValue($export->getCell($Column++, $Row), "Passwort");
             $export->setValue($export->getCell($Column++, $Row), "Externe_Mailadresse");
-            $export->setValue($export->getCell($Column, $Row), "Stammgruppe");
+            $export->setValue($export->getCell($Column++ , $Row), "PW_vergessen_Mail");
+            $export->setValue($export->getCell($Column , $Row), "Stammgruppe");
 
             foreach ($AccountData as $Account)
             {
@@ -613,6 +619,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $Account['name']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['password']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['mail']);
+                $export->setValue($export->getCell($Column++, $Row), $Account['BackupMail']);
                 if(is_array($Account['groupArray']) && !empty($Account['groupArray'])){
                     $GroupString = implode(',',$Account['groupArray']);
                     $export->setValue($export->getCell($Column, $Row), $GroupString);
