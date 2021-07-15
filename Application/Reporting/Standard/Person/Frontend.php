@@ -454,7 +454,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Name' => 'Name, Vorname',
                                         'Address' => 'Anschrift',
                                         'Birthplace' => 'Geburtsort',
-                                        'Birthday' => 'Geburtsdatum',
+                                        'Birth' => 'Geburtsdatum',
+                                        'BirthDay' => 'Geburtstag',
+                                        'BirthMonth' => 'Geburtsmonat',
+                                        'BirthYear' => 'Geburtsjahr',
                                         'Age' => 'Alter',
                                     ),
                                     array(
@@ -1368,7 +1371,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['FirstName'] = 'Vorname';
         $TableHead['LastName'] = 'Nachname';
         $TableHead['Gender'] = 'Geschlecht';
-        $TableHead['Birthday'] = 'Geburtstag';
+        $TableHead['Birthday'] = 'Geburtsdatum';
         $TableHead['BirthPlace'] = 'Geburtsort';
         $TableHead['Address'] = 'Adresse';
         $TableHead['Insurance'] = 'Krankenkasse';
