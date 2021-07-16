@@ -2593,7 +2593,7 @@ class Service extends Extension
             $export->setValue($export->getCell($i++, 1), "WF 4");
             $export->setValue($export->getCell($i, 1), "WF 5");
             // Header bold
-            $export->setStyle($export->getCell(0, 1), $export->getCell(9, 1))->setFontBold();
+            $export->setStyle($export->getCell(0, 1), $export->getCell(14, 1))->setFontBold();
 
             $Row = 2;
             foreach ($PersonList as $PersonData) {
