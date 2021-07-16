@@ -233,7 +233,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @return array|false
+     * @return TblType[]|false
      */
     public function getConsumerSchoolTypeAll()
     {
@@ -242,7 +242,7 @@ class Service extends AbstractService
             foreach($tblSchoolAll as $tblSchool) {
                 if (($tblType = $tblSchool->getServiceTblType())
                 ) {
-                   $list[$tblType->getShortName()] = $tblSchool;
+                   $list[$tblType->getShortName()] = $tblType;
                 }
             }
 

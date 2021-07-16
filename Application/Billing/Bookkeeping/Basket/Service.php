@@ -23,6 +23,7 @@ use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
@@ -400,7 +401,7 @@ class Service extends AbstractService
      *
      * @return array|bool
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null)
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null, TblYear $tblYear = null)
     {
 
         $tblGroupList = $this->getGroupListByItem($tblItem);
@@ -410,7 +411,7 @@ class Service extends AbstractService
             $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivision);
         }
         if(null !== $tblType && $tblPersonList){
-            $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType);
+            $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType, $tblYear);
         }
         $IsSepa = true;
         if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
@@ -595,12 +596,17 @@ class Service extends AbstractService
      *
      * @return TblPerson[]|bool
      */
-    private function filterPersonListBySchoolType($tblPersonList, TblType $tblType)
+    private function filterPersonListBySchoolType($tblPersonList, TblType $tblType, TblYear $tblYear = null)
     {
 
         $resultPersonList = array();
         if(!empty($tblPersonList)){
-            if(($tblYearList = Term::useService()->getYearByNow())){
+            if($tblYear){
+                $tblYearList[] = $tblYear;
+            } else {
+                $tblYearList = Term::useService()->getYearByNow();
+            }
+            if(!empty($tblYearList)){
                 foreach($tblYearList as $tblYear){
                     foreach($tblPersonList as $tblPerson){
                         if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
