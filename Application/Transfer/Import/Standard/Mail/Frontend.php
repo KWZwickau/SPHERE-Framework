@@ -82,7 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new CheckBox('Data[IsAccountBackupMail]', 'Nur Passwort vergessen E-Mail-Adressen importieren', 1)
+                                                new CheckBox('Data[IsAccountRecoveryMail]', 'Nur Passwort vergessen E-Mail-Adressen importieren', 1)
                                             ),
                                         )),
                                         new FormRow(array(

@@ -175,6 +175,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'roles' => '',
                             'schools' => '',
                             'school_classes' => '',
+                            'recoveryMail' => '',
                         ),
                         'SSW' => array(
                             'firstname' => '',
@@ -183,6 +184,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'roles' => '',
                             'schools' => '',
                             'school_classes' => '',
+                            'recoveryMail' => '',
                         ),
                     );
 
@@ -197,6 +199,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $Email = current($ExistUser['udm_properties']['e-mail']);
                     }
                     $CompareRow['UCS']['email'] = $Email;
+                    $recoveryMail = '';
+                    if(isset($ExistUser['udm_properties']['PasswordRecoveryEmail'])){
+                        $recoveryMail = current($ExistUser['udm_properties']['PasswordRecoveryEmail']);
+                    }
+                    $CompareRow['UCS']['recoveryMail'] = $recoveryMail;
                     if(!empty($ExistUser['roles'])){
                         $RoleShort = array();
                         foreach($ExistUser['roles'] as $roleTemp){
@@ -235,7 +242,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $CompareRow['SSW']['firstname'] = $AccountActive['firstname'];
                     $CompareRow['SSW']['lastname'] = $AccountActive['lastname'];
-                    $CompareRow['SSW']['email'] =$AccountActive['email'];
+                    $CompareRow['SSW']['email'] = $AccountActive['email'];
+                    $CompareRow['SSW']['recoveryMail'] = $AccountActive['recoveryMail'];
                     if(!empty($AccountActive['roles'])){
                         $RoleShort = array();
                         foreach($AccountActive['roles'] as $roleTemp){
@@ -284,15 +292,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $isUpdate = true;
                         $CompareRow['SSW']['lastname'] = new TextBackground($CompareRow['SSW']['lastname'], 'lightgreen');
                     }
-//                    if($ExistUser['birthday'] != $AccountActive['birthday']){
-//                        $Log[] = 'Geburtstag: '.new InfoText($ExistUser['birthday']).' -> '.new TextBackground($AccountActive['birthday']);
-//                    }
                     if(strtolower($Email) != strtolower($AccountActive['email'])){
                         $isUpdate = true;
-//                        $CompareRow['SSW']['email'] = new TextBackground($CompareRow['SSW']['email']));
                         $CompareRow['SSW']['email'] = new TextBackground($CompareRow['SSW']['email']);
-//                        $CompareRow['SSW']['email'] = '<span style="background-color: lightgreen;">'.$CompareRow['SSW']['email'].'</span>';
                     }
+                    if(strtolower($recoveryMail) != strtolower($AccountActive['email'])){
+                        $isUpdate = true;
+                        $CompareRow['SSW']['recoveryMail'] = new TextBackground($CompareRow['SSW']['recoveryMail']);
+                    }
+
                     // Vergleich der Rollen in einem Array
                     if(!empty($ExistUser['roles']) && !empty($AccountActive['roles'])){
                         foreach($AccountActive['roles'] as $activeRole){
@@ -343,8 +351,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if($isUpdate){
 
                             // Layout in TableContent
-                            $firstWith = 2;
-                            $secondWith = 10;
+                            $firstWith = 3;
+                            $secondWith = 9;
                             $CompareRow['UCS'] = new Small(
                                 new Layout(new LayoutGroup(array(
                                     new LayoutRow(array(
@@ -370,6 +378,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(new Bold('recoveryMail:'), $firstWith),
+                                        new LayoutColumn($CompareRow['UCS']['recoveryMail'], $secondWith),
                                     )),
                                 )))
                             );
@@ -398,6 +410,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(new Bold('recoveryMail:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['recoveryMail'], $secondWith),
                                     )),
                                 )))
                             );
@@ -472,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $ErrorCreateList[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
                     $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
                     $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes'],
-                    $createAccount['backupMail']);
+                    $createAccount['recoveryMail']);
             }
             $ErrorCreateList = array_filter($ErrorCreateList);
             $Warning = '';
@@ -495,7 +511,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                // update with API
                 $ErrorUpdateList[] = (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
                     $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
-                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes']);
+                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes'],
+                    $updateAccount['recoveryMail']);
             }
             $ErrorUpdateList = array_filter($ErrorUpdateList);
             $Warning = '';
@@ -536,55 +553,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         }
-//        if($Upload == 'All'){
-//
-//            foreach($createList as $createAccount) {
-//                // create with API
-//                $ErrorCreateList[] = (new UniventionUser())->createUser($createAccount['name'], $createAccount['email'],
-//                    $createAccount['firstname'], $createAccount['lastname'], $createAccount['record_uid'],
-//                    $createAccount['roles'], $createAccount['schools'], $createAccount['school_classes']);
-//            }
-//            foreach($updateList as $updateAccount){
-//                // update with API
-//                $ErrorUpdateList[] = (new UniventionUser())->updateUser($updateAccount['name'], $updateAccount['email'],
-//                    $updateAccount['firstname'], $updateAccount['lastname'], $updateAccount['record_uid'],
-//                    $updateAccount['roles'], $updateAccount['schools'], $updateAccount['school_classes']);
-//            }
-//            foreach($deleteList as $deleteAccount){
-//                // delete with API
-//                $ErrorDeleteList[] = (new UniventionUser())->deleteUser($deleteAccount);
-//            }
-//
-//            $Stage = new Stage('UCS', 'Service');
-//            $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
-//
-//            $resultAll = 'Folgende änderungen wurden durchgeführt: '
-//                .new Container(' Hinzufügen von '.(count($createList) - count($ErrorCreateList)).' Benutzern')
-//                .new Container(' Bearbeiten von '.(count($updateList) - count($ErrorUpdateList)).' Benutzern')
-//                .new Container(' Löschen von '.(count($deleteList) - count($ErrorDeleteList)).' Benutzern');
-//
-//            $ErrorCreateList = array_filter($ErrorCreateList);
-//            $ErrorUpdateList = array_filter($ErrorUpdateList);
-//            $ErrorDeleteList = array_filter($ErrorDeleteList);
-//            $Warning = '';
-//            if(!empty($ErrorCreateList)){
-//                $Warning = new Title('Erstellen funktioniert bei folgenden Benutzern nicht:')
-//                    .new Panel('Benutzer: Fehler', $ErrorCreateList, Panel::PANEL_TYPE_DANGER);
-//            }
-//            if(!empty($ErrorUpdateList)){
-//                $Warning .= new Title('Bearbeiten funktioniert bei folgenden Benutzern nicht:')
-//                    .new Panel('Benutzer: Fehler', $ErrorUpdateList, Panel::PANEL_TYPE_DANGER);
-//            }
-//            if(!empty($ErrorDeleteList)){
-//                $Warning .= new Title('Löschen funktioniert bei folgenden Benutzern nicht:')
-//                    .new Panel('Benutzer: Fehler', $ErrorDeleteList, Panel::PANEL_TYPE_DANGER);
-//            }
-//
-//            $Stage->setContent(new Success($resultAll)
-//                .$Warning
-//            );
-//            return $Stage;
-//        }
 
         // Frontend Anzeige
         $ContentCreate = array();
@@ -759,7 +727,7 @@ class Frontend extends Extension implements IFrontendInterface
             || $Account['lastname'] == ''
             || $Account['email'] == ''
             || $Account['record_uid'] == ''
-            || $Account['backupMail'] == ''
+            || $Account['recoveryMail'] == ''
             || empty($Account['school_classes'])
             || empty($Account['roles'])
             || empty($Account['schools'])) {
@@ -774,10 +742,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblMember = Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup);
                 }
             }
+            $tblGroupStudent = $tblGroupStaff = $tblGroupTeacher = false;
             if($tblPerson){
                 $PersonId = $tblPerson->getId();
                 $PersonLink = (new Link(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'),
                     '/People/Person', new Person(), array('Id' => $PersonId)))->setExternal();
+
+                $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+                $tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+                $tblGroupTeacher = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
             } else {
                 $PersonLink = new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
             }
@@ -788,11 +761,20 @@ class Frontend extends Extension implements IFrontendInterface
                     $MouseOver = '';
                     switch ($Key){
                         case 'roles':
-                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                new DangerText('Fehler:').'</br>'
-                                .'Person in keiner der folgenen Personengruppen:</br>'
-                                .new DangerText('Schüler / Mitarbeiter / Lehrer')
-                            )))->enableHtml();
+                            // sich ausschließende Gruppen vergeben, auch eine Fehlermeldung (roles wird im service geleert)
+                            if($tblGroupStudent && ($tblGroupStaff || $tblGroupTeacher)){
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    new DangerText('Fehler:').'</br>'
+                                    .'Person ist Schüler und in mindestens einer der beiden Personengruppen:</br>'
+                                    .new DangerText('Mitarbeiter / Lehrer')
+                                )))->enableHtml();
+                            } else {
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                    new DangerText('Fehler:').'</br>'
+                                    .'Person in keiner der folgenen Personengruppen:</br>'
+                                    .new DangerText('Schüler / Mitarbeiter / Lehrer')
+                                )))->enableHtml();
+                            }
                         break;
                         case 'schools':
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
@@ -825,7 +807,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     .'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
                             break;
-                            case 'backupMail':
+                            case 'recoveryMail':
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                     new DangerText('Fehler:').'</br>'
                                     .'keine Passwort vergessen E-Mail hinterlegt'
