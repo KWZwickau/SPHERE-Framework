@@ -35,8 +35,12 @@ class ErrorExcel implements IModuleInterface
     {
 
         $fileLocation = ImportIndiware::useService()->getIndiwareErrorExcel($Type, $StringCompareDescription);
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Import_Fehler_Lehraufträge ".date("Y-m-d").".xlsx")->__toString();
+        if($fileLocation){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Import_Fehler_Lehraufträge ".date("Y-m-d").".xlsx")->__toString();
+        } else {
+            return 'Keine Fehler verfügbar';
+        }
     }
 
 }
