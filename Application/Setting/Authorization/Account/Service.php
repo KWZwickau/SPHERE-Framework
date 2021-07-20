@@ -506,7 +506,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        return new LayoutGroup(new LayoutRow(new LayoutColumn(implode(' ' , $toggleButtons))), new Title(new Nameplate() . ' Benutzerrollen-Gruppen'));
+        return new LayoutGroup(new LayoutRow(new LayoutColumn(implode(' ' , $toggleButtons))), new Title(new Nameplate() . ' Benutzerrolle'));
     }
 
     /**

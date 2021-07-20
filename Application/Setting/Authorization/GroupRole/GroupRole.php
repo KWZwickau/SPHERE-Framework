@@ -19,7 +19,7 @@ class GroupRole  implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Benutzerrollen-Gruppen'), new Link\Icon(new PersonKey()))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Benutzerrollen'), new Link\Icon(new PersonKey()))
         );
 
         /**
@@ -28,12 +28,6 @@ class GroupRole  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendGroupRole')
         );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Month' , __NAMESPACE__ . '\Frontend::frontendAbsenceMonth')
-//        );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute('SPHERE\Application\Education\Absence', __NAMESPACE__ . '\Frontend::frontendAbsenceOverview')
-//        );
     }
 
     /**

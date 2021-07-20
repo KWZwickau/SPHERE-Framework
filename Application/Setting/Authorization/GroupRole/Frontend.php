@@ -41,7 +41,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendGroupRole()
     {
-        $stage = new Stage('Benutzerrollen-Gruppen', 'Übersicht');
+        $stage = new Stage('Benutzerrollen', 'Übersicht');
 
         $stage->setContent(
             new Layout(array(
@@ -51,7 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Container('&nbsp;'),
                             ApiGroupRole::receiverModal(),
                             (new Primary(
-                                new Plus() . ' Benutzerrollen-Gruppe hinzufügen',
+                                new Plus() . ' Benutzerrolle hinzufügen',
                                 ApiGroupRole::getEndpoint()
                             ))->ajaxPipelineOnClick(ApiGroupRole::pipelineOpenCreateGroupRoleModal())
                         )),
@@ -150,7 +150,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel(
-                            new Person() . ' Benutzerrollen-Gruppe',
+                            new Person() . ' Benutzerrolle',
                             array(new TextField('Data[Name]', 'Name', 'Name ' . new Danger('*'))),
                             Panel::PANEL_TYPE_INFO
                         ), 6),

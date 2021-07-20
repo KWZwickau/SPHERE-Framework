@@ -151,9 +151,9 @@ class ApiGroupRole extends Extension implements IApiInterface
     private function getGroupRoleModal($form, $GroupRoleId = null)
     {
         if ($GroupRoleId) {
-            $title = new Title(new Edit() . ' Benutzerrollen-Gruppe bearbeiten');
+            $title = new Title(new Edit() . ' Benutzerrolle bearbeiten');
         } else {
-            $title = new Title(new Plus() . ' Benutzerrollen-Gruppe hinzufügen');
+            $title = new Title(new Plus() . ' Benutzerrolle hinzufügen');
         }
 
         return $title
@@ -200,11 +200,11 @@ class ApiGroupRole extends Extension implements IApiInterface
         }
 
         if (GroupRole::useService()->createGroupRole($Data)) {
-            return new Success('Die Benutzerrollen-Gruppe wurde erfolgreich gespeichert.')
+            return new Success('Die Benutzerrolle wurde erfolgreich gespeichert.')
                 . self::pipelineLoadGroupRoleContent()
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Benutzerrollen-Gruppe konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die Benutzerrolle konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -236,7 +236,7 @@ class ApiGroupRole extends Extension implements IApiInterface
     public function openEditGroupRoleModal($GroupRoleId)
     {
         if (!($tblGroupRole = GroupRole::useService()->getGroupRoleById($GroupRoleId))) {
-            return new Danger('Die Benutzerrollen-Gruppe wurde nicht gefunden', new Exclamation());
+            return new Danger('Die Benutzerrolle wurde nicht gefunden', new Exclamation());
         }
 
         return $this->getGroupRoleModal(GroupRole::useFrontend()->formGroupRole($GroupRoleId, true), $GroupRoleId);
@@ -272,7 +272,7 @@ class ApiGroupRole extends Extension implements IApiInterface
     public function saveEditGroupRoleModal($GroupRoleId, $Data)
     {
         if (!($tblGroupRole = GroupRole::useService()->getGroupRoleById($GroupRoleId))) {
-            return new Danger('Die Benutzerrollen-Gruppe wurde nicht gefunden', new Exclamation());
+            return new Danger('Die Benutzerrolle wurde nicht gefunden', new Exclamation());
         }
 
         if (($form = GroupRole::useService()->checkFormGroupRole($Data, $tblGroupRole))) {
@@ -281,11 +281,11 @@ class ApiGroupRole extends Extension implements IApiInterface
         }
 
         if (GroupRole::useService()->updateGroupRole($tblGroupRole, $Data)) {
-            return new Success('Die Benutzerrollen-Gruppe wurde erfolgreich gespeichert.')
+            return new Success('Die Benutzerrolle wurde erfolgreich gespeichert.')
                 . self::pipelineLoadGroupRoleContent()
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Benutzerrollen-Gruppe konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die Benutzerrolle konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -317,16 +317,16 @@ class ApiGroupRole extends Extension implements IApiInterface
     public function openDeleteGroupRoleModal($GroupRoleId)
     {
         if (!($tblGroupRole = GroupRole::useService()->getGroupRoleById($GroupRoleId))) {
-            return new Danger('Die Benutzerrollen-Gruppe wurde nicht gefunden', new Exclamation());
+            return new Danger('Die Benutzerrolle wurde nicht gefunden', new Exclamation());
         }
 
-        return new Title(new Remove() . ' Benutzerrollen-Gruppe löschen')
+        return new Title(new Remove() . ' Benutzerrolle löschen')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(
-                                new Question() . ' Diese Benutzerrollen-Gruppe wirklich löschen?',
+                                new Question() . ' Diese Benutzerrolle wirklich löschen?',
                                 array(
                                     $tblGroupRole->getName(),
                                 ),
@@ -372,15 +372,15 @@ class ApiGroupRole extends Extension implements IApiInterface
     public function saveDeleteGroupRoleModal($GroupRoleId)
     {
         if (!($tblGroupRole = GroupRole::useService()->getGroupRoleById($GroupRoleId))) {
-            return new Danger('Die Benutzerrollen-Gruppe wurde nicht gefunden', new Exclamation());
+            return new Danger('Die Benutzerrolle wurde nicht gefunden', new Exclamation());
         }
 
         if (GroupRole::useService()->destroyGroupRole($tblGroupRole)) {
-            return new Success('Die Benutzerrollen-Gruppe wurde erfolgreich gelöscht.')
+            return new Success('Die Benutzerrolle wurde erfolgreich gelöscht.')
                 . self::pipelineLoadGroupRoleContent()
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Benutzerrollen-Gruppe konnte nicht gelöscht werden.') . self::pipelineClose();
+            return new Danger('Die Benutzerrolle konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }
