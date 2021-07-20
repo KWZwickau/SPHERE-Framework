@@ -2,17 +2,23 @@
 namespace SPHERE\Application\Setting\Authorization\Account;
 
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiAuthenticatorApp;
+use SPHERE\Application\Api\Setting\Authorization\ApiAccount;
+use SPHERE\Application\Api\Setting\Authorization\ApiGroupRole;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -23,6 +29,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
@@ -49,7 +57,9 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -75,9 +85,21 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Benutzerkonten');
         $Stage->setMessage('Hier können neue Nutzerzugänge angelegt und bestehende Benutzerkonten bearbeitet bzw. gelöscht werden');
         $Stage->addButton(new Standard(
-            'Neues Benutzerkonto anlegen', '/Setting/Authorization/Account/Create', new Pencil()
+            'Neues Benutzerkonto anlegen', '/Setting/Authorization/Account/Create', new PlusSign()
         ));
-        $Stage->setContent($this->layoutAccount());
+//        $Stage->addButton(new Standard(
+//            'Einzelnes Benutzerrecht zuweisen', '/Setting/Authorization/Account/Add/Roles', new Nameplate()
+//        ));
+        $Stage->addButton(
+            (new Standard(
+                new Nameplate() . ' Einzelnes Benutzerrecht zuweisen',
+                ApiAccount::getEndpoint()
+            ))->ajaxPipelineOnClick(ApiAccount::pipelineOpenMassReplaceModal())
+        );
+        $Stage->setContent(
+            ApiAccount::receiverModal()
+            . $this->layoutAccount()
+        );
         return $Stage;
     }
 
@@ -86,23 +108,8 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function layoutAccount()
     {
-
-        $tblIdentificationToken = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
-        $tblAccountConsumerTokenList = array();
-        if($tblIdentificationToken){
-            $tblAccountConsumerTokenList = Account::useService()->getAccountListByIdentification($tblIdentificationToken);
-        }
-        if (($tblIdentificationAuthenticatorApp = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP))
-            && ($tblAccountConsumerAuthenticatorAppList = Account::useService()->getAccountListByIdentification($tblIdentificationAuthenticatorApp))
-        ) {
-            if ($tblAccountConsumerTokenList) {
-                $tblAccountConsumerTokenList = array_merge($tblAccountConsumerTokenList, $tblAccountConsumerAuthenticatorAppList);
-            } else {
-                $tblAccountConsumerTokenList = $tblAccountConsumerAuthenticatorAppList;
-            }
-        }
         $TableContent = array();
-        if ($tblAccountConsumerTokenList) {
+        if (($tblAccountConsumerTokenList = Account::useService()->getAccountAllForEdit())) {
             array_walk($tblAccountConsumerTokenList, function (TblAccount $tblAccount) use (&$TableContent) {
                 $PersonList = array();
                 $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -517,7 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $Account
      * @param bool  $confirm
      *
-     * @return \SPHERE\Common\Frontend\Form\IFormInterface|Panel|string
+     * @return IFormInterface|Panel|string
      */
     public function frontendConfirmChange($tblAccountId, $Account, $confirm = false)
     {
@@ -622,5 +629,164 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         return $Stage;
+    }
+
+    /**
+     * @param null $RoleId
+     * @param null $PersonGroupId
+     *
+     * @return string
+     */
+    public function openMassReplaceModal($RoleId = null, $PersonGroupId = null)
+    {
+        $groupList = array();
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))) {
+            $groupList[] = $tblGroup;
+        }
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('TUDOR'))) {
+            $groupList[] = $tblGroup;
+        }
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('CLUB'))) {
+            $groupList[] = $tblGroup;
+        }
+
+        $filter = new Panel(
+            new Filter() . ' Filter',
+            new Form(new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('RoleId', 'Benutzerrecht', array('{{ Name }}' => Access::useService()->getRolesForSelect(false))))
+                            ->ajaxPipelineOnChange(ApiAccount::pipelineLoadMassReplaceContent($RoleId, $PersonGroupId))
+                        , 3),
+                    new FormColumn(
+                        (new SelectBox('PersonGroupId', 'Personengruppe', array('{{ Name }}' => $groupList)))
+                            ->ajaxPipelineOnChange(ApiAccount::pipelineLoadMassReplaceContent($RoleId, $PersonGroupId))
+                        , 3),
+                ))
+            )),
+            Panel::PANEL_TYPE_INFO
+        );
+
+        return
+            new Title('Massenänderung', 'Einzelnes Benutzerrecht zuweisen')
+            . $filter
+            . ApiGroupRole::receiverBlock($this->loadMassReplaceContent(), 'MassReplaceContent');
+    }
+
+    /**
+     * @param null $RoleId
+     * @param null $PersonGroupId
+     * @param null $Accounts
+     *
+     * @return string
+     */
+    public function loadMassReplaceContent($RoleId = null,$PersonGroupId = null, $Accounts = null)
+    {
+        if ($PersonGroupId) {
+            $tblGroup = Group::useService()->getGroupById($PersonGroupId);
+        } else {
+            $tblGroup = false;
+        }
+
+        if ($RoleId) {
+            $tblRole = Access::useService()->getRoleById($RoleId);
+        } else {
+            $tblRole = false;
+        }
+
+        if ($tblRole) {
+            $dataList = array();
+            $count = 0;
+            if (($tblAccountList = Account::useService()->getAccountAllForEdit())) {
+                $tblAccountList = $this->getSorter($tblAccountList)->sortObjectBy('UserName');
+                foreach ($tblAccountList as $tblAccount) {
+                    if (($tblPerson = Account::useService()->getFirstPersonByAccount($tblAccount))
+                        && (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
+                    ) {
+                        // bei Rolle nur für Hardware-Token, Benutzerkonten ohne entsprechenden Ausfiltern
+                        if ($tblRole->isSecure()
+                            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
+                        ) {
+                            switch ($tblIdentification->getName()) {
+                                case 'AuthenticatorApp':
+                                    $isAdd = true;
+                                    break;
+                                case 'Token':
+                                    // Token muss gesetzt sein
+                                    if ($tblAccount->getServiceTblToken()) {
+                                        $isAdd = true;
+                                    } else {
+                                        $isAdd = false;
+                                    }
+                                    break;
+                                default : $isAdd = false;
+                            }
+                        } else {
+                            $isAdd = true;
+                        }
+
+                        if ($isAdd) {
+                            $count++;
+                            $dataList[] = array(
+                                'Select' => new CheckBox('Accounts[' . $tblAccount->getId() . ']', '&nbsp;', 1),
+                                'AccountName' => $tblAccount->getUsername(),
+                                'PersonName' => $tblPerson->getLastFirstName(),
+                                'Role' => Account::useService()->hasAuthorization($tblAccount, $tblRole)
+                                    ? ($tblRole->isSecure() ? new Key() : new Globe()) . ' ' . $tblRole->getName() : ''
+                            );
+                        }
+                    }
+                }
+            }
+
+            $form = new Form(new FormGroup(new FormRow(array(
+                new FormColumn(
+                    new TableData(
+                        $dataList,
+                        null,
+                        array(
+                            'Select' => 'Auswahl',
+                            'AccountName' => 'Benutzerkonto',
+                            'PersonName' => 'Person',
+                            'Role' => 'Benutzerrecht'
+                        ),
+                        null
+                    )
+                ),
+                new FormColumn(ApiAccount::receiverBlock('', 'MessageContent')),
+                new FormColumn(
+                    (new \SPHERE\Common\Frontend\Link\Repository\Primary('Speichern', ApiAccount::getEndpoint(), new Save()))
+                        ->ajaxPipelineOnClick(ApiAccount::pipelineMassReplaceSave($RoleId, $Accounts))
+                )
+            ))));
+
+            if (!empty($dataList)) {
+                return new Well(
+                    new Title(new PersonKey() . ' Benutzerkonten', '(' . new Bold($count) . ' nach Filterung)')
+                    . new ToggleCheckbox('Alle auswählen/abwählen', $form)
+                    . $form
+                );
+            } else {
+                return new Warning('Keine Benutzerkonten gefunden!', new Exclamation());
+            }
+        } else {
+            return new Warning('Bitte wählen Sie zunächst ein Benutzerrecht aus!', new Exclamation());
+        }
+    }
+
+    /**
+     * @param null $RoleId
+     *
+     * @return string
+     */
+    public function loadMessageContent($RoleId = null)
+    {
+        if ($RoleId && ($tblRole = Access::useService()->getRoleById($RoleId))) {
+            return new \SPHERE\Common\Frontend\Message\Repository\Danger('Für alle ausgewählten Benutzerkonten wird das 
+                Benutzerrecht: ' . new Bold($tblRole->getName()) . ' gesetzt. Die Massenänderung kann nicht automatisch
+                rückgängig gemacht werden!');
+        }
+
+        return '&nbsp;';
     }
 }

@@ -458,28 +458,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
     public function getRoleCheckBoxList($dataName = 'Account[Role]')
     {
         // Role
-        $tblRoleAll = Access::useService()->getRoleAll();
+        $tblRoleAll = Access::useService()->getRolesForSelect(true);
         $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
         if ($tblRoleAll){
             array_walk($tblRoleAll, function(TblRole &$tblRole) use(&$TeacherRole, $dataName){
-                if ($tblRole->isInternal()){
-                    $tblRole = false;
-                } else {
-                    if (!$tblRole->isIndividual()
-                        || (
-                            ($tblAccount = Account::useService()->getAccountBySession())
-                            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
-                            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))
-                        )
-                    ){
-                        $tblRole = new CheckBox($dataName . '['.$tblRole->getId().']',
-                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
-                            $tblRole->getId()
-                        );
-                    } else {
-                        $tblRole = false;
-                    }
-                }
+                $tblRole = new CheckBox($dataName . '['.$tblRole->getId().']',
+                    ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
+                    $tblRole->getId()
+                );
             });
             $tblRoleAll = array_filter($tblRoleAll);
         } else {
@@ -497,17 +483,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $toggleButtons = array();
 
         // alle ab/anwählen
-        if (($tblRoleAll = Access::useService()->getRoleAll())) {
+        if (($tblRoleAll = Access::useService()->getRolesForSelect(true))) {
             $toggles = array();
             foreach ($tblRoleAll as $item) {
-                if (!$item->isInternal()
-                    && (!$item->isIndividual()
-                    || (($tblAccount = Account::useService()->getAccountBySession())
-                        && ($tblConsumer = $tblAccount->getServiceTblConsumer())
-                        && (Access::useService()->getRoleConsumerBy($item, $tblConsumer))))
-                ) {
-                    $toggles[] = 'Account[Role][' . $item->getId() . ']';
-                }
+                $toggles[] = 'Account[Role][' . $item->getId() . ']';
             }
 
             $toggleButtons[] = new ToggleSelective('Alle wählen/abwählen', $toggles);
@@ -528,5 +507,28 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         return new LayoutGroup(new LayoutRow(new LayoutColumn(implode(' ' , $toggleButtons))), new Title(new Nameplate() . ' Benutzerrollen-Gruppen'));
+    }
+
+    /**
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllForEdit()
+    {
+        $tblIdentificationToken = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+        $tblAccountConsumerTokenList = array();
+        if($tblIdentificationToken){
+            $tblAccountConsumerTokenList = Account::useService()->getAccountListByIdentification($tblIdentificationToken);
+        }
+        if (($tblIdentificationAuthenticatorApp = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP))
+            && ($tblAccountConsumerAuthenticatorAppList = Account::useService()->getAccountListByIdentification($tblIdentificationAuthenticatorApp))
+        ) {
+            if ($tblAccountConsumerTokenList) {
+                $tblAccountConsumerTokenList = array_merge($tblAccountConsumerTokenList, $tblAccountConsumerAuthenticatorAppList);
+            } else {
+                $tblAccountConsumerTokenList = $tblAccountConsumerAuthenticatorAppList;
+            }
+        }
+
+        return empty($tblAccountConsumerTokenList) ? false : $tblAccountConsumerTokenList;
     }
 }

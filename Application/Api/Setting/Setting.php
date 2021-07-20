@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Setting;
 
 use SPHERE\Application\Api\Setting\ApiMyAccount\ApiMyAccount;
+use SPHERE\Application\Api\Setting\Authorization\ApiAccount;
 use SPHERE\Application\Api\Setting\Authorization\ApiGroupRole;
 use SPHERE\Application\Api\Setting\UserAccount\AccountUserExcel;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
@@ -17,10 +18,10 @@ class Setting implements IApplicationInterface
 
     public static function registerApplication()
     {
-
         ApiMyAccount::registerApi();
         ApiUserAccount::registerApi();
         AccountUserExcel::registerModule();
         ApiGroupRole::registerApi();
+        ApiAccount::registerApi();
     }
 }
