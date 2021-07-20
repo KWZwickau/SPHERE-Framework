@@ -81,15 +81,11 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendLayoutAccount()
     {
-
         $Stage = new Stage('Benutzerkonten');
         $Stage->setMessage('Hier können neue Nutzerzugänge angelegt und bestehende Benutzerkonten bearbeitet bzw. gelöscht werden');
         $Stage->addButton(new Standard(
             'Neues Benutzerkonto anlegen', '/Setting/Authorization/Account/Create', new PlusSign()
         ));
-//        $Stage->addButton(new Standard(
-//            'Einzelnes Benutzerrecht zuweisen', '/Setting/Authorization/Account/Add/Roles', new Nameplate()
-//        ));
         $Stage->addButton(
             (new Standard(
                 new Nameplate() . ' Einzelnes Benutzerrecht zuweisen',
@@ -98,7 +94,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
         $Stage->setContent(
             ApiAccount::receiverModal()
-            . $this->layoutAccount()
+            . ApiAccount::receiverBlock($this->layoutAccount(), 'LayoutAccountContent')
         );
         return $Stage;
     }

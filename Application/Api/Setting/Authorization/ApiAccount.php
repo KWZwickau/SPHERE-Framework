@@ -43,6 +43,8 @@ class ApiAccount  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openMassReplaceModal');
         $Dispatcher->registerMethod('saveMassReplaceModal');
 
+        $Dispatcher->registerMethod('loadLayoutAccountContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -244,18 +246,40 @@ class ApiAccount  extends Extension implements IApiInterface
             if ($count > 0) {
                 return new Success('Es wurde für ' . $count . ' Benutzerkonto das Benutzerrecht: '
                     . new Bold($tblRole->getName()) . ' hinzugefügt.')
-                    // todo tabelle dynamisch neu laden
-//                    . self::pipelineAccountListContent()
+                    . self::pipelineLoadLayoutAccountContent()
                     . self::pipelineClose();
             } else {
                 return new Warning('Es wurden für kein Benutzerkonto das Benutzerrecht: '
                         . new Bold($tblRole->getName()) . ' hinzugefügt.')
-                    // todo tabelle dynamisch neu laden
-//                    . self::pipelineAccountListContent()
+                    . self::pipelineLoadLayoutAccountContent()
                     . self::pipelineClose();
             }
         } else {
             return new Danger('Das Benutzerrecht wurde nicht gefunden. Die Daten konnten nicht gespeichert werden') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadLayoutAccountContent()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LayoutAccountContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadLayoutAccountContent',
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function loadLayoutAccountContent()
+    {
+        return Account::useFrontend()->layoutAccount();
     }
 }
