@@ -11,13 +11,20 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token as GatekeeperToken;
+use SPHERE\Application\Setting\Authorization\GroupRole\GroupRole;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Publicly;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -480,5 +487,46 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         return $tblRoleAll;
+    }
+
+    /**
+     * @return LayoutGroup
+     */
+    public function getGroupRoleLayoutGroup()
+    {
+        $toggleButtons = array();
+
+        // alle ab/anwählen
+        if (($tblRoleAll = Access::useService()->getRoleAll())) {
+            $toggles = array();
+            foreach ($tblRoleAll as $item) {
+                if (!$item->isInternal()
+                    && (!$item->isIndividual()
+                    || (($tblAccount = Account::useService()->getAccountBySession())
+                        && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+                        && (Access::useService()->getRoleConsumerBy($item, $tblConsumer))))
+                ) {
+                    $toggles[] = 'Account[Role][' . $item->getId() . ']';
+                }
+            }
+
+            $toggleButtons[] = new ToggleSelective('Alle wählen/abwählen', $toggles);
+        }
+
+        if (($tblGroupRoleList = GroupRole::useService()->getGroupRoleAll())) {
+            foreach ($tblGroupRoleList as $tblGroupRole) {
+                if (($tblGroupRoleLinkList = GroupRole::useService()->getGroupRoleLinkAllByGroupRole($tblGroupRole))) {
+                    $toggles = array();
+                    foreach ($tblGroupRoleLinkList as $tblGroupRoleLink) {
+                        if (($tblRole = $tblGroupRoleLink->getServiceTblRole())) {
+                            $toggles[] = 'Account[Role][' . $tblRole->getId() . ']';
+                        }
+                    }
+                    $toggleButtons[] = new ToggleSelective($tblGroupRole->getName(), $toggles);
+                }
+            }
+        }
+
+        return new LayoutGroup(new LayoutRow(new LayoutColumn(implode(' ' , $toggleButtons))), new Title(new Nameplate() . ' Benutzerrollen-Gruppen'));
     }
 }

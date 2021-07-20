@@ -204,7 +204,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendCreateAccount($Account = null)
     {
-
         $Stage = new Stage('Benutzerkonto', 'Hinzufügen');
         $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
         $tblAuthentication = Account::useService()->getIdentificationByName('Token');
@@ -215,6 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->setContent(
             new Layout(array(
+                Account::useService()->getGroupRoleLayoutGroup(),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(new Well(
@@ -479,6 +479,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
+                    Account::useService()->getGroupRoleLayoutGroup(),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(new Well(
