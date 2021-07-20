@@ -7,6 +7,8 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Storage\Storage;
@@ -873,7 +875,6 @@ class Service extends AbstractService
                 $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
                     $tblPerson);
                 if ($tblAddressPersonAllByPerson) {
-                    /** @var TblAddressPerson $tblAddressPerson */
                     $AddressList = array();
                     array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson)
                     use (&$AddressList, $tblPerson, &$AddressPersonCount, $tblFilterCategory) {
@@ -888,6 +889,25 @@ class Service extends AbstractService
                                             $tblPerson->getFirstName();
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['LastName'] =
                                             $tblPerson->getLastName();
+                                        // Mail
+                                        if(($tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson))){
+                                            foreach($tblToPersonMailList as $tblToPersonMail){
+                                                if(($tblMail = $tblToPersonMail->getTblMail())
+                                                    && ($tblType =  $tblToPersonMail->getTblType())
+                                                    && $tblType->getName() == TblType::VALUE_PRIVATE){
+                                                    if(!isset($AddressList[$tblPerson->getId().$tblAddress->getId()]['PMailPrivate'])){
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PMailPrivate'] = $tblMail->getAddress();
+                                                    }
+                                                }
+                                                if(($tblMail = $tblToPersonMail->getTblMail())
+                                                    && ($tblType =  $tblToPersonMail->getTblType())
+                                                    && $tblType->getName() == TblType::VALUE_BUSINESS){
+                                                    if(!isset($AddressList[$tblPerson->getId().$tblAddress->getId()]['PMailBusiness'])){
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PMailBusiness'] = $tblMail->getAddress();
+                                                    }
+                                                }
+                                            }
+                                        }
 
                                         //Person Address
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonSalutation'][] =
@@ -896,6 +916,35 @@ class Service extends AbstractService
                                             $PersonToAddress->getFirstName();
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
                                             $PersonToAddress->getLastName();
+                                        // Mail
+                                        if(($tblToPersonMailList = Mail::useService()->getMailAllByPerson($PersonToAddress))){
+                                            $isPrivate = false;
+                                            $isBusiness = false;
+                                            foreach($tblToPersonMailList as $tblToPersonMail){
+                                                if(($tblMail = $tblToPersonMail->getTblMail())
+                                                    && ($tblType = $tblToPersonMail->getTblType())
+                                                    && $tblType->getName() == TblType::VALUE_PRIVATE){
+                                                    if(!$isPrivate){
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['MailPrivate'][] = $tblMail->getAddress();
+                                                        $isPrivate = true;
+                                                    }
+                                                }
+                                                if(($tblMail = $tblToPersonMail->getTblMail())
+                                                    && ($tblType =  $tblToPersonMail->getTblType())
+                                                    && $tblType->getName() == TblType::VALUE_BUSINESS){
+                                                    if(!$isBusiness){
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['MailBusiness'][] = $tblMail->getAddress();
+                                                        $isBusiness = true;
+                                                    }
+                                                }
+                                            }
+                                            if(!$isPrivate){
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['MailPrivate'][] = '';
+                                            }
+                                            if(!$isBusiness){
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['MailBusiness'][] = '';
+                                            }
+                                        }
 
                                         if (isset($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
                                             if ($AddressPersonCount < count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
@@ -1099,6 +1148,8 @@ class Service extends AbstractService
                                 'SalutationList'    => ( isset($Address['PersonSalutation']) ? $Address['PersonSalutation'] : array() ),
                                 'FirstNameList'     => ( isset($Address['PersonFirstName']) ? $Address['PersonFirstName'] : array() ),
                                 'LastNameList'      => ( isset($Address['PersonLastName']) ? $Address['PersonLastName'] : array() ),
+                                'MailPrivate'        => ( !empty($Address['MailPrivate']) ? $Address['MailPrivate'] : array() ),
+                                'MailBusiness'      => ( !empty($Address['MailBusiness']) ? $Address['MailBusiness'] : array() ),
                                 'District'          => ( isset($Address['District']) ? $Address['District'] : '' ),
                                 'StreetName'        => ( isset($Address['StreetName']) ? $Address['StreetName'] : '' ),
                                 'StreetNumber'      => ( isset($Address['StreetNumber']) ? $Address['StreetNumber'] : '' ),
@@ -1107,9 +1158,12 @@ class Service extends AbstractService
                                 'Salutation'        => ( isset($Address['Salutation']) ? $Address['Salutation'] : '' ),
                                 'FirstName'         => ( isset($Address['FirstName']) ? $Address['FirstName'] : '' ),
                                 'LastName'          => ( isset($Address['LastName']) ? $Address['LastName'] : '' ),
+                                'PMailPrivate'      => ( isset($Address['PMailPrivate']) ? $Address['PMailPrivate'] : '' ),
+                                'PMailBusiness'     => ( isset($Address['PMailBusiness']) ? $Address['PMailBusiness'] : '' ),
                                 'StudentNumber'     => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
                                 'Division'          => ( isset($Address['Division']) ? $Address['Division'] : '' ),
                                 'SchoolCourse'      => ( isset($Address['SchoolCourse']) ? $Address['SchoolCourse'] : '' ),
+
                             );
                         }
                     }
@@ -1136,6 +1190,8 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), "Anrede ".( $i + 1 ));
                 $export->setValue($export->getCell($column++, $row), "Vorname ".( $i + 1 ));
                 $export->setValue($export->getCell($column++, $row), "Nachname ".( $i + 1 ));
+                $export->setValue($export->getCell($column++, $row), "E-Mail Privat ".( $i + 1 ));
+                $export->setValue($export->getCell($column++, $row), "E-Mail Geschäftlich".( $i + 1 ));
             }
             $export->setValue($export->getCell($column++, $row), "Ortsteil");
             $export->setValue($export->getCell($column++, $row), "Straße");
@@ -1145,6 +1201,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "");
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
             $export->setValue($export->getCell($column++, $row), "Person_Nachname");
+            $export->setValue($export->getCell($column++, $row), "Person_Mail_Privat");
+            $export->setValue($export->getCell($column++, $row), "Person_Mail_Geschäftlich");
             $export->setValue($export->getCell($column++, $row), "Person_Schüler-Nr.");
             $export->setValue($export->getCell($column++, $row), "Person_Aktuelle Klasse(n)");
             $export->setValue($export->getCell($column, $row), "Bildungsgang");
@@ -1171,6 +1229,10 @@ class Service extends AbstractService
                         ( isset($Export['FirstNameList'][$PersonLoop]) ? $Export['FirstNameList'][$PersonLoop] : '' ));
                     $export->setValue($export->getCell($column++, $row),
                         ( isset($Export['LastNameList'][$PersonLoop]) ? $Export['LastNameList'][$PersonLoop] : '' ));
+                    $export->setValue($export->getCell($column++, $row),
+                        ( isset($Export['MailPrivate'][$PersonLoop]) ? $Export['MailPrivate'][$PersonLoop] : '' ));
+                    $export->setValue($export->getCell($column++, $row),
+                        ( isset($Export['MailBusiness'][$PersonLoop]) ? $Export['MailBusiness'][$PersonLoop] : '' ));
                     $PersonLoop++;
                 }
 
@@ -1184,6 +1246,8 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), '');
                 $export->setValue($export->getCell($column++, $row), $Export['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $Export['LastName']);
+                $export->setValue($export->getCell($column++, $row), $Export['PMailPrivate']);
+                $export->setValue($export->getCell($column++, $row), $Export['PMailBusiness']);
                 $export->setValue($export->getCell($column++, $row), $Export['StudentNumber']);
                 $export->setValue($export->getCell($column++, $row), $Export['Division']);
                 $export->setValue($export->getCell($column, $row), $Export['SchoolCourse']);
@@ -1378,25 +1442,21 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param array           $tblPersonList
-     *
-     * @return null|object|TblSerialPerson
      */
     public function addSerialPersonBulk(TblSerialLetter $tblSerialLetter, $tblPersonList)
     {
 
-        return ( new Data($this->getBinding()) )->addSerialPersonBulk($tblSerialLetter, $tblPersonList);
+        (new Data($this->getBinding()))->addSerialPersonBulk($tblSerialLetter, $tblPersonList);
     }
 
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param array           $tblCompanyList
-     *
-     * @return null|object|TblSerialPerson
      */
     public function addSerialCompanyBulk(TblSerialLetter $tblSerialLetter, $tblCompanyList)
     {
 
-        return ( new Data($this->getBinding()) )->addSerialCompanyBulk($tblSerialLetter, $tblCompanyList);
+        (new Data($this->getBinding()))->addSerialCompanyBulk($tblSerialLetter, $tblCompanyList);
     }
 
     /**
