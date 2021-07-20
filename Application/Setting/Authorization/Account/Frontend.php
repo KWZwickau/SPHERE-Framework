@@ -651,7 +651,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Form(new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        (new SelectBox('RoleId', 'Benutzerrecht', array('{{ Name }}' => Access::useService()->getRolesForSelect(false))))
+                        (new SelectBox('RoleId', 'Benutzerrecht ' . new Danger('*'), array('{{ Name }}' => Access::useService()->getRolesForSelect(false))))
                             ->ajaxPipelineOnChange(ApiAccount::pipelineLoadMassReplaceContent($RoleId, $PersonGroupId))
                         , 3),
                     new FormColumn(
