@@ -483,6 +483,12 @@ class StudentFilter extends Extension
                             }
                         }
 
+                        // MedicalRecord
+                        if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
+                             && $Label == 'Datum (vorgelegt am)') {
+                                $DataPerson['Edit'] = $tblMedicalRecord->getMasernDate();
+                        }
+
                         // TechnicalSchool
                         if (($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())) {
                             if ($Label == 'Bildungsgang / Berufsbezeichnung / Ausbildung') {
