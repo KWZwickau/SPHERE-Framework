@@ -155,6 +155,6 @@ class Service extends AbstractService
             }
         }
 
-        return (new Data($this->getBinding()))->removeGroupRole($tblGroupRole);
+        return (new Data($this->getBinding()))->destroyGroupRole($tblGroupRole);
     }
 }

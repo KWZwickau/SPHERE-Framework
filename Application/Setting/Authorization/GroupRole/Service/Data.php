@@ -164,24 +164,4 @@ class Data extends AbstractData
         }
         return false;
     }
-
-    /**
-     * @param TblGroupRole $tblGroupRole
-     *
-     * @return bool
-     */
-    public function removeGroupRole(TblGroupRole $tblGroupRole)
-    {
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblGroupRole $Entity */
-        $Entity = $Manager->getEntityById('TblGroupRole', $tblGroupRole->getId());
-        if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-            $Manager->killEntity($Entity);
-
-            return true;
-        }
-
-        return false;
-    }
 }
