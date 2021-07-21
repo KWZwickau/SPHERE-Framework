@@ -320,7 +320,9 @@ class Service extends AbstractService
         $tblGroupList = array();
         if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
             foreach($tblItemGroupList as $tblItemGroup) {
-                $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
+                if($tblItemGroup->getServiceTblGroup()){
+                    $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
+                }
             }
         }
 
@@ -338,9 +340,11 @@ class Service extends AbstractService
         $tblPersonList = array();
         if($tblGroupList){
             foreach($tblGroupList as $tblGroup) {
-                if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
-                    foreach($tblPersonFromGroup as $tblPersonFrom) {
-                        $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                if($tblGroup){
+                    if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
+                        foreach($tblPersonFromGroup as $tblPersonFrom) {
+                            $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                        }
                     }
                 }
             }
