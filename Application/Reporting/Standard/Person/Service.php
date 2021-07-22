@@ -1353,15 +1353,12 @@ class Service extends Extension
                         }
                         $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
                         $Item['Identifier'] = $tblStudent->getIdentifierComplete();
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        if (Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType)) {
-                            $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
-                                ? $tblCompany->getDisplayName()
-                                : '');
-                            $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
-                                ? Student::useService()->getCourseByStudent($tblStudent)->getName()
-                                : '');
-                        }
+                        $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
+                            ? $tblCompany->getDisplayName()
+                            : '');
+                        $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
+                            ? Student::useService()->getCourseByStudent($tblStudent)->getName()
+                            : '');
                         $tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
                         if ($tblAgreementList) {
                             $MarkValue = 'Ja';
