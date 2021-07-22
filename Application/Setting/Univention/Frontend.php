@@ -351,8 +351,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if($isUpdate){
 
                             // Layout in TableContent
-                            $firstWith = 3;
-                            $secondWith = 9;
+                            $firstWith = 4;
+                            $secondWith = 8;
                             $CompareRow['UCS'] = new Small(
                                 new Layout(new LayoutGroup(array(
                                     new LayoutRow(array(
@@ -364,12 +364,16 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn($CompareRow['UCS']['lastname'], $secondWith),
                                     )),
                                     new LayoutRow(array(
+                                        new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                        new LayoutColumn($CompareRow['UCS']['roles'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
                                         new LayoutColumn(new Bold('E-Mail:'), $firstWith),
                                         new LayoutColumn($CompareRow['UCS']['email'], $secondWith),
                                     )),
                                     new LayoutRow(array(
-                                        new LayoutColumn(new Bold('Rolle:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['roles'], $secondWith),
+                                        new LayoutColumn(new Bold('E-Mail Recovery:'), $firstWith),
+                                        new LayoutColumn($CompareRow['UCS']['recoveryMail'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Schule:'), $firstWith),
@@ -378,10 +382,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
-                                    )),
-                                    new LayoutRow(array(
-                                        new LayoutColumn(new Bold('recoveryMail:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['recoveryMail'], $secondWith),
                                     )),
                                 )))
                             );
@@ -396,12 +396,16 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn($CompareRow['SSW']['lastname'], $secondWith),
                                     )),
                                     new LayoutRow(array(
+                                        new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['roles'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
                                         new LayoutColumn(new Bold('E-Mail:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['email'], $secondWith),
                                     )),
                                     new LayoutRow(array(
-                                        new LayoutColumn(new Bold('Rolle:'), $firstWith),
-                                        new LayoutColumn($CompareRow['SSW']['roles'], $secondWith),
+                                        new LayoutColumn(new Bold('E-Mail Recovery:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['recoveryMail'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Schule:'), $firstWith),
@@ -410,10 +414,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
-                                    )),
-                                    new LayoutRow(array(
-                                        new LayoutColumn(new Bold('recoveryMail:'), $firstWith),
-                                        new LayoutColumn($CompareRow['SSW']['recoveryMail'], $secondWith),
                                     )),
                                 )))
                             );
@@ -441,12 +441,16 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn($CompareRow['SSW']['lastname'], $secondWith),
                                     )),
                                     new LayoutRow(array(
+                                        new LayoutColumn(new Bold('Rolle:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['roles'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
                                         new LayoutColumn(new Bold('E-Mail:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['email'], $secondWith),
                                     )),
                                     new LayoutRow(array(
-                                        new LayoutColumn(new Bold('Rolle:'), $firstWith),
-                                        new LayoutColumn($CompareRow['SSW']['roles'], $secondWith),
+                                        new LayoutColumn(new Bold('E-Mail Recovery:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['recoveryMail'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Schule:'), $firstWith),
@@ -759,24 +763,27 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($Account as $Key => $Value){
                 if(is_array($Value)){
                     $MouseOver = '';
+                    $KeyReplace = '';
                     switch ($Key){
                         case 'roles':
+                            $KeyReplace = 'Rolle:';
                             // sich ausschließende Gruppen vergeben, auch eine Fehlermeldung (roles wird im service geleert)
                             if($tblGroupStudent && ($tblGroupStaff || $tblGroupTeacher)){
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                    new DangerText('Fehler:').'</br>'
-                                    .'Person ist Schüler und in mindestens einer der beiden Personengruppen:</br>'
+//                                    new DangerText('Fehler:').'</br>'.
+                                    'Person ist Schüler und in mindestens einer der beiden Personengruppen:</br>'
                                     .new DangerText('Mitarbeiter / Lehrer')
                                 )))->enableHtml();
                             } else {
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                    new DangerText('Fehler:').'</br>'
-                                    .'Person in keiner der folgenen Personengruppen:</br>'
+//                                    new DangerText('Fehler:').'</br>'.
+                                    'Person in keiner der folgenen Personengruppen:</br>'
                                     .new DangerText('Schüler / Mitarbeiter / Lehrer')
                                 )))->enableHtml();
                             }
                         break;
                         case 'schools':
+                            $KeyReplace = 'Schule:';
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen </br>'
                                 .'oder Schule fehlt in UCS')))->enableHtml();
@@ -785,14 +792,15 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     // Sonderregelung Schüler ohne Klasse ist ein Fehler Lehrer/Mitarbeiter nicht
                     if($tblMember && $Key == 'school_classes'){
+                        $KeyReplace = 'Klassen:';
                         $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                            new DangerText('Fehler:').'</br>'
-                            .'- Schüler ist keiner Klasse zugewiesen')))->enableHtml();
+//                            new DangerText('Fehler:').'</br>'.
+                            'Schüler ist keiner Klasse zugewiesen')))->enableHtml();
                     } elseif(!$tblMember && $Key == 'school_classes') {
                         continue;
                     }
                     if(empty($Value)){
-                        $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                        $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
                     }
 
                 } else {
@@ -802,21 +810,25 @@ class Frontend extends Extension implements IFrontendInterface
                         $MouseOver = '';
                         switch ($Key){
                             case 'email':
+                                $KeyReplace = 'E-Mail:';
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                    new DangerText('Fehler:').'</br>'
-                                    .'keine E-Mail als UCS Benutzername verwendet'
+//                                    new DangerText('Fehler:').'</br>'.
+                                    'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
                             break;
                             case 'recoveryMail':
+                                $KeyReplace = 'E-Mail recovery:';
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                    new DangerText('Fehler:').'</br>'
-                                    .'keine Passwort vergessen E-Mail hinterlegt'
+//                                    new DangerText('Fehler:').'</br>'.
+                                    'keine Passwort vergessen E-Mail hinterlegt'
                                 )))->enableHtml();
                             break;
                             case 'lastname':
+                                $KeyReplace = 'Person:';
                                 $MouseOver = new ToolTip(new Info(), 'keine Person am Account');
                             break;
                             case 'school_classes':
+                                $KeyReplace = 'Klasse:';
                                 $MouseOver = new ToolTip(new Info(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
                         }
@@ -828,7 +840,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     // no log
                                 break;
                                 default:
-                                    $ErrorLog[] = $Key.' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                                    $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
                             }
 
                         }
