@@ -6,14 +6,13 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -90,8 +89,10 @@ class Service extends AbstractService
                 $tblDebtorNumber = current($tblDebtorNumberList);
                 $item['DebtorNumber'] = $tblDebtorNumber->getDebtorNumber();
             }
+            $item['CreateUpdate'] = '';
             $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
             $item['ItemName'] = '';
+            $item['Division'] = '';
             $item['PaymentType'] = '';
             $item['Variant'] = $item['VariantPrice'] = $item['Value'] = '';
             $item['CauserFirstName'] = $item['CauserLastName'] = '';
@@ -103,6 +104,12 @@ class Service extends AbstractService
                     // für jede zeile neu Setzen
                     $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                     if(($tblBankAccount = $tblDerbtorSelection->getTblBankAccount())){
+                        $item['CreateUpdate'] = '';
+                        if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
+                            $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
+                        } else {
+                            $item['CreateUpdate'] = $tblBankAccount->getEntityCreate()->format('d.m.Y');
+                        }
                         $UsingBankAccountList[] = $tblBankAccount->getId();
                         $item['BankName'] = $tblBankAccount->getBankName();
                         $item['IBAN'] = $tblBankAccount->getIBAN();
@@ -139,6 +146,9 @@ class Service extends AbstractService
                     if(($tblPersonCauser = $tblDerbtorSelection->getServiceTblPersonCauser())){
                         $item['CauserFirstName'] = $tblPersonCauser->getFirstName();
                         $item['CauserLastName'] = $tblPersonCauser->getLastName();
+                        if(($tblDivision =  Student::useService()->getCurrentDivisionByPerson($tblPersonCauser))){
+                            $Item['Division'] = $tblDivision->getDisplayName();
+                        }
                     }
                     $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
                     if(($tblBankReference = $tblDerbtorSelection->getTblBankReference())){
@@ -204,6 +214,7 @@ class Service extends AbstractService
         $Row = 0;
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
+        $export->setValue($export->getCell($Column++, $Row), "Datum der Bankdaten");
         $export->setValue($export->getCell($Column++, $Row), "Beitragszahler Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Beitragszahler Nachname");
         $export->setValue($export->getCell($Column++, $Row), "Straße");
@@ -219,6 +230,7 @@ class Service extends AbstractService
         $export->setValue($export->getCell($Column++, $Row), "Debitoren-Nr.");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsverursacher Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsverursacher Nachname");
+        $export->setValue($export->getCell($Column++, $Row), "Klasse");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsart");
         $export->setValue($export->getCell($Column++, $Row), "Individualpreis");
         $export->setValue($export->getCell($Column++, $Row), "Preisvariante");
@@ -232,6 +244,7 @@ class Service extends AbstractService
             $Row++;
             $Column = 0;
 
+            $export->setValue($export->getCell($Column++, $Row), $Content['CreateUpdate']);
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorFirstName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorLastName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['StreetName']);
@@ -247,6 +260,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorNumber']);
             $export->setValue($export->getCell($Column++, $Row), $Content['CauserFirstName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['CauserLastName']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['Division']);
             $export->setValue($export->getCell($Column++, $Row), $Content['ItemName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Value']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Variant']);
@@ -262,6 +276,7 @@ class Service extends AbstractService
         $Column = 0;
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(20);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(5);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(7);
@@ -275,6 +290,7 @@ class Service extends AbstractService
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(13);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(20);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(9);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(50);
