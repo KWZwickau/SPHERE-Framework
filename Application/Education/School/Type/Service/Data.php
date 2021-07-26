@@ -36,7 +36,11 @@ class Data extends AbstractData
         $this->createType('Abendgymnasium', '', $tblCategorySecondCourse, true);
         $this->createType('Kolleg', '', $tblCategorySecondCourse, true);
 
-        $this->createType('Hotelmanagementschule', 'HOFA', $tblCategoryTechnical, true);
+//        $this->createType('Hotelmanagementschule', 'HOFA', $tblCategoryTechnical, true);
+        // einmalig löschen kann später wieder entfernt werden
+        if (($tblType = $this->getTypeByShortName('HOFA'))) {
+            $this->destroyType($tblType);
+        }
 
         /**
          * Kamenz BFS, FS
@@ -248,5 +252,24 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return bool
+     */
+    public function destroyType(TblType $tblType)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblType $Entity */
+        $Entity = $Manager->getEntity('TblType')->findOneBy(array('Id' => $tblType->getId()));
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            
+            return true;
+        }
+        return false;
     }
 }
