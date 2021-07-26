@@ -328,7 +328,7 @@ class Data extends AbstractData
             $Entity->setCompareString($CompareString);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return true;
         }
         return false;

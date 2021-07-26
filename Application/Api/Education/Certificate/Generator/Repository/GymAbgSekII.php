@@ -655,6 +655,7 @@ class GymAbgSekII extends Certificate
     {
 
         $textSize = '13px';
+        $textSizeSmall = '12px';
         $colorPoints = '#BBB';
         $colorForeignLanguage = 'lightgrey';
 
@@ -795,7 +796,8 @@ class GymAbgSekII extends Certificate
         $section
             ->addElementColumn((new Element())
                 ->setContent($grades['11-1'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['11-1'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['11-1'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -804,7 +806,8 @@ class GymAbgSekII extends Certificate
                 , '9%')
             ->addElementColumn((new Element())
                 ->setContent($grades['11-2'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['11-2'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['11-2'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -813,7 +816,8 @@ class GymAbgSekII extends Certificate
                 , '9%')
             ->addElementColumn((new Element())
                 ->setContent($grades['12-1'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['12-1'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['12-1'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -822,7 +826,8 @@ class GymAbgSekII extends Certificate
                 , '9%')
             ->addElementColumn((new Element())
                 ->setContent($grades['12-2'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['12-2'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['12-2'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()

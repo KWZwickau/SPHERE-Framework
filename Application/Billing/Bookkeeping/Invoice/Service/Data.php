@@ -514,4 +514,56 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param array $InvoiceIdList
+     *
+     * @return bool
+     */
+    public function destroyInvoiceBulk($InvoiceIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($InvoiceIdList)){
+            foreach($InvoiceIdList as $InvoiceId) {
+                $Entity = $Manager->getEntity('TblInvoice')->findOneBy(array('Id' => $InvoiceId));
+                /**@var TblInvoice $Entity */
+                if(null !== $Entity){
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                        $Entity, true);
+                    $Manager->bulkKillEntity($Entity);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $InvoiceItemDebtorIdList
+     *
+     * @return bool
+     */
+    public function destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($InvoiceItemDebtorIdList)){
+            foreach($InvoiceItemDebtorIdList as $InvoiceItemDebtorId) {
+                $Entity = $Manager->getEntity('TblInvoiceItemDebtor')->findOneBy(array('Id' => $InvoiceItemDebtorId));
+                /**@var TblInvoice $Entity */
+                if(null !== $Entity){
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                        $Entity, true);
+                    $Manager->bulkKillEntity($Entity);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
 }

@@ -15,6 +15,8 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerifi
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -48,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
@@ -211,6 +214,17 @@ class Frontend extends Extension implements IFrontendInterface
                         $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new Repeat(), array(), 'Abrechnung aus dem Archiv holen'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
                     }
+                    if(($tblAccount = Account::useService()->getAccountBySession())){
+                        if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
+                            if($tblIdentification->getName() == TblIdentification::NAME_SYSTEM){
+                                $Buttons .= (new DangerLink('', ApiBasket::getEndpoint(), new Remove(), array(),
+                                    'Abrechnung entfernen nur für Systemaccounts verfügbar'))
+                                    ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
+                                        $tblBasket->getId()));
+                            }
+                        }
+                    }
+
                     $Item['Option'] = $Buttons;
                 } else {
                     $BasketTypeName = TblBasketType::IDENT_AUSZAHLUNG;
@@ -257,7 +271,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => array(0)),
                     array('type' => 'de_date', 'targets' => array(2)),
-                    array("orderable" => false, "targets" => -1),
+                    array("orderable" => false, 'width' => '225px', "targets" => -1),
                 ),
                 'order'      => array(
 //                    array(1, 'desc'),

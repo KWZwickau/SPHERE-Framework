@@ -1869,6 +1869,37 @@ abstract class Certificate extends Extension
         return $TransferSlice;
     }
 
+    public function getTransferWithNoTransferOption($personId, $MarginTop = '5px')
+    {
+        $TransferSlice = (new Slice());
+        $TransferSlice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent(
+                    '{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        Versetzungsvermerk:
+                    {% endif %}')
+                , '22%')
+            ->addElementColumn((new Element())
+                ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        {{ Content.P' . $personId . '.Input.Transfer }}.
+                    {% else %}
+                          &nbsp;
+                    {% endif %}')
+                ->styleBorderBottom(
+                    '{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        1px
+                    {% else %}
+                        0px
+                    {% endif %}'
+                )
+                , '58%')
+            ->addElementColumn((new Element())
+                , '20%')
+        )
+            ->styleMarginTop($MarginTop);
+        return $TransferSlice;
+    }
+
     /**
      * @param $personId
      * @param string $MarginTop

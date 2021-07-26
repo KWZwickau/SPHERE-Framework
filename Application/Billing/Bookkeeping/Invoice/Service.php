@@ -1070,4 +1070,31 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * remove tblInvoice & tblInvoiceItemDebtor
+     * @param TblBasket $tblBasket
+     *
+     * @return void
+     */
+    public function destroyInvoiceByBasket(TblBasket $tblBasket)
+    {
+
+        $InvoiceIdList = array();
+        $InvoiceItemDebtorIdList = array();
+        if(($tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket))){
+            foreach($tblInvoiceList as $tblInvoice){
+                $InvoiceIdList[] = $tblInvoice->getId();
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                        $InvoiceItemDebtorIdList[] = $tblInvoiceItemDebtor->getId();
+                    }
+                }
+            }
+        }
+        // tblInvoiceItemDebtor
+        (new Data($this->getBinding()))->destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList);
+        // tblInvoice
+        (new Data($this->getBinding()))->destroyInvoiceBulk($InvoiceIdList);
+    }
 }

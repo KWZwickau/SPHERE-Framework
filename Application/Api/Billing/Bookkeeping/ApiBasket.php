@@ -15,13 +15,15 @@ use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
@@ -79,6 +81,8 @@ class ApiBasket extends Extension implements IApiInterface
         $Dispatcher->registerMethod('deleteBasket');
         $Dispatcher->registerMethod('setArchiveBasket');
 
+        $Dispatcher->registerMethod('reloadPersonFilterSelect');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -103,6 +107,12 @@ class ApiBasket extends Extension implements IApiInterface
     {
 
         return (new BlockReceiver($Content))->setIdentifier('BlockBasketTableContent');
+    }
+
+    public static function receiverFormSelect($Content = '')
+    {
+
+        return new BlockReceiver($Content);
     }
 
     /**
@@ -338,6 +348,24 @@ class ApiBasket extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadPersonFilterSelect(AbstractReceiver $Receiver)
+    {
+        $FieldPipeline = new Pipeline(false);
+        $FieldEmitter = new ServerEmitter($Receiver, ApiBasket::getEndpoint());
+        $FieldEmitter->setGetPayload(array(
+            ApiBasket::API_TARGET => 'reloadPersonFilterSelect'
+        ));
+        $FieldPipeline->appendEmitter($FieldEmitter);
+        $FieldPipeline->setLoadingMessage('Personenfilterung wird aktualisiert');
+
+        return $FieldPipeline;
+    }
+
+    /**
      * @param bool $IsArchive
      *
      * @return string
@@ -477,27 +505,15 @@ class ApiBasket extends Extension implements IApiInterface
                         $tblItem->getId());
                 }
             }
-            $tblDivisionList = array();
-            if(($tblYearList = Term::useService()->getYearByNow())){
-                foreach($tblYearList as $tblYear){
-                    if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
-                        $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+
+            $YearList = array();
+            // aktuelles & folgendes Schuljahr
+            for($i = 0; $i <= 1; $i++){
+                if(($YearListTmp = Term::useService()->getYearAllFutureYears($i))){
+                    foreach($YearListTmp as $YearTmp){
+                        $YearList[] = $YearTmp;
                     }
                 }
-            }
-            if(empty($tblDivisionList)){
-                $tblDivisionList[] = new TblDivision();
-            }
-            $tblTypeList = array();
-            if(($tblSchoolList = School::useService()->getSchoolAll())){
-                foreach($tblSchoolList as $tblSchool){
-                    $tblTypeList[] = $tblSchool->getServiceTblType();
-                }
-            }
-            if(empty($tblTypeList)){
-                $tblTypeList[] = Type::useService()->getTypeByName('Grundschule');
-                $tblTypeList[] = Type::useService()->getTypeByName('Mittelschule / Oberschule');
-                $tblTypeList[] = Type::useService()->getTypeByName('Gymnasium');
             }
 
             $PeriodRadioBox = array();
@@ -507,14 +523,22 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             }
 
+            $receiverPersonFilter = ApiBasket::receiverFormSelect(
+                (new ApiBasket())->reloadPersonFilterSelect()
+            );
+
+            if(empty($YearList)){
+                $YearList[] = new TblYear();
+            }
             return array(
                 new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList, Panel::PANEL_TYPE_INFO),
                 new Panel('Erweiterte Personenfilterung', array(
-                    new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)),
-                    new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
-                ), Panel::PANEL_TYPE_INFO),
-                new Bold('Zahlungszeitraum '.new DangerText('*')),
-                new Panel('', $PeriodRadioBox, Panel::PANEL_TYPE_INFO),
+                    (new SelectBox('Basket[SchoolYear]', 'Schuljahr', array('{{ Year }} {{ Description }}' => $YearList)))
+                        ->ajaxPipelineOnChange(ApiBasket::pipelineLoadPersonFilterSelect($receiverPersonFilter)),
+                    $receiverPersonFilter)
+                    , Panel::PANEL_TYPE_INFO
+                ),
+                new Panel('Zahlungszeitraum '.new DangerText('*'), $PeriodRadioBox, Panel::PANEL_TYPE_INFO),
             );
         }
     }
@@ -566,7 +590,7 @@ class ApiBasket extends Extension implements IApiInterface
                     }
                 } else {
                     // fallback if error
-                    if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))){
+                    if(Basket::useService()->getBasketByName($Basket['Name'])){
                         $form->setError('Basket[Name]',
                             'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
                         $Error = true;
@@ -653,6 +677,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['Division'] = (isset($Basket['Division']) ? $Basket['Division'] : '');
             $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
             $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
+            $Global->POST['Basket']['SchoolYear'] = $Basket['SchoolYear'];
             if(isset($Basket['Item']) && is_array($Basket['Item'])){
                 foreach($Basket['Item'] as $ItemId) {
                     $Global->POST['Basket']['Item'][$ItemId] = $ItemId;
@@ -674,6 +699,10 @@ class ApiBasket extends Extension implements IApiInterface
             || !$Basket['SchoolType']
             || !($tblType = Type::useService()->getTypeById($Basket['SchoolType']))){
             $tblType = null;
+        }
+        $tblYear = null;
+        if(isset($Basket['SchoolYear']) && $Basket['SchoolYear']){
+            $tblYear = Term::useService()->getYearById($Basket['SchoolYear']);
         }
         if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
             $tblDebtorPeriodType = null;
@@ -735,7 +764,7 @@ class ApiBasket extends Extension implements IApiInterface
 
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType);
+                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType, $tblYear);
                 if($isCreate == false){
                     $isCreate = $VerificationResult['IsCreate'];
                 }
@@ -957,5 +986,60 @@ class ApiBasket extends Extension implements IApiInterface
             return self::pipelineRefreshTable($IsArchive);
         }
         return '';
+    }
+
+    /**
+     * @param array $Basket
+     *
+     * @return string
+     */
+    public function reloadPersonFilterSelect($Basket = array())
+    {
+
+        $tblYearList = array();
+        $tblDivisionList = array();
+        $tblTypeList = array();
+        if (isset($Basket['SchoolYear']) && 0 != $Basket['SchoolYear']) {
+            if(($tblYear = Term::useService()->getYearById($Basket['SchoolYear']))){
+                $tblYearList[] = $tblYear;
+            } else {
+                $tblDivisionList = new TblDivision();
+                $tblTypeList = new TblType();
+            }
+        } else {
+            if(($tblYearListTmp = Term::useService()->getYearByNow())){
+                $tblYearList = $tblYearListTmp;
+            }
+        }
+
+
+        if(!empty($tblYearList)){
+            foreach($tblYearList as $tblYear){
+                if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
+                    $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                }
+            }
+            if(!empty($tblDivisionList)){
+                foreach($tblDivisionList as $tblDivision){
+                    $tblType = $tblDivision->getType();
+                    $tblTypeList[$tblType->getId()] = $tblType;
+                }
+            }
+        }
+
+        // gegen Preselect nach Auswahl entschieden
+//        if(isset($tblDivisionList[0]) && $IsYear){
+//            $_POST['Basket']['Division'] = $tblDivisionList[0];
+//        }
+
+        if(empty($tblDivisionList)){
+            $tblDivisionList[] = new TblDivision();
+        }
+        if(empty($tblTypeList)){
+            $tblTypeList[] = new TblType();
+        }
+
+        return new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)).
+        new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList));
     }
 }
