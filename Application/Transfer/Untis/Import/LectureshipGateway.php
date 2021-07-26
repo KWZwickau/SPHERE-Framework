@@ -120,9 +120,9 @@ class LectureshipGateway extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer('G', 'AppSubject', array($this, 'sanitizeSubject')));
         $this->setSanitizer(new FieldSanitizer('G', 'SubjectId', array($this, 'fetchSubject')));
 
-        $this->setPointer(new FieldPointer('L', 'FileSubjectGroup'));
-        $this->setPointer(new FieldPointer('L', 'AppSubjectGroup'));
-        $this->setSanitizer(new FieldSanitizer('L', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
+        $this->setPointer(new FieldPointer('AP', 'FileSubjectGroup'));
+        $this->setPointer(new FieldPointer('AP', 'AppSubjectGroup'));
+        $this->setSanitizer(new FieldSanitizer('AP', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
 
         $this->scanFile(0);
     }
