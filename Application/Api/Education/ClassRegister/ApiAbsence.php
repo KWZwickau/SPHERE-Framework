@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -91,6 +92,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('generateOrganizerWeekly');
         $Dispatcher->registerMethod('generateOrganizerMonthly');
+        $Dispatcher->registerMethod('generateOrganizerForDivision');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -288,7 +290,8 @@ class ApiAbsence extends Extension implements IApiInterface
         )) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
-                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+//                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+                . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . self::pipelineClose();
         } else {
@@ -381,7 +384,8 @@ class ApiAbsence extends Extension implements IApiInterface
         if (Absence::useService()->updateAbsenceService($tblAbsence, $Data)) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
-                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+//                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+                . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . self::pipelineClose();
         } else {
@@ -498,7 +502,8 @@ class ApiAbsence extends Extension implements IApiInterface
         if (Absence::useService()->destroyAbsence($tblAbsence)) {
             return new Success('Die Fehlzeit wurde erfolgreich gelöscht.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
-                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+//                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+                . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . self::pipelineClose();
         } else {
@@ -925,10 +930,11 @@ class ApiAbsence extends Extension implements IApiInterface
     {
         $Pipeline = new Pipeline(false);
 
-        $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarMonthContent'), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarContent'), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'generateOrganizerMonthly',
+            self::API_TARGET => 'generateOrganizerForDivision',
             'DivisionId' => $DivisionId,
+            'IsWeek' => 'false',
             'Month' => $Month,
             'Year' => $Year
         ));
@@ -939,12 +945,300 @@ class ApiAbsence extends Extension implements IApiInterface
 
     /**
      * @param $DivisionId
+     * @param $WeekNumber
+     * @param $Year
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeWeekForDivision($DivisionId, $WeekNumber, $Year){
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'generateOrganizerForDivision',
+            'DivisionId' => $DivisionId,
+            'IsWeek' => 'true',
+            'Year' => $Year,
+            'WeekNumber' => $WeekNumber
+        ));
+
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionId
+     * @param string $IsWeek
+     * @param string $Year
+     * @param string $WeekNumber
      * @param string $Month
+     *
+     * @return string
+     */
+    public static function generateOrganizerForDivision($DivisionId, $IsWeek, $Year = '', $WeekNumber = '', $Month = '')
+    {
+        if ($IsWeek == 'true') {
+            return self::generateOrganizerForDivisionWeekly($DivisionId, $WeekNumber, $Year);
+        } else {
+            return self::generateOrganizerMonthly($DivisionId, $Month, $Year);
+        }
+    }
+
+    /**
+     * @param string $DivisionId
+     * @param string $WeekNumber
      * @param string $Year
      *
      * @return string
      */
-    public static function generateOrganizerMonthly($DivisionId, $Month = '', $Year = '')
+    public static function generateOrganizerForDivisionWeekly($DivisionId, $WeekNumber = '', $Year = '')
+    {
+        // Definition
+        $currentDate = new DateTime('now');
+
+        if ($WeekNumber == '') {
+            $WeekNumber = (int)(new DateTime('now'))->format('W');
+        } else {
+            $WeekNumber = (int) $WeekNumber;
+        }
+
+        if ($Year == '') {
+            $Year = (int)$currentDate->format('Y');
+        } else {
+            $Year = (int) $Year;
+        }
+
+        $headerList = array();
+        $bodyList = array();
+
+        $organizerBaseData = self::convertOrganizerBaseData();
+        $DayName = $organizerBaseData['dayName'];
+        $MonthName = $organizerBaseData['monthNameShort'];
+
+        // Kalenderwoche ermitteln
+        $WeekNext = $WeekNumber + 1;
+        $WeekBefore = $WeekNumber - 1;
+        $YearNext = $Year;
+        $YearBefore = $Year;
+        $lastWeek = date('W', strtotime("31.12." . $Year));
+        $countWeek = ($lastWeek == 1) ? 52 : $lastWeek;
+        if ($WeekNumber == $countWeek) {
+            $WeekNext = 1;
+            $YearNext = $Year + 1;
+        }
+        if ($WeekNumber == 1) {
+            $WeekBefore = $countWeek;
+            $YearBefore = $Year - 1;
+        }
+
+        // Start-/Endtag der Woche ermitteln
+        $Week = $WeekNumber;
+        if ($WeekNumber < 10) {
+            $Week = '0' . $WeekNumber;
+        }
+        $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
+        $endDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}-7")));
+
+//        $Month = $startDate->format('m');
+
+        $dataList = array();
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($startDate, $endDate, $tblDivision))
+        ) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if (($tblPersonItem = $tblAbsence->getServiceTblPerson())
+                    && ($tblDivisionItem = $tblAbsence->getServiceTblDivision())
+                ) {
+                    $fromDate = new DateTime($tblAbsence->getFromDate());
+                    if ($tblAbsence->getToDate()) {
+                        $toDate = new DateTime($tblAbsence->getToDate());
+                        if ($toDate > $fromDate) {
+                            $date = $fromDate;
+                            while ($date <= $toDate) {
+                                self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $date->format('d.m.Y'), false);
+                                $date = $date->modify('+1 day');
+                            }
+                        } elseif ($toDate == $fromDate) {
+                            self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate(), false);
+                        }
+                    } else {
+                        self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate(), false);
+                    }
+                }
+            }
+        }
+
+        $backgroundColor = '#E0F0FF';
+        $minHeightHeader = '56px';
+        $minHeightBody = '38px';
+        $padding = '3px';
+
+        $headerList['Person'] = (new TableColumn(new Center(new Bold(new PersonGroup() . 'Schüler'))))
+            ->setBackgroundColor($backgroundColor)
+            ->setVerticalAlign('middle')
+            ->setMinHeight($minHeightHeader)
+            ->setPadding($padding);
+
+        // Kalender-Inhalt erzeugen
+        if ($tblDivision
+            && ($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            if (!($tblCompany = $tblDivision->getServiceTblCompany())) {
+                $tblCompany = null;
+            }
+
+            /** @var TblPerson $tblPerson */
+            foreach ($tblPersonList as $tblPerson) {
+                $bodyList[$tblPerson->getId()]['Person'] = (new TableColumn(new Center(new Bold(
+                    new ToolTip(
+                        (new Link($tblPerson->getLastFirstName(), self::getEndpoint()))
+                            ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(),
+                                $tblDivision->getId()))
+                        , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
+                    )
+                ))))
+                    ->setBackgroundColor($backgroundColor)
+                    ->setVerticalAlign('middle')
+                    ->setMinHeight($minHeightBody)
+                    ->setPadding($padding);
+                $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
+
+                if ($startDate && $endDate) {
+                    while ($startDate <= $endDate) {
+                        $DayAtWeek = $startDate->format('w');
+                        $Day = (int)$startDate->format('d');
+                        $Month = (int)$startDate->format('m');
+
+                        $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+                        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany);
+
+                        $fetchedDateString = $startDate->format('d.m.Y');
+
+                        if (!isset($headerList['Day' . $Day])) {
+                            $columnHeader = (new TableColumn(new Center(
+                                $DayName[$DayAtWeek] . new Container($Day) . new Container($MonthName[$Month])
+                            )))
+                                ->setMinHeight($minHeightHeader)
+                                ->setPadding($padding);
+
+                            if ((int)$currentDate->format('d') == $Day && (int)$currentDate->format('m') == $Month && $currentDate->format('Y') == $Year) {
+                                $columnHeader
+                                    ->setColor('darkorange');
+                            }
+                            if ($isWeekend || $isHoliday) {
+                                $columnHeader->setBackgroundColor('lightgray')
+                                    ->setOpacity(0.5);
+                            } else {
+                                $columnHeader->setBackgroundColor($backgroundColor);
+                            }
+
+                            $headerList['Day' . $Day] = $columnHeader;
+                        }
+
+                        if ($isWeekend || $isHoliday) {
+                            $columnBody = (new TableColumn(new Center($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f')))))
+                                ->setBackgroundColor('lightgrey')
+                                ->setVerticalAlign('middle')
+                                ->setOpacity(0.5)
+                                ->setPadding($padding);
+                        } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
+                            $columnBody = (new TableColumn(new Center(
+                                $dataList[$tblPerson->getId()][$fetchedDateString]['Content']
+                            )))
+                                ->setBackgroundColor($dataList[$tblPerson->getId()][$fetchedDateString]['BackgroundColor'])
+                                ->setPadding($padding);
+                        } else {
+                            $columnBody = (new TableColumn((new Link(
+                                '<div style="height: 28px"><span style="visibility: hidden">'.new Plus().'</span></div>',
+                                self::getEndpoint(),
+                                null,
+                                array(),
+                                'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' für den '
+                                . $fetchedDateString . ' hinzufügen.'))
+                                ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $fetchedDateString))))
+                                ->setPadding('0');
+                        }
+
+
+                        $bodyList[$tblPerson->getId()]['Day' . $Day] = $columnBody
+                            ->setMinHeight($minHeightBody)
+                            ->setVerticalAlign('middle')
+                            ->setPadding($padding);
+
+                        $startDate->modify('+1 day');
+                    }
+                }
+            }
+        }
+
+        $tableHead = new TableHead(new TableRow($headerList));
+        $rows = array();
+        foreach ($bodyList as $columnList) {
+            $rows[] = new TableRow($columnList);
+        }
+        $tableBody = new TableBody($rows);
+        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+
+//        $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
+
+        // Inhalt zusammenbasteln
+        $Content = new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn('&nbsp;', 3),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronLeft(), self::getEndpoint(), null, array(), 'KW' . $WeekBefore))
+                                            ->ajaxPipelineOnClick(self::pipelineChangeWeekForDivision($DivisionId, $WeekBefore, $YearBefore))
+                                    )
+                                    , 1),
+                                new LayoutColumn(
+                                    new ToolTip(new Center(new Bold('KW' . $WeekNumber. ' ')), $Year)
+                                    , 4),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronRight(), self::getEndpoint(), null, array(), 'KW' . $WeekNext))
+                                            ->ajaxPipelineOnClick(self::pipelineChangeWeekForDivision($DivisionId, $WeekNext, $YearNext))
+                                    )
+                                    , 1),
+                                new LayoutColumn(
+                                    ''
+                                    , 3)
+                            )))
+                        )
+                        . '<div style="height: 5px;"></div>'
+                        , 12)
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        $table
+                    )
+                )
+            ))
+        );
+
+        return new Panel(
+            new Calendar() . ' Kalender'
+            . new PullRight(
+                (new Link('Monatsansicht', self::getEndpoint(), null, array(), false, null, Link::TYPE_WHITE_LINK))
+                    ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeMonth($DivisionId, '', ''))
+            ),
+            $Content,
+            Panel::PANEL_TYPE_PRIMARY
+        );
+    }
+
+    /**
+     * @param $DivisionId
+     * @param int $Month
+     * @param int $Year
+     *
+     * @return string
+     */
+    public static function generateOrganizerMonthly($DivisionId, $Month, $Year)
     {
         // Definitionen
         $currentDate = new DateTime('now');
@@ -1221,7 +1515,15 @@ class ApiAbsence extends Extension implements IApiInterface
             ))
         );
 
-        return $Content.' ';
+        return new Panel(
+            new Calendar() . ' Kalender'
+            . new PullRight(
+                (new Link('Wochenansicht', self::getEndpoint(), null, array(), false, null, Link::TYPE_WHITE_LINK))
+                    ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeWeekForDivision($DivisionId, '', ''))
+            ),
+            $Content,
+            Panel::PANEL_TYPE_PRIMARY
+        );
     }
 
     /**
@@ -1229,12 +1531,14 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param TblPerson $tblPerson
      * @param TblAbsence $tblAbsence
      * @param $date
+     * @param bool $hasToolTip
      */
     private static function setAbsenceMonthContent(
         &$dataList,
         TblPerson $tblPerson,
         TblAbsence $tblAbsence,
-        $date
+        $date,
+        $hasToolTip = true
     ) {
         $lesson = $tblAbsence->getLessonStringByAbsence();
         $type = $tblAbsence->getTypeDisplayShortName();
@@ -1252,14 +1556,23 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
+        if ($hasToolTip) {
+            $toolTip = ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
+                . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '');
+            $name = $tblAbsence->getStatusDisplayShortName();
+        } else {
+            $toolTip = false;
+            $name = $tblAbsence->getStatusDisplayShortName()
+                .($lesson ? ' - ' . $lesson : '') . ($type ? ' - ' . $type : '')
+                . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '');
+        }
+
         $dataList[$tblPerson->getId()][$date]['Content'] = (new Link(
-            $tblAbsence->getStatusDisplayShortName(),
+            $name,
             ApiAbsence::getEndpoint(),
             null,
             array(),
-            ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
-            . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
-            ,
+            $toolTip,
             null,
             $isWhiteLink ? Link::TYPE_WHITE_LINK : Link::TYPE_LINK
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
