@@ -79,7 +79,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'UserAlias', self::FIELD_TYPE_STRING, true);
         $this->createIndex($Table, array('UserAlias'), true);
         $this->createColumn($Table, 'BackupMail', self::FIELD_TYPE_STRING, true);
-
+        //ToDO Clean Up SR
+//        $this->createColumn($Table, 'RecoveryMail', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'AuthenticatorAppSecret', self::FIELD_TYPE_STRING, true);
 
         return $Table;
