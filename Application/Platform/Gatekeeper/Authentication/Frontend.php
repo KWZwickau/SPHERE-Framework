@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
+use DateTime;
 use Exception;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -66,6 +67,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Underline;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -92,13 +94,16 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Willkommen', '', '');
         $Date = '2021-07-12 ';
-        $IsMaintenance = (new \DateTime('now') >= new \DateTime($Date.'15:00:00')
-                       && new \DateTime('now') <= new \DateTime($Date.'23:59:59'));
+        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'15:00:00')
+                       && new DateTime('now') <= new DateTime($Date.'23:59:59'));
 //        $IsMaintenance = false;
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
         $IsEqual = false;
         $IsNavigationAssistance = false;
+        $IsUpdateInfo = (new DateTime('now') >= new DateTime('2021-07-28 00:00:00')
+            && new DateTime('now') <= new DateTime('2021-08-15 23:59:59'));
+        $UpdateInfoMessage = '';
 
         $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
@@ -137,15 +142,44 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $maintenanceMessage = '';
         if ($IsMaintenance) {
-            $now = new \DateTime();
-            if ($now >= new \DateTime('22:00')) {
+            $now = new DateTime();
+            if ($now >= new DateTime('22:00')) {
                 $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung ('.$now->format('d.m.Y').') laufende Wartungsarbeiten seit 22:00');
-            } elseif ($now >= new \DateTime('20:00')) {
+            } elseif ($now >= new DateTime('20:00')) {
                 $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
-            } elseif ($now >= new \DateTime('9:00')) {
+            } elseif ($now >= new DateTime('9:00')) {
                 $maintenanceMessage = new Warning(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
             }
         }
+
+        if($IsUpdateInfo){
+            $IsDemoDanger = (new DateTime('now') >= new DateTime('2021-08-06 00:00:00')
+                && new DateTime('now') <= new DateTime('2021-08-10 23:59:59'));
+            $IsLiveDanger = (new DateTime('now') >= new DateTime('2021-08-11 00:00:00')
+                && new DateTime('now') <= new DateTime('2021-08-15 23:59:59'));
+            $DemoText = '08.08.2021 bis 10.08.2021';
+            $LiveText = '13.08.2021 bis 15.08.2021';
+            $UpdateInfoMessage = new Panel('Aufgrund von umfangreichen Wartungsarbeiten wird die Schulsoftware wie folgt '
+                .new Underline('nicht').' verfügbar sein.',
+                ($IsDemoDanger
+                    ?new DangerMessage(new Container(new Underline(new Center('Demo-Version')))
+                    .new Container(new Bold(new Center($DemoText))), null, false, '3', '5')
+                    :new Warning(new Container(new Underline(new Center('Demo-Version')))
+                    .new Container(new Bold(new Center($DemoText))), null, false, '3', '5')
+                )
+                .($IsLiveDanger
+                    ?new DangerMessage(new Container(new Underline(new Center('Live-Version')))
+                    .new Container(new Bold(new Center($LiveText))), null, false, '3', '5')
+                    :new Warning(new Container(new Underline(new Center('Live-Version')))
+                    .new Container(new Bold(new Center($LiveText))), null, false, '3', '5')
+
+                ), ($IsDemoDanger || $IsLiveDanger
+                    ? Panel::PANEL_TYPE_DANGER
+                    : Panel::PANEL_TYPE_WARNING
+                )
+            );
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -157,6 +191,17 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
+                )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            $UpdateInfoMessage
+                        , 6),
+                        new LayoutColumn('', 3),
+                    ))
                 )
             )
             .($IsEqual
