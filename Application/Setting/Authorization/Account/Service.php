@@ -489,7 +489,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $toggles[] = 'Account[Role][' . $item->getId() . ']';
             }
 
-            $toggleButtons[] = new ToggleSelective('Alle wählen/abwählen', $toggles);
+            $toggleButtons[] = new ToggleSelective('Alle Benutzerechte wählen/abwählen', $toggles);
         }
 
         if (($tblGroupRoleList = GroupRole::useService()->getGroupRoleAll())) {

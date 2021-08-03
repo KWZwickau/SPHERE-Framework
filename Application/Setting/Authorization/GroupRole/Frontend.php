@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -42,6 +43,11 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendGroupRole()
     {
         $stage = new Stage('Benutzerrollen', 'Übersicht');
+        $stage->setMessage('Hier können Sie Benutzerrollen anlegen und verwalten. Eine Benutzerrolle besteht aus
+            beliebigen Anzahl von Benutzerrechten, welche Sie selbst auswählen können. Beim Anlegen oder Bearbeiten eines
+            Benutzerkontos können somit über die Benutzerrolle mehrere Benutzerrechte vorausgewählt werden. Durch das '
+            . new Bold('nachträgliche') . ' Bearbeiten oder Löschen von Benutzerrollen werden die Benutzerrechte an den
+            Benutzerkonten ' . new Bold('nicht') . ' geändert.');
 
         $stage->setContent(
             new Layout(array(
@@ -156,7 +162,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
                     new FormColumn(
                         new Panel(
-                            new Nameplate() . ' mit folgenden Berechtigungen',
+                            new Nameplate() . ' mit folgenden Benutzerrechten',
                             Account::useService()->getRoleCheckBoxList('Data[Role]'),
                             Panel::PANEL_TYPE_INFO
                         ), 6),

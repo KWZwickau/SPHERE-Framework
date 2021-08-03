@@ -92,9 +92,16 @@ class Frontend extends Extension implements IFrontendInterface
                 ApiAccount::getEndpoint()
             ))->ajaxPipelineOnClick(ApiAccount::pipelineOpenMassReplaceModal())
         );
+
+        // diese Recht wird erst später gesetzt
+        if (Access::useService()->hasAuthorization('/Api/Setting/Authorization/ApiAccount')) {
+            $content = ApiAccount::receiverModal() . ApiAccount::receiverBlock($this->layoutAccount(), 'LayoutAccountContent');
+        } else {
+            $content = $this->layoutAccount();
+        }
+
         $Stage->setContent(
-            ApiAccount::receiverModal()
-            . ApiAccount::receiverBlock($this->layoutAccount(), 'LayoutAccountContent')
+            $content
         );
         return $Stage;
     }
@@ -189,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Username'       => new PersonKey().' Benutzerkonto',
                                 'Person'         => new Person().' Person',
                                 'Authentication' => new Lock().' Kontotyp',
-                                'Authorization'  => new Nameplate().' Berechtigungen',
+                                'Authorization'  => new Nameplate().' Benutzerrechte',
                                 'Token'          => new Key().' Hardware-Schlüssel',
                                 'Option'         => 'Optionen'
                             )
@@ -415,7 +422,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $PanelPerson
                     ), 5),
                     new FormColumn(array(
-                        new Panel(new Nameplate().' mit folgenden Berechtigungen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
+                        new Panel(new Nameplate().' mit folgenden Benutzerrechten', $tblRoleAll, Panel::PANEL_TYPE_INFO),
 //                        $PanelPersonRight,
                     ), 7),
                 )),
