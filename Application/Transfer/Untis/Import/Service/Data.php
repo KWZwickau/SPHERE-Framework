@@ -202,9 +202,16 @@ class Data extends AbstractData
                             $LevelString = $tblLevel->getName();
 
                             if (intval($LevelString) < 11) {
+                                // Schulsoftware Klassenstufe
                                 $isIgnoreStudent = true;
                             }
                         }
+                    } elseif(is_object($StudentData['EntityDivision'])
+                        && ($tblLevel = $StudentData['EntityDivision']->getTblLevel())
+                        && intval($tblLevel->getName()) < 11
+                    ) {
+                        // Untis Klassenstufe
+                        $isIgnoreStudent = true;
                     }
                 }
 
