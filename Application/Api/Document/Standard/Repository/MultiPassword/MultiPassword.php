@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Document\Standard\Repository\MultiPassword;
 
+use DateTime;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -63,9 +64,9 @@ class MultiPassword extends AbstractDocument
 
         $this->FieldValue['Gender'] = false;
         $this->FieldValue['UserAccount'] = '';
-        $this->FieldValue['Street'] = '';
-        $this->FieldValue['District'] = '';
-        $this->FieldValue['City'] = '';
+//        $this->FieldValue['Street'] = '';
+//        $this->FieldValue['District'] = '';
+//        $this->FieldValue['City'] = '';
 //        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
         // School
         $this->FieldValue['CompanyName'] = (isset($DataPost['CompanyName']) && $DataPost['CompanyName'] != '' ? $DataPost['CompanyName'] : '&nbsp;');
@@ -85,7 +86,7 @@ class MultiPassword extends AbstractDocument
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
 
             if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
-                new \DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
+                new DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
 
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
@@ -145,7 +146,7 @@ class MultiPassword extends AbstractDocument
     public function getName()
     {
 
-        $UserAccountList = Account::useService()->getUserAccountByTime(new \DateTime($this->FieldValue['GroupByTime']));
+        $UserAccountList = Account::useService()->getUserAccountByTime(new DateTime($this->FieldValue['GroupByTime']));
         if($UserAccountList){
             if($UserAccountList[0]->getType() == 'CUSTODY'){
                 $ListIdentifierString = 'Sorgeberechtigte';
@@ -155,7 +156,7 @@ class MultiPassword extends AbstractDocument
         } else {
             $ListIdentifierString = $this->FieldValue['tblAccountList'][0];
         }
-        $Time = new \DateTime();
+        $Time = new DateTime();
         $Time = $Time->format('d_m_Y-h_i_s');
         return 'Zugang-Schulsoftware-'.$ListIdentifierString.'-Liste_'.$this->FieldValue['GroupByCount'].'_'.$Time;
     }

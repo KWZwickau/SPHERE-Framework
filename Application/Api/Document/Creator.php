@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Document;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
@@ -27,7 +28,6 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Document\Generator\Generator;
-use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -322,7 +322,7 @@ class Creator extends Extension
         }
 
         if ($tblAccount){
-            Consumer::useService()->createAccountDownloadLock($tblAccount, new \DateTime(), 'StudentCard', true, false);
+            Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', true, false);
         }
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
@@ -405,7 +405,7 @@ class Creator extends Extension
                     }
                 }
 
-                Consumer::useService()->createAccountDownloadLock($tblAccount, new \DateTime(), 'StudentCard', false, true);
+                Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', false, true);
 
                 if (!empty($FileList)) {
                     $FileName = 'Schülerkarteien Klasse ' . $tblDivision->getDisplayName()
@@ -658,7 +658,7 @@ class Creator extends Extension
 
             $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
 
-            $Time = new \DateTime();
+            $Time = new DateTime();
             $Time = $Time->format('d_m_Y-h_i_s');
             $FileName = $Document->getName().'-'.$IdentifierString.'-'.$Time.".pdf";
 
@@ -682,47 +682,53 @@ class Creator extends Extension
 
         if (!empty($pageList)) {
             ini_set('memory_limit', '2G');
-            $PdfMerger = new PdfMerge();
-            $FileList = array();
+//            $PdfMerger = new PdfMerge();
+//            $FileList = array();
 
-            foreach ($pageList as $page) {
-                // Create Tmp
-                $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
-                $clone[] = clone $File;
-                // build before const is set (picture)
-                /** @var DomPdf $Document */
-                $Document = PdfDocument::getPdfDocument($File->getFileLocation());
-                $Document->setPaperOrientationParameter(new PaperOrientationParameter($paperOrientation));
-                $pdfDocument = new \SPHERE\Application\Document\Generator\Repository\Document();
-                $pdfDocument->addPage($page);
-                $pdfFrame = new Frame();
-                $pdfFrame->addDocument($pdfDocument);
-                $Document->setContent($pdfFrame->getTemplate());
-                $Document->saveFile(new FileParameter($File->getFileLocation()));
-                // hinzufügen für das mergen
-                $PdfMerger->addPDF($File);
-                // speichern der Files zum nachträglichem bereinigen
-                $FileList[] = $File;
-            }
+            $File = self::buildDummyFile($multiPassword, array(), $pageList, $paperOrientation);
 
-            $MergeFile = Storage::createFilePointer('pdf');
-            // mergen aller hinzugefügten PDF-Datein
-            $PdfMerger->mergePdf($MergeFile);
-
-            if(!empty($FileList)){
-                // aufräumen der Temp-Files
-                /** @var FilePointer $File */
-                foreach($FileList as $File){
-                    $File->setDestruct();
-                }
-            }
+//            foreach ($pageList as $page) {
+//                // Create Tmp
+//                $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
+//                $clone[] = clone $File;
+//                // build before const is set (picture)
+//                /** @var DomPdf $Document */
+//                $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+//                $Document->setPaperOrientationParameter(new PaperOrientationParameter($paperOrientation));
+//                $pdfDocument = new \SPHERE\Application\Document\Generator\Repository\Document();
+//                $pdfDocument->addPage($page);
+//                $pdfFrame = new Frame();
+//                $pdfFrame->addDocument($pdfDocument);
+//                $Document->setContent($pdfFrame->getTemplate());
+//                $Document->saveFile(new FileParameter($File->getFileLocation()));
+//                // hinzufügen für das mergen
+//                $PdfMerger->addPDF($File);
+//                // speichern der Files zum nachträglichem bereinigen
+//                $FileList[] = $File;
+//            }
+//
+//
+//            $MergeFile = Storage::createFilePointer('pdf');
+//
+//            // mergen aller hinzugefügten PDF-Datein
+//            $PdfMerger->mergePdf($MergeFile);
+//
+//
+//
+//            if(!empty($FileList)){
+//                // aufräumen der Temp-Files
+//                /** @var FilePointer $File */
+//                foreach($FileList as $File){
+//                    $File->setDestruct();
+//                }
+//            }
 
             $FileName = $multiPassword->getName().".pdf";
-
-            return FileSystem::getStream(
-                $MergeFile->getRealPath(),
-                $FileName
-            )->__toString();
+            return self::buildDownloadFile($File, $FileName);
+//            return FileSystem::getStream(
+//                $MergeFile->getRealPath(),
+//                $FileName
+//            )->__toString();
         }
 
         return new Stage('Account Export', 'Konnte nicht erstellt werden.');

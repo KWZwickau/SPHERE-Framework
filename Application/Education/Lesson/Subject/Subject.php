@@ -193,9 +193,10 @@ class Subject implements IModuleInterface
                                     .$tblSubject->getName().' '
                                     .new Small(new Muted($tblSubject->getDescription()));
                             });
+                            $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
+                        } else {
+                            $Height = 1;
                         }
-
-                        $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
                         Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),
                             new Panel(
                                 $tblCategory->getName().' '.$tblCategory->getDescription(),
