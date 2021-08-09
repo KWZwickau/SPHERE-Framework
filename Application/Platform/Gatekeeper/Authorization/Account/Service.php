@@ -251,7 +251,6 @@ class Service extends AbstractService
                 }
                 case true: {
                     return new Redirect('/', Redirect::TIMEOUT_SUCCESS);
-                    break;
                 }
             }
         } else {
@@ -988,13 +987,13 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param string     $BackupMail
+     * @param string     $RecoveryMail
      *
      * @return bool
      */
-    public function changeBackupMail(TblAccount $tblAccount, $BackupMail)
+    public function changeRecoveryMail(TblAccount $tblAccount, $RecoveryMail)
     {
-        return (new Data($this->getBinding()))->changeBackupMail($tblAccount, $BackupMail);
+        return (new Data($this->getBinding()))->changeRecoveryMail($tblAccount, $RecoveryMail);
     }
 
     /**

@@ -66,7 +66,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global = $this->getGlobal();
                 $Global->POST['Address']['Mail'] = $tblToPerson->getTblMail()->getAddress();
                 $Global->POST['Address']['Alias'] = $tblToPerson->isAccountUserAlias();
-                $Global->POST['Address']['BackupMail'] = $tblToPerson->isAccountBackupMail();
+                $Global->POST['Address']['IsRecoveryMail'] = $tblToPerson->isAccountRecoveryMail();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
                 $Global->savePost();
@@ -94,17 +94,17 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $CheckBoxAlias = '';
-        $CheckBoxBackupMail = '';
+        $CheckBoxRecoveryMail = '';
         if($isUCS){
             // Account exist?
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
                 $CheckBoxAlias = new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1);
-                $CheckBoxBackupMail = new CheckBox('Address[BackupMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1);
+                $CheckBoxRecoveryMail = new CheckBox('Address[IsRecoveryMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1);
             } else {
                 $CheckBoxAlias = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1))
                     ->setDisabled(), 'Person benötigt ein Benutzerkonto');
-                $CheckBoxBackupMail = new ToolTip((new CheckBox('Address[BackupMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1))
+                $CheckBoxRecoveryMail = new ToolTip((new CheckBox('Address[IsRecoveryMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1))
                     ->setDisabled(), 'Person benötigt ein Benutzerkonto');
             }
         }
@@ -120,7 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ))->setRequired(),
                                 (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired(),
                                 $CheckBoxAlias,
-                                $CheckBoxBackupMail
+                                $CheckBoxRecoveryMail
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
@@ -282,7 +282,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     if($tblToPersonCurrent->isAccountUserAlias()){
                                         $content[] = new Check().' UCS Benutzername';
                                     }
-                                    if($tblToPersonCurrent->isAccountBackupMail()){
+                                    if($tblToPersonCurrent->isAccountRecoveryMail()){
                                         $content[] = new Check().' UCS "Passwort vergessen"';
                                     }
                                 }

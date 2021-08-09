@@ -1196,15 +1196,15 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param string     $BackupMail
+     * @param string     $RecoveryMail
      *
      * @return bool
      */
-    public function changeBackupMail(TblAccount $tblAccount, $BackupMail)
+    public function changeRecoveryMail(TblAccount $tblAccount, $RecoveryMail)
     {
 
-        if($BackupMail === ''){
-            $BackupMail = null;
+        if($RecoveryMail === ''){
+            $RecoveryMail = null;
         }
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1215,7 +1215,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setBackupMail($BackupMail);
+            $Entity->setRecoveryMail($RecoveryMail);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

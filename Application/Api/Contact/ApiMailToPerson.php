@@ -412,13 +412,13 @@ class ApiMailToPerson extends Extension implements IApiInterface
         if(isset($Address['Alias'])){
             $Alias = true;
         }
-        $BackupMail = false;
-        if(isset($Address['BackupMail'])){
-            $BackupMail = true;
+        $IsRecoveryMail = false;
+        if(isset($Address['IsRecoveryMail'])){
+            $IsRecoveryMail = true;
         }
 
         $ErrorString = '';
-        if (Mail::useService()->createMailToPerson($tblPerson, $mailAddress, $Type, $Alias, $BackupMail, $ErrorString)) {
+        if (Mail::useService()->createMailToPerson($tblPerson, $mailAddress, $Type, $Alias, $IsRecoveryMail, $ErrorString)) {
             if($ErrorString){
                 return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                     . new Warning($ErrorString)
@@ -460,13 +460,13 @@ class ApiMailToPerson extends Extension implements IApiInterface
         if(isset($Address['Alias'])){
             $Alias = true;
         }
-        $BackupMail = false;
-        if(isset($Address['BackupMail'])){
-            $BackupMail = true;
+        $IsRecoveryMail = false;
+        if(isset($Address['IsRecoveryMail'])){
+            $IsRecoveryMail = true;
         }
 
         $ErrorString = '';
-        if (Mail::useService()->updateMailToPerson($tblToPerson, $mailAddress, $Type, $Alias, $BackupMail, $ErrorString)) {
+        if (Mail::useService()->updateMailToPerson($tblToPerson, $mailAddress, $Type, $Alias, $IsRecoveryMail, $ErrorString)) {
             if($ErrorString){
                 return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                     . new Warning($ErrorString)

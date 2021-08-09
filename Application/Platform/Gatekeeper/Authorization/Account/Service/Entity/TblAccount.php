@@ -180,17 +180,17 @@ class TblAccount extends Element
     /**
      * @return string
      */
-    public function getBackupMail()
+    public function getRecoveryMail()
     {
         return $this->BackupMail;
     }
 
     /**
-     * @param string $BackupMail
+     * @param string $RecoveryMail
      */
-    public function setBackupMail($BackupMail)
+    public function setRecoveryMail($RecoveryMail)
     {
-        $this->BackupMail = $BackupMail;
+        $this->BackupMail = $RecoveryMail;
     }
 
     /**
