@@ -160,7 +160,7 @@ class Data extends AbstractData
                 $Entity->setServiceTblSubject($Result['tblSubject']);
                 $Entity->setSubjectGroup($Result['AppSubjectGroup']);
                 $Entity->setServiceTblAccount($tblAccount);
-                $Entity->setIsIgnore(false);
+                $Entity->setIsIgnore(0);
 
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
