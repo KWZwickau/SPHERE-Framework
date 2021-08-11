@@ -32,40 +32,40 @@ class Frontend implements IFrontendInterface
     {
 
         $Stage = new Stage('Support', 'Ticket erstellen');
-        $Stage->setContent((new Service())->executeCreateTicket(
-            new Form(array(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(
-                            new TextField(
-                                'TicketSubject', 'Thema', 'Thema'
-                            )
-                        )
-                    ), new Title('Problembeschreibung')
-                ),
-                new FormGroup(array(
-                        new FormRow(
-                            new FormColumn(
-                                new TextArea(
-                                    'TicketMessage', 'Mitteilung', 'Mitteilung'
-                                )
-                            )
-                        ),
-                        new FormRow(
-                            new FormColumn(array(
-                                new Warning(
-                                    'Bitte teilen Sie uns so genau wie möglich mit wie es zu diesem Problem kam'
-                                ),
-                                new Danger(
-                                    'Sollte Ihr Problem bereits gemeldet worden sein, eröffnen Sie bitte kein neues Ticket'
-                                )
-                            ))
+        $Button = new Primary('Ticket eröffnen');
+        $Form = new Form(array(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new TextField(
+                            'TicketSubject', 'Thema', 'Thema'
                         )
                     )
+                ), new Title('Problembeschreibung')
+            ),
+            new FormGroup(array(
+                    new FormRow(
+                        new FormColumn(
+                            new TextArea(
+                                'TicketMessage', 'Mitteilung', 'Mitteilung'
+                            )
+                        )
+                    ),
+                    new FormRow(
+                        new FormColumn(array(
+                            new Warning(
+                                'Bitte teilen Sie uns so genau wie möglich mit wie es zu diesem Problem kam'
+                            ),
+                            new Danger(
+                                'Sollte Ihr Problem bereits gemeldet worden sein, eröffnen Sie bitte kein neues Ticket'
+                            )
+                        ))
+                    )
                 )
-            ), new Primary('Ticket eröffnen')
-            ), $TicketSubject, $TicketMessage
-        ));
+            )
+        ), $Button);
+
+        $Stage->setContent((new Service())->executeCreateTicket($Form, $TicketSubject, $TicketMessage));
         return $Stage;
     }
 }

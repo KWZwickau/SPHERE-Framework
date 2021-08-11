@@ -46,7 +46,7 @@ class Argument
     {
 
         $class = __CLASS__;
-        return new $class($message, $code);
+        return new $class();
     }
 
     /**
