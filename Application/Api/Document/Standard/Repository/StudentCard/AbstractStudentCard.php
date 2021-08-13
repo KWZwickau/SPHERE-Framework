@@ -471,7 +471,8 @@ abstract class AbstractStudentCard extends AbstractDocument
                         $pointer++;
                         return $tblSubject;
                     } else {
-                        return $this->getNextSubject($tblDocument, $tblSubjectList, ++$pointer);
+                        $pointer++;
+                        return $this->getNextSubject($tblDocument, $tblSubjectList, $pointer);
                     }
                 }
             }
