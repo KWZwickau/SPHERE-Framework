@@ -34,15 +34,16 @@ abstract class AbstractStudentCard extends AbstractDocument
     abstract public function getTypeId();
 
     /**
-     * @param array $subjectPosition
-     * @param int $countSubjectColumns
-     * @param int $widthFirstColumns
-     * @param int $widthLastColumns
+     * @param array  $subjectPosition
+     * @param int    $countSubjectColumns
+     * @param int    $widthFirstColumns
+     * @param int    $widthLastColumns
      * @param string $heightHeader
      * @param string $paddingLeftHeader
      * @param string $thicknessOutLines
      * @param string $thicknessInnerLines
      * @param string $textSizeSmall
+     * @param bool   $isSecondary
      *
      * @return array
      */
@@ -52,10 +53,11 @@ abstract class AbstractStudentCard extends AbstractDocument
         $widthFirstColumns = 6,
         $widthLastColumns = 5,
         $heightHeader = '150px',
-        $paddingLeftHeader = '-140px',
+        $paddingLeftHeader = '-80px',
         $thicknessOutLines = '1.2px',
         $thicknessInnerLines = '0.5px',
-        $textSizeSmall = '9px'
+        $textSizeSmall = '9px',
+        $isSecondary = false
     ) {
 
         $countGradesTotal = $countSubjectColumns + 4;
@@ -119,7 +121,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 3: $text = 'Schulhalbjahr'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '10px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -135,7 +137,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 4: $text = 'Ordnung'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -158,9 +160,9 @@ abstract class AbstractStudentCard extends AbstractDocument
             }
 
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
-                ->styleTextSize(strlen($text) > 30 && $heightHeader <= '150px' ? '6px' : $textSizeSmall)
+                ->styleTextSize(strlen($text) > 30 ? '7px' : $textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
 
             $section->addElementColumn($element, $widthString);
@@ -174,7 +176,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 4: $text = 'Signums des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '6px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)
@@ -381,7 +383,7 @@ abstract class AbstractStudentCard extends AbstractDocument
         return
             '<div style="padding-top: ' . $paddingTop
             . '!important;padding-left: ' . $paddingLeft
-            . '!important;transform: rotate(270deg)!important;">'
+            . '!important;transform: rotate(-90deg)!important;">'
             . $text
             . '</div>';
     }

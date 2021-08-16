@@ -172,7 +172,7 @@ class SecondarySchool extends AbstractStudentCard
                 ->styleHeight('20px')
             )
         );
-        $SliceArrayGradeLayoutHeader = $this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-180px');
+        $SliceArrayGradeLayoutHeader = $this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-107px', '1.2px', '0.5px', '9px', true);
         $Page->addSliceArray($SliceArrayGradeLayoutHeader);
         $Page->addSliceArray($this->setGradeLayoutBody($subjectPosition, $this->getTypeId(), 19, 28, 9));
 

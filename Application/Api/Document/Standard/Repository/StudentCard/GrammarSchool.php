@@ -290,7 +290,7 @@ class GrammarSchool extends AbstractStudentCard
         $widthFirstColumns = 6,
         $widthLastColumns = 5,
         $heightHeader = '170px',
-        $paddingLeftHeader = '-160px',
+        $paddingLeftHeader = '-90px',
         $thicknessOutLines = '1.2px',
         $thicknessInnerLines = '0.5px',
         $textSizeSmall = '9px'
@@ -349,7 +349,7 @@ class GrammarSchool extends AbstractStudentCard
                 case 3: $text = 'Kurshalbjahr'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '10px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -380,7 +380,7 @@ class GrammarSchool extends AbstractStudentCard
             }
 
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize(strlen($text) > 35 ? '7px' : $textSizeSmall)
                 ->styleBorderLeft($i == 0 ? $thicknessOutLines : $thicknessInnerLines);
@@ -394,7 +394,7 @@ class GrammarSchool extends AbstractStudentCard
                 case 2: $text = 'Signums des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '6px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)
