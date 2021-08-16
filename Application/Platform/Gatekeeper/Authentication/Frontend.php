@@ -26,6 +26,8 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Cog;
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -39,7 +41,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Picture;
-use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -48,6 +49,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
@@ -67,7 +69,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
-use SPHERE\Common\Frontend\Text\Repository\Underline;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -96,14 +98,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Date = '2021-07-12 ';
         $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'15:00:00')
                        && new DateTime('now') <= new DateTime($Date.'23:59:59'));
-//        $IsMaintenance = false;
+        $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
         $IsEqual = false;
         $IsNavigationAssistance = false;
-        $IsUpdateInfo = (new DateTime('now') >= new DateTime('2021-07-28 00:00:00')
-            && new DateTime('now') <= new DateTime('2021-08-15 23:59:59'));
-        $UpdateInfoMessage = '';
 
         $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
@@ -140,44 +139,39 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        $maintenanceMessage = '';
         if ($IsMaintenance) {
             $now = new DateTime();
             if ($now >= new DateTime('22:00')) {
-                $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung ('.$now->format('d.m.Y').') laufende Wartungsarbeiten seit 22:00');
+                $PanelColor = Panel::PANEL_TYPE_DANGER;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
+                        bis vorraussichtlich 0:00.')))
+                    .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
+                     um Datenverlust zu vermeiden.')))
+                    .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
+                    , null, false, '8', '5'), $PanelColor);
             } elseif ($now >= new DateTime('20:00')) {
-                $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
+                $PanelColor = Panel::PANEL_TYPE_WARNING;
+                $DiffTime = (new DateTime('now'))->diff(new DateTime($Date.' 22:00:00'));
+//                $DiffTime = (new DateTime('now'))->diff(new DateTime('2021-07-28 22:00:00'));
+                $Minutes = $DiffTime->h * 60;
+                $Minutes = $Minutes + $DiffTime->i;
+                $aktiveProgressbar = $Minutes/120*100;
+                $doneProgressbar = 100 - $aktiveProgressbar;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
+                            .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich 
+                        vor der Wartung abzumelden, um Datenverlust zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
+                        .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
+                        , null, false, '8', '5'), $PanelColor
+                );
             } elseif ($now >= new DateTime('9:00')) {
-                $maintenanceMessage = new Warning(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
+                $PanelColor = Panel::PANEL_TYPE_WARNING;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new Warning(new Center('Achtung heute ('.$now->format('d.m.Y').') ab 22:00
+                     Wartungsarbeiten, voraussichtlich 2 Stunden.'), null, false, '8', '5'), $PanelColor
+                );
             }
-        }
-
-        if($IsUpdateInfo){
-            $IsDemoDanger = (new DateTime('now') >= new DateTime('2021-08-06 00:00:00')
-                && new DateTime('now') <= new DateTime('2021-08-10 23:59:59'));
-            $IsLiveDanger = (new DateTime('now') >= new DateTime('2021-08-11 00:00:00')
-                && new DateTime('now') <= new DateTime('2021-08-15 23:59:59'));
-            $DemoText = '08.08.2021 bis 10.08.2021';
-            $LiveText = '13.08.2021 bis 15.08.2021';
-            $UpdateInfoMessage = new Panel('Aufgrund von umfangreichen Wartungsarbeiten wird die Schulsoftware wie folgt '
-                .new Underline('nicht').' verfügbar sein.',
-                ($IsDemoDanger
-                    ?new DangerMessage(new Container(new Underline(new Center('Demo-Version')))
-                    .new Container(new Bold(new Center($DemoText))), null, false, '3', '5')
-                    :new Warning(new Container(new Underline(new Center('Demo-Version')))
-                    .new Container(new Bold(new Center($DemoText))), null, false, '3', '5')
-                )
-                .($IsLiveDanger
-                    ?new DangerMessage(new Container(new Underline(new Center('Live-Version')))
-                    .new Container(new Bold(new Center($LiveText))), null, false, '3', '5')
-                    :new Warning(new Container(new Underline(new Center('Live-Version')))
-                    .new Container(new Bold(new Center($LiveText))), null, false, '3', '5')
-
-                ), ($IsDemoDanger || $IsLiveDanger
-                    ? Panel::PANEL_TYPE_DANGER
-                    : Panel::PANEL_TYPE_WARNING
-                )
-            );
         }
 
         $Stage->setContent(
@@ -191,17 +185,6 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )
-            )
-            .new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn('', 3),
-                        new LayoutColumn(
-                            $UpdateInfoMessage
-                        , 6),
-                        new LayoutColumn('', 3),
-                    ))
                 )
             )
             .($IsEqual
@@ -530,11 +513,9 @@ class Frontend extends Extension implements IFrontendInterface
             case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
                 return new InfoText('');
-                break;
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 return new Danger(new Picture().' Demo-Umgebung');
-                break;
             default:
                 return new WarningText( new Globe().' '.$this->getRequest()->getHost());
         }

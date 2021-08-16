@@ -8,18 +8,18 @@ SELECT
                 tSFT.Name
             ) separator ', \n'
         )
-    from PeopleMeta_{{ ConsumerAcronym }}.tblSupport tSU
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblSupportFocus tSF ON tSF.tblSupport = tSU.Id
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblSupportFocusType tSFT ON tSFT.Id = tSF.tblSupportFocusType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblSupport tSU
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblSupportFocus tSF ON tSF.tblSupport = tSU.Id
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblSupportFocusType tSFT ON tSFT.Id = tSF.tblSupportFocusType
     where tSU.serviceTblPerson = tS.serviceTblPerson
         and tSU.EntityRemove IS NULL
     ) TblStudentFocusType_NameList,
 
     (select
         tSFT.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblSupport tSU
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblSupportFocus tSF ON tSF.tblSupport = tSU.Id
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblSupportFocusType tSFT ON tSFT.Id = tSF.tblSupportFocusType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblSupport tSU
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblSupportFocus tSF ON tSF.tblSupport = tSU.Id
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblSupportFocusType tSFT ON tSFT.Id = tSF.tblSupportFocusType
     where tSU.serviceTblPerson = tS.serviceTblPerson
         and tSU.EntityRemove IS NULL
         and tSF.IsPrimary = 1
@@ -32,8 +32,8 @@ SELECT
                 tSDT.Name
             ) separator ', \n'
         )
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentDisorder tSD
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentDisorderType tSDT ON tSDT.Id = tSD.tblStudentDisorderType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentDisorder tSD
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentDisorderType tSDT ON tSDT.Id = tSD.tblStudentDisorderType
     where tSD.tblStudent = tS.Id
         and tSD.EntityRemove IS NULL
     ) TblStudentDisorderType_NameList,
@@ -51,6 +51,6 @@ SELECT
         tP.LastName
     ) as TblPerson_Coach
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentIntegration tSI ON tSI.Id = tS.tblStudentIntegration
-    LEFT JOIN PeoplePerson_{{ ConsumerAcronym }}.tblPerson tP ON tP.Id = tSI.serviceTblPerson
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentIntegration tSI ON tSI.Id = tS.tblStudentIntegration
+    LEFT JOIN {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP ON tP.Id = tSI.serviceTblPerson

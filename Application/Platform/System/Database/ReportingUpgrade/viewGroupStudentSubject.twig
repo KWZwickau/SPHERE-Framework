@@ -6,13 +6,13 @@ SELECT distinct
 -- first foreign language
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -21,13 +21,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelFrom
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -36,13 +36,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelTill
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -52,13 +52,13 @@ SELECT distinct
 -- second foreign language
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 2
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -67,13 +67,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelFrom
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 2
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -82,13 +82,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelTill
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 2
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -98,13 +98,13 @@ SELECT distinct
 -- third foreign language
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 3
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -113,13 +113,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelFrom
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 3
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -128,13 +128,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelTill
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 3
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -144,13 +144,13 @@ SELECT distinct
 -- fourth foreign language
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 4
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -159,12 +159,12 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select tSS.serviceTblLevelFrom
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 4
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -173,13 +173,13 @@ SELECT distinct
 
 	(select
 		tL.Name
-	from EducationLessonDivision_{{ ConsumerAcronym }}.tblLevel tL
+	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
 	where
 		(select
 			tSS.serviceTblLevelTill
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 4
 			and tSST.Identifier = 'FOREIGN_LANGUAGE'
 			and tSS.tblStudent = tS.Id
@@ -189,13 +189,13 @@ SELECT distinct
 -- religion
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'RELIGION'
 			and tSS.tblStudent = tS.Id
@@ -205,13 +205,13 @@ SELECT distinct
 -- profile
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'PROFILE'
 			and tSS.tblStudent = tS.Id
@@ -221,13 +221,13 @@ SELECT distinct
 -- orientation
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'ORIENTATION'
 			and tSS.tblStudent = tS.Id
@@ -237,13 +237,13 @@ SELECT distinct
 -- elective
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'ELECTIVE'
 			and tSS.tblStudent = tS.Id
@@ -252,13 +252,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 2
 			and tSST.Identifier = 'ELECTIVE'
 			and tSS.tblStudent = tS.Id
@@ -267,13 +267,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 3
 			and tSST.Identifier = 'ELECTIVE'
 			and tSS.tblStudent = tS.Id
@@ -282,13 +282,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 4
 			and tSST.Identifier = 'ELECTIVE'
 			and tSS.tblStudent = tS.Id
@@ -298,13 +298,13 @@ SELECT distinct
 -- team
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 1
 			and tSST.Identifier = 'TEAM'
 			and tSS.tblStudent = tS.Id
@@ -313,13 +313,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 2
 			and tSST.Identifier = 'TEAM'
 			and tSS.tblStudent = tS.Id
@@ -328,13 +328,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 3
 			and tSST.Identifier = 'TEAM'
 			and tSS.tblStudent = tS.Id
@@ -343,13 +343,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 4
 			and tSST.Identifier = 'TEAM'
 			and tSS.tblStudent = tS.Id
@@ -358,22 +358,22 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 5
 			and tSST.Identifier = 'TEAM'
 			and tSS.tblStudent = tS.Id
 			limit 0,1) = tSU.Id
 	) AS TblSubject_Name_Team5
 
-FROM PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
-	LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.tblGroup
-	LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS ON tS.serviceTblPerson = tM.serviceTblPerson
+FROM {{ ConsumerAcronym }}_PeopleGroup.tblMember tM
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblGroup tG ON tG.Id = tM.tblGroup
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS ON tS.serviceTblPerson = tM.serviceTblPerson
 
 WHERE tG.MetaTable = 'STUDENT'
 	AND tM.EntityRemove IS NULL

@@ -10,9 +10,9 @@ SELECT
     -- tM.Address AS TblMail_Address
     tM.Address AS TblMail_Address
 
-    FROM ContactMail_{{ ConsumerAcronym }}.tblToPerson tTP
-        LEFT JOIN ContactMail_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
-        LEFT JOIN ContactMail_{{ ConsumerAcronym }}.tblMail as tM on tM.Id = tTP.tblMail
+    FROM {{ ConsumerAcronym }}_ContactMail.tblToPerson tTP
+        LEFT JOIN {{ ConsumerAcronym }}_ContactMail.tblType tT ON tT.Id = tTP.tblType
+        LEFT JOIN {{ ConsumerAcronym }}_ContactMail.tblMail as tM on tM.Id = tTP.tblMail
 
     WHERE tTP.EntityRemove IS NULL
 

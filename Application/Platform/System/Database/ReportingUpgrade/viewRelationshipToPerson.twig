@@ -7,8 +7,8 @@ SELECT
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description
 
-FROM PeopleRelationship_{{ ConsumerAcronym }}.tblToPerson tTP
-	LEFT JOIN PeopleRelationship_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
+FROM {{ ConsumerAcronym }}_PeopleRelationship.tblToPerson tTP
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleRelationship.tblType tT ON tT.Id = tTP.tblType
 
 WHERE tTP.EntityRemove IS NULL
 
@@ -21,7 +21,7 @@ UNION SELECT
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description
 
-FROM PeopleRelationship_{{ ConsumerAcronym }}.tblToPerson tTP
-	LEFT JOIN PeopleRelationship_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
+FROM {{ ConsumerAcronym }}_PeopleRelationship.tblToPerson tTP
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleRelationship.tblType tT ON tT.Id = tTP.tblType
 
 WHERE tTP.EntityRemove IS NULL

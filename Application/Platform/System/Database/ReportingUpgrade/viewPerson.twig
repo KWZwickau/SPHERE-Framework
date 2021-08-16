@@ -41,17 +41,17 @@ SELECT
             concat(tG.Name)
             separator ', '
         )
-    from PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
-        LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.tblGroup
+    from {{ ConsumerAcronym }}_PeopleGroup.tblMember tM
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblGroup tG ON tG.Id = tM.tblGroup
 	where tM.serviceTblPerson = tP.Id
         and tG.Name != 'Alle'
     ) TblGroup_GroupList
 
-FROM PeoplePerson_{{ ConsumerAcronym }}.tblPerson tP
-    LEFT JOIN PeoplePerson_{{ ConsumerAcronym }}.tblSalutation tS ON tS.Id = tP.tblSalutation
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommon tC ON tC.serviceTblPerson = tP.Id
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
+FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+    LEFT JOIN {{ ConsumerAcronym }}_PeoplePerson.tblSalutation tS ON tS.Id = tP.tblSalutation
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommon tC ON tC.serviceTblPerson = tP.Id
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
 
 WHERE tP.EntityRemove IS NULL

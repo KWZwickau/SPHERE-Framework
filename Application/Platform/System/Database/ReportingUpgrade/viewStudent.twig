@@ -2,7 +2,7 @@ SELECT DISTINCT
     vGS.TblPerson_Id,
     vGS.TblStudent_Id,
 
-    (select count(vRTP.TblToPerson_serviceTblPersonFrom) from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
+    (select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
         where vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
         and vRTP.TblType_Name = 'Geschwisterkind'
         limit 0,1
@@ -33,7 +33,7 @@ SELECT DISTINCT
     vGS.TblStudentTransport_Remark,
     vGS.TblStudentLiberationSportType_Name
 
-    from SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudent vGS
-        JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
+    from {{ ConsumerAcronym }}_SettingConsumer.viewGroupStudent vGS
+        JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
 
     where vG.TblGroup_MetaTable = 'STUDENT'

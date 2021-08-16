@@ -24,10 +24,10 @@ SELECT
 -- tblState
     tS.Name AS TblState_Name
 
-FROM ContactAddress_{{ ConsumerAcronym }}.tblToPerson tTP
-    LEFT JOIN ContactAddress_{{ ConsumerAcronym }}.tblAddress tA ON tA.Id = tTP.tblAddress
-    LEFT JOIN ContactAddress_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
-    LEFT JOIN ContactAddress_{{ ConsumerAcronym }}.tblCity tC ON tC.Id = tA.tblCity
-    LEFT JOIN ContactAddress_{{ ConsumerAcronym }}.tblState tS ON tS.Id = tA.tblState
+FROM {{ ConsumerAcronym }}_ContactAddress.tblToPerson tTP
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblAddress tA ON tA.Id = tTP.tblAddress
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblType tT ON tT.Id = tTP.tblType
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblCity tC ON tC.Id = tA.tblCity
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblState tS ON tS.Id = tA.tblState
 
 WHERE tTP.EntityRemove IS NULL
