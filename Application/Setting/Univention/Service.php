@@ -580,7 +580,7 @@ class Service extends AbstractService
         if($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson)){
             $tblAccount = current($tblAccountList);
             $Item['mail'] = $tblAccount->getUserAlias();
-            $Item['BackupMail'] = $tblAccount->getBackupMail();
+            $Item['BackupMail'] = $tblAccount->getRecoveryMail();
         }
         return $Item;
     }
