@@ -159,10 +159,13 @@ abstract class AbstractStudentCard extends AbstractDocument
                 $text = '&nbsp;';
             }
 
+            // umbrüche (<br><wbr> etc.) erzeugen Fehler bei der Darstellung
+            $text = str_replace('/', ' / ' ,$text);
+
             $element = (new Element())
                 ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
-                ->styleTextSize(strlen($text) > 30 ? '7px' : $textSizeSmall)
+                ->styleTextSize(strlen($text) > 30 ? '6px' : $textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
 
             $section->addElementColumn($element, $widthString);
