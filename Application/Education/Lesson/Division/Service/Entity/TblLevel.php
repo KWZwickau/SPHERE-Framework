@@ -93,7 +93,7 @@ class TblLevel extends Element
     public function setIsChecked($IsChecked)
     {
 
-        $this->IsChecked = $IsChecked;
+        $this->IsChecked = (int)$IsChecked;
     }
 
     /**

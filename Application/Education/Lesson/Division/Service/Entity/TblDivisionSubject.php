@@ -122,7 +122,7 @@ class TblDivisionSubject extends Element
      */
     public function setHasGrading($HasGrading)
     {
-        $this->HasGrading = (boolean) $HasGrading;
+        $this->HasGrading = (int)$HasGrading;
     }
 
     /**

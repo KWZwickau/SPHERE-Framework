@@ -297,7 +297,7 @@ class Data extends AbstractData
         $Entity->setIsIntensiveCourse($IntensiveCourse);
         $Entity->setIsIgnoreCourse(false);
         $Entity->setServiceTblSubject((is_object($Result['EntitySubject']) ? $Result['EntitySubject'] : null));
-        $Entity->settblUntisImportStudent($tblUntisImportStudent);
+        $Entity->setTblUntisImportStudent($tblUntisImportStudent);
         $Manager->bulkSaveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
     }
@@ -329,7 +329,7 @@ class Data extends AbstractData
         $Entity->setCourseNumber($Number);
         $Entity->setIsIntensiveCourse($IsIntensiveCourse);
         $Entity->setIsIgnoreCourse($IsIgnoreCourse);
-        $Entity->settblUntisImportStudent($tblUntisImportStudent);
+        $Entity->setTblUntisImportStudent($tblUntisImportStudent);
         $Entity->setServiceTblSubject($tblSubject);
 
         $Manager->SaveEntity($Entity);

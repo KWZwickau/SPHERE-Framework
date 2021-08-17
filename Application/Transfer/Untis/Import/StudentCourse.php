@@ -366,7 +366,7 @@ class StudentCourse extends Import implements IFrontendInterface
 //                            $SubjectString = ' Fach nicht gefunden!';
 //                        }
 
-                        if ($tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                        if ($tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                             $SubjectString = new Info(new InfoIcon().' Fach/Kurs wird Ignoriert');
                         } elseif ($SubjectName != '' && !$tblUntisImportStudentCourse->getServiceTblSubject()) {
                             $IsWarning = true;
@@ -381,7 +381,7 @@ class StudentCourse extends Import implements IFrontendInterface
                             .'</div>';
 
                         // Error wenn Fächerzuweisung fehlt
-                        if (!$tblSubject && $tblUntisImportStudentCourse->getSubjectGroup() != '' && !$tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                        if (!$tblSubject && $tblUntisImportStudentCourse->getSubjectGroup() != '' && !$tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                             if (!$tblUntisImportStudent->getIsIgnore()) {
                                 $Item['Ignore'] = new Center(new Warning(new ToolTip(new Disable(),
                                     'Einige Fächer werden nicht importiert! (Fach nicht gefunden)')));
@@ -608,7 +608,7 @@ class StudentCourse extends Import implements IFrontendInterface
                 } else {
                     $Number = $tblUntisImportStudentCourse->getCourseNumber();
                     $Global->POST['Data']['SubjectGroup'.$Number] = $tblUntisImportStudentCourse->getSubjectGroup();
-                    if ($tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                    if ($tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                         $Global->POST['Data']['IsIgnoreCourse'.$Number] = 1;
                     }
                 }

@@ -84,6 +84,6 @@ class TblSubjectGroup extends Element
      */
     public function setIsAdvancedCourse($IsAdvancedCourse)
     {
-        $this->IsAdvancedCourse = $IsAdvancedCourse;
+        $this->IsAdvancedCourse = (int)$IsAdvancedCourse;
     }
 }

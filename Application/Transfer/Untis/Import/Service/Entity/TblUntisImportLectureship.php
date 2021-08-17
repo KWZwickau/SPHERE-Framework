@@ -297,6 +297,6 @@ class TblUntisImportLectureship extends Element
     public function setIsIgnore($IsIgnore)
     {
 
-        $this->IsIgnore = $IsIgnore;
+        $this->IsIgnore = (int)$IsIgnore;
     }
 }
