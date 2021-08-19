@@ -8,6 +8,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -203,19 +204,19 @@ class Service
                 }
 
                 // PhoneNumbers
-                $phoneNumbersPrivate = array();
-                $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
-                if ($phoneList) {
-                    foreach ($phoneList as $phone) {
-                        if ($phone->getTblType()->getName() == 'Privat' && $phone->getTblType()->getDescription() == 'Festnetz') {
-                            $phoneNumbersPrivate[] = $phone->getTblPhone()->getNumber();
-                        }
-                    }
-                    if (!empty($phoneNumbersPrivate)) {
-                        $Item['PhoneNumbersPrivate'] = implode(';<br>', $phoneNumbersPrivate);
-                        $Item['ExcelPhoneNumbersPrivate'] = implode(";\n ", $phoneNumbersPrivate);
-                    }
-                }
+//                $phoneNumbersPrivate = array();
+//                $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+//                if ($phoneList) {
+//                    foreach ($phoneList as $phone) {
+//                        if ($phone->getTblType()->getName() == 'Privat' && $phone->getTblType()->getDescription() == 'Festnetz') {
+//                            $phoneNumbersPrivate[] = $phone->getTblPhone()->getNumber();
+//                        }
+//                    }
+//                    if (!empty($phoneNumbersPrivate)) {
+//                        $Item['PhoneNumbersPrivate'] = implode(';<br>', $phoneNumbersPrivate);
+//                        $Item['ExcelPhoneNumbersPrivate'] = implode(";\n ", $phoneNumbersPrivate);
+//                    }
+//                }
 
                 // find Guardian
                 $GuardianList = array();
@@ -238,20 +239,28 @@ class Service
                         if ($phoneList) {
                             $phoneNumbers = array();
                             foreach ($phoneList as $phone) {
+                                if($Key == 1 && $phone->getTblType()->getName() == 'Privat'
+                                    && $phone->getTblType()->getDescription() == 'Festnetz'){
+                                    $phoneNumbersPrivate[] = $phone->getTblPhone()->getNumber();
+                                }
                                 if (// $phone->getTblType()->getName() == 'Privat' &&
                                     $phone->getTblType()->getDescription() == 'Mobil'
                                 ) {
                                     $phoneNumbers[] = $phone->getTblPhone()->getNumber();
                                 }
-                                if ($Key == 0 && $phone->getTblType()->getName() == 'Geschäftlich'
+                                if ($Key == 2 && $phone->getTblType()->getName() == 'Geschäftlich'
                                     && $phone->getTblType()->getDescription() == 'Festnetz'
                                 ) {
                                     $phoneNumbersBusiness[] = $phone->getTblPhone()->getNumber();
                                 }
                             }
+                            if (!empty($phoneNumbersPrivate)) {
+                                $Item['PhoneNumbersPrivate'] = implode('<br>', $phoneNumbersPrivate);
+                                $Item['ExcelPhoneNumbersPrivate'] = implode(";\n ", $phoneNumbersPrivate);
+                            }
                             if (!empty($phoneNumbers)) {
-                                $Item['PhoneNumbersGuardian'.($Key + 1)] = implode(';<br>', $phoneNumbers);
-                                $Item['ExcelPhoneNumbersGuardian'.($Key + 1)] = implode(";\n ", $phoneNumbers);
+                                $Item['PhoneNumbersGuardian'.($Key)] = implode(';<br>', $phoneNumbers);
+                                $Item['ExcelPhoneNumbersGuardian'.($Key)] = implode(";\n ", $phoneNumbers);
                             }
                             if (!empty($phoneNumbersBusiness)) {
                                 $Item['PhoneNumbersBusiness'] = implode('<br>', $phoneNumbersBusiness);
@@ -302,9 +311,7 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return false|FilePointer
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -324,10 +331,10 @@ class Service
             $export->setValue($export->getCell(7, 0), "PLZ");
             $export->setValue($export->getCell(8, 0), "Wohnort");
             $export->setValue($export->getCell(9, 0), "Ortsteil");
-            $export->setValue($export->getCell(10, 0), "privat");
-            $export->setValue($export->getCell(11, 0), "dienstlich M.");
-            $export->setValue($export->getCell(12, 0), "Mutter");
-            $export->setValue($export->getCell(13, 0), "Vater");
+            $export->setValue($export->getCell(10, 0), "S1 Tel. privat");
+            $export->setValue($export->getCell(11, 0), "S1 Tel. dienstlich");
+            $export->setValue($export->getCell(12, 0), "S1 Tel.");
+            $export->setValue($export->getCell(13, 0), "S2 Tel.");
             $export->setValue($export->getCell(14, 0), "E-Mail");
             $export->setValue($export->getCell(15, 0), "Geburtsd.");
 

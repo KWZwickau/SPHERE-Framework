@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -232,13 +234,13 @@ class Frontend  extends Extension implements IFrontendInterface
                                         'Code'                  => 'PLZ',
                                         'City'                  => 'Wohnort',
                                         'District'              => 'Ortsteil',
-                                        'PhoneNumbersPrivate'   => 'privat',
-                                        'PhoneNumbersBusiness'  => 'dienstlich M.',
-                                        'PhoneNumbersGuardian1' => 'Mutter',
-                                        'PhoneNumbersGuardian2' => 'Vater',
+                                        'PhoneNumbersPrivate'   => new ToolTip('Tel. privat '.new Info(), 'Schüler Festnetz'),
+                                        'PhoneNumbersBusiness'  => new ToolTip('S1 Tel. dienstlich '.new Info(), 'Festnetz'),
+                                        'PhoneNumbersGuardian1' => new ToolTip('S1 Tel. '.new Info(), 'Mobil'),
+                                        'PhoneNumbersGuardian2' => new ToolTip('S2 Tel. '.new Info(), 'Mobil'),
                                         'MailAddress'           => 'E-Mail',
                                         'Birthday'              => 'Geb.-Datum',
-                                        'Birthplace'              => 'Geb.-Ort',
+                                        'Birthplace'            => 'Geb.-Ort',
                                     ),
                                     array(
                                         "pageLength" => -1,
