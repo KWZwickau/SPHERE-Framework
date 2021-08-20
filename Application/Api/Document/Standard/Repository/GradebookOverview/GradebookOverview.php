@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 
+use DateTime;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
@@ -28,42 +29,9 @@ class GradebookOverview extends AbstractDocument
     // inclusive average
     const MINIMUM_GRADE_COUNT = 6;
 
-    /**
-     * GradebookOverview constructor.
-     *
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     */
-    function __construct(TblPerson $tblPerson, TblDivision $tblDivision)
-    {
-        $this->setTblPerson($tblPerson);
-        $this->setTblDivision($tblDivision);
-    }
-
-    /**
-     * @var TblDivision|null
-     */
-    private $tblDivision = null;
-
-    /**
-     * @return false|TblDivision
-     */
-    public function getTblDivision()
-    {
-        if (null === $this->tblDivision) {
-            return false;
-        } else {
-            return $this->tblDivision;
-        }
-    }
-
-    /**
-     * @param false|TblDivision $tblDivision
-     */
-    public function setTblDivision(TblDivision $tblDivision = null)
+    function __construct()
     {
 
-        $this->tblDivision = $tblDivision;
     }
 
     /**
@@ -95,32 +63,45 @@ class GradebookOverview extends AbstractDocument
      */
     public function buildDocument($pageList = array(), $Part = '0')
     {
-        return (new Frame())->addDocument((new Document())
-            ->addPage($this->buildPage())
-        );
+        $document = new Document();
+
+        foreach ($pageList as $subjectPages) {
+            if (is_array($subjectPages)) {
+                foreach ($subjectPages as $page) {
+                    $document->addPage($page);
+                }
+            } else {
+                $document->addPage($subjectPages);
+            }
+        }
+
+        return (new Frame())->addDocument($document);
     }
 
     /**
+     * @param TblPerson|null   $tblPerson
+     * @param TblDivision|null $tblDivision
+     *
      * @return Slice $PageHeader
      */
-    public function getPageHeaderSlice()
+    public function getPageHeaderSlice(TblPerson $tblPerson = null, TblDivision $tblDivision = null)
     {
         return (new Slice())
             ->addSection((new Section())
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler: ' . ($this->getTblPerson() ? $this->getTblPerson()->getLastFirstName() : ''))
+                            ->setContent('Schüler: ' . ($tblPerson ? $tblPerson->getLastFirstName() : ''))
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klasse: ' . ($this->getTblDivision() ? $this->getTblDivision()->getDisplayName() : ''))
+                            ->setContent('Klasse: ' . ($tblDivision ? $tblDivision->getDisplayName() : ''))
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Stand: ' . (new \DateTime())->format('d.m.Y'))
+                            ->setContent('Stand: ' . (new DateTime())->format('d.m.Y'))
                         )
                     )
                     , '33%'
@@ -138,14 +119,17 @@ class GradebookOverview extends AbstractDocument
     }
 
     /**
+     * @param TblPerson|null   $tblPerson
+     * @param TblDivision|null $tblDivision
+     *
      * @return Slice
      */
-    public function getGradebookOverviewSlice()
+    public function getGradebookOverviewSlice(TblPerson $tblPerson = null, TblDivision $tblDivision = null)
     {
 
-        if ($this->getTblDivision()
-            && ($tblPerson = $this->getTblPerson())
-            && ($tblYear = $this->getTblDivision()->getServiceTblYear())
+        if ($tblDivision
+            && $tblPerson
+            && ($tblYear = $tblDivision->getServiceTblYear())
         ) {
 
             $divisionList = array();
@@ -163,7 +147,7 @@ class GradebookOverview extends AbstractDocument
 
             $data = array();
             $maxGradesPerPeriodCount = array();
-            $tblLevel = $this->tblDivision->getTblLevel();
+            $tblLevel = $tblDivision->getTblLevel();
             $tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12');
             foreach ($divisionList as $tblDivision) {
                 if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
@@ -260,7 +244,10 @@ class GradebookOverview extends AbstractDocument
                                                     $maxGradesPerPeriodCount[$tblPeriod->getId()] = $maxCount;
                                                 }
                                             } else {
-                                                $maxGradesPerPeriodCount[$tblPeriod->getId()] = 0;
+                                                // Anzahl Fächer nur auf 0 setzen, wen noch nicht vorhanden
+                                                if(!isset($maxGradesPerPeriodCount[$tblPeriod->getId()])){
+                                                    $maxGradesPerPeriodCount[$tblPeriod->getId()] = 0;
+                                                }
                                                 // Fächer ohne Zensuren auch mit anzeigen
                                                 $data[$tblDivisionSubject->getServiceTblSubject()->getAcronym()][$tblPeriod->getId()] = array(
                                                     'Average' => ''
@@ -307,15 +294,20 @@ class GradebookOverview extends AbstractDocument
 
             // grade width
             $totalGradeCount = 0;
+            $totalGradeCountPeriod = 5;
             foreach ($maxGradesPerPeriodCount as &$value) {
                 if ($value < self::MINIMUM_GRADE_COUNT) {
                     $value = self::MINIMUM_GRADE_COUNT;
                 }
+                if($totalGradeCountPeriod < $value){
+                    $totalGradeCountPeriod = $value;
+                }
                 $totalGradeCount += $value;
             }
-            // +1 für durchschnitt am Ende
-            $totalGradeCount++;
-            $widthGrade = (100 - $widthSubject) / $totalGradeCount;
+
+//            // +1 für durchschnitt am Ende // Durchschnitt am Ende nun mit fester Breite
+//            $totalGradeCount++;
+            $widthGrade = (100 - ($widthSubject*2)) / ($totalGradeCountPeriod * 2);
             $widthGradeString = $widthGrade . '%';
 
             // header
@@ -332,11 +324,7 @@ class GradebookOverview extends AbstractDocument
                     , $widthSubjectString);
             if ($tblPeriodList) {
                 foreach ($tblPeriodList as $tblPeriod) {
-                    if (isset($maxGradesPerPeriodCount[$tblPeriod->getId()])) {
-                        $width = ($widthGrade * $maxGradesPerPeriodCount[$tblPeriod->getId()]) . '%';
-                    } else {
-                        $width = '10%';
-                    }
+                    $width = ($widthGrade * ($totalGradeCountPeriod)) . '%';
                     $section
                         ->addElementColumn((new Element())
                             ->setContent($tblPeriod->getDisplayName())
@@ -357,7 +345,7 @@ class GradebookOverview extends AbstractDocument
                     ->stylePaddingTop('5px')
                     ->stylePaddingBottom('5px')
                     ->styleBackgroundColor('lightgrey')
-                    , $widthGradeString);
+                    , $widthSubjectString);
             $slice
                 ->addSection($section)
                 ->styleBorderTop()
@@ -367,15 +355,26 @@ class GradebookOverview extends AbstractDocument
             ksort($data);
             foreach ($data as $acronym => $periodArray) {
                 $section = new Section();
-                $section
-                    ->addElementColumn((new Element())
+                if(strpos($acronym, ' ')){
+                    $section->addElementColumn((new Element())
+                        ->setContent($acronym)
+                        ->styleBorderTop()
+                        ->stylePaddingTop('1.5px')
+                        ->stylePaddingBottom('1px')
+                        ->styleTextBold()
+                        ->styleHeight('34px')
+                        ->styleBackgroundColor('lightgrey')
+                        , $widthSubjectString);
+                } else {
+                    $section->addElementColumn((new Element())
                         ->setContent($acronym)
                         ->styleBorderTop()
                         ->stylePaddingTop('10px')
-                        ->stylePaddingBottom('9.9px')
+                        ->stylePaddingBottom('9.5px')
                         ->styleTextBold()
                         ->styleBackgroundColor('lightgrey')
                         , $widthSubjectString);
+                }
                 if (is_array($periodArray)) {
                     $count = 0;
                     foreach ($tblPeriodList as $tblPeriod) {
@@ -413,8 +412,8 @@ class GradebookOverview extends AbstractDocument
                             }
 
                             // leer auffüllen
-                            if (count($periodArray[$tblPeriod->getId()]) < $maxGradesPerPeriodCount[$tblPeriod->getId()]) {
-                                for ($i = 0; $i < $maxGradesPerPeriodCount[$tblPeriod->getId()] - count($periodArray[$tblPeriod->getId()]); $i++) {
+                            if (count($periodArray[$tblPeriod->getId()]) < $totalGradeCountPeriod) {
+                                for ($i = 0; $i < ($totalGradeCountPeriod - count($periodArray[$tblPeriod->getId()])); $i++) {
                                     $section
                                         ->addElementColumn((new Element())
                                             ->setContent(
@@ -470,7 +469,7 @@ class GradebookOverview extends AbstractDocument
                                 ->styleBorderRight()
                                 ->styleTextBold()
                                 ->styleBackgroundColor('lightgrey')
-                                , $widthGradeString);
+                                , $widthSubjectString);
                     }
                 } else {
                     for ($i = 0; $i < $totalGradeCount; $i++) {
@@ -498,12 +497,15 @@ class GradebookOverview extends AbstractDocument
     }
 
     /**
+     * @param TblPerson   $tblPerson
+     * @param TblDivision $tblDivision
+     *
      * @return Page
      */
-    public function buildPage()
+    public function buildPage(TblPerson $tblPerson, TblDivision $tblDivision)
     {
         return (new Page())
-            ->addSlice($this->getPageHeaderSlice())
-            ->addSlice($this->getGradebookOverviewSlice());
+            ->addSlice($this->getPageHeaderSlice($tblPerson, $tblDivision))
+            ->addSlice($this->getGradebookOverviewSlice($tblPerson, $tblDivision));
     }
 }

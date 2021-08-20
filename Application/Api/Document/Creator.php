@@ -112,9 +112,10 @@ class Creator extends Extension
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
         ) {
-            $Document = new GradebookOverview\GradebookOverview($tblPerson, $tblDivision);
+            $Document = new GradebookOverview\GradebookOverview();
+            $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
 
-            $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
+            $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
 
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
@@ -159,9 +160,9 @@ class Creator extends Extension
             if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
 //                $FileList = array();
                 foreach($tblPersonList as $tblPerson){
-                    $Document = new GradebookOverview\GradebookOverview($tblPerson, $tblDivision);
+                    $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
-                    $pageList[] = $Document->buildPage();
+                    $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
                     // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
 
 //                    // hinzufügen für das mergen
@@ -180,13 +181,16 @@ class Creator extends Extension
 //                }
             }
 
-            if(!empty($pageList) && $Document){
-                $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
+            if(!empty($pageList)){
+                $template = new GradebookOverview\GradebookOverview();
+                $File = self::buildDummyFile($template, array(), $pageList, $paperOrientation);
             }
 
             $FileName = $documentName . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
 
-            return self::buildDownloadFile($File, $FileName);
+            if(isset($File)){
+                return self::buildDownloadFile($File, $FileName);
+            }
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
