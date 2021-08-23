@@ -627,6 +627,7 @@ class Service extends Extension
                 $Item['Address'] = '';
                 $Item['Phone'] = '';
                 $Item['PhoneGuardian'] = '';
+                $phoneGuardianList = array();
                 $Item['TypeOptionA'] = $Item['TypeOptionB'] = $Item['DivisionLevel'] = $Item['RegistrationDate'] = '';
                 $Item['SchoolYear'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
@@ -739,22 +740,22 @@ class Service extends Extension
                                 if ($tblToPhoneList) {
                                     foreach ($tblToPhoneList as $tblToPhone) {
                                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
-                                            if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                            if (!isset($phoneGuardianList[$tblPersonGuardian->getId()])) {
+                                                $phoneGuardianList[$tblPersonGuardian->getId()] =
                                                     $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
                                                     ' ('.$tblPhone->getNumber().' '.
                                                     // modify TypeShort
                                                     str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                $phoneGuardianList[$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
                                                     // modify TypeShort
                                                     str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             }
                                         }
                                     }
                                 }
-                                if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                if (isset($phoneGuardianList[$tblPersonGuardian->getId()])) {
+                                    $phoneGuardianList[$tblPersonGuardian->getId()] .= ')';
                                 }
                             }
 
@@ -775,8 +776,8 @@ class Service extends Extension
                     }
                 }
 
-                if (!empty($Item['PhoneGuardian'])) {
-                    $Item['PhoneGuardian'] = implode('; ', $Item['PhoneGuardian']);
+                if (!empty($phoneGuardianList)) {
+                    $Item['PhoneGuardian'] = implode('; ', $phoneGuardianList);
                 }
 
                 if ($father !== null) {
@@ -1112,9 +1113,9 @@ class Service extends Extension
 
                 $Item['Number'] = $count++;
                 $Item['Education'] = '';
-                $Item['ExcelName'] = '';
+                $Item['ExcelName'] = array();
                 $Item['Address'] = '';
-                $Item['ExcelAddress'] = '';
+                $Item['ExcelAddress'] = array();
                 $Item['Birthday'] = $Item['Birthplace'] = '';
                 $Item['PhoneNumbers'] = '';
                 $Item['ExcelPhoneNumbers'] = '';
@@ -1126,7 +1127,7 @@ class Service extends Extension
                 $Item['Group1'] = false;
                 $Item['Group2'] = false;
                 $Item['Elective'] = '';
-                $Item['ExcelElective'] = '';
+                $Item['ExcelElective'] = array();
                 $Item['Integration'] = '';
                 $Item['French'] = '';
 
