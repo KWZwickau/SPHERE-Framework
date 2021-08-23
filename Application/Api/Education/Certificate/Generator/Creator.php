@@ -26,7 +26,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\PdfMerge;
 
 /**
  * Class Creator
@@ -533,6 +532,8 @@ class Creator extends Extension
             ));
         }
 
+        $pageList = array();
+
         $tblPrepareList = false;
         $tblGroup = false;
         $description = '';
@@ -550,11 +551,6 @@ class Creator extends Extension
                 }
             }
         }
-
-        // Fieldpointer auf dem der Merge durchgeführt wird, (download)
-        $MergeFile = Storage::createFilePointer('pdf');
-        $PdfMerger = new PdfMerge();
-        $FileList = array();
 
         if ($tblPrepareList) {
             foreach ($tblPrepareList as $tblPrepareItem) {
@@ -586,46 +582,22 @@ class Creator extends Extension
                                     }
 
                                     $page = $Certificate->buildPages($tblPerson);
-
-                                    $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
-                                    $personLastName = str_replace('ü', 'ue', $personLastName);
-                                    $personLastName = str_replace('ö', 'oe', $personLastName);
-                                    $personLastName = str_replace('ß', 'ss', $personLastName);
-                                    $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
-                                        . '-' . date('Y-m-d') . '--');
-                                    /** @var DomPdf $Document */
-                                    $Document = Document::getPdfDocument($File->getFileLocation());
-                                    $Content = $Certificate->createCertificate($Data, array(0 => $page));
-                                    $Document->setContent($Content);
-                                    $Document->saveFile(new FileParameter($File->getFileLocation()));
-
-                                    // hinzufügen für das mergen
-                                    $PdfMerger->addPdf($File);
-                                    // speichern der Files zum nachträglichem bereinigen
-                                    $FileList[] = $File;
+                                    $pageList[$tblPerson->getId()] = $page;
                                 }
                             }
                         }
                     }
                 }
             }
-
-            if(!empty($FileList)){
-                // mergen aller hinzugefügten PDF-Datein
-                $PdfMerger->mergePdf($MergeFile);
-
-                // aufräumen der Temp-Files
-                /** @var FilePointer $File */
-                foreach($FileList as $File){
-                    $File->setDestruct();
-                }
-            }
         }
 
-        if (!empty($FileList) && $tblPrepare) {
+        if ($tblPrepare && !empty($pageList)) {
+            $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare, $tblGroup ? $tblGroup : null);
+            $File = self::buildMultiDummyFile($Data, $pageList);
+
             $FileName = $Name . ' ' . ($description ? $description : '-') . ' ' . date("Y-m-d") . ".pdf";
 
-            return self::buildDownloadFile($MergeFile, $FileName);
+            return self::buildDownloadFile($File, $FileName);
         }
 
         return "Keine Zeugnisse vorhanden!";
@@ -711,10 +683,7 @@ class Creator extends Extension
             ));
         }
 
-        // Fieldpointer auf dem der Merge durchgeführt wird, (download)
-        $MergeFile = Storage::createFilePointer('pdf');
-        $PdfMerger = new PdfMerge();
-        $FileList = array();
+        $pageList = array();
 
         if ($GroupId) {
             $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -723,17 +692,17 @@ class Creator extends Extension
         }
 
         $tblPrepareList = false;
-        $name = '';
+        $description = '';
         if (($tblPrepareCertificate = Prepare::useService()->getPrepareById($PrepareId))) {
             if ($tblGroup) {
-                $name = $tblGroup->getName();
+                $description = $tblGroup->getName();
                 if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                     if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())) {
                         $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
                     }
                 }
             } else {
-                $name = $tblPrepareCertificate->getServiceTblDivision()
+                $description = $tblPrepareCertificate->getServiceTblDivision()
                     ? $tblPrepareCertificate->getServiceTblDivision()->getDisplayName()
                     : '';
                 $tblPrepareList = array(0 => $tblPrepareCertificate);
@@ -787,6 +756,7 @@ class Creator extends Extension
                                         }
 
                                         $page = $Certificate->buildPages($tblPerson);
+                                        $pageList[$tblPerson->getId()] = $page;
 
                                         $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                                         $personLastName = str_replace('ü', 'ue', $personLastName);
@@ -809,11 +779,6 @@ class Creator extends Extension
                                                 Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
                                             }
                                         }
-
-                                        // hinzufügen für das mergen
-                                        $PdfMerger->addPdf($File);
-                                        // speichern der Files zum nachträglichem bereinigen
-                                        $FileList[] = $File;
                                     }
                                 }
                             }
@@ -822,21 +787,12 @@ class Creator extends Extension
                 }
             }
 
-            if(!empty($FileList)){
-                // mergen aller hinzugefügten PDF-Datein
-                $PdfMerger->mergePdf($MergeFile);
+            if ($tblPrepareCertificate && !empty($pageList)) {
+                $Data = Prepare::useService()->getCertificateMultiContent($tblPrepareCertificate, $tblGroup ? $tblGroup : null);
+                $File = self::buildMultiDummyFile($Data, $pageList);
+                $FileName = $Name . ' ' . $description . ' ' . date("Y-m-d") . ".pdf";
 
-                // aufräumen der Temp-Files
-                /** @var FilePointer $File */
-                foreach($FileList as $File){
-                    $File->setDestruct();
-                }
-            }
-
-            if (!empty($FileList) && $tblPrepareCertificate) {
-                $FileName = $Name . ' ' . $name . ' ' . date("Y-m-d") . ".pdf";
-
-                return self::buildDownloadFile($MergeFile, $FileName);
+                return self::buildDownloadFile($File, $FileName);
 
             } else {
 
