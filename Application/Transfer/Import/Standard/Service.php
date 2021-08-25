@@ -298,7 +298,7 @@ class Service
                 // Schulverlauf aus zweiter Datei KWS
                 if(($tblAccount =  Account::useService()->getAccountBySession())
                     && ($tblConsumer = $tblAccount->getServiceTblConsumer())
-                    && $tblConsumer->getAcronym() == 'KWS'
+                    && ($tblConsumer->getAcronym() == 'KWS' || $tblConsumer->getAcronym() == 'HOGA')
                 ){
                     // division
                     $divisionString = $this->getValue('Klasse/Kurs');
@@ -1492,6 +1492,14 @@ class Service
                     case 'bgy':
                     case 'berufliches gymnasium':
                     $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_BERUFLICHES_GYMNASIUM);
+                    break;
+                    case 'fos':
+                    case 'fachoberschule':
+                    $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_FACH_OBER_SCHULE);
+                    break;
+                    case 'bvj':
+                    case 'berufsvorbereitungsjahr':
+                    $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_VORBEREITUNGS_JAHR);
                     break;
                     default:
                         $tblSchoolType = false;
