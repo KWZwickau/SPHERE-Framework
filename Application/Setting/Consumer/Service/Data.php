@@ -498,15 +498,13 @@ class Data extends AbstractData
                     $container->getContainer('Password')->getValue(),
                     $tblConsumer->getAcronym()
                 );
-
                 if ($connection) {
                     $queryBuilder = $connection->getQueryBuilder();
 
                     $query = $queryBuilder->select('S.Value')
-                        ->from('SettingConsumer_' . $tblConsumer->getAcronym() . '.tblSetting', 'S')
+                        ->from($tblConsumer->getAcronym().'_SettingConsumer.tblSetting', 'S')
                         ->where('S.Identifier = :identifier')
                         ->setParameter('identifier', $tblSetting->getIdentifier());
-
                     $result = $query->execute();
                     $array = $result->fetch();
 
@@ -531,14 +529,14 @@ class Data extends AbstractData
      * @param string $Host Server-Address (IP)
      * @param string $User
      * @param string $Password
-     * @param string $Acronym DatabaseName will get prefix 'SettingConsumer_' e.g. SettingConsumer_{Acronym}
+     * @param string $Acronym DatabaseName will get prefix '_SettingConsumer' e.g. {Acronym}_SettingConsumer
      *
      * @return bool|IBridgeInterface
      */
     private function getConnectionByAcronym($Host, $User, $Password, $Acronym)
     {
         $Connection = MocDatabase::getDatabase(
-            $User, $Password, 'SettingConsumer_' . strtoupper($Acronym), (new MySql())->getIdentifier(), $Host
+            $User, $Password, strtoupper($Acronym).'_SettingConsumer', (new MySql())->getIdentifier(), $Host
         );
         if ($Connection->getConnection()->isConnected()) {
             return $Connection;

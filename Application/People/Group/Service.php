@@ -428,7 +428,8 @@ class Service extends AbstractService
             // control settings
             $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
             if($tblSetting && $tblSetting->getValue()) {
-                $this->setAutoStudentNumber($tblPerson);
+                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                $this->setAutoStudentNumber($tblPerson, $MaxIdentifier);
             }
         }
         return (new Data($this->getBinding()))->addGroupPerson($tblGroup, $tblPerson);
@@ -448,30 +449,37 @@ class Service extends AbstractService
             // control settings
             $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
             if($tblSetting && $tblSetting->getValue()) {
+                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
                 foreach($tblPersonList as $tblPerson){
-                    $this->setAutoStudentNumber($tblPerson);
+                    $MaxIdentifier = $this->setAutoStudentNumber($tblPerson, $MaxIdentifier);
                 }
             }
         }
         return $result;
     }
 
-    private function setAutoStudentNumber(TblPerson $tblPerson)
+    /**
+     * @param TblPerson $tblPerson
+     * @param int       $MaxIdentifier
+     *
+     * @return int
+     */
+    private function setAutoStudentNumber(TblPerson $tblPerson, $MaxIdentifier = 0)
     {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         if($tblStudent){
             if($tblStudent->getIdentifier() == ''){
-                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
                 $MaxIdentifier++;
                 Student::useService()->updateStudentIdentifier($tblStudent, $MaxIdentifier);
             }
         } else {
-            $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
             $MaxIdentifier++;
             $Prefix = '';
             Student::useService()->createStudent($tblPerson, $Prefix, $MaxIdentifier);
         }
+
+        return $MaxIdentifier;
     }
 
     /**
