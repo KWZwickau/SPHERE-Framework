@@ -129,18 +129,19 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return string
+     * @param string $format
+     *
+     * @return false|string
      */
-    public function getFromDate()
+    public function getFromDate(string $format = 'd.m.Y')
     {
 
         if (null === $this->FromDate) {
             return false;
         }
-        /** @var DateTime $Date */
         $Date = $this->FromDate;
         if ($Date instanceof DateTime) {
-            return $Date->format('d.m.Y');
+            return $Date->format($format);
         } else {
             return (string)$Date;
         }
@@ -164,7 +165,6 @@ class TblAbsence extends Element
         if (null === $this->ToDate) {
             return false;
         }
-        /** @var DateTime $Date */
         $Date = $this->ToDate;
         if ($Date instanceof DateTime) {
             return $Date->format('d.m.Y');

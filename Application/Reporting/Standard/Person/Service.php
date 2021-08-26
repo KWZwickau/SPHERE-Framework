@@ -1354,8 +1354,8 @@ class Service extends Extension
                         $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
                         $Item['Identifier'] = $tblStudent->getIdentifierComplete();
                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblStudentTransferType))) {
+                        if (Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblStudentTransferType)) {
                             $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
                                 ? $tblCompany->getDisplayName()
                                 : '');
@@ -1569,11 +1569,11 @@ class Service extends Extension
             $Row += 2;
 
             $Column = 0;
-            foreach ($ColumnStandard as $Key => $Value) {
+            foreach ($ColumnStandard as $Value) {
                 $export->setValue($export->getCell($Column, $Row), $Value);
                 $Column++;
             }
-            foreach ($ColumnCustom as $Key => $Value) {
+            foreach ($ColumnCustom as $Value) {
                 $export->setValue($export->getCell($Column, $Row), $Value);
 //                $export->setStyle($export->getCell($Column, $Row))->setWrapText();
                 $Column++;
@@ -2772,7 +2772,7 @@ class Service extends Extension
              * @var int                                $Index
              * @var ViewPerson[]|ViewDivisionStudent[] $Row
              */
-            foreach ($Result as $Index => $Row) {
+            foreach ($Result as $Row) {
 
                 /** @var ViewPerson $DataPerson */
                 $DataPerson = $Row[0]->__toArray();
@@ -3751,7 +3751,7 @@ class Service extends Extension
         $isGroup,
         DateTime $startDate,
         DateTime $endDate = null
-    ) {
+    ): FilePointer {
         $fileLocation = Storage::createFilePointer('xlsx');
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
