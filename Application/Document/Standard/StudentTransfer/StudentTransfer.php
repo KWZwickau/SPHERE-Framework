@@ -214,7 +214,7 @@ class StudentTransfer extends Extension
                             foreach ($tblYearList as $tblYear) {
                                 $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
                                 if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
+                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getDisplayName();
                                 }
                             }
                         }
@@ -308,11 +308,17 @@ class StudentTransfer extends Extension
                     $tblDivision = $tblDivisionStudent->getTblDivision();
                     if ($tblDivision) {
                         $tblLevel = $tblDivision->getTblLevel();
-                        if (!array_key_exists($tblLevel->getName(), $DivisionArray)) {
-                            $DivisionArray[$tblLevel->getName()] = $tblDivision->getDisplayName();
-                        } elseif ($tblLevel->getName() != '') {
-                            $DivisionRepeatArray[] = $tblDivision->getTblLevel()->getName();
+                        $tblType = $tblDivision->getType();
+                        if (!array_key_exists($tblLevel->getName().$tblType->getId(), $DivisionArray)) {
+                            $DivisionArray[$tblLevel->getName().$tblType->getId()] = $tblDivision->getDisplayName();
+                        } else {
+                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
                         }
+//                        } elseif (array_key_exists($tblType->getId(), $DivisionArray)) {
+//                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
+//                        } elseif ($tblLevel->getName() != '') {
+//                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
+//                        }
                     }
                 }
             }
