@@ -3742,6 +3742,9 @@ class Service extends AbstractService
         ) {
             foreach ($tblPrepareGradeList as $tblPrepareGrade) {
                 if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
+                    // keine leeren Zensuren kopieren
+                    && $tblPrepareGrade->getGrade() !== ''
+                    && $tblPrepareGrade->getGrade() !== null
                 ) {
                     if ($tblSubject->getAcronym() == 'EN2') {
                         $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
@@ -3851,6 +3854,9 @@ class Service extends AbstractService
         ) {
             foreach ($tblPrepareGradeList as $tblPrepareGrade) {
                 if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
+                    // keine leeren Zensuren kopieren
+                    && $tblPrepareGrade->getGrade() !== ''
+                    && $tblPrepareGrade->getGrade() !== null
                 ) {
                     if (($tblLeaveAdditionalGrade = Prepare::useService()->getLeaveAdditionalGradeBy(
                         $tblLeaveStudent,
