@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Api\Document\Custom;
 
+use SPHERE\Application\Api\Document\Custom\Hoga\Hoga;
 use SPHERE\Application\Api\Document\Custom\Lebenswelt\Lebenswelt;
 use SPHERE\Application\Api\Document\Custom\Limbach\Limbach;
 use SPHERE\Application\Api\Document\Custom\Radebeul\Radebeul;
@@ -46,21 +47,24 @@ class Custom extends Extension implements IModuleInterface
         if ($consumerAcronym === 'FELS') { // local test || $consumerAcronym === 'REF'
             Limbach::registerModule();
         }
+        if ($consumerAcronym === 'HOGA') {
+            Hoga::registerModule();
+        }
     }
 
     /**
-     * @return IServiceInterface
+     * @return IServiceInterface|void
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
-     * @return IFrontendInterface
+     * @return IFrontendInterface|void
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 }
