@@ -1353,16 +1353,12 @@ class Service extends Extension
                         }
                         $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
                         $Item['Identifier'] = $tblStudent->getIdentifierComplete();
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblStudentTransferType))) {
-                            $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
-                                ? $tblCompany->getDisplayName()
-                                : '');
-                            $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
-                                ? Student::useService()->getCourseByStudent($tblStudent)->getName()
-                                : '');
-                        }
+                        $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
+                            ? $tblCompany->getDisplayName()
+                            : '');
+                        $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
+                            ? Student::useService()->getCourseByStudent($tblStudent)->getName()
+                            : '');
                         $tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
                         if ($tblAgreementList) {
                             $MarkValue = 'Ja';
@@ -1569,11 +1565,11 @@ class Service extends Extension
             $Row += 2;
 
             $Column = 0;
-            foreach ($ColumnStandard as $Key => $Value) {
+            foreach ($ColumnStandard as $Value) {
                 $export->setValue($export->getCell($Column, $Row), $Value);
                 $Column++;
             }
-            foreach ($ColumnCustom as $Key => $Value) {
+            foreach ($ColumnCustom as $Value) {
                 $export->setValue($export->getCell($Column, $Row), $Value);
 //                $export->setStyle($export->getCell($Column, $Row))->setWrapText();
                 $Column++;
@@ -2377,6 +2373,7 @@ class Service extends Extension
                 $Item['Religion'] = '';
                 $Item['Elective'] = '';
                 $Item['ExcelElective'] = '';
+                $Item['Elective1'] = $Item['Elective2'] = $Item['Elective3'] = $Item['Elective4'] = $Item['Elective5'] = '';
 
                 $Item['Name'] = $tblPerson->getLastFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
@@ -2489,6 +2486,26 @@ class Service extends Extension
                                 if ($tblSubjectRanking) {
                                     $ElectiveList[$tblStudentElective->getTblStudentSubjectRanking()->getIdentifier()] =
                                         $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                    if($tblStudentElective->getServiceTblSubject()){
+                                        switch($tblSubjectRanking->getIdentifier()) {
+                                            case 1:
+                                                $Item['Elective1'] = $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                                break;
+                                            case 2:
+                                                $Item['Elective2'] = $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                                break;
+                                            case 3:
+                                                $Item['Elective3'] = $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                                break;
+                                            case 4:
+                                                $Item['Elective4'] = $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                                break;
+                                            case 5:
+                                                $Item['Elective5'] = $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                                break;
+                                        }
+                                    }
+
                                 } else {
                                     $ElectiveList[] =
                                         $tblStudentElective->getServiceTblSubject()->getAcronym();
@@ -2556,19 +2573,25 @@ class Service extends Extension
                             $teacherList)));
             }
 
+            $i = 0;
             // Header
-            $export->setValue($export->getCell(0, 1), "Name");
-            $export->setValue($export->getCell(1, 1), "Geb.-Datum");
-            $export->setValue($export->getCell(2, 1), "Bildungsgang");
-            $export->setValue($export->getCell(3, 1), "FS 1");
-            $export->setValue($export->getCell(4, 1), "FS 2");
-            $export->setValue($export->getCell(5, 1), "FS 3");
-            $export->setValue($export->getCell(6, 1), "Profil");
-            $export->setValue($export->getCell(7, 1), "Neigungskurs");
-            $export->setValue($export->getCell(8, 1), "Religion");
-            $export->setValue($export->getCell(9, 1), "Wahlfächer");
+            $export->setValue($export->getCell($i++, 1), "Name");
+            $export->setValue($export->getCell($i++, 1), "Geb.-Datum");
+            $export->setValue($export->getCell($i++, 1), "Bg");
+            $export->setValue($export->getCell($i++, 1), "FS 1");
+            $export->setValue($export->getCell($i++, 1), "FS 2");
+            $export->setValue($export->getCell($i++, 1), "FS 3");
+            $export->setValue($export->getCell($i++, 1), "Profil");
+            $export->setValue($export->getCell($i++, 1), "Neig.k.");
+            $export->setValue($export->getCell($i++, 1), "Rel.");
+            $export->setValue($export->getCell($i++, 1), "WF 1-5");
+            $export->setValue($export->getCell($i++, 1), "WF 1");
+            $export->setValue($export->getCell($i++, 1), "WF 2");
+            $export->setValue($export->getCell($i++, 1), "WF 3");
+            $export->setValue($export->getCell($i++, 1), "WF 4");
+            $export->setValue($export->getCell($i, 1), "WF 5");
             // Header bold
-            $export->setStyle($export->getCell(0, 1), $export->getCell(9, 1))->setFontBold();
+            $export->setStyle($export->getCell(0, 1), $export->getCell(14, 1))->setFontBold();
 
             $Row = 2;
             foreach ($PersonList as $PersonData) {
@@ -2584,12 +2607,20 @@ class Service extends Extension
                 $export->setValue($export->getCell(7, $Row), $PersonData['Orientation']);
                 $export->setValue($export->getCell(8, $Row), $PersonData['Religion']);
 
-                if (isset($PersonData['ExcelElective']) && !empty($PersonData['ExcelElective'])) {
-                    foreach ($PersonData['ExcelElective'] as $Elective) {
-                        $export->setValue($export->getCell(9, $ElectiveRow), $Elective);
-                        $ElectiveRow++;
-                    }
+//                if (isset($PersonData['ExcelElective']) && !empty($PersonData['ExcelElective'])) {
+//                    foreach ($PersonData['ExcelElective'] as $Elective) {
+//                        $export->setValue($export->getCell(9, $ElectiveRow), $Elective);
+//                        $ElectiveRow++;
+//                    }
+//                }
+                if(!empty($PersonData['ExcelElective'])){
+                    $export->setValue($export->getCell(9, $Row), implode(', ', $PersonData['ExcelElective']));
                 }
+                $export->setValue($export->getCell(10, $Row), $PersonData['Elective1']);
+                $export->setValue($export->getCell(11, $Row), $PersonData['Elective2']);
+                $export->setValue($export->getCell(12, $Row), $PersonData['Elective3']);
+                $export->setValue($export->getCell(13, $Row), $PersonData['Elective4']);
+                $export->setValue($export->getCell(14, $Row), $PersonData['Elective5']);
 
                 $Row++;
                 if ($ElectiveRow > $Row) {
@@ -2597,13 +2628,13 @@ class Service extends Extension
                 }
 
                 // Gittertrennlinie
-                $export->setStyle($export->getCell(0, $Row - 1), $export->getCell(9, $Row - 1))->setBorderBottom();
+//                $export->setStyle($export->getCell(0, $Row - 1), $export->getCell(14, $Row - 1))->setBorderBottom();
             }
 
-            // Gitterlinien
-            $export->setStyle($export->getCell(0, 1), $export->getCell(9, 1))->setBorderBottom();
-            $export->setStyle($export->getCell(0, 1), $export->getCell(9, $Row - 1))->setBorderVertical();
-            $export->setStyle($export->getCell(0, 1), $export->getCell(9, $Row - 1))->setBorderOutline();
+//            // Gitterlinien
+//            $export->setStyle($export->getCell(0, 1), $export->getCell(14, 1))->setBorderBottom();
+//            $export->setStyle($export->getCell(0, 1), $export->getCell(14, $Row - 1))->setBorderVertical();
+            $export->setStyle($export->getCell(0, 1), $export->getCell(14, $Row - 1))->setBorderAll();
 
             // Personenanzahl
             $Row++;
@@ -2621,16 +2652,21 @@ class Service extends Extension
             $export->setValue($export->getCell(0, $Row), 'Stand: ' . (new DateTime())->format('d.m.Y'));
 
             // Spaltenbreite
-            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(20);
-            $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setColumnWidth(12);
-            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(5);
-            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(15);
-            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(15);
-            $export->setStyle($export->getCell(5, 0), $export->getCell(6, $Row))->setColumnWidth(15);
-            $export->setStyle($export->getCell(6, 0), $export->getCell(6, $Row))->setColumnWidth(8);
-            $export->setStyle($export->getCell(7, 0), $export->getCell(7, $Row))->setColumnWidth(8);
-            $export->setStyle($export->getCell(8, 0), $export->getCell(7, $Row))->setColumnWidth(8);
-            $export->setStyle($export->getCell(9, 0), $export->getCell(7, $Row))->setColumnWidth(8);
+            $export->setStyle($export->getCell(0, 0))->setColumnWidth(22);
+            $export->setStyle($export->getCell(1, 0))->setColumnWidth(12);
+            $export->setStyle($export->getCell(2, 0))->setColumnWidth(5);
+            $export->setStyle($export->getCell(3, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(4, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(5, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(6, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(7, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(8, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(9, 0))->setColumnWidth(14);
+            $export->setStyle($export->getCell(10, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(11, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(12, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(13, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(14, 0))->setColumnWidth(6);
             //
             //            // Schriftgröße
             //            $export->setStyle($export->getCell(0, 0), $export->getCell(7, 0))->setFontSize(12)
@@ -2772,7 +2808,7 @@ class Service extends Extension
              * @var int                                $Index
              * @var ViewPerson[]|ViewDivisionStudent[] $Row
              */
-            foreach ($Result as $Index => $Row) {
+            foreach ($Result as $Row) {
 
                 /** @var ViewPerson $DataPerson */
                 $DataPerson = $Row[0]->__toArray();

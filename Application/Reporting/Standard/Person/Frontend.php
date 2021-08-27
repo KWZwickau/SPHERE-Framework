@@ -1295,6 +1295,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Orientation'      => 'Neigungskurs',
                                         'Religion'         => 'Religion',
                                         'Elective'         => 'Wahlfächer',
+                                        'Elective1'         => 'Wahlfach 1',
+                                        'Elective2'         => 'Wahlfach 2',
+                                        'Elective3'         => 'Wahlfach 3',
+                                        'Elective4'         => 'Wahlfach 4',
+                                        'Elective5'         => 'Wahlfach 5',
                                     ),
                                     array(
                                         "pageLength" => -1,
