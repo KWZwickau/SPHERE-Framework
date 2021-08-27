@@ -297,13 +297,13 @@ SELECT distinct
 
 	(select
 		tSU.Name
-	from EducationLessonSubject_{{ ConsumerAcronym }}.tblSubject tSU
+	from {{ ConsumerAcronym }}_EducationLessonSubject.tblSubject tSU
 	where
 		(select
 			tSS.serviceTblSubject
-		from PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubject tSS
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
 		where tSSR.Identifier = 5
 			and tSST.Identifier = 'ELECTIVE'
 			and tSS.tblStudent = tS.Id
