@@ -124,13 +124,21 @@ class FrontendStudent extends FrontendReadOnly
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+                && $tblConsumer->getAcronym() == 'HOGA'
+            ) {
+                $routeEnrollmentDocument = '\Document\Custom\Hoga\Fill';
+            } else {
+                $routeEnrollmentDocument = '\Document\Standard\EnrollmentDocument\Fill';
+            }
+
             $hasApiRight = Access::useService()->hasAuthorization('/Api/Document/Standard/StudentCard/Create');
             if ($hasApiRight && $tblPerson != null) {
                 $listingContent[] = new External(
                         'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
                         new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
                     .new External(
-                        'Erstellen der Schulbescheinigung', '\Document\Standard\EnrollmentDocument\Fill',
+                        'Erstellen der Schulbescheinigung', $routeEnrollmentDocument,
                         new Download(), array('PersonId' => $tblPerson->getId()),
                         'Erstellen und Herunterladen einer Schulbescheinigung')
                     .new External(

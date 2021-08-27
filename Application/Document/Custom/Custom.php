@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Document\Custom;
 
+use SPHERE\Application\Document\Custom\Hoga\Hoga;
 use SPHERE\Application\Document\Custom\Lebenswelt\Lebenswelt;
 use SPHERE\Application\Document\Custom\Limbach\Limbach;
 use SPHERE\Application\Document\Custom\Radebeul\Radebeul;
@@ -35,6 +36,9 @@ class Custom implements IApplicationInterface
         }
         if ($consumerAcronym === 'FELS') { // local test  || $consumerAcronym === 'REF'
             Limbach::registerModule();
+        }
+        if ($consumerAcronym === 'HOGA') {
+            Hoga::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(
