@@ -46,6 +46,14 @@ class AccountingDownload implements IModuleInterface
     {
 
         if(($ExcelContent = Export::useService()->getAccountingContentByGroup())){
+
+            usort($ExcelContent, function($a1, $a2) {
+                $v1 = strtotime($a1['CreateUpdate']);
+                $v2 = strtotime($a2['CreateUpdate']);
+                return $v2 - $v1; // $v2 - $v1 to reverse direction
+            });
+            // maybe new PHP version?
+//            usort($ExcelContent, fn($a, $b) => strtotime($a["date"]) - strtotime($b["date"]));
             $fileLocation = Export::useService()->createAccountingExcelDownload($ExcelContent);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
