@@ -422,7 +422,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendAbsenceMonth($DivisionId = null, $BasicRoute = '')
     {
-        $Stage = new Stage('Fehlzeiten', 'Monatsübersicht');
+        $Stage = new Stage('Fehlzeiten', 'Kalenderansicht');
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
             $Stage->addButton(new Standard(
@@ -463,13 +463,13 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 ApiAbsence::receiverModal()
-                                . new Panel(
-                                    new Calendar() . ' Kalender',
-                                    ApiAbsence::receiverBlock(
-                                        ApiAbsence::generateOrganizerMonthly($tblDivision->getId(), $currentDate->format('m'), $currentDate->format('Y')),
-                                        'CalendarMonthContent'
+                                . ApiAbsence::receiverBlock(
+                                    ApiAbsence::generateOrganizerForDivisionWeekly(
+                                        $tblDivision->getId(),
+                                        $currentDate->format('W'),
+                                        $currentDate->format('Y')
                                     ),
-                                    Panel::PANEL_TYPE_PRIMARY
+                                    'CalendarContent'
                                 )
                             )
                         ))

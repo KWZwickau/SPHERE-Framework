@@ -434,7 +434,7 @@ class ClassRegister implements IApplicationInterface
                 ->ajaxPipelineOnClick(ApiSortDivision::pipelineOpenSortModal($tblDivision->getId(), 'Sortierung Geschlecht (alphabetisch)'));
             }
             $buttonList[] = new Standard(
-                'Fehlzeiten (Monatsansicht)', '/Education/ClassRegister/Absence/Month', new Calendar(), array(
+                'Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Absence/Month', new Calendar(), array(
                     'DivisionId' => $tblDivision->getId(),
                     'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                 )
