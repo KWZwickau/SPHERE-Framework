@@ -163,15 +163,16 @@ class ApiStandard extends Extension implements IApiInterface
 
         if (!empty($absenceList)) {
             $columns = array(
-                'Type' => 'Schulart',
-                'Group' => 'Gruppe',
-                'Division' => 'Klasse',
-                'Person' => 'Schüler',
-                'DateSpan' => 'Zeitraum',
-                'Lessons' => 'Unterrichts&shy;einheiten',
+                'Type'        => 'Schulart',
+                'Group'       => 'Gruppe',
+                'Division'    => 'Klasse',
+                'Person'      => 'Schüler',
+                'DateFrom'    => 'Zeitraum (von)',
+                'DateTo'      => 'Zeitraum bis',
+                'Lessons'     => 'Unterrichts&shy;einheiten',
                 'AbsenceType' => 'Typ',
-                'Status' => 'Status',
-                'Remark' => 'Bemerkung'
+                'Status'      => 'Status',
+                'Remark'      => 'Bemerkung'
             );
 
             if ($isGroup) {
@@ -212,9 +213,14 @@ class ApiStandard extends Extension implements IApiInterface
                                     array('0', 'asc'),
                                     array('1', 'asc'),
                                     array('2', 'asc'),
+                                    array('3', 'asc'),
                                 ),
                                 'columnDefs' => array(
+                                    // Klassen
                                     array('type' => 'natural', 'targets' => 1),
+                                    // von & bis
+                                    array('type' => 'de_date', 'targets' => 3),
+                                    array('type' => 'de_date', 'targets' => 4),
                                     //  geht aktuell nicht zusammen mit order beide Spalten
 //                                  array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                 ),

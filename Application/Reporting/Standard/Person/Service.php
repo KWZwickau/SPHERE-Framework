@@ -3794,7 +3794,7 @@ class Service extends Extension
         $hasAbsenceTypeOptions = false,
         $isGroup = false,
         DateTime $endDate = null
-    ) {
+    ): FilePointer {
         $fileLocation = Storage::createFilePointer('xlsx');
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
