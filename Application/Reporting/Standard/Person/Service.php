@@ -3744,11 +3744,10 @@ class Service extends Extension
             );
         }
 
-        if (!empty($absenceList)) {
-            return $this->createExcelByAbsenceList($absenceList, $hasAbsenceTypeOptions, $isGroup, $dateTimeFrom);
-        }
-
-        return false;
+//        if (!empty($absenceList)) {
+            return $this->createExcelByAbsenceList($dateTimeFrom, $absenceList, $hasAbsenceTypeOptions, $isGroup);
+//        }
+//        return false;
     }
 
     /**
@@ -3776,11 +3775,8 @@ class Service extends Extension
                     }
                 }
             }
-
-            return $this->createExcelByAbsenceList($resultList, $hasAbsenceTypeOptions, false, $startDate, $endDate);
         }
-
-        return false;
+        return $this->createExcelByAbsenceList($startDate, $resultList, $hasAbsenceTypeOptions, false, $endDate);
     }
 
     /**
@@ -3793,10 +3789,10 @@ class Service extends Extension
      * @return FilePointer
      */
     private function createExcelByAbsenceList(
-        $absenceList,
-        $hasAbsenceTypeOptions,
-        $isGroup,
         DateTime $startDate,
+        $absenceList = array(),
+        $hasAbsenceTypeOptions = false,
+        $isGroup = false,
         DateTime $endDate = null
     ) {
         $fileLocation = Storage::createFilePointer('xlsx');
@@ -3828,23 +3824,25 @@ class Service extends Extension
 
         $row++;
 
-        foreach ($absenceList as $absence) {
-            $column = 0;
+        if(!empty($absenceList)){
+            foreach ($absenceList as $absence) {
+                $column = 0;
 
-            $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
-            $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
-            $export->setValue($export->getCell($column++, $row), $absence['Person']);
-            $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
-            $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
-            if ($hasAbsenceTypeOptions) {
-                $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
+                $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
+                $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
+                $export->setValue($export->getCell($column++, $row), $absence['Person']);
+                $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
+                $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
+                if ($hasAbsenceTypeOptions) {
+                    $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
+                }
+                $export->setValue($export->getCell($column++, $row), $absence['StatusExcel']);
+                $export->setValue($export->getCell($column, $row), $absence['Remark']);
+
+                $export->setStyle($export->getCell(0, $row - 1), $export->getCell($maxColumn, $row))->setBorderBottom();
+
+                $row++;
             }
-            $export->setValue($export->getCell($column++, $row), $absence['StatusExcel']);
-            $export->setValue($export->getCell($column, $row), $absence['Remark']);
-
-            $export->setStyle($export->getCell(0, $row - 1), $export->getCell($maxColumn, $row))->setBorderBottom();
-
-            $row++;
         }
 
         // Spaltenbreite
