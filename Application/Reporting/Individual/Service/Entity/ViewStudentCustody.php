@@ -376,7 +376,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S1, 'S1: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'S1: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S1, 'S1: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S1, 'S1: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S1, 'S1: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'S1: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'S1: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'S1: PLZ');
@@ -398,7 +398,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S2, 'S2: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'S2: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S2, 'S2: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S2, 'S2: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S2, 'S2: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'S2: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'S2: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'S2: PLZ');
@@ -420,7 +420,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S3, 'S3: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'S3: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S3, 'S3: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S3, 'S3: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S3, 'S3: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'S3: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'S3: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'S3: PLZ');

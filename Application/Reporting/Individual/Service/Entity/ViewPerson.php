@@ -45,7 +45,10 @@ class ViewPerson extends AbstractView
 
     const TBL_GROUP_GROUP_LIST = 'TblGroup_GroupList';
 
-    const TBL_COMMON_BIRTHDATES_BIRTHDAY = 'TblCommonBirthDates_Birthday';
+    const TBL_COMMON_BIRTHDATES_BIRTH = 'TblCommonBirthDates_Birth';
+    const TBL_COMMON_BIRTHDATES_BIRTH_DAY = 'TblCommonBirthDates_BirthDay';
+    const TBL_COMMON_BIRTHDATES_BIRTH_MONTH = 'TblCommonBirthDates_BirthMonth';
+    const TBL_COMMON_BIRTHDATES_BIRTH_YEAR = 'TblCommonBirthDates_BirthYear';
     const TBL_COMMON_BIRTHDATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
     const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
     const TBL_COMMON_INFORMATION_NATIONALITY = 'TblCommonInformation_Nationality';
@@ -134,7 +137,19 @@ class ViewPerson extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCommonBirthDates_Birthday;
+    protected $TblCommonBirthDates_Birth;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCommonBirthDates_BirthDay;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCommonBirthDates_BirthMonth;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCommonBirthDates_BirthYear;
     /**
      * @Column(type="string")
      */
@@ -162,7 +177,10 @@ class ViewPerson extends AbstractView
 
         $this->setNameDefinition(self::TBL_GROUP_GROUP_LIST, 'Person: Gruppenliste');
 
-        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Person: Geburtstag');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTH, 'Person: Geburtsdatum');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTH_DAY, 'Person: Geburtstag');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTH_MONTH, 'Person: Geburtsmonat');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTH_YEAR, 'Person: Geburtsjahr');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Person: Geburtsort');
         $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Person: Geschlecht');
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_NATIONALITY, 'Person: Staatsangehörigkeit');
@@ -185,7 +203,10 @@ class ViewPerson extends AbstractView
         ));
         $this->setGroupDefinition('Personendaten', array(
             self::TBL_GROUP_GROUP_LIST,
-            self::TBL_COMMON_BIRTHDATES_BIRTHDAY,
+            self::TBL_COMMON_BIRTHDATES_BIRTH,
+            self::TBL_COMMON_BIRTHDATES_BIRTH_DAY,
+            self::TBL_COMMON_BIRTHDATES_BIRTH_MONTH,
+            self::TBL_COMMON_BIRTHDATES_BIRTH_YEAR,
             self::TBL_COMMON_BIRTHDATES_BIRTHPLACE,
             self::TBL_COMMON_GENDER_NAME,
             self::TBL_COMMON_INFORMATION_NATIONALITY,

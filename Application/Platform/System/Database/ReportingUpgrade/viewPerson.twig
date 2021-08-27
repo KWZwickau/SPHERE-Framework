@@ -26,7 +26,10 @@ SELECT
 -- tblCommon
     tC.Remark AS TblCommon_Remark,
 -- tblCommonBirthDates
-    DATE_FORMAT( tCBD.Birthday, '%d.%m.%Y' ) AS TblCommonBirthDates_Birthday,
+    DATE_FORMAT( tCBD.Birthday, '%d.%m.%Y' ) AS TblCommonBirthDates_Birth,
+    DATE_FORMAT( tCBD.Birthday, '%d' ) AS TblCommonBirthDates_Birthday,
+    DATE_FORMAT( tCBD.Birthday, '%m' ) AS TblCommonBirthDates_BirthMonth,
+    DATE_FORMAT( tCBD.Birthday, '%Y' ) AS TblCommonBirthDates_BirthYear,
     tCBD.Birthplace AS TblCommonBirthDates_Birthplace,
 -- tblCommonGender
     tCG.Name AS TblCommonGender_Name,

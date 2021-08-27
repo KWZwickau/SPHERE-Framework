@@ -815,7 +815,8 @@ class Service extends Extension
                 $Item['Gender'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
                 $Item['Address'] = '';
-                $Item['Birthday'] = $Item['Birthplace'] = $Item['Age'] = '';
+                $Item['Birth'] = $Item['BirthDay'] = $Item['BirthMonth'] = $Item['BirthYear'] = '';
+                $Item['Birthplace'] = $Item['Age'] = '';
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -845,9 +846,12 @@ class Service extends Extension
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
+                    $Item['Birth'] = $common->getTblCommonBirthDates()->getBirthday();
+                    $Item['BirthDay'] = $common->getTblCommonBirthDates()->getBirthday('d');
+                    $Item['BirthMonth'] = $common->getTblCommonBirthDates()->getBirthday('m');
+                    $Item['BirthYear'] = $common->getTblCommonBirthDates()->getBirthday('Y');
                     $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
-                    $birthDate = (new DateTime($common->getTblCommonBirthDates()->getBirthday()));
+                    $birthDate = new DateTime($Item['Birth']);
                     $now = new DateTime();
                     if ($birthDate->format('Y.m') != $now->format('Y.m')) {
                         if (($birthDate->format('m.d')) <= ($now->format('m.d'))) {
@@ -866,9 +870,9 @@ class Service extends Extension
             $month = array();
             $year = array();
             foreach ($TableContent as $key => $row) {
-                $month[$key] = substr($row['Birthday'], 3, 2);
-                $day[$key] = substr($row['Birthday'], 0, 2);
-                $year[$key] = substr($row['Birthday'], 6, 4);
+                $month[$key] = substr($row['Birth'], 3, 2);
+                $day[$key] = substr($row['Birth'], 0, 2);
+                $year[$key] = substr($row['Birth'], 6, 4);
             }
             array_multisort($month, SORT_ASC, $day, SORT_ASC, $year, SORT_DESC, $TableContent);
 
@@ -896,24 +900,31 @@ class Service extends Extension
 
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
+            $i = 0;
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
-            $export->setValue($export->getCell("1", "0"), "Name, Vorname");
-            $export->setValue($export->getCell("2", "0"), "Anschrift");
-            $export->setValue($export->getCell("3", "0"), "Geburtsort");
-            $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("5", "0"), "Alter");
+            $export->setValue($export->getCell($i++, "0"), "lfd. Nr.");
+            $export->setValue($export->getCell($i++, "0"), "Name, Vorname");
+            $export->setValue($export->getCell($i++, "0"), "Anschrift");
+            $export->setValue($export->getCell($i++, "0"), "Geburtsort");
+            $export->setValue($export->getCell($i++, "0"), "Geburtsdatum");
+            $export->setValue($export->getCell($i++, "0"), "Geburtstag");
+            $export->setValue($export->getCell($i++, "0"), "Geburtsmonat");
+            $export->setValue($export->getCell($i++, "0"), "Geburtsjahr");
+            $export->setValue($export->getCell($i, "0"), "Alter");
 
             $Row = 1;
 
             foreach ($PersonList as $PersonData) {
-
-                $export->setValue($export->getCell("0", $Row), $PersonData['Number']);
-                $export->setValue($export->getCell("1", $Row), $PersonData['Name']);
-                $export->setValue($export->getCell("2", $Row), $PersonData['Address']);
-                $export->setValue($export->getCell("3", $Row), $PersonData['Birthplace']);
-                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell("5", $Row), $PersonData['Age']);
+                $i = 0;
+                $export->setValue($export->getCell($i++, $Row), $PersonData['Number']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['Name']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['Address']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['Birth']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['BirthDay']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['BirthMonth']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['BirthYear']);
+                $export->setValue($export->getCell($i, $Row), $PersonData['Age']);
 
                 $Row++;
             }
@@ -1470,7 +1481,7 @@ class Service extends Extension
                 'PhoneNumber'              => 'Telefon Festnetz',
                 'MobilPhoneNumber'         => 'Telefon Mobil',
                 'Mail'                     => 'E-mail',
-                'Birthday'                 => 'Geburtstag',
+                'Birthday'                 => 'Geburtsdatum',
                 'BirthdaySort'             => 'Sortierung Geburtstag',
                 'BirthdayYearSort'         => 'Sortierung Geburtsdatum',
                 'BirthPlace'               => 'Geburtsort',
