@@ -391,7 +391,7 @@ class GrammarSchool extends AbstractStudentCard
             $text = '&nbsp;';
             switch ($i) {
                 case 1: $text = 'Datum des Zeugnisses'; break;
-                case 2: $text = 'Signums des Lehrers'; break;
+                case 2: $text = 'Signum des Lehrers'; break;
             }
             $element = (new Element())
                 ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))

@@ -176,7 +176,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 1: $text = 'Datum des Zeugnisses'; break;
                 case 2: $text = 'Versetzungsvermerke'; break;
                 case 3: $text = 'Versäumnisse'; break;
-                case 4: $text = 'Signums des Lehrers'; break;
+                case 4: $text = 'Signum des Lehrers'; break;
             }
             $element = (new Element())
                 ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
