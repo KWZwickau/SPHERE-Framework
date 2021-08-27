@@ -46,7 +46,7 @@ class ViewPerson extends AbstractView
     const TBL_GROUP_GROUP_LIST = 'TblGroup_GroupList';
 
     const TBL_COMMON_BIRTHDATES_BIRTH = 'TblCommonBirthDates_Birth';
-    const TBL_COMMON_BIRTHDATES_BIRTH_DAY = 'TblCommonBirthDates_BirthDay';
+    const TBL_COMMON_BIRTHDATES_BIRTH_DAY = 'TblCommonBirthDates_Birthday';
     const TBL_COMMON_BIRTHDATES_BIRTH_MONTH = 'TblCommonBirthDates_BirthMonth';
     const TBL_COMMON_BIRTHDATES_BIRTH_YEAR = 'TblCommonBirthDates_BirthYear';
     const TBL_COMMON_BIRTHDATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
@@ -141,7 +141,7 @@ class ViewPerson extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCommonBirthDates_BirthDay;
+    protected $TblCommonBirthDates_Birthday;
     /**
      * @Column(type="string")
      */
