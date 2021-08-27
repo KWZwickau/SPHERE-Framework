@@ -292,24 +292,24 @@ class Service extends AbstractService
                     }
                 }
 
-                // prüfen ob Alias eineindeutig ist
-                if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Address))) {
-                    foreach ($tblAccountList as $item) {
-                        if ($tblAccount->getId() != $item->getId()) {
-                            if($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
-                                $PersonString = 'Person nicht gefunden';
-                                if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
-                                    $foundPerson = current($tblPersonList);
-                                    /** @var TblPerson $foundPerson */
-                                    $PersonString = $foundPerson->getFirstName().', '.$foundPerson->getLastName();
+                    // prüfen ob Alias eineindeutig ist
+                    if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Address))) {
+                        foreach ($tblAccountList as $item) {
+                            if ($tblAccount->getId() != $item->getId()) {
+                                if($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
+                                    $PersonString = 'Person nicht gefunden';
+                                    if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
+                                        $foundPerson = current($tblPersonList);
+                                        /** @var TblPerson $foundPerson */
+                                        $PersonString = $foundPerson->getFirstName().', '.$foundPerson->getLastName();
+                                    }
+                                    $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet. ('.($item->getUsername().' - '.$PersonString.')');
+                                } else {
+                                    $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet.';
                                 }
-                                $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet. ('.($item->getUsername().' - '.$PersonString.')');
-                            } else {
-                                $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet.';
                             }
                         }
                     }
-                }
 
                 if($IsAccountUserAlias
                 && (Account::useService()->changeUserAlias($tblAccount, $Address))){
