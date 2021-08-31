@@ -584,8 +584,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         // Frontend Anzeige Error/Warnung
-        $CantCreatePanelContent = '';
-        $CantUpdatePanelContent = '';
+        $CantCreatePanelContent = array();
+        $CantUpdatePanelContent = array();
         if(!empty($cantCreateList)){
             foreach($cantCreateList as $cantCreateAccount){
                 $CantCreatePanelContent[] = implode('<br/>', $cantCreateAccount);
