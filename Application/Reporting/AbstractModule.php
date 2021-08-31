@@ -43,7 +43,9 @@ abstract class AbstractModule implements IModuleInterface
                 $Result = array(
                     TblCommonBirthDates::VALUE_GENDER_NULL   => 0,
                     TblCommonBirthDates::VALUE_GENDER_FEMALE => 0,
-                    TblCommonBirthDates::VALUE_GENDER_MALE   => 0
+                    TblCommonBirthDates::VALUE_GENDER_MALE   => 0,
+                    3                                        => 0,
+                    4                                        => 0
                 );
                 array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$Result, $CountGender) {
 
