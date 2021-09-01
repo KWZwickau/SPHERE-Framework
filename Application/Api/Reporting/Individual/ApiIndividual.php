@@ -91,6 +91,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -131,7 +132,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     // sortierung der Spalten nach Datum
     private $FieldNameSortByDate = array(
         'Grunddaten:_Schulpflicht_beginn',
-        'Person:_Geburtstag',
+        'Person:_Geburtsdatum',
         'Einschulung:_Datum',
         'Aufnahme:_Datum',
         'Abgabe:_Datum',
@@ -2018,8 +2019,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Query = $Builder->getQuery();
 
                 if($SqlReturn){
-                    return $Query->getSQL();
-//                    return new Code(print_r($ParameterList, true));
+                    return new Code($Query->getSQL(). print_r($ParameterList, true));
                 }
 
                 $Query->useQueryCache(true);
@@ -2199,6 +2199,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
 //        return $this->buildSearchQuery($ViewType, true);
         $Query = $this->buildSearchQuery($ViewType);
+//
+//        return $Query->getSQL();
         if( null === $Query ) {
             return 'Error';
         } else {

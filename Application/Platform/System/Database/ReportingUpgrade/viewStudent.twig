@@ -3,8 +3,10 @@ SELECT DISTINCT
     vGS.TblStudent_Id,
 
     (select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        where vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
+        where (vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
+            or vRTP.TblToPerson_serviceTblPersonFrom = vGS.TblPerson_Id)
         and vRTP.TblType_Name = 'Geschwisterkind'
+
         limit 0,1
     ) Sibling_Count,
 

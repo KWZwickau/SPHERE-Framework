@@ -3,9 +3,9 @@ SELECT
 
     -- Person S1
     -- Definition S1 Id
-    (SELECT vRTP.TblToPerson_serviceTblPersonTo
+    (SELECT vRTP.TblToPerson_serviceTblPersonFrom
         FROM {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonFROM
+        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         AND vRTP.TblType_Name = 'Sorgeberechtigt'
         AND vRTP.TblToPerson_Ranking = 1
         limit 0,1
@@ -13,7 +13,7 @@ SELECT
 
     if ((SELECT vRTP.TblToPerson_IsSingleParent
         FROM {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonFROM
+        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         AND vRTP.TblType_Name = 'Sorgeberechtigt'
         AND vRTP.TblToPerson_Ranking = 1
         limit 0,1
@@ -158,9 +158,9 @@ SELECT
 
     -- Person S2
     -- Definition S2 Id
-    (SELECT vRTP.TblToPerson_serviceTblPersonTo
+    (SELECT vRTP.TblToPerson_serviceTblPersonFrom
         FROM {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonFROM
+        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         AND vRTP.TblType_Name = 'Sorgeberechtigt'
         AND vRTP.TblToPerson_Ranking = 2
         limit 0,1
@@ -169,7 +169,7 @@ SELECT
 
     if ((SELECT vRTP.TblToPerson_IsSingleParent
         FROM {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonFROM
+        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         AND vRTP.TblType_Name = 'Sorgeberechtigt'
         AND vRTP.TblToPerson_Ranking = 2
         limit 0,1
@@ -308,9 +308,9 @@ SELECT
 
     -- Person S3
     -- Definition S3 Id
-    (SELECT vRTP.TblToPerson_serviceTblPersonTo
+    (SELECT vRTP.TblToPerson_serviceTblPersonFrom
         FROM {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonFROM
+        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         AND vRTP.TblType_Name = 'Sorgeberechtigt'
         AND vRTP.TblToPerson_Ranking = 3
         limit 0,1
@@ -319,7 +319,7 @@ SELECT
 
     if ((SELECT vRTP.TblToPerson_IsSingleParent
         FROM {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
-        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonFROM
+        WHERE tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         AND vRTP.TblType_Name = 'Sorgeberechtigt'
         AND vRTP.TblToPerson_Ranking = 3
         limit 0,1
