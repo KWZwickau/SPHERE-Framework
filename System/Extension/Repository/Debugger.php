@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -20,6 +21,8 @@ class Debugger
     private static $Timestamp = 0;
     /** @var int $TimeGap */
     private static $TimeGap = 0;
+    /** @var array $DeveloperList */
+    public static $DeveloperList = array();
 
     /**
      *
@@ -160,6 +163,26 @@ class Debugger
                     .'<code>'
                     . $Dump
                     . '</code></pre>';
+            }
+        }
+    }
+
+    /**
+     * @param mixed  $Content
+//     * @param string $Username
+     */
+    public static function screenDevDump($Content)  // , $Username = ''
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+//        if($tblAccount && (($Username && $tblAccount->getUsername() == $Username) || in_array($tblAccount->getUsername(), self::$DevelopList))){
+        if($tblAccount && in_array($tblAccount->getUsername(), self::$DeveloperList)){
+            if(!self::$Enabled){
+                self::$Enabled = true;
+                self::screenDump($Content);
+                self::$Enabled = false;
+            } else {
+                self::screenDump($Content);
             }
         }
     }
