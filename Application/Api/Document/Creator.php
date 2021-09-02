@@ -324,7 +324,6 @@ class Creator extends Extension
         if (($tblAccount = GatekeeperAccount::useService()->getAccountBySession())
             && ($tblAccountDownloadLock = Consumer::useService()->getAccountDownloadLock($tblAccount, 'StudentCard'))
             && $tblAccountDownloadLock->getIsFrontendLocked()
-            && false
         ) {
             return 'Sie können immer nur eine Schülerkartei herunterladen. Bitte warten Sie bis das Erstellen der letzten Schülerkartei abgeschlossen ist';
         }
@@ -415,15 +414,16 @@ class Creator extends Extension
 //                    }
 //                }
 
-                Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', false, true);
-
                 if (!empty($pageList)){
                     $template = new MultiStudentCard();
                     $File = self::buildDummyFile($template, array(), $pageList);
                     $FileName = 'Notenbücher_' . $tblDivision->getDisplayName()  . '_' . date("Y-m-d").".pdf";
+
+                    Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', false, true);
                     return self::buildDownloadFile($File, $FileName);
                 }
 
+                Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', false, true);
 //                if (!empty($FileList)) {
 //                    $FileName = 'Schülerkarteien Klasse ' . $tblDivision->getDisplayName()
 //                        . ($isList ? ' ' . $List . '.Teil' : '')

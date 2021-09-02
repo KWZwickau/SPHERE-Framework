@@ -198,10 +198,10 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblAccountDownloadLock = Consumer::useService()->getAccountDownloadLock($tblAccount, 'StudentCard'))
         ) {
             $isLocked = $tblAccountDownloadLock->getIsFrontendLocked();
-            $isFirstRun = false;
+//            $isFirstRun = false;
         } else {
             $isLocked = false;
-            $isFirstRun = true;
+//            $isFirstRun = true;
         }
 
         $Stage->setContent(
@@ -220,9 +220,11 @@ class Frontend extends Extension implements IFrontendInterface
                         empty($buttonList) ? '' : $buttonList
                     )),
                     new LayoutRow(array(
-                        new LayoutColumn(ApiDownload::receiverBlock($isFirstRun ? '' : ApiDownload::pipelineLoadTable(
-                            $isLocked, $tblYear ? $tblYear->getId() : null
-                        ), 'Table')),
+//                        new LayoutColumn(ApiDownload::receiverBlock($isFirstRun ? '' : ApiDownload::pipelineLoadTable(
+//                            $isLocked, $tblYear ? $tblYear->getId() : null
+//                        ), 'Table')),
+                        new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineLoadTable(
+                            $isLocked, $tblYear ? $tblYear->getId() : null), 'Table')),
 //                        new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineCheckLock(
 //                            $tblYear ? $tblYear->getId() : null
 //                        ), 'CheckLock'))
