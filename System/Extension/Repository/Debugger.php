@@ -168,10 +168,11 @@ class Debugger
     }
 
     /**
+     * silent debug on Live-Server
      * @param mixed  $Content
 //     * @param string $Username
      */
-    public static function screenDevDump($Content)  // , $Username = ''
+    public static function devDump($Content)  // , $Username = ''
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
