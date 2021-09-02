@@ -143,19 +143,7 @@ class Debugger
 
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            if (is_object($Dump)) {
-                if ($Dump instanceof Element) {
-                    $Dump = print_r($Dump->__toArray(), true);
-                } else {
-                    $Dump = print_r($Dump, true);
-                }
-            }
-            if (is_array($Dump)) {
-                $Dump = print_r($Dump, true);
-            }
-            if (null === $Dump) {
-                $Dump = 'NULL';
-            }
+            $Dump = self::getDump($Dump);
             self::addProtocol('ScreenDump: '.$Dump);
             if (self::$Enabled) {
                 print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
@@ -178,14 +166,40 @@ class Debugger
         $tblAccount = Account::useService()->getAccountBySession();
 //        if($tblAccount && (($Username && $tblAccount->getUsername() == $Username) || in_array($tblAccount->getUsername(), self::$DevelopList))){
         if($tblAccount && in_array($tblAccount->getUsername(), self::$DeveloperList)){
-            if(!self::$Enabled){
-                self::$Enabled = true;
-                self::screenDump($Content);
-                self::$Enabled = false;
-            } else {
-                self::screenDump($Content);
+            $Content = func_get_args();
+            foreach ((array)$Content as $Dump) {
+                $Dump = self::getDump($Dump);
+//                self::addProtocol('ScreenDump: '.$Dump);
+                print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
+                    . '<span class="text-danger" style="border-bottom: 1px dotted silver;">' . new Flash() . self::getCallingFunctionName() . '</span><br/>'
+                    .'<code>'
+                    . $Dump
+                    . '</code></pre>';
             }
         }
+    }
+
+    /**
+     * @param $Dump
+     *
+     * @return bool|mixed|string
+     */
+    private static function getDump($Dump)
+    {
+        if (is_object($Dump)) {
+            if ($Dump instanceof Element) {
+                $Dump = print_r($Dump->__toArray(), true);
+            } else {
+                $Dump = print_r($Dump, true);
+            }
+        }
+        if (is_array($Dump)) {
+            $Dump = print_r($Dump, true);
+        }
+        if (null === $Dump) {
+            $Dump = 'NULL';
+        }
+        return $Dump;
     }
 
     /**
