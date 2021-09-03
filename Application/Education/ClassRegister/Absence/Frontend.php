@@ -359,9 +359,11 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $left = array();
             $right = array();
-            for ($i = 1; $i < 6; $i++) {
+            for ($i = 0; $i < 7; $i++) {
                 $left[] = $this->setCheckBoxLesson($i);
-                $right[] = $this->setCheckBoxLesson($i + 5);
+                if ($i < 6) {
+                    $right[] = $this->setCheckBoxLesson($i + 7);
+                }
             }
 
             return new Layout(new LayoutGroup(array(

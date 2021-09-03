@@ -592,7 +592,7 @@ class Service extends AbstractService
             isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
             $tblPersonStaff ? $tblPersonStaff : null
         )) {
-            for ($i = 1; $i < 11; $i++) {
+            for ($i = 0; $i < 13; $i++) {
                 if (isset($Data['UE'][$i])) {
                     (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $i);
                 } else {
