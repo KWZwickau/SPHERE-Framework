@@ -358,6 +358,26 @@ class ApiBankReference extends Extension implements IApiInterface
                     $Error = true;
                 }
             }
+            // Zeichenlänge max 35
+            if(($RefLen = strlen($Reference['Number'])) > 35){
+                $form->setError('Reference[Number]',
+                    'Die Mandatsreferenznummer darf maximal 35 Zeichen enthalten');
+                $Error = true;
+            }
+            // Pregmatch von Extern verwenden
+            if(preg_match("![A-Za-z0-9+?/\-:().,'\\\]+!", $Reference['Number'], $Match)){
+                // mindestens eins der Zeichen ist nicht Valide
+                if($RefLen != strlen($Match[0])){
+                    $form->setError('Reference[Number]',
+                        'Die Mandatsreferenznummer darf nur ausgewählte Sonderzeichen enthalten A-Z a-z 0-9 + ?  / \ - : ( ) . , \'');
+                    $Error = true;
+                }
+            } else {
+                // keine validen Zeichen im String
+                $form->setError('Reference[Number]',
+                    'Die Mandatsreferenznummer darf nur ausgewählte Sonderzeichen enthalten A-Z a-z 0-9 + ?  / \ - : ( ) . , \'');
+                $Error = true;
+            }
         }
         if(isset($Reference['Date']) && empty($Reference['Date'])){
             $form->setError('Reference[Date]', 'Bitte geben Sie ein Datum an');
