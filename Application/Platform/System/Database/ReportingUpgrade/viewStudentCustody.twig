@@ -207,6 +207,11 @@ select
         FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
         WHERE tP.Id = TblPerson_S2_Id
     ) TblPerson_BirthName_S2,
+    (SELECT DATE_FORMAT( tCBD.Birthday, '%d.%m.%Y')
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCommon tC
+            LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
+        WHERE tC.serviceTblPerson = TblPerson_S2_Id
+    ) TblPerson_Birthday_S2,
 
     -- Address
     (select vCA.TblAddress_StreetName
@@ -359,7 +364,7 @@ select
     (SELECT DATE_FORMAT( tCBD.Birthday, '%d.%m.%Y')
         FROM {{ ConsumerAcronym }}_PeopleMeta.tblCommon tC
 			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
-        WHERE tC.serviceTblPerson = TblPerson_S1_Id
+        WHERE tC.serviceTblPerson = TblPerson_S3_Id
     ) TblPerson_Birthday_S3,
 
     -- Address
