@@ -2710,7 +2710,7 @@ class Service extends Extension
      */
     public function getStudentFilterResult($Person, $Year, $Division, $PersonGroup)
     {
-
+        ini_set('memory_limit', '1G');
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
         $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
             ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
