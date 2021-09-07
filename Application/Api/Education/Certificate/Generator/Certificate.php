@@ -87,13 +87,14 @@ abstract class Certificate extends Extension
     /**
      * @param array $Data
      * @param array $PageList
+     * @param array $certificateList
      *
      * @return IBridgeInterface
      */
-    public function createCertificate($Data = array(), $PageList = array())
+    public function createCertificate($Data = array(), $PageList = array(), $certificateList = array())
     {
 
-        $this->Certificate = $this->buildCertificate($PageList);
+        $this->Certificate = $this->buildCertificate($PageList, $certificateList);
 
         if (!empty($Data)) {
             $this->Certificate->setData($Data);
@@ -104,10 +105,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param array $PageList
+     * @param array $certificateList
      *
      * @return Frame
      */
-    public function buildCertificate($PageList = array())
+    public function buildCertificate($PageList = array(), $certificateList = array())
     {
 
         $document = new Document();
@@ -127,27 +129,38 @@ abstract class Certificate extends Extension
         $isWidth = false;
         $InjectStyle = '';
 
+        // Herausforderung bei multi download ist das Certificate jetzt ein MultiCertificate und nicht mehr das eigentliche Certificate
+        // Zwischenlösung das häufigste Certificate für den Style verwenden
+        // ansonsten prüfen ob die Pdfs wieder gemerged werden können
+        if (!empty($certificateList)) {
+            arsort($certificateList);
+            reset($certificateList);
+            $certificate = key($certificateList);
+        } else {
+            $certificate = get_class($this);
+        }
+
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
-        if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
+        if (strpos($certificate, 'RadebeulLernentwicklungsbericht') !== false) {
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; margin-top: 0.9cm !important; margin-bottom: 0.9cm !important; }';
         // für Kinderbrief von Radebeul 2,5cm Rand
-        } elseif (strpos(get_class($this), 'RadebeulKinderbrief') !== false) {
+        } elseif (strpos($certificate, 'RadebeulKinderbrief') !== false) {
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; margin-top: 0.9cm !important; margin-bottom: 0.9cm !important; }';
-        } elseif (strpos(get_class($this), 'EmspGsJ') !== false) {
+        } elseif (strpos($certificate, 'EmspGsJ') !== false) {
             $InjectStyle = 'body { margin-left: 0.18cm !important; margin-right: 0.18cm !important; margin-top: 0.18cm !important;
              padding-bottom: 0.18cm !important; border: 1px solid black; padding: 40px}';
-        } elseif (strpos(get_class($this), 'EmspGsHj') !== false) {
+        } elseif (strpos($certificate, 'EmspGsHj') !== false) {
             $InjectStyle = 'body { margin-left: 0.18cm !important; margin-right: 0.18cm !important; margin-top: 0.18cm !important;
              padding-bottom: 0.18cm !important; border: 1px solid black; padding: 40px}';
-        } elseif (strpos(get_class($this), 'RadebeulHalbjahresinformation') !== false) {
+        } elseif (strpos($certificate, 'RadebeulHalbjahresinformation') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
-        } elseif (strpos(get_class($this), 'RadebeulJahreszeugnis') !== false) {
+        } elseif (strpos($certificate, 'RadebeulJahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
-        } elseif (strpos(get_class($this), 'RadebeulOs') !== false) {
+        } elseif (strpos($certificate, 'RadebeulOs') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
-        } elseif (strpos(get_class($this), 'EzshKurshalbjahreszeugnis') !== false) {
+        } elseif (strpos($certificate, 'EzshKurshalbjahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'EVGSM' && (strpos(get_class($this), 'GsHjInfo') !== false || strpos(get_class($this), 'GsJ') !== false)) {
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'EVGSM' && (strpos($certificate, 'GsHjInfo') !== false || strpos($certificate, 'GsJ') !== false)) {
             $isWidth = true;
 //            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
@@ -188,7 +201,7 @@ abstract class Certificate extends Extension
         }
 
         $tblCertificateList = array_filter($tblCertificateList);
-        if(in_array(get_class($this), $tblCertificateList) || $isWidth){
+        if (in_array($certificate, $tblCertificateList) || $isWidth){
             // breiter (Standard)
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
             $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
@@ -199,10 +212,10 @@ abstract class Certificate extends Extension
         }
 
         // SSW-1026 schmaler Zeugnisrand und SSW-1037
-        if (strpos(get_class($this), 'GymAbitur') !== false
-            || strpos(get_class($this), 'GymAbgSekII') !== false
-            || strpos(get_class($this), 'MsAbs') !== false
-            || strpos(get_class($this), 'MsAbg') !== false
+        if (strpos($certificate, 'GymAbitur') !== false
+            || strpos($certificate, 'GymAbgSekII') !== false
+            || strpos($certificate, 'MsAbs') !== false
+            || strpos($certificate, 'MsAbg') !== false
         ) {
             $InjectStyle = '';
         }

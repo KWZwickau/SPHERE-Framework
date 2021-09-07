@@ -494,7 +494,7 @@ class Creator extends Extension
     }
 
 
-    private static function buildMultiDummyFile($Data = array(), $pageList = array())
+    private static function buildMultiDummyFile($Data = array(), $pageList = array(), $certificateList = array())
     {
 
         ini_set('memory_limit', '1G');
@@ -505,7 +505,7 @@ class Creator extends Extension
         $File = Storage::createFilePointer('pdf');
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($File->getFileLocation());
-        $Content = $MultiCertificate->createCertificate($Data, $pageList);
+        $Content = $MultiCertificate->createCertificate($Data, $pageList, $certificateList);
         $Document->setContent($Content);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
@@ -533,6 +533,7 @@ class Creator extends Extension
         }
 
         $pageList = array();
+        $certificateList = array();
 
         $tblPrepareList = false;
         $tblGroup = false;
@@ -583,6 +584,12 @@ class Creator extends Extension
 
                                     $page = $Certificate->buildPages($tblPerson);
                                     $pageList[$tblPerson->getId()] = $page;
+
+                                    if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                                        $certificateList[$tblCertificate->getCertificate()]++;
+                                    } else {
+                                        $certificateList[$tblCertificate->getCertificate()] = 1;
+                                    }
                                 }
                             }
                         }
@@ -593,7 +600,7 @@ class Creator extends Extension
 
         if ($tblPrepare && !empty($pageList)) {
             $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare, $tblGroup ? $tblGroup : null);
-            $File = self::buildMultiDummyFile($Data, $pageList);
+            $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
 
             $FileName = $Name . ' ' . ($description ? $description : '-') . ' ' . date("Y-m-d") . ".pdf";
 
@@ -622,6 +629,7 @@ class Creator extends Extension
         }
 
         $pageList = array();
+        $certificateList = array();
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
             && ($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivision))
         ) {
@@ -646,6 +654,12 @@ class Creator extends Extension
 
                         $page = $Certificate->buildPages($tblPerson);
                         $pageList[$tblPerson->getId()] = $page;
+
+                        if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                            $certificateList[$tblCertificate->getCertificate()]++;
+                        } else {
+                            $certificateList[$tblCertificate->getCertificate()] = 1;
+                        }
                     }
                 }
             }
@@ -653,7 +667,7 @@ class Creator extends Extension
             if (!empty($pageList)) {
                 $Data = Prepare::useService()->getCertificateMultiLeaveContent($tblDivision);
 
-                $File = self::buildMultiDummyFile($Data, $pageList);
+                $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
                 $FileName = $Name . ' ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
 
                 return self::buildDownloadFile($File, $FileName);
@@ -684,6 +698,7 @@ class Creator extends Extension
         }
 
         $pageList = array();
+        $certificateList = array();
 
         if ($GroupId) {
             $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -758,6 +773,12 @@ class Creator extends Extension
                                         $page = $Certificate->buildPages($tblPerson);
                                         $pageList[$tblPerson->getId()] = $page;
 
+                                        if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                                            $certificateList[$tblCertificate->getCertificate()]++;
+                                        } else {
+                                            $certificateList[$tblCertificate->getCertificate()] = 1;
+                                        }
+
                                         $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                                         $personLastName = str_replace('ü', 'ue', $personLastName);
                                         $personLastName = str_replace('ö', 'oe', $personLastName);
@@ -789,7 +810,7 @@ class Creator extends Extension
 
             if ($tblPrepareCertificate && !empty($pageList)) {
                 $Data = Prepare::useService()->getCertificateMultiContent($tblPrepareCertificate, $tblGroup ? $tblGroup : null);
-                $File = self::buildMultiDummyFile($Data, $pageList);
+                $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
                 $FileName = $Name . ' ' . $description . ' ' . date("Y-m-d") . ".pdf";
 
                 return self::buildDownloadFile($File, $FileName);
@@ -823,6 +844,7 @@ class Creator extends Extension
         }
 
         $pageList = array();
+        $certificateList = array();
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             if (($tblCertificateTypeLeave = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
@@ -863,6 +885,11 @@ class Creator extends Extension
 
                                 $page = $Certificate->buildPages($tblPerson);
                                 $pageList[$tblPerson->getId()] = $page;
+                                if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                                    $certificateList[$tblCertificate->getCertificate()]++;
+                                } else {
+                                    $certificateList[$tblCertificate->getCertificate()] = 1;
+                                }
 
                                 $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                                 $personLastName = str_replace('ü', 'ue', $personLastName);
@@ -893,7 +920,7 @@ class Creator extends Extension
 
             if (!empty($pageList)) {
                 $Data = Prepare::useService()->getCertificateMultiLeaveContent($tblDivision);
-                $File = self::buildMultiDummyFile($Data, $pageList);
+                $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
                 $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-') . ' ' . date("Y-m-d") . ".pdf";
 
                 return self::buildDownloadFile($File, $FileName);
