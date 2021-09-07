@@ -291,7 +291,7 @@ class EnrollmentDocument extends AbstractDocument
                             Sie/Er
                         {% endif %}
                     {% endif %}
-                    besucht unser Schule seit
+                    besucht unsere Schule seit dem
                 ')
                 ->stylePaddingTop('30px')
                 , $widthLeft)

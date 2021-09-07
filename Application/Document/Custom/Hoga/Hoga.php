@@ -195,11 +195,12 @@ class Hoga  extends Extension implements IModuleInterface
                 if ($tblStudentTransfer) {
                     $transferDate = $tblStudentTransfer->getTransferDate();
                     if ($transferDate) {
-                        if ($MaxDate > new \DateTime($transferDate)) {
+                        // es soll immer das abgangsdatum verwendet werden
+//                        if ($MaxDate > new \DateTime($transferDate)) {
                             $DateString = $transferDate;
                             // correct leaveDate if necessary
                             $Global->POST['Data']['LeaveDate'] = $DateString;
-                        }
+//                        }
                     }
                 }
 
