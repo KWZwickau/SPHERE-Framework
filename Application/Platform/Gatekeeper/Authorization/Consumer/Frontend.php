@@ -39,6 +39,26 @@ class Frontend
             $Item['Alias'] = $tblConsumer->getAlias();
             array_push($TableContent, $Item);
         });
+        $Form = new Form(new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField(
+                            'ConsumerAcronym', 'Kürzel des Mandanten', 'Kürzel des Mandanten'
+                        )
+                        , 2),
+                    new FormColumn(
+                        new TextField(
+                            'ConsumerName', 'Name des Mandanten', 'Name des Mandanten'
+                        )
+                        , 6),
+                    new FormColumn(
+                        new TextField(
+                            'ConsumerAlias', 'Alias des Mandanten', 'Alias des Mandanten'
+                        )
+                        , 4),
+                )), new \SPHERE\Common\Frontend\Form\Repository\Title('Mandant anlegen'))
+            , new Primary('Hinzufügen')
+        );
         $Stage->setContent(
             new TableData($TableContent, new Title('Bestehende Mandanten'), array(
                 'Acronym' => 'Mandanten-Kürzel',
@@ -46,26 +66,7 @@ class Frontend
                 'Alias' => 'Mandanten-Alias'
             ))
             .Consumer::useService()->createConsumer(
-                new Form(new FormGroup(
-                        new FormRow(array(
-                            new FormColumn(
-                                new TextField(
-                                    'ConsumerAcronym', 'Kürzel des Mandanten', 'Kürzel des Mandanten'
-                                )
-                                , 2),
-                            new FormColumn(
-                                new TextField(
-                                    'ConsumerName', 'Name des Mandanten', 'Name des Mandanten'
-                                )
-                                , 6),
-                            new FormColumn(
-                                new TextField(
-                                    'ConsumerAlias', 'Alias des Mandanten', 'Alias des Mandanten'
-                                )
-                                , 4),
-                        )), new \SPHERE\Common\Frontend\Form\Repository\Title('Mandant anlegen'))
-                    , new Primary('Hinzufügen')
-                ), $ConsumerAcronym, $ConsumerName, $ConsumerAlias
+                $Form, $ConsumerAcronym, $ConsumerName, $ConsumerAlias
             )
         );
         return $Stage;
