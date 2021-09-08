@@ -7,7 +7,7 @@ use Exception;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -385,7 +385,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
                     new Title('Anmeldung UCS (Pilot)'),
-                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EVSSN')
+                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLP')
                     //. new Link('.', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EKM') // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
                 ))
             )));
@@ -401,10 +401,10 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendIdentificationSamlEVSSN()
+    public function frontendIdentificationSamlDLLP()
     {
 
-        return $this->LoginSecondPageLogic(SamlEVSSN::getSAML());
+        return $this->LoginSecondPageLogic(SamlDLLP::getSAML());
     }
 
 //    /**

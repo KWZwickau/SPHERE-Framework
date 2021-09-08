@@ -200,10 +200,10 @@ class Service extends AbstractService
 //                if(!Consumer::useService()->isSchoolSeparated()){
                     // Mandant wird als Schule verwendet
                     $SchoolString = $this->getSchoolString($Acronym);
-                    // Local to test it with DEMOSCHOOL
-                    if($Acronym == 'REF' || $Acronym == 'IBH'){
-                        $SchoolString = $this->getSchoolString('DEMOSCHOOL');
-                    }
+                    // Local to test it with DLLP
+//                    if($Acronym == 'REF'){
+//                        $SchoolString = $this->getSchoolString('DLLP');
+//                    }
 
                 $SchoolKeyList[] = $SchoolString;
                 $StudentSchool = $SchoolString;
@@ -234,12 +234,12 @@ class Service extends AbstractService
                         $SchoolKeyList = array_unique($SchoolKeyList);
                         sort($SchoolKeyList);
                         foreach($SchoolKeyList as $SchoolKey){
-                            // Ref & IBH is Demoschool
-                            if($SchoolKey == 'REF' || !$SchoolKey == 'IBH'){
-                                $schools[] = $schoolList['DEMOSCHOOL'];
-                            } else {
+                            // Ref is DLLP
+//                            if($SchoolKey == 'REF'){
+//                                $schools[] = $schoolList['DLLP'];
+//                            } else {
                                 $schools[] = $schoolList[$SchoolKey];
-                            }
+//                            }
                         }
 
                         $Item['schools'] = array();
@@ -340,9 +340,9 @@ class Service extends AbstractService
                                 if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
                                     foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                                         if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
-                                            if($Acronym == 'REF' || $Acronym == 'IBH'){
-                                                $Acronym = 'DEMOSCHOOL';
-                                            }
+//                                            if($Acronym == 'REF'){
+//                                                $Acronym = 'DLLP';
+//                                            }
                                             $SchoolString = $Acronym;
                                             $TeacherSchools[$SchoolString] = $SchoolString;
                                             $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);

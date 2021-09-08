@@ -220,12 +220,12 @@ class UniventionUser
 //            'source_uid' => $source_uid
         );
 
-//        echo '<pre>';
-//        var_dump($PersonContent);
-//        echo '</pre>';
+//        Debugger::devDump($PersonContent);
 
         $PersonContent = json_encode($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
+
+//        Debugger::devDump($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,

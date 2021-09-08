@@ -54,7 +54,12 @@ class UniventionSchool
 
         $Json = $this->execute($this->curlhandle);
         $StdClassArray = json_decode($Json, true);
+        // Fehlerausgabe
+        if(isset($StdClassArray['detail'])){
+            return $StdClassArray;
+        }
         $schoolList = array();
+
         if($StdClassArray !== null && is_array($StdClassArray) && !empty($StdClassArray)){
             foreach($StdClassArray as $StdClass){
                 $schoolList[$StdClass['name']] = $StdClass['url'];

@@ -47,11 +47,15 @@ class UniventionRole
           -url
          **/
         $Json = $this->execute($this->curlhandle);
-        $StdClassArray = json_decode($Json);
+        $StdClassArray = json_decode($Json, true);
+        // Fehlerausgabe
+        if(isset($StdClassArray['detail'])){
+            return $StdClassArray;
+        }
         $roleList = array();
         if($StdClassArray !== null && is_array($StdClassArray) && !empty($StdClassArray)){
             foreach($StdClassArray as $StdClass){
-                $roleList[$StdClass->name] = $StdClass->url;
+                $roleList[$StdClass['name']] = $StdClass['url'];
             }
         }
         return (is_array($roleList) && !empty($roleList) ? $roleList : false);

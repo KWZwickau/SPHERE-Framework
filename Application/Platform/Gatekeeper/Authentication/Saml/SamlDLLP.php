@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication\Saml;
 
-class SamlEVSSN
+class SamlDLLP
 {
 
     /**
@@ -87,11 +87,11 @@ class SamlEVSSN
             // Identity Provider Data that we want connect with our SP
             'idp' => array(
                 // Identifier of the IdP entity  (must be a URI)
-                'entityId' => 'https://ucs-sso.connexion.evssn.de/simplesamlphp/saml2/idp/metadata.php',
+                'entityId' => 'https://sso.dllp.schule/simplesamlphp/saml2/idp/metadata.php',
                 // SSO endpoint info of the IdP. (Authentication Request protocol)
                 'singleSignOnService' => array(
                     // URL Target of the IdP where the SP will send the Authentication Request Message
-                    'url' => 'https://ucs-sso.connexion.evssn.de/simplesamlphp/saml2/idp/SSOService.php',
+                    'url' => 'https://sso.dllp.schule/simplesamlphp/saml2/idp/SSOService.php',
                     // SAML protocol binding to be used when returning the <Response>
                     // message.  Onelogin Toolkit supports for this endpoint the
                     // HTTP-Redirect binding only
@@ -100,7 +100,7 @@ class SamlEVSSN
                 // SLO endpoint info of the IdP.
                 'singleLogoutService' => array(
                     // URL Location of the IdP where the SP will send the SLO Request
-                    'url' => 'https://ucs-sso.connexion.evssn.de/simplesamlphp/saml2/idp/SingleLogoutService.php',
+                    'url' => 'https://sso.dllp.schule/simplesamlphp/saml2/idp/SingleLogoutService.php',
                     // URL location of the IdP where the SP will send the SLO Response (ResponseLocation)
                     // if not set, url for the SLO Request will be used
                     'responseUrl' => '',

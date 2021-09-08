@@ -8,7 +8,7 @@ use OneLogin_Saml2_Auth;
 use OneLogin_Saml2_Error;
 use OneLogin_Saml2_Settings;
 use OneLogin_Saml2_Utils;
-use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Redirect;
@@ -58,7 +58,7 @@ class phpSaml
             #$auth = new OneLogin_Saml2_Auth($settingsInfo);
             #$settings = $auth->getSettings();
             // Now we only validate SP settings
-            $settings = new OneLogin_Saml2_Settings(SamlEVSSN::getSAML());
+            $settings = new OneLogin_Saml2_Settings(SamlDLLP::getSAML());
             $metadata = $settings->getSPMetadata();
             $errors = $settings->validateMetadata($metadata);
             if (empty($errors)) {

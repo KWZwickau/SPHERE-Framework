@@ -74,9 +74,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         // dynamsiche Rollenliste
         $roleList = (new UniventionRole())->getAllRoles();
+        // Fehlerausgabe
+        if($this->errorScan($Stage, $roleList)){
+            return $Stage;
+        }
 
         // dynamsiche Schulliste
         $schoolList = (new UniventionSchool())->getAllSchools();
+        // Fehlerausgabe
+        if($this->errorScan($Stage, $schoolList)){
+            return $Stage;
+        }
 
         // early break if no answer
         if(!is_array($roleList) || !is_array($schoolList)){
@@ -84,23 +92,25 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         }
         $Acronym = Account::useService()->getMandantAcronym();
-        $excludeList = array('REF', 'IBH');
+//        $excludeList = array('REF', 'IBH');
         // Mandant ist nicht in der Schulliste
         if( !array_key_exists($Acronym, $schoolList)){
-            if(!in_array($Acronym, $excludeList)){
+//            if(!in_array($Acronym, $excludeList)){
                 $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht für UCS freigeschalten'));
                 return $Stage;
-            }
+//            }
         }
 
         $IsButtonActive = false;
         if(($tblAccount = Account::useService()->getAccountBySession())){
             if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
                  // Aktivierung EVSR
-                if($Acronym == 'EVSR'
-                || $Acronym == 'EVSC'
-                || $Acronym == 'REF'
-                || $Acronym == 'IBH'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
+                if(
+//                if($Acronym == 'EVSR'
+//                || $Acronym == 'EVSC'
+//                ||
+                $Acronym == 'REF'
+                || $Acronym == 'DLLP'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
 //                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
                     $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
                     $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
@@ -598,7 +608,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $AccordionCreate = new Accordion();
-        $AccordionCreate->addItem('Benutzer für UCS anlegen('.$count['create'].')',
+        $AccordionCreate->addItem('Benutzer für UCS anlegen ('.$count['create'].')',
             new Listing($ContentCreate)
         );
         $AccordionCreate->addItem('Benutzer die nicht in UCS angelegt werden können ('.$count['cantCreate'].')',
@@ -711,6 +721,24 @@ class Frontend extends Extension implements IFrontendInterface
         ))));
 
         return $Stage;
+    }
+
+    /**
+     * @param Stage $Stage
+     * @param array $List
+     *
+     * @return bool
+     */
+    private function errorScan(Stage $Stage, $List = array())
+    {
+
+        if(isset($List['detail'])){
+            $Stage->setContent(new Warning('Fehlerbericht der API
+                <pre>'.print_r($List, true).'</pre>'
+            ));
+            return true;
+        }
+        return false;
     }
 
     /**
