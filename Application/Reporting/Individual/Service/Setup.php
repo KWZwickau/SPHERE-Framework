@@ -83,7 +83,11 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblPresetSetting');
-        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+//        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        if($this->hasColumn($Table, 'serviceTblAccount')){
+            $Table->dropColumn('serviceTblAccount');
+        }
+
         $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'View', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'ViewType', self::FIELD_TYPE_STRING);

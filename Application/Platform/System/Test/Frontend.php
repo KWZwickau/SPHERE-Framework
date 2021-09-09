@@ -260,9 +260,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new TextArea('TextArea', 'TextArea', 'TextArea')
                             , 3),
-                        new FormColumn(
-                            new TextCaptcha('TextCaptcha', 'TextCaptcha', 'TextCaptcha')
-                            , 3),
+//                        new FormColumn(
+//                            new TextCaptcha('TextCaptcha', 'TextCaptcha', 'TextCaptcha')
+//                            , 3),
                         new FormColumn(
                             new TextField('TextField', 'TextField', 'TextField')
                             , 3),

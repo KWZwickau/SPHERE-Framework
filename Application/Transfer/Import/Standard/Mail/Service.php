@@ -4,6 +4,7 @@ namespace SPHERE\Application\Transfer\Import\Standard\Mail;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
+use PHPExcel_Shared_Date;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -48,7 +49,7 @@ class Service
             return $Form;
         }
         $isAccountAlias = isset($Data['IsAccountAlias']);
-        $isAccountBackupMail = isset($Data['IsAccountBackupMail']);
+        $isAccountRecoveryMail = isset($Data['IsAccountRecoveryMail']);
         $isTest = isset($Data['IsTest']);
         $isAddMailWithoutAccount = isset($Data['IsAddMailWithoutAccount']);
 
@@ -108,15 +109,15 @@ class Service
                         $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
                         $mail = trim($Document->getValue($Document->getCell($Location['Benutzername'], $RunY)));
                         $mail = str_replace(' ', '', $mail);
-                        $backupMail = trim($Document->getValue($Document->getCell($Location['PW-Reset'], $RunY)));
-                        $backupMail = str_replace(' ', '', $backupMail);
+                        $RecoveryMail = trim($Document->getValue($Document->getCell($Location['PW-Reset'], $RunY)));
+                        $RecoveryMail = str_replace(' ', '', $RecoveryMail);
 
                         $birthday = $OptionalLocation['Geburtsdatum'] == null
                             ? ''
                             : trim($Document->getValue($Document->getCell($OptionalLocation['Geburtsdatum'], $RunY)));
                         if ($birthday) {
                             if (strpos($birthday, '.') === false) {
-                                $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                                $birthday = date('d.m.Y', PHPExcel_Shared_Date::ExcelToPHP($birthday));
                             }
                         }
 
@@ -139,9 +140,9 @@ class Service
 
                             if ($addMail) {
                                 $personMailIsAccountAlias = false;
-                                $personMailIsBackupMail = false;
+                                $personMailIsRecoveryMail = false;
 
-                                if ($isAccountAlias || $isAccountBackupMail) {
+                                if ($isAccountAlias || $isAccountRecoveryMail) {
                                     $addMail = false;
                                     // findAccounts
                                     if ($tblPerson
@@ -162,12 +163,12 @@ class Service
                                                 }
                                             }
                                         }
-                                        if($isAccountBackupMail && $tblAccount){
+                                        if($isAccountRecoveryMail && $tblAccount){
                                             if (!$isTest) {
-                                                if (Account::useService()->changeBackupMail($tblAccount, $backupMail)
+                                                if (Account::useService()->changeRecoveryMail($tblAccount, $RecoveryMail)
                                                 ) {
                                                     $addMail = true;
-                                                    $personMailIsBackupMail = true;
+                                                    $personMailIsRecoveryMail = true;
                                                 } else {
                                                     $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
                                                         . ' Passwort vergessen E-Mail konnte nicht am Benutzerkonto gespeichert werden.';
@@ -195,17 +196,17 @@ class Service
                                                 \SPHERE\Application\Contact\Mail\Mail::useService()->updateMailToPersonService(
                                                     $tblToPerson, $tblToPerson->getTblMail()->getAddress(),
                                                     $tblToPerson->getTblType(), $tblToPerson->getRemark(),
-                                                    false, $tblToPerson->isAccountBackupMail()
+                                                    false, $tblToPerson->isAccountRecoveryMail()
                                                 );
                                             }
                                         }
                                     }
-                                    // alle Emailadressen der Person mit isAccountBackupMail zurücksetzen
-                                    if ($isAccountBackupMail
+                                    // alle Emailadressen der Person mit isAccountRecoveryMail zurücksetzen
+                                    if ($isAccountRecoveryMail
                                         && (($tblMailToPersonList = \SPHERE\Application\Contact\Mail\Mail::useService()->getMailAllByPerson($tblPerson)))
                                     ) {
                                         foreach ($tblMailToPersonList as $tblToPerson) {
-                                            if ($tblToPerson->isAccountBackupMail()) {
+                                            if ($tblToPerson->isAccountRecoveryMail()) {
                                                 \SPHERE\Application\Contact\Mail\Mail::useService()->updateMailToPersonService(
                                                     $tblToPerson, $tblToPerson->getTblMail()->getAddress(),
                                                     $tblToPerson->getTblType(), $tblToPerson->getRemark(),
@@ -217,8 +218,8 @@ class Service
 
 
 
-                                    if($isAccountAlias || $isAccountBackupMail){
-                                        if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $personMailIsAccountAlias, $personMailIsBackupMail)) {
+                                    if($isAccountAlias || $isAccountRecoveryMail){
+                                        if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $personMailIsAccountAlias, $personMailIsRecoveryMail)) {
                                             $countAddMail++;
                                         } else {
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';

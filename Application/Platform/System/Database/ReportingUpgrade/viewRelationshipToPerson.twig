@@ -7,21 +7,7 @@ SELECT
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description
 
-FROM PeopleRelationship_{{ ConsumerAcronym }}.tblToPerson tTP
-	LEFT JOIN PeopleRelationship_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
-
-WHERE tTP.EntityRemove IS NULL
-
-UNION SELECT
-    tTP.Remark AS TblToPerson_Remark,
-    tTP.serviceTblPersonTo AS TblToPerson_serviceTblPersonTo,
-    tTP.serviceTblPersonFrom AS TblToPerson_serviceTblPersonFrom,
-    tTP.Ranking AS TblToPerson_Ranking,
-    tTP.IsSingleParent AS TblToPerson_IsSingleParent,
-    tT.Name AS TblType_Name,
-    tT.Description AS TblType_Description
-
-FROM PeopleRelationship_{{ ConsumerAcronym }}.tblToPerson tTP
-	LEFT JOIN PeopleRelationship_{{ ConsumerAcronym }}.tblType tT ON tT.Id = tTP.tblType
+FROM {{ ConsumerAcronym }}_PeopleRelationship.tblToPerson tTP
+	left JOIN {{ ConsumerAcronym }}_PeopleRelationship.tblType tT ON tT.Id = tTP.tblType
 
 WHERE tTP.EntityRemove IS NULL

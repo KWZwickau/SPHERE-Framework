@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use DateTime;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
@@ -23,6 +24,7 @@ use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
@@ -273,13 +275,13 @@ class Service extends AbstractService
     {
 
         if($TargetTime){
-            $TargetTime = new \DateTime($TargetTime);
+            $TargetTime = new DateTime($TargetTime);
         } else {
             // now if no input (fallback)
-            $TargetTime = new \DateTime();
+            $TargetTime = new DateTime();
         }
         if($BillTime){
-            $BillTime = new \DateTime($BillTime);
+            $BillTime = new DateTime($BillTime);
         } else {
             $BillTime = null;
         }
@@ -318,7 +320,9 @@ class Service extends AbstractService
         $tblGroupList = array();
         if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
             foreach($tblItemGroupList as $tblItemGroup) {
-                $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
+                if($tblItemGroup->getServiceTblGroup()){
+                    $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
+                }
             }
         }
 
@@ -336,9 +340,11 @@ class Service extends AbstractService
         $tblPersonList = array();
         if($tblGroupList){
             foreach($tblGroupList as $tblGroup) {
-                if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
-                    foreach($tblPersonFromGroup as $tblPersonFrom) {
-                        $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                if($tblGroup){
+                    if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
+                        foreach($tblPersonFromGroup as $tblPersonFrom) {
+                            $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                        }
                     }
                 }
             }
@@ -400,7 +406,7 @@ class Service extends AbstractService
      *
      * @return array|bool
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null)
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null, TblYear $tblYear = null)
     {
 
         $tblGroupList = $this->getGroupListByItem($tblItem);
@@ -410,7 +416,7 @@ class Service extends AbstractService
             $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivision);
         }
         if(null !== $tblType && $tblPersonList){
-            $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType);
+            $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType, $tblYear);
         }
         $IsSepa = true;
         if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
@@ -443,13 +449,13 @@ class Service extends AbstractService
 
                         // entfernen aller Personen, die keine Zahlungszuweisung im Abrechnungszeitraum haben.
                         if(($From = $tblDebtorSelection->getFromDate())
-                            && new \DateTime($From) > new \DateTime($tblBasket->getTargetTime())){
+                            && new DateTime($From) > new DateTime($tblBasket->getTargetTime())){
                             $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Gültig ab: '.$From.' >
                              Fälligkeitsdatum '.$tblBasket->getTargetTime().new Bold(' (noch nicht Aktiv)');
                             continue;
                         }
                         if(($To = $tblDebtorSelection->getToDate())
-                            && new \DateTime($To) < new \DateTime($tblBasket->getTargetTime())){
+                            && new DateTime($To) < new DateTime($tblBasket->getTargetTime())){
                             $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Gültig bis: '.$To.' <
                              Fälligkeitsdatum '.$tblBasket->getTargetTime().new Bold(' (nicht mehr Aktiv)');
                             continue;
@@ -495,7 +501,7 @@ class Service extends AbstractService
                         $Item['Price'] = $tblDebtorSelection->getValue();
                         // change to selected variant
                         if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                            if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
+                            if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new DateTime($tblBasket->getTargetTime())))){
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
                         }
@@ -504,7 +510,7 @@ class Service extends AbstractService
                         if($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift'
                         && $IsSepa){
                             if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
-                                if(new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
+                                if(new DateTime($tblBankReference->getReferenceDate()) > new DateTime($tblBasket->getTargetTime())){
                                     // Datum der Referenz liegt noch in der Zukunft
                                     $IsNoDebtorSelection = true;
                                 }
@@ -595,12 +601,17 @@ class Service extends AbstractService
      *
      * @return TblPerson[]|bool
      */
-    private function filterPersonListBySchoolType($tblPersonList, TblType $tblType)
+    private function filterPersonListBySchoolType($tblPersonList, TblType $tblType, TblYear $tblYear = null)
     {
 
         $resultPersonList = array();
         if(!empty($tblPersonList)){
-            if(($tblYearList = Term::useService()->getYearByNow())){
+            if($tblYear){
+                $tblYearList[] = $tblYear;
+            } else {
+                $tblYearList = Term::useService()->getYearByNow();
+            }
+            if(!empty($tblYearList)){
                 foreach($tblYearList as $tblYear){
                     foreach($tblPersonList as $tblPerson){
                         if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
@@ -632,9 +643,9 @@ class Service extends AbstractService
     {
 
         // String to DateTime object
-        $TargetTime = new \DateTime($TargetTime);
+        $TargetTime = new DateTime($TargetTime);
         if($BillTime){
-            $BillTime = new \DateTime($BillTime);
+            $BillTime = new DateTime($BillTime);
         } else {
             $BillTime = null;
         }
@@ -827,6 +838,9 @@ class Service extends AbstractService
         $this->destroyBasketItemBulk($tblBasket);
         // remove all BasketVerification
         $this->destroyBasketVerificationBulk($tblBasket);
+
+        // Remove Invoice / InvoiceItemDebtor
+        Invoice::useService()->destroyInvoiceByBasket($tblBasket);
 
         return (new Data($this->getBinding()))->destroyBasket($tblBasket);
     }

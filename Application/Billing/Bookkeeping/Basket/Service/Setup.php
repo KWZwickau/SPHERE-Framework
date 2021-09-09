@@ -75,6 +75,9 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'BillTime', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'IsDone', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsArchive', self::FIELD_TYPE_BOOLEAN, false, false);
+        if($this->hasColumn($Table, 'IsCompanyCredit')){
+            $Table->dropColumn('IsCompanyCredit');
+        }
         $this->createColumn($Table, 'SepaDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'SepaUser', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'DatevDate', self::FIELD_TYPE_DATETIME, true);

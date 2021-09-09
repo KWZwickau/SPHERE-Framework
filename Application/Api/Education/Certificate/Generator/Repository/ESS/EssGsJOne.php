@@ -78,10 +78,10 @@ class EssGsJOne extends Certificate
                     )
                     ->addElementColumn((new Element())
                         ->setContent('JAHRESZEUGNIS')
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize(self::TEXT_SIZE_BIG)
-                        ->styleMarginTop('25px')
+                        ->styleMarginTop('15px')
                         , '75%'
                     )
                 )
@@ -99,14 +99,14 @@ class EssGsJOne extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('2. Schulhalbjahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '45%'
                     )
@@ -118,7 +118,7 @@ class EssGsJOne extends Certificate
                                 &nbsp;
                             {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignRight()
                         , '30%'
@@ -136,7 +136,7 @@ class EssGsJOne extends Certificate
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                       {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleTextSize(self::TEXT_SIZE_BIG)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
 //                        ->styleTextBold()
                         , '100%'
@@ -163,7 +163,7 @@ class EssGsJOne extends Certificate
                                     &nbsp;
                                 {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->stylePaddingTop('25px')
@@ -182,7 +182,7 @@ class EssGsJOne extends Certificate
                           &nbsp;
                     {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleMarginTop('5px')
                         , '100%'
@@ -196,7 +196,7 @@ class EssGsJOne extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignRight()
                         , '30%')
@@ -218,7 +218,7 @@ class EssGsJOne extends Certificate
                         , '42%')
                     ->addElementColumn((new Element())
                         ->setContent('Eltern')
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignCenter()
                         ->styleTextSize(self::TEXT_SIZE_SMALL)

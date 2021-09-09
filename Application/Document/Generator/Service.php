@@ -274,7 +274,9 @@ class Service extends AbstractService
                 }
 
                 $Data['Certificate'][$typeId]['Data' . $count]['Division'] = $tblLevel->getName();
-                if ($tblCertificateType->getIdentifier() == 'YEAR') {
+                if ($tblCertificateType->getIdentifier() == 'YEAR'
+                    || $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                ) {
                     $Data['Certificate'][$typeId]['Data' . $count]['Year'] = $year;
                     $Data['Certificate'][$typeId]['Data' . $count]['HalfYear'] = '2';
                 } else {

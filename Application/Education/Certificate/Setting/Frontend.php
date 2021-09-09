@@ -338,10 +338,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                    );
 //                }
 
-
                 $Stage->setContent(
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
-                    , $tblTechnicalCourse->getName()),
+                    , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
                         Panel::PANEL_TYPE_INFO)
                     . ($loadStandardFromNoConsumer && $tblTechnicalCourse
                         ? new Warning('Es wurden die Fächereinstellungen von ohne "Bildungsgang / Berufsbezeichnung / Ausbildung" 
@@ -624,7 +623,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Content = new TableData($TemplateTable, null, array(
                 'Typ'         => 'Typ',
-                'Category'         => 'Kategorie',
+                'Category'    => 'Kategorie',
                 'Name'        => 'Name',
                 'Description' => 'Beschreibung',
                 'Option'      => ''

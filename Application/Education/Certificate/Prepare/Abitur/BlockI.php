@@ -199,6 +199,7 @@ class BlockI extends AbstractBlock
     private function setPrepareStudentList()
     {
         $prepareStudentList = array();
+        $divisionLevelList = array();
         // Zensuren von Kurshalbjahreszeugnissen
         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($this->tblPerson))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
@@ -207,6 +208,13 @@ class BlockI extends AbstractBlock
                     && ($tblLevel->getName() == '11' || $tblLevel->getName() == '12')
                     && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
                 ) {
+                    // Schuljahreswiederholungen, alte Klasse ignorieren, es kommt die neuere Klasse zuerst raus
+                    if (!isset($divisionLevelList[$tblLevel->getName()])) {
+                        $divisionLevelList[$tblLevel->getName()] = $tblDivision;
+                    } else {
+                        continue;
+                    }
+
                     foreach ($tblPrepareList as $tblPrepare) {
                         if ($tblPrepare->getServiceTblGenerateCertificate()
                             && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
@@ -277,6 +285,12 @@ class BlockI extends AbstractBlock
                         $tblSubject,
                         $tblPrepareAdditionalGradeType
                     );
+
+                    // Es kann sein das der Schüler das Fach in ein vorherigen Schuljahr hatte
+                    if (!$hasSubject && $tblPrepareAdditionalGrade) {
+                        $hasSubject = true;
+                        $course = 'GK';
+                    }
 
                     $tabIndex = $level * 1000 + $term * 100 + $this->count++;
                     if ($hasSubject && $this->View == BlockIView::EDIT_GRADES) {

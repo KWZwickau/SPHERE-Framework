@@ -72,12 +72,12 @@ class UniventionUser
      * @param array  $roles
      * @param array  $schools
      * @param array  $school_classes
-     * @param string $backupMail
+     * @param string $recoveryMail
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $backupMail = '')
+        $schools = array(), $school_classes = array(), $recoveryMail = '')
     {
         curl_reset($this->curlhandle);
 
@@ -92,7 +92,7 @@ class UniventionUser
             'roles' => $roles,
             'schools' => $schools,
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $backupMail)
+            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
 //            'udm_properties' => array('pwdChangeNextLogin' => true),
 //            'kelvin_password_hashes' => array(
 //                'user_password' => array($password),
@@ -185,11 +185,12 @@ class UniventionUser
      * @param array  $roles
      * @param array  $schools
      * @param array  $school_classes
+     * @param string $recoveryMail
      *
      * @return string|null
      */
     public function updateUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array())
+        $schools = array(), $school_classes = array(), $recoveryMail = '')
     {
         curl_reset($this->curlhandle);
 
@@ -214,16 +215,17 @@ class UniventionUser
             'school' => $school, // one school
             'schools' => $schools, // array school
             'school_classes' => $school_classes,
+            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
             // Mandant + AccountId to human resolve problems?
 //            'source_uid' => $source_uid
         );
 
-//        echo '<pre>';
-//        var_dump($PersonContent);
-//        echo '</pre>';
+//        Debugger::devDump($PersonContent);
 
         $PersonContent = json_encode($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
+
+//        Debugger::devDump($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,

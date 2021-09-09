@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
+use DateTime;
 use SPHERE\Application\Api\Billing\Inventory\ApiDocument;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
@@ -88,7 +89,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Bescheinigung', 'Serienbrief');
 
         if(!isset($Balance['Year'])){
-            $Now = new \DateTime();
+            $Now = new DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
         }
         if(!isset($Balance['From'])){
@@ -299,7 +300,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Bescheinigung', 'PDF');
         if(!isset($Balance['Year'])){
-            $Now = new \DateTime();
+            $Now = new DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
         }
         if(!isset($Balance['From'])){
@@ -523,7 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($Filter == self::FILTER_CLASS) {
                     $selectBox = (new SelectBox('Balance[Division]', 'Klasse ' . new ToolTip(new InfoIcon(),
-                            'Klassen aus dem aktuellem Schuljahr (Datum ' . (new \DateTime())->format('d.m.Y') . ')'),
+                            'Klassen aus dem aktuellem Schuljahr (Datum ' . (new DateTime())->format('d.m.Y') . ')'),
                         array('{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true,
                         null))->setRequired();
                 } else {
@@ -694,8 +695,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $firstDocument = reset($tblDocumentList);
             $global->POST['Data']['Document'] = $firstDocument->getId();
-            $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
-            $Date = (new \DateTime())->format('d.m.Y');
+            $global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
+            $Date = (new DateTime())->format('d.m.Y');
 
             if (($tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll())) {
                 /** @var TblResponsibility $tblResponsibility */
@@ -862,7 +863,11 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $global = $this->getGlobal();
         $tblDocumentList = Document::useService()->getDocumentAllByItem($tblItem);
-        if (!($tblDocument = Document::useService()->getDocumentById($Data['Document']))) {
+        $DocumentId = 0;
+        if(isset($Data['Document'])){
+            $DocumentId = $Data['Document'];
+        }
+            if (!(($tblDocument = Document::useService()->getDocumentById($DocumentId)))) {
             $tblDocument = reset($tblDocumentList);
         }
         if ($tblDocument) {

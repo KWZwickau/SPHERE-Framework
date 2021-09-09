@@ -69,7 +69,7 @@ class GsHjFour extends Style
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getDescriptionContent($personId, '360px', '35px', '', '11pt')
+                        self::getDescriptionContent($personId, '340px', '35px', '', '11pt')
                     )
                 )
                 ->addSection(self::getCustomMissing($personId))

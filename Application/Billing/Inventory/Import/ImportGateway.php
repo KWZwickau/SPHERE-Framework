@@ -96,7 +96,7 @@ class ImportGateway extends AbstractConverter
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        $this->setPointer(new FieldPointer($ColumnList['Zählung'], 'Row'));
+        $this->setPointer(new FieldPointer($ColumnList['Zählung'], 'Number'));
         $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Vorname'], 'FirstName'));
         $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Nachname'], 'LastName'));
         if(isset($ColumnList['Beitragsverursacher Geburtstag'])){
@@ -192,7 +192,7 @@ class ImportGateway extends AbstractConverter
         }
 
         $ImportRow = array(
-            'Row'                    => $Result['Row'],
+            'Number'                 => $Result['Number'],
             'FirstName'              => $Result['FirstName'],
             'LastName'               => $Result['LastName'],
             'serviceTblPerson'       => $tblPerson,

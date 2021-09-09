@@ -19,6 +19,7 @@ class TblType extends Element
     const IDENT_BERUFLICHES_GYMNASIUM = 'Berufliches Gymnasium';
     const IDENT_BERUFS_FACH_SCHULE = 'Berufsfachschule';
     const IDENT_BERUFS_SCHULE = 'Berufsschule';
+    const IDENT_BERUFS_VORBEREITUNGS_JAHR = 'Berufsvorbereitungsjahr';
     const IDENT_FACH_OBER_SCHULE = 'Fachoberschule';
     const IDENT_FACH_SCHULE = 'Fachschule';
     const IDENT_GRUND_SCHULE = 'Grundschule';

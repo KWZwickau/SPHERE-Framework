@@ -356,6 +356,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
 
         if (($tblGroup = Group::useService()->getGroupById($Id))) {
+            $FilterForm = Group::useService()->getFilter( $this->formFilter(), $tblGroup, $Filter);
+            if($Filter != null){
+                return $Stage->setContent($FilterForm);
+            }
 
             $tblFilterGroup = Group::useService()->getGroupById($FilterGroupId);
             $tblFilterDivision = Division::useService()->getDivisionById($FilterDivisionId);
@@ -520,9 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Well(
-                                Group::useService()->getFilter(
-                                    $this->formFilter(), $tblGroup, $Filter
-                                )
+                                $FilterForm
                             ), 12
                         )
                     ))

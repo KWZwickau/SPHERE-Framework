@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblImport extends Element
 {
 
-    const ATTR_ROW = 'Row';
+    const ATTR_NUMBER = 'Number';
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';
     const ATTR_BIRTHDAY = 'Birthday';
@@ -43,7 +43,7 @@ class TblImport extends Element
     /**
      * @Column(type="string")
      */
-    protected $Row;
+    protected $Number;
     /**
      * @column(type="string")
      */
@@ -128,17 +128,17 @@ class TblImport extends Element
     /**
      * @return string
      */
-    public function getRow()
+    public function getNumber()
     {
-        return $this->Row;
+        return $this->Number;
     }
 
     /**
-     * @param string $Row
+     * @param string $Number
      */
-    public function setRow($Row)
+    public function setNumber($Number)
     {
-        $this->Row = $Row;
+        $this->Number = $Number;
     }
 
     /**

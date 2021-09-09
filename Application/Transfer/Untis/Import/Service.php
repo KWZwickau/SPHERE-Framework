@@ -637,7 +637,7 @@ class Service extends AbstractService
 
             $createSubjectStudentList = array();
 //            $IsTeacherList = array();
-            foreach ($tblUntisImportStudentList as $Key => $tblUntisImportStudent) {
+            foreach ($tblUntisImportStudentList as $tblUntisImportStudent) {
                 $tblDivision = $tblUntisImportStudent->getServiceTblDivision();
 
                 $tblUntisImportStudentCourseList = Import::useService()
@@ -658,7 +658,7 @@ class Service extends AbstractService
                             }
 
                             // Anlegen von Gruppen / Schülern nur wenn diese nicht Ignoriert werden soll
-                            if (!$tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                            if (!$tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                                 // get Group
                                 $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
                                     $tblDivision, $tblSubject);

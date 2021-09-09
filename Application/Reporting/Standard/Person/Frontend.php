@@ -454,7 +454,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Name' => 'Name, Vorname',
                                         'Address' => 'Anschrift',
                                         'Birthplace' => 'Geburtsort',
-                                        'Birthday' => 'Geburtsdatum',
+                                        'Birth' => 'Geburtsdatum',
+                                        'BirthDay' => 'Geburtstag',
+                                        'BirthMonth' => 'Geburtsmonat',
+                                        'BirthYear' => 'Geburtsjahr',
                                         'Age' => 'Alter',
                                     ),
                                     array(
@@ -1295,6 +1298,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Orientation'      => 'Neigungskurs',
                                         'Religion'         => 'Religion',
                                         'Elective'         => 'Wahlfächer',
+                                        'Elective1'         => 'Wahlfach 1',
+                                        'Elective2'         => 'Wahlfach 2',
+                                        'Elective3'         => 'Wahlfach 3',
+                                        'Elective4'         => 'Wahlfach 4',
+                                        'Elective5'         => 'Wahlfach 5',
                                     ),
                                     array(
                                         "pageLength" => -1,
@@ -1368,7 +1376,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['FirstName'] = 'Vorname';
         $TableHead['LastName'] = 'Nachname';
         $TableHead['Gender'] = 'Geschlecht';
-        $TableHead['Birthday'] = 'Geburtstag';
+        $TableHead['Birthday'] = 'Geburtsdatum';
         $TableHead['BirthPlace'] = 'Geburtsort';
         $TableHead['Address'] = 'Adresse';
         $TableHead['Insurance'] = 'Krankenkasse';
@@ -1379,7 +1387,8 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['PhoneMobilePrivate'] = 'Mobil (Privat)';
         $TableHead['PhoneMobileWork'] = 'Mobil (Geschäftl.)';
         $TableHead['PhoneMobileEmergency'] = 'Mobil (Notfall)';
-        if($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
+        if(isset($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID])
+            && $PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
             $TableHead['PersonGroup'] = 'Personengruppe';
             $AddCount = 1;
         }
@@ -1548,7 +1557,7 @@ class Frontend extends Extension implements IFrontendInterface
         $datePickerTo = new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar());
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
-        $groupTextField = new TextField('Data[GroupName]', '', 'oder Gruppe');
+        $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
         $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
 
         $stage->setContent(

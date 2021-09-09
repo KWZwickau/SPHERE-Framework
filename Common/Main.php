@@ -231,7 +231,9 @@ class Main extends Extension
                 function ($Code, $Message, $File, $Line) {
 
                     if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
-                        throw new \ErrorException($Message, 0, $Code, $File, $Line);
+                        if (!preg_match('!"continue" targeting switch is equivalent to "break"!is', $Message)) {
+                            throw new \ErrorException($Message, 0, $Code, $File, $Line);
+                        }
                     }
                 }, E_ALL
             );
@@ -253,6 +255,9 @@ class Main extends Extension
                         return;
                     }
                     if (preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Error['message'])) {
+                        return;
+                    }
+                    if (preg_match('!"continue" targeting switch is equivalent to "break"!is', $Error['message'])) {
                         return;
                     }
                     $Display = new Display();

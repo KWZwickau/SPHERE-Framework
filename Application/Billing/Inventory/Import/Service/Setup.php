@@ -50,7 +50,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblImport');
-        $this->createColumn($Table, 'Row', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Number', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'FirstName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'LastName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Birthday', self::FIELD_TYPE_STRING);

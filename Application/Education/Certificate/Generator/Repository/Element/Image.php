@@ -6,7 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 class Image extends Element
 {
 
-    public function __construct($Location, $Width = '100%', $Height = '100%')
+    public function __construct($Location, $Width = 'auto', $Height = 'auto')
     {
 
         parent::__construct();

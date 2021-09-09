@@ -328,7 +328,7 @@ class Data extends AbstractData
             $Entity->setCompareString($CompareString);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return true;
         }
         return false;
@@ -579,13 +579,13 @@ class Data extends AbstractData
 
     /**
      * @param TblIndiwareImportLectureship $tblIndiwareImportLectureship
-     * @param boolean                      $isIgnore
+     * @param boolean                      $IsIgnore
      *
      * @return bool
      */
     public function updateIndiwareImportLectureshipIsIgnore(
         TblIndiwareImportLectureship $tblIndiwareImportLectureship,
-        $isIgnore = true
+        $IsIgnore = true
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -594,7 +594,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblIndiwareImportLectureship', $tblIndiwareImportLectureship->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsIgnore($isIgnore);
+            $Entity->setIsIgnore($IsIgnore);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -625,13 +625,13 @@ class Data extends AbstractData
 
     /**
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
-     * @param bool                     $isIgnore
+     * @param bool                     $IsIgnore
      *
-     * @return mixed
+     * @return bool
      */
     public function updateIndiwareImportStudentIsIgnore(
         TblIndiwareImportStudent $tblIndiwareImportStudent,
-        $isIgnore = true
+        $IsIgnore = true
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -640,7 +640,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblIndiwareImportStudent', $tblIndiwareImportStudent->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsIgnore($isIgnore);
+            $Entity->setIsIgnore($IsIgnore);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

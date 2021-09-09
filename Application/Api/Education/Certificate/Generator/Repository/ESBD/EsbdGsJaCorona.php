@@ -67,7 +67,7 @@ class EsbdGsJaCorona extends EsbdStyle
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                        ->styleHeight('370px')
+                        ->styleHeight('360px')
                         ->styleAlignJustify()
                     )
                 )
@@ -75,7 +75,7 @@ class EsbdGsJaCorona extends EsbdStyle
             )
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getTransferConsumer($personId, '15px'))
-            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getDateLineConsumer($personId, '15px'))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
             ->addSlice($this->getInfoConsumer('20px',

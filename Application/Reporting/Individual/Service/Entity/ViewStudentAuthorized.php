@@ -160,7 +160,7 @@ class ViewStudentAuthorized extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_BEV, 'Bev: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_BEV, 'Bev: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_BEV, 'Bev: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_BEV, 'Bev: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_BEV, 'Bev: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_BEV, 'Bev: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_BEV, 'Bev: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_BEV, 'Bev: PLZ');

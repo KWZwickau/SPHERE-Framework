@@ -49,9 +49,9 @@ class EsbdMsHjInfoFsGeistigeEntwicklung extends EsbdStyle
             ->addSlice($this->getCertificateHeadConsumer($title, '5px'))
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px', $term))
             ->addSlice($this->getStudentNameConsumer($personId))
-            ->addSlice($this->getSupportContent($personId, '530px', '20px', 'Inklusive Unterrichtung¹: '))
+            ->addSlice($this->getSupportContent($personId, '520px', '20px', 'Inklusive Unterrichtung¹: '))
             ->addSlice($this->getMissingConsumer($personId))
-            ->addSlice($this->getDateLineConsumer($personId))
+            ->addSlice($this->getDateLineConsumer($personId, '15px'))
             ->addSlice($this->getSignPartConsumer($personId, $isSignPartExtended))
             ->addSlice($this->getParentSignConsumer())
             ->addSlice($this->getInfoConsumer('30px',
@@ -83,6 +83,6 @@ class EsbdMsHjInfoFsGeistigeEntwicklung extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', $term))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('25px'));
+            ->addSlice($this->getBottomLineConsumer());
     }
 }

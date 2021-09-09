@@ -124,7 +124,7 @@ class FilePointer extends DummyFile
     public function saveFile()
     {
 
-        if (!$this->getRealPath()) {
+        if (empty($this->getRealPath())) {
             touch($this->getFileLocation());
         }
         file_put_contents($this->getRealPath(), $this->getFileContent(), LOCK_EX);

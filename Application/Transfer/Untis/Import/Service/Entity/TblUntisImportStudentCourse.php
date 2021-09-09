@@ -152,7 +152,7 @@ class TblUntisImportStudentCourse extends Element
     /**
      * @return bool
      */
-    public function getisIgnoreCourse()
+    public function getIsIgnoreCourse()
     {
         return $this->IsIgnoreCourse;
     }
@@ -162,7 +162,7 @@ class TblUntisImportStudentCourse extends Element
      */
     public function setIsIgnoreCourse($IsIgnoreCourse)
     {
-        $this->IsIgnoreCourse = $IsIgnoreCourse;
+        $this->IsIgnoreCourse = (int)$IsIgnoreCourse;
     }
 
     /**
@@ -180,7 +180,7 @@ class TblUntisImportStudentCourse extends Element
     /**
      * @param TblUntisImportStudent $tblUntisImportStudent
      */
-    public function settblUntisImportStudent($tblUntisImportStudent)
+    public function setTblUntisImportStudent($tblUntisImportStudent)
     {
 
         $this->tblUntisImportStudent = $tblUntisImportStudent->getId();

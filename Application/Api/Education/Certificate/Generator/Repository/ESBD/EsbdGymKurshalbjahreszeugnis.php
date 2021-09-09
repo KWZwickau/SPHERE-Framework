@@ -30,7 +30,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
+     * @return Page[]
      * @internal param bool $IsSample
      */
     public function buildPages(TblPerson $tblPerson = null)
@@ -136,7 +136,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
                             {% endif %}
                             erbringt eine Besondere Lernleistung mit dem Thema:'
                         )
-                        ->styleMarginTop('10px')
+                        ->styleMarginTop('5px')
                     )
                 )
             )
@@ -164,14 +164,14 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
                                     &nbsp;
                                 {% endif %}')
                         ->styleTextSize('11pt')
-                        ->styleHeight('45px')
+                        ->styleHeight('43px')
                     )
                 )
-                ->styleMarginTop('10px')
+                ->styleMarginTop('7px')
             )
             ->addSlice($this->getDateLineConsumer($personId))
             ->addSlice($this->getOwnSignPartConsumer($personId))
-            ->addSlice($this->getParentSignConsumer())
+            ->addSlice($this->getParentSignConsumer('15px'))
             ->addSlice($this->setPointsOverview('0px'))
             ->addSlice($this->getInfoConsumer('11px',
                 '¹ &nbsp;&nbsp;&nbsp;&nbsp; Bei Fächern, die nicht belegt wurden, ist das betreffende Feld zu sperren.',
@@ -334,7 +334,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
                 $isSecondLane = false;
             }
 
-            foreach ($SubjectList as $Lane => $Subject) {
+            foreach ($SubjectList as /*$Lane =>*/ $Subject) {
                 if (($tblSubject = Subject::useService()->getSubjectByAcronym($Subject['SubjectAcronym']))) {
                     if (isset($this->AdvancedCourses[0]) && $this->AdvancedCourses[0] == $tblSubject->getAcronym()) {
                         $isAdvancedCourse = true;
@@ -398,7 +398,7 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
         }
 
         return $slice
-            ->styleHeight('290px');
+            ->styleHeight('280px');
     }
 
     /**
@@ -674,6 +674,6 @@ class EsbdGymKurshalbjahreszeugnis extends EsbdStyle
             ->addSlice($this->getDivisionAndYear($personId, '10px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('25px'));
+            ->addSlice($this->getBottomLineConsumer());
     }
 }

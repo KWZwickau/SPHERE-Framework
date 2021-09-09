@@ -5,6 +5,7 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Document\Storage\FilePointer as FilePointerAlias;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -802,6 +803,12 @@ class Service extends AbstractService
         return false;
     }
 
+    /**
+     * @param string $Type
+     * @param string $StringCompareDescription
+     *
+     * @return false|FilePointerAlias
+     */
     public function getIndiwareErrorExcel($Type = TblIndiwareError::TYPE_LECTURE_SHIP, $StringCompareDescription = 'Klasse_Fach_Lehrer(_Fachgruppe)')
     {
         $fileLocation = Storage::createFilePointer('xlsx');
@@ -831,6 +838,6 @@ class Service extends AbstractService
 
             return $fileLocation;
         }
-        return 'Keine Fehler verfügbar';
+        return false;
     }
 }

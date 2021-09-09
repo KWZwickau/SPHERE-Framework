@@ -4,6 +4,6 @@ SELECT
     tT.serviceTblPerson AS TblPerson_Id,
     tT.Acronym AS TblTeacher_Acronym
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblTeacher tT
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblTeacher tT
 
 where tT.EntityRemove IS NULL

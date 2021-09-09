@@ -6,14 +6,17 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -90,19 +93,74 @@ class Service extends AbstractService
                 $tblDebtorNumber = current($tblDebtorNumberList);
                 $item['DebtorNumber'] = $tblDebtorNumber->getDebtorNumber();
             }
-            $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
-            $item['ItemName'] = '';
-            $item['PaymentType'] = '';
-            $item['Variant'] = $item['VariantPrice'] = $item['Value'] = '';
-            $item['CauserFirstName'] = $item['CauserLastName'] = '';
-            $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
-            $item['From'] = $item['To'] = '';
+            $item['MailPrivate'] = $item['MailBusiness'] = '';
+            if(($tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonDebtor))){
+                foreach($tblToPersonMailList as $tblToPersonMail){
+                    if($tblToPersonMail->getTblType()->getName() == TblTypeMail::VALUE_PRIVATE
+                        && ($tblMail = $tblToPersonMail->getTblMail())){
+                        if($item['MailPrivate']){
+                            $item['MailPrivate'] .= '; '.$tblMail->getAddress();
+                        } else {
+                            $item['MailPrivate'] = $tblMail->getAddress();
+                        }
+
+                    }
+                    if($tblToPersonMail->getTblType()->getName() == TblTypeMail::VALUE_BUSINESS
+                        && ($tblMail = $tblToPersonMail->getTblMail())){
+                        if($item['MailBusiness']){
+                            $item['MailBusiness'] .= '; '.$tblMail->getAddress();
+                        } else {
+                            $item['MailBusiness'] = $tblMail->getAddress();
+                        }
+
+                    }
+                }
+            }
+            $item['Phone'] = $item['PhoneMobile'] = '';
+            if(($tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonDebtor))){
+                foreach($tblToPersonPhoneList as $tblToPersonPhone){
+                    if($tblToPersonPhone->getTblType()->getName() == TblTypePhone::VALUE_NAME_PRIVATE
+                        && $tblToPersonPhone->getTblType()->getDescription() == TblTypePhone::VALUE_DESCRIPTION_PHONE
+                        && ($tblPhone = $tblToPersonPhone->getTblPhone())){
+                        if($item['Phone']){
+                            $item['Phone'] .= '; '.$tblPhone->getNumber();
+                        } else {
+                            $item['Phone'] = $tblPhone->getNumber();
+                        }
+                    }
+                    if($tblToPersonPhone->getTblType()->getName() == TblTypePhone::VALUE_NAME_PRIVATE
+                        && $tblToPersonPhone->getTblType()->getDescription() == TblTypePhone::VALUE_DESCRIPTION_MOBILE
+                        && ($tblPhone = $tblToPersonPhone->getTblPhone())){
+                        if($item['PhoneMobile']){
+                            $item['PhoneMobile'] .= '; '.$tblPhone->getNumber();
+                        } else {
+                            $item['PhoneMobile'] = $tblPhone->getNumber();
+                        }
+                    }
+                }
+            }
+            // muss für den else zweig gesetzt werden
+            $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
+            $item['ItemName'] = $item['Division'] = $item['PaymentType'] = $item['Variant'] = '';
+            $item['VariantPrice'] = $item['Value'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
+            $item['ReferenceDate'] = $item['ReferenceNumber'] = $item['From'] = $item['To'] = '';
             if(($tblDerbtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonDebtor($tblPersonDebtor))){
                 $UsingBankAccountList = array();
                 foreach($tblDerbtorSelectionList as $tblDerbtorSelection){
+                    // muss für jeden Schleifenaufruf erneut gesetzt werden
+                    $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
+                    $item['ItemName'] = $item['Division'] = $item['PaymentType'] = $item['Variant'] = '';
+                    $item['VariantPrice'] = $item['Value'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
+                    $item['ReferenceDate'] = $item['ReferenceNumber'] = $item['From'] = $item['To'] = '';
                     // für jede zeile neu Setzen
                     $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                     if(($tblBankAccount = $tblDerbtorSelection->getTblBankAccount())){
+                        $item['CreateUpdate'] = '';
+                        if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
+                            $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
+                        } else {
+                            $item['CreateUpdate'] = $tblBankAccount->getEntityCreate()->format('d.m.Y');
+                        }
                         $UsingBankAccountList[] = $tblBankAccount->getId();
                         $item['BankName'] = $tblBankAccount->getBankName();
                         $item['IBAN'] = $tblBankAccount->getIBAN();
@@ -135,10 +193,13 @@ class Service extends AbstractService
                     if(($tblPaymentType = $tblDerbtorSelection->getServiceTblPaymentType())){
                         $item['PaymentType'] = $tblPaymentType->getName();
                     }
-                    $item['CauserFirstName'] = $item['CauserLastName'] = '';
+                    $item['CauserFirstName'] = $item['CauserLastName'] = $item['Division'] = '';
                     if(($tblPersonCauser = $tblDerbtorSelection->getServiceTblPersonCauser())){
                         $item['CauserFirstName'] = $tblPersonCauser->getFirstName();
                         $item['CauserLastName'] = $tblPersonCauser->getLastName();
+                        if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonCauser))){
+                            $item['Division'] = $tblDivision->getDisplayName();
+                        }
                     }
                     $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
                     if(($tblBankReference = $tblDerbtorSelection->getTblBankReference())){
@@ -152,22 +213,26 @@ class Service extends AbstractService
                     array_push($ExcelContent, $item);
                 }
 //                $UsingBankAccountList
-                // vorhandene Kontodaten zu denen keine Zahlungsinformation hinterlegt ist
+                // vorhandene Kontodaten zu denen keine Zahlungsinformation hinterlegt ist (Bar / Überweisung)
                 if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPersonDebtor))){
                     // Werte für Datensatz nicht verfügbar
-                    $item['ItemName'] = '';
-                    $item['PaymentType'] = '';
-                    $item['Variant'] = $item['VariantPrice'] = $item['Value'] = '';
-                    $item['CauserFirstName'] = $item['CauserLastName'] = '';
-                    $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
-                    $item['From'] = $item['To'] = '';
+                    $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
+                    $item['ItemName'] = $item['Division'] = $item['PaymentType'] = $item['Variant'] = '';
+                    $item['VariantPrice'] = $item['Value'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
+                    $item['ReferenceDate'] = $item['ReferenceNumber'] = $item['From'] = $item['To'] = '';
                     foreach($tblBankAccountList as $tblBankAccount){
                         // nicht verwendete Bankdaten hinzufügen
                         if(!in_array($tblBankAccount->getId(), $UsingBankAccountList)){
+                            $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                             $item['BankName'] = $tblBankAccount->getBankName();
                             $item['IBAN'] = $tblBankAccount->getIBAN();
                             $item['BIC'] = $tblBankAccount->getBIC();
                             $item['Owner'] = $tblBankAccount->getOwner();
+                            if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
+                                $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
+                            } else {
+                                $item['CreateUpdate'] = $tblBankAccount->getEntityCreate()->format('d.m.Y');
+                            }
                             array_push($ExcelContent, $item);
                         }
                     }
@@ -181,6 +246,12 @@ class Service extends AbstractService
                         $item['IBAN'] = $tblBankAccount->getBankName();
                         $item['BIC'] = $tblBankAccount->getIBAN();
                         $item['Owner'] = $tblBankAccount->getBIC();
+                        $item['CreateUpdate'] = '';
+                        if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
+                            $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
+                        } else {
+                            $item['CreateUpdate'] = $tblBankAccount->getEntityCreate()->format('d.m.Y');
+                        }
                         array_push($ExcelContent, $item);
                     }
                 } else {
@@ -204,8 +275,13 @@ class Service extends AbstractService
         $Row = 0;
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
+        $export->setValue($export->getCell($Column++, $Row), "Datum der Bankdaten");
         $export->setValue($export->getCell($Column++, $Row), "Beitragszahler Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Beitragszahler Nachname");
+        $export->setValue($export->getCell($Column++, $Row), "E-Mail Privat");
+        $export->setValue($export->getCell($Column++, $Row), "E-Mail Geschäftlich");
+        $export->setValue($export->getCell($Column++, $Row), "Telefon Festnetz");
+        $export->setValue($export->getCell($Column++, $Row), "Telefon Mobil");
         $export->setValue($export->getCell($Column++, $Row), "Straße");
         $export->setValue($export->getCell($Column++, $Row), "Hausnr.");
         $export->setValue($export->getCell($Column++, $Row), "PLZ");
@@ -219,6 +295,7 @@ class Service extends AbstractService
         $export->setValue($export->getCell($Column++, $Row), "Debitoren-Nr.");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsverursacher Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsverursacher Nachname");
+        $export->setValue($export->getCell($Column++, $Row), "Klasse");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsart");
         $export->setValue($export->getCell($Column++, $Row), "Individualpreis");
         $export->setValue($export->getCell($Column++, $Row), "Preisvariante");
@@ -232,8 +309,13 @@ class Service extends AbstractService
             $Row++;
             $Column = 0;
 
+            $export->setValue($export->getCell($Column++, $Row), $Content['CreateUpdate']);
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorFirstName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorLastName']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['MailPrivate']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['MailBusiness']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['Phone']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['PhoneMobile']);
             $export->setValue($export->getCell($Column++, $Row), $Content['StreetName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['StreetNumber']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Code']);
@@ -247,6 +329,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorNumber']);
             $export->setValue($export->getCell($Column++, $Row), $Content['CauserFirstName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['CauserLastName']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['Division']);
             $export->setValue($export->getCell($Column++, $Row), $Content['ItemName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Value']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Variant']);
@@ -262,6 +345,11 @@ class Service extends AbstractService
         $Column = 0;
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(20);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(5);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(7);
@@ -275,6 +363,7 @@ class Service extends AbstractService
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(13);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(20);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(9);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(50);

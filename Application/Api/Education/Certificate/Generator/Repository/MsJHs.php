@@ -20,10 +20,33 @@ class MsJHs extends Certificate
      */
     public function selectValuesTransfer()
     {
-        return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
-        );
+        if  ($this->hasNoTransfer()) {
+            return array(
+                1 => "wird versetzt",
+                2 => "wird nicht versetzt",
+                3 => "kein Versetzungsvermerk"
+            );
+        } else {
+            return array(
+                1 => "wird versetzt",
+                2 => "wird nicht versetzt"
+            );
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasNoTransfer()
+    {
+        if  (($tblDivision = $this->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && intval($tblLevel->getName()) == 9
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -76,7 +99,10 @@ class MsJHs extends Certificate
 //            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
             ->addSlice($this->getDescriptionContent($personId, '70px', '8px'))
-            ->addSlice($this->getTransfer($personId, '13px'))
+            ->addSlice($this->hasNoTransfer()
+                ? $this->getTransferWithNoTransferOption($personId, '13px')
+                : $this->getTransfer($personId, '13px')
+            )
             ->addSlice($this->getDateLine($personId, '25px'))
             ->addSlice($this->getSignPart($personId))
             ->addSlice($this->getParentSign())

@@ -6,8 +6,8 @@ use MOC\V\Component\Document\Component\IBridgeInterface;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Template\Component\IBridgeInterface as IBridgeInterface_Template;
 
-//use Dompdf\Dompdf as DOMPDFParser;
-use \DOMPDF as DOMPDFParser;
+use Dompdf\Dompdf as DompdfParser;
+//use \DOMPDF as DompdfParser;
 
 /**
  * Class DomPdf
@@ -26,7 +26,8 @@ class DomPdf extends Bridge implements IBridgeInterface
     public function __construct()
     {
 
-        require_once( __DIR__.'/../../../Vendor/DomPdf/0.6.2/dompdf_config.inc.php' );
+//        require_once( __DIR__.'/../../../Vendor/DomPdf/0.6.2/dompdf_config.inc.php' );
+        require_once( __DIR__.'/../../../Vendor/DomPdf/1.0.2/autoload.inc.php' );
     }
 
     /**
@@ -76,11 +77,15 @@ class DomPdf extends Bridge implements IBridgeInterface
     public function getContent()
     {
 
-        $Renderer = new DOMPDFParser();
+        $Renderer = new DompdfParser();
+        $Options = $Renderer->getOptions();
+        $Options->set('isRemoteEnabled', true);
+        $Renderer->setOptions($Options);
+//        $Renderer = new DompdfParserNew();
 //        $Renderer->set_option('defaultFont', 'Arial');
 //        $Renderer->set_option('isHtml5ParserEnabled', true);
-        $Renderer->load_html($this->Source);
-        $Renderer->set_paper(
+        $Renderer->loadHtml($this->Source);
+        $Renderer->setPaper(
             $this->getPaperSizeParameter()->getSize(),
             $this->getPaperOrientationParameter()->getOrientation()
         );

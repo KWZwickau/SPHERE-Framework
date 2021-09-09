@@ -580,7 +580,7 @@ class KamenzService
                 array(
                     'Name' => 'Name',
                     'Gender' => 'Geschlecht',
-                    'Birthday' => 'Geburtstag',
+                    'Birthday' => 'Geburtsdatum',
                     'Address' => 'Adresse'
                 ),
                 array(
