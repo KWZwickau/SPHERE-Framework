@@ -32,6 +32,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -1644,6 +1645,36 @@ class Service extends AbstractService
         $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
 
         return $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    public function getStudentGenderByDivision(TblDivision $tblDivision)
+    {
+        $GenderList = array();
+        $tblGenderAll = Common::useService()->getCommonGenderAll();
+        foreach($tblGenderAll as &$tblGender){
+            $GenderList[$tblGender->getId()] = 0;
+        }
+
+        if (($tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision, true))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblPerson =  $tblDivisionStudent->getServiceTblPerson())) {
+                    if(($tblGenderTemp = $tblPerson->getGender())){
+                        $GenderList[$tblGenderTemp->getId()]++;
+                    }
+                }
+            }
+        }
+        foreach($GenderList as $tblGenderId => &$Gender){
+            $tblGenderTemp = Common::useService()->getCommonGenderById($tblGenderId);
+            $Gender = $tblGenderTemp->getShortName().': '.$Gender;
+        }
+
+        return implode('<br/>', $GenderList);
     }
 
     /**
