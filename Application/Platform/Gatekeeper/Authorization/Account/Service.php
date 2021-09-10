@@ -18,7 +18,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
-use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
@@ -781,7 +780,7 @@ class Service extends AbstractService
         $result = array();
         if (($list = $this->getAccountAllByPerson($tblPerson, $isForce))) {
             foreach ($list as $tblAccount) {
-                if ((($tblUserAccount = Account::useService()->getUserAccountByAccount($tblAccount)))
+                if ((($tblUserAccount = \SPHERE\Application\Setting\User\Account\Account::useService()->getUserAccountByAccount($tblAccount)))
                     && ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY)
                 ) {
                     // ignore Account
