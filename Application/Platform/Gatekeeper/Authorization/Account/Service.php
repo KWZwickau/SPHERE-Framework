@@ -18,6 +18,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Application\Setting\User\Account\Account;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -764,6 +766,33 @@ class Service extends AbstractService
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer, $isForce);
+    }
+
+    /**
+     * Eltern-Accounts werden ignoriert, es kann sein das Mitarbeiter auch zusätzlich einen Elternaccount haben
+     *
+     * @param TblPerson $tblPerson
+     * @param false $isForce
+     *
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllByPersonForUCS(TblPerson $tblPerson, $isForce = false)
+    {
+        $result = array();
+        if (($list = $this->getAccountAllByPerson($tblPerson, $isForce))) {
+            foreach ($list as $tblAccount) {
+                if ((($tblUserAccount = Account::useService()->getUserAccountByAccount($tblAccount)))
+                    && ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY)
+                ) {
+                    // ignore Account
+                    continue;
+                } else {
+                    $result[] = $tblAccount;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
     }
 
     /**

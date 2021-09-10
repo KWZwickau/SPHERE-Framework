@@ -272,7 +272,12 @@ class Service extends AbstractService
         }
 
         if (($tblToPerson = (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark']))) {
-            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))){
+                if (count($tblAccountList) > 1) {
+                    $ErrorString = 'Die Person besitzt mehrere Benutzerkonten';
+                    return true;
+                }
+
                 $tblAccount = current($tblAccountList);
                 // remove existing entry's
                 if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){

@@ -122,6 +122,7 @@ class Service
                 $countDuplicatePersons = 0;
                 $countAccounts = 0;
                 $countMissingAccounts = 0;
+                $countMultipleAccounts = 0;
                 $countAddMail = 0;
 
                 /**
@@ -162,39 +163,42 @@ class Service
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName . ' wurde nicht gefunden';
                             }
 
-                            if ($addMail) {
+                            if ($addMail && $tblPerson) {
                                 $personMailIsAccountAlias = false;
                                 $personMailIsRecoveryMail = false;
 
                                 if ($isAccountAlias || $isAccountRecoveryMail) {
                                     $addMail = false;
                                     // findAccounts
-                                    if ($tblPerson
-                                        && ($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))
-                                        && count($tblAccountList) == 1
-                                    ) {
-                                        $countAccounts++;
-                                        $tblAccount = current($tblAccountList);
-                                        if ($isAccountAlias) {
-                                            if (!$isTest) {
-                                                if (Account::useService()->changeUserAlias($tblAccount, $mail)) {
-                                                    $addMail = true;
-                                                    $personMailIsAccountAlias = true;
-                                                } else {
-                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
-                                                        . ' Alias konnte nicht am Benutzerkonto gespeichert werden.';
+                                    if (($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+                                        if (count($tblAccountList) == 1) {
+                                            $countAccounts++;
+                                            $tblAccount = current($tblAccountList);
+                                            if ($isAccountAlias) {
+                                                if (!$isTest) {
+                                                    if (Account::useService()->changeUserAlias($tblAccount, $mail)) {
+                                                        $addMail = true;
+                                                        $personMailIsAccountAlias = true;
+                                                    } else {
+                                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
+                                                            . ' Alias konnte nicht am Benutzerkonto gespeichert werden.';
+                                                    }
+                                                }
+                                            } elseif ($isAccountRecoveryMail) {
+                                                if (!$isTest) {
+                                                    if (Account::useService()->changeRecoveryMail($tblAccount, $mail)) {
+                                                        $addMail = true;
+                                                        $personMailIsRecoveryMail = true;
+                                                    } else {
+                                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
+                                                            . ' Passwort vergessen E-Mail konnte nicht am Benutzerkonto gespeichert werden.';
+                                                    }
                                                 }
                                             }
-                                        } elseif ($isAccountRecoveryMail) {
-                                            if (!$isTest) {
-                                                if (Account::useService()->changeRecoveryMail($tblAccount, $mail)) {
-                                                    $addMail = true;
-                                                    $personMailIsRecoveryMail = true;
-                                                } else {
-                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
-                                                        . ' Passwort vergessen E-Mail konnte nicht am Benutzerkonto gespeichert werden.';
-                                                }
-                                            }
+                                        } else {
+                                            $countMultipleAccounts++;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
+                                                . ' besitzt mehrere Benutzerkonten';
                                         }
                                     } else {
                                         $countMissingAccounts++;
@@ -261,6 +265,7 @@ class Service
                             ($countDuplicatePersons > 0 ? new Warning($countDuplicatePersons . ' Doppelte Personen gefunden') : '') .
                             ($countMissingPersons > 0 ? new Warning($countMissingPersons . ' Personen nicht gefunden') : '') .
                             ($countMissingAccounts > 0 ? new Warning($countMissingAccounts . ' Benutzerkonten nicht gefunden') : '') .
+                            ($countMultipleAccounts > 0 ? new Warning($countMultipleAccounts . ' für Personen wurde mehrere Benutzerkonten gefunden') : '') .
                             (empty($error)
                                 ? ''
                                 : new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
