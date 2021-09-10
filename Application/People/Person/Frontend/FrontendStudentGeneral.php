@@ -177,8 +177,8 @@ class FrontendStudentGeneral extends FrontendReadOnly
                             'Geschwisterkind',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Geschwisterkind', 6),
-                                    self::getLayoutColumnValue($billingSiblingRank, 6),
+//                                    self::getLayoutColumnLabel('Geschwisterkind', 6),
+                                    self::getLayoutColumnValue($billingSiblingRank, 12),
                                 ))
                             )))
                         ),
@@ -417,7 +417,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 new FormRow(array(
                     new FormColumn(array(
                         new Panel('Geschwisterkind', array(
-                            new SelectBox('Meta[Billing]', 'Geschwisterkind', array('{{Name}}' => Relationship::useService()->getSiblingRankAll()),
+                            new SelectBox('Meta[Billing]', '', array('{{Name}}' => Relationship::useService()->getSiblingRankAll()),
                                 new Child()),
                         ), Panel::PANEL_TYPE_INFO),
                         new Panel('Schließfach', array(
