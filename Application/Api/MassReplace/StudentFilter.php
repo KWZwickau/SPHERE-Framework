@@ -484,9 +484,26 @@ class StudentFilter extends Extension
                         }
 
                         // MedicalRecord
-                        if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
-                             && $Label == 'Datum (vorgelegt am)') {
+                        if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord()))
+                        {
+                            if($Label == 'Datum (vorgelegt am)'){
                                 $DataPerson['Edit'] = $tblMedicalRecord->getMasernDate();
+                            }
+                            if($Label == 'Art der Bescheinigung'){
+                                if(($MasernInfo = $tblMedicalRecord->getMasernDocumentType())){
+                                    $DataPerson['Edit'] = $MasernInfo->getTextShort();
+                                } else {
+                                    $DataPerson['Edit'] = '';
+                                }
+
+                            }
+                            if($Label == 'Bescheinigung, dass der Nachweis bereits vorgelegt wurde, durch'){
+                                if(($MasernInfo = $tblMedicalRecord->getMasernCreatorType())){
+                                    $DataPerson['Edit'] = $MasernInfo->getTextShort();
+                                } else {
+                                    $DataPerson['Edit'] = '';
+                                }
+                            }
                         }
 
                         // TechnicalSchool
