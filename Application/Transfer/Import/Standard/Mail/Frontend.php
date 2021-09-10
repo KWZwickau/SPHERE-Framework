@@ -5,6 +5,7 @@ namespace SPHERE\Application\Transfer\Import\Standard\Mail;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -13,6 +14,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -52,7 +54,19 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Excel-Header',
+                                array(
+                                    0 => "Pflichtfelder: Vorname, Nachname",
+                                    1 => "Wahlpflichtfelder (1 Feld): Emailadresse, Benutzer-Alias-Mail, Recovery-Mail",
+                                    2 => "optionales Feld für besser Personenerkennung: Geburtsdatum"
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            )
+                        ),
+
                         new LayoutColumn(array(
                             new Well(
                                 Mail::useService()->createMailsFromFile(
@@ -72,17 +86,17 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new CheckBox('Data[IsAccountAlias]', 'Als Account-Alias verwenden', 1)
+                                                new RadioBox('Data[Radio]', 'Nur Emailadressen importieren', 1)
                                             ),
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new CheckBox('Data[IsAddMailWithoutAccount]', 'Nur Emailadressen importieren (ohne Account-Alias)', 1)
+                                                new RadioBox('Data[Radio]', 'Emailadresse als Account-Alias verwenden', 2)
                                             ),
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new CheckBox('Data[IsAccountRecoveryMail]', 'Nur Passwort vergessen E-Mail-Adressen importieren', 1)
+                                                new RadioBox('Data[Radio]', '"Passwort vergessen" E-Mail-Adressen importieren', 3)
                                             ),
                                         )),
                                         new FormRow(array(
@@ -96,7 +110,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 . new Warning(new Exclamation().' Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
                         ))
-                    )
+                    ))
                 )
             )
         );

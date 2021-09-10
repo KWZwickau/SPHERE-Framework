@@ -390,7 +390,8 @@ class Service extends AbstractService
                     } elseif($IsRecoveryMail){
                         return (new Data($this->getBinding()))->updateMailToPersonRecoveryMail($tblToPerson, $tblType, $IsRecoveryMail);
                     } else {
-                        return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark, $IsUserAlias, $IsRecoveryMail);
+                        return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark,
+                            $tblToPerson->isAccountUserAlias(), $tblToPerson->isAccountRecoveryMail());
                     }
                 }
             }

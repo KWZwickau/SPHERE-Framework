@@ -5,6 +5,7 @@ namespace SPHERE\Application\Transfer\Import\Standard\Mail;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use PHPExcel_Shared_Date;
+use SPHERE\Application\Contact\Mail\Mail as MailAlias;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -44,14 +45,28 @@ class Service
             return $Form;
         }
 
-        if (!($tblType = \SPHERE\Application\Contact\Mail\Mail::useService()->getTypeById($Data['Type']))) {
+        if (!($tblType = MailAlias::useService()->getTypeById($Data['Type']))) {
             $Form->setError('Data[Type]', 'Bitte geben Sie einen Typ an');
             return $Form;
         }
-        $isAccountAlias = isset($Data['IsAccountAlias']);
-        $isAccountRecoveryMail = isset($Data['IsAccountRecoveryMail']);
+
         $isTest = isset($Data['IsTest']);
-        $isAddMailWithoutAccount = isset($Data['IsAddMailWithoutAccount']);
+
+        $isOnlyEmail = false;
+        $isAccountAlias = false;
+        $isAccountRecoveryMail = false;
+
+        $emailFieldName = '';
+
+        if (isset($Data['Radio'])) {
+            switch ($Data['Radio']) {
+                case 1: $isOnlyEmail = true; break;
+                case 2: $isAccountAlias = true; break;
+                case 3: $isAccountRecoveryMail = true; break;
+            }
+        } else {
+            return $Form . new Danger('Bitte wählen Sie ein Variante (Radio) aus');
+        }
 
         if (null !== $File) {
             if ($File->getError()) {
@@ -75,11 +90,21 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Benutzername' => null,
-                    'PW-Reset' => null,
                     'Vorname' => null,
                     'Nachname' => null
                 );
+
+                if ($isOnlyEmail) {
+                    $Location['Emailadresse'] = null;
+                    $emailFieldName = 'Emailadresse';
+                } elseif ($isAccountAlias) {
+                    $Location['Benutzer-Alias-Mail'] = null;
+                    $emailFieldName = 'Benutzer-Alias-Mail';
+                } elseif ($isAccountRecoveryMail) {
+                    $Location['Recovery-Mail'] = null;
+                    $emailFieldName = 'Recovery-Mail';
+                }
+
                 $OptionalLocation = array(
                     'Geburtsdatum' => null
                 );
@@ -107,10 +132,9 @@ class Service
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                         $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
-                        $mail = trim($Document->getValue($Document->getCell($Location['Benutzername'], $RunY)));
+
+                        $mail = trim($Document->getValue($Document->getCell($Location[$emailFieldName], $RunY)));
                         $mail = str_replace(' ', '', $mail);
-                        $RecoveryMail = trim($Document->getValue($Document->getCell($Location['PW-Reset'], $RunY)));
-                        $RecoveryMail = str_replace(' ', '', $RecoveryMail);
 
                         $birthday = $OptionalLocation['Geburtsdatum'] == null
                             ? ''
@@ -151,10 +175,9 @@ class Service
                                     ) {
                                         $countAccounts++;
                                         $tblAccount = current($tblAccountList);
-                                        if($isAccountAlias && $tblAccount){
+                                        if ($isAccountAlias) {
                                             if (!$isTest) {
-                                                if ( Account::useService()->changeUserAlias($tblAccount, $mail)
-                                                ) {
+                                                if (Account::useService()->changeUserAlias($tblAccount, $mail)) {
                                                     $addMail = true;
                                                     $personMailIsAccountAlias = true;
                                                 } else {
@@ -162,11 +185,9 @@ class Service
                                                         . ' Alias konnte nicht am Benutzerkonto gespeichert werden.';
                                                 }
                                             }
-                                        }
-                                        if($isAccountRecoveryMail && $tblAccount){
+                                        } elseif ($isAccountRecoveryMail) {
                                             if (!$isTest) {
-                                                if (Account::useService()->changeRecoveryMail($tblAccount, $RecoveryMail)
-                                                ) {
+                                                if (Account::useService()->changeRecoveryMail($tblAccount, $mail)) {
                                                     $addMail = true;
                                                     $personMailIsRecoveryMail = true;
                                                 } else {
@@ -175,25 +196,23 @@ class Service
                                                 }
                                             }
                                         }
-
                                     } else {
                                         $countMissingAccounts++;
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
                                             . ' besitzt kein Benutzerkonto';
-                                        if ($isAddMailWithoutAccount) {
-                                            $addMail = true;
-                                        }
                                     }
+                                } elseif ($isOnlyEmail) {
+                                    $addMail = true;
                                 }
 
                                 if ($addMail && $tblPerson && !$isTest) {
                                     // alle Emailadressen der Person mit isAccountUserAlias zurücksetzen
                                     if ($isAccountAlias
-                                        && (($tblMailToPersonList = \SPHERE\Application\Contact\Mail\Mail::useService()->getMailAllByPerson($tblPerson)))
+                                        && (($tblMailToPersonList = MailAlias::useService()->getMailAllByPerson($tblPerson)))
                                     ) {
                                         foreach ($tblMailToPersonList as $tblToPerson) {
                                             if ($tblToPerson->isAccountUserAlias()) {
-                                                \SPHERE\Application\Contact\Mail\Mail::useService()->updateMailToPersonService(
+                                                MailAlias::useService()->updateMailToPersonService(
                                                     $tblToPerson, $tblToPerson->getTblMail()->getAddress(),
                                                     $tblToPerson->getTblType(), $tblToPerson->getRemark(),
                                                     false, $tblToPerson->isAccountRecoveryMail()
@@ -203,11 +222,11 @@ class Service
                                     }
                                     // alle Emailadressen der Person mit isAccountRecoveryMail zurücksetzen
                                     if ($isAccountRecoveryMail
-                                        && (($tblMailToPersonList = \SPHERE\Application\Contact\Mail\Mail::useService()->getMailAllByPerson($tblPerson)))
+                                        && (($tblMailToPersonList = MailAlias::useService()->getMailAllByPerson($tblPerson)))
                                     ) {
                                         foreach ($tblMailToPersonList as $tblToPerson) {
                                             if ($tblToPerson->isAccountRecoveryMail()) {
-                                                \SPHERE\Application\Contact\Mail\Mail::useService()->updateMailToPersonService(
+                                                MailAlias::useService()->updateMailToPersonService(
                                                     $tblToPerson, $tblToPerson->getTblMail()->getAddress(),
                                                     $tblToPerson->getTblType(), $tblToPerson->getRemark(),
                                                     $tblToPerson->isAccountUserAlias(), false
@@ -216,14 +235,17 @@ class Service
                                         }
                                     }
 
-
-
-                                    if($isAccountAlias || $isAccountRecoveryMail){
-                                        if (\SPHERE\Application\Contact\Mail\Mail::useService()->insertMailToPerson($tblPerson, $mail, $tblType, '', $personMailIsAccountAlias, $personMailIsRecoveryMail)) {
-                                            $countAddMail++;
-                                        } else {
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';
-                                        }
+                                    if (MailAlias::useService()->insertMailToPerson(
+                                        $tblPerson,
+                                        $mail,
+                                        $tblType,
+                                        '',
+                                        $personMailIsAccountAlias,
+                                        $personMailIsRecoveryMail
+                                    )) {
+                                        $countAddMail++;
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';
                                     }
                                 }
                             }
