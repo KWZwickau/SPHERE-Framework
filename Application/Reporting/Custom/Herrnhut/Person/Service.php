@@ -764,7 +764,7 @@ class Service extends Extension
                 $Item['PhoneNumbers'] = '';
                 $Item['ExcelPhoneNumbers'] = '';
                 $Item['Parents'] = '';
-                $Item['ExcelParants'] = '';
+                $Item['ExcelParants'] = array();
                 $Item['Email'] = '';
                 $Item['ExcelEmail'] = '';
                 $Item['Entrance'] = '';

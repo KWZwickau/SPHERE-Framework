@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Platform\System\Database;
 
 use Doctrine\DBAL\Schema\View;
+use Exception;
 use MOC\V\Component\Database\Component\IBridgeInterface;
 use MOC\V\Component\Database\Database as MocDatabase;
 use MOC\V\Component\Template\Template;
@@ -80,7 +81,7 @@ class ReportingUpgrade
         // All available Consumer
         try {
             $ConsumerList = $this->getConsumerList();
-        } catch (\Exception $Exception) {
+        } catch (Exception $Exception) {
             $ConsumerList = array();
         }
         if (empty($ConsumerList)) {
@@ -100,7 +101,7 @@ class ReportingUpgrade
             // Connect to DB Server
             try {
                 $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
-            } catch (\Exception $Exception) {
+            } catch (Exception $Exception) {
                 $Connection = null;
             }
             if (empty($Connection)) {
@@ -142,10 +143,10 @@ class ReportingUpgrade
                     // Create/Upgrade View
                     if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
                         // View exists
-                        $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                        $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' .new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                         try {
                             $SchemaManager->dropAndCreateView($View);
-                        } catch (\Exception $Exception) {
+                        } catch (Exception $Exception) {
                             $ProtocolList[] = new Danger('Schema Upgrade failed!')
                                 . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                             $ProtocolError++;
@@ -153,10 +154,10 @@ class ReportingUpgrade
                         }
                     } else {
                         // View is missing
-                        $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                        $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                         try {
                             $SchemaManager->createView($View);
-                        } catch (\Exception $Exception) {
+                        } catch (Exception $Exception) {
                             $ProtocolList[] = new Danger('Schema Upgrade failed!')
                                 . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                             $ProtocolError++;
@@ -197,7 +198,7 @@ class ReportingUpgrade
         // Connect to DB Server
         try {
             $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
-        } catch (\Exception $Exception) {
+        } catch (Exception $Exception) {
             $Connection = null;
         }
         if (empty($Connection)) {
@@ -237,10 +238,10 @@ class ReportingUpgrade
                 // Create/Upgrade View
                 if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
                     // View exists
-                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                     try {
                         $SchemaManager->dropAndCreateView($View);
-                    } catch (\Exception $Exception) {
+                    } catch (Exception $Exception) {
                         $ProtocolList[] = new Danger('Schema Upgrade failed!')
                             . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                         $ProtocolError++;
@@ -248,10 +249,10 @@ class ReportingUpgrade
                     }
                 } else {
                     // View is missing
-                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                     try {
                         $SchemaManager->createView($View);
-                    } catch (\Exception $Exception) {
+                    } catch (Exception $Exception) {
                         $ProtocolList[] = new Danger('Schema Upgrade failed!')
                             . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                         $ProtocolError++;
@@ -294,7 +295,7 @@ class ReportingUpgrade
         // Connect to DB Server
         try {
             $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
-        } catch (\Exception $Exception) {
+        } catch (Exception $Exception) {
             $Connection = null;
         }
         if (empty($Connection)) {
@@ -335,10 +336,10 @@ class ReportingUpgrade
                 // Create/Upgrade View
                 if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
                     // View exists
-                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ '.strtoupper($Acronym).'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                     try {
                         $SchemaManager->dropAndCreateView($View);
-                    } catch (\Exception $Exception) {
+                    } catch (Exception $Exception) {
                         $ProtocolList[] = new Danger('Schema Upgrade failed!')
                             . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                         $ProtocolError++;
@@ -346,10 +347,10 @@ class ReportingUpgrade
                     }
                 } else {
                     // View is missing
-                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ '.strtoupper($Acronym).'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                     try {
                         $SchemaManager->createView($View);
-                    } catch (\Exception $Exception) {
+                    } catch (Exception $Exception) {
                         $ProtocolList[] = new Danger('Schema Upgrade failed!')
                             . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                         $ProtocolError++;
@@ -385,11 +386,11 @@ class ReportingUpgrade
     }
 
     /**
-     * @param \Exception $Exception
+     * @param Exception $Exception
      * @param string $Name
      * @return Error
      */
-    private function parseException(\Exception $Exception, $Name = '')
+    private function parseException(Exception $Exception, $Name = '')
     {
 
         $TraceList = '';
@@ -412,13 +413,13 @@ class ReportingUpgrade
      * @param string $Host Server-Address (IP)
      * @param string $User
      * @param string $Password
-     * @param string $Acronym DatabaseName will get prefix 'SettingConsumer_' e.g. SettingConsumer_{Acronym}
+     * @param string $Acronym DatabaseName will get prefix '_SettingConsumer' e.g. {Acronym}_SettingConsumer
      * @return bool|IBridgeInterface
      */
     private function getConnection($Host, $User, $Password, $Acronym)
     {
         $Connection = MocDatabase::getDatabase(
-            $User, $Password, 'SettingConsumer_' . strtoupper($Acronym), (new MySql())->getIdentifier(), $Host
+            $User, $Password, strtoupper($Acronym).'_SettingConsumer', (new MySql())->getIdentifier(), $Host
         );
         if ($Connection->getConnection()->isConnected()) {
             return $Connection;

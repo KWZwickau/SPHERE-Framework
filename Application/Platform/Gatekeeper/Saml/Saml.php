@@ -20,7 +20,7 @@ class Saml implements IModuleInterface
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Login/EVSSN', __NAMESPACE__.'/Frontend::frontendLoginEVSSN'
+            __NAMESPACE__.'/Login/DLLP', __NAMESPACE__.'/Frontend::frontendLoginDLLP'
         ));
 
 //        // EKM -> Beispiel kann für zukünftige IDP's verwendet werden

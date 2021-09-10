@@ -152,7 +152,7 @@ class Service extends ServiceView
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            $PersonCreator = '';
+            $PersonCreator = 'Person nicht vorhanden';
             if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
                 /** @var TblPerson $tblPerson */
                 $tblPerson = current($tblPersonList);

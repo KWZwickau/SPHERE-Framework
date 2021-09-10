@@ -10,7 +10,7 @@ SELECT
     tG.IsLocked as TblGroup_IsLocked,
     tG.MetaTable as TblGroup_MetaTable
 
-FROM PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG
-    LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblMember tM ON tM.tblGroup = tG.Id
+FROM {{ ConsumerAcronym }}_PeopleGroup.tblGroup tG
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblMember tM ON tM.tblGroup = tG.Id
 
 WHERE tM.EntityRemove IS NULL

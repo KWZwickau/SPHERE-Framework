@@ -9,9 +9,9 @@ SELECT
 			tC.ExtendedName,
             ' ',
 			tC.Description)
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.tblCompany tC ON tC.Id = tST.serviceTblCompany
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblCompany
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblCompanyEnrollment_Name,
@@ -19,39 +19,39 @@ SELECT
     -- other infos
     (select distinct
         tT.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tT ON tST.serviceTblType = tT.Id
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tT ON tST.serviceTblType = tT.Id
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblStudentTransferEnrollment_Type,
     (select distinct
         tC.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON tC.Id = tST.serviceTblCourse
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tC ON tC.Id = tST.serviceTblCourse
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblStudentTransferEnrollment_Course,
     (select distinct
         DATE_FORMAT( tST.TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblStudentTransferEnrollment_TransferDate,
     (select distinct
         tST.Remark AS TblStudentTransfer_Remark
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblStudentTransferEnrollment_Remark,
     (select distinct
         tSSET.Name AS tblStudentSchoolEnrollmentType_Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentSchoolEnrollmentType tSSET ON tSSET.Id = tST.tblStudentSchoolEnrollmentType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSchoolEnrollmentType tSSET ON tSSET.Id = tST.tblStudentSchoolEnrollmentType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ENROLLMENT'
     ) AS TblStudentSchoolEnrollmentType_Name,
@@ -63,9 +63,9 @@ SELECT
 			tC.ExtendedName,
             ' ',
 			tC.Description)
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.tblCompany tC ON tC.Id = tST.serviceTblCompany
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblCompany
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ARRIVE'
     ) AS TblCompanyArrive_Name,
@@ -77,9 +77,9 @@ SELECT
 			tC.ExtendedName,
             ' ',
 			tC.Description)
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.tblCompany tC ON tC.Id = tST.serviceTblStateCompany
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblStateCompany
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ARRIVE'
     ) AS TblStateCompanyArrive_Name,
@@ -87,31 +87,31 @@ SELECT
     -- other infos
     (select distinct
         tT.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tT ON tST.serviceTblType = tT.Id
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tT ON tST.serviceTblType = tT.Id
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ARRIVE'
     ) AS TblStudentTransferArrive_Type,
     (select distinct
         tC.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON tC.Id = tST.serviceTblCourse
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tC ON tC.Id = tST.serviceTblCourse
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ARRIVE'
     ) AS TblStudentTransferArrive_Course,
     (select distinct
         DATE_FORMAT( tST.TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ARRIVE'
     ) AS TblStudentTransferArrive_TransferDate,
     (select distinct
         tST.Remark AS TblStudentTransfer_Remark
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'ARRIVE'
     ) AS TblStudentTransferArrive_Remark,
@@ -123,9 +123,9 @@ SELECT
 			tC.ExtendedName,
             ' ',
 			tC.Description)
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.tblCompany tC ON tC.Id = tST.serviceTblCompany
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblCompany
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'LEAVE'
     ) AS TblCompanyLeave_Name,
@@ -133,31 +133,31 @@ SELECT
     -- other infos
     (select distinct
         tT.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tT ON tST.serviceTblType = tT.Id
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tT ON tST.serviceTblType = tT.Id
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'LEAVE'
     ) AS TblStudentTransferLeave_Type,
     (select distinct
         tC.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON tC.Id = tST.serviceTblCourse
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tC ON tC.Id = tST.serviceTblCourse
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'LEAVE'
     ) AS TblStudentTransferLeave_Course,
     (select distinct
         DATE_FORMAT( tST.TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'LEAVE'
     ) AS TblStudentTransferLeave_TransferDate,
     (select distinct
         tST.Remark AS TblStudentTransfer_Remark
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'LEAVE'
     ) AS TblStudentTransferLeave_Remark,
@@ -169,9 +169,9 @@ SELECT
 			tC.ExtendedName,
             ' ',
 			tC.Description)
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.tblCompany tC ON tC.Id = tST.serviceTblCompany
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblCompany
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'PROCESS'
     ) AS TblCompanyProcess_Name,
@@ -179,20 +179,20 @@ SELECT
     -- other infos
     (select distinct
         tC.Name
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON tC.Id = tST.serviceTblCourse
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tC ON tC.Id = tST.serviceTblCourse
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'PROCESS'
     ) AS TblStudentTransferProcess_Course,
     (select distinct
         tST.Remark AS TblStudentTransfer_Remark
-    from PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransfer tST
-        LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'PROCESS'
     ) AS TblStudentTransferProcess_Remark
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
 
 WHERE tS.EntityRemove IS NULL

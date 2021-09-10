@@ -250,7 +250,7 @@ class Service extends AbstractService
         }
 
         if (!empty($divisionList)
-            && ($tblDivisionAll = Division::useService()->getDivisionAll())
+            && (Division::useService()->getDivisionAll())
         ) {
             foreach ($divisionList as $tblDivision) {
                 if (($tblAbsenceDivisionList = $this->getAbsenceAllBetweenByDivision($fromDate, $toDate, $tblDivision))) {
@@ -302,12 +302,13 @@ class Service extends AbstractService
                 $division[$key] = strtoupper($row['Division']);
                 $group[$key] = strtoupper($row['Group']);
                 $person[$key] = strtoupper($row['Person']);
+                $date[$key] = $row['DateSort'];
             }
 
             if ($isGroup) {
-                array_multisort($type, SORT_ASC, $group, SORT_NATURAL, $person, SORT_ASC, $resultList);
+                array_multisort($type, SORT_ASC, $group, SORT_NATURAL, $person, SORT_ASC, $date, SORT_ASC, $resultList);
             } else {
-                array_multisort($type, SORT_ASC, $division, SORT_NATURAL, $person, SORT_ASC, $resultList);
+                array_multisort($type, SORT_ASC, $division, SORT_NATURAL, $person, SORT_ASC, $date, SORT_ASC, $resultList);
             }
         }
 
@@ -340,6 +341,9 @@ class Service extends AbstractService
             'Group' => $isGroup && isset($groupPersonList[$tblPerson->getId()]) ? $groupPersonList[$tblPerson->getId()] : '',
             'Person' => $tblPerson->getLastFirstName(),
             'DateSpan' => $tblAbsence->getDateSpan(),
+            'DateSort' => $tblAbsence->getFromDate('Y.m.d'),
+            'DateFrom' => $tblAbsence->getFromDate(),
+            'DateTo' => $tblAbsence->getToDate(),
             'Status' => $tblAbsence->getStatusDisplayName(),
             'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
             'Remark' => $tblAbsence->getRemark(),
@@ -461,7 +465,7 @@ class Service extends AbstractService
 
         // Prüfung ob in diesem Zeitraum bereits eine Fehlzeit existiert
         if (!$error && !$tblAbsence && $tblPerson && $fromDate) {
-            if (($list = (new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($fromDate, $tblPerson, $toDate == $fromDate ? null : $toDate))) {
+            if ((new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($fromDate, $tblPerson, $toDate == $fromDate ? null : $toDate)) {
                 $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
 //                if ($toDate) {
 //                    $form->setError('Data[ToDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
@@ -588,7 +592,7 @@ class Service extends AbstractService
             isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
             $tblPersonStaff ? $tblPersonStaff : null
         )) {
-            for ($i = 1; $i < 11; $i++) {
+            for ($i = 0; $i < 13; $i++) {
                 if (isset($Data['UE'][$i])) {
                     (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $i);
                 } else {

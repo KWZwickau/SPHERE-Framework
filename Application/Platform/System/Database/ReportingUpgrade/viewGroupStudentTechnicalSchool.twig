@@ -38,16 +38,16 @@ tSTOL.Name as TblStudentTensOfLesson_Name,
 tSTSt.Name as TblStudentTrainingStatus_Name
 
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblStudent tS
-left join PeopleMeta_{{ ConsumerAcronym }}.tblStudentTechnicalSchool tSTS on tSTS.Id = tS.tblStudentTechnicalSchool
-left join PeopleMeta_{{ ConsumerAcronym }}.tblStudentTenseOfLesson tSTOL on tSTOL.Id = tSTS.tblStudentTenseOfLesson
-left join PeopleMeta_{{ ConsumerAcronym }}.tblStudentTrainingStatus tSTSt on tSTSt.Id = tSTS.tblStudentTrainingStatus
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
+left join {{ ConsumerAcronym }}_PeopleMeta.tblStudentTechnicalSchool tSTS on tSTS.Id = tS.tblStudentTechnicalSchool
+left join {{ ConsumerAcronym }}_PeopleMeta.tblStudentTenseOfLesson tSTOL on tSTOL.Id = tSTS.tblStudentTenseOfLesson
+left join {{ ConsumerAcronym }}_PeopleMeta.tblStudentTrainingStatus tSTSt on tSTSt.Id = tSTS.tblStudentTrainingStatus
 
-left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalCourse tTC on tTC.Id = tSTS.serviceTblTechnicalCourse
-left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblSchoolDiploma tSD on tSD.Id = tSTS.serviceTblSchoolDiploma
-left join EducationSchoolType_{{ ConsumerAcronym }}.tblType tT on tT.Id = tSTS.serviceTblSchoolType
-left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalDiploma tTD on tTD.Id = tSTS.serviceTblTechnicalDiploma
-left join EducationSchoolType_{{ ConsumerAcronym }}.tblType tTT on tTT.Id = tSTS.serviceTblTechnicalType
-left join EducationSchoolCourse_{{ ConsumerAcronym }}.tblTechnicalSubjectArea tTSA on tTSA.Id = tSTS.serviceTblTechnicalSubjectArea
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblTechnicalCourse tTC on tTC.Id = tSTS.serviceTblTechnicalCourse
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblSchoolDiploma tSD on tSD.Id = tSTS.serviceTblSchoolDiploma
+left join {{ ConsumerAcronym }}_EducationSchoolType.tblType tT on tT.Id = tSTS.serviceTblSchoolType
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblTechnicalDiploma tTD on tTD.Id = tSTS.serviceTblTechnicalDiploma
+left join {{ ConsumerAcronym }}_EducationSchoolType.tblType tTT on tTT.Id = tSTS.serviceTblTechnicalType
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblTechnicalSubjectArea tTSA on tTSA.Id = tSTS.serviceTblTechnicalSubjectArea
 
 WHERE tS.EntityRemove is Null

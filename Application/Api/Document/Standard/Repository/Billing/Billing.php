@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Document\Standard\Repository\Billing;
 
+use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -21,7 +22,7 @@ use SPHERE\Library\NumberToWord\NumberToWord;
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository\Billing
  */
-class Billing
+class Billing extends AbstractDocument
 {
 
     /** @var null|Frame $Document */
@@ -43,6 +44,15 @@ class Billing
         $this->tblItem = $tblItem;
         $this->tblDocument = $tblDocument;
         $this->Data = $Data;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+
+        return 'Bescheinigung_' . $this->tblItem . '_' . date("Y-m-d") . ".pdf";
     }
 
     /**
@@ -69,7 +79,7 @@ class Billing
      *
      * @return Frame
      */
-    private function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $part = '0')
     {
         $document = new Document();
 
@@ -146,7 +156,7 @@ class Billing
      *
      * @return Page
      */
-    private function buildPage(
+    public function buildPage(
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
         $TotalPrice

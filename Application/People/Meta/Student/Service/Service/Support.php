@@ -109,12 +109,13 @@ abstract class Support extends Integration
         $tblAccount = Account::useService()->getAccountBySession();
         $PersonEditor = '';
         if($tblAccount){
-            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
-            $tblPersonEditor = $tblPersonList[0];
-            if($tblPersonEditor){
-                $PersonEditor = $tblPersonEditor->getLastFirstName();
-                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
-                    $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+            if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                $tblPersonEditor = current($tblPersonList);
+                if($tblPersonEditor){
+                    $PersonEditor = $tblPersonEditor->getLastFirstName();
+                    if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                        $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+                    }
                 }
             }
         }

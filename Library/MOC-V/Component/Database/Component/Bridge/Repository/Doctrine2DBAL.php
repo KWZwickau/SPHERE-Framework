@@ -84,6 +84,9 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
                     'dbname'        => $Database->getDatabase(),
                     'port'          => $Port->getPort(),
                     'driverOptions' => array(
+//                        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION CHARACTER_SET_RESULTS = latin1",
+//                        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+//                        \PDO::MYSQL_ATTR_INIT_COMMAND =>"SET NAMES 'utf8mb4' COLLATE 'utf8mb4_0900_ai_ci' ",
                         \PDO::ATTR_TIMEOUT => $Timeout,
                         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
                     )

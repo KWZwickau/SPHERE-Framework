@@ -168,7 +168,7 @@ class FrontendBasic extends FrontendReadOnly
                     ViewPerson::TBL_PERSON_SECOND_NAME => 'Zweiter Vorname',
                     ViewPerson::TBL_PERSON_LAST_NAME => 'Nachname',
                     ViewPerson::TBL_PERSON_BIRTH_NAME => 'Geburtsname',
-                    'BirthDay' => 'Geburtstag',
+                    'BirthDay' => 'Geburtsdatum',
                     'Address' => 'Adresse',
                     'Option' => '',
                 ), array('order'      => array(

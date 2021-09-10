@@ -333,7 +333,7 @@ class StudentCourse extends Import implements IFrontendInterface
                             'Id'      => $tblUntisImportStudent->getId(),
                             'Visible' => $Visible
                         ), 'Manuell freigeben');
-                    $Item['Ignore'] = new Center(new Warning(new ToolTip(new WarningIcon(), 'Manuell deaktiviert')));
+                    $Item['Ignore'] = $this->setSortOrder(4).new Center(new Warning(new ToolTip(new Disable(), 'Manuell deaktiviert')));
 
                 } else {
                     $Item['Option'] .= new Standard('', '/Transfer/Untis/Import/StudentCourse/Ignore',
@@ -342,18 +342,22 @@ class StudentCourse extends Import implements IFrontendInterface
                             'Id'      => $tblUntisImportStudent->getId(),
                             'Visible' => $Visible
                         ), 'Manuell sperren');
-                    $Item['Ignore'] = new Center(new Success(new SuccessIcon()));
+                    $Item['Ignore'] = $this->setSortOrder(5).new Center(new Success(new SuccessIcon()));
                 }
 
                 $IsImportError = false;
                 $tblUntisImportStudentCourseList = Import::useService()
                     ->getUntisImportStudentCourseByUntisImportStudent($tblUntisImportStudent);
+
+                $SubjectCount = 0;
+                $IsWarning = false;
                 if ($tblUntisImportStudentCourseList) {
                     foreach ($tblUntisImportStudentCourseList as $tblUntisImportStudentCourse) {
                         $ListContent = array();
                         $CourseNumber = $tblUntisImportStudentCourse->getCourseNumber();
                         $SubjectString = '';
                         if (($tblSubject = $tblUntisImportStudentCourse->getServiceTblSubject())) {
+                            $SubjectCount++;
                             $SubjectString = $tblSubject->getAcronym().' - '.$tblSubject->getName();
                         }
                         $SubjectName = $tblUntisImportStudentCourse->getSubjectName();
@@ -362,9 +366,10 @@ class StudentCourse extends Import implements IFrontendInterface
 //                            $SubjectString = ' Fach nicht gefunden!';
 //                        }
 
-                        if ($tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                        if ($tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                             $SubjectString = new Info(new InfoIcon().' Fach/Kurs wird Ignoriert');
                         } elseif ($SubjectName != '' && !$tblUntisImportStudentCourse->getServiceTblSubject()) {
+                            $IsWarning = true;
                             $SubjectString = new Danger(new InfoIcon().' Fach nicht gefunden!');
                         }
                         $ListContent[] = $SubjectString;
@@ -376,7 +381,7 @@ class StudentCourse extends Import implements IFrontendInterface
                             .'</div>';
 
                         // Error wenn Fächerzuweisung fehlt
-                        if (!$tblSubject && $tblUntisImportStudentCourse->getSubjectGroup() != '' && !$tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                        if (!$tblSubject && $tblUntisImportStudentCourse->getSubjectGroup() != '' && !$tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                             if (!$tblUntisImportStudent->getIsIgnore()) {
                                 $Item['Ignore'] = new Center(new Warning(new ToolTip(new Disable(),
                                     'Einige Fächer werden nicht importiert! (Fach nicht gefunden)')));
@@ -385,19 +390,30 @@ class StudentCourse extends Import implements IFrontendInterface
                         }
                     }
                 }
-
                 if (!$tblDivision) {
-                    $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                    $Item['Ignore'] = $this->setSortOrder(1).new Center(new Danger(new ToolTip(new Disable(),
                         'Ohne Klasse kann die Person nicht importiert werden')));
                     $IsImportError = true;
                 } elseif ($tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != $Level) {
-                    $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                    $Item['Ignore'] = $this->setSortOrder(1).new Center(new Danger(new ToolTip(new Disable(),
                         'mit der Falschen Klassenstufe kann die Person nicht importiert werden')));
                     $IsImportError = true;
                 }
+
+                // Warnungen werden ergänzt
+                if(!$IsImportError){
+                    if($IsWarning){ // Fach nicht gefunden
+                        $Item['Ignore'] = $this->setSortOrder(2).new Center(new Warning(new ToolTip(new WarningIcon(),
+                            'nicht alle Fächer in der Schulsoftware gefunden')));
+                    } elseif($SubjectCount < 5){     // Weniger als 5 Fächer hinterlegt
+                        $Item['Ignore'] = $this->setSortOrder(3). new Center(new Warning(new ToolTip(new WarningIcon(),
+                            'Möglicher Fehler, weniger als 5 Fächer vergeben')));
+                    }
+                }
+
                 // Ignore priorisierte Ausgabe
                 if ($tblUntisImportStudent->getIsIgnore()) {
-                    $Item['Ignore'] = new Center(new Warning(new ToolTip(new WarningIcon(), 'Manuell deaktiviert')));
+                    $Item['Ignore'] = $this->setSortOrder(4).new Center(new Warning(new ToolTip(new Disable(), 'Manuell deaktiviert')));
                     $IsImportError = true;
                 }
 
@@ -512,6 +528,11 @@ class StudentCourse extends Import implements IFrontendInterface
 
         return $Stage;
     }
+    private function setSortOrder($number = 1)
+    {
+
+        return '<span hidden>'.$number.'</span>';
+    }
 
     /**
      * @param null $Id
@@ -587,7 +608,7 @@ class StudentCourse extends Import implements IFrontendInterface
                 } else {
                     $Number = $tblUntisImportStudentCourse->getCourseNumber();
                     $Global->POST['Data']['SubjectGroup'.$Number] = $tblUntisImportStudentCourse->getSubjectGroup();
-                    if ($tblUntisImportStudentCourse->getisIgnoreCourse()) {
+                    if ($tblUntisImportStudentCourse->getIsIgnoreCourse()) {
                         $Global->POST['Data']['IsIgnoreCourse'.$Number] = 1;
                     }
                 }

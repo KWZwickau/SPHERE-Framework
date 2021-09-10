@@ -111,6 +111,6 @@ class EsbdMsJ extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', 'Schuljahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
-            ->addSlice($this->getBottomLineConsumer('25px'));
+            ->addSlice($this->getBottomLineConsumer());
     }
 }

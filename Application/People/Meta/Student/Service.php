@@ -1003,7 +1003,7 @@ class Service extends Support
     }
 
     /**
-     * @return bool|int
+     * @return int
      */
     public function getStudentMaxIdentifier()
     {

@@ -171,6 +171,6 @@ class TblUntisImportStudent extends Element
     public function setIsIgnore($IsIgnore)
     {
 
-        $this->IsIgnore = $IsIgnore;
+        $this->IsIgnore = (int)$IsIgnore;
     }
 }

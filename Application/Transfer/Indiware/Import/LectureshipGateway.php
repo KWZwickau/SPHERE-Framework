@@ -525,6 +525,12 @@ class LectureshipGateway extends AbstractConverter
         } elseif (preg_match('!^(12)(/[0-9]?)$!is', $Value, $Match)) {
             $DivisionName = null;
             $LevelName = $Match[1];
+        } elseif (preg_match('!^(\d+) ([äöüÄÖÜa-zA-Z]*?) (\d+)$!is', $Value, $Match)) { // 9 alpha 1, 9 alpha 2 etc.
+            $LevelName = $Match[1];
+            $DivisionName = $Match[2].' '.$Match[3];
+        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?) (\d+)$!is', $Value, $Match)) { // 9alpha 1, 9alpha 2 etc.
+            $LevelName = $Match[1];
+            $DivisionName = $Match[2].' '.$Match[3];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = null;

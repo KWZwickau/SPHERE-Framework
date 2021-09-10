@@ -497,6 +497,10 @@ class Data extends AbstractData
         TblBankReference $tblBankReference = null
     ){
 
+        if($Value == ''){
+            $Value = '0';
+        }
+
         $Manager = $this->getConnection()->getEntityManager();
         // Es dürfen meherere Zahlungszuweisungen vorhanden sein.
 //        $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
@@ -516,6 +520,7 @@ class Data extends AbstractData
             $Entity->setToDate(new DateTime($ToDate));
         }
         $Entity->setServiceTblItemVariant($tblItemVariant);
+
         $Entity->setValue($Value);
         $Entity->setTblBankAccount($tblBankAccount);
         $Entity->setTblBankReference($tblBankReference);
@@ -647,6 +652,10 @@ class Data extends AbstractData
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
     ){
+
+        if($Value == ''){
+            $Value = '0';
+        }
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDebtorSelection $Entity */

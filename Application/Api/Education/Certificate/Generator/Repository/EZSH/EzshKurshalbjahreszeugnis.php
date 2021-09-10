@@ -293,7 +293,7 @@ class EzshKurshalbjahreszeugnis extends Certificate
                         ->styleTextSize('9.5px')
                         , '30%')
                 )
-                ->styleMarginTop('15px')
+                ->styleMarginTop('10px')
             );
     }
 

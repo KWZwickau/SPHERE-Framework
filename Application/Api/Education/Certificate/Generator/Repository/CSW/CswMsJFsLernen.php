@@ -78,9 +78,9 @@ class CswMsJFsLernen extends Certificate
             )
             ->addSlice($this->getDescriptionHead($personId, true))
             ->addSlice($this->getDescriptionContent($personId, '90px', '8px'))
-            ->addSlice($this->getTransfer($personId, '10px'))
-            ->addSlice($this->getDateLine($personId, '10px'))
-            ->addSlice($this->getSignPart($personId, true, '25px'))
+            ->addSlice($this->getTransfer($personId, '8px'))
+            ->addSlice($this->getDateLine($personId, '8px'))
+            ->addSlice($this->getSignPart($personId, true, '20px'))
             ->addSlice($this->getParentSign('20px'))
             ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',

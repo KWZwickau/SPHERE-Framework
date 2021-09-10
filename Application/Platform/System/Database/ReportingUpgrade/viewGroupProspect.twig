@@ -18,15 +18,15 @@ SELECT DISTINCT
 -- TblProspect
     tP.Remark AS TblProspect_Remark
 
-FROM PeopleGroup_{{ ConsumerAcronym }}.tblMember tM
-	LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.tblGroup tG ON tG.Id = tM.TblGroup
+FROM {{ ConsumerAcronym }}_PeopleGroup.tblMember tM
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblGroup tG ON tG.Id = tM.TblGroup
 		AND tG.EntityRemove IS NULL
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblProspect tP ON tP.serviceTblPerson = tM.serviceTblPerson
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblProspectAppointment tPA ON tPA.Id = tP.tblProspectAppointment
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblProspectReservation tPR ON tPR.Id = tP.tblProspectReservation
-    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tTA ON tTA.Id = tPR.serviceTblTypeOptionA
-    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tTB ON tTB.Id = tPR.serviceTblTypeOptionB
-    LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.tblCompany tC ON tC.Id = tPR.serviceTblCompany AND tC.EntityRemove IS NULL
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblProspect tP ON tP.serviceTblPerson = tM.serviceTblPerson
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblProspectAppointment tPA ON tPA.Id = tP.tblProspectAppointment
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblProspectReservation tPR ON tPR.Id = tP.tblProspectReservation
+    LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tTA ON tTA.Id = tPR.serviceTblTypeOptionA
+    LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tTB ON tTB.Id = tPR.serviceTblTypeOptionB
+    LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tPR.serviceTblCompany AND tC.EntityRemove IS NULL
 
 WHERE tG.MetaTable = 'PROSPECT'
 	AND tM.EntityRemove IS NULL

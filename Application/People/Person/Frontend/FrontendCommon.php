@@ -100,7 +100,7 @@ class FrontendCommon extends FrontendReadOnly
 
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
-                    self::getLayoutColumnLabel('Geburtstag'),
+                    self::getLayoutColumnLabel('Geburtsdatum'),
                     self::getLayoutColumnValue($birthday),
                     self::getLayoutColumnLabel('Staatsangehörigkeit'),
                     self::getLayoutColumnValue($nationality),
@@ -302,7 +302,7 @@ class FrontendCommon extends FrontendReadOnly
         return new FormRow(array(
             new FormColumn(array(
                 new Panel('Geburtsdaten', array(
-                    new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
+                    new DatePicker('Meta[BirthDates][Birthday]', 'Geburtsdatum', 'Geburtsdatum',
                         new Calendar()),
                     new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
                         array('Birthplace' => $viewPeopleMetaCommonAll),

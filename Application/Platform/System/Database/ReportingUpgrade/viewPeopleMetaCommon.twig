@@ -16,9 +16,9 @@ SELECT
     tCI.AssistanceActivity AS TblCommonInformation_AssistanceActivity,
     tCI.IsAssistance AS TblCommonInformation_IsAssistance
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblCommon tC
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
-    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblCommon tC
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
 
 WHERE tC.EntityRemove is NULL

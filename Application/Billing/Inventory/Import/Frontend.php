@@ -208,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($Gateway->getResultList(), null,
                                     array(
-                                        'Row'                 => 'Zeile',
+                                        'Number'              => 'Zeile',
                                         'IsError'             => 'Fehler',
                                         'PersonFrontend'      => 'Beitragsverursacher',
                                         'ValueFrontend'       => 'Betrag',

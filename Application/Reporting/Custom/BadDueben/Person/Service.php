@@ -341,10 +341,10 @@ class Service
             $export->setValue($export->getCell(7, 0), "PLZ");
             $export->setValue($export->getCell(8, 0), "Wohnort");
             $export->setValue($export->getCell(9, 0), "Ortsteil");
-            $export->setValue($export->getCell(10, 0), "privat");
-            $export->setValue($export->getCell(11, 0), "dienstlich M.");
-            $export->setValue($export->getCell(12, 0), "Mutter");
-            $export->setValue($export->getCell(13, 0), "Vater");
+            $export->setValue($export->getCell(10, 0), "Tel. privat");
+            $export->setValue($export->getCell(11, 0), "S1 Tel. dienstlich");
+            $export->setValue($export->getCell(12, 0), "S1 Tel.");
+            $export->setValue($export->getCell(13, 0), "S2 Tel.");
             $export->setValue($export->getCell(14, 0), "E-Mail");
             $export->setValue($export->getCell(15, 0), "Geburtsd.");
             $export->setValue($export->getCell(16, 0), "Geburtsort");

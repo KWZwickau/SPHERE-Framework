@@ -148,7 +148,7 @@ class EmspStyle
      * @param string|bool $TextSize
      * @return Slice
      */
-    public static function getDescriptionContent($personId, $Height = '467px', $TextSize = false)
+    public static function getDescriptionContent($personId, $Height = '450px', $TextSize = false)
     {
 
         $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');

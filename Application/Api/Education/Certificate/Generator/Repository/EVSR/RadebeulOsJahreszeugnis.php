@@ -91,7 +91,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                 ->addElementColumn((new Element())
                     , '10%')
                 ->addSliceColumn((new Slice())
-                    ->styleMarginTop('15px')
+                    ->styleMarginTop('2px')
                     ->addSection((new Section())
                         ->addElementColumn(
                             self::getHeaderElement(' Evangelisches Schulzentrum Radebeul', '26px')
@@ -99,7 +99,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement($schoolType, '22px', '10px')
+                            self::getHeaderElement($schoolType, '22px', '0px')
                         )
                     )
                     ->addSection((new Section())
@@ -107,7 +107,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                             ->setContent(
                                 'Staatlich ' . $extra . ' Ersatzschule in freier Trägerschaft'
                             )
-                            ->styleMarginTop('-4px')
+                            ->styleMarginTop('-6px')
                             ->styleTextColor(self::TEXT_COLOR_BLUE)
                             ->styleTextSize('15px')
                             ->styleAlignCenter()
@@ -128,7 +128,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement($name, '32px', '20px')
+                            self::getHeaderElement($name, '32px', '2px')
                         )
                     )
                 )

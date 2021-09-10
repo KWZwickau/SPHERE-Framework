@@ -22,6 +22,10 @@ class PclZip extends Bridge implements IBridgeInterface
      */
     public function __construct()
     {
+
+        if (!defined('PCLZIP_TEMPORARY_DIR')) {
+            define('PCLZIP_TEMPORARY_DIR', sys_get_temp_dir().'/');
+        }
         require_once(__DIR__ . '/../../../Vendor/PclZip/2.8.2/pclzip.lib.php');
         $this->Instance = new \PclZip('');
     }

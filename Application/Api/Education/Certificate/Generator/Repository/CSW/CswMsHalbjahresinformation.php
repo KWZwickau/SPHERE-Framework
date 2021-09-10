@@ -50,7 +50,7 @@ class CswMsHalbjahresinformation extends Certificate
             ->addSlice($this->getSubjectLanes($personId)->styleHeight('260px'))
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '60px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '60px', '10px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())

@@ -153,16 +153,16 @@ class TblToPerson extends Element
     /**
      * @return boolean
      */
-    public function isAccountBackupMail()
+    public function isAccountRecoveryMail()
     {
         return $this->IsAccountBackupMail;
     }
 
     /**
-     * @param boolean $IsAccountBackupMail
+     * @param boolean $IsAccountRecoveryMail
      */
-    public function setIsAccountBackupMail($IsAccountBackupMail)
+    public function setIsAccountRecoveryMail($IsAccountRecoveryMail)
     {
-        $this->IsAccountBackupMail = $IsAccountBackupMail;
+        $this->IsAccountBackupMail = $IsAccountRecoveryMail;
     }
 }

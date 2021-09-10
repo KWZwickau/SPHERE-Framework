@@ -5,6 +5,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -84,12 +85,18 @@ class Service extends AbstractService
     public function getAccountAllForAPITransfer()
     {
 
-        // Mitarbeiter / Lehrer
+        // Mitarbeiter / Lehrer mit Token
         $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
         $tblAccountList = Account::useService()->getAccountListByIdentification($tblIdentification);
 
         if (!is_array($tblAccountList)){
             $tblAccountList = array();
+        }
+
+        // Mitarbeiter / Lehrer mit Authenticator App
+        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
+        if(($tblAccountList2 = Account::useService()->getAccountListByIdentification($tblIdentification))){
+            $tblAccountList = array_merge($tblAccountList, $tblAccountList2);
         }
 
         // Student
@@ -99,21 +106,6 @@ class Service extends AbstractService
                     $tblAccountList[] = $tblUserAccount->getServiceTblAccount();
                 }
             }
-
-//            // ToDO remove einschränkung
-//            $i = 0;
-//            foreach($tblAccountList as &$tblAccount){
-//                $UserName = $tblAccount->getUsername();
-//                if(preg_match('![üöä]!', $UserName)){
-//                    $tblAccount = false;
-//                    continue;
-//                }
-//                $i++;
-//                if($i > 5){
-//                    $tblAccount = false;
-//                }
-//            }
-//            $tblAccountList = array_filter($tblAccountList);
         }
         return (!empty($tblAccountList) ? $tblAccountList : false);
     }
@@ -153,7 +145,7 @@ class Service extends AbstractService
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = array();
                 $UploadItem['schools'] = array();
-                $UploadItem['backupMail'] = $tblAccount->getBackupMail();
+                $UploadItem['recoveryMail'] = $tblAccount->getRecoveryMail();
 
 //            $UploadItem['password'] = '';// no passwort transfer
                 $UploadItem['school_classes'] = array();
@@ -169,24 +161,31 @@ class Service extends AbstractService
                 $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                 $groups = array();
                 $roles = array();
+                $IsTeacher = $IsStaff = $IsStudent = false;
                 if($tblGroupList){
                     foreach($tblGroupList as $tblGroup) {
                         if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STAFF){
                             // teacher hat Vorrang
                             if(!isset($roles[0])){
                                 $roles[0] = $roleList['staff'];
+                                $IsStaff = true;
                             }
                         }
                         if($tblGroup->getMetaTable() === TblGroup::META_TABLE_TEACHER){
                             $roles[0] = $roleList['teacher'];
+                            $IsTeacher = true;
                         }
                         if($tblGroup->getMetaTable() === TblGroup::META_TABLE_STUDENT){
                             $roles[0] = $roleList['student'];
+                            $IsStudent = true;
                         }
                         if($tblGroup->isCoreGroup()){
-                            $groups[] = $tblGroup->getName();
+                            $groups[$tblGroup->getId()] = $tblGroup->getName();
                         }
                     }
+                }
+                if($IsStudent && ($IsStaff || $IsTeacher)){
+                    unset($roles[0]);
                 }
                 if(!empty($roles)){
                     $UploadItem['roles'] = $roles;
@@ -201,10 +200,10 @@ class Service extends AbstractService
 //                if(!Consumer::useService()->isSchoolSeparated()){
                     // Mandant wird als Schule verwendet
                     $SchoolString = $this->getSchoolString($Acronym);
-                    // Local to test it with DEMOSCHOOL
-                    if($Acronym == 'REF' || $Acronym == 'IBH'){
-                        $SchoolString = $this->getSchoolString('DEMOSCHOOL');
-                    }
+                    // Local to test it with DLLP
+//                    if($Acronym == 'REF'){
+//                        $SchoolString = $this->getSchoolString('DLLP');
+//                    }
 
                 $SchoolKeyList[] = $SchoolString;
                 $StudentSchool = $SchoolString;
@@ -235,12 +234,12 @@ class Service extends AbstractService
                         $SchoolKeyList = array_unique($SchoolKeyList);
                         sort($SchoolKeyList);
                         foreach($SchoolKeyList as $SchoolKey){
-                            // Ref & IBH is Demoschool
-                            if($SchoolKey == 'REF' || !$SchoolKey == 'IBH'){
-                                $schools[] = $schoolList['DEMOSCHOOL'];
-                            } else {
+                            // Ref is DLLP
+//                            if($SchoolKey == 'REF'){
+//                                $schools[] = $schoolList['DLLP'];
+//                            } else {
                                 $schools[] = $schoolList[$SchoolKey];
-                            }
+//                            }
                         }
 
                         $Item['schools'] = array();
@@ -319,6 +318,12 @@ class Service extends AbstractService
         return $UserUniventionList;
     }
 
+    /**
+     * @param $roleList
+     * @param $schoolList
+     *
+     * @return array
+     */
     public function getSchulsoftwareUser($roleList, $schoolList)
     {
 
@@ -335,9 +340,9 @@ class Service extends AbstractService
                                 if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
                                     foreach($tblDivisionTeacherList as $tblDivisionTeacher){
                                         if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
-                                            if($Acronym == 'REF' || $Acronym == 'IBH'){
-                                                $Acronym = 'DEMOSCHOOL';
-                                            }
+//                                            if($Acronym == 'REF'){
+//                                                $Acronym = 'DLLP';
+//                                            }
                                             $SchoolString = $Acronym;
                                             $TeacherSchools[$SchoolString] = $SchoolString;
                                             $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
@@ -354,7 +359,9 @@ class Service extends AbstractService
             }
         }
         // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
-        foreach($TeacherClasses as $PersonId => &$SchoolString) {
+        // Key PersonId
+        foreach($TeacherClasses as &$SchoolString) {
+            // Key Acronym
             foreach($SchoolString as $Acronym => &$ClassList){
                 sort($ClassList);
             }
@@ -411,6 +418,7 @@ class Service extends AbstractService
                 $UploadItem['roles'] = '';
                 $UploadItem['schools'] = '';
                 $UploadItem['mail'] = '';
+                $UploadItem['BackupMail'] = '';
                 $UploadItem['groupArray'] = '';
 
                 $UploadItem['password'] = '';
@@ -449,6 +457,7 @@ class Service extends AbstractService
                     $Item['password'] = '';
                     $Item['school_classes'] = '';
                     $Item['mail'] = '';
+                    $Item['BackupMail'] = '';
                     $Item['groupArray'] = '';
 
                     $Item = $this->getPersonDataExcel($Item, $tblPerson, $tblYear, $Acronym, $TeacherClasses, $TeacherSchools);
@@ -571,10 +580,14 @@ class Service extends AbstractService
         if($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson)){
             $tblAccount = current($tblAccountList);
             $Item['mail'] = $tblAccount->getUserAlias();
+            $Item['BackupMail'] = $tblAccount->getRecoveryMail();
         }
         return $Item;
     }
 
+    /**
+     * @return false|FilePointer
+     */
     public function downlaodAccountExcel()
     {
 
@@ -597,7 +610,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), "Benutzername");
             $export->setValue($export->getCell($Column++, $Row), "Passwort");
             $export->setValue($export->getCell($Column++, $Row), "Externe_Mailadresse");
-            $export->setValue($export->getCell($Column, $Row), "Stammgruppe");
+            $export->setValue($export->getCell($Column++ , $Row), "PW_vergessen_Mail");
+            $export->setValue($export->getCell($Column , $Row), "Stammgruppe");
 
             foreach ($AccountData as $Account)
             {
@@ -613,6 +627,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $Account['name']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['password']);
                 $export->setValue($export->getCell($Column++, $Row), $Account['mail']);
+                $export->setValue($export->getCell($Column++, $Row), $Account['BackupMail']);
                 if(is_array($Account['groupArray']) && !empty($Account['groupArray'])){
                     $GroupString = implode(',',$Account['groupArray']);
                     $export->setValue($export->getCell($Column, $Row), $GroupString);
@@ -630,6 +645,9 @@ class Service extends AbstractService
         return false;
     }
 
+    /**
+     * @return false|FilePointer
+     */
     public function downlaodSchoolExcel()
     {
 

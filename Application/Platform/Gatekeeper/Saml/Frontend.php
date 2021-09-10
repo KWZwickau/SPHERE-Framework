@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Saml;
 
-use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlEVSSN;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
 use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
@@ -20,10 +20,10 @@ class Frontend
         exit;
     }
 
-    public function frontendLoginEVSSN()
+    public function frontendLoginDLLP()
     {
 
-        $PhpSaml = new phpSaml(SamlEVSSN::getSAML());
+        $PhpSaml = new phpSaml(SamlDLLP::getSAML());
         $PhpSaml->samlLogin();
     }
 

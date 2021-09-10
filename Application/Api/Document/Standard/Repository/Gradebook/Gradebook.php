@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Api\Document\Standard\Repository\Gradebook;
 
+use DateTime;
+use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
@@ -26,7 +28,7 @@ use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository\Gradebook
  */
-class Gradebook
+class Gradebook extends AbstractDocument
 {
 
     const TEXT_SIZE_HEADER = '8pt';// '12px';
@@ -71,12 +73,43 @@ class Gradebook
         return $this->Document->getTemplate();
     }
 
+    public function getName()
+    {
+        return 'Notenbücher.pdf';
+    }
+
+
     /**
-     * @param array $pageList
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return array|Page[]
+     */
+    public function buildPageList(TblDivisionSubject $tblDivisionSubject)
+    {
+        $pageList = array();
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
+        ) {
+            $count = 0;
+            foreach ($tblPeriodList as $tblPeriod) {
+                $count++;
+                $isLastPeriod = $count == count($tblPeriodList);
+
+                $pageList[] = $this->buildPage($tblDivisionSubject, $tblPeriod, $isLastPeriod);
+            }
+        }
+        return $pageList;
+    }
+
+    /**
+     * @param array  $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $part = '0')
     {
         $document = new Document();
 
@@ -137,7 +170,7 @@ class Gradebook
                     )
                     ->addElement((new Element())
                         ->setContent(
-                            'Stand: ' . (new \DateTime())->format('d.m.Y')
+                            'Stand: ' . (new DateTime())->format('d.m.Y')
                         )
                     )
                 )
@@ -458,7 +491,9 @@ class Gradebook
             $countTestPeriod = $periodListCount[$tblPeriod->getId()];
             $headerSection = new Section();
             $countTests = 0;
+            $countHeaders = 4;
             if (isset($testList[$tblPeriod->getId()])) {
+                $countHeaders = count($testList[$tblPeriod->getId()]);
                 foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
                     // Vornoten
                     if ($testId == 'ExtraGrades') {
@@ -467,6 +502,7 @@ class Gradebook
                             $headerSection,
                             $text,
                             ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%',
+                            $countHeaders,
                             false,
                             $isLastTestLastColumn && $countTests == $countTestPeriod
                         );
@@ -478,6 +514,7 @@ class Gradebook
                             $headerSection,
                             $text,
                             $widthColumnTestString,
+                            $countHeaders,
                             $tblGradeType->isHighlighted(),
                             $isLastTestLastColumn && $countTests == $countTestPeriod
                         );
@@ -492,6 +529,7 @@ class Gradebook
                         $headerSection,
                         '&nbsp;',
                         $widthColumnTestString,
+                        $countHeaders,
                         false,
                         $isLastTestLastColumn && $countTests == ($countTestPeriod - $offset - 1)
                     );
@@ -511,6 +549,7 @@ class Gradebook
                     $headerSection,
                     '&#216;' . '&nbsp;' . $headerName,
                     $widthColumnTestString,
+                    $countHeaders,
                     true,
                     $isAverageLastColumn
                 );
@@ -529,6 +568,7 @@ class Gradebook
                     $headerSection,
                     'Zeugnisnote' . '&nbsp;' . $headerName,
                     $widthColumnTestString,
+                    $countHeaders,
                     true,
                     $isCertificateGradeLastColumn
                 );
@@ -927,15 +967,16 @@ class Gradebook
      * @param Section $section
      * @param $text
      * @param $width
+     * @param $countHeaders
      * @param bool $isBold
      * @param bool $hasBorderRight
      *
      * @return Section
      */
-    private function setHeaderTest(Section $section, $text, $width, $isBold = false, $hasBorderRight = false)
+    private function setHeaderTest(Section $section, $text, $width, $countHeaders, $isBold = false, $hasBorderRight = false)
     {
         $section->addElementColumn((new Element())
-            ->setContent($this->setRotatedContend($text))
+            ->setContent($this->setRotatedContend($text, $countHeaders))
             ->styleTextSize(self::TEXT_SIZE_HEADER)
             ->styleHeight(self::HEIGHT_HEADER . 'px')
             ->styleTextBold($isBold ? 'bold' : 'normal')
@@ -949,16 +990,33 @@ class Gradebook
 
     /**
      * @param string $text
-     * @param string $paddingTop
+     * @param $countHeaders
      *
      * @return string
      */
-    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '2px')
+    protected function setRotatedContend($text = '&nbsp;', $countHeaders)
     {
 
-        $paddingLeft = (15 - self::HEIGHT_HEADER) . 'px';
         // für Zeilenumbruch im Thema des Tests
         $height = self::HEIGHT_HEADER . 'px';
+
+        // paddingTop abhängig von der anzahl der Spalten, mehr Spalten $paddingTop = '-140px'
+        if ($countHeaders < 6) {
+            $paddingTop = '-150px';
+        } elseif ($countHeaders < 8) {
+            $paddingTop = '-140px';
+        } elseif ($countHeaders < 10) {
+            $paddingTop = '-130px';
+        } else {
+            $paddingTop = '-120px';
+        }
+
+//        $paddingTop = '-150px';
+        $paddingLeft = '-260px';
+
+        if (strlen($text) > 90) {
+            $text = substr($text, 0, 90);
+        }
 
         return
             '<div style="padding-top: ' . $paddingTop

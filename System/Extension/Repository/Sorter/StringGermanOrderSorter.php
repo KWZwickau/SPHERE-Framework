@@ -28,7 +28,7 @@ class StringGermanOrderSorter extends AbstractSorter
             $FirstString = $this->prepareString($this->getValue($Property, $First));
             $SecondString = $this->prepareString($this->getValue($Property, $Second));
 
-            return ( $FirstString == $SecondString ) ? 0 : ( $FirstString > $SecondString ) ? 1 : -1;
+            return (( $FirstString == $SecondString ) ? 0 : ( $FirstString > $SecondString )) ? 1 : -1;
         }
         return 0;
     }
@@ -108,7 +108,7 @@ class StringGermanOrderSorter extends AbstractSorter
             $FirstString = $this->prepareString($this->getValue($Property, $First));
             $SecondString = $this->prepareString($this->getValue($Property, $Second));
 
-            return ( $FirstString == $SecondString ) ? 0 : ( $FirstString > $SecondString ) ? -1 : 1;
+            return (( $FirstString == $SecondString ) ? 0 : ( $FirstString > $SecondString )) ? -1 : 1;
         }
         return 0;
     }

@@ -36,9 +36,11 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -1616,6 +1618,32 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->countDivisionStudentAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    public function getCountStringStudentAllByDivision(TblDivision $tblDivision)
+    {
+        $countActive = 0;
+        $countInActive = 0;
+        if (($tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision, true))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getServiceTblPerson()) {
+                    if ($tblDivisionStudent->isInActive()) {
+                        $countInActive++;
+                    } else {
+                        $countActive++;
+                    }
+                }
+            }
+        }
+
+        $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
+
+        return $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
     }
 
     /**

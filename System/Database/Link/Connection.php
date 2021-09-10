@@ -1,11 +1,10 @@
 <?php
 namespace SPHERE\System\Database\Link;
 
+use Exception;
 use MOC\V\Component\Database\Component\IBridgeInterface;
 use MOC\V\Component\Database\Database;
 use SPHERE\System\Database\ITypeInterface;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\FileLogger;
 
 /**
  * Class Connection
@@ -29,7 +28,7 @@ class Connection
      *
      * @param int            $Timeout
      *
-     * @throws \Exception
+     * @throws Exception
      */
     final public function __construct(
         Identifier $Identifier,
@@ -45,7 +44,7 @@ class Connection
         $Consumer = $Identifier->getConsumer();
         $this->setConnection(
             $Username, $Password,
-            $Database.( empty( $Consumer ) ? '' : '_'.$Consumer ),
+            ( empty( $Consumer ) ? '' : $Consumer.'_' ).$Database,
             $Type->getIdentifier(),
             $Host, $Port, $Timeout
         );
@@ -71,22 +70,22 @@ class Connection
      * @param int      $Timeout
      *
      * @return Connection
-     * @throws \Exception
+     * @throws Exception
      */
     public function setConnection($Username, $Password, $Database, $Driver, $Host, $Port, $Timeout = 5)
     {
 
         try {
             $this->Connection = Database::getDatabase($Username, $Password, $Database, $Driver, $Host, $Port, $Timeout);
-        } catch (\Exception $E) {
+        } catch (Exception $E) {
 //            (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Connection Catch: '.$E->getMessage());
             try {
                 Database::getDatabase($Username, $Password, null, $Driver, $Host, $Port, $Timeout)
                     ->getSchemaManager()->createDatabase($Database);
                 $this->Connection = Database::getDatabase($Username, $Password, $Database, $Driver, $Host, $Port,
                     $Timeout);
-            } catch (\Exception $E) {
-                throw new \Exception($E->getMessage(), $E->getCode(), $E);
+            } catch (Exception $E) {
+                throw new Exception($E->getMessage(), $E->getCode(), $E);
             }
         }
         return $this;

@@ -78,9 +78,9 @@ class CswMsJahreszeugnis extends Certificate
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
             ->addSlice($this->getDescriptionContent($personId, '35px', '8px'))
-            ->addSlice($this->getTransfer($personId, '10px'))
-            ->addSlice($this->getDateLine($personId, '10px'))
-            ->addSlice($this->getSignPart($personId, true, '20px'))
+            ->addSlice($this->getTransfer($personId, '8px'))
+            ->addSlice($this->getDateLine($personId, '8px'))
+            ->addSlice($this->getSignPart($personId, true, '15px'))
             ->addSlice($this->getParentSign('20px'))
             ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',

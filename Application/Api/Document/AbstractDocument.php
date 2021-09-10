@@ -712,7 +712,9 @@ abstract class AbstractDocument
      */
     private function filterPhoneNumber($phoneNumber)
     {
-        return preg_replace('![^0-9/\s-+]+!', '', $phoneNumber);
+        // funktioniert nicht mehr
+//        return preg_replace('![^0-9/\s-+]+!', '', $phoneNumber);
+        return preg_replace('![^0-9/\s]+!', '', $phoneNumber);
     }
 
     /**

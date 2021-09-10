@@ -1547,7 +1547,9 @@ abstract class BfsStyle extends Certificate
                 , '60%'
             )
             ->addElementColumn((new Element())
-                ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1 + Content.P' . $personId . '.Input.OperationTime2 + Content.P' . $personId . '.Input.OperationTime3 }} Wochen')
+                ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1|number_format 
+                                             + Content.P' . $personId . '.Input.OperationTime2|number_format 
+                                             + Content.P' . $personId . '.Input.OperationTime3|number_format }} Wochen')
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
                 ->stylePaddingRight('15px')
@@ -1687,7 +1689,9 @@ abstract class BfsStyle extends Certificate
                 , '60%'
             )
             ->addElementColumn((new Element())
-                ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1 + Content.P' . $personId . '.Input.OperationTime2 + Content.P' . $personId . '.Input.OperationTime3 }} Wochen')
+                ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1|number_format 
+                                             + Content.P' . $personId . '.Input.OperationTime2|number_format 
+                                             + Content.P' . $personId . '.Input.OperationTime3|number_format }} Wochen')
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
                 ->stylePaddingRight('15px')

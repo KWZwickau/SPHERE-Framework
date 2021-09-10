@@ -27,7 +27,7 @@ class EmspGsHj extends Certificate
             ->addSlice(EmspStyle::getDivisionAndYear($personId))
             ->addSlice(EmspStyle::getStudentName($personId))
             ->addSlice(EmspStyle::getBirthRow($personId))
-            ->addSlice(EmspStyle::getDescriptionContent($personId, '467px'))
+            ->addSlice(EmspStyle::getDescriptionContent($personId))
 //            ->addSlice(EmspStyle::getTransfer($personId))
             ->addSlice(EmspStyle::getMiss($personId, '37px'))
             ->addSlice(EmspStyle::getDateLine($personId))

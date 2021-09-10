@@ -160,7 +160,7 @@ class Data extends AbstractData
                 $Entity->setServiceTblSubject($Result['tblSubject']);
                 $Entity->setSubjectGroup($Result['AppSubjectGroup']);
                 $Entity->setServiceTblAccount($tblAccount);
-                $Entity->setIsIgnore(false);
+                $Entity->setIsIgnore(0);
 
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
@@ -191,6 +191,8 @@ class Data extends AbstractData
         if (!empty($ImportList)) {
             foreach ($ImportList as $StudentData) {
 
+                // SSW-1420 es dürfen nur Schüler der SEK II berücksichtigt werden, also Klassenstufe 11-13
+                $isIgnoreStudent = false;
                 //Kontrolle, in welcher Klasse die Person gerade sitzt
                 $LevelString = '';
                 if(is_object($StudentData['EntityPerson'])){
@@ -198,23 +200,38 @@ class Data extends AbstractData
                     if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
                         if(($tblLevel = $tblDivision->getTblLevel())){
                             $LevelString = $tblLevel->getName();
+
+                            if (intval($LevelString) < 11) {
+                                // Schulsoftware Klassenstufe
+                                $isIgnoreStudent = true;
+                            }
                         }
+                    } elseif(is_object($StudentData['EntityDivision'])
+                        && ($tblLevel = $StudentData['EntityDivision']->getTblLevel())
+                        && intval($tblLevel->getName()) < 11
+                    ) {
+                        // Untis Klassenstufe
+                        $isIgnoreStudent = true;
                     }
                 }
-                $tblUntisImportStudent = $this->createUntisImportStudent($tblYear, $tblAccount, $StudentData, $LevelString);
-                $SubjectCount = 0;
-                if(isset($StudentData['SubjectList'])){
-                    foreach ($StudentData['SubjectList'] as $SubjectData) {
-                        // Prepare if needed
+
+                if (!$isIgnoreStudent) {
+                    $tblUntisImportStudent = $this->createUntisImportStudent($tblYear, $tblAccount, $StudentData,
+                        $LevelString);
+                    $SubjectCount = 0;
+                    if (isset($StudentData['SubjectList'])) {
+                        foreach ($StudentData['SubjectList'] as $SubjectData) {
+                            // Prepare if needed
 //                        // Fächer und Fachgruppen soll es nur einmal pro Person geben
 //                        if(!in_array($StudentData['EntityPerson']->getId().'x'.$SubjectData['FileSubject'].'x'.
 //                            $SubjectData['SubjectGroup'], $existSubjectSubjectGroupList)){
                             $SubjectCount++;
                             $this->createUntisImportStudentCourseBulk($Manager, $SubjectData, $SubjectCount,
                                 $tblUntisImportStudent);
-                            $existSubjectSubjectGroupList[] = $StudentData['EntityPerson']->getId().'x'.
-                                $SubjectData['FileSubject'].'x'.$SubjectData['SubjectGroup'];
+                            $existSubjectSubjectGroupList[] = $StudentData['EntityPerson']->getId() . 'x' .
+                                $SubjectData['FileSubject'] . 'x' . $SubjectData['SubjectGroup'];
 //                        }
+                        }
                     }
                 }
             }
@@ -280,7 +297,7 @@ class Data extends AbstractData
         $Entity->setIsIntensiveCourse($IntensiveCourse);
         $Entity->setIsIgnoreCourse(false);
         $Entity->setServiceTblSubject((is_object($Result['EntitySubject']) ? $Result['EntitySubject'] : null));
-        $Entity->settblUntisImportStudent($tblUntisImportStudent);
+        $Entity->setTblUntisImportStudent($tblUntisImportStudent);
         $Manager->bulkSaveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
     }
@@ -312,7 +329,7 @@ class Data extends AbstractData
         $Entity->setCourseNumber($Number);
         $Entity->setIsIntensiveCourse($IsIntensiveCourse);
         $Entity->setIsIgnoreCourse($IsIgnoreCourse);
-        $Entity->settblUntisImportStudent($tblUntisImportStudent);
+        $Entity->setTblUntisImportStudent($tblUntisImportStudent);
         $Entity->setServiceTblSubject($tblSubject);
 
         $Manager->SaveEntity($Entity);

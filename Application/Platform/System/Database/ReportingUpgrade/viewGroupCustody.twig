@@ -6,6 +6,6 @@ SELECT
     tC.Employment AS TblCustody_Employment,
     tC.Remark AS TblCustody_Remark
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblCustody tC
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tC
 
 WHERE tC.EntityRemove IS NULL

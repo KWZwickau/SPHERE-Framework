@@ -7,6 +7,6 @@ SELECT
     DATE_FORMAT( tC.ExitDate, '%d.%m.%Y' ) AS TblClub_ExitDate,
     tC.Remark AS TblClub_Remark
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.tblClub tC
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblClub tC
 
 WHERE tC.EntityRemove IS NULL

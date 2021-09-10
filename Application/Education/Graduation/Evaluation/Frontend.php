@@ -520,12 +520,18 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblSubject,
                                         $item
                                     );
+
+                                    $String = '';
+                                    if($tblDivisionSubjectTemp && !$tblDivisionSubjectTemp->getHasGrading()){
+                                        $String = new Muted(new Small(' (Keine Benotung)'));
+                                    }
+
                                     $divisionSubjectTable[] = array(
                                         'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
                                         'Type' => $tblDivision->getTypeName(),
                                         'Division' => $tblDivision->getDisplayName(),
                                         'Subject' => $tblSubject->getName()
-                                            . ($tblDivisionSubjectTemp->getHasGrading() ? '' : new Muted(new Small(' (Keine Benotung)'))),
+                                            . $String,
                                         'SubjectGroup' => $item->getName(),
                                         'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                             $tblDivision, $tblSubject, $item
@@ -545,12 +551,16 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblDivision,
                                     $tblSubject
                                 );
+                                $String = '';
+                                if($tblDivisionSubjectTemp && !$tblDivisionSubjectTemp->getHasGrading()){
+                                    $String = new Muted(new Small(' (Keine Benotung)'));
+                                }
                                 $divisionSubjectTable[] = array(
                                     'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
                                     'Type' => $tblDivision->getTypeName(),
                                     'Division' => $tblDivision->getDisplayName(),
                                     'Subject' => $tblSubject->getName()
-                                        . ($tblDivisionSubjectTemp->getHasGrading() ? '' : new Muted(new Small(' (Keine Benotung)'))),
+                                        . $String,
                                     'SubjectGroup' => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject
@@ -1124,7 +1134,7 @@ class Frontend extends Extension implements IFrontendInterface
 
 //                // modify date if normal test where date is reached
                 if ($tblTest->getReturnDate()
-                    && new \DateTime($tblTest->getReturnDate()) <= new \DateTime()
+                    && new DateTime($tblTest->getReturnDate()) <= new DateTime()
                     && $tblTest->getTblTestType()->getIdentifier() == 'TEST') {
                     $stringReturnDate = new Success(new Bold($tblTest->getReturnDate()));
                 }
@@ -1148,8 +1158,8 @@ class Frontend extends Extension implements IFrontendInterface
                             if (($date = $tblTaskItem->getDate())
                                 && ($tblPeriod = $tblTest->getServiceTblPeriod())
                                 && ($toDatePeriod = $tblPeriod->getToDate())
-                                && ($dateTimeTask = new \DateTime($date))
-                                && ($toDateTimePeriod = new \DateTime($toDatePeriod))
+                                && ($dateTimeTask = new DateTime($date))
+                                && ($toDateTimePeriod = new DateTime($toDatePeriod))
                                 && $dateTimeTask < $toDateTimePeriod
                             ) {
                                 $appointedDateTask = $tblTaskItem;
@@ -1159,9 +1169,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                         if ($appointedDateTask) {
                             if ($tblTest->getDate()
-                                && ($testDate = (new \DateTime($tblTest->getDate())))
-                                && ($toDateTimeTask = new \DateTime($appointedDateTask->getToDate()))
-                                && ($nowDateTime = (new \DateTime('now')))
+                                && ($testDate = (new DateTime($tblTest->getDate())))
+                                && ($toDateTimeTask = new DateTime($appointedDateTask->getToDate()))
+                                && ($nowDateTime = (new DateTime('now')))
                                 && $testDate <= $toDateTimeTask
                                 && $toDateTimeTask < $nowDateTime
                             ) {
@@ -1175,7 +1185,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($days
                         && $tblTest->getDate()
                     ) {
-                        $testDate = (new \DateTime($tblTest->getDate()));
+                        $testDate = (new DateTime($tblTest->getDate()));
                         $autoReturnDateDays = $testDate->add(
                             new \DateInterval('P' . $days . 'D')
                         );
@@ -1196,7 +1206,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($autoReturnDate) {
                         $stringReturnDate = $autoReturnDate->format('d.m.Y');
                         $autoReturnDate = $autoReturnDate->format("Y-m-d");
-                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        $now = (new DateTime('now'))->format("Y-m-d");
                         if ($autoReturnDate <= $now) {
                             $stringReturnDate = new Success(new Bold($stringReturnDate));
                         }
@@ -1242,7 +1252,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            foreach ($behaviorTestList as $taskId => $behaviorTests) {
+            foreach ($behaviorTestList as /*$taskId => */$behaviorTests) {
                 ksort($behaviorTests);
                 $countGrades = 0;
                 $countStudents = 0;
@@ -1302,7 +1312,7 @@ class Frontend extends Extension implements IFrontendInterface
         $testArray = array();
         $testArrayTemp = array();
         if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
-            && ($tblTestAllByDivision = $tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision($tblTestType,
+            && ($tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision($tblTestType,
             $tblDivision))
         ) {
             $linkedDivisions = array();
@@ -1336,12 +1346,12 @@ class Frontend extends Extension implements IFrontendInterface
             $testArrayTemp = $this->getSorter($testArrayTemp)->sortObjectBy('Date', new DateTimeSorter());
 
             $nowWeek = date('W');
-            $nowYear = (new \DateTime('now'))->format('Y');
+            $nowYear = (new DateTime('now'))->format('Y');
             /** @var TblTest $item */
             foreach ($testArrayTemp as $item) {
                 if ($item->getDate()) {
                     $dateWeek = date('W', strtotime($item->getDate()));
-                    $dateYear = (new \DateTime($item->getDate()))->format('Y');
+                    $dateYear = (new DateTime($item->getDate()))->format('Y');
                     if ($dateWeek !== false && (($dateYear == $nowYear && $dateWeek >= $nowWeek) || $dateYear > $nowYear)) {
                         $testArray[$dateWeek][$item->getId()] = $item;
                     }
@@ -1471,9 +1481,9 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($tblPeriod->getFromDate() && $tblPeriod->getToDate()) {
-                    $fromDate = (new \DateTime($tblPeriod->getFromDate()))->format("Y-m-d");
-                    $toDate = (new \DateTime($tblPeriod->getToDate()))->format("Y-m-d");
-                    $now = (new \DateTime('now'))->format("Y-m-d");
+                    $fromDate = (new DateTime($tblPeriod->getFromDate()))->format("Y-m-d");
+                    $toDate = (new DateTime($tblPeriod->getToDate()))->format("Y-m-d");
+                    $now = (new DateTime('now'))->format("Y-m-d");
                     if ($fromDate <= $now && $now <= $toDate) {
                         $Global->POST['Test']['Period'] = $tblPeriod->getId();
                     }
@@ -2268,8 +2278,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($tblTestList as $tblTestTemp) {
                                     if ($tblTestTemp->getServiceTblGradeType()) {
                                         if ($tblTask->getDate() && $tblTestTemp->getDate()) {
-                                            $taskDate = new \DateTime($tblTask->getDate());
-                                            $testDate = new \DateTime($tblTestTemp->getDate());
+                                            $taskDate = new DateTime($tblTask->getDate());
+                                            $testDate = new DateTime($tblTestTemp->getDate());
                                             // Tests nur vom vor dem Stichtag
                                             if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
                                                 $count++;
@@ -2357,13 +2367,13 @@ class Frontend extends Extension implements IFrontendInterface
                                             if (!$tblTestTemp->isContinues()    // Testdatum
                                                 || ($tblTestTemp->isContinues()   // Notendatum
                                                     && $tblGrade->getDate() && $tblTask->getDate()
-                                                    && ($taskDate = new \DateTime($tblTask->getDate()))
-                                                    && ($gradeDate = new \DateTime($tblGrade->getDate()))
+                                                    && ($taskDate = new DateTime($tblTask->getDate()))
+                                                    && ($gradeDate = new DateTime($tblGrade->getDate()))
                                                     && ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')))
                                                 || ($tblTestTemp->isContinues() && !$tblGrade->getDate() // Test-Enddatum
                                                     && $tblTestTemp->getFinishDate() && $tblTask->getDate()
-                                                    && ($taskDate = new \DateTime($tblTask->getDate()))
-                                                    && ($finishDate = new \DateTime($tblTestTemp->getFinishDate()))
+                                                    && ($taskDate = new DateTime($tblTask->getDate()))
+                                                    && ($finishDate = new DateTime($tblTestTemp->getFinishDate()))
                                                     && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
                                                 if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
@@ -3034,10 +3044,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $hasEdit = false;
-        $nowDate = (new \DateTime('now'))->format("Y-m-d");
+        $nowDate = (new DateTime('now'))->format("Y-m-d");
         $toDate = $tblTask->getToDate();
         if ($toDate) {
-            $toDate = new \DateTime($toDate);
+            $toDate = new DateTime($toDate);
             $toDate = $toDate->format('Y-m-d');
         }
         if ($nowDate && $toDate) {
@@ -3047,7 +3057,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblTestAllByTest = Evaluation::useService()->getTestAllByTask($tblTask);
-        $tblGradeTypeList = $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
+        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
             Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR')
         );
         if ($tblTestAllByTest) {
