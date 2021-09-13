@@ -106,10 +106,9 @@ class Frontend extends Extension implements IFrontendInterface
             if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
                  // Aktivierung EVSR
                 if(
-//                if($Acronym == 'EVSR'
+                $Acronym == 'EVSR'
 //                || $Acronym == 'EVSC'
-//                ||
-                $Acronym == 'REF'
+                || $Acronym == 'REF'
                 || $Acronym == 'DLLP'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
 //                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
                     $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
