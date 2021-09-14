@@ -7,6 +7,7 @@ use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -584,6 +585,8 @@ class Service extends AbstractService
                 $item['State'] = '';
                 $item['Nation'] = '';
                 $item['Country'] = '';
+                $item['MailPrivate'] = '';
+                $item['MailBusiness'] = '';
 
                 if($tblPerson){
                     $item['Salutation'] = $tblPerson->getSalutation();
@@ -617,6 +620,22 @@ class Service extends AbstractService
                         }
                         $item['Nation'] = $tblAddress->getNation();
                         $item['Country'] = $tblAddress->getCounty();
+                    }
+
+                    if (($tblMailToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+                        $mailPrivateList = array();
+                        $mailBusinessList = array();
+                        foreach ($tblMailToPersonList as $tblMailToPerson) {
+                            if (($tblType = $tblMailToPerson->getTblType())) {
+                                switch ($tblType->getName()) {
+                                    case 'Privat': $mailPrivateList[] = $tblMailToPerson->getTblMail()->getAddress(); break;
+                                    case 'Geschäftlich': $mailBusinessList[] = $tblMailToPerson->getTblMail()->getAddress();
+                                }
+                            }
+                        }
+
+                        $item['MailPrivate'] = implode(';', $mailPrivateList);
+                        $item['MailBusiness'] = implode(';', $mailBusinessList);
                     }
                 }
                 if($tblAccount){
@@ -659,8 +678,11 @@ class Service extends AbstractService
             $export->setValue($export->getCell("12", "0"), "Ortsteil");
             $export->setValue($export->getCell("13", "0"), "Bundesland");
             $export->setValue($export->getCell("14", "0"), "Land");
+            $export->setValue($export->getCell("15", "0"), "Email privat");
+            $export->setValue($export->getCell("16", "0"), "Email geschäftlich");
 
-            $export->setStyle($export->getCell(0, 0), $export->getCell(14, 0))
+
+            $export->setStyle($export->getCell(0, 0), $export->getCell(16, 0))
                 ->setFontBold();
 
             $Row = 0;
@@ -683,6 +705,8 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("12", $Row), $Data['District']);
                 $export->setValue($export->getCell("13", $Row), $Data['Nation']);
                 $export->setValue($export->getCell("14", $Row), $Data['Country']);
+                $export->setValue($export->getCell("15", $Row), $Data['MailPrivate']);
+                $export->setValue($export->getCell("16", $Row), $Data['MailBusiness']);
             }
 
             //Column width
@@ -701,6 +725,8 @@ class Service extends AbstractService
             $export->setStyle($export->getCell(12, 0), $export->getCell(12, $Row))->setColumnWidth(12);
             $export->setStyle($export->getCell(13, 0), $export->getCell(13, $Row))->setColumnWidth(11);
             $export->setStyle($export->getCell(14, 0), $export->getCell(14, $Row))->setColumnWidth(12);
+            $export->setStyle($export->getCell(15, 0), $export->getCell(14, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(16, 0), $export->getCell(14, $Row))->setColumnWidth(20);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
