@@ -429,6 +429,10 @@ class Service extends Extension
 
             $Row++;
             $Row++;
+
+            $export->setValue($export->getCell("0", $Row), 'Klasse:');
+            $export->setValue($export->getCell("1", $Row), $tblDivision->getDisplayName());
+            $Row++;
             $export->setValue($export->getCell("0", $Row), 'Weiblich:');
             $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
@@ -736,6 +740,9 @@ class Service extends Extension
             }
 
             $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Klasse:');
+            $export->setValue($export->getCell("1", $Row), $tblDivision->getDisplayName());
+            $Row++;
             $export->setValue($export->getCell("0", $Row), 'Weiblich:');
             $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
@@ -773,7 +780,7 @@ class Service extends Extension
             }
 
             // Legende
-            $Row = $Row - 4;
+            $Row = $Row - 5;
             $column = 14;
             $export->setValue($export->getCell($column, $Row), 'Abkürzungen Telefon:');
             $Row++;
