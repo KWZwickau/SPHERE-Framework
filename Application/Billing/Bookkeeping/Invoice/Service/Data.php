@@ -477,6 +477,8 @@ class Data extends AbstractData
         if($Entity === null){
             $Entity = new TblInvoiceCreditor();
             $Entity->setCreditorId($CreditorId);
+            // TODO Sidney setSchoolName
+            $Entity->setSchoolName('');
             $Entity->setOwner($Owner);
             $Entity->setBankName($BankName);
             $Entity->setIBAN($IBAN);
