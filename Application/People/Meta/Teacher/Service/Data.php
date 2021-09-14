@@ -85,10 +85,20 @@ class Data  extends AbstractData
      */
     public function getTeacherByAcronym($Acronym)
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
             TblTeacher::ATTR_ACRONYM => $Acronym
         ));
+
+        if ($list) {
+            /** @var TblTeacher $item */
+            foreach ($list as  $item) {
+                if ($Acronym == $item->getAcronym()) {
+                    return $item;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
