@@ -207,9 +207,7 @@ class ApiAbsence extends Extension implements IApiInterface
                         !$hasSearch && $tblPerson && $tblDivision ? new LayoutRow(array(
                             new LayoutColumn(new Panel(
                                 'Schüler',
-                                $tblPerson->getFullName() . '&nbsp;&nbsp;'
-                                    . (new Standard('', '/People/Person', new \SPHERE\Common\Frontend\Icon\Repository\Person(),
-                                    array('Id' => $tblPerson->getId()), 'zur Person'))->setExternal(),
+                                $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_INFO
                             ), 6),
                             new LayoutColumn(new Panel(
