@@ -2383,7 +2383,7 @@ class Service extends Extension
                 $Item['Orientation'] = '';
                 $Item['Religion'] = '';
                 $Item['Elective'] = '';
-                $Item['ExcelElective'] = '';
+                $Item['ExcelElective'] = array();
                 $Item['Elective1'] = $Item['Elective2'] = $Item['Elective3'] = $Item['Elective4'] = $Item['Elective5'] = '';
 
                 $Item['Name'] = $tblPerson->getLastFirstName();
