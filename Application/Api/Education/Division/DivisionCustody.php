@@ -8,9 +8,9 @@ use SPHERE\Application\Education\Lesson\Division\Division as DivisionApplication
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -116,9 +116,26 @@ class DivisionCustody extends Extension implements IApiInterface
     public static function getTableContentAvailable(TblDivision $tblDivision)
     {
         $tblCustodyAllSelected = DivisionApplication::useService()->getCustodyAllByDivision($tblDivision);
-        $tblCustodyAllList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('CUSTODY'));
 
-        if ($tblCustodyAllSelected && $tblCustodyAllList) {
+        // Sorgeberechtigte auf Schüler in der Klasse beschränken
+        $tblCustodyAllList = array();
+        if (($tblRelationshipType = Relationship::useService()->getTypeByName("Sorgeberechtigt"))
+            && ($tblStudentList = DivisionApplication::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson(
+                    $tblPerson, $tblRelationshipType
+                ))) {
+                    foreach ($tblRelationshipList as $item) {
+                        if (($tblPersonCustody = $item->getServiceTblPersonFrom())) {
+                            $tblCustodyAllList[$tblPersonCustody->getId()] = $tblPersonCustody;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($tblCustodyAllSelected && !empty($tblCustodyAllList)) {
             $tblCustodyAllList = array_udiff($tblCustodyAllList, $tblCustodyAllSelected,
                 function (TblPerson $ObjectA, TblPerson $ObjectB) {
                     return $ObjectA->getId() - $ObjectB->getId();
