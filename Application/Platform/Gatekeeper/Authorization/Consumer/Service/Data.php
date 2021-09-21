@@ -97,14 +97,18 @@ class Data extends AbstractData
 
     /**
      * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
      *
-     * @return bool|TblConsumerLogin
+     * @return TblConsumerLogin|bool
      */
-    public function getConsumerLoginByConsumer(TblConsumer $tblConsumer)
+    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, $SystemName)
     {
 
         return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblConsumerLogin',
-            array(TblConsumerLogin::ATTR_TBL_CONSUMER => $tblConsumer->getId())
+            array(
+                TblConsumerLogin::ATTR_TBL_CONSUMER => $tblConsumer->getId(),
+                TblConsumerLogin::ATTR_SYSTEM_NAME => $SystemName
+            )
         );
     }
 
@@ -205,7 +209,7 @@ class Data extends AbstractData
             $Entity = new TblConsumerLogin();
             $Entity->setSystemName($SystemName);
             $Entity->setTblConsumer($tblConsumer);
-            $Entity->setIsSchoolSeparated(false);
+            $Entity->setIsActiveAPI(false);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

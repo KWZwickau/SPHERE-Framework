@@ -86,29 +86,14 @@ class Service extends AbstractService
 
     /**
      * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
      *
-     * @return bool|TblConsumerLogin
+     * @return TblConsumerLogin|false
      */
-    public function getConsumerLoginByConsumer(TblConsumer $tblConsumer)
+    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, $SystemName = '')
     {
 
-        return (new Data($this->getBinding()))->getConsumerLoginByConsumer($tblConsumer);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSchoolSeparated()
-    {
-
-        if(($tblConsumer = $this->getConsumerBySession())){
-            if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer))){
-                if($tblConsumerLogin->getIsSchoolSeparated()){
-                    return true;
-                }
-            }
-        }
-        return false;
+        return (new Data($this->getBinding()))->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
     }
 
     /**
