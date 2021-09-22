@@ -178,11 +178,12 @@ class Frontend extends Extension implements IFrontendInterface
         $phoneEmergencyList = array();
         if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
             foreach ($tblPhoneList as $tblToPerson) {
+                $tblType = $tblToPerson->getTblType();
                 if (($tblPhone = $tblToPerson->getTblPhone())) {
                     if ($tblToPerson->getTblType()->getName() == 'Notfall') {
-                        $phoneEmergencyList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPerson->getId()] = $tblToPerson;
+                        $phoneEmergencyList[$tblPhone->getId().'#'.$tblType->getId()][$tblPerson->getId()] = $tblToPerson;
                     } else {
-                        $phoneList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPerson->getId()] = $tblToPerson;
+                        $phoneList[$tblPhone->getId().'#'.$tblType->getId()][$tblPerson->getId()] = $tblToPerson;
                     }
                 }
             }
@@ -199,11 +200,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblRelationshipPhoneAll = Phone::useService()->getPhoneAllByPerson($tblPersonRelationship);
                     if ($tblRelationshipPhoneAll) {
                         foreach ($tblRelationshipPhoneAll as $tblToPerson) {
+                            $tblType = $tblToPerson->getTblType();
                             if (($tblPhone = $tblToPerson->getTblPhone())) {
                                 if ($tblToPerson->getTblType()->getName() == 'Notfall') {
-                                    $phoneEmergencyList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
+                                    $phoneEmergencyList[$tblPhone->getId().'#'.$tblType->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
                                 } else {
-                                    $phoneList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
+                                    $phoneList[$tblPhone->getId().'#'.$tblType->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
                                 }
                             }
                         }
@@ -229,92 +231,93 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount = 0;
             $LayoutRow = null;
 
-            foreach ($phoneList as $phoneId => $typeArray) {
+            foreach ($phoneList as $phoneIdAndTypeId => $personArray) {
+                $PhoneAndTypeId = explode('#', $phoneIdAndTypeId);
+                $phoneId = $PhoneAndTypeId[0];
+                $typeId = $PhoneAndTypeId[1];
                 if (($tblPhone = Phone::useService()->getPhoneById($phoneId))) {
-                    foreach ($typeArray as $typeId => $personArray) {
-                        if (($tblType = Phone::useService()->getTypeById($typeId))) {
-                            $content = array();
-                            if (isset($personArray[$tblPerson->getId()])) {
-                                /** @var TblToPerson $tblToPerson */
-                                $tblToPerson = $personArray[$tblPerson->getId()];
-                                $panelType = (preg_match('!Notfall!is',
-                                    $tblType->getName() . ' ' . $tblType->getDescription())
-                                    ? Panel::PANEL_TYPE_DANGER
-                                    : Panel::PANEL_TYPE_SUCCESS
-                                );
-                                $options =
-                                    (new Link(
-                                        new Edit(),
-                                        ApiPhoneToPerson::getEndpoint(),
-                                        null,
-                                        array(),
-                                        'Bearbeiten'
-                                    ))->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenEditPhoneToPersonModal(
-                                        $tblPerson->getId(),
-                                        $tblToPerson->getId()
-                                    ))
-                                    . ' | '
-                                    . (new Link(
-                                        new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
-                                        ApiPhoneToPerson::getEndpoint(),
-                                        null,
-                                        array(),
-                                        'Löschen'
-                                    ))->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenDeletePhoneToPersonModal(
-                                        $tblPerson->getId(),
-                                        $tblToPerson->getId()
-                                    ));
-                            } else {
-                                $panelType = (preg_match('!Notfall!is',
-                                    $tblType->getName() . ' ' . $tblType->getDescription())
-                                    ? Panel::PANEL_TYPE_DANGER
-                                    : Panel::PANEL_TYPE_DEFAULT
-                                );
-                                $options = '';
-                            }
-
-                            $content[] = new PhoneLink($tblPhone->getNumber(), $tblPhone->getNumber(), new PhoneIcon());
-                            /**
-                             * @var TblToPerson $tblToPerson
-                             */
-                            foreach ($personArray as $personId => $tblToPerson) {
-                                if (($tblPersonPhone = Person::useService()->getPersonById($personId))) {
-                                    $content[] = ($tblPerson->getId() != $tblPersonPhone->getId()
-                                            ? new Link(
-                                                new PersonIcon() . ' ' . $tblPersonPhone->getFullName(),
-                                                '/People/Person',
-                                                null,
-                                                array('Id' => $tblPersonPhone->getId()),
-                                                'Zur Person'
-                                            )
-                                            : $tblPersonPhone->getFullName())
-                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonPhone, $tblToPerson->getRemark());
-                                }
-                            }
-
-                            $panel = FrontendReadOnly::getContactPanel(
-                                (preg_match('!Fax!is',
-                                    $tblType->getName() . ' ' . $tblType->getDescription())
-                                    ? new PhoneFax()
-                                    : (preg_match('!Mobil!is',
-                                        $tblType->getName() . ' ' . $tblType->getDescription())
-                                        ? new PhoneMobil()
-                                        : new PhoneIcon()
-                                    )
-                                )
-                                . ' ' . $tblType->getName() . ' ' . $tblType->getDescription(),
-                                $content,
-                                $options,
-                                $panelType
+                    if (($tblType = Phone::useService()->getTypeById($typeId))) {
+                        $content = array();
+                        if (isset($personArray[$tblPerson->getId()])) {
+                            /** @var TblToPerson $tblToPerson */
+                            $tblToPerson = $personArray[$tblPerson->getId()];
+                            $panelType = (preg_match('!Notfall!is',
+                                $tblType->getName() . ' ' . $tblType->getDescription())
+                                ? Panel::PANEL_TYPE_DANGER
+                                : Panel::PANEL_TYPE_SUCCESS
                             );
-
-                            if ($LayoutRowCount % 4 == 0) {
-                                $LayoutRow = new LayoutRow(array());
-                                $LayoutRowList[] = $LayoutRow;
-                            }
-                            $LayoutRow->addColumn(new LayoutColumn($panel, 3));
-                            $LayoutRowCount++;
+                            $options =
+                                (new Link(
+                                    new Edit(),
+                                    ApiPhoneToPerson::getEndpoint(),
+                                    null,
+                                    array(),
+                                    'Bearbeiten'
+                                ))->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenEditPhoneToPersonModal(
+                                    $tblPerson->getId(),
+                                    $tblToPerson->getId()
+                                ))
+                                . ' | '
+                                . (new Link(
+                                    new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
+                                    ApiPhoneToPerson::getEndpoint(),
+                                    null,
+                                    array(),
+                                    'Löschen'
+                                ))->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenDeletePhoneToPersonModal(
+                                    $tblPerson->getId(),
+                                    $tblToPerson->getId()
+                                ));
+                        } else {
+                            $panelType = (preg_match('!Notfall!is',
+                                $tblType->getName() . ' ' . $tblType->getDescription())
+                                ? Panel::PANEL_TYPE_DANGER
+                                : Panel::PANEL_TYPE_DEFAULT
+                            );
+                            $options = '';
                         }
+
+                        $content[] = new PhoneLink($tblPhone->getNumber(), $tblPhone->getNumber(), new PhoneIcon());
+                        /**
+                         * @var TblToPerson $tblToPerson
+                         */
+                        foreach ($personArray as $personId => $tblToPerson) {
+                            if (($tblPersonPhone = Person::useService()->getPersonById($personId))) {
+                                $content[] = ($tblPerson->getId() != $tblPersonPhone->getId()
+                                        ? new Link(
+                                            new PersonIcon() . ' ' . $tblPersonPhone->getFullName(),
+                                            '/People/Person',
+                                            null,
+                                            array('Id' => $tblPersonPhone->getId()),
+                                            'Zur Person'
+                                        )
+                                        : $tblPersonPhone->getFullName())
+                                    . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonPhone, $tblToPerson->getRemark());
+                            }
+                        }
+
+                        $panel = FrontendReadOnly::getContactPanel(
+                            (preg_match('!Fax!is',
+                                $tblType->getName() . ' ' . $tblType->getDescription())
+                                ? new PhoneFax()
+                                : (preg_match('!Mobil!is',
+                                    $tblType->getName() . ' ' . $tblType->getDescription())
+                                    ? new PhoneMobil()
+                                    : new PhoneIcon()
+                                )
+                            )
+                            . ' ' . $tblType->getName() . ' ' . $tblType->getDescription(),
+                            $content,
+                            $options,
+                            $panelType
+                        );
+
+                        if ($LayoutRowCount % 4 == 0) {
+                            $LayoutRow = new LayoutRow(array());
+                            $LayoutRowList[] = $LayoutRow;
+                        }
+                        $LayoutRow->addColumn(new LayoutColumn($panel, 3));
+                        $LayoutRowCount++;
                     }
                 }
             }
