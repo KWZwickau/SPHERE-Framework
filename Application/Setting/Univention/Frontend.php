@@ -94,7 +94,6 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         }
         $Acronym = Account::useService()->getMandantAcronym();
-//        $excludeList = array('REF', 'IBH');
         // Mandant ist nicht in der Schulliste
         if( !array_key_exists($Acronym, $schoolList)){
 //            if(!in_array($Acronym, $excludeList)){
@@ -125,12 +124,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
-
-//        if($tblAccount && $tblAccount->getUsername() == 'Rackel'){
-//            echo "<pre>";
-//            var_dump($UserUniventionList);
-//            echo "</pre>";
-//        }
 
         $UserSchulsoftwareList = array();
         // Vorraussetzung, es muss ein aktives Schuljahr geben.

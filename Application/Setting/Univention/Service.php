@@ -193,53 +193,8 @@ class Service extends AbstractService
                     $Item['groupArray'] = $groups;
                 }
 
-                // $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                // Student Search Division
-//                $SchoolKeyList = array();
-//                if(!Consumer::useService()->isSchoolSeparated()){
-
-                // Local to test it with DLLP
-//                    if($Acronym == 'REF'){
-//                        $SchoolString = $this->getSchoolString('DLLP');
-//                    }
-//                } else {
-//                    if($tblDivision && ($tblCompany = $tblDivision->getServiceTblCompany())){
-//                        if($tblDivision){
-//                            // Schule über Schülerakte Company und Klasse (Schulart)
-//                            if(($tblSchoolType = $tblDivision->getType())){
-//                                $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-//                                $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-//                                $SchoolKeyList[] = $SchoolString;
-//                                $StudentSchool = $SchoolString;
-//                            }
-//                        }
-//                    }
-//                }
-
                 // Mandant wird als Schule verwendet
                 $Item['schools'] = $Acronym;
-
-//                if(!empty($SchoolKeyList)){
-//                    $SchoolKeyList = array_unique($SchoolKeyList);
-//                    $schools[] = $schoolList[$Acronym];
-//                    $Item['schools'] = implode(',', $schools);
-//                } else {
-//                    if(isset($TeacherSchools[$tblPerson->getId()])){
-//                        $SchoolKeyList = $TeacherSchools[$tblPerson->getId()];
-//                        $SchoolKeyList = array_unique($SchoolKeyList);
-//                        sort($SchoolKeyList);
-//                        foreach($SchoolKeyList as $SchoolKey){
-//                            // Ref is DLLP
-////                            if($SchoolKey == 'REF'){
-////                                $schools[] = $schoolList['DLLP'];
-////                            } else {
-//                            $schools[] = $schoolList[$SchoolKey];
-////                            }
-//                        }
-//
-//                        $Item['schools'] = array();
-//                    }
-//                }
 
                 $tblDivision = false;
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
@@ -515,41 +470,6 @@ class Service extends AbstractService
         $Item['roles'] = implode(',', $roles);
 
         $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-
-//        $schools = array();
-//        $StudentSchool = '';
-
-//        // Schulen im Mandanten werden unterschieden
-//        if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-//            $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-//            if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-//                $tblStudentTransferType))){
-//                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-//                    if ($tblDivision){
-//                        // Schule über Schülerakte Company und Klasse (Schulart)
-//                        if (($tblSchoolType = $tblDivision->getType())){
-//                            $SchoolTypeString = Type::useService()->getSchoolTypeString($tblSchoolType);
-//                            $SchoolString = $this->getSchoolString($Acronym, $SchoolTypeString, $tblCompany);
-//                            $schools[] = $SchoolString;
-//                            $StudentSchool = $SchoolString;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
-//        if (!empty($schools)){
-//            $schools = array_unique($schools);
-//            $Item['schools'] = implode(',', $schools);
-//        } else {
-//            if(isset($TeacherSchools[$tblPerson->getId()])){
-//
-//                $SchoolList = $TeacherSchools[$tblPerson->getId()];
-//                $SchoolList = array_unique($SchoolList);
-//                sort($SchoolList);
-//                $Item['schools'] = implode(',', $SchoolList);
-//            }
-//        }
 
         $Item['schools'] = $Acronym;
 

@@ -18,6 +18,7 @@ class TblConsumerLogin extends Element
 
     const ATTR_SYSTEM_NAME = 'SystemName';
     const ATTR_TBL_CONSUMER = 'tblConsumer';
+
     const VALUE_SYSTEM_UCS = 'Univention';
 
     /**
