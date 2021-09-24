@@ -135,7 +135,7 @@ abstract class Certificate extends Extension
         if (!empty($certificateList)) {
             arsort($certificateList);
             reset($certificateList);
-            $certificate = key($certificateList);
+            $certificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'. key($certificateList);
         } else {
             $certificate = get_class($this);
         }
