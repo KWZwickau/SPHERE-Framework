@@ -1681,36 +1681,6 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      *
-     * @return string
-     */
-    public function getStudentGenderByDivision(TblDivision $tblDivision)
-    {
-        $GenderList = array();
-        $tblGenderAll = Common::useService()->getCommonGenderAll();
-        foreach($tblGenderAll as &$tblGender){
-            $GenderList[$tblGender->getId()] = 0;
-        }
-
-        if (($tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision, true))) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if (($tblPerson =  $tblDivisionStudent->getServiceTblPerson())) {
-                    if(($tblGenderTemp = $tblPerson->getGender())){
-                        $GenderList[$tblGenderTemp->getId()]++;
-                    }
-                }
-            }
-        }
-        foreach($GenderList as $tblGenderId => &$Gender){
-            $tblGenderTemp = Common::useService()->getCommonGenderById($tblGenderId);
-            $Gender = $tblGenderTemp->getShortName().': '.$Gender;
-        }
-
-        return implode('<br/>', $GenderList);
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
      * @return int
      */
     public
