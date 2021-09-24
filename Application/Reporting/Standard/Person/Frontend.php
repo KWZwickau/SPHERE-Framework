@@ -1380,7 +1380,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['BirthPlace'] = 'Geburtsort';
         $TableHead['Address'] = 'Adresse';
         $TableHead['Insurance'] = 'Krankenkasse';
-        $TableHead['Religion'] = 'Religion';
+        $TableHead['Religion'] = 'Konfession';
         $TableHead['PhoneFixedPrivate'] = 'Festnetz (Privat)';
         $TableHead['PhoneFixedWork'] = 'Festnetz (Geschäftl.)';
         $TableHead['PhoneFixedEmergency'] = 'Festnetz (Notfall)';
