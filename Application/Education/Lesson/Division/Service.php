@@ -1624,15 +1624,31 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      *
-     * @return string
+     * @return array
+     * 'StudentList' => Schülerzählung,
+     * 'StudentGender' => Geschlechterzählung
      */
-    public function getCountStringStudentAllByDivision(TblDivision $tblDivision)
+    public function getStudentInfoAllByDivision(TblDivision $tblDivision)
     {
         $countActive = 0;
         $countInActive = 0;
+        $GenderList = array();
+        $StudentInfo = array('StudentList' => '', 'StudentGender' => '');
+
+        if(($tblGenderAll = Common::useService()->getCommonGenderAll())){
+            foreach($tblGenderAll as &$tblGender){
+                $GenderList[$tblGender->getId()] = 0;
+            }
+        }
+
         if (($tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision, true))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if ($tblDivisionStudent->getServiceTblPerson()) {
+                if (($tblPerson =  $tblDivisionStudent->getServiceTblPerson())) {
+                    // Zählung Geschlecht
+                    if(($tblGenderTemp = $tblPerson->getGender())){
+                        $GenderList[$tblGenderTemp->getId()]++;
+                    }
+                    // Zählung Division
                     if ($tblDivisionStudent->isInActive()) {
                         $countInActive++;
                     } else {
@@ -1641,10 +1657,25 @@ class Service extends AbstractService
                 }
             }
         }
-
+        // Spalteninhalt "Schüler"
         $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
+        $StudentInfo['StudentList'] = $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
 
-        return $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
+        //  Spalteninhalt Geschlecht
+        if(!empty($GenderList)){
+            foreach($GenderList as $tblGenderId => &$Gender){
+                $tblGenderTemp = Common::useService()->getCommonGenderById($tblGenderId);
+                if($Gender != '0'){
+                    $Gender = $tblGenderTemp->getShortName().': '.$Gender;
+                } else {
+                    $Gender = false;
+                }
+            }
+            // entfernen der nicht vorhandenen Geschlechter
+            $GenderList = array_filter($GenderList);
+        }
+        $StudentInfo['StudentGender'] = implode('<br/>', $GenderList);
+        return $StudentInfo;
     }
 
     /**

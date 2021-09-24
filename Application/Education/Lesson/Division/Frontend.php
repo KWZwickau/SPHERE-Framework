@@ -196,8 +196,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $SubjectUsedCount = Division::useService()->countDivisionSubjectForSubjectTeacherByDivision($tblDivision);
                 $GroupTeacherCount = Division::useService()->countDivisionSubjectGroupTeacherByDivision($tblDivision);
                 $Temp['Description'] = $tblDivision->getDescription();
-                $Temp['StudentList'] = Division::useService()->getCountStringStudentAllByDivision($tblDivision);
-                $Temp['StudentGender'] = Division::useService()->getStudentGenderByDivision($tblDivision);
+
+                $StudentInfo = Division::useService()->getStudentInfoAllByDivision($tblDivision);
+                $Temp['StudentList'] = $StudentInfo['StudentList'];
+                $Temp['StudentGender'] = $StudentInfo['StudentGender'];
 
                 // SSW-834 jahrgangsübergreifende nicht mitzählen, ansonsten werden Schüler doppelt gezählt
                 if (($tblLevel = $tblDivision->getTblLevel())
