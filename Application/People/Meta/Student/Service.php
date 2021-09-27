@@ -715,21 +715,19 @@ class Service extends Support
         if (!$tblStudent) {
             $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
         }
-        $DocumentType = null;
-        if(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IDENTIFICATION])){
-            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IDENTIFICATION]);
-        } elseif(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION])) {
-            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION]);
-        } elseif(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IMMUNITY])) {
-            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_IMMUNITY]);
-        } elseif(isset($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION])) {
-            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['DocumentType'][TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION]);
+        // nicht ausgewählt = 0 -> false
+        if($Meta['MedicalRecord']['Masern']['DocumentType']){
+            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['Masern']['DocumentType']);
         }
-        $CreatorType = null;
-        if(isset($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_STATE])){
-            $CreatorType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_STATE]);
-        } elseif(isset($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_COMMUNITY])) {
-            $CreatorType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['CreatorType'][TblStudentMasernInfo::CREATOR_COMMUNITY]);
+        if(!isset($DocumentType) || !$DocumentType){
+            $DocumentType = null;
+        }
+        // nicht ausgewählt = 0 -> false
+        if($Meta['MedicalRecord']['Masern']['CreatorType']){
+            $CreatorType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['Masern']['CreatorType']);
+        }
+        if(!isset($CreatorType) || !$CreatorType){
+            $CreatorType = null;
         }
         $MasernDate = null;
         if(isset($Meta['MedicalRecord']['Masern']['Date']) && $Meta['MedicalRecord']['Masern']['Date']){
