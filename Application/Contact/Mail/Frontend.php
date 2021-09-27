@@ -86,7 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Consumer with UCS?
         $isUCS = false;
         if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
-            if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumer($tblConsumer))){
+            if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
                 if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
                     $isUCS = true;
                 }

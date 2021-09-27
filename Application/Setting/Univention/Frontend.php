@@ -5,6 +5,8 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -92,7 +94,6 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         }
         $Acronym = Account::useService()->getMandantAcronym();
-//        $excludeList = array('REF', 'IBH');
         // Mandant ist nicht in der Schulliste
         if( !array_key_exists($Acronym, $schoolList)){
 //            if(!in_array($Acronym, $excludeList)){
@@ -101,24 +102,21 @@ class Frontend extends Extension implements IFrontendInterface
 //            }
         }
 
-        $IsButtonActive = false;
-        if(($tblAccount = Account::useService()->getAccountBySession())){
-            if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                 // Aktivierung EVSR
-                if(
-                $Acronym == 'EVSR'
-//                || $Acronym == 'EVSC'
-                || $Acronym == 'REF'
-                || $Acronym == 'DLLP'){ // || ($tblIdentification->getName() == TblIdentification::NAME_SYSTEM)
-//                    $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-                    $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
-                    $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
-                    $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
-                    $IsButtonActive = true;
-                }
+
+        $IsActiveAPI = false;
+        if(($tblConsumer = Consumer::useService()->getConsumerBySession())
+         && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))
+        ){
+            if($tblConsumerLogin->getIsActiveAPI()){
+                $IsActiveAPI = true;
             }
         }
-        if(!$IsButtonActive){
+        if($IsActiveAPI){
+//            $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
+            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
+            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
+            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
+        } else {
 //            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
             $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
             $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
@@ -126,12 +124,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
-
-//        if($tblAccount && $tblAccount->getUsername() == 'Rackel'){
-//            echo "<pre>";
-//            var_dump($UserUniventionList);
-//            echo "</pre>";
-//        }
 
         $UserSchulsoftwareList = array();
         // Vorraussetzung, es muss ein aktives Schuljahr geben.
@@ -236,7 +228,7 @@ class Frontend extends Extension implements IFrontendInterface
                     sort($ExistUser['school_classes']);
                     if(!empty($ExistUser['school_classes'])){
                         $ClassString = '';
-                        foreach($ExistUser['school_classes'] as $School => $ClassList) {
+                        foreach($ExistUser['school_classes'] as $ClassList) {
                             sort($ClassList);
                             if(!$ClassString){
                                 $ClassString = implode(', ', $ClassList);
@@ -279,7 +271,7 @@ class Frontend extends Extension implements IFrontendInterface
                     sort($ActiveSchoolList);
                     if(!empty($ActiveSchoolList)){
                         $ClassString = '';
-                        foreach($ActiveSchoolList as $School => $ClassList) {
+                        foreach($ActiveSchoolList as $ClassList) {
                             sort($ClassList);
                             if(!$ClassString){
                                 $ClassString = implode(', ', $ClassList);
@@ -437,8 +429,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                            }
 
                         } else {
-                            $firstWith = 1;
-                            $secondWith = 11;
+                            $firstWith = 2;
+                            $secondWith = 10;
                             $CompareRow['SSW'] = new Small(
                                 new Layout(new LayoutGroup(array(
                                     new LayoutRow(array(

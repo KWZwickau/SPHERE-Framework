@@ -76,7 +76,10 @@ class Setup extends AbstractSetup
 
         $Table = $this->createTable($Schema, 'tblConsumerLogin');
         $this->createColumn($Table, 'SystemName', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'IsSchoolSeparated', self::FIELD_TYPE_BOOLEAN, false, false);
+        if($this->hasColumn($Table, 'IsSchoolSeparated')){
+            $Table->dropColumn('IsSchoolSeparated');
+        }
+        $this->createColumn($Table, 'IsActiveAPI', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->getConnection()->addForeignKey($Table, $tblConsumer);
 
         return $Table;
