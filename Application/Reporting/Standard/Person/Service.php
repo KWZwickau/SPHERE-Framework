@@ -3268,7 +3268,7 @@ class Service extends Extension
         $export->setValue($export->getCell($Column++, $Row), "Wohnort");
         $export->setValue($export->getCell($Column++, $Row), "Ortsteil");
         $export->setValue($export->getCell($Column++, $Row), "Krankenkasse");
-        $export->setValue($export->getCell($Column++, $Row), "Religion");
+        $export->setValue($export->getCell($Column++, $Row), "Konfession");
         $export->setValue($export->getCell($Column++, $Row), "Festnetz (Privat)");
         $export->setValue($export->getCell($Column++, $Row), "Festnetz (Geschäftl.)");
         $export->setValue($export->getCell($Column++, $Row), "Festnetz (Notfall)");
