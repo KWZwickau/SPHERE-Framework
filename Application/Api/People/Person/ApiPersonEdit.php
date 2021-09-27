@@ -1196,9 +1196,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
             && isset($Meta['BirthDates']['Gender'])
         ) {
             if (($tblSalutation = Person::useService()->getSalutationById($Person['Salutation']))) {
-                if ($tblSalutation->getSalutation() == 'Frau') {
+                if ($tblSalutation->getSalutation() == 'Frau' || $tblSalutation->getSalutation() == 'Schülerin') {
                     $genderId = TblCommonBirthDates::VALUE_GENDER_FEMALE;
-                } elseif ($tblSalutation->getSalutation() == 'Herr') {
+                } elseif ($tblSalutation->getSalutation() == 'Herr' || $tblSalutation->getSalutation() == 'Schüler') {
                     $genderId = TblCommonBirthDates::VALUE_GENDER_MALE;
                 }
             }
