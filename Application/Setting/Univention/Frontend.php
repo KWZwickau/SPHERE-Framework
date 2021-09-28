@@ -97,7 +97,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Mandant ist nicht in der Schulliste
         if( !array_key_exists($Acronym, $schoolList)){
 //            if(!in_array($Acronym, $excludeList)){
-                $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht für UCS freigeschalten'));
+                $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
                 return $Stage;
 //            }
         }
