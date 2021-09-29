@@ -194,7 +194,7 @@ class Service extends AbstractService
                 }
 
                 // Mandant wird als Schule verwendet
-                $Item['schools'] = $Acronym;
+                $Item['schools'] = array($schoolList[$Acronym]);
 
                 $tblDivision = false;
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
@@ -211,7 +211,7 @@ class Service extends AbstractService
                     }
                 }
 
-                $UploadItem['schools'] = $Acronym;
+                $UploadItem['schools'] = array($schoolList[$Acronym]);
 
                 array_push($activeAccountList, $UploadItem);
             });
