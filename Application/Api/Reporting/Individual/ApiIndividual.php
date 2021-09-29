@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
@@ -62,6 +63,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
 use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -102,6 +104,7 @@ use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Debugger\Logger\QueryLogger;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class ApiIndividual
@@ -1824,11 +1827,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
     /**
      * @param string $ViewType
+     * @param bool   $IsPersonLink
      * @param bool   $SqlReturn
      *
      * @return \Doctrine\ORM\Query|Code|null
      */
-    private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $SqlReturn = false)
+    private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $IsPersonLink = false, $SqlReturn = false)
     {
         $Binding = Individual::useService()->getBinding();
         $Manager = $Binding->getEntityManager();
@@ -1862,6 +1866,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             );
                         }
                         $ViewList[] = $tblWorkSpace->getView();
+                    }
+                    if($IsPersonLink){
+                        $IsPersonLink = false;
+                        $Builder->addSelect($tblWorkSpace->getView() . '.TblPerson_Id AS Link');
                     }
 
                     // Add Field to Select
@@ -2202,8 +2210,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-//        return $this->buildSearchQuery($ViewType, true);
-        $Query = $this->buildSearchQuery($ViewType);
+        $Query = $this->buildSearchQuery($ViewType, true);
 //
 //        return $Query->getSQL();
         if( null === $Query ) {
@@ -2242,9 +2249,21 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 });
                 $ColumnDef = array_merge($DateOrder, $GermanStringOrder);
 
+                // replace PersonId to Link
+                foreach($Result as &$Row) {
+                    foreach($Row as $Key => &$value) {
+                        if($Key == 'Link'){
+                            $tblPerson = Person::useService()->getPersonById($value);
+                            $Row[$Key] = (new Link($tblPerson->getLastFirstName(), '/People/Person', new PersonIcon(),
+                                array('Id' => $value)))->setExternal();
+                        }
+                    }
+                }
+
                 $Result = (new TableData($Result, null, $ColumnDTNames,
 //                        false
                         array(
+                        'order'      => array(array(1, 'asc')),
                         'responsive' => false,
                         'fixedHeader'=> false,
                         'columnDefs' => $ColumnDef
