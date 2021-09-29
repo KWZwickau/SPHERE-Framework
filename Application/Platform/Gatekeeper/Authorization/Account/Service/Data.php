@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
@@ -674,15 +675,38 @@ class Data extends AbstractData
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         if (null !== $Entity) {
-            // Remove Person
+            // Person Data
             $tblUserList = $this->getUserAllByAccount( $Entity );
             if( $tblUserList ) {
                 /** @var TblUser $tblUser */
                 foreach( $tblUserList as $tblUser ) {
-                    if( $tblUser->getTblAccount() && $tblUser->getServiceTblPerson() ) {
-                        $this->removeAccountPerson(
-                            $tblUser->getTblAccount(), $tblUser->getServiceTblPerson()
-                        );
+                    $tblPerson = $tblUser->getServiceTblPerson();
+                    if($tblPerson){
+                        // remove E-Mail UserAlias || RecoveryMail
+                        if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
+                            foreach($tblToPersonList as $tblToPerson){
+                                if($tblToPerson->isAccountUserAlias()){
+                                    if(($tblMail = $tblToPerson->getTblMail())){
+                                        if(($tblMail->getAddress() == $tblAccount->getUserAlias())){
+                                            Mail::useService()->updateMailToPersonAlias($tblToPerson);
+                                        }
+                                    }
+                                }
+                                if($tblToPerson->isAccountRecoveryMail()){
+                                    if(($tblMail = $tblToPerson->getTblMail())){
+                                        if(($tblMail->getAddress() == $tblAccount->getRecoveryMail())){
+                                            Mail::useService()->updateMailToPersonRecoveryMail($tblToPerson);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // remove Person
+                        if( $tblUser->getTblAccount()) {
+                            $this->removeAccountPerson(
+                                $tblUser->getTblAccount(), $tblPerson
+                            );
+                        }
                     }
                 }
             }
