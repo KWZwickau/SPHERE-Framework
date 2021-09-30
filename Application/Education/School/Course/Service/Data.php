@@ -22,6 +22,7 @@ class Data extends AbstractData
         $this->createCourse('Hauptschule');
         $this->createCourse('Realschule');
         $this->createCourse('Gymnasium');
+        $this->createCourse('Ohne abschlussbezogenen Unterricht');
 
         $this->createSchoolDiploma('Abgangszeugnis der allgemeinbildenden Schule');
         $this->createSchoolDiploma('Allgemeine Hochschulreife');
