@@ -1859,4 +1859,60 @@ class Service extends AbstractService
     ) {
         return (new Data($this->getBinding()))->getTestByTaskAndDivisionAndSubject($tblTask, $tblDivision, $tblSubject, $tblSubjectGroup);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return false|TblTest[]
+     */
+    public function getTestDistinctListBy(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+        return (new Data($this->getBinding()))->getTestDistinctListBy($tblDivision, $tblSubject, $tblSubjectGroup);
+    }
+
+    /**
+     * @param $tblTestList
+     *
+     * @return bool
+     */
+    public function destroyTestList(
+        $tblTestList
+    ): bool {
+        return (new Data($this->getBinding()))->destroyTestList($tblTestList);
+    }
+
+    /**
+     * @param TblTest[] $tblTestList
+     *
+     * @return bool
+     */
+    public function destroyTestLinkList(
+        array $tblTestList
+    ): bool {
+        return (new Data($this->getBinding()))->destroyTestLinkList($tblTestList);
+    }
+
+    /**
+     * @param $tblTestList
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return bool
+     */
+    public function updateTests(
+        $tblTestList,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null,
+        TblPeriod $tblPeriod = null
+    ): bool {
+        return (new Data($this->getBinding()))->updateTests($tblTestList, $tblDivision, $tblSubject, $tblSubjectGroup, $tblPeriod);
+    }
 }

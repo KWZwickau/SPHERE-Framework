@@ -1043,4 +1043,68 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             TblGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
         ));
     }
+
+    /**
+     * @param $tblGradeList
+     */
+    public function destroyGradeList(
+        $tblGradeList
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            if (null !== $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
+
+    /**
+     * @param $tblGradeList
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblPeriod|null $tblPeriod
+     */
+    public function updateGrades(
+        $tblGradeList,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null,
+        TblPeriod $tblPeriod = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setServiceTblDivision($tblDivision);
+                $Entity->setServiceTblSubject($tblSubject);
+                $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+
+                if ($tblPeriod) {
+                    $Entity->setServiceTblPeriod($tblPeriod);
+                }
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
 }

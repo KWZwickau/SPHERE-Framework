@@ -43,7 +43,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -2132,5 +2134,147 @@ class Service extends ServiceScoreRule
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivision $tblSourceDivision
+     * @param TblSubject $tblSourceSubject
+     * @param TblSubjectGroup|null $tblSourceSubjectGroup
+     * @param TblDivision $tblTargetDivision
+     * @param TblSubject $tblTargetSubject
+     * @param TblSubjectGroup|null $tblTargetSubjectGroup
+     */
+    private function copyScoreRule(
+        TblDivision $tblSourceDivision,
+        TblSubject $tblSourceSubject,
+        ?TblSubjectGroup $tblSourceSubjectGroup,
+        TblDivision $tblTargetDivision,
+        TblSubject $tblTargetSubject,
+        ?TblSubjectGroup $tblTargetSubjectGroup
+    ) {
+        if (($tblSourceScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblSourceDivision, $tblSourceSubject))) {
+            if (($tblTargetScoreRule = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblTargetDivision, $tblTargetSubject))) {
+                (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                    $tblTargetScoreRule,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule(),
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreType()
+                );
+            } else {
+                (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
+                    $tblTargetDivision,
+                    $tblTargetSubject,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule(),
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreType()
+                );
+            }
+        }
+
+        if ($tblSourceSubjectGroup
+            && $tblTargetSubjectGroup
+            && ($tblSourceScoreRuleSubjectGroup = $this->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup))
+            && ($tblSourceScoreRule = $tblSourceScoreRuleSubjectGroup->getTblScoreRule())
+        ) {
+            if (($tblTargetScoreRuleSubjectGroup = $this->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup))) {
+                (new Data($this->getBinding()))->removeScoreRuleSubjectGroup($tblTargetScoreRuleSubjectGroup);
+            }
+
+            (new Data($this->getBinding()))->addScoreRuleSubjectGroup($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup, $tblSourceScoreRule);
+        }
+    }
+
+    /**
+     * @param TblDivision $tblSourceDivision
+     * @param TblSubject $tblSourceSubject
+     * @param TblSubjectGroup|null $tblSourceSubjectGroup
+     * @param TblDivision $tblTargetDivision
+     * @param TblSubject $tblTargetSubject
+     * @param TblSubjectGroup|null $tblTargetSubjectGroup
+     *
+     * @return array
+     */
+    public function copyTestsAndGrades(
+        TblDivision $tblSourceDivision,
+        TblSubject $tblSourceSubject,
+        ?TblSubjectGroup $tblSourceSubjectGroup,
+        TblDivision $tblTargetDivision,
+        TblSubject $tblTargetSubject,
+        ?TblSubjectGroup $tblTargetSubjectGroup
+    ): array {
+
+        $protocol = array();
+        $protocol['DeleteTests'] = array();
+        $protocol['UpdateTests'] = array();
+
+        // Berechnungssystem und Bewertungsystem kopieren
+        $this->copyScoreRule($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup,
+            $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
+
+        // löschen vorhandene Leistungsüberprüfungen und Zensuren
+        $destroyGrades = array();
+        $destroyTests = array();
+        if (($tblTargetTestList = Evaluation::useService()->getTestDistinctListBy($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup))) {
+            foreach ($tblTargetTestList as $tblTargetTest) {
+                $test = 'Test: ' . $tblTargetTest->getDate() . ' ' . $tblTargetTest->getGradeTypeCode()
+                    . ' - ' . $tblTargetTest->getDescription() . ' gelöscht';
+                if (($tblTargetGradeList = Gradebook::useService()->getGradeAllByTest($tblTargetTest))) {
+                    $grades = count($tblTargetGradeList) . ' Zensuren gelöscht';
+                    $destroyGrades = array_merge($destroyGrades, $tblTargetGradeList);
+                } else {
+                    $grades = '0 Zensuren gelöscht';
+                }
+                $destroyTests[] = $tblTargetTest;
+                $protocol['DeleteTests'][$tblTargetTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn($test, 6),
+                    new LayoutColumn($grades, 6)
+                ))));
+            }
+        }
+        $protocol['DeleteTestsCount'] = count($destroyTests);
+        if (!empty($destroyGrades)) {
+            (new Data($this->getBinding()))->destroyGradeList($destroyGrades);
+        }
+        if (!empty($destroyTests)) {
+            // Verknüpfung von Tests löschen
+            Evaluation::useService()->destroyTestLinkList($destroyTests);
+            Evaluation::useService()->destroyTestList($destroyTests);
+        }
+
+        // todo aufspaltung auf 2 Gruppen falls erforderlich
+
+        // Periode -> erstmal nicht möglich zwischen verschiedenen Schuljahren zu verschieben
+        // falls 2 verschiedene Schuljahre
+        // was soll mit den Notenaufträgen passieren für verschiedene Schuljahre
+
+        // Leistungsüberprüfungen verschieben
+        $updateGrades = array();
+        $updateTests = array();
+        if (($tblSourceTestList = Evaluation::useService()->getTestDistinctListBy($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup))) {
+            foreach ($tblSourceTestList as $tblSourceTest) {
+                $test = 'Test: ' . $tblSourceTest->getDate() . ' ' . $tblSourceTest->getGradeTypeCode()
+                    . ' - ' . $tblSourceTest->getDescription() . ' verschoben';
+                if (($tblSourceGradeList = Gradebook::useService()->getGradeAllByTest($tblSourceTest))) {
+                    $grades = count($tblSourceGradeList) . ' Zensuren verschoben';
+                    $updateGrades = array_merge($updateGrades, $tblSourceGradeList);
+                } else {
+                    $grades = '0 Zensuren verschoben';
+                }
+                $updateTests[] = $tblSourceTest;
+                $protocol['UpdateTests'][$tblSourceTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn($test, 6),
+                    new LayoutColumn($grades, 6)
+                ))));
+            }
+        }
+        $protocol['UpdateTestsCount'] = count($updateTests);
+        if (!empty($updateGrades)) {
+            (new Data($this->getBinding()))->updateGrades($updateGrades, $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
+        }
+        if (!empty($updateTests)) {
+            Evaluation::useService()->updateTests($updateTests, $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
+        }
+
+        // Zeugnisnoten verschieben, erstmal nicht, dass bei verschiedenen Klassen verschiedene Zeugnisvorbereitungen vorliegen
+
+        return $protocol;
     }
 }
