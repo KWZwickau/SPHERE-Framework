@@ -41,6 +41,14 @@ class ViewStudentCustody extends AbstractView
     const TBL_ADDRESS_STATE_S1 = 'TblState_Name_S1';
     const TBL_ADDRESS_NATION_S1 = 'TblAddress_Nation_S1';
     const TBL_PHONE_NUMBER_S1 = 'TblPhone_Number_S1';
+    const TBL_PHONE_NUMBER_PF_S1 = 'TblPhone_Number_PF_S1';
+    const TBL_PHONE_NUMBER_PM_S1 = 'TblPhone_Number_PM_S1';
+    const TBL_PHONE_NUMBER_GF_S1 = 'TblPhone_Number_GF_S1';
+    const TBL_PHONE_NUMBER_GM_S1 = 'TblPhone_Number_GM_S1';
+    const TBL_PHONE_NUMBER_NF_S1 = 'TblPhone_Number_NF_S1';
+    const TBL_PHONE_NUMBER_NM_S1 = 'TblPhone_Number_NM_S1';
+    const TBL_PHONE_NUMBER_FP_S1 = 'TblPhone_Number_FP_S1';
+    const TBL_PHONE_NUMBER_FG_S1 = 'TblPhone_Number_FG_S1';
     const TBL_MAIL_ADDRESS_S1 = 'TblMail_Address_S1';
     const TBL_MAIL_ADDRESS_PRIVATE_S1 = 'TblMail_AddressPrivate_S1';
     const TBL_MAIL_ADDRESS_COMPANY_S1 = 'TblMail_AddressCompany_S1';
@@ -64,6 +72,14 @@ class ViewStudentCustody extends AbstractView
     const TBL_ADDRESS_STATE_S2 = 'TblState_Name_S2';
     const TBL_ADDRESS_NATION_S2 = 'TblAddress_Nation_S2';
     const TBL_PHONE_NUMBER_S2 = 'TblPhone_Number_S2';
+    const TBL_PHONE_NUMBER_PF_S2 = 'TblPhone_Number_PF_S2';
+    const TBL_PHONE_NUMBER_PM_S2 = 'TblPhone_Number_PM_S2';
+    const TBL_PHONE_NUMBER_GF_S2 = 'TblPhone_Number_GF_S2';
+    const TBL_PHONE_NUMBER_GM_S2 = 'TblPhone_Number_GM_S2';
+    const TBL_PHONE_NUMBER_NF_S2 = 'TblPhone_Number_NF_S2';
+    const TBL_PHONE_NUMBER_NM_S2 = 'TblPhone_Number_NM_S2';
+    const TBL_PHONE_NUMBER_FP_S2 = 'TblPhone_Number_FP_S2';
+    const TBL_PHONE_NUMBER_FG_S2 = 'TblPhone_Number_FG_S2';
     const TBL_MAIL_ADDRESS_S2 = 'TblMail_Address_S2';
     const TBL_MAIL_ADDRESS_PRIVATE_S2 = 'TblMail_AddressPrivate_S2';
     const TBL_MAIL_ADDRESS_COMPANY_S2 = 'TblMail_AddressCompany_S2';
@@ -87,6 +103,14 @@ class ViewStudentCustody extends AbstractView
     const TBL_ADDRESS_STATE_S3 = 'TblState_Name_S3';
     const TBL_ADDRESS_NATION_S3 = 'TblAddress_Nation_S3';
     const TBL_PHONE_NUMBER_S3 = 'TblPhone_Number_S3';
+    const TBL_PHONE_NUMBER_PF_S3 = 'TblPhone_Number_PF_S3';
+    const TBL_PHONE_NUMBER_PM_S3 = 'TblPhone_Number_PM_S3';
+    const TBL_PHONE_NUMBER_GF_S3 = 'TblPhone_Number_GF_S3';
+    const TBL_PHONE_NUMBER_GM_S3 = 'TblPhone_Number_GM_S3';
+    const TBL_PHONE_NUMBER_NF_S3 = 'TblPhone_Number_NF_S3';
+    const TBL_PHONE_NUMBER_NM_S3 = 'TblPhone_Number_NM_S3';
+    const TBL_PHONE_NUMBER_FP_S3 = 'TblPhone_Number_FP_S3';
+    const TBL_PHONE_NUMBER_FG_S3 = 'TblPhone_Number_FG_S3';
     const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
     const TBL_MAIL_ADDRESS_PRIVATE_S3 = 'TblMail_AddressPrivate_S3';
     const TBL_MAIL_ADDRESS_COMPANY_S3 = 'TblMail_AddressCompany_S3';
@@ -176,6 +200,38 @@ class ViewStudentCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPhone_Number_PF_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_S1;
+    /**
+     * @Column(type="string")
+     */
     protected $TblMail_Address_S1;
     /**
      * @Column(type="string")
@@ -258,6 +314,38 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblPhone_Number_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PF_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_S2;
     /**
      * @Column(type="string")
      */
@@ -346,6 +434,38 @@ class ViewStudentCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPhone_Number_PF_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_S3;
+    /**
+     * @Column(type="string")
+     */
     protected $TblMail_Address_S3;
     /**
      * @Column(type="string")
@@ -386,6 +506,14 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_S1, 'S1: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S1, 'S1: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'S1: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_S1, 'S1: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_S1, 'S1: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_S1, 'S1: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_S1, 'S1: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_S1, 'S1: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_S1, 'S1: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_S1, 'S1: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_S1, 'S1: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'S1: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1, 'S1: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1, 'S1: E-Mail Geschäftlich');
@@ -408,6 +536,14 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_S2, 'S2: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S2, 'S2: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'S2: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_S2, 'S2: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_S2, 'S2: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_S2, 'S2: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_S2, 'S2: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_S2, 'S2: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_S2, 'S2: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_S2, 'S2: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_S2, 'S2: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'S2: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2, 'S2: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2, 'S2: E-Mail Geschäftlich');
@@ -430,6 +566,14 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_S3, 'S3: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S3, 'S3: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'S3: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_S3, 'S3: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_S3, 'S3: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_S3, 'S3: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_S3, 'S3: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_S3, 'S3: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_S3, 'S3: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_S3, 'S3: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_S3, 'S3: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3, 'S3: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3, 'S3: E-Mail Geschäftlich');
@@ -455,6 +599,14 @@ class ViewStudentCustody extends AbstractView
             self::TBL_ADDRESS_STATE_S1,
             self::TBL_ADDRESS_NATION_S1,
             self::TBL_PHONE_NUMBER_S1,
+            self::TBL_PHONE_NUMBER_PF_S1,
+            self::TBL_PHONE_NUMBER_PM_S1,
+            self::TBL_PHONE_NUMBER_GF_S1,
+            self::TBL_PHONE_NUMBER_GM_S1,
+            self::TBL_PHONE_NUMBER_NF_S1,
+            self::TBL_PHONE_NUMBER_NM_S1,
+            self::TBL_PHONE_NUMBER_FP_S1,
+            self::TBL_PHONE_NUMBER_FG_S1,
             self::TBL_MAIL_ADDRESS_S1,
             self::TBL_MAIL_ADDRESS_PRIVATE_S1,
             self::TBL_MAIL_ADDRESS_COMPANY_S1,
@@ -478,6 +630,14 @@ class ViewStudentCustody extends AbstractView
             self::TBL_ADDRESS_STATE_S2,
             self::TBL_ADDRESS_NATION_S2,
             self::TBL_PHONE_NUMBER_S2,
+            self::TBL_PHONE_NUMBER_PF_S2,
+            self::TBL_PHONE_NUMBER_PM_S2,
+            self::TBL_PHONE_NUMBER_GF_S2,
+            self::TBL_PHONE_NUMBER_GM_S2,
+            self::TBL_PHONE_NUMBER_NF_S2,
+            self::TBL_PHONE_NUMBER_NM_S2,
+            self::TBL_PHONE_NUMBER_FP_S2,
+            self::TBL_PHONE_NUMBER_FG_S2,
             self::TBL_MAIL_ADDRESS_S2,
             self::TBL_MAIL_ADDRESS_PRIVATE_S2,
             self::TBL_MAIL_ADDRESS_COMPANY_S2,
@@ -501,6 +661,14 @@ class ViewStudentCustody extends AbstractView
             self::TBL_ADDRESS_STATE_S3,
             self::TBL_ADDRESS_NATION_S3,
             self::TBL_PHONE_NUMBER_S3,
+            self::TBL_PHONE_NUMBER_PF_S3,
+            self::TBL_PHONE_NUMBER_PM_S3,
+            self::TBL_PHONE_NUMBER_GF_S3,
+            self::TBL_PHONE_NUMBER_GM_S3,
+            self::TBL_PHONE_NUMBER_NF_S3,
+            self::TBL_PHONE_NUMBER_NM_S3,
+            self::TBL_PHONE_NUMBER_FP_S3,
+            self::TBL_PHONE_NUMBER_FG_S3,
             self::TBL_MAIL_ADDRESS_S3,
             self::TBL_MAIL_ADDRESS_PRIVATE_S3,
             self::TBL_MAIL_ADDRESS_COMPANY_S3,
@@ -525,6 +693,14 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S1);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S1);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_S1,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1);
@@ -546,6 +722,14 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S2);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S2);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_S2,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2);
@@ -567,6 +751,14 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S3);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S3);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_S3,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3);

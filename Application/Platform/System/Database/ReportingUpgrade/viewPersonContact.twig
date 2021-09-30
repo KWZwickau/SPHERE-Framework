@@ -96,103 +96,69 @@ SELECT
     ) TblAddress_Nation2,
     -- ----------------------------------------
     -- Phone
-    (select
-        group_concat(
-            concat(
+    (select group_concat(concat(
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
             -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
             ' ',
             vCP.TblToPerson_Remark
-            ) separator ' - \n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+            ) separator ' - \n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
     ) TblPhone_Number,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Privat'
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_PF,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Privat'
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_PM,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Geschäftlich'
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_GF,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Geschäftlich'
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_GM,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Notfall'
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_NF,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Notfall'
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_NM,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Fax'
         and vCP.TblType_Description = 'Privat'
     ) TblPhone_Number_FP,
 
-    (select
-        group_concat(
-            concat(
-            vCP.TblPhone_Number
-            ) separator ';\n'
-        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
         and vCP.TblType_Name = 'Fax'
         and vCP.TblType_Description = 'Geschäftlich'

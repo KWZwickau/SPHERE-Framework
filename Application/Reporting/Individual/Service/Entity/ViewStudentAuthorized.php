@@ -41,6 +41,14 @@ class ViewStudentAuthorized extends AbstractView
     const TBL_ADDRESS_STATE_BEV = 'TblState_Name_Bev';
     const TBL_ADDRESS_NATION_BEV = 'TblAddress_Nation_Bev';
     const TBL_PHONE_NUMBER_BEV = 'TblPhone_Number_Bev';
+    const TBL_PHONE_NUMBER_PF_BEV = 'TblPhone_Number_PF_Bev';
+    const TBL_PHONE_NUMBER_PM_BEV = 'TblPhone_Number_PM_Bev';
+    const TBL_PHONE_NUMBER_GF_BEV = 'TblPhone_Number_GF_Bev';
+    const TBL_PHONE_NUMBER_GM_BEV = 'TblPhone_Number_GM_Bev';
+    const TBL_PHONE_NUMBER_NF_BEV = 'TblPhone_Number_NF_Bev';
+    const TBL_PHONE_NUMBER_NM_BEV = 'TblPhone_Number_NM_Bev';
+    const TBL_PHONE_NUMBER_FP_BEV = 'TblPhone_Number_FP_Bev';
+    const TBL_PHONE_NUMBER_FG_BEV = 'TblPhone_Number_FG_Bev';
     const TBL_MAIL_ADDRESS_BEV = 'TblMail_Address_Bev';
     const TBL_MAIL_ADDRESS_PRIVATE_BEV = 'TblMail_AddressPrivate_Bev';
     const TBL_MAIL_ADDRESS_COMPANY_BEV = 'TblMail_AddressCompany_Bev';
@@ -130,6 +138,38 @@ class ViewStudentAuthorized extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPhone_Number_PF_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_Bev;
+    /**
+     * @Column(type="string")
+     */
     protected $TblMail_Address_Bev;
     /**
      * @Column(type="string")
@@ -170,6 +210,14 @@ class ViewStudentAuthorized extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_BEV, 'Bev: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_BEV, 'Bev: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_BEV, 'Bev: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_BEV, 'Bev: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_BEV, 'Bev: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_BEV, 'Bev: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_BEV, 'Bev: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_BEV, 'Bev: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_BEV, 'Bev: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_BEV, 'Bev: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_BEV, 'Bev: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_BEV, 'Bev: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_BEV, 'Bev: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_BEV, 'Bev: E-Mail Geschäftlich');
@@ -195,6 +243,14 @@ class ViewStudentAuthorized extends AbstractView
             self::TBL_ADDRESS_STATE_BEV,
             self::TBL_ADDRESS_NATION_BEV,
             self::TBL_PHONE_NUMBER_BEV,
+            self::TBL_PHONE_NUMBER_PF_BEV,
+            self::TBL_PHONE_NUMBER_PM_BEV,
+            self::TBL_PHONE_NUMBER_GF_BEV,
+            self::TBL_PHONE_NUMBER_GM_BEV,
+            self::TBL_PHONE_NUMBER_NF_BEV,
+            self::TBL_PHONE_NUMBER_NM_BEV,
+            self::TBL_PHONE_NUMBER_FP_BEV,
+            self::TBL_PHONE_NUMBER_FG_BEV,
             self::TBL_MAIL_ADDRESS_BEV,
             self::TBL_MAIL_ADDRESS_PRIVATE_BEV,
             self::TBL_MAIL_ADDRESS_COMPANY_BEV,
@@ -219,6 +275,14 @@ class ViewStudentAuthorized extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_BEV);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_BEV);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_BEV);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_BEV,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_BEV);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_BEV);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_BEV);
