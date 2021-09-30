@@ -20,6 +20,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
@@ -59,6 +60,8 @@ class KamenzService
             $hasOrientationSubjects = false;
         }
 
+        $count['AlternateGenderList'] = array();
+        $count['AlternateGender'] = 0;
         $count['Gender'] = 0;
         $count['Birthday'] = 0;
         $count['Religion'] = 0;
@@ -102,6 +105,11 @@ class KamenzService
                                             if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
                                                 if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
                                                     $gender = $tblGender->getName();
+                                                    if ($tblGender->getId() > 2) {
+                                                        $count['AlternateGender']++;
+                                                        $count['AlternateGenderList'][] = $tblPerson->getLastFirstName()
+                                                            . ' Geschlecht: ' . $gender;
+                                                    }
                                                 }
                                                 if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
                                                     $birthday = $birthdayDate;
@@ -604,6 +612,15 @@ class KamenzService
     private static function setSummary(&$summary, $count)
     {
 
+        if ($count['AlternateGender'] > 0) {
+            array_splice($summary, 1, 0,
+                new Danger('Bei ' . $count['AlternateGender'] . ' Schüler/n ist das Geschlecht nicht Männlich oder Weiblich.
+                    In den Kamenz-Tabellen mit Aufteilung nach Geschlecht werden diese nicht erfasst. Bitte zählen Sie die folgenden Schüler selbst mit.'
+                    . '<br>'
+                    . implode('<br>', $count['AlternateGenderList'])
+                    , new Exclamation())
+            );
+        }
         if ($count['Gender'] > 0) {
             $summary[] = new Warning($count['Gender'] . ' Schüler/n ist kein Geschlecht zugeordnet.'
                 , new Exclamation());
