@@ -1201,7 +1201,7 @@ class Frontend extends FrontendScoreRule
                                     }
 
                                     // für Fach-Klassen-Durchschnitt;
-                                    if ($average != '') {
+                                    if ($average !== false) {
                                         if (isset($averages[$column])) {
                                             $averages[$column]['Count']++;
                                             $averages[$column]['Sum'] += $average;
@@ -1240,7 +1240,7 @@ class Frontend extends FrontendScoreRule
                                 }
 
                                 // für Fach-Klassen-Durchschnitt;
-                                if ($average != '') {
+                                if ($average !== false) {
                                     if (isset($averages[$column])) {
                                         $averages[$column]['Count']++;
                                         $averages[$column]['Sum'] += $average;
