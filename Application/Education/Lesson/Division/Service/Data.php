@@ -2658,4 +2658,54 @@ class Data extends AbstractData
             TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
         ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionStudent[]|false
+     */
+    public function getDivisionStudentAllByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+        $queryBuilder->select('ds')
+            ->from(__NAMESPACE__ . '\Entity\TblDivisionStudent', 'ds')
+            ->leftJoin(__NAMESPACE__ . '\Entity\TblDivision', 'd', 'WITH', 'ds.tblDivision = d.Id' )
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->eq('ds.serviceTblPerson', '?1'),
+                $queryBuilder->expr()->eq('d.serviceTblYear', '?2'),
+            ))
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+        ;
+
+        $result = $queryBuilder->getQuery()->getResult();
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionStudent[]|false
+     */
+    public function getMainDivisionStudentAllByYear(TblYear $tblYear)
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+        $queryBuilder->select('ds')
+            ->from(__NAMESPACE__ . '\Entity\TblDivisionStudent', 'ds')
+            ->leftJoin(__NAMESPACE__ . '\Entity\TblDivision', 'd', 'WITH', 'ds.tblDivision = d.Id' )
+            ->leftJoin(__NAMESPACE__ . '\Entity\TblLevel', 'l', 'WITH', 'd.tblLevel = l.Id')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->eq('d.serviceTblYear', '?1'),
+                $queryBuilder->expr()->eq('l.IsChecked', '?2'),
+            ))
+            ->setParameter(1, $tblYear->getId())
+            ->setParameter(2, false)
+        ;
+
+        $result = $queryBuilder->getQuery()->getResult();
+
+        return empty($result) ? false : $result;
+    }
 }

@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -1549,7 +1550,7 @@ class Frontend extends Extension implements IFrontendInterface
             $global->savePost();
         }
 
-        $receiverContent = ApiStandard::receiverFormSelect(
+        $receiverContent = ApiStandard::receiverBlock(
             (new ApiStandard())->reloadAbsenceContent()
         );
 
@@ -1653,6 +1654,107 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param string|null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendStudentArchive(?string $YearId = null): Stage
+    {
+
+        $Stage = new Stage('Auswertung', 'Ehemalige Schüler');
+        // aktuelle Schuljahre herausfiltern
+        $yearList = array();
+        if (($tblYearAll = Term::useService()->getYearAll())
+            && ($tblYearListByNow = Term::useService()->getYearByNow())
+        ) {
+            foreach ($tblYearAll as $tblYear) {
+                $isAdd = true;
+                foreach ($tblYearListByNow as $tblYearNow) {
+                    if ($tblYear->getId() == $tblYearNow->getId()) {
+                        $isAdd = false;
+                        break;
+                    }
+                }
+
+                if ($isAdd) {
+                    $yearList[] = $tblYear;
+                }
+            }
+        } else {
+            $yearList = $tblYearAll;
+        }
+
+        $Stage->setContent(
+            (new SelectBox('YearId', 'Letztes Schuljahr der Schüler', array('{{ DisplayName }}' =>
+                $yearList)))->setRequired()->ajaxPipelineOnChange(ApiStandard::pipelineLoadStudentArchiveContent($YearId))
+            . ApiStandard::receiverBlock(
+                new Warning('Bitte wählen Sie ein Schuljahr aus!'),
+                'StudentArchiveContent'
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function getStudentArchiveContent(TblYear $tblYear): string
+    {
+        if (($personList = Division::useService()->getLeaveStudents($tblYear))) {
+            $dataList = Person::useService()->createStudentArchiveList($personList);
+
+            return
+                (new Primary('Herunterladen','/Api/Reporting/Standard/Person/StudentArchive/Download',
+                    new Download(), array('YearId' => $tblYear->getId())))
+                . (new Danger('Die dauerhafte Speicherung des Excel-Exports
+                        ist datenschutzrechtlich nicht zulässig!', new Exclamation()))
+                . (new TableData($dataList, null,
+                    array(
+                        'LastDivision' =>       'Abgangsklasse',
+                        'LastName' =>           'Name',
+                        'FirstName' =>          'Vorname',
+                        'Gender' =>             'Geschlecht',
+                        'Birthday' =>           'Geburtsdatum',
+                        'Custody1Salutation' => 'Anrede Sorg1',
+                        'Custody1FirstName' =>  'Vorname Sorg1',
+                        'Custody1LastName' =>   'Nachname Sorg1',
+                        'Custody2Salutation' => 'Anrede Sorg2',
+                        'Custody2FirstName' =>  'Vorname Sorg2',
+                        'Custody2LastName' =>   'Nachname Sorg2',
+                        'Street' =>             'Straße',
+                        'ZipCode' =>            'PLZ',
+                        'City' =>               'Ort',
+                        'LastSchool' =>         'Abgebende Schule',
+                        'NewSchool' =>          'Aufnehmende Schule',
+                        'LeaveDate' =>          'Abmeldedatum'
+                    ),
+                    array(
+                        'order' => array(
+                            array(0, 'asc'),
+                            array(1, 'asc'),
+                        ),
+                        "pageLength" => -1,
+                        "responsive" => false,
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0),
+                            array('type' => 'de_date', 'targets' => 16),
+                                // dann ist die Tabelle leer, Api bringt Fehler
+//                            array(
+//                                'type' => Consumer::useService()->getGermanSortBySetting(),
+//                                'targets' => array(1, 2)
+//                            ),
+                        ),
+                    )
+                ));
+        }
+
+        return new Warning('Für das Schuljahr: ' . $tblYear->getDisplayName(). ' wurden keine Abgänger gefunden.', new Exclamation());
     }
 
     /**

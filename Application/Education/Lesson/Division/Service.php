@@ -3061,4 +3061,96 @@ class Service extends AbstractService
 
         return empty($repeatedList) ? false : $repeatedList;
     }
+
+    /**
+     * @param TblYear $tblYearSelected
+     *
+     * @return array
+     */
+    public function getLeaveStudents(TblYear $tblYearSelected): array
+    {
+        $personList = array();
+
+        $split = explode('/', $tblYearSelected->getName());
+        $tblYearNextList = Term::useService()->getYearByName(
+            ((int) $split[0] + 1) . '/' . ((int) $split[1] + 1)
+        );
+
+        if (($tblYearList = Term::useService()->getYearsByYear($tblYearSelected))
+            && ($tblYearNextList)
+        ) {
+            foreach ($tblYearList as $tblYear) {
+//                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
+//                    foreach ($tblDivisionList as $tblDivision) {
+//                        if (!$tblDivision->getTblLevel()->getIsChecked()
+//                            && ($tblStudentList = $this->getStudentAllByDivision($tblDivision, true))
+//                        ) {
+//                            foreach ($tblStudentList as $tblPerson) {
+//                                $isAddPerson = false;
+//                                foreach ($tblYearNextList as $tblYearNext) {
+//                                    $isAddPerson = $this->getDivisionStudentsByPersonAndYear($tblPerson, $tblYearNext) == false;
+//                                    if ($isAddPerson) {
+//                                        break;
+//                                    }
+//                                }
+//
+//                                if ($isAddPerson) {
+//                                    $personList[$tblPerson->getId()] = array(
+//                                        'tblPerson' => $tblPerson,
+//                                        'tblDivision' => $tblDivision
+//                                    );
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+
+                if (($tblDivisionStudentList = $this->getMainDivisionStudentAllByYear($tblYear))) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                            && ($tblPerson = $tblDivisionStudent->getServiceTblPerson())
+                        ) {
+                            $isAddPerson = false;
+                            foreach ($tblYearNextList as $tblYearNext) {
+                                $isAddPerson = $this->getDivisionStudentsByPersonAndYear($tblPerson, $tblYearNext) == false;
+                                if ($isAddPerson) {
+                                    break;
+                                }
+                            }
+
+                            if ($isAddPerson) {
+                                $personList[$tblPerson->getId()] = array(
+                                    'tblPerson' => $tblPerson,
+                                    'tblDivision' => $tblDivision
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return  $personList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionStudent[]|false
+     */
+    public function getDivisionStudentsByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getDivisionStudentAllByPersonAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionStudent[]|false
+     */
+    public function getMainDivisionStudentAllByYear(TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getMainDivisionStudentAllByYear($tblYear);
+    }
 }

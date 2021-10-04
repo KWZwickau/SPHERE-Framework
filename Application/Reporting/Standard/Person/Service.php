@@ -4069,4 +4069,150 @@ class Service extends Extension
 
         return false;
     }
+
+    /**
+     * @param array $personList
+     *
+     * @return array
+     */
+    public function createStudentArchiveList(array $personList): array
+    {
+        $dataList = array();
+        if (($tblTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
+            && ($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
+        ) {
+            foreach ($personList as $item) {
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $item['tblPerson'];
+                /** @var TblDivision $tblDivision */
+                $tblDivision = $item['tblDivision'];
+
+                $lastSchool = ($tblCompany = $tblDivision->getServiceTblCompany()) ? $tblCompany->getDisplayName() : '';
+
+                $tblMainAddress = $tblPerson->fetchMainAddress();
+
+                $leaveSchool = '';
+                $leaveDate = '';
+                if (($tblStudent = $tblPerson->getStudent())
+                    && ($tblTransferLeave = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeLeave))
+                ) {
+                    $leaveSchool = $tblTransferLeave->getServiceTblCompany() ? $tblTransferLeave->getServiceTblCompany()->getDisplayName() : '';
+                    $leaveDate = $tblTransferLeave->getTransferDate();
+                }
+
+                $custody1Salutation = '';
+                $custody1FirstName = '';
+                $custody1LastName = '';
+                $custody2Salutation = '';
+                $custody2FirstName = '';
+                $custody2LastName = '';
+                if (($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))) {
+                    foreach ($tblToPersonList as $tblToPerson) {
+                        if (($tblPersonCustody = $tblToPerson->getServiceTblPersonFrom())) {
+                            if ($tblToPerson->getRanking() == 1) {
+                                $custody1Salutation = $tblPersonCustody->getSalutation();
+                                $custody1FirstName = $tblPersonCustody->getFirstSecondName();
+                                $custody1LastName = $tblPersonCustody->getLastName();
+                            } elseif ($tblToPerson->getRanking() == 2) {
+                                $custody2Salutation = $tblPersonCustody->getSalutation();
+                                $custody2FirstName = $tblPersonCustody->getFirstSecondName();
+                                $custody2LastName = $tblPersonCustody->getLastName();
+                            }
+                        }
+                    }
+                }
+
+                $dataList[] = array(
+                    'LastDivision'          => $tblDivision->getDisplayName(),
+                    'LastName'              => $tblPerson->getLastName(),
+                    'FirstName'             => $tblPerson->getFirstSecondName(),
+                    'Gender'                => $tblPerson->getGenderString(),
+                    'Birthday'              => $tblPerson->getBirthday(),
+                    'Custody1Salutation'    => $custody1Salutation,
+                    'Custody1FirstName'     => $custody1FirstName,
+                    'Custody1LastName'      => $custody1LastName,
+                    'Custody2Salutation'    => $custody2Salutation,
+                    'Custody2FirstName'     => $custody2FirstName,
+                    'Custody2LastName'      => $custody2LastName,
+                    'Street'                => $tblMainAddress ? $tblMainAddress->getStreetName() . ' '. $tblMainAddress->getStreetNumber() : '',
+                    'ZipCode'               => $tblMainAddress ? $tblMainAddress->getTblCity()->getCode() : '',
+                    'City'                  => $tblMainAddress ? $tblMainAddress->getTblCity()->getDisplayName() : '',
+                    'LastSchool'            => $lastSchool,
+                    'NewSchool'             => $leaveSchool,
+                    'LeaveDate'             => $leaveDate
+                );
+            }
+
+            $division = array();
+            $lastName = array();
+            foreach ($dataList as $key => $row) {
+                $division[$key] = $row['LastDivision'];
+                $lastName[$key] = $row['LastName'];
+            }
+            array_multisort($division, SORT_NATURAL, $lastName, SORT_ASC, $dataList);
+        }
+
+        return  $dataList;
+    }
+
+    /**
+     * @param array $dataList
+     *
+     * @return bool|FilePointer
+     */
+    public function createStudentArchiveExcel(array $dataList)
+    {
+        if (!empty($dataList)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $column = 0;
+            $export->setValue($export->getCell($column++, 0), 'Abgangsklasse');
+            $export->setValue($export->getCell($column++, 0), 'Name');
+            $export->setValue($export->getCell($column++, 0), 'Vorname');
+            $export->setValue($export->getCell($column++, 0), 'Geschlecht');
+            $export->setValue($export->getCell($column++, 0), 'Geburtsdatum');
+            $export->setValue($export->getCell($column++, 0), 'Anrede Sorg1');
+            $export->setValue($export->getCell($column++, 0), 'Vorname Sorg1');
+            $export->setValue($export->getCell($column++, 0), 'Nachname Sorg1');
+            $export->setValue($export->getCell($column++, 0), 'Anrede Sorg2');
+            $export->setValue($export->getCell($column++, 0), 'Vorname Sorg2');
+            $export->setValue($export->getCell($column++, 0), 'Nachname Sorg2');
+            $export->setValue($export->getCell($column++, 0), 'Straße');
+            $export->setValue($export->getCell($column++, 0), 'PLZ');
+            $export->setValue($export->getCell($column++, 0), 'Ort');
+            $export->setValue($export->getCell($column++, 0), 'Abgebende Schule');
+            $export->setValue($export->getCell($column++, 0), 'Aufnehmende Schule');
+            $export->setValue($export->getCell($column, 0), 'Abmeldedatum');
+
+            $row = 1;
+            foreach ($dataList as $PersonData) {
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastDivision']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Gender']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Custody1Salutation']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Custody1FirstName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Custody1LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Custody2Salutation']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Custody2FirstName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Custody2LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['ZipCode']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['City']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastSchool']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['NewSchool']);
+                $export->setValue($export->getCell($column, $row), $PersonData['LeaveDate']);
+                $row++;
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
 }
