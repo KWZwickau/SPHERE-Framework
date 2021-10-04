@@ -1378,7 +1378,10 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['Gender'] = 'Geschlecht';
         $TableHead['Birthday'] = 'Geburtsdatum';
         $TableHead['BirthPlace'] = 'Geburtsort';
+        $TableHead['Nationality'] = 'Staatsangehörigkeit';
         $TableHead['Address'] = 'Adresse';
+        $TableHead['Medication'] = 'Medikamente';
+        $TableHead['InsuranceState'] = 'Versicherungsstatus';
         $TableHead['Insurance'] = 'Krankenkasse';
         $TableHead['Religion'] = 'Konfession';
         $TableHead['PhoneFixedPrivate'] = 'Festnetz (Privat)';
@@ -1387,6 +1390,8 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['PhoneMobilePrivate'] = 'Mobil (Privat)';
         $TableHead['PhoneMobileWork'] = 'Mobil (Geschäftl.)';
         $TableHead['PhoneMobileEmergency'] = 'Mobil (Notfall)';
+        $TableHead['MailPrivate'] = 'E-Mail Privat';
+        $TableHead['MailWork'] = 'E-Mail Geschäftlich';
         if(isset($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID])
             && $PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
             $TableHead['PersonGroup'] = 'Personengruppe';
@@ -1402,6 +1407,9 @@ class Frontend extends Extension implements IFrontendInterface
             $TableHead['Custody_'.$i.'_Title'] = 'Sorg'.$i.' Titel';
             $TableHead['Custody_'.$i.'_FirstName'] = 'Sorg'.$i.' Vorname';
             $TableHead['Custody_'.$i.'_LastName'] = 'Sorg'.$i.' Nachname';
+            $TableHead['Custody_'.$i.'_BirthDay'] = 'Sorg'.$i.' Geburtstag';
+            $TableHead['Custody_'.$i.'_BirthPlace'] = 'Sorg'.$i.' Geburtsort';
+            $TableHead['Custody_'.$i.'_Job'] = 'Sorg'.$i.' Beruf';
             $TableHead['Custody_'.$i.'_Address'] = 'Sorg'.$i.' Adresse';
             $TableHead['Custody_'.$i.'_PhoneFixedPrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
             $TableHead['Custody_'.$i.'_PhoneFixedWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
@@ -1420,18 +1428,18 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                     // Sibling
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (16 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (17 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (18 + $AddCount)),
-                    // Custody 1
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (21 + $AddCount)),
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+                    // Custody 1
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount)),
                     // Custody 2
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (34 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (35 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (43 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (44 + $AddCount)),
                     // Custody 3
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (47 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (48 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (59 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (60 + $AddCount)),
                 ),
 //                'pageLength' => -1,
 //                'paging'     => false,
