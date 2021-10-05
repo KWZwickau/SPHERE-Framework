@@ -117,6 +117,13 @@ class Import extends Extension implements IModuleInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
+                            new External('Download der Anleitung für den Export der Lehraufträge aus Indiware',
+                                '/Api/Document/Standard/Manual/Indiware/Create',
+                                new Download(), array(), false)
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
                             new Warning(
                                 new Container('Bitte beachten Sie die Reihenfolge für den Import:').
                                 new Container('1. Indiware-Import für Schüler-Kurse SEK II').
