@@ -6,10 +6,13 @@ use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
+use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 
 /**
@@ -83,10 +86,20 @@ class AccountApp extends AccountDocument
                         bitte und scannen den folgenden QR-Code ein.')
                     ->styleMarginTop('15px')
                 )
-                ->addElement((new Element())
-//                    ->setContent(new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret, 180) . '">'))
-                    ->setContent(new Center($twoFactorApp->getBaconQrCode($this->tblAccount, $secret, 180)))
-                    ->styleMarginTop('15px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+//                        ->setContent(new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret, 180) . '">'))
+                        ->setContent($twoFactorApp->getBaconQrCode($this->tblAccount, $secret, 180))
+                        ->styleMarginTop('15px')
+                    ->styleAlignRight()
+                    , '35%')
+                    ->addElementColumn((new Element())
+                        ->setContent(new Center(
+                                new Container(new Headline('Security Code'))
+                                .new Container($this->tblAccount->getAuthenticatorAppSecret()))
+                        )
+                        ->styleMarginTop('55px')
+                    , '65%')
                 )
                 ->addElement((new Element())
                     ->setContent('Die App erzeugt einen 6 stelligen Sicherheitscode (Einmalpasswort), welcher für eine Zeitbereich 

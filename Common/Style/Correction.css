@@ -179,6 +179,24 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before
     font-weight: normal;
     text-shadow: none !important;
 }
+.badge-default {
+    background-color: #777777;
+}
+.badge-primary {
+    background-color: #337ab7;
+}
+.badge-success {
+    background-color: #5cb85c;
+}
+.badge-info {
+    background-color: #5bc0de;
+}
+.badge-warning {
+    background-color: #f0ad4e;
+}
+.badge-danger {
+    background-color: #d9534f;
+}
 
 /* TYPEAHEAD RESPONSIVE */
 
