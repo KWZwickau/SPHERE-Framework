@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
@@ -1467,10 +1468,10 @@ class Frontend extends FrontendScoreRule
                         $tblCommon = Common::useService()->getCommonByPerson($tblPersonSession);
                         if ($tblCommon && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
 
-                            $Now = new \DateTime();
+                            $Now = new DateTime();
                             $Now->modify('-18 year');
 
-                            if ($Now >= new \DateTime($tblCommonBirthDates->getBirthday())) {
+                            if ($Now >= new DateTime($tblCommonBirthDates->getBirthday())) {
                                 $isEighteen = true;
                             }
                         }
@@ -1495,7 +1496,8 @@ class Frontend extends FrontendScoreRule
 
         $tblPersonList = $this->getPersonListForStudent();
 
-        list($isShownAverage, $hasScore, $tblSchoolTypeList, $startYear) = $this->getConsumerSettingsForGradeOverview();
+        list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
+            = $this->getConsumerSettingsForGradeOverview();
 
         $BlockedList = array();
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
@@ -1586,7 +1588,8 @@ class Frontend extends FrontendScoreRule
                             }
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, $isShownAverage, $hasScore, $tableHeaderList, true);
+                                $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
+                                $tableHeaderList, true);
                         }
                     }
                 }
@@ -2580,11 +2583,13 @@ class Frontend extends FrontendScoreRule
      * @param TblGrade|null $tblGrade
      * @param array $subTableHeaderList
      * @param array $subTableDataList
-     * @param bool $hasScore
+     * @param bool $isShownDivisionSubjectScore
+     * @param bool $isShownGradeMirror
      * @param bool $showDivisionInToolTip
      */
-    private function addTest(TblTest $tblTest,TblGrade $tblGrade = null, &$subTableHeaderList, &$subTableDataList, $hasScore, $showDivisionInToolTip)
-    {
+    private function addTest(TblTest $tblTest,?TblGrade $tblGrade, array &$subTableHeaderList, array &$subTableDataList,
+        bool $isShownDivisionSubjectScore, bool $isShownGradeMirror, bool $showDivisionInToolTip
+    ) {
         if ($tblTest->isContinues()) {
             if ($tblGrade && $tblGrade->getDate()) {
                 $date = $tblGrade->getDate();
@@ -2594,7 +2599,7 @@ class Frontend extends FrontendScoreRule
         } else {
             $date = $tblTest->getDate();
         }
-        $dateTime = new \DateTime($date);
+        $dateTime = new DateTime($date);
         if (strlen($date) > 6) {
             $date = substr($date, 0, 6);
         }
@@ -2614,7 +2619,7 @@ class Frontend extends FrontendScoreRule
             $toolTip = '';
         }
         $toolTip .= $description ? 'Thema: ' . $description : '';
-        if ($hasScore) {
+        if ($isShownGradeMirror) {
             if (!empty($gradeMirror)) {
                 $toolTip .= ($toolTip ? '<br />' : '');
                 $line[0] = '';
@@ -2627,6 +2632,8 @@ class Frontend extends FrontendScoreRule
                 }
                 $toolTip .= $line[0] . '<br />' . $line[1];
             }
+        }
+        if ($isShownDivisionSubjectScore) {
             if ($testAverage) {
                 $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $testAverage;
             }
@@ -2641,8 +2648,7 @@ class Frontend extends FrontendScoreRule
             $gradeValue = $tblGrade->getGrade();
             if ($gradeValue === null) {
                 $gradeValue = 'n.t.';
-            }
-            else if ($gradeValue !== null && $gradeValue !== '') {
+            } else if ($gradeValue !== '') {
                 $trend = $tblGrade->getTrend();
                 if (TblGrade::VALUE_TREND_PLUS === $trend) {
                     $gradeValue .= '+';
@@ -2679,7 +2685,8 @@ class Frontend extends FrontendScoreRule
      * @param $tblPeriodList
      * @param $tblTestType
      * @param $isShownAverage
-     * @param $hasScore
+     * @param $isShownDivisionSubjectScore
+     * @param $isShownGradeMirror
      * @param $tableHeaderList
      * @param $isParentView
      */
@@ -2691,7 +2698,8 @@ class Frontend extends FrontendScoreRule
         $tblPeriodList,
         $tblTestType,
         $isShownAverage,
-        $hasScore,
+        $isShownDivisionSubjectScore,
+        $isShownGradeMirror,
         $tableHeaderList,
         $isParentView
     ) {
@@ -2785,8 +2793,8 @@ class Frontend extends FrontendScoreRule
                                                         foreach ($tblTaskList as $tblTask) {
                                                             if (($date = $tblTask->getDate())
                                                                 && ($toDatePeriod = $tblPeriod->getToDate())
-                                                                && ($dateTimeTask = new \DateTime($date))
-                                                                && ($toDateTimePeriod = new \DateTime($toDatePeriod))
+                                                                && ($dateTimeTask = new DateTime($date))
+                                                                && ($toDateTimePeriod = new DateTime($toDatePeriod))
                                                                 && $dateTimeTask < $toDateTimePeriod
                                                             ) {
                                                                 $appointedDateTask = $tblTask;
@@ -2804,8 +2812,8 @@ class Frontend extends FrontendScoreRule
                                                                 // fortlaufendes Datum
                                                                 if ($tblTest->isContinues()) {
                                                                     if ($tblGrade->getDate()) {
-                                                                        $gradeDate = (new \DateTime($tblGrade->getDate()))->format("Y-m-d");
-                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        $gradeDate = (new DateTime($tblGrade->getDate()))->format("Y-m-d");
+                                                                        $now = (new DateTime('now'))->format("Y-m-d");
                                                                         if ($gradeDate <= $now) {
 
                                                                             // Test anzeigen
@@ -2813,8 +2821,8 @@ class Frontend extends FrontendScoreRule
                                                                         }
                                                                     } elseif ($tblTest->getFinishDate()) {
                                                                         // continues grades without date can be view if finish date is arrived
-                                                                        $testFinishDate = (new \DateTime($tblTest->getFinishDate()))->format("Y-m-d");
-                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        $testFinishDate = (new DateTime($tblTest->getFinishDate()))->format("Y-m-d");
+                                                                        $now = (new DateTime('now'))->format("Y-m-d");
                                                                         if ($testFinishDate <= $now) {
 
                                                                             // Test anzeigen
@@ -2823,8 +2831,8 @@ class Frontend extends FrontendScoreRule
                                                                     }
                                                                 } elseif ($tblTest->getServiceTblGradeType()) {
                                                                     if ($tblTest->getReturnDate()) {
-                                                                        $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
-                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        $testReturnDate = (new DateTime($tblTest->getReturnDate()))->format("Y-m-d");
+                                                                        $now = (new DateTime('now'))->format("Y-m-d");
                                                                         if ($testReturnDate <= $now) {
 
                                                                             // Test anzeigen
@@ -2834,9 +2842,9 @@ class Frontend extends FrontendScoreRule
                                                                         // automatische Bekanntgabe durch den Stichtagsnotenauftrag
                                                                         if ($appointedDateTask) {
                                                                             if ($tblTest->getDate()
-                                                                                && ($testDate = (new \DateTime($tblTest->getDate())))
-                                                                                && ($toDateTimeTask = new \DateTime($appointedDateTask->getToDate()))
-                                                                                && ($nowDateTime = (new \DateTime('now')))
+                                                                                && ($testDate = (new DateTime($tblTest->getDate())))
+                                                                                && ($toDateTimeTask = new DateTime($appointedDateTask->getToDate()))
+                                                                                && ($nowDateTime = (new DateTime('now')))
                                                                                 && $testDate <= $toDateTimeTask
                                                                                 && $toDateTimeTask < $nowDateTime
                                                                             ) {
@@ -2851,12 +2859,12 @@ class Frontend extends FrontendScoreRule
                                                                             if (($days = intval($tblSetting->getValue()))
                                                                                 && $tblTest->getDate()
                                                                             ) {
-                                                                                $testDate = (new \DateTime($tblTest->getDate()));
+                                                                                $testDate = (new DateTime($tblTest->getDate()));
                                                                                 $autoTestReturnDate = $testDate->add(
                                                                                     new \DateInterval('P' . $days . 'D')
                                                                                 );
                                                                                 $autoTestReturnDate = $autoTestReturnDate->format("Y-m-d");
-                                                                                $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                                $now = (new DateTime('now'))->format("Y-m-d");
                                                                                 if ($autoTestReturnDate <= $now) {
 
                                                                                     // Test anzeigen
@@ -2885,7 +2893,8 @@ class Frontend extends FrontendScoreRule
                                                                     $tblGrade,
                                                                     $subTableHeaderList,
                                                                     $subTableDataList,
-                                                                    $hasScore,
+                                                                    $isShownDivisionSubjectScore,
+                                                                    $isShownGradeMirror,
                                                                     $showDivisionInToolTip
                                                                 );
 
@@ -2927,7 +2936,8 @@ class Frontend extends FrontendScoreRule
                                                                 null,
                                                                 $subTableHeaderList,
                                                                 $subTableDataList,
-                                                                $hasScore,
+                                                                false,
+                                                                false,
                                                                 false
                                                             );
                                                         }
@@ -3462,16 +3472,16 @@ class Frontend extends FrontendScoreRule
         }
 
         if ($IsParentView) {
-            list($isShownAverage, $hasScore, $tblSchoolTypeList, $startYear) = $this->getConsumerSettingsForGradeOverview();
+             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
+                 = $this->getConsumerSettingsForGradeOverview();
         } else {
             $isShownAverage = true;
-            $hasScore = true;
+            $isShownDivisionSubjectScore = true;
+            $isShownGradeMirror = true;
             $tblSchoolTypeList = false;
             $startYear = '';
         }
 
-        $columnDefinition = array();
-        $columnDefinition['Subject'] = 'Fach';
         if (($tblYear = $tblDivision->getServiceTblYear())) {
             $tableHeaderList = array();
             $tblLevel = $tblDivision->getTblLevel();
@@ -3503,12 +3513,11 @@ class Frontend extends FrontendScoreRule
                                 }
                             }
                         }
-                        if ($tblDivisionTemp && ($tblYearTemp = $tblDivisionTemp->getServiceTblYear())) {
-                            // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
-                            if($tblYearTemp->getYear() >= $startYear){
-                                $tblDisplayYearList[$tblYearTemp->getId()] = $tblYearTemp;
-                                $data[$tblYearTemp->getId()][$tblPerson->getId()][$tblDivisionTemp->getId()] = $tblDivisionTemp;
-                            }
+
+                        // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
+                        if($tblYearTemp->getYear() >= $startYear){
+                            $tblDisplayYearList[$tblYearTemp->getId()] = $tblYearTemp;
+                            $data[$tblYearTemp->getId()][$tblPerson->getId()][$tblDivisionTemp->getId()] = $tblDivisionTemp;
                         }
                     }
                 }
@@ -3521,7 +3530,8 @@ class Frontend extends FrontendScoreRule
                         if ($tblPerson && is_array($divisionList)) {
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, $isShownAverage, $hasScore, $tableHeaderList, $IsParentView);
+                                $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
+                                $tableHeaderList, $IsParentView);
                         }
                     }
                 }
@@ -3541,9 +3551,9 @@ class Frontend extends FrontendScoreRule
     /**
      * @return array
      */
-    private function getConsumerSettingsForGradeOverview()
+    private function getConsumerSettingsForGradeOverview(): array
     {
-        // Mandateneinstellung für Notenübersicht (Schüler/Eltern) und Schülerübersicht (Ansicht: Eltern/Schüler)
+        // Mandant-Einstellungen für Notenübersicht (Schüler/Eltern) und Schülerübersicht (Ansicht: Eltern/Schüler)
         // !!!! wichtig: immer beide anpassen bei einer neuen Einstellung !!!!!!
 
         if (($tblSetting = Consumer::useService()->getSetting(
@@ -3557,13 +3567,23 @@ class Frontend extends FrontendScoreRule
         }
 
         if (($tblSetting = Consumer::useService()->getSetting(
-                'Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview'
+                'Education', 'Graduation', 'Gradebook', 'IsShownDivisionSubjectScoreInStudentOverview'
             ))
             && $tblSetting->getValue()
         ) {
-            $hasScore = true;
+            $isShownDivisionSubjectScore = true;
         } else {
-            $hasScore = false;
+            $isShownDivisionSubjectScore = false;
+        }
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Gradebook', 'IsShownGradeMirrorInStudentOverview'
+            ))
+            && $tblSetting->getValue()
+        ) {
+            $isShownGradeMirror = true;
+        } else {
+            $isShownGradeMirror = false;
         }
 
         // erlaubte Schularten:
@@ -3586,6 +3606,6 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        return array($isShownAverage, $hasScore, $tblSchoolTypeList, $startYear);
+        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear);
     }
 }
