@@ -8,8 +8,6 @@ use SPHERE\Application\Document\Storage\FilePointer;
 /**
  * Class PdfMerge
  * @package SPHERE\System\Extension\Repository
- *
- * @deprecated
  */
 class PdfMerge
 {
