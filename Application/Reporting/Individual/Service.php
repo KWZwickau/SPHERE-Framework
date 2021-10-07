@@ -125,17 +125,18 @@ class Service extends ServiceView
      * @param string         $Field
      * @param string         $View
      * @param int            $Position
-     * @param TblPreset|null $tblPreset
      * @param string         $ViewType
+     * @param TblPreset|null $tblPreset
+     * @param int            $FieldCount
      *
      * @return bool|TblWorkSpace
      */
-    public function addWorkSpaceField($Field, $View, $Position, $ViewType, TblPreset $tblPreset = null)
+    public function addWorkSpaceField($Field, $View, $Position, $ViewType, TblPreset $tblPreset = null, $FieldCount = 1)
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position, $ViewType, $tblPreset);
+            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position, $ViewType, $tblPreset, $FieldCount);
         }
         return false;
     }

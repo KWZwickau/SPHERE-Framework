@@ -912,13 +912,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $ViewType = TblWorkSpace::VIEW_TYPE_ALL;
             if ($tblPresetSettingList) {
                 foreach ($tblPresetSettingList as $tblPresetSetting) {
+                    $FiledCount = 1;
+                    $PostValue = $tblPreset->getPostValue();
+                    if(!empty($PostValue)){
+                        if(isset($PostValue[$tblPresetSetting->getField()])){
+                            $FiledCount = count($PostValue[$tblPresetSetting->getField()]);
+                        }
+                    }
+
                     $ViewType = $tblPresetSetting->getViewType();
                     Individual::useService()->addWorkSpaceField(
                         $tblPresetSetting->getField(),
                         $tblPresetSetting->getView(),
                         $tblPresetSetting->getPosition(),
                         $tblPresetSetting->getViewType(),
-                        $tblPreset);
+                        $tblPreset,
+                        ($FiledCount >= 1? $FiledCount : 1));
                 }
             }
 
