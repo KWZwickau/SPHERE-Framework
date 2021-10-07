@@ -3,11 +3,9 @@ namespace SPHERE\Application\Document\Standard\StudentCard;
 
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\ApiDownload;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -54,8 +52,6 @@ class Frontend extends Extension implements IFrontendInterface
 {
     /**
      * @param Stage $Stage
-     *
-     * @return Stage
      */
     private static function setButtonList(Stage $Stage)
     {
@@ -73,17 +69,15 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
                 array(), 'Schülerkarteien einer Klasse'));
         }
-
-        return $Stage;
     }
 
     /**
      * @return Stage
      */
-    public static function frontendSelectPerson()
+    public static function frontendSelectPerson() : Stage
     {
         $Stage = new Stage('Schülerkartei', 'Schüler auswählen');
-        $Stage = self::setButtonList($Stage);
+        self::setButtonList($Stage);
 
         $dataList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
@@ -143,54 +137,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param bool $IsAllYears
-     * @param null $YearId
+     * @param string|null $YearId
      *
      * @return Stage
      */
-    public static function frontendSelectDivision($IsAllYears = false, $YearId = null)
+    public static function frontendSelectDivision(bool $IsAllYears = false, ?string $YearId = null) : Stage
     {
         $Stage = new Stage('Schülerkartei', 'Klasse auswählen');
-        $Stage = self::setButtonList($Stage);
+        self::setButtonList($Stage);
 
-        $tblYear = false;
-        // getYearByNow() korrekt für aktuelles Jahr
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($YearId) {
-            $tblYear = Term::useService()->getYearById($YearId);
-//        } elseif ($IsAllYears && $tblYearList) {
-//            $tblYear = end($tblYearList);
-        }
-
-        $Route = '/Document/Standard/StudentCard/Division';
-        $buttonList = array();
-        if ($tblYearList) {
-            if($tblYear || $IsAllYears){
-                $buttonList[] = new Standard('Aktuelles Schuljahr',
-                    $Route, new Edit());
-            } else {
-                $buttonList[] = new Standard(new Info(new Bold('Aktuelles Schuljahr')),
-                    $Route, new Edit());
-            }
-
-            /** @var TblYear $tblYearItem */
-            foreach ($tblYearList as $tblYearItem) {
-                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
-                    $buttonList[] = new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
-                        $Route, new Edit(), array('YearId' => $tblYearItem->getId()));
-                } else {
-                    $buttonList[] = new Standard($tblYearItem->getDisplayName(), $Route,
-                        null, array('YearId' => $tblYearItem->getId()));
-                }
-            }
-
-            if ($IsAllYears) {
-                $buttonList[] = new Standard(new Info(new Bold('Alle Schuljahre')),
-                    $Route, new Edit(), array('IsAllYears' => true));
-            } else {
-                $buttonList[] = new Standard('Alle Schuljahre', $Route, null,
-                    array('IsAllYears' => true));
-            }
-        }
+        list($yearButtonList, $filterYearList)
+            = Term::useFrontend()->getYearButtonsAndYearFilters('/Document/Standard/StudentCard/Division', $IsAllYears, $YearId);
 
         $maxPersonCount = 15;
 
@@ -198,10 +155,8 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblAccountDownloadLock = Consumer::useService()->getAccountDownloadLock($tblAccount, 'StudentCard'))
         ) {
             $isLocked = $tblAccountDownloadLock->getIsFrontendLocked();
-//            $isFirstRun = false;
         } else {
             $isLocked = false;
-//            $isFirstRun = true;
         }
 
         $Stage->setContent(
@@ -217,17 +172,11 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ),
                     new LayoutRow(new LayoutColumn(
-                        empty($buttonList) ? '' : $buttonList
+                        empty($yearButtonList) ? '' : $yearButtonList
                     )),
                     new LayoutRow(array(
-//                        new LayoutColumn(ApiDownload::receiverBlock($isFirstRun ? '' : ApiDownload::pipelineLoadTable(
-//                            $isLocked, $tblYear ? $tblYear->getId() : null
-//                        ), 'Table')),
                         new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineLoadTable(
-                            $isLocked, $tblYear ? $tblYear->getId() : null), 'Table')),
-//                        new LayoutColumn(ApiDownload::receiverBlock(ApiDownload::pipelineCheckLock(
-//                            $tblYear ? $tblYear->getId() : null
-//                        ), 'CheckLock'))
+                            $isLocked, $filterYearList), 'Table')),
                     )), new Title(new Listing() . ' Übersicht')
                 ))
             ));
@@ -236,20 +185,22 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $isLocked
-     * @param $YearId
+     * @param bool $isLocked
+     * @param array|null $filterYearList
      *
      * @return TableData
      */
-    public function loadTable($isLocked, $YearId)
+    public function loadTable(bool $isLocked, ?array $filterYearList): TableData
     {
         $maxPersonCount = 15;
-
-        $tblYear = Term::useService()->getYearById($YearId);
         $TableContent = array();
         if (($tblDivisionAll = Division::useService()->getDivisionAll())) {
             foreach ($tblDivisionAll as $tblDivision) {
-                if ($tblYear && ($tblYearDivision = $tblDivision->getServiceTblYear()) && $tblYear->getId() != $tblYearDivision->getId()) {
+                // Schuljahre filtern
+                if ($filterYearList
+                    && ($tblYearDivision = $tblDivision->getServiceTblYear())
+                    && !isset($filterYearList[$tblYearDivision->getId()]))
+                {
                     continue;
                 }
 
@@ -334,7 +285,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSelectStudentCard()
     {
         $Stage = new Stage('Schülerkartei Einstellungen', 'Schülerkartei auswählen');
-        $Stage = self::setButtonList($Stage);
+        self::setButtonList($Stage);
 
         if (($tblDocumentAll = StudentCard::useService()->getDocumentAll())) {
             $contentList = array();

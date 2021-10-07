@@ -46,6 +46,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -59,6 +61,60 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
+    /**
+     * @param string $Route
+     * @param bool $IsAllYears
+     * @param string|null $YearId
+     *
+     * @return array
+     */
+    public function getYearButtonsAndYearFilters(string $Route, bool $IsAllYears = false, ?string $YearId = null): array
+    {
+        $buttonList = array();
+        $filterYearList = array();
+
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        }
+
+        if ($tblYearList) {
+            if($tblYear || $IsAllYears){
+                $buttonList[] = new Standard('Aktuelles Schuljahr', $Route);
+            } else {
+                $buttonList[] = new Standard(new Info(new Bold('Aktuelles Schuljahr')), $Route, new Edit());
+            }
+
+            if ($tblYear) {
+                $filterYearList[$tblYear->getId()] = $tblYear;
+            }
+
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = new Standard(new Info(new Bold($tblYearItem->getDisplayName())), $Route, new Edit(),
+                        array('YearId' => $tblYearItem->getId()));
+                } else {
+                    $buttonList[] = new Standard($tblYearItem->getDisplayName(), $Route, null,
+                        array('YearId' => $tblYearItem->getId()));
+                }
+
+                if (!$tblYear && !$IsAllYears) {
+                    $filterYearList[$tblYearItem->getId()] = $tblYearItem;
+                }
+            }
+
+            if ($IsAllYears) {
+                $buttonList[] = new Standard(new Info(new Bold('Alle Schuljahre')), $Route, new Edit(),
+                    array('IsAllYears' => true));
+            } else {
+                $buttonList[] = new Standard('Alle Schuljahre', $Route, null, array('IsAllYears' => true));
+            }
+        }
+
+        return array($buttonList, $filterYearList);
+    }
 
     /**
      * @param null|array $Year

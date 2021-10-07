@@ -1014,4 +1014,63 @@ class Creator extends Extension
 
         return "Kein Benutzerkonto vorhanden!";
     }
+
+    /**
+     * @param string $DivisionId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createMultiEnrollmentDocumentPdf(string $DivisionId, bool $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/EnrollmentDocument/CreateMulti',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+                $FileList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    set_time_limit(300);
+
+                    $Document = new EnrollmentDocument(\SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument::useService()
+                        ->getEnrollmentDocumentData($tblPerson));
+                    $File = self::buildDummyFile($Document, array(), array());
+
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Schulbescheinigungen Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Schulbescheinigungen vorhanden!";
+    }
 }
