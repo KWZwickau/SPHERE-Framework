@@ -498,6 +498,13 @@ class Frontend extends Extension implements IFrontendInterface
         $ErrorDeleteList = array();
         // Upload erst nach ausführlicher Bestätigung
         if($Upload == 'Create'){
+            // Nur folgenden Nutzer anlegen (AccountId)
+//            foreach($createList as &$delete){
+//                if($delete['record_uid'] != 266){
+//                    $delete = false;
+//                }
+//            }
+//            $createList = array_filter($createList);
             return $this->frontendApiAction($createList, $Upload);
 
 //            foreach($createList as $createAccount){
@@ -551,6 +558,14 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if($Upload == 'Delete'){
             if($deleteList){
+//                // folgenden Nutzer (AccountId) nicht löschen
+//                foreach($deleteList as &$delete){
+//                    if($delete['record_uid'] == 266){
+//                        $delete = false;
+//                    }
+//                }
+//                $deleteList = array_filter($deleteList);
+
                 // delete with API
                 return $this->frontendApiAction($deleteList, $Upload);
 //                foreach($deleteList as $deleteAccount){
@@ -742,20 +757,24 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('API', 'Transfermeldung');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
 
+//        //ToDO entfernen
+//        for($i = 0; $i <= 5; $i++){
+//            foreach($UserList as $User){
+//                if($i != 0){
+//                    $User['name'] = $User['name'].$i;
+//                    $User['record_uid'] = $i.'000'.$User['record_uid'];
+//                    $User['email'] = $i.$User['email'];
+//                    $User['recoveryMail'] = $i.$User['recoveryMail'];
+//                }
+//                $UserModifiedList[] = $User;
+//            }
+//        }
+//        $UserList = $UserModifiedList;
+
         $CountMax = count($UserList);
 
         $TypeFrontend = '';
         if($CountMax > 0){
-
-//            for($i = 0; $i <= 3; $i++){
-//                foreach($UserList as $User){
-//                    if($i != 0){
-//                        $User['name'] = $User['name'].$i;
-//                    }
-//                    $UserModifiedList[] = $User;
-//                }
-//            }
-
 
             // avoid max_input_vars
             $UserList = json_encode($UserList);
@@ -770,11 +789,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
             }
 
-            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+            // insert receiver into frontend
+            $LayoutRowAPI = new LayoutRow(new LayoutColumn(ApiUnivention::receiverUser($PipelineServiceUser), 4));
+            for($i = 1; $i <= $CountMax; $i++){
+                $LayoutRowAPI->addColumn(new LayoutColumn(ApiUnivention::receiverUser('', $i), 4));
+            }
+
+            $Stage->setContent(new Layout(new LayoutGroup(array(new LayoutRow(array(
                 new LayoutColumn(new Title($TypeFrontend)),
                 new LayoutColumn(ApiUnivention::receiverLoad(ApiUnivention::pipelineLoad(0, $CountMax))),
-                new LayoutColumn(ApiUnivention::receiverUser($PipelineServiceUser))
-            )))));
+                )),
+                $LayoutRowAPI
+            ))));
         } else {
             $Stage->setContent(
                 new Warning(new Center('Es sind keine Transaktionen verfügbar.'))

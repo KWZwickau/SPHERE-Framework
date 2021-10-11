@@ -209,10 +209,8 @@ class ApiUnivention implements IApiInterface
             $UserList = json_encode($UserList);
             return $UserString
                 .self::pipelineLoad($Identifier, $CountMax)
-                .self::receiverUser(self::pipelineServiceUser($Identifier, $UserList, $ApiType, $CountMax), $Identifier);
-//            return new LayoutColumn(
-//
-//                , 4);
+                .self::pipelineServiceUser($Identifier, $UserList, $ApiType, $CountMax);
+//                .self::receiverUser(self::pipelineServiceUser($Identifier, $UserList, $ApiType, $CountMax), $Identifier);
         }
         return '';
     }
