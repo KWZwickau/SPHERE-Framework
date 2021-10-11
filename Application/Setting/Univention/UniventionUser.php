@@ -291,31 +291,21 @@ class UniventionUser
     }
 
     /**
-     * @param array $AccountArray
+     * @param string $AccountName
      *
      * @return string|null
      */
-    public function deleteUser($AccountArray)
+    public function deleteUser(string $AccountName = '')
     {
 
         curl_reset($this->curlhandle);
-
-        $name = '';
         // löschen durch Nutnername
-        if(isset($AccountArray['name'])){
-            $name = $AccountArray['name'];
-        }
-        if(!$name){
+        if($AccountName == ''){
             return 'Benutzername nicht gefunden';
         }
 
-//        echo'<pre>';
-//        echo 'Gesendete Daten:';
-//        var_dump($name);
-//        echo'</pre>';
-
         curl_setopt_array($this->curlhandle, array(
-            CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
+            CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$AccountName,
             CURLOPT_CUSTOMREQUEST => 'DELETE',
             CURLOPT_SSL_VERIFYHOST => FALSE,
             CURLOPT_HTTPHEADER => array('Authorization: bearer '.$this->token),
@@ -324,7 +314,6 @@ class UniventionUser
         ));
         // prevent "Bad Gateway" for every second try
         sleep(1);
-//        var_dump('sleep(1)');
         $Json = $this->execute($this->curlhandle);
 //        echo'<pre>';
 //        var_dump('Zeitstempel: '.(new \DateTime())->format('d.m.Y H:i:s'));
@@ -333,22 +322,22 @@ class UniventionUser
 //        echo'</pre>';
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $name.' '.new Bold('UCS: Internal Server Error');
+            return $AccountName.' '.new Bold('UCS: Internal Server Error');
         }
         if($Json == 'Bad Gateway'){
-            return $name.' '.new Bold('UCS: Bad Gateway');
+            return $AccountName.' '.new Bold('UCS: Bad Gateway');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
         if(isset($StdClassArray['detail'])){
             if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
+                $Error = new Bold($AccountName.': ').$StdClassArray['detail'];
             }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= new Bold($name.': ').$Detail['msg'];
+                        $Error .= new Bold($AccountName.': ').$Detail['msg'];
                     }
                 }
             }
