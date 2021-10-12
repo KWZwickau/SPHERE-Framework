@@ -130,11 +130,11 @@ class ApiUnivention implements IApiInterface
 
         if($CountMax == $Identifier){
             return
-                new Bold('<div style="position: absolute; left: 46%; font-size: 16px;"> '.$CountMax.' User an die API gesendet </div>')
+                new Bold('<div style="position: absolute; left: 43%; font-size: 16px;"> '.$CountMax.' User an die API gesendet </div>')
                 .new ProgressBar($DoneCount, 0, 0, 20);
         }
 
-        return new Bold('<div style="position: absolute; left: 50%; font-size: 16px;"> '.$DoneCountNatural.'/'.$CountMax.' </div>')
+        return new Bold('<div style="position: absolute; left: 49.2%; font-size: 16px;"> '.$DoneCountNatural.'/'.$CountMax.' </div>')
             .new ProgressBar($DoneCount, $ProgressCount, $WaitingCount, 20);
     }
 
