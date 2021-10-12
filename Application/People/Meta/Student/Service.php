@@ -1743,4 +1743,41 @@ class Service extends Support
             $financialAidBureau
         );
     }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
+     * @param TblStudentTransport|null $tblStudentTransport
+     * @param TblStudentBilling|null $tblStudentBilling
+     * @param TblStudentLocker|null $tblStudentLocker
+     * @param TblStudentBaptism|null $tblStudentBaptism
+     * @param TblStudentIntegration|null $tblStudentIntegration
+     * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
+     * @param TblStudentTechnicalSchool|null $tblStudentTechnicalSchool
+     *
+     * @return bool
+     */
+    public function updateStudentField(
+        TblStudent $tblStudent,
+        TblStudentMedicalRecord $tblStudentMedicalRecord = null,
+        TblStudentTransport $tblStudentTransport = null,
+        TblStudentBilling $tblStudentBilling = null,
+        TblStudentLocker $tblStudentLocker = null,
+        TblStudentBaptism $tblStudentBaptism = null,
+        TblStudentIntegration $tblStudentIntegration = null,
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
+        TblStudentTechnicalSchool $tblStudentTechnicalSchool = null
+    ) : bool {
+        return (new Data($this->getBinding()))->updateStudentField(
+            $tblStudent,
+            $tblStudentMedicalRecord,
+            $tblStudentTransport,
+            $tblStudentBilling,
+            $tblStudentLocker,
+            $tblStudentBaptism,
+            $tblStudentIntegration,
+            $tblStudentSpecialNeeds,
+            $tblStudentTechnicalSchool
+        );
+    }
 }

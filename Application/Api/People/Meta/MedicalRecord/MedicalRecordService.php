@@ -32,12 +32,36 @@ class MedicalRecordService
                         $tblStudent = Student::useService()->createStudent($tblPerson);
                     }
                 }
-                $tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
-                if ($tblMedicalRecord) {
-                    $BulkProtocol[] = clone $tblMedicalRecord;
-                    /** @var DateTime|null $Date */
-                    $tblMedicalRecord->setMasernDate($Date);
-                    $BulkSave[] = $tblMedicalRecord;
+                if ($tblStudent) {
+                    $tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
+                    if (!$tblMedicalRecord) {
+                        $tblMedicalRecord = Student::useService()->insertStudentMedicalRecord(
+                            '',
+                            '',
+                            '',
+                            0,
+                            '',
+                            $Date
+                        );
+                        Student::useService()->updateStudentField(
+                            $tblStudent,
+                            $tblMedicalRecord,
+                            $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                            $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                            $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                            $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                            $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                            $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
+                        );
+
+                    } else {
+                        $BulkProtocol[] = clone $tblMedicalRecord;
+                        /** @var DateTime|null $Date */
+                        $tblMedicalRecord->setMasernDate($Date);
+
+                        $BulkSave[] = $tblMedicalRecord;
+                    }
                 }
             }
 
@@ -75,15 +99,38 @@ class MedicalRecordService
                     }
                 }
                 $tblStudentMasernInfo = Student::useService()->getStudentMasernInfoById($StudentMasernInfoId);
-                $tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
-                if ($tblMedicalRecord && $tblStudentMasernInfo) {
-                    $BulkProtocol[] = clone $tblMedicalRecord;
-                    /** @var DateTime|null $Date */
-                    $tblMedicalRecord->setMasernDocumentType($tblStudentMasernInfo);
-                    $BulkSave[] = $tblMedicalRecord;
+                if ($tblStudent && $tblStudentMasernInfo) {
+                    $tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
+                    if (!$tblMedicalRecord) {
+                        $tblMedicalRecord = Student::useService()->insertStudentMedicalRecord(
+                            '',
+                            '',
+                            '',
+                            0,
+                            '',
+                            null,
+                            $tblStudentMasernInfo
+                        );
+                        Student::useService()->updateStudentField(
+                            $tblStudent,
+                            $tblMedicalRecord,
+                            $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                            $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                            $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                            $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                            $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                            $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
+                        );
+
+                    } else {
+                        $BulkProtocol[] = clone $tblMedicalRecord;
+                        $tblMedicalRecord->setMasernDocumentType($tblStudentMasernInfo);
+
+                        $BulkSave[] = $tblMedicalRecord;
+                    }
                 }
             }
-
 
             if (!empty($BulkSave)) {
                 return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
@@ -118,12 +165,37 @@ class MedicalRecordService
                     }
                 }
                 $tblStudentMasernInfo = Student::useService()->getStudentMasernInfoById($StudentMasernInfoId);
-                $tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
-                if ($tblMedicalRecord && $tblStudentMasernInfo) {
-                    $BulkProtocol[] = clone $tblMedicalRecord;
-                    /** @var DateTime|null $Date */
-                    $tblMedicalRecord->setMasernCreatorType($tblStudentMasernInfo);
-                    $BulkSave[] = $tblMedicalRecord;
+                if ($tblStudent && $tblStudentMasernInfo) {
+                    $tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
+                    if (!$tblMedicalRecord) {
+                        $tblMedicalRecord = Student::useService()->insertStudentMedicalRecord(
+                            '',
+                            '',
+                            '',
+                            0,
+                            '',
+                            null,
+                            null,
+                            $tblStudentMasernInfo
+                        );
+                        Student::useService()->updateStudentField(
+                            $tblStudent,
+                            $tblMedicalRecord,
+                            $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                            $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                            $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                            $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                            $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                            $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
+                        );
+
+                    } else {
+                        $BulkProtocol[] = clone $tblMedicalRecord;
+                        $tblMedicalRecord->setMasernCreatorType($tblStudentMasernInfo);
+
+                        $BulkSave[] = $tblMedicalRecord;
+                    }
                 }
             }
 
