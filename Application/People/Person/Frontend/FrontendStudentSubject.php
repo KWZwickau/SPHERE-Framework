@@ -163,7 +163,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                             isset($subjects['PROFILE'][1]) ? $subjects['PROFILE'][1] : '&ndash;'
                         ),
                         FrontendReadOnly::getSubContent(
-                            'Neigungskurs',
+                            (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(),
                             isset($subjects['ORIENTATION'][1]) ? $subjects['ORIENTATION'][1] : '&ndash;'
                         ),
                     ), 3),
@@ -300,6 +300,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
         FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $tblStudent = $tblPerson->getStudent();
 
+        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -314,7 +316,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1,
                             ($tblStudent ? $tblStudent : null), $Year,
                             $Division, $tblPerson),
-                        $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1,
+                        $this->panelSubjectList('ORIENTATION', $tblStudentSubjectTypeOrientation->getName() . 'e',
+                            $tblStudentSubjectTypeOrientation->getName(), $tblSubjectOrientation, 1,
                             ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                     ), 3),
                     new FormColumn(array(

@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -1295,7 +1296,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ForeignLanguage2' => 'Fremdsprache 2',
                                         'ForeignLanguage3' => 'Fremdsprache 3',
                                         'Profile'          => 'Profil',
-                                        'Orientation'      => 'Neigungskurs',
+                                        'Orientation'      => (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(),
                                         'Religion'         => 'Religion',
                                         'Elective'         => 'Wahlfächer',
                                         'Elective1'         => 'Wahlfach 1',

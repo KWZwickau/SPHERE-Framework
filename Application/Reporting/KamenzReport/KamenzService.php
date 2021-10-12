@@ -194,7 +194,9 @@ class KamenzService
                                                 ) {
                                                     $count['Orientation']++;
                                                     $studentList[$tblPerson->getId()]['Orientation']
-                                                        = new Warning('Kein Neigungskurs/2.FS hinterlegt.',
+                                                        = new Warning('Kein '
+                                                            . (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()
+                                                            . '/2.FS hinterlegt.',
                                                         new Exclamation());
                                                 }
                                             }
@@ -377,7 +379,7 @@ class KamenzService
        }
 
         if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
-            $columns['Orientation'] = 'Neigungskurs';
+            $columns['Orientation'] = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
         }
 
         if (($tblSchoolType->getName() == 'Grundschule')) {
@@ -625,8 +627,10 @@ class KamenzService
                 , new Exclamation());
         }
         if ($count['Orientation'] > 0) {
-            $summary[] = new Warning($count['Orientation'] . ' Schüler/n ist kein Neigungskurs/2.FS zugeordnet.'
-                , new Exclamation());
+            $summary[] = new Warning($count['Orientation'] . ' Schüler/n ist kein '
+                . (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()
+                . '/2.FS zugeordnet.',
+                new Exclamation());
         }
         if ($count['Profile'] > 0) {
             $summary[] = new Warning($count['Profile'] . ' Schüler/n ist kein Profil zugeordnet.'

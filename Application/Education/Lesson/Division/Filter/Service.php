@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -495,8 +496,8 @@ class Service
                     if (!$tblStudent
                         || (!$tblStudent->getTblSubjectOrientation() && !$tblStudent->getTblSubjectForeignLanguage(2))
                     ) {
-                        $field = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
-                        $value = new Exclamation() . ' Kein Neigungskurs/2.FS hinterlegt.';
+                        $field = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
+                        $value = new Exclamation() . ' Kein ' . $field . '/2.FS hinterlegt.';
                         if (!isset($list[$tblPerson->getId()]['Filters']['SubjectOrientation'])) {
                             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = $field;
                             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $value;

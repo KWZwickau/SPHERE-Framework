@@ -61,26 +61,22 @@ class Service extends AbstractService
      */
     public function getSubjectOrientationAll()
     {
-
-        $tblSubjectList = array();
-        $tblCategory = $this->getGroupByIdentifier('ORIENTATION');
-        if ($tblCategory) {
-            $tblCategory = $tblCategory->getTblCategoryAll();
-            if ($tblCategory) {
-                array_walk($tblCategory, function (TblCategory &$tblCategory) {
-                    $tblSubjects = $tblCategory->getTblSubjectAll();
-                    $tblCategory = $tblSubjects ? $tblSubjects : null;
-                });
-                if ($tblCategory) {
-                    array_walk_recursive($tblCategory, function (TblSubject $tblSubject = null) use (&$tblSubjectList) {
-                        if ($tblSubject) {
-                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+        $resultList = array();
+        $tblGroup = $this->getGroupByIdentifier('ORIENTATION');
+        if ($tblGroup) {
+            $tblCategoryList = $tblGroup->getTblCategoryAll();
+            if ($tblCategoryList) {
+                foreach ($tblCategoryList as $tblCategory) {
+                    if (($tblSubjectList = $tblCategory->getTblSubjectAll())) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $resultList[$tblSubject->getId()] = $tblSubject;
                         }
-                    });
+                    }
                 }
             }
         }
-        return (empty($tblSubjectList) ? false : $tblSubjectList);
+
+        return (empty($resultList) ? false : $resultList);
     }
 
     /**
@@ -194,23 +190,22 @@ class Service extends AbstractService
      */
     public function getSubjectElectiveAll()
     {
-
-        $tblSubjectList = array();
-        $tblCategory = $this->getGroupByIdentifier('ELECTIVE');
-        if ($tblCategory) {
-            $tblCategory = $tblCategory->getTblCategoryAll();
-            if ($tblCategory) {
-                array_walk($tblCategory, function (TblCategory &$tblCategory) {
-                    $tblCategory = $tblCategory->getTblSubjectAll();
-                });
-                if ($tblCategory) {
-                    array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
-                        $tblSubjectList[] = $tblSubject;
-                    });
+        $resultList = array();
+        $tblGroup = $this->getGroupByIdentifier('ELECTIVE');
+        if ($tblGroup) {
+            $tblCategoryList = $tblGroup->getTblCategoryAll();
+            if ($tblCategoryList) {
+                foreach ($tblCategoryList as $tblCategory) {
+                    if (($tblSubjectList = $tblCategory->getTblSubjectAll())) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $resultList[$tblSubject->getId()] = $tblSubject;
+                        }
+                    }
                 }
             }
         }
-        return (empty($tblSubjectList) ? false : $tblSubjectList);
+
+        return (empty($resultList) ? false : $resultList);
     }
 
     /**
@@ -944,7 +939,7 @@ class Service extends AbstractService
                     if ($SubjectGroup == 'Wahlfach') {
                         $SubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
                     }
-                    if ($SubjectGroup == 'Neigungskurs') {
+                    if ($SubjectGroup == (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()) {
                         $SubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
                     }
                     $SubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Group);
@@ -976,7 +971,7 @@ class Service extends AbstractService
                     if ($SubjectGroup == 'Wahlfach') {
                         $tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
                     }
-                    if ($SubjectGroup == 'Neigungskurs') {
+                    if ($SubjectGroup == (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()) {
                         $tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
                     }
                     $tblSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Group);
@@ -1061,7 +1056,7 @@ class Service extends AbstractService
         $orientationSubject = new TblSubject();
         $orientationSubject->setId(TblSubject::PSEUDO_ORIENTATION_ID);
         $orientationSubject->setAcronym('NK');
-        $orientationSubject->setName('Neigungskurs');
+        $orientationSubject->setName((Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName());
 
         return $orientationSubject;
     }

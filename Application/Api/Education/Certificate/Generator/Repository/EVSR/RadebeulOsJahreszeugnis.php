@@ -345,6 +345,8 @@ class RadebeulOsJahreszeugnis extends Certificate
     }
 
     /**
+     * @deprecated
+     *
      * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined

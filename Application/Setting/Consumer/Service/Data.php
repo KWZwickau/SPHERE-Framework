@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -25,6 +26,11 @@ class Data extends AbstractData
 
     public function setupDatabaseContent()
     {
+        if (($tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))) {
+            $orientationName = $tblStudentSubjectTypeOrientation->getName();
+        } else {
+            $orientationName = 'Wahlbereich';
+        }
 
         // Allgemein Public
         $this->createSetting('People', 'Person', 'Relationship', 'GenderOfS1', TblSetting::TYPE_INTEGER, 2, 'Allgemein',
@@ -43,9 +49,13 @@ class Data extends AbstractData
         $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER,
             1, 'Allgemein', 'Validierung 1. Fremdsprache im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik.
             Klassenstufe, ab welcher ist 1. Fremdsprache unterrichtet wird. [Standard: 1]', true);
-        $this->createSetting('Education', 'Lesson', 'Subject', 'HasOrientationSubjects', TblSetting::TYPE_BOOLEAN, '1',
-            'Allgemein', 'Validierung Neigungskurse im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik.
-             Schulträger unterrichtet Neigungskurse. [Standard: Ja]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Lesson', 'Subject', 'HasOrientationSubjects', TblSetting::TYPE_BOOLEAN, '1',
+            'Allgemein', 'Validierung ' . $orientationName . 'e im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik. Schulträger unterrichtet ' . $orientationName . 'e. [Standard: Ja]', true))
+        ) {
+            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
+                'Validierung ' . $orientationName . 'e im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik. Schulträger unterrichtet ' . $orientationName . 'e. [Standard: Ja]',
+            $tblSetting->isPublic());
+        };
         $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE', TblSetting::TYPE_BOOLEAN, '1',
             'Allgemein', 'Bei der alphabetischen Sortierung von Namen werden Umlaute ersetzt nach DIN 5007-2 (z.B. ä => ae). 
             Bei Deaktivierung erfolgt Sortierung nach DIN 5007-1 (z.B. Ä/ä und a sind gleich) [Standard: Ja]', true);
@@ -118,6 +128,11 @@ class Data extends AbstractData
             anzeigen [Standard: Nein]', true);
         $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
             'Zeugnisse', 'Sollen leere Bemerkungsfelder auf Zeugnissen gesperrt werden ("---"). [Standard: Ja]', true);
+        $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowTeamsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
+            'Zeugnisse', 'Sollen Arbeitsgemeinschaften in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
+        $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
+            'Zeugnisse', 'Sollen ' . $orientationName . 'e in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
+
         // Zeugnisse non-public
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING, '',
             'Zeugnisse', 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo Maximalmaße 100 x 250.

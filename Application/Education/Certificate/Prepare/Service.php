@@ -996,6 +996,8 @@ class Service extends AbstractService
                 // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
                 $team = '';
                 $teamChange = '';
+                // Spezialfall Wahlbereich im Bemerkungsfeld
+                $orientation = '';
                 $remark = '';
                 $support = '';
 
@@ -1004,6 +1006,10 @@ class Service extends AbstractService
                         if ($tblPrepareInformation->getValue() != '') {
                             $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
                             $teamChange = $tblPrepareInformation->getValue();
+                        }
+                    } elseif ($tblPrepareInformation->getField() == 'Orientation') {
+                        if ($tblPrepareInformation->getValue() != '') {
+                            $orientation = $tblPrepareInformation->getValue();
                         }
                     } elseif ($tblPrepareInformation->getField() == 'Remark') {
                         $remark = $tblPrepareInformation->getValue();
@@ -1042,6 +1048,10 @@ class Service extends AbstractService
                         $Content['P' . $personId]['Input']['AddEducation_AverageInWord']
                             = Gradebook::useService()->getAverageInWord($tblPrepareInformation->getValue(), ',');
                     }
+                }
+
+                if ($orientation) {
+                    $team .= ($team != '' ? " \n " : '') . $orientation;
                 }
 
                 // Spezialfall für Förderzeugnisse Lernen
@@ -2677,9 +2687,7 @@ class Service extends AbstractService
                 ksort($diffList);
                 if ($tblLastPrepare) {
                     foreach ($diffList as $item) {
-                        if (!Subject::useService()->isOrientation($item) && $item->getName() != 'Neigungskurs') {
-                            $subjectList[$item->getId()] = $item->getName();
-                        }
+                        $subjectList[$item->getId()] = $item->getName();
                     }
                 }
             }

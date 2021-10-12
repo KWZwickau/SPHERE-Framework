@@ -41,6 +41,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -1859,11 +1860,26 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             $tblCertificate = false;
         }
 
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark'))) {
+            $showOrientationsInCertificateRemark = $tblSetting->getValue();
+        } else {
+            $showOrientationsInCertificateRemark = false;
+        }
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Prepare', 'ShowTeamsInCertificateRemark'))) {
+            $showTeamsInCertificateRemark = $tblSetting->getValue();
+        } else {
+            $showTeamsInCertificateRemark = false;
+        }
+
         if ($tblCertificate && ($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
             $Certificate = null;
             if ($tblCertificate) {
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                 if (class_exists($CertificateClass)) {
+                    // Wahlbereich gibt es nur bei der Oberschule
+                    $showOrientationsInCertificateRemark = $showOrientationsInCertificateRemark
+                        && ($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
+                        && ($tblSchoolType->getShortName() == 'OS');
 
                     $tblDivision = $tblPrepareCertificate->getServiceTblDivision();
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
@@ -1953,7 +1969,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         }
 
                         // Arbeitsgemeinschaften aus der Schülerakte laden
-                        if (!$isTeamSet) {
+                        if (!$isTeamSet && $showTeamsInCertificateRemark) {
                             if ($tblStudent
                                 && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
                                 && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
@@ -1969,6 +1985,24 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 if (!empty($tempList)) {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = implode(', ', $tempList);
                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = implode(', ', $tempList);
+                                }
+                            }
+                        }
+
+                        // Wahlbereich aus der Schülerakte laden
+                        if ($showOrientationsInCertificateRemark) {
+                            if ($tblStudent
+                                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                    $tblStudent, $tblSubjectType
+                                ))
+                            ) {
+                                /** @var TblStudentSubject $tblStudentSubject */
+                                $tblStudentSubject = reset($tblStudentSubjectList);
+                                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Orientation']
+                                        = $tblPerson->getFirstSecondName() . ' nimmt im Rahmen des Wahlbereiches am Kurs '
+                                        . $tblSubject->getName() . ' teil.';
                                 }
                             }
                         }
@@ -2161,7 +2195,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 $ignoreInformationOnFirstPage,
                                 $informationPageList,
                                 $tblPrepareCertificate,
-                                $GroupId
+                                $GroupId,
+                                $showTeamsInCertificateRemark,
+                                $showOrientationsInCertificateRemark
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -2325,12 +2361,28 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {
                                                     // Arbeitsgemeinschaften beim Bemerkungsfeld
-                                                    if (!$hasTeamExtra && $key == 'Remark') {
+                                                    if ($showTeamsInCertificateRemark
+                                                        && !$hasTeamExtra
+                                                        && $key == 'Remark'
+                                                    ) {
                                                         if (!isset($columnTable['Team'])) {
                                                             $columnTable['Team'] = 'Arbeitsgemeinschaften';
                                                         }
                                                         $studentTable[$tblPerson->getId()]['Team']
                                                             = (new TextField('Data[' . $tblPrepareStudent->getId() . '][Team]',
+                                                            '', ''));
+                                                    }
+
+                                                    // Wahlbereiche beim Bemerkungsfeld
+                                                    if ($showOrientationsInCertificateRemark
+                                                        && $key == 'Remark'
+                                                    ) {
+                                                        if (!isset($columnTable['Orientation'])) {
+                                                            $columnTable['Orientation'] =
+                                                                (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
+                                                        }
+                                                        $studentTable[$tblPerson->getId()]['Orientation']
+                                                            = (new TextArea('Data[' . $tblPrepareStudent->getId() . '][Orientation]',
                                                             '', ''));
                                                     }
 
