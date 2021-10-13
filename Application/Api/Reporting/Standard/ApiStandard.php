@@ -7,9 +7,11 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Reporting\Standard\Person\Frontend;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
@@ -46,14 +48,20 @@ class ApiStandard extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('reloadAbsenceContent');
+        $Dispatcher->registerMethod('loadStudentArchiveContent');
 
         return $Dispatcher->callMethod($Method);
     }
 
-    public static function receiverFormSelect($Content = '')
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
     {
-
-        return new BlockReceiver($Content);
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
     }
 
     /**
@@ -234,5 +242,39 @@ class ApiStandard extends Extension implements IApiInterface
                 $title
                 . new Warning('Für diesen Tag liegen keine Fehlzeiten vor.', new Ban());
         }
+    }
+
+    /**
+     * @param string|null $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentArchiveContent(?string $YearId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentArchiveContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentArchiveContent',
+            'YearId' => $YearId,
+        ));
+        $ModalEmitter->setLoadingMessage('Ehemalige Schüler werden geladen', 'Bitte warten');
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $YearId
+     *
+     * @return string
+     */
+    public function loadStudentArchiveContent(string $YearId): string
+    {
+        if (($tblYear = Term::useService()->getYearById($YearId))) {
+            return (new Frontend())->getStudentArchiveContent($tblYear);
+        }
+
+        return new Warning('Bitte wählen Sie ein Schuljahr aus');
     }
 }
