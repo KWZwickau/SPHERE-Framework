@@ -2634,16 +2634,16 @@ class KamenzReportService
 
                     foreach ($courseArray as $course => $genderArray) {
                         foreach ($genderArray as $gender => $count) {
-                            if (isset( $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender])) {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender] += $count;
+                            if (isset( $Content['E01'][$course][$isMixed && $course != 'NoCourse'? 'Mixed' : 'Pure']['L' . $level][$gender])) {
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['L' . $level][$gender] += $count;
                             } else {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender] = $count;
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['L' . $level][$gender] = $count;
                             }
 
-                            if (isset($Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender])) {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender] += $count;
+                            if (isset($Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['TotalCount'][$gender])) {
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['TotalCount'][$gender] += $count;
                             } else {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender] = $count;
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['TotalCount'][$gender] = $count;
                             }
                         }
                     }
