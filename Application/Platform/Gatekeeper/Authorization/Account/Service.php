@@ -440,20 +440,20 @@ class Service extends AbstractService
      */
     public function hasAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
-
         $tblAuthorization = $this->getAuthorizationAllByAccount($tblAccount);
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
+        if ($tblAuthorization) {
+            array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
 
-            if ($tblAuthorization->getServiceTblRole()
-                && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()
-            ) {
-                $tblAuthorization = false;
+                if ($tblAuthorization->getServiceTblRole()
+                    && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()
+                ) {
+                    $tblAuthorization = false;
+                }
+            });
+            $tblAuthorization = array_filter($tblAuthorization);
+            if (!empty($tblAuthorization)) {
+                return true;
             }
-        });
-        $tblAuthorization = array_filter($tblAuthorization);
-        if (!empty($tblAuthorization)) {
-            return true;
         }
         return false;
     }
@@ -755,6 +755,20 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return false|TblPerson
+     */
+    public function getFirstPersonByAccount(TblAccount $tblAccount)
+    {
+        if (($tblPersonList = $this->getPersonAllByAccount($tblAccount))) {
+            return reset($tblPersonList);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param bool      $isForce
      *
@@ -1033,5 +1047,16 @@ class Service extends AbstractService
     public function changeAuthenticatorAppSecret(TblAccount $tblAccount, $secret)
     {
         return (new Data($this->getBinding()))->changeAuthenticatorAppSecret($tblAccount, $secret);
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param $tblAccountList
+     *
+     * @return int
+     */
+    public function bulkAddAccountAuthorization(TblRole $tblRole, $tblAccountList)
+    {
+        return (new Data($this->getBinding()))->bulkAddAccountAuthorization($tblRole, $tblAccountList);
     }
 }

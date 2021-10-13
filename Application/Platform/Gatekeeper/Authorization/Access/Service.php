@@ -489,4 +489,30 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getRoleConsumerBy($tblRole, $tblConsumer);
     }
+
+    /**
+     * @param bool $withAdminSetting
+     *
+     * @return TblRole[]|false
+     */
+    public function getRolesForSelect($withAdminSetting = true)
+    {
+        $list = array();
+        if (($tblRoleAll = $this->getRoleAll())) {
+            foreach ($tblRoleAll as $tblRole) {
+                if (!$tblRole->isInternal()
+                    && (!$tblRole->isIndividual()
+                        || (($tblAccount = Account::useService()->getAccountBySession())
+                            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+                            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))))
+                ) {
+                    if ($withAdminSetting || $tblRole->getName() != 'Einstellungen: Administrator') {
+                        $list[] = $tblRole;
+                    }
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
+    }
 }

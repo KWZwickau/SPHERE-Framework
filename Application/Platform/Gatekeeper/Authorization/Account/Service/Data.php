@@ -291,6 +291,39 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblRole $tblRole
+     * @param $tblAccountList
+     *
+     * @return int
+     */
+    public function bulkAddAccountAuthorization(TblRole $tblRole, $tblAccountList)
+    {
+        $countAdd = 0;
+        $Manager = $this->getConnection()->getEntityManager();
+        foreach ($tblAccountList as $tblAccount) {
+            $Entity = $Manager->getEntity('TblAuthorization')
+                ->findOneBy(array(
+                    TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                    TblAuthorization::SERVICE_TBL_ROLE => $tblRole->getId()
+                ));
+            if (null === $Entity) {
+                $countAdd++;
+                $Entity = new TblAuthorization();
+                $Entity->setTblAccount($tblAccount);
+                $Entity->setServiceTblRole($tblRole);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return $countAdd;
+    }
+
+    /**
      * @param TblAccount $tblAccount
      * @param string     $Identifier
      *
