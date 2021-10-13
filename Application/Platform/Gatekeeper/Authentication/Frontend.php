@@ -101,10 +101,9 @@ class Frontend extends Extension implements IFrontendInterface
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
-        $IsEqual = false;
+        $IsChangePassword = false;
         $IsNavigationAssistance = false;
 
-        $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -123,19 +122,26 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        if ($tblAccount && $tblIdentificationSearch) {
-            $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
-            if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
-                if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
-                    // Alle TblUserAccounts erhalten direktlink Button
-                    $IsNavigationAssistance = true;
-                    $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
-                    if ($tblUserAccount) {
-                        $Password = $tblUserAccount->getAccountPassword();
-                        if ($tblAccount->getPassword() == $Password) {
-                            $IsEqual = true;
-                        }
+        if ($tblAccount) {
+            if (($tblIdentification = $tblAccount->getServiceTblIdentification())
+                && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
+            ) {
+                // Alle TblUserAccounts erhalten direktlink Button
+                $IsNavigationAssistance = true;
+
+                // Eltern und Schüler funktionieren anders als die anderen Accounts
+                if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
+                    $Password = $tblUserAccount->getAccountPassword();
+                    if ($tblAccount->getPassword() == $Password) {
+                        $IsChangePassword = true;
                     }
+                }
+            } else {
+                if (Account::useService()->isAccountPWInitial($tblAccount)
+                    // Standard-Passwort
+                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
+                ) {
+                    $IsChangePassword = true;
                 }
             }
         }
@@ -187,7 +193,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .($IsEqual
+            .($IsChangePassword
                 ? $this->layoutPasswordChange()
                 : ''
             )
