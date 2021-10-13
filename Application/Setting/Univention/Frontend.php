@@ -861,7 +861,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('UCS', 'Schnittstelle CSV');
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
-        $Stage->addButton(new Standard('CSV Schulen herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download(), array(), 'Schulen aus den Mandanten Einstellungen'));
+        $Stage->addButton(new Standard('CSV Mandant herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download()));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
 
         $ErrorLog = array();

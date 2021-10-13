@@ -558,22 +558,16 @@ class Service extends AbstractService
     public function downlaodSchoolExcel()
     {
 
-        $Acronym = Account::useService()->getMandantAcronym();
-        $SchoolData = array();
-        if(($tblSchoolList = School::useService()->getSchoolAll())){
-            foreach($tblSchoolList as $tblSchool){
-                $Item = array();
-                $tblCompany = $tblSchool->getServiceTblCompany();
-                $tblType = $tblSchool->getServiceTblType();
-                if($tblCompany && $tblType){
-                    $Item['OU'] = $Acronym;
-                    $Item['Schulname'] = $tblCompany->getName();
-                    array_push($SchoolData, $Item);
-                }
+        $OU = '';
+        $Schulname = '';
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                $OU = $tblConsumer->getAcronym();
+                $Schulname = $tblConsumer->getName();
             }
         }
 
-        if (!empty($SchoolData))
+        if ($OU && $Schulname)
         {
 
             $fileLocation = Storage::createFilePointer('csv');
@@ -583,16 +577,11 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell($Column++, $Row), "OU");
             $export->setValue($export->getCell($Column, $Row), "Schulname");
+            $Column = 0;
+            $Row++;
+            $export->setValue($export->getCell($Column++, $Row), $OU);
+            $export->setValue($export->getCell($Column, $Row), $Schulname);
 
-            foreach ($SchoolData as $School)
-            {
-                $Column = 0;
-                $Row++;
-
-                $export->setValue($export->getCell($Column++, $Row), $School['OU']);
-                $export->setValue($export->getCell($Column, $Row), $School['Schulname']);
-
-            }
             $export->setDelimiter(',');
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
