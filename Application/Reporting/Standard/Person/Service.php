@@ -166,21 +166,30 @@ class Service extends Extension
                     }
                 }
 
-                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
                 $tblToPersonGuardianList = array();
+                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
                 if ($tblType
-                && $GuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType)){
+                    && ($GuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+                ){
                     $tblToPersonGuardianList = $GuardianList;
                 }
                 $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
                 if ($tblType
-                && $AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType)){
+                    && ($AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+                ){
                     $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $AuthorizedList);
                 }
                 $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN_SHIP);
                 if ($tblType
-                && $AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType)){
-                    $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $AuthorizedList);
+                    && ($GuardianShipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+                ){
+                    $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $GuardianShipList);
+                }
+                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_EMERGENCY_CONTACT);
+                if ($tblType
+                    && ($EmergencyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+                ){
+                    $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $EmergencyList);
                 }
                 if (!empty($tblToPersonGuardianList)) {
                     foreach ($tblToPersonGuardianList as $tblToPersonGuardian) {
@@ -211,19 +220,25 @@ class Service extends Extension
                                 } else {
                                     $key = 'Sort_5_' . $tblPersonGuardian->getId();
                                 }
-                            } else {
-                                if ($isFemale) {
-                                    $key = 'Sort_2_' . $tblPersonGuardian->getId();
-                                } else {
-                                    $key = 'Sort_3_' . $tblPersonGuardian->getId();
-                                }
-                            }
-                            if ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN_SHIP) {
+                            } elseif ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN_SHIP) {
                                 $pre = 'Vorm. ';
                                 if ($isFemale) {
                                     $key = 'Sort_6_' . $tblPersonGuardian->getId();
                                 } else {
                                     $key = 'Sort_7_' . $tblPersonGuardian->getId();
+                                }
+                            } elseif ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_EMERGENCY_CONTACT) {
+                                $pre = 'NK ';
+                                if ($isFemale) {
+                                    $key = 'Sort_8_' . $tblPersonGuardian->getId();
+                                } else {
+                                    $key = 'Sort_9_' . $tblPersonGuardian->getId();
+                                }
+                            } else {
+                                if ($isFemale) {
+                                    $key = 'Sort_2_' . $tblPersonGuardian->getId();
+                                } else {
+                                    $key = 'Sort_3_' . $tblPersonGuardian->getId();
                                 }
                             }
 
