@@ -2128,6 +2128,15 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
                         }
 
+                        // Berufsfachschule Pflegeberufe
+                        if (!$hasRemarkText
+                            && $Certificate->getCertificateEntity()->getCertificate() == 'BfsPflegeJ'
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
+                                . ' ' . ' WURDE ZUR ABSCHLUSSPRÜFUNG NICHT ZUGELASSEN / HAT DIE ABSCHLUSSPRÜFUNG NICHT BESTANDEN '
+                                . 'und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                        }
+
                         $Global->savePost();
                     }
 
