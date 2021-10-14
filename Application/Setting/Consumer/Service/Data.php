@@ -177,9 +177,18 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview',
             TblSetting::TYPE_BOOLEAN, false, 'Notenbücher', 'Anzeige des Notendurchschnitts in der
             Eltern/Schüler-Übersicht [Standard: Nein]', true);
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview',
-            TblSetting::TYPE_BOOLEAN, false, 'Notenbücher', 'Anzeige des Notenspiegels und des Fach-Klassen-Durchschnitts
-            in der Eltern/Schüler-Übersicht. [Standard: Nein]', true);
+        if (($tblSetting = $this->getSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview'))) {
+            $defaultValue = $tblSetting->getValue();
+            $this->destroySetting($tblSetting);
+        } else {
+            $defaultValue = false;
+        }
+        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownDivisionSubjectScoreInStudentOverview',
+            TblSetting::TYPE_BOOLEAN, $defaultValue, 'Notenbücher',
+            'Anzeige des Fach-Klassen-Durchschnitts in der Eltern/Schüler-Übersicht. [Standard: Nein]', true);
+        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownGradeMirrorInStudentOverview',
+            TblSetting::TYPE_BOOLEAN, $defaultValue, 'Notenbücher',
+            'Anzeige des Notenspiegels in der Eltern/Schüler-Übersicht. [Standard: Nein]', true);
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview',
             TblSetting::TYPE_BOOLEAN, '1', 'Notenbücher', 'Anzeige der geplanten Großen Noten (fettmarkiert, z.B.
              Klassenarbeiten) in der Notenübersicht für Schüler/Eltern und in der Schülerübersicht [Standard: Ja]', true);
@@ -628,5 +637,27 @@ class Data extends AbstractData
                 TblAccountDownloadLock::ATTR_IDENTIFIER => $identifier
             )
         );
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     *
+     * @return bool
+     */
+    public function destroySetting(TblSetting $tblSetting)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblSetting')->findOneBy(array('Id' => $tblSetting->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }
