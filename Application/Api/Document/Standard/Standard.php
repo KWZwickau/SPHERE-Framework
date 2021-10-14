@@ -69,6 +69,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Manual/Indiware/Create', 'SPHERE\Application\Api\Document\Creator::createManualIndiwarePdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/EnrollmentDocument/CreateMulti', __CLASS__ . '::createEnrollmentDocumentMultiPdf'
+        ));
     }
 
     /**
@@ -210,6 +213,17 @@ class Standard extends Extension implements IModuleInterface
     public static function createAccountPdf($AccountId = null, $Redirect = true)
     {
         return Creator::createAccountPdf($AccountId, $Redirect);
+    }
+
+    /**
+     * @param string $DivisionId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createEnrollmentDocumentMultiPdf(string $DivisionId, bool $Redirect = true): string
+    {
+        return Creator::createMultiEnrollmentDocumentPdf($DivisionId, $Redirect);
     }
 
     /**

@@ -44,6 +44,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use SPHERE\System\Extension\Repository\PdfMerge;
 
 /**
  * Class Creator
@@ -328,19 +329,17 @@ class Creator extends Extension
             return 'Sie können immer nur eine Schülerkartei herunterladen. Bitte warten Sie bis das Erstellen der letzten Schülerkartei abgeschlossen ist';
         }
 
-
         if ($tblAccount){
             Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', true, false);
         }
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             // Fieldpointer auf dem der Merge durchgeführt wird, (download)
-//            $MergeFile = Storage::createFilePointer('pdf');
-//            $PdfMerger = new PdfMerge();
-
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
 
             if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
-//                $FileList = array();
+                $FileList = array();
                 $count = 0;
                 $maxPersonCount = 15;
                 if ($List !== null) {
@@ -353,7 +352,6 @@ class Creator extends Extension
                     $maxCount = 0;
                 }
 
-                $pageList = array();
                 foreach ($tblPersonList as $tblPerson) {
                     $count++;
 
@@ -366,6 +364,7 @@ class Creator extends Extension
 
                     set_time_limit(300);
                     $Data['Person']['Id'] = $tblPerson->getId();
+                    $pageList = array();
                     if (($tblSchoolTypeList = Generator::useService()->getSchoolTypeListForStudentCard($tblPerson))) {
                         foreach ($tblSchoolTypeList as $tblType) {
                             if ($tblType->getName() == 'Grundschule') {
@@ -391,46 +390,38 @@ class Creator extends Extension
                             }
                         }
 
-//                        if (!empty($pageList)) {
-//                            $template = new MultiStudentCard();
-//
-//                            // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
-//                            $File = self::buildDummyFile($template, $Data, $pageList, self::PAPERORIENTATION_PORTRAIT);
-////                            // hinzufügen für das mergen
-////                            $PdfMerger->addPdf($File);
-////                            // speichern der Files zum nachträglichem bereinigen
-////                            $FileList[] = $File;
-//                        }
+                        if (!empty($pageList)) {
+                            $Document = new MultiStudentCard();
+
+                            // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
+                            $File = self::buildDummyFile($Document, $Data, $pageList, self::PAPERORIENTATION_PORTRAIT, false);
+                            // hinzufügen für das mergen
+                            $PdfMerger->addPdf($File);
+                            // speichern der Files zum nachträglichem bereinigen
+                            $FileList[] = $File;
+                        }
                     }
                 }
 
-//                // mergen aller hinzugefügten PDF-Datein
-//                $PdfMerger->mergePdf($MergeFile);
-//                if(!empty($FileList)){
-//                    // aufräumen der Temp-Files
-//                    /** @var FilePointer $File */
-//                    foreach($FileList as $File){
-//                        $File->setDestruct();
-//                    }
-//                }
-
-                if (!empty($pageList)){
-                    $template = new MultiStudentCard();
-                    $File = self::buildDummyFile($template, array(), $pageList);
-                    $FileName = 'Notenbücher_' . $tblDivision->getDisplayName()  . '_' . date("Y-m-d").".pdf";
-
-                    Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', false, true);
-                    return self::buildDownloadFile($File, $FileName);
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
                 }
 
                 Consumer::useService()->createAccountDownloadLock($tblAccount, new DateTime(), 'StudentCard', false, true);
-//                if (!empty($FileList)) {
-//                    $FileName = 'Schülerkarteien Klasse ' . $tblDivision->getDisplayName()
-//                        . ($isList ? ' ' . $List . '.Teil' : '')
-//                        . ' ' . date("Y-m-d") . ".pdf";
-//
-//                    return self::buildDownloadFile($MergeFile, $FileName);
-//                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Schülerkarteien Klasse ' . $tblDivision->getDisplayName()
+                        . ($isList ? ' ' . $List . '.Teil' : '')
+                        . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
             }
         }
 
@@ -1032,5 +1023,64 @@ class Creator extends Extension
         header("Content-Disposition: attachment; filename=Indiware.pdf");
         header("Content-Length: ". filesize($file));
         readfile($file);
+    }
+
+    /**
+     * @param string $DivisionId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createMultiEnrollmentDocumentPdf(string $DivisionId, bool $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/EnrollmentDocument/CreateMulti',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+                $FileList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    set_time_limit(300);
+
+                    $Document = new EnrollmentDocument(\SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument::useService()
+                        ->getEnrollmentDocumentData($tblPerson));
+                    $File = self::buildDummyFile($Document, array(), array());
+
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Schulbescheinigungen Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Schulbescheinigungen vorhanden!";
     }
 }

@@ -8,7 +8,10 @@
 
 namespace SPHERE\Application\Document\Generator;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Document\AbstractDocument;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Service\Data;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocumentSubject;
@@ -22,8 +25,10 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -200,14 +205,14 @@ class Service extends AbstractService
                                 || $tblType === null
                             ) {
                                 if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
-                                    $listSekII[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                                    $listSekII[(new DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                                 } elseif ($tblCertificateType->getIdentifier() == 'DIPLOMA'
                                     && $tblLevel
                                     && intval($tblLevel->getName()) == 12
                                 ) {
                                     // Abiturzeugnis ignorieren
                                 } else {
-                                    $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                                    $list[(new DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                                 }
                             }
                         }
@@ -380,7 +385,7 @@ class Service extends AbstractService
                 }
                 $Data['Certificate'][$typeId]['Data' . $count]['Remark'] = $remark;
 
-                $date = new \DateTime($tblPrepare->getDate());
+                $date = new DateTime($tblPrepare->getDate());
                 $Data['Certificate'][$typeId]['Data' . $count]['CertificateDate'] = $date->format('d.m.y');
                 $transferRemark = '&ndash;';
                 if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson,
@@ -482,7 +487,7 @@ class Service extends AbstractService
                 }
                 $Data['Certificate'][$typeId]['Data' . $count]['Remark'] = $remark;
 
-                $date = new \DateTime($tblPrepare->getDate());
+                $date = new DateTime($tblPrepare->getDate());
                 $Data['Certificate'][$typeId]['Data' . $count]['CertificateDate'] = $date->format('d.m.y');
             }
             $count++;
@@ -515,7 +520,7 @@ class Service extends AbstractService
                             && $tblPrepareStudent->isApproved()
                             && $tblPrepareStudent->isPrinted()
                         ) {
-                            $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                            $list[(new DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                         }
                     }
                 }
@@ -577,7 +582,7 @@ class Service extends AbstractService
                             && $tblPrepareStudent->isApproved()
                             && $tblPrepareStudent->isPrinted()
                         ) {
-                            $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                            $list[(new DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                         }
                     }
                 }
@@ -715,7 +720,7 @@ class Service extends AbstractService
                                     && $tblType->getId() == $tblLevel->getServiceTblType()->getId())
                                 || $tblType === null
                             ) {
-                                $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                                $list[(new DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                             }
                         }
                     }
@@ -844,5 +849,94 @@ class Service extends AbstractService
         } else {
             return  array();
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array
+     */
+    public function getEnrollmentDocumentData(TblPerson $tblPerson): array
+    {
+        $Data['PersonId'] = $tblPerson->getId();
+        $Data['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
+        $Data['Date'] = (new DateTime())->format('d.m.Y');
+
+        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                $Data['Birthday'] = $tblCommonBirthDates->getBirthday();
+                $Data['Birthplace'] = $tblCommonBirthDates->getBirthplace();
+                if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
+                    $Data['Gender'] = $tblCommonGender->getName();
+                }
+            }
+        }
+
+        // Prepare LeaveDate
+        $Now = new DateTime('now');
+        // increase year if date after 31.07.20xx
+        if ($Now > new DateTime('31.07.'.$Now->format('Y'))) {
+            $Now->add(new DateInterval('P1Y'));
+        }
+        $MaxDate = new DateTime('31.07.'.$Now->format('Y'));
+        $DateString = $MaxDate->format('d.m.Y');
+        $Data['LeaveDate'] = $DateString;
+
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        if ($tblStudent) {
+            // Schuldaten der Schule des Schülers
+            if (($tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
+                $Data['School'] = $tblCompanySchool->getName();
+                $Data['SchoolExtended'] = $tblCompanySchool->getExtendedName();
+                $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
+                if ($tblAddressSchool) {
+                    $Data['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
+                    $tblCitySchool = $tblAddressSchool->getTblCity();
+                    if ($tblCitySchool) {
+                        $Data['SchoolAddressDistrict'] = $tblCitySchool->getDistrict();
+                        $Data['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                        $Data['Place'] = $tblCitySchool->getName();
+                    }
+                }
+            }
+            $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
+            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferType);
+            if ($tblStudentTransfer) {
+                $transferDate = $tblStudentTransfer->getTransferDate();
+                if ($transferDate) {
+                    if ($MaxDate > new DateTime($transferDate)) {
+                        $DateString = $transferDate;
+                        // correct leaveDate if necessary
+                        $Data['LeaveDate'] = $DateString;
+                    }
+                }
+            }
+        }
+
+        // Aktuelle Klasse
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($tblYearList) {
+            foreach ($tblYearList as $tblYear) {
+                $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
+                if ($tblDivision && $tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
+                    $Data['Division'] = $tblDivision->getTblLevel()->getName();
+                }
+            }
+        }
+
+        // Hauptadresse Schüler
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        if ($tblAddress) {
+            $Data['AddressStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+            $tblCity = $tblAddress->getTblCity();
+            if ($tblCity) {
+                $Data['AddressPLZ'] = $tblCity->getCode();
+                $Data['AddressCity'] = $tblCity->getName();
+                $Data['AddressDistrict'] = $tblCity->getDistrict();
+            }
+        }
+
+        return $Data;
     }
 }
