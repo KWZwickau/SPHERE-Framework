@@ -324,7 +324,7 @@ class Service extends AbstractService
                 && (Account::useService()->changeRecoveryMail($tblAccount, $Address))){
                     Mail::useService()->updateMailToPersonRecoveryMail($tblToPerson, $IsAccountRecoveryMail);
                 }
-            } else {
+            } elseif($IsAccountUserAlias || $IsAccountRecoveryMail) {
                 $ErrorString = 'Person hat keinen Benutzeraccount';
             }
             return true;
@@ -517,7 +517,7 @@ class Service extends AbstractService
         }
 
         if (($tblPerson = $tblToPerson->getServiceTblPerson())
-            && ($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+            && ($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))){
             $tblAccount = current($tblAccountList);
             // remove existing entry's
             if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblToPerson->getServiceTblPerson()))){
