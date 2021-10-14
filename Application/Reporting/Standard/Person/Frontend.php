@@ -1559,7 +1559,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $receiverContent = ApiStandard::receiverBlock(
-            (new ApiStandard())->reloadAbsenceContent()
+            (new ApiStandard())->reloadAbsenceContent(), 'AbsenceContent'
         );
 
         $datePickerFrom = new DatePicker('Data[Date]', '', 'Datum von', new Calendar());
@@ -1567,7 +1567,7 @@ class Frontend extends Extension implements IFrontendInterface
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
         $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
-        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
+        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent());
 
         $stage->setContent(
            new Form(new FormGroup(new FormRow(array(

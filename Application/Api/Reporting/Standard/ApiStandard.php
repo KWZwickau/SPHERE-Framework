@@ -65,16 +65,14 @@ class ApiStandard extends Extension implements IApiInterface
     }
 
     /**
-     * @param AbstractReceiver $Receiver
-     *
      * @return Pipeline
      */
-    public static function pipelineCreateAbsenceContent(AbstractReceiver $Receiver)
+    public static function pipelineCreateAbsenceContent() : Pipeline
     {
         $FieldPipeline = new Pipeline(false);
-        $FieldEmitter = new ServerEmitter($Receiver, ApiStandard::getEndpoint());
+        $FieldEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceContent'), self::getEndpoint());
         $FieldEmitter->setGetPayload(array(
-            ApiStandard::API_TARGET => 'reloadAbsenceContent'
+            self::API_TARGET => 'reloadAbsenceContent'
         ));
         $FieldPipeline->appendEmitter($FieldEmitter);
         $FieldPipeline->setLoadingMessage('Fehlzeiten werden aktualisiert');
@@ -85,11 +83,10 @@ class ApiStandard extends Extension implements IApiInterface
     /**
      * @param null $Data
      *
-     * @return Layout|string
+     * @return string
      */
-    public function reloadAbsenceContent($Data = null)
+    public function reloadAbsenceContent($Data = null) : string
     {
-
         if($Data == null){
             // Laden mit Grunddaten (aktueller Tag ohne Zusätze)
             $Data['Date'] = (new DateTime('now'))->format('d.m.Y');
