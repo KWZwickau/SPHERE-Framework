@@ -52,6 +52,15 @@ class ViewPersonContact extends AbstractView
     const TBL_ADDRESS_NATION_2 = 'TblAddress_Nation2';
 
     const TBL_PHONE_NUMBER = 'TblPhone_Number';
+    const TBL_PHONE_NUMBER_PF = 'TblPhone_Number_PF';
+    const TBL_PHONE_NUMBER_PM = 'TblPhone_Number_PM';
+    const TBL_PHONE_NUMBER_GF = 'TblPhone_Number_GF';
+    const TBL_PHONE_NUMBER_GM = 'TblPhone_Number_GM';
+    const TBL_PHONE_NUMBER_NF = 'TblPhone_Number_NF';
+    const TBL_PHONE_NUMBER_NM = 'TblPhone_Number_NM';
+    const TBL_PHONE_NUMBER_FP = 'TblPhone_Number_FP';
+    const TBL_PHONE_NUMBER_FG = 'TblPhone_Number_FG';
+
     const TBL_MAIL_ADDRESS = 'TblMail_Address';
     const TBL_MAIL_ADDRESS_PRIVATE = 'TblMail_AddressPrivate';
     const TBL_MAIL_ADDRESS_COMPANY = 'TblMail_AddressCompany';
@@ -139,6 +148,40 @@ class ViewPersonContact extends AbstractView
      * @Column(type="string")
      */
     protected $TblPhone_Number;
+
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_PF;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_PM;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_GF;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_GM;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_NF;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_NM;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_FP;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_FG;
+
     /**
      * @Column(type="string")
      */
@@ -180,6 +223,15 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_2, 'Nebenadresse: Land');
 
         $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF, 'Person: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM, 'Person: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF, 'Person: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM, 'Person: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF, 'Person: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM, 'Person: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP, 'Person: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG, 'Person: Telefon Fax Geschäftlich');
+
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Person: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE, 'Person: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: E-Mail Geschäftlich');
@@ -208,6 +260,14 @@ class ViewPersonContact extends AbstractView
 
         $this->setGroupDefinition('Kontaktdaten', array(
             self::TBL_PHONE_NUMBER,
+            self::TBL_PHONE_NUMBER_PF,
+            self::TBL_PHONE_NUMBER_PM,
+            self::TBL_PHONE_NUMBER_GF,
+            self::TBL_PHONE_NUMBER_GM,
+            self::TBL_PHONE_NUMBER_NF,
+            self::TBL_PHONE_NUMBER_NM,
+            self::TBL_PHONE_NUMBER_FP,
+            self::TBL_PHONE_NUMBER_FG,
             self::TBL_MAIL_ADDRESS,
             self::TBL_MAIL_ADDRESS_PRIVATE,
             self::TBL_MAIL_ADDRESS_COMPANY,

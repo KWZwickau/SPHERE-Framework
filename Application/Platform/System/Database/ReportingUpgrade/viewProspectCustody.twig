@@ -110,18 +110,73 @@ SELECT
         AND vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation_S1,
 
-    (SELECT
-        group_concat(
-            concat(
-                vCP.TblType_Name,
-                ': ',
-                vCP.TblPhone_Number,
-                ' - ',
-                vCP.TblToPerson_Remark
-            ) separator '\n'
-        ) FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (SELECT group_concat(concat(
+            vCP.TblType_Name,
+            ': ',
+            vCP.TblPhone_Number,
+            -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
+            ' ',
+            vCP.TblToPerson_Remark
+            ) separator ' - \n')
+        FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S1_Id
     ) TblPhone_Number_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_PF_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_PM_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_GF_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_GM_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_NF_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_NM_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Privat'
+    ) TblPhone_Number_FP_S1,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S1_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Geschäftlich'
+    ) TblPhone_Number_FG_S1,
 
     (SELECT
         group_concat(
@@ -260,18 +315,73 @@ SELECT
         AND vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation_S2,
 
-    (SELECT
-        group_concat(
-            concat(
-                vCP.TblType_Name,
-                ': ',
-                vCP.TblPhone_Number,
-                ' - ',
-                vCP.TblToPerson_Remark
-            ) separator '\n'
-        ) FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (SELECT group_concat(concat(
+            vCP.TblType_Name,
+            ': ',
+            vCP.TblPhone_Number,
+            -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
+            ' ',
+            vCP.TblToPerson_Remark
+            ) separator ' - \n')
+        FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S2_Id
     ) TblPhone_Number_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_PF_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_PM_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_GF_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_GM_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_NF_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_NM_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Privat'
+    ) TblPhone_Number_FP_S2,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S2_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Geschäftlich'
+    ) TblPhone_Number_FG_S2,
 
     (SELECT
         group_concat(
@@ -416,18 +526,73 @@ SELECT
         AND vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation_S3,
 
-    (SELECT
-        group_concat(
-            concat(
-                vCP.TblType_Name,
-                ': ',
-                vCP.TblPhone_Number,
-                ' - ',
-                vCP.TblToPerson_Remark
-            ) separator '\n'
-        ) FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+    (SELECT group_concat(concat(
+            vCP.TblType_Name,
+            ': ',
+            vCP.TblPhone_Number,
+            -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
+            ' ',
+            vCP.TblToPerson_Remark
+            ) separator ' - \n')
+        FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S3_Id
     ) TblPhone_Number_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_PF_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_PM_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_GF_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_GM_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_NF_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_NM_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Privat'
+    ) TblPhone_Number_FP_S3,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_S3_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Geschäftlich'
+    ) TblPhone_Number_FG_S3,
 
     (SELECT
         group_concat(
