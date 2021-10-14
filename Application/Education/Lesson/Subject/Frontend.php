@@ -584,7 +584,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($SubjectGroup == 'Wahlfach') {
                             $tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
                         }
-                        if ($SubjectGroup == 'Neigungskurs') {
+                        if ($SubjectGroup == (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()) {
                             $tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
                         }
                         $tblSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Group);

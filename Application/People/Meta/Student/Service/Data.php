@@ -222,11 +222,13 @@ class Data extends Support
 
         $Entity = $this->getStudentSubjectTypeByIdentifier('ORIENTATION');
         if ($Entity) {
-            if ($Entity->getName() !== 'Neigungskurs') {
-                $this->updateStudentSubjectType($Entity, 'Neigungskurs');
+            // ist mit Absicht das der Neigungskurs nur einmal in Wahlbereich umbenannt wird und danach per DB pro Mandant
+            // ein individueller Name vergeben werden kann
+            if ($Entity->getName() == 'Neigungskurs') {
+                $this->updateStudentSubjectType($Entity, 'Wahlbereich');
             }
         } else {
-            $this->createStudentSubjectType('ORIENTATION', 'Neigungskurs');
+            $this->createStudentSubjectType('ORIENTATION', 'Wahlbereich');
         }
         $Entity = $this->getStudentSubjectTypeByIdentifier('ADVANCED');
         if ($Entity) {

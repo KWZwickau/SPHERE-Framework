@@ -2992,6 +2992,8 @@ abstract class Certificate extends Extension
     }
 
     /**
+     *@deprecated
+     *
      * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined

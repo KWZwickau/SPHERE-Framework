@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategorySubjec
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -33,10 +34,17 @@ class Data extends AbstractData
         // Profil
         $tblCategory = $this->createCategory('Profil', '', true, 'PROFILE');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
+        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+        if (($tblGroupOrientation = $this->getGroupByIdentifier('ORIENTATION'))) {
+            if ($tblStudentSubjectTypeOrientation) {
+                $this->updateGroup($tblGroupOrientation, $tblStudentSubjectTypeOrientation->getName());
+            }
+        } else {
+            $this->createGroup($tblStudentSubjectTypeOrientation
+                ? $tblStudentSubjectTypeOrientation->getName() : 'Wahlbereich',
+                '', true, 'ORIENTATION');
+        }
         if (!$hasSubjects) {
-            $tblGroupOrientation = $this->createGroup('Neigungskurs', '', true, 'ORIENTATION');
-            $tblGroupAdvanced = $this->createGroup('Vertiefungskurs', '', true, 'ADVANCED');
-
             $tblSubject = $this->createSubject('KPR', 'Künstlerisches Profil');
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('SPR', 'Sprachliches Profil');
@@ -44,25 +52,6 @@ class Data extends AbstractData
             $tblSubject = $this->createSubject('NPR', 'Naturwissenschaftliches Profil');
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('GPR', 'Geisteswissenschaftliches Profil');
-            $this->addCategorySubject($tblCategory, $tblSubject);
-
-            // Neigungskurs
-            $tblCategory = $this->createCategory('Kunst und Kultur');
-            $this->addGroupCategory($tblGroupOrientation, $tblCategory);
-            $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
-            $tblSubject = $this->createSubject('SZSP', 'Szenisches Spiel');
-            $this->addCategorySubject($tblCategory, $tblSubject);
-            $tblCategory = $this->createCategory('Soziales und gesellschaftliches Handeln');
-            $this->addGroupCategory($tblGroupOrientation, $tblCategory);
-            $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
-            $tblSubject = $this->createSubject('KRHA', 'Kreatives Handwerken');
-            $this->addCategorySubject($tblCategory, $tblSubject);
-            $tblCategory = $this->createCategory('Technik');
-            $this->addGroupCategory($tblGroupOrientation, $tblCategory);
-            $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
-            $tblSubject = $this->createSubject('TECH', 'Technik');
-            $this->addCategorySubject($tblCategory, $tblSubject);
-            $tblSubject = $this->createSubject('SCHW', 'Schrauberwerkstatt');
             $this->addCategorySubject($tblCategory, $tblSubject);
         }
 
@@ -755,5 +744,29 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubject', array(
             TblSubject::ATTR_NAME => $Name
         ));
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param $Name
+     *
+     * @return bool
+     */
+    public function updateGroup(TblGroup $tblGroup, $Name) : bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGroup $Entity */
+        $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

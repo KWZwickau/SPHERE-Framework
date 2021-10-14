@@ -439,6 +439,8 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
+     * @deprecated
+     *
      * @param        $personId
      * @param string $TextSize
      * @param bool   $IsGradeUnderlined
