@@ -757,6 +757,7 @@ class Service extends AbstractService
         $successCount = 0;
         $accountExistCount = 0;
         $accountError = 0;
+//        $accountWarning = 0;
 
         $GroupByCount = 1;
         $CountAccount = 0;
@@ -774,13 +775,13 @@ class Service extends AbstractService
                 if (AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true)) {
                     continue;
                 }
-                // ignore Person without Main Address
+                // Warning if Person without Main Address
                 $tblAddress = $tblPerson->fetchMainAddress();
                 if (!$tblAddress) {
-                    $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                    $result['Address'][$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
                         ': Hauptadresse fehlt';
-                    $accountError++;
-                    continue;
+//                    $accountWarning++;
+//                    continue;
                 }
                 // ignore without Consumer
                 $tblConsumer = Consumer::useService()->getConsumerBySession();
@@ -846,6 +847,7 @@ class Service extends AbstractService
         $result['AccountExistCount'] = $accountExistCount;
         $result['SuccessCount'] = $successCount;
         $result['AccountError'] = $accountError;
+        $result['AccountWarning'] = (isset($result['Address']) ? count($result['Address']) : 0);
         return $result;
 //        return new Layout(
 //            new LayoutGroup(
@@ -983,6 +985,10 @@ class Service extends AbstractService
             if(!isset($randNumber) || !$randNumber){
                 $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
                     ': Geburtsdatum fehlt';
+                if(isset($result['Address'][$tblPerson->getId()])){
+                    unset($result['Address'][$tblPerson->getId()]);
+                }
+
                 return false;
             }
         }
