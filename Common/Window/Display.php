@@ -429,6 +429,22 @@ class Display extends Extension implements ITemplateInterface
                 <span class="text-danger">Nightly</span></a>';
                 $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
+            case '192.168.240.128':
+                $BrandTitle = '<a class="navbar-brand-icon" href="/">
+                <img src="/Common/Style/Resource/Schulsoftware-font_dev_g.svg" alt="Schulsottware" style="height: 40px">
+                </a><a class="navbar-brand" href="/">
+                <span class="text-warning" style="padding-top: 11px">'.$this->getRequest()->getHost().'
+                </span></a>';
+                $this->Template->setVariable('RoadmapVersion', 'Roadmap');
+                break;
+            case '192.168.37.128':
+                $BrandTitle = '<a class="navbar-brand-icon" href="/">
+                <img src="/Common/Style/Resource/Schulsoftware-font_dev_b.svg" alt="Schulsottware" style="height: 40px">
+                </a><a class="navbar-brand" href="/">
+                <span class="text-primary" style="padding-top: 11px">'.$this->getRequest()->getHost().'
+                </span></a>';
+                $this->Template->setVariable('RoadmapVersion', 'Roadmap');
+                break;
             default:
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
                 <img src="/Common/Style/Resource/Schulsoftware-font.svg" alt="Schulsottware" style="height: 40px">
