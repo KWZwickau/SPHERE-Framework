@@ -17,6 +17,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Badge;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -129,7 +131,12 @@ class ApiAuthenticatorApp extends Extension implements IApiInterface
         return
             new Title('QR-Code für ' . $tblAccount->getUsername())
 //            . new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret) . '">');
-                . new Center($twoFactorApp->getBaconQrCode($tblAccount, $secret));
+                . new Center(
+                    $twoFactorApp->getBaconQrCode($tblAccount, $secret)
+                    .new Container('<span style="font-size:20px;">Security Code</span>')
+                    .'<div style="height: 5px"></div>'
+                    .new Container(new Badge('<span style="font-size:16px">'.$tblAccount->getAuthenticatorAppSecret().'</span>', Badge::BADGE_TYPE_PRIMARY))
+                );
     }
 
     /**
