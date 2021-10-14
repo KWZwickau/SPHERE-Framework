@@ -1023,4 +1023,14 @@ class Creator extends Extension
 
         return "Kein Benutzerkonto vorhanden!";
     }
+
+
+    public static function createManualIndiwarePdf()
+    {
+        $file = "Common/Style/Resource/Document/Manual/Indiware.pdf";
+        header("Content-Type: application/pdf");
+        header("Content-Disposition: attachment; filename=Indiware.pdf");
+        header("Content-Length: ". filesize($file));
+        readfile($file);
+    }
 }
