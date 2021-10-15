@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Library\NumberToWord\NumberToWord;
 
@@ -30,10 +31,16 @@ class DocumentWarning
     /** @var null|array $Data  */
     private $Data = null;
 
+    /** @var string */
+    private string $Acronym;
+
     const TEXT_SIZE = '14px';
 
     public function __construct(TblItem $tblItem, $Data)
     {
+
+        $this->Acronym = Account::useService()->getMandantAcronym();
+//        $this->Acronym = 'HOGA';
         $this->tblItem = $tblItem;
         $this->Data = $Data;
     }
@@ -74,7 +81,12 @@ class DocumentWarning
             }
         }
 
-        $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
+        if($this->Acronym == 'HOGA'){
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: -0.5cm !important; }';
+        } else {
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
+        }
+
 
         return (new Frame($InjectStyle))->addDocument($document);
     }
@@ -154,8 +166,8 @@ class DocumentWarning
         $CompanyAddress = $Data['CompanyAddress'];
         $Subject = $Data['Subject'];
         $Content = $Data['Content'];
-        $Date = '_________________';
-        $Location = '_________________';
+        $Date = '___________________';
+        $Location = '_________________________';
         $BillTime = $Data['BillTime'];
         $BillName = $Data['BillName'];
         $Count = $Data['Count'];
@@ -179,12 +191,13 @@ class DocumentWarning
         $InvoiceNumber = $this->setEmptyString($InvoiceNumber);
         $TargetTime = $this->setEmptyString($TargetTime);
         $CompanyName = $this->setEmptyString($CompanyName);
-        $CompanyExtendedName = $this->setEmptyString($CompanyExtendedName);
+        // ist dieser nicht vorhanden, würde er ungewollt im Briefkopf stehen
+//        $CompanyExtendedName = $this->setEmptyString($CompanyExtendedName);
         $CompanyAddress = $this->setEmptyString($CompanyAddress);
         $Subject = $this->setEmptyString($Subject);
         $Content = $this->setEmptyString($Content);
-        $Date = $this->setEmptyString($Date);
-        $Location = $this->setEmptyString($Location);
+//        $Date = $this->setEmptyString($Date);
+//        $Location = $this->setEmptyString($Location);
         $BillTime = $this->setEmptyString($BillTime);
         $BillName = $this->setEmptyString($BillName);
         $Count = $this->setEmptyString($Count);
@@ -207,61 +220,73 @@ class DocumentWarning
             $Count, $Price, $SummaryPrice, $DebtorSalutation, $DebtorFirstName, $DebtorLastName, $CauserSalutation,
             $CauserFirstName, $CauserLastName, $Birthday, $Date, $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress);
 
+        $TextWith = '100%';
+        $EmptyWith = '0%';
+        if($this->Acronym == 'HOGA'){
+            $TextWith = '70%';
+            $EmptyWith = '30%';
+        }
+
         return (new Page())
             ->addSlice($this->getHeaderSlice('150px'))
             ->addSlice($this->getAddressSlice($CompanyName, $CompanyExtendedName, $CompanyAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
+                    ->setContent('&nbsp;')
                     ->styleTextSize(self::TEXT_SIZE)
                     ->styleAlignRight()
                     ->styleMarginTop('50px')
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent($Subject)
-                    ->styleTextSize('18px')
-                    ->styleTextBold()
-                    ->styleMarginTop('20px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent(nl2br($Content))
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignJustify()
-                    ->styleMarginTop('25px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
-                    ->setContent($Location . ', den ' . $Date)
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignRight()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($Subject)
+                        ->styleTextSize('18px')
+                        ->styleTextBold()
+                        ->styleMarginTop('20px')
+                    , $TextWith)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    , $EmptyWith)
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize('8pt')
-                        ->styleAlignRight()
-                        ->styleHeight('10px')
-                        , '53%'
-                    )
+                        ->setContent(nl2br($Content))
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleAlignJustify()
+                        ->styleMarginTop('25px')
+                    , $TextWith)
                     ->addElementColumn((new Element())
-                        ->setContent('Ort')
+                        ->setContent('&nbsp;')
+                    , $EmptyWith)
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent($Location . ', den ' . $Date)
+                    ->styleTextSize(self::TEXT_SIZE)
+                    ->stylePaddingTop('25px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;Ort')
                         ->styleTextSize('8pt')
                         ->styleHeight('10px')
-                        , '26%'
+                        , '34%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Datum')
                         ->styleTextSize('8pt')
                         ->styleHeight('10px')
-                        , '21%'
+                        , '14%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
                     )
                 )
             );
@@ -283,25 +308,32 @@ class DocumentWarning
 
     /**
      * @param string $Height
+     * @param string $Acronym
      *
      * @return Slice
      */
     private function getHeaderSlice($Height = '200px')
     {
-        if (($tblSetting = Consumer::useService()->getSetting(
-            'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
-        ) {
-            $pictureAddress = (string)$tblSetting->getValue();
-        } else {
-            $pictureAddress = '';
-        }
 
-        if (($tblSetting = Consumer::useService()->getSetting(
-            'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
-        ) {
-            $pictureHeight = (string)$tblSetting->getValue();
+        if($this->Acronym == 'HOGA'){
+            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_without_space.png';
+            $pictureHeight = '370';
         } else {
-            $pictureHeight = '';
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
+            ) {
+                $pictureAddress = (string)$tblSetting->getValue();
+            } else {
+                $pictureAddress = '';
+            }
+
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
+            ) {
+                $pictureHeight = (string)$tblSetting->getValue();
+            } else {
+                $pictureHeight = '';
+            }
         }
 
         if ($pictureAddress != '') {
