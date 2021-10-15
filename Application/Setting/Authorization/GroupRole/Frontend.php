@@ -43,7 +43,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendGroupRole()
     {
         $stage = new Stage('Benutzerrollen', 'Übersicht');
-        $stage->setMessage('Hier können Sie Benutzerrollen anlegen und verwalten. Eine Benutzerrolle besteht aus
+        $stage->setMessage('Hier können Sie Benutzerrollen anlegen und verwalten. Eine Benutzerrolle besteht aus einer
             beliebigen Anzahl von Benutzerrechten, welche Sie selbst auswählen können. Beim Anlegen oder Bearbeiten eines
             Benutzerkontos können somit über die Benutzerrolle mehrere Benutzerrechte vorausgewählt werden. Durch das '
             . new Bold('nachträgliche') . ' Bearbeiten oder Löschen von Benutzerrollen werden die Benutzerrechte an bestehenden
