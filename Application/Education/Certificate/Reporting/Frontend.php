@@ -148,6 +148,11 @@ class Frontend extends Extension implements IFrontendInterface
                                             $resultPoints = $resultBlockI + $resultBlockII;
                                             if ($resultBlockI >= 200 && $resultBlockII >= 100) {
                                                 $average = Prepare::useService()->getResultForAbiturAverageGrade($resultPoints);
+                                                if ($average !== '&nbsp;') {
+                                                    $average = str_replace(',', '.', $average);
+                                                } else {
+                                                    $average = false;
+                                                }
                                             } else {
                                                 $average = false;
                                             }
