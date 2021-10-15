@@ -127,7 +127,7 @@ class FrontendStudent extends FrontendReadOnly
             if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'HOGA'
             ) {
-                $routeEnrollmentDocument = '\Document\Custom\Hoga\Fill';
+                $routeEnrollmentDocument = '\Document\Custom\Hoga\EnrollmentDocument\Fill';
             } else {
                 $routeEnrollmentDocument = '\Document\Standard\EnrollmentDocument\Fill';
             }
