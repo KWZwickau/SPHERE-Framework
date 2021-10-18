@@ -1884,6 +1884,11 @@ class KamenzReportService
             ) {
 
                 $gender = $tblCommonGender->getShortName();
+                // die Kamenzstatistik der allgemeinbildenden Schulen unterstützt aktuell nur männlich und weiblich
+                if ($gender != 'm' && $gender != 'w') {
+                    $gender = false;
+                    return $nationality;
+                }
 
                 if (($birthDay = $tblCommonBirthDates->getBirthday())) {
                     $birthDayDate = new DateTime($birthDay);
