@@ -2212,8 +2212,12 @@ class Service extends ServiceScoreRule
         $protocol = array();
         $protocol['DeleteTests'] = array();
         $protocol['UpdateTests'] = array();
+        $protocol['CreateTests'] = array();
+        $protocol['DeleteTestsCount'] = '';
+        $protocol['UpdateTestsCount'] = '';
+        $protocol['CreateTestsCount'] = '';
 
-        // Berechnungssystem und Bewertungsystem kopieren
+        // Berechnungssystem und Bewertungssystem kopieren
         $this->copyScoreRule($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup,
             $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
 
@@ -2247,25 +2251,147 @@ class Service extends ServiceScoreRule
             Evaluation::useService()->destroyTestList($destroyTests);
         }
 
-        // todo aufspaltung auf 2 Gruppen falls erforderlich
-
-        // Periode -> erstmal nicht möglich zwischen verschiedenen Schuljahren zu verschieben
+        // Periode → erstmal nicht möglich zwischen verschiedenen Schuljahren zu verschieben
         // falls 2 verschiedene Schuljahre
         // was soll mit den Notenaufträgen passieren für verschiedene Schuljahre
+
+        // aufspaltung in 2 oder mehr Gruppen, falls erforderlich
+        // prüfen, ob alle Zensuren in der Gruppe zu zugeordneten Schülern gehören
+        $createTestList = array();
+        $gradeListAlreadyUpdated = array();
+        $tblSourceTestList = Evaluation::useService()->getTestDistinctListBy($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup);
+        if ($tblTargetSubjectGroup
+            && ($tblTargetDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblTargetDivision,
+                $tblTargetSubject,
+                $tblTargetSubjectGroup
+            ))
+        ) {
+            $personTargetGroupList = array();
+            $personOtherGroupList = array();
+            $gradePersonNotInGroup = array();
+            // Person in der richtigen Gruppe
+            if (($tblTargetPersonList = Division::useService()->getSubjectStudentByDivisionSubject($tblTargetDivisionSubject))) {
+                foreach ($tblTargetPersonList as $tblSubjectStudent) {
+                    if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
+                        $personTargetGroupList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
+            }
+            // Person in anderen Gruppen zu dieser Fach-Klasse
+            if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                $tblTargetDivision,
+                $tblTargetSubject,
+            ))) {
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    if ($tblDivisionSubject->getId() != $tblTargetDivisionSubject->getId()
+                        && ($tblOtherSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                        && ($tblOtherPersonList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))) {
+                        foreach ($tblOtherPersonList as $tblOtherSubjectStudent) {
+                            if (($tblOtherPerson = $tblOtherSubjectStudent->getServiceTblPerson())) {
+                                $personOtherGroupList[$tblOtherPerson->getId()] = $tblOtherSubjectGroup;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($tblSourceTestList) {
+                foreach ($tblSourceTestList as $tblSourceTest) {
+                    if (($tblSourceGradeList = Gradebook::useService()->getGradeAllByTest($tblSourceTest))) {
+                        foreach ($tblSourceGradeList as $tblSourceGrade) {
+                            if (($tblPersonGrade = $tblSourceGrade->getServiceTblPerson())) {
+                                if (!isset($personTargetGroupList[$tblPersonGrade->getId()])) {
+                                    if (isset($personOtherGroupList[$tblPersonGrade->getId()])) {
+                                        // [SubjectGroupId][TestId][GradeId]
+                                        $createTestList
+                                            [$personOtherGroupList[$tblPersonGrade->getId()]->getId()]
+                                            [$tblSourceTest->getId()]
+                                            [$tblSourceGrade->getId()]
+                                            = $tblSourceGrade;
+                                        $gradeListAlreadyUpdated[$tblSourceGrade->getId()] = $tblSourceGrade;
+                                    } else {
+                                        $gradePersonNotInGroup[$tblPersonGrade->getId()] = $tblPersonGrade->getLastFirstName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Fehler, wenn der Schüler in keiner Gruppe ist → dann erstmal nicht kopieren
+                if (!empty($gradePersonNotInGroup)) {
+                    $protocol['Error'] = $gradePersonNotInGroup;
+
+                    return $protocol;
+                }
+
+                if (!empty($createTestList)) {
+                    $countCreatedTests = 0;
+                    foreach ($createTestList as $subjectGroupId => $testList) {
+                        if (($tblSubjectGroup = Division::useService()->getSubjectGroupById($subjectGroupId))) {
+                            foreach ($testList as $testId => $gradeList) {
+                                if (($tblTest = Evaluation::useService()->getTestById($testId))
+                                    && ($tblNewTest = Evaluation::useService()->insertTest(
+                                        $tblTargetDivision,
+                                        $tblTargetSubject,
+                                        $tblSubjectGroup,
+                                        $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
+                                        $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
+                                        $tblTest->getTblTestType() ? $tblTest->getTblTestType() : null,
+                                        $tblTest->getTblTask() ? $tblTest->getTblTask() : null,
+                                        $tblTest->getDescription(),
+                                        $tblTest->getDate() ? $tblTest->getDate() : null,
+                                        $tblTest->getCorrectionDate() ? $tblTest->getCorrectionDate() : null,
+                                        $tblTest->getReturnDate() ? $tblTest->getReturnDate() : null,
+                                        $tblTest->isContinues(),
+                                        $tblTest->getFinishDate() ? $tblTest->getFinishDate() : null
+                                    ))
+                                ) {
+                                    (new Data($this->getBinding()))->updateGrades(
+                                        $gradeList,
+                                        $tblTargetDivision,
+                                        $tblTargetSubject,
+                                        $tblSubjectGroup,
+                                        $tblNewTest
+                                    );
+
+                                    $protocol['CreateTests'][$tblNewTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                        new LayoutColumn('Test: ' . $tblNewTest->getDate() . ' ' . $tblNewTest->getGradeTypeCode()
+                                            . ' - ' . $tblNewTest->getDescription() . ' neu angelegt in Gruppe: '
+                                            . $tblSubjectGroup->getName(), 6),
+                                        new LayoutColumn(count($gradeList) . ' Zensuren verschoben', 6)
+                                    ))));
+
+                                    $countCreatedTests++;
+                                }
+                            }
+                        }
+                    }
+
+                    $protocol['CreateTestsCount'] = $countCreatedTests;
+                }
+            }
+        }
 
         // Leistungsüberprüfungen verschieben
         $updateGrades = array();
         $updateTests = array();
-        if (($tblSourceTestList = Evaluation::useService()->getTestDistinctListBy($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup))) {
+        if ($tblSourceTestList) {
             foreach ($tblSourceTestList as $tblSourceTest) {
                 $test = 'Test: ' . $tblSourceTest->getDate() . ' ' . $tblSourceTest->getGradeTypeCode()
                     . ' - ' . $tblSourceTest->getDescription() . ' verschoben';
-                if (($tblSourceGradeList = Gradebook::useService()->getGradeAllByTest($tblSourceTest))) {
-                    $grades = count($tblSourceGradeList) . ' Zensuren verschoben';
-                    $updateGrades = array_merge($updateGrades, $tblSourceGradeList);
-                } else {
-                    $grades = '0 Zensuren verschoben';
+                $count = 0;
+                if (($tblGradeList = Gradebook::useService()->getGradeAllByTest($tblSourceTest))) {
+                    foreach ($tblGradeList as $tblGrade) {
+                        if (!isset($gradeListAlreadyUpdated[$tblGrade->getId()])) {
+                            $count++;
+                            $updateGrades[] = $tblGrade;
+                        }
+                    }
                 }
+
+                $grades = $count . ' Zensuren verschoben';
                 $updateTests[] = $tblSourceTest;
                 $protocol['UpdateTests'][$tblSourceTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn($test, 6),
@@ -2281,7 +2407,7 @@ class Service extends ServiceScoreRule
             Evaluation::useService()->updateTests($updateTests, $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
         }
 
-        // Zeugnisnoten verschieben, erstmal nicht, dass bei verschiedenen Klassen verschiedene Zeugnisvorbereitungen vorliegen
+        // Zeugnisnoten verschieben, erstmal nicht, da bei verschiedenen Klassen verschiedene Zeugnisvorbereitungen vorliegen
 
         return $protocol;
     }

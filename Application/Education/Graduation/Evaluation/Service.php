@@ -321,6 +321,55 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblPeriod|null $tblPeriod
+     * @param TblGradeType|null $tblGradeType
+     * @param TblTestType|null $tblTestType
+     * @param TblTask|null $tblTask
+     * @param string $Description
+     * @param null $Date
+     * @param null $CorrectionDate
+     * @param null $ReturnDate
+     * @param false $IsContinues
+     * @param null $FinishDate
+     *
+     * @return TblTest|null
+     */
+    public function insertTest(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null,
+        TblPeriod $tblPeriod = null,
+        TblGradeType $tblGradeType = null,
+        TblTestType $tblTestType = null,
+        TblTask $tblTask = null,
+        $Description = '',
+        $Date = null,
+        $CorrectionDate = null,
+        $ReturnDate = null,
+        $IsContinues = false,
+        $FinishDate = null
+    ) : ?TblTest {
+        return (new Data($this->getBinding()))->createTest(
+            $tblDivision,
+            $tblSubject,
+            $tblSubjectGroup,
+            $tblPeriod,
+            $tblGradeType,
+            $tblTestType,
+            $tblTask,
+            $Description,
+            $Date,
+            $CorrectionDate,
+            $ReturnDate,
+            $IsContinues,
+            $FinishDate,
+        );
+    }
+
+    /**
      * @param string $Identifier
      *
      * @return bool|TblTestType

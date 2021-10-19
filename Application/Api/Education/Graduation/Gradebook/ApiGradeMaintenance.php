@@ -42,6 +42,7 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
+        $Dispatcher->registerMethod('loadMessage');
         $Dispatcher->registerMethod('loadDivisionSelect');
         $Dispatcher->registerMethod('loadDivisionSubjectSelect');
         $Dispatcher->registerMethod('loadDivisionSubjectInformation');
@@ -62,6 +63,39 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
     public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
     {
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @param string $Message
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadMessage(string $Message = '') : Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Message'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadMessage',
+            'Message' => $Message
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $Message
+     *
+     * @return string
+     */
+    public function loadMessage(string $Message = '') : string
+    {
+        if ($Message != '') {
+            return new Danger($Message, new Exclamation());
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -93,13 +127,24 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
      */
     public function loadDivisionSelect(?array $Data, string $Identifier = 'Source'): string
     {
-        // todo Meldung bei verschiedenen Schuljahren oder nur eine Auswahl
         if (isset($Data[$Identifier]['YearId'])
             && ($tblYear = Term::useService()->getYearById($Data[$Identifier]['YearId']))
             && ($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))
         ) {
+            $message = '';
+            if (isset($Data['Source']['YearId'])
+                && isset($Data['Target']['YearId'])
+                && $Data['Source']['YearId'] > 0
+                && $Data['Target']['YearId'] > 0
+                && $Data['Source']['YearId'] != $Data['Target']['YearId']
+            ) {
+                $message = 'Aktuell lassen sich Zensuren nur innerhalb eines Schuljahres verschieben,
+                    die Zeiträume an den Noten werden nicht angepasst';
+            }
+
             return (new SelectBox('Data[' . $Identifier . '][DivisionId]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)))
-                ->ajaxPipelineOnChange(array(self::pipelineLoadDivisionSubjectSelect($Data, $Identifier)))->setRequired();
+                ->ajaxPipelineOnChange(array(self::pipelineLoadDivisionSubjectSelect($Data, $Identifier)))->setRequired()
+                . self::pipelineLoadMessage($message);
         }
 
         return '';
@@ -344,14 +389,28 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
             );
 
             $output = '';
-            if (isset($protocol['DeleteTests'])) {
+            if (isset($protocol['Error'])) {
+                $output.= new Panel(
+                    'Die Test und Zensuren wurden nicht verschoben!',
+                    $protocol['Error'],
+                    Panel::PANEL_TYPE_DANGER
+                );
+            }
+            if (!empty($protocol['DeleteTests'])) {
                 $output.= new Panel(
                     'Gelöschte Tests (' . $protocol['DeleteTestsCount'] . ')',
                     $protocol['DeleteTests'],
                     Panel::PANEL_TYPE_WARNING
                 );
             }
-            if (isset($protocol['UpdateTests'])) {
+            if (!empty($protocol['CreateTests'])) {
+                $output.= new Panel(
+                    'Neu angelegte Tests (' . $protocol['CreateTestsCount'] . ')',
+                    $protocol['CreateTests'],
+                    Panel::PANEL_TYPE_WARNING
+                );
+            }
+            if (!empty($protocol['UpdateTests'])) {
                 $output.= new Panel(
                     'Verschobene Tests (' . $protocol['UpdateTestsCount'] . ')',
                     $protocol['UpdateTests'],

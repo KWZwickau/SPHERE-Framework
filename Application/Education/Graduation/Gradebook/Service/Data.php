@@ -1099,6 +1099,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblTest|null $tblTest
      * @param TblPeriod|null $tblPeriod
      */
     public function updateGrades(
@@ -1106,6 +1107,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null,
+        TblTest $tblTest = null,
         TblPeriod $tblPeriod = null
     ) {
 
@@ -1121,6 +1123,10 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
                 $Entity->setServiceTblDivision($tblDivision);
                 $Entity->setServiceTblSubject($tblSubject);
                 $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+
+                if ($tblTest) {
+                    $Entity->setServiceTblTest($tblTest);
+                }
 
                 if ($tblPeriod) {
                     $Entity->setServiceTblPeriod($tblPeriod);

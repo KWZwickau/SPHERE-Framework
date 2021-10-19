@@ -736,7 +736,8 @@ class DataMaintenance
         $tblYearList = Term::useService()->getYearAll();
 
         $stage->setContent(
-            new Form(new FormGroup(new FormRow(new FormColumn(
+            ApiGradeMaintenance::receiverBlock('', 'Message')
+            . new Form(new FormGroup(new FormRow(new FormColumn(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
