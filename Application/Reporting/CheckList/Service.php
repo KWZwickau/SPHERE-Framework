@@ -884,6 +884,8 @@ class Service extends AbstractService
             $filterSchoolOption1 = false;
             $filterSchoolOption2 = false;
 
+            $countCheckBoxValue = array();
+
             // filter
             if ($YearPersonId !== null) {
                 $yearPerson = Person::useService()->getPersonById($YearPersonId);
@@ -1136,6 +1138,17 @@ class Service extends AbstractService
                                                 if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
                                                     $export->setValue($export->getCell($columnCount, $rowCount),
                                                         $item->getValue());
+                                                    if ($item->getValue()
+                                                        && ($tblElementType = $tblListElementList->getTblElementType())
+                                                        && ($tblElementType->getIdentifier() == 'CHECKBOX')
+                                                    ) {
+                                                        if (isset($countCheckBoxValue[$columnCount])) {
+                                                            $countCheckBoxValue[$columnCount]++;
+                                                        } else {
+                                                            $countCheckBoxValue[$columnCount] = 1;
+                                                        }
+                                                    }
+
                                                     break;
                                                 } else {
                                                     $columnCount++;
@@ -1149,6 +1162,14 @@ class Service extends AbstractService
                         }
                     }
                 }
+            }
+
+            // isChecked zählen
+            $countAll = $rowCount - 1;
+            $rowCount = 0;
+            foreach ($countCheckBoxValue as $fieldCount => $countCheck) {
+                $cell = $export->getCell($fieldCount, $rowCount);
+                $export->setValue($cell, $export->getValue($cell) . ' (' . $countCheck . ' von ' . $countAll . ')');
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));

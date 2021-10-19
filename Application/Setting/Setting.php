@@ -33,10 +33,8 @@ class Setting implements IClusterInterface
         User::registerApplication();
         if(($tblAccount = Account::useService()->getAccountBySession())){
             if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
-                if(($tblConsumerLogin = ConsumerGatekeeper::useService()->getConsumerLoginByConsumer($tblConsumer))){
-                    if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
-                        Univention::registerApplication();
-                    }
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    Univention::registerApplication();
                 }
             }
         }

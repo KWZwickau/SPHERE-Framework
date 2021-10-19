@@ -32,6 +32,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -1623,15 +1624,31 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      *
-     * @return string
+     * @return array
+     * 'StudentList' => Schülerzählung,
+     * 'StudentGender' => Geschlechterzählung
      */
-    public function getCountStringStudentAllByDivision(TblDivision $tblDivision)
+    public function getStudentInfoAllByDivision(TblDivision $tblDivision)
     {
         $countActive = 0;
         $countInActive = 0;
+        $GenderList = array();
+        $StudentInfo = array('StudentList' => '', 'StudentGender' => '');
+
+        if(($tblGenderAll = Common::useService()->getCommonGenderAll())){
+            foreach($tblGenderAll as &$tblGender){
+                $GenderList[$tblGender->getId()] = 0;
+            }
+        }
+
         if (($tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision, true))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if ($tblDivisionStudent->getServiceTblPerson()) {
+                if (($tblPerson =  $tblDivisionStudent->getServiceTblPerson())) {
+                    // Zählung Geschlecht
+                    if(($tblGenderTemp = $tblPerson->getGender())){
+                        $GenderList[$tblGenderTemp->getId()]++;
+                    }
+                    // Zählung Division
                     if ($tblDivisionStudent->isInActive()) {
                         $countInActive++;
                     } else {
@@ -1640,10 +1657,25 @@ class Service extends AbstractService
                 }
             }
         }
-
+        // Spalteninhalt "Schüler"
         $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
+        $StudentInfo['StudentList'] = $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
 
-        return $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
+        //  Spalteninhalt Geschlecht
+        if(!empty($GenderList)){
+            foreach($GenderList as $tblGenderId => &$Gender){
+                $tblGenderTemp = Common::useService()->getCommonGenderById($tblGenderId);
+                if($Gender != '0'){
+                    $Gender = $tblGenderTemp->getShortName().': '.$Gender;
+                } else {
+                    $Gender = false;
+                }
+            }
+            // entfernen der nicht vorhandenen Geschlechter
+            $GenderList = array_filter($GenderList);
+        }
+        $StudentInfo['StudentGender'] = implode('<br/>', $GenderList);
+        return $StudentInfo;
     }
 
     /**
@@ -3028,5 +3060,97 @@ class Service extends AbstractService
         }
 
         return empty($repeatedList) ? false : $repeatedList;
+    }
+
+    /**
+     * @param TblYear $tblYearSelected
+     *
+     * @return array
+     */
+    public function getLeaveStudents(TblYear $tblYearSelected): array
+    {
+        $personList = array();
+
+        $split = explode('/', $tblYearSelected->getName());
+        $tblYearNextList = Term::useService()->getYearByName(
+            ((int) $split[0] + 1) . '/' . ((int) $split[1] + 1)
+        );
+
+        if (($tblYearList = Term::useService()->getYearsByYear($tblYearSelected))
+            && ($tblYearNextList)
+        ) {
+            foreach ($tblYearList as $tblYear) {
+//                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
+//                    foreach ($tblDivisionList as $tblDivision) {
+//                        if (!$tblDivision->getTblLevel()->getIsChecked()
+//                            && ($tblStudentList = $this->getStudentAllByDivision($tblDivision, true))
+//                        ) {
+//                            foreach ($tblStudentList as $tblPerson) {
+//                                $isAddPerson = false;
+//                                foreach ($tblYearNextList as $tblYearNext) {
+//                                    $isAddPerson = $this->getDivisionStudentsByPersonAndYear($tblPerson, $tblYearNext) == false;
+//                                    if ($isAddPerson) {
+//                                        break;
+//                                    }
+//                                }
+//
+//                                if ($isAddPerson) {
+//                                    $personList[$tblPerson->getId()] = array(
+//                                        'tblPerson' => $tblPerson,
+//                                        'tblDivision' => $tblDivision
+//                                    );
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+
+                if (($tblDivisionStudentList = $this->getMainDivisionStudentAllByYear($tblYear))) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                            && ($tblPerson = $tblDivisionStudent->getServiceTblPerson())
+                        ) {
+                            $isAddPerson = false;
+                            foreach ($tblYearNextList as $tblYearNext) {
+                                $isAddPerson = $this->getDivisionStudentsByPersonAndYear($tblPerson, $tblYearNext) == false;
+                                if ($isAddPerson) {
+                                    break;
+                                }
+                            }
+
+                            if ($isAddPerson) {
+                                $personList[$tblPerson->getId()] = array(
+                                    'tblPerson' => $tblPerson,
+                                    'tblDivision' => $tblDivision
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return  $personList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionStudent[]|false
+     */
+    public function getDivisionStudentsByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getDivisionStudentAllByPersonAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionStudent[]|false
+     */
+    public function getMainDivisionStudentAllByYear(TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getMainDivisionStudentAllByYear($tblYear);
     }
 }

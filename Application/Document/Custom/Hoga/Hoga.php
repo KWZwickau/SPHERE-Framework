@@ -49,15 +49,15 @@ class Hoga  extends Extension implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schulbescheinigung'))
+            new Link(new Link\Route(__NAMESPACE__ . '/EnrollmentDocument'), new Link\Name('Schulbescheinigung'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendEnrollmentDocument'
+            __NAMESPACE__ . '/EnrollmentDocument', __CLASS__.'::frontendEnrollmentDocument'
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Fill', __CLASS__.'::frontendFillEnrollmentDocument'
+            __NAMESPACE__.'/EnrollmentDocument/Fill', __CLASS__.'::frontendFillEnrollmentDocument'
         ));
     }
 
@@ -92,7 +92,7 @@ class Hoga  extends Extension implements IModuleInterface
                         'Name'     => $tblPerson->getLastFirstName(),
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
+                        'Option'   => new Standard('Erstellen', __NAMESPACE__ . '/EnrollmentDocument/Fill', null,
                             array('PersonId' => $tblPerson->getId()))
                     );
                 }
@@ -319,7 +319,7 @@ class Hoga  extends Extension implements IModuleInterface
                         'Voraussichtlich bis')
                     , 3),
                 new LayoutColumn(
-                    new TextField('Data[EducationPay]', '', 'Ausbildungsvergütung')
+                    new TextField('Data[EducationPay]', '', 'Bemerkung')
                     , 12)
             ));
         } else {

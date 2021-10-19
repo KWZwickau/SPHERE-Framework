@@ -264,10 +264,16 @@ class TblAbsence extends Element
         return $lessons ? '' : $countDays;
     }
 
-    public function getLessonStringByAbsence()
+    /**
+     * @param int $countLessons
+     *
+     * @return string
+     */
+    public function getLessonStringByAbsence(int &$countLessons = 0): string
     {
         $result = '';
         if (($list = Absence::useService()->getAbsenceLessonAllByAbsence($this))) {
+            $countLessons = count($list);
             foreach ($list as $tblAbsenceLesson) {
                 $result .= ($result == '' ? '' : ', ') . $tblAbsenceLesson->getLesson() . '.UE';
             }

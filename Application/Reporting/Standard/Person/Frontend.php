@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -990,7 +991,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Birthplace'   => 'Geburtsort',
                                 'Address'      => 'Adresse',
                                 'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund'),
+                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
                                 'Mail'         => 'E-Mail',
 
                             ),
@@ -1378,15 +1379,20 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['Gender'] = 'Geschlecht';
         $TableHead['Birthday'] = 'Geburtsdatum';
         $TableHead['BirthPlace'] = 'Geburtsort';
+        $TableHead['Nationality'] = 'Staatsangehörigkeit';
         $TableHead['Address'] = 'Adresse';
+        $TableHead['Medication'] = 'Medikamente';
+        $TableHead['InsuranceState'] = 'Versicherungsstatus';
         $TableHead['Insurance'] = 'Krankenkasse';
-        $TableHead['Religion'] = 'Religion';
+        $TableHead['Religion'] = 'Konfession';
         $TableHead['PhoneFixedPrivate'] = 'Festnetz (Privat)';
         $TableHead['PhoneFixedWork'] = 'Festnetz (Geschäftl.)';
         $TableHead['PhoneFixedEmergency'] = 'Festnetz (Notfall)';
         $TableHead['PhoneMobilePrivate'] = 'Mobil (Privat)';
         $TableHead['PhoneMobileWork'] = 'Mobil (Geschäftl.)';
         $TableHead['PhoneMobileEmergency'] = 'Mobil (Notfall)';
+        $TableHead['MailPrivate'] = 'E-Mail Privat';
+        $TableHead['MailWork'] = 'E-Mail Geschäftlich';
         if(isset($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID])
             && $PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
             $TableHead['PersonGroup'] = 'Personengruppe';
@@ -1402,6 +1408,9 @@ class Frontend extends Extension implements IFrontendInterface
             $TableHead['Custody_'.$i.'_Title'] = 'Sorg'.$i.' Titel';
             $TableHead['Custody_'.$i.'_FirstName'] = 'Sorg'.$i.' Vorname';
             $TableHead['Custody_'.$i.'_LastName'] = 'Sorg'.$i.' Nachname';
+            $TableHead['Custody_'.$i.'_BirthDay'] = 'Sorg'.$i.' Geburtstag';
+            $TableHead['Custody_'.$i.'_BirthPlace'] = 'Sorg'.$i.' Geburtsort';
+            $TableHead['Custody_'.$i.'_Job'] = 'Sorg'.$i.' Beruf';
             $TableHead['Custody_'.$i.'_Address'] = 'Sorg'.$i.' Adresse';
             $TableHead['Custody_'.$i.'_PhoneFixedPrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
             $TableHead['Custody_'.$i.'_PhoneFixedWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
@@ -1420,18 +1429,18 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                     // Sibling
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (16 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (17 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (18 + $AddCount)),
-                    // Custody 1
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (21 + $AddCount)),
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+                    // Custody 1
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount)),
                     // Custody 2
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (34 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (35 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (43 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (44 + $AddCount)),
                     // Custody 3
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (47 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (48 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (59 + $AddCount)),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (60 + $AddCount)),
                 ),
 //                'pageLength' => -1,
 //                'paging'     => false,
@@ -1549,8 +1558,8 @@ class Frontend extends Extension implements IFrontendInterface
             $global->savePost();
         }
 
-        $receiverContent = ApiStandard::receiverFormSelect(
-            (new ApiStandard())->reloadAbsenceContent()
+        $receiverContent = ApiStandard::receiverBlock(
+            (new ApiStandard())->reloadAbsenceContent(), 'AbsenceContent'
         );
 
         $datePickerFrom = new DatePicker('Data[Date]', '', 'Datum von', new Calendar());
@@ -1558,7 +1567,7 @@ class Frontend extends Extension implements IFrontendInterface
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
         $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
-        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
+        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent());
 
         $stage->setContent(
            new Form(new FormGroup(new FormRow(array(
@@ -1653,6 +1662,107 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param string|null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendStudentArchive(?string $YearId = null): Stage
+    {
+
+        $Stage = new Stage('Auswertung', 'Ehemalige Schüler');
+        // aktuelle Schuljahre herausfiltern
+        $yearList = array();
+        if (($tblYearAll = Term::useService()->getYearAll())
+            && ($tblYearListByNow = Term::useService()->getYearByNow())
+        ) {
+            foreach ($tblYearAll as $tblYear) {
+                $isAdd = true;
+                foreach ($tblYearListByNow as $tblYearNow) {
+                    if ($tblYear->getId() == $tblYearNow->getId()) {
+                        $isAdd = false;
+                        break;
+                    }
+                }
+
+                if ($isAdd) {
+                    $yearList[] = $tblYear;
+                }
+            }
+        } else {
+            $yearList = $tblYearAll;
+        }
+
+        $Stage->setContent(
+            (new SelectBox('YearId', 'Letztes Schuljahr der Schüler', array('{{ DisplayName }}' =>
+                $yearList)))->setRequired()->ajaxPipelineOnChange(ApiStandard::pipelineLoadStudentArchiveContent($YearId))
+            . ApiStandard::receiverBlock(
+                new Warning('Bitte wählen Sie ein Schuljahr aus!'),
+                'StudentArchiveContent'
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function getStudentArchiveContent(TblYear $tblYear): string
+    {
+        if (($personList = Division::useService()->getLeaveStudents($tblYear))) {
+            $dataList = Person::useService()->createStudentArchiveList($personList);
+
+            return
+                (new Primary('Herunterladen','/Api/Reporting/Standard/Person/StudentArchive/Download',
+                    new Download(), array('YearId' => $tblYear->getId())))
+                . (new Danger('Die dauerhafte Speicherung des Excel-Exports
+                        ist datenschutzrechtlich nicht zulässig!', new Exclamation()))
+                . (new TableData($dataList, null,
+                    array(
+                        'LastDivision' =>       'Abgangsklasse',
+                        'LastName' =>           'Name',
+                        'FirstName' =>          'Vorname',
+                        'Gender' =>             'Geschlecht',
+                        'Birthday' =>           'Geburtsdatum',
+                        'Custody1Salutation' => 'Anrede Sorg1',
+                        'Custody1FirstName' =>  'Vorname Sorg1',
+                        'Custody1LastName' =>   'Nachname Sorg1',
+                        'Custody2Salutation' => 'Anrede Sorg2',
+                        'Custody2FirstName' =>  'Vorname Sorg2',
+                        'Custody2LastName' =>   'Nachname Sorg2',
+                        'Street' =>             'Straße',
+                        'ZipCode' =>            'PLZ',
+                        'City' =>               'Ort',
+                        'LastSchool' =>         'Abgebende Schule',
+                        'NewSchool' =>          'Aufnehmende Schule',
+                        'LeaveDate' =>          'Abmeldedatum'
+                    ),
+                    array(
+                        'order' => array(
+                            array(0, 'asc'),
+                            array(1, 'asc'),
+                        ),
+                        "pageLength" => -1,
+                        "responsive" => false,
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0),
+                            array('type' => 'de_date', 'targets' => 16),
+                                // dann ist die Tabelle leer, Api bringt Fehler
+//                            array(
+//                                'type' => Consumer::useService()->getGermanSortBySetting(),
+//                                'targets' => array(1, 2)
+//                            ),
+                        ),
+                    )
+                ));
+        }
+
+        return new Warning('Für das Schuljahr: ' . $tblYear->getDisplayName(). ' wurden keine Abgänger gefunden.', new Exclamation());
     }
 
     /**

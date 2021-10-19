@@ -196,7 +196,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $SubjectUsedCount = Division::useService()->countDivisionSubjectForSubjectTeacherByDivision($tblDivision);
                 $GroupTeacherCount = Division::useService()->countDivisionSubjectGroupTeacherByDivision($tblDivision);
                 $Temp['Description'] = $tblDivision->getDescription();
-                $Temp['StudentList'] = Division::useService()->getCountStringStudentAllByDivision($tblDivision);
+
+                $StudentInfo = Division::useService()->getStudentInfoAllByDivision($tblDivision);
+                $Temp['StudentList'] = $StudentInfo['StudentList'];
+                $Temp['StudentGender'] = $StudentInfo['StudentGender'];
 
                 // SSW-834 jahrgangsübergreifende nicht mitzählen, ansonsten werden Schüler doppelt gezählt
                 if (($tblLevel = $tblDivision->getTblLevel())
@@ -304,16 +307,17 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
-                                    'Year'        => 'Schuljahr',
-                                    'Period'      => 'Zeitraum',
-                                    'SchoolType'  => 'Schulart',
-                                    'Company'     => 'Schule',
-                                    'ClassGroup'  => 'Klasse',
-                                    'Description' => 'Beschreibung',
-                                    'StudentList' => 'Schüler',
-                                    'TeacherList' => 'Klassenlehrer',
-                                    'SubjectList' => 'Fächer',
-                                    'Option'      => '',
+                                    'Year'          => 'Schuljahr',
+                                    'Period'        => 'Zeitraum',
+                                    'SchoolType'    => 'Schulart',
+                                    'Company'       => 'Schule',
+                                    'ClassGroup'    => 'Klasse',
+                                    'Description'   => 'Beschreibung',
+                                    'StudentList'   => 'Schüler',
+                                    'StudentGender' => 'Geschlecht',
+                                    'TeacherList'   => 'Klassenlehrer',
+                                    'SubjectList'   => 'Fächer',
+                                    'Option'        => '',
                                 )
                                 , array(
                                     'order'      => array(array(4, 'asc')),

@@ -43,7 +43,6 @@ class StudentService
                     $tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool();
                     if (!$tblStudentTechnicalSchool) {
                         $tblStudentTechnicalSchool = new ServiceAPP\Entity\TblStudentTechnicalSchool();
-                        $BulkProtocol[] = false;
                         $tblStudentTechnicalSchool->setServiceTblTechnicalCourse($tblTechnicalCourse);
                         $tblStudentTechnicalSchool->setPraxisLessons('');
                         $tblStudentTechnicalSchool->setDurationOfTraining('');
@@ -53,12 +52,30 @@ class StudentService
                         $tblStudentTechnicalSchool->setHasFinancialAid(false);
                         $tblStudentTechnicalSchool->setFinancialAidApplicationYear('');
                         $tblStudentTechnicalSchool->setFinancialAidBureau('');
+
+                        $tblStudentTechnicalSchool = Student::useService()->insertStudentTechnicalSchool(
+                            '',
+                            '',
+                            '',
+                            $tblTechnicalCourse
+                        );
+                        Student::useService()->updateStudentField(
+                            $tblStudent,
+                            $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
+                            $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                            $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                            $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                            $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                            $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                            $tblStudentTechnicalSchool
+                        );
                     } else {
                         $BulkProtocol[] = clone $tblStudentTechnicalSchool;
-                    }
-                    $tblStudentTechnicalSchool->setServiceTblTechnicalCourse($tblTechnicalCourse);
+                        $tblStudentTechnicalSchool->setServiceTblTechnicalCourse($tblTechnicalCourse);
 
-                    $BulkSave[] = $tblStudentTechnicalSchool;
+                        $BulkSave[] = $tblStudentTechnicalSchool;
+                    }
                 }
             }
             if (!empty($BulkSave)) {
@@ -98,7 +115,6 @@ class StudentService
                     $tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool();
                     if (!$tblStudentTechnicalSchool) {
                         $tblStudentTechnicalSchool = new ServiceAPP\Entity\TblStudentTechnicalSchool();
-                        $BulkProtocol[] = false;
                         $tblStudentTechnicalSchool->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
                         $tblStudentTechnicalSchool->setPraxisLessons('');
                         $tblStudentTechnicalSchool->setDurationOfTraining('');
@@ -108,12 +124,39 @@ class StudentService
                         $tblStudentTechnicalSchool->setHasFinancialAid(false);
                         $tblStudentTechnicalSchool->setFinancialAidApplicationYear('');
                         $tblStudentTechnicalSchool->setFinancialAidBureau('');
+
+                        $tblStudentTechnicalSchool = Student::useService()->insertStudentTechnicalSchool(
+                            '',
+                            '',
+                            '',
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            '',
+                            '',
+                            $tblTechnicalSubjectArea
+                        );
+                        Student::useService()->updateStudentField(
+                            $tblStudent,
+                            $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
+                            $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                            $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                            $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                            $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                            $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                            $tblStudentTechnicalSchool
+                        );
                     } else {
                         $BulkProtocol[] = clone $tblStudentTechnicalSchool;
-                    }
-                    $tblStudentTechnicalSchool->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
+                        $tblStudentTechnicalSchool->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
 
-                    $BulkSave[] = $tblStudentTechnicalSchool;
+                        $BulkSave[] = $tblStudentTechnicalSchool;
+                    }
                 }
             }
             if (!empty($BulkSave)) {

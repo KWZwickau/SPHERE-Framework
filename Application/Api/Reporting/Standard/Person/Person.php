@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
@@ -326,6 +327,25 @@ class Person
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Fördervereinsmitgliedschaft ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return false;
+    }
+
+    /**
+     * @return string|bool
+     */
+    public function downloadStudentArchive(?string $YearId = null)
+    {
+        if (($tblYear = Term::useService()->getYearById($YearId))
+            && ($personList = Division::useService()->getLeaveStudents($tblYear))
+        ) {
+            $dataList = ReportingPerson::useService()->createStudentArchiveList($personList);
+
+            $fileLocation = ReportingPerson::useService()->createStudentArchiveExcel($dataList);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Ehemalige Schüler " . $tblYear->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;

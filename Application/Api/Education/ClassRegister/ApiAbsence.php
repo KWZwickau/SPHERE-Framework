@@ -207,7 +207,9 @@ class ApiAbsence extends Extension implements IApiInterface
                         !$hasSearch && $tblPerson && $tblDivision ? new LayoutRow(array(
                             new LayoutColumn(new Panel(
                                 'Schüler',
-                                $tblPerson->getFullName(),
+                                $tblPerson->getFullName() . '&nbsp;&nbsp;'
+                                    . (new Standard('', '/People/Person', new \SPHERE\Common\Frontend\Icon\Repository\Person(),
+                                    array('Id' => $tblPerson->getId()), 'zur Person'))->setExternal(),
                                 Panel::PANEL_TYPE_INFO
                             ), 6),
                             new LayoutColumn(new Panel(
@@ -848,7 +850,7 @@ class ApiAbsence extends Extension implements IApiInterface
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    new ToolTip(new Center(new Bold('KW' . $WeekNumber. ' ')), $Year)
+                                    new ToolTip(new Center(new Bold('KW' . $WeekNumber. ' ')), $Year . '')
                                     , 4),
                                 new LayoutColumn(
                                     new Center(
@@ -902,20 +904,23 @@ class ApiAbsence extends Extension implements IApiInterface
         // T Theorie, P Praxis
         // [Vorname] [Nachname] ( [[UE]] / [T/P] / [U/E])
 
-        $lesson = $tblAbsence->getLessonStringByAbsence();
+        $countLessons = 0;
+        $lesson = $tblAbsence->getLessonStringByAbsence($countLessons);
         $type = $tblAbsence->getTypeDisplayShortName();
+        $tblPersonStaff = $tblAbsence->getDisplayStaff();
 
         $dataList[$tblDivision->getId()][$date][$tblPerson->getId()] = (new Link(
-            $tblPerson->getFullName()
+            $tblPerson->getLastFirstName()
                 . ' ('
-//                . ($lesson ? $lesson . ' / ': '')
-//                . ($type ? $type . ' / ': '')
-                . $tblAbsence->getStatusDisplayShortName() . ')',
+                . $tblAbsence->getStatusDisplayShortName()
+                . ($countLessons > 0 ? ' - ' . $countLessons . 'UE' : '')
+                . ($tblPersonStaff ? ' - ' . $tblPersonStaff : '')
+                . ')',
             ApiAbsence::getEndpoint(),
             null,
             array(),
             ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
-            . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+            . ($tblPersonStaff ? ' - ' . $tblPersonStaff : '')
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
     }
 

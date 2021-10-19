@@ -316,6 +316,22 @@ class TblPerson extends Element
     }
 
     /**
+     * @param string $format
+     *
+     * @return string
+     */
+    public function getBirthday(string $format = 'd.m.Y'): string
+    {
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                return $tblCommonBirthDates->getBirthday($format);
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * @return string
      */
     public function getCallName()

@@ -1274,6 +1274,8 @@ class Frontend extends Extension implements IFrontendInterface
         $countTotalPerson = 0;
         $countCompany = 0;
 
+        $countCheckBoxValue = array();
+
         // filter
         if ($YearPersonId !== null) {
             $Global = $this->getGlobal();
@@ -1574,6 +1576,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX'){
                                         if (isset($ObjectContentList[$objectId][$tblListElementList->getId()]) && $ObjectContentList[$objectId][$tblListElementList->getId()] == 1){
                                             $list[$count]['Field'.$tblListElementList->getId()] = new Center(new SuccessIcon());
+                                            if (isset($countCheckBoxValue['Field' . $tblListElementList->getId()])) {
+                                                $countCheckBoxValue['Field' . $tblListElementList->getId()]++;
+                                            } else {
+                                                $countCheckBoxValue['Field' . $tblListElementList->getId()] = 1;
+                                            }
                                         } else {
                                             $list[$count]['Field'.$tblListElementList->getId()] = '';
                                         }
@@ -1681,6 +1688,14 @@ class Frontend extends Extension implements IFrontendInterface
             $filterSchoolOptionText = $filterSchoolOption2->getName();
         } else {
             $filterSchoolOptionText = '';
+        }
+
+        // isChecked zählen
+        $countAll = $countPerson + $countCompany;
+        foreach ($countCheckBoxValue as $fieldId => $countCheck) {
+            if (isset($columnDefinition[$fieldId])) {
+                $columnDefinition[$fieldId] = $columnDefinition[$fieldId] . ' (' . $countCheck . ' von ' . $countAll . ')';
+            }
         }
 
         $Stage->setContent(

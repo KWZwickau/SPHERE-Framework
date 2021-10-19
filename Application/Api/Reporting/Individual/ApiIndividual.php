@@ -164,6 +164,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'S3:_Geburtsname',
     );
 
+    // sortierung der Spalten nach einer natürlichen Zahl
+    private $FieldNameSortByNumeric = array(
+        'Bildung:_Klasse',
+        'Bildung:_Klassenstufe'
+    );
+
     use ApiTrait, AppTrait;
 
     public static function registerModule()
@@ -1393,7 +1399,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $PanelString = '';
 
         $ViewBlockList = array();
-        /** @noinspection PhpUndefinedMethodInspection */
         $ConstantList = $View::getConstants();    // auslesen der Konstanten
         if ($ConstantList) {
             foreach ($ConstantList as $Constant) {
@@ -1821,7 +1826,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      * @param string $ViewType
      * @param bool   $SqlReturn
      *
-     * @return \Doctrine\ORM\Query|null
+     * @return \Doctrine\ORM\Query|Code|null
      */
     private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $SqlReturn = false)
     {
@@ -2129,7 +2134,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             case 1:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
                 return $Builder->expr()->like($View . '.' . $Field, $Parameter);
-                break;
+//                break;
             case 2:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
                 $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
@@ -2141,11 +2146,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->expr()->eq($View . '.' . $Field,
                         $Parameter)
                 );
-                break;
+//                break;
             case 4:
                 $ParameterList[$Parameter] = '_%';
                 return $Builder->expr()->like($View . '.' . $Field, $Parameter);
-                break;
+//                break;
         }
         //default
         $ParameterList[$Parameter] = '%'.$Value.'%';
@@ -2229,6 +2234,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
                     if(in_array($Name, $this->FieldNameSortByGermanString)) {
                         $GermanStringOrder[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => $i);
+                    }
+                    if(in_array($Name, $this->FieldNameSortByNumeric)) {
+                        $GermanStringOrder[] = array('type' => 'natural', 'targets' => $i);
                     }
                     $i++;
                 });

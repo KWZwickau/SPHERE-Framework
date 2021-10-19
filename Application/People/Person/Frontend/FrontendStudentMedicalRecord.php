@@ -1,7 +1,12 @@
 <?php
 namespace SPHERE\Application\People\Person\Frontend;
 
+use SPHERE\Application\Api\MassReplace\ApiMassReplace;
+use SPHERE\Application\Api\MassReplace\StudentFilter;
+use SPHERE\Application\Api\People\Meta\MedicalRecord\MassReplaceMedicalRecord;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
@@ -9,7 +14,6 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -31,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
 use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -201,10 +206,10 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 $Global->POST['Meta']['MedicalRecord']['Insurance']['Company'] = $tblStudentMedicalRecord->getInsurance();
                 $Global->POST['Meta']['MedicalRecord']['Masern']['Date'] = $tblStudentMedicalRecord->getMasernDate();
                 if(($tblStudentMasernInfoDocument = $tblStudentMedicalRecord->getMasernDocumentType())){
-                    $Global->POST['Meta']['MedicalRecord']['DocumentType'][$tblStudentMasernInfoDocument->getMeta()] = $tblStudentMasernInfoDocument->getId();
+                    $Global->POST['Meta']['MedicalRecord']['Masern']['DocumentType'] = $tblStudentMasernInfoDocument->getId();
                 }
                 if(($tblStudentMasernInfoCreator = $tblStudentMedicalRecord->getMasernCreatorType())){
-                    $Global->POST['Meta']['MedicalRecord']['CreatorType'][$tblStudentMasernInfoCreator->getMeta()] = $tblStudentMasernInfoCreator->getId();
+                    $Global->POST['Meta']['MedicalRecord']['Masern']['CreatorType'] = $tblStudentMasernInfoCreator->getId();
                 }
                 $Global->savePost();
             }
@@ -233,63 +238,73 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
     private function getEditStudentMedicalRecordForm(TblPerson $tblPerson = null)
     {
 
+        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+        $NodeMasern = 'Masern-Impfpflicht';
+
 //        $tblPerson
         $tblStudentInsuranceState = Student::useService()->getStudentInsuranceStateAll();
 
         $PanelContentArray = array();
-        $PanelContentArray[] = new DatePicker('Meta[MedicalRecord][Masern][Date]', null, 'Datum (vorgelegt am)');
+        $PanelContentArray[] =
+            ApiMassReplace::receiverField((
+            $Field = new DatePicker('Meta[MedicalRecord][Masern][Date]', null, 'Datum (vorgelegt am)')))
+            . ApiMassReplace::receiverModal($Field, $NodeMasern)
+            . new PullRight((new Link('Massen-Änderung',
+                ApiMassReplace::getEndpoint(), null, array(
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceMedicalRecord::CLASS_MASS_REPLACE_MEDICAL_RECORD,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceMedicalRecord::METHOD_REPLACE_MASERN_DATE,
+                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
+                    'Id' => $tblPerson->getId(),
+                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                    'Node' => $NodeMasern,
+                )))->ajaxPipelineOnClick(
+                ApiMassReplace::pipelineOpen($Field, $NodeMasern)
+            ));
 
         // Document
         $tblStudentMasernInfoDocumentList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_DOCUMENT);
-        $DisableDocumentList = array(
-            TblStudentMasernInfo::DOCUMENT_IDENTIFICATION => array(
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_IMMUNITY.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION.']'
-            ),
-            TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION => array(
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_IDENTIFICATION.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_IMMUNITY.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION.']'
-            ),
-            TblStudentMasernInfo::DOCUMENT_IMMUNITY => array(
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_IDENTIFICATION.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION.']'
-            ),
-            TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION => array(
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_IDENTIFICATION.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION.']',
-                'Meta[MedicalRecord][DocumentType]['.TblStudentMasernInfo::DOCUMENT_IMMUNITY.']',
-            )
-        );
 
-        $DocumentType = new Bold('Art der Bescheinigung');
-        if($tblStudentMasernInfoDocumentList){
-            foreach($tblStudentMasernInfoDocumentList as $tblStudentMasernInfoDocument){
-                $DocumentType .= new CheckBox('Meta[MedicalRecord][DocumentType]['.$tblStudentMasernInfoDocument->getMeta().']',
-                    $tblStudentMasernInfoDocument->getTextLong(), $tblStudentMasernInfoDocument->getId(), $DisableDocumentList[$tblStudentMasernInfoDocument->getMeta()]);
-            }
-        }
-        $PanelContentArray[] = $DocumentType;
+        $Field = new SelectBox('Meta[MedicalRecord][Masern][DocumentType]', 'Art der Bescheinigung', array('TextLong' => $tblStudentMasernInfoDocumentList));
+        $PanelContentArray[] =
+            ApiMassReplace::receiverField($Field)
+            . ApiMassReplace::receiverModal($Field, $NodeMasern)
+            . new PullRight((new Link('Massen-Änderung',
+                ApiMassReplace::getEndpoint(), null, array(
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceMedicalRecord::CLASS_MASS_REPLACE_MEDICAL_RECORD,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceMedicalRecord::METHOD_REPLACE_MASERN_DOCUMENT,
+                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
+                    'Id' => $tblPerson->getId(),
+                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                    'Node' => $NodeMasern,
+                )))->ajaxPipelineOnClick(
+                ApiMassReplace::pipelineOpen($Field, $NodeMasern)
+            ));
         // Creator
         $tblStudentMasernInfoProofList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_CREATOR);
-        $DisableCreatorList = array(
-            TblStudentMasernInfo::CREATOR_STATE => array(
-                'Meta[MedicalRecord][CreatorType]['.TblStudentMasernInfo::CREATOR_COMMUNITY.']'
-            ),
-            TblStudentMasernInfo::CREATOR_COMMUNITY => array(
-                'Meta[MedicalRecord][CreatorType]['.TblStudentMasernInfo::CREATOR_STATE.']'
-            ),
-        );
-        $CreatorType = new Bold('Bescheinigung, dass der Nachweis bereits vorgelegt wurde, durch:');
-        if($tblStudentMasernInfoProofList){
-            foreach($tblStudentMasernInfoProofList as $tblStudentMasernInfoProof){
-                $CreatorType .= new CheckBox('Meta[MedicalRecord][CreatorType]['.$tblStudentMasernInfoProof->getMeta().']',
-                    $tblStudentMasernInfoProof->getTextLong(), $tblStudentMasernInfoProof->getId(), $DisableCreatorList[$tblStudentMasernInfoProof->getMeta()]);
-            }
-        }
-        $PanelContentArray[] = $CreatorType;
+
+        $Field = new SelectBox('Meta[MedicalRecord][Masern][CreatorType]', 'Bescheinigung, dass der Nachweis bereits vorgelegt wurde, durch', array('TextLong' => $tblStudentMasernInfoProofList));
+        $PanelContentArray[] = ApiMassReplace::receiverField($Field)
+            . ApiMassReplace::receiverModal($Field, $NodeMasern)
+            . new PullRight((new Link('Massen-Änderung',
+                ApiMassReplace::getEndpoint(), null, array(
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceMedicalRecord::CLASS_MASS_REPLACE_MEDICAL_RECORD,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceMedicalRecord::METHOD_REPLACE_MASERN_CREATOR,
+                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
+                    'Id' => $tblPerson->getId(),
+                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                    'Node' => $NodeMasern,
+                )))->ajaxPipelineOnClick(
+                ApiMassReplace::pipelineOpen($Field, $NodeMasern)
+            ));
 
         return (new Form(array(
             new FormGroup(array(
