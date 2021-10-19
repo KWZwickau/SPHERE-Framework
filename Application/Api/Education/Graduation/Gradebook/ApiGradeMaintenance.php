@@ -13,10 +13,13 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Extension\Extension;
@@ -44,6 +47,8 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadDivisionSubjectInformation');
         $Dispatcher->registerMethod('loadMoveButton');
         $Dispatcher->registerMethod('copyTestsAndGrades');
+
+        $Dispatcher->registerMethod('loadUnreachableGrades');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -358,5 +363,138 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
         }
 
         return '';
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadUnreachableGrades(?array $Data): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'UnreachableGrades'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadUnreachableGrades',
+            'Data' => $Data
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+        $Pipeline->setLoadingMessage('Daten werden geladen. Bitte warten');
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return string
+     */
+    public function loadUnreachableGrades(?array $Data): string
+    {
+        ini_set('memory_limit', '1G');
+
+        if (isset($Data['YearId'])
+            && ($tblYear = Term::useService()->getYearById($Data['YearId']))
+        ) {
+            $panel = new Panel('Schuljahr', $tblYear->getDisplayName());
+
+            $list = array();
+
+            list($fromCreateDate, $toCreateDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if (!$fromCreateDate && !$toCreateDate) {
+                return $panel . new \SPHERE\Common\Frontend\Message\Repository\Warning('Das Schuljahr besitzt keinen Zeitraum!');
+            }
+
+            if (($tblGradeList = Gradebook::useService()->getGradeAllByFromCreateDate($fromCreateDate, $toCreateDate))) {
+                foreach ($tblGradeList as $tblGrade) {
+                    $tblPerson = $tblGrade->getServiceTblPerson();
+                    if (($tblDivision = $tblGrade->getServiceTblDivision())) {
+                        $tblYear = $tblDivision->getServiceTblYear();
+                    } else {
+                        $tblYear = false;
+                    }
+                    $tblSubject = $tblGrade->getServiceTblSubject();
+                    $tblSubjectGroup = $tblGrade->getServiceTblSubjectGroup();
+                    $tblTest = $tblGrade->getServiceTblTest();
+
+                    if (!$tblPerson || !$tblDivision || !$tblSubject || !$tblTest) {
+                        $list[] = array(
+                            'Year' => $tblYear ? $tblYear->getDisplayName() : $this->getWarning('Schuljahr'),
+                            'Division' => $tblDivision ? $tblDivision->getDisplayName() : $this->getWarning('Klasse'),
+                            'Subject' => $tblSubject ? $tblSubject->getDisplayName() : $this->getWarning('Fach'),
+                            'SubjectGroup' => $tblSubjectGroup ? $tblSubjectGroup->getName() : '',
+                            'Test' => $tblTest ? $tblTest->getGradeTypeCode() : $this->getWarning('Leistungsüberprüfung'),
+                            'Person' => $tblPerson ? $tblPerson->getLastFirstName() : $this->getWarning('Person'),
+                            'Grade' => $tblGrade->getDisplayGrade(),
+                            'GradeId' => $tblGrade->getId(),
+                            'Info' => ''
+                        );
+                    } else {
+                        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                            $tblDivision,
+                            $tblSubject,
+                            $tblSubjectGroup ? $tblSubjectGroup : null
+                        );
+                        // Fach-Klassen-Gruppe nicht mehr vorhanden
+                        if (!$tblDivisionSubject) {
+                            $list[] = array(
+                                'Year' => $tblYear ? $tblYear->getDisplayName() : $this->getWarning('Schuljahr'),
+                                'Division' => $tblDivision->getDisplayName(),
+                                'Subject' => $tblSubject->getDisplayName(),
+                                'SubjectGroup' => $tblSubjectGroup ? $tblSubjectGroup->getName() : '',
+                                'Test' => $tblTest->getGradeTypeCode(),
+                                'Person' => $tblPerson->getLastFirstName(),
+                                'Grade' => $tblGrade->getDisplayGrade(),
+                                'GradeId' => $tblGrade->getId(),
+                                'Info' => $this->getWarning('Fach-Klassen-Gruppen')
+                            );
+                        } elseif (!$tblSubjectGroup
+                            && Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject($tblDivision, $tblSubject)
+                        ) {
+                            $list[] = array(
+                                'Year' => $tblYear ? $tblYear->getDisplayName() : $this->getWarning('Schuljahr'),
+                                'Division' => $tblDivision->getDisplayName(),
+                                'Subject' => $tblSubject->getDisplayName(),
+                                'SubjectGroup' => '',
+                                'Test' => $tblTest->getGradeTypeCode(),
+                                'Person' => $tblPerson->getLastFirstName(),
+                                'Grade' => $tblGrade->getDisplayGrade(),
+                                'GradeId' => $tblGrade->getId(),
+                                'Info' => new Warning(new Disable() . ' Die Note hat keine Gruppe, es sind allerdings jetzt Gruppen vorhanden.
+                                    Die Noten ist nicht mehr aufrufbar!')
+                            );
+                        }
+                    }
+                }
+            }
+
+            if (empty($list)) {
+                return $panel . new Success('Es sind keine unerreichbare Zensuren vorhanden');
+            } else {
+                return $panel . new TableData(
+                    $list,
+                    null,
+                    array(
+                        'Year' => 'Schuljahr',
+                        'Division' => 'Klasse',
+                        'Subject' => 'Fach',
+                        'SubjectGroup' => 'Gruppe',
+                        'Test' => 'Leistungsüberprüfung',
+                        'Person' => 'Person',
+                        'Grade' => 'Zensur',
+                        'GradeId' => 'GradeId',
+                        'Info' => 'Info'
+                    )
+                );
+            }
+        }
+
+        return '';
+    }
+
+    private function getWarning(string $name): string
+    {
+        return new Warning(new Disable() . ' ' . $name . ' nicht vorhanden!');
     }
 }

@@ -200,6 +200,14 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @return false|TblGrade[]
+     */
+    public function getGradeAllByFromCreateDate(DateTime $fromCreateDate, DateTime $toCreateDate)
+    {
+        return (new Data($this->getBinding()))->getGradeAllByFromCreateDate($fromCreateDate, $toCreateDate);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|Service\Entity\TblGradeType

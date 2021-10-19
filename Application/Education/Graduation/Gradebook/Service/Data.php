@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
+use DateTime;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -215,7 +216,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setGrade($Grade);
             $Entity->setComment($Comment);
             $Entity->setTrend($Trend);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
             $Entity->setPublicComment($PublicComment);
 
@@ -279,6 +280,32 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         return $this->getForceEntityListBy(__METHOD__,$this->getEntityManager(),(new TblGrade())->getEntityShortName(), $Parameter);
     }
 
+    /**
+     * @param DateTime $fromCreateDate
+     * @param DateTime $toCreateDate
+     *
+     * @return array|false|int|string
+     */
+    public function getGradeAllByFromCreateDate(DateTime $fromCreateDate, DateTime $toCreateDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblGrade', 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->gte('t.EntityCreate', '?1'),
+                $queryBuilder->expr()->lte('t.EntityCreate', '?2'),
+                $queryBuilder->expr()->isNull('t.EntityRemove')
+            ))
+            ->setParameter(1, $fromCreateDate)
+            ->setParameter(2, $toCreateDate)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
 
     /**
      * @param $Id
@@ -490,7 +517,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setComment($Comment);
             $Entity->setPublicComment($PublicComment);
             $Entity->setTrend($Trend);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
             $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
 

@@ -96,6 +96,11 @@ class DataMaintenance
                 __CLASS__ . '::frontendGrade'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeUnreachable',
+                __CLASS__ . '::frontendGradeUnreachable'
+            )
+        );
     }
 
     /**
@@ -183,7 +188,8 @@ class DataMaintenance
                     )),
                     new LayoutColumn(array(
                         new TitleLayout('Zensuren/Noten'),
-                        new Standard('Verschieben', __NAMESPACE__.'/Grade')
+                        (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
+                            .  (new Standard('Unerreichbare Zensuren', __NAMESPACE__.'/GradeUnreachable'))
                     ))
 //                    $IntegrationColumn,
                 ))
@@ -778,5 +784,29 @@ class DataMaintenance
         );
 
         return $stage;
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return Stage
+     */
+    public function frontendGradeUnreachable(?array $Data = null): Stage
+    {
+        $stage = new Stage('Unerreichbare Zensuren');
+        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $tblYearList = Term::useService()->getYearAll();
+
+        $stage->setContent(
+            (new SelectBox('Data[YearId]', 'Schuljahr',
+                array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
+                ->ajaxPipelineOnChange(array(
+                    ApiGradeMaintenance::pipelineLoadUnreachableGrades($Data)
+                ))->setRequired()
+            . ApiGradeMaintenance::receiverBlock('', 'UnreachableGrades')
+        );
+
+        return  $stage;
     }
 }
