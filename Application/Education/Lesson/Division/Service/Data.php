@@ -1454,6 +1454,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivisionSubject[] $tblDivisionSubjectList
+     *
+     * @return bool
+     */
+    public function removeDivisionSubjectBulk(
+        array $tblDivisionSubjectList
+    ) : bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($tblDivisionSubjectList)) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                $Entity = $Manager->getEntityById('TblDivisionSubject', $tblDivisionSubject->getId());
+                if (null !== $Entity) {
+                    /** @var TblDivisionSubject $Entity */
+                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblSubjectStudent $tblSubjectStudent
      * @param bool $IsSoftRemove
      *

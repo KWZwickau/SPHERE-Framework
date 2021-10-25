@@ -798,6 +798,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivisionSubject[] $tblDivisionSubjectList
+     *
+     * @return bool
+     */
+    public function removeDivisionSubjectBulk(
+        array $tblDivisionSubjectList
+    ) : bool {
+        return (new Data($this->getBinding()))->removeDivisionSubjectBulk($tblDivisionSubjectList);
+    }
+
+    /**
      * @param TblSubjectGroup $tblSubjectGroup
      * @param TblDivisionSubject $tblDivisionSubject
      *
