@@ -965,21 +965,27 @@ class Service extends AbstractService
      * @param TblDivision $tblDivision
      * @param TblSubject  $tblSubject
      * @param string      $SubjectGroup
-     * @param bool        $IsIntensiveCourse
+     * @param bool|null   $IsIntensiveCourse
      *
      * @return bool|null|object|TblDivisionSubject
      */
     public function addSubjectToDivisionWithGroupImport(
         TblDivision $tblDivision,
         TblSubject $tblSubject,
-        $SubjectGroup,
-        $IsIntensiveCourse = false
+        string $SubjectGroup,
+        ?bool $IsIntensiveCourse = null
     ) {
 
         $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
             $tblDivision, $tblSubject);
         if (!$tblSubjectGroup) {
             $tblSubjectGroup = Division::useService()->addSubjectGroup($SubjectGroup, '', $IsIntensiveCourse);
+        } elseif ($IsIntensiveCourse !== null) {
+            // nur im Kurssystem updaten, ansonsten werden die Kurse beim Import der Lehraufträge überschrieben
+            if ($tblSubjectGroup->isAdvancedCourse() != $IsIntensiveCourse) {
+                (new Data($this->getBinding()))->updateSubjectGroup($tblSubjectGroup, $tblSubjectGroup->getName(),
+                    $tblSubjectGroup->getDescription(), $IsIntensiveCourse);
+            }
         }
 
         if ($tblSubjectGroup) {
