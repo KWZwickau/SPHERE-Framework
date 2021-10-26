@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Platform\Gatekeeper\Saml;
 
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLPDemo;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlPlaceholder;
 use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
@@ -15,7 +17,25 @@ class Frontend
     {
 
         // no config needed
-        $PhpSaml = new phpSaml('');
+        $PhpSaml = new phpSaml(SamlDLLP::getSAML());
+        echo $PhpSaml->getMetaData();
+        exit;
+    }
+
+    public function XMLMetaDataDLLPDemo()
+    {
+
+        // no config needed
+        $PhpSaml = new phpSaml(SamlDLLPDemo::getSAML());
+        echo $PhpSaml->getMetaData();
+        exit;
+    }
+
+    public function XMLMetaDataPlaceholder()
+    {
+
+        // no config needed
+        $PhpSaml = new phpSaml(SamlPlaceholder::getSAML());
         echo $PhpSaml->getMetaData();
         exit;
     }
@@ -27,11 +47,17 @@ class Frontend
         $PhpSaml->samlLogin();
     }
 
-//    // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
-//    public function frontendLoginEKM()
-//    {
-//
-//        $PhpSaml = new phpSaml(SamlEKM::getSAML());
-//        $PhpSaml->samlLogin();
-//    }
+    public function frontendLoginDLLPDemo()
+    {
+
+        $PhpSaml = new phpSaml(SamlDLLPDemo::getSAML());
+        $PhpSaml->samlLogin();
+    }
+
+    public function frontendLoginPlaceholder()
+    {
+
+        $PhpSaml = new phpSaml(SamlPlaceholder::getSAML());
+        $PhpSaml->samlLogin();
+    }
 }

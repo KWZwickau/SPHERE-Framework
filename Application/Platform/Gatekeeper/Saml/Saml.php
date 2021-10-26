@@ -15,18 +15,26 @@ class Saml implements IModuleInterface
     public static function registerModule()
     {
 
+
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/MetaData', __NAMESPACE__.'/Frontend::XMLMetaData'
+            __NAMESPACE__.'/Placeholder/MetaData', __NAMESPACE__.'/Frontend::XMLMetaDataPlaceholder'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/DLLP/MetaData', __NAMESPACE__.'/Frontend::XMLMetaData'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/DLLPDemo/MetaData', __NAMESPACE__.'/Frontend::XMLMetaDataDLLPDemo'
         ));
 
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Login/Placeholder', __NAMESPACE__.'/Frontend::frontendLoginPlaceholder'
+        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Login/DLLP', __NAMESPACE__.'/Frontend::frontendLoginDLLP'
         ));
-
-//        // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__.'/Login/EKM', __NAMESPACE__.'/Frontend::frontendLoginEKM'
-//        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Login/DLLPDemo', __NAMESPACE__.'/Frontend::frontendLoginDLLPDemo'
+        ));
     }
 
     public static function useService()
