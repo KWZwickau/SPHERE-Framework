@@ -3043,7 +3043,7 @@ class Service extends Extension
                         $DataPerson['Custody_'.$j.'_FirstName'] = '';
                         $DataPerson['Custody_'.$j.'_LastName'] = '';
                         $DataPerson['Custody_'.$j.'_Birthday'] = '';
-                        $DataPerson['Custody_'.$j.'_Birthplace'] = '';
+                        $DataPerson['Custody_'.$j.'_BirthPlace'] = '';
                         $DataPerson['Custody_'.$j.'_Job'] = '';
                         $DataPerson['Custody_'.$j.'_Address'] = '';
                         $DataPerson['Custody_'.$j.'_Street'] = '';
@@ -3131,7 +3131,7 @@ class Service extends Extension
                                 if(($tblCommonCustody = Common::useService()->getCommonByPerson($tblPersonCustody))){
                                     if(($tblCommonBirthDatesCustody = $tblCommonCustody->getTblCommonBirthDates())){
                                         $DataPerson['Custody_'.$i.'_Birthday'] = '';
-                                        $DataPerson['Custody_'.$i.'_Birthplace'] = '';
+                                        $DataPerson['Custody_'.$i.'_BirthPlace'] = '';
                                     }
                                 }
                                 if(($tblCustody = Custody::useService()->getCustodyByPerson($tblPersonCustody))){
@@ -3367,7 +3367,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Title']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_FirstName']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_LastName']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_BirthDay']);
+                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Birthday']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_BirthPlace']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Job']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Street']);
