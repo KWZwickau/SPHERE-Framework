@@ -461,4 +461,30 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
     }
+
+    /**
+     * @param $Number
+     * @param TblType $tblType
+     * @param $Remark
+     * @param array $tblPersonList
+     *
+     * @return bool
+     */
+    public function insertPhoneToPersonList(
+        $Number,
+        TblType $tblType,
+        $Remark,
+        $tblPersonList = array()
+    ) {
+
+        if (($tblPhone = (new Data($this->getBinding()))->createPhone($Number))) {
+            foreach ($tblPersonList as $tblPerson) {
+                (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark);
+            }
+
+            return  true;
+        }
+
+        return false;
+    }
 }
