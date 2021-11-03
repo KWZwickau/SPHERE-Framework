@@ -162,10 +162,18 @@ abstract class AbstractStudentCard extends AbstractDocument
             // umbrüche (<br><wbr> etc.) erzeugen Fehler bei der Darstellung
             $text = str_replace('/', ' / ' ,$text);
 
+            if ($isSecondary) {
+                $paddingTop = '-67px';
+                $paddingLeft = '-93px';
+            } else {
+                $paddingTop = '-53px';
+                $paddingLeft = '-67px';
+            }
+
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, $paddingTop , $paddingLeft, '-40px'))
                 ->styleHeight($heightHeader)
-                ->styleTextSize(strlen($text) > 30 ? '6px' : $textSizeSmall)
+                ->styleTextSize(strlen($text) > 35 ? '6px' : $textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
 
             $section->addElementColumn($element, $widthString);
@@ -380,12 +388,13 @@ abstract class AbstractStudentCard extends AbstractDocument
      *
      * @return string
      */
-    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px')
+    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px', $paddingRight = '')
     {
 
         return
             '<div style="padding-top: ' . $paddingTop
             . '!important;padding-left: ' . $paddingLeft
+            . ($paddingRight !== '' ? '!important; padding-right: ' . $paddingRight : '')
             . '!important;transform: rotate(-90deg)!important;">'
             . $text
             . '</div>';
