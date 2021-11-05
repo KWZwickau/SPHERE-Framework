@@ -138,13 +138,13 @@ class B02
                         $identifier = 'Leave';
                         break;
                     case 1:
-                        $identifier = 'MsAbsHs';
+                        $identifier = 'LeaveHS';
                         break;
                     case 2:
-                        $identifier = 'MsAbsRs';
+                        $identifier = 'LeaveRS';
                         break;
                     case 3:
-                        $identifier = 'GymAbitur';;
+                        $identifier = 'GymAbitur';
                         break;
                     default:
                         $identifier = '';

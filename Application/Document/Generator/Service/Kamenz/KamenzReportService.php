@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document\Generator\Service\Kamenz;
 
 use DateInterval;
 use DateTime;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
@@ -2715,6 +2716,20 @@ class KamenzReportService
                             $hasMigrationBackground = true;
                         }
 
+                        $identifier = 'Leave';
+                        if (($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())
+                            && $tblCertificate->getCertificate() == 'GymAbgSekI'
+                        ) {
+                            if (($tblLeaveInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))) {
+                                if ($tblLeaveInformation->getValue() == GymAbgSekI::COURSE_RS) {
+                                    $identifier = 'LeaveRS';
+                                } elseif ($tblLeaveInformation->getValue() == GymAbgSekI::COURSE_HS
+                                    || $tblLeaveInformation->getValue() == GymAbgSekI::COURSE_HSQ) {
+                                    $identifier = 'LeaveHS';
+                                }
+                            }
+                        }
+
                         if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
                             && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
                             && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
@@ -2730,15 +2745,15 @@ class KamenzReportService
                                 $birthYear = false;
                             }
 
-                            if (isset($Content['B01']['Leave']['L' . $levelName][$gender])) {
-                                $Content['B01']['Leave']['L' . $levelName][$gender]++;
+                            if (isset($Content['B01'][$identifier]['L' . $levelName][$gender])) {
+                                $Content['B01'][$identifier]['L' . $levelName][$gender]++;
                             } else {
-                                $Content['B01']['Leave']['L' . $levelName][$gender] = 1;
+                                $Content['B01'][$identifier]['L' . $levelName][$gender] = 1;
                             }
-                            if (isset($Content['B01']['Leave']['TotalCount'][$gender])) {
-                                $Content['B01']['Leave']['TotalCount'][$gender]++;
+                            if (isset($Content['B01'][$identifier]['TotalCount'][$gender])) {
+                                $Content['B01'][$identifier]['TotalCount'][$gender]++;
                             } else {
-                                $Content['B01']['Leave']['TotalCount'][$gender] = 1;
+                                $Content['B01'][$identifier]['TotalCount'][$gender] = 1;
                             }
                             if (isset($Content['B01']['TotalCount']['L' . $levelName][$gender])) {
                                 $Content['B01']['TotalCount']['L' . $levelName][$gender]++;
@@ -2755,10 +2770,10 @@ class KamenzReportService
                              * B02
                              */
                             if ($birthYear) {
-                                if (isset($countArray[$birthYear]['Leave'][$gender])) {
-                                    $countArray[$birthYear]['Leave'][$gender]++;
+                                if (isset($countArray[$birthYear][$identifier][$gender])) {
+                                    $countArray[$birthYear][$identifier][$gender]++;
                                 } else {
-                                    $countArray[$birthYear]['Leave'][$gender] = 1;
+                                    $countArray[$birthYear][$identifier][$gender] = 1;
                                 }
                             }
 
@@ -2766,15 +2781,15 @@ class KamenzReportService
                              * B01.1
                              */
                             if ($hasMigrationBackground) {
-                                if (isset($Content['B01_1']['Leave']['L' . $levelName][$gender])) {
-                                    $Content['B01_1']['Leave']['L' . $levelName][$gender]++;
+                                if (isset($Content['B01_1'][$identifier]['L' . $levelName][$gender])) {
+                                    $Content['B01_1'][$identifier]['L' . $levelName][$gender]++;
                                 } else {
-                                    $Content['B01_1']['Leave']['L' . $levelName][$gender] = 1;
+                                    $Content['B01_1'][$identifier]['L' . $levelName][$gender] = 1;
                                 }
-                                if (isset($Content['B01_1']['Leave']['TotalCount'][$gender])) {
-                                    $Content['B01_1']['Leave']['TotalCount'][$gender]++;
+                                if (isset($Content['B01_1'][$identifier]['TotalCount'][$gender])) {
+                                    $Content['B01_1'][$identifier]['TotalCount'][$gender]++;
                                 } else {
-                                    $Content['B01_1']['Leave']['TotalCount'][$gender] = 1;
+                                    $Content['B01_1'][$identifier]['TotalCount'][$gender] = 1;
                                 }
                                 if (isset($Content['B01_1']['TotalCount']['L' . $levelName][$gender])) {
                                     $Content['B01_1']['TotalCount']['L' . $levelName][$gender]++;

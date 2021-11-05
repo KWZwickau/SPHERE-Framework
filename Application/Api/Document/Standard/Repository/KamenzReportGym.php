@@ -10,6 +10,8 @@ namespace SPHERE\Application\Api\Document\Standard\Repository;
 
 
 use SPHERE\Application\Api\Document\AbstractDocument;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\B01;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\B01_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\B02;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\C01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E01;
@@ -28,9 +30,11 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E17;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E18;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\F01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\G01;
+use SPHERE\Application\Api\Platform\Gatekeeper\Gatekeeper;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 
 class KamenzReportGym extends AbstractDocument
 {
@@ -52,6 +56,12 @@ class KamenzReportGym extends AbstractDocument
     public function buildDocument($pageList = array(), $Part = '0')
     {
         return (new Frame())->addDocument((new Document())
+            ->addPage((new Page())
+                ->addSliceArray(B01::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(B01_1::getContent())
+            )
             ->addPage((new Page())
                 ->addSliceArray(B02::getContent())
             )

@@ -215,6 +215,10 @@ class Frontend extends Extension implements IFrontendInterface
             'Kamenz-Statistik des Gymnasiums herunterladen'
         ));
 
+//        $Content = array();
+//        $Content = KamenzReportService::setKamenzReportGymContent($Content);
+//        Debugger::devDump($Content);
+
         $summary = array();
 
         $countStudentsWithoutDivision = 0;
