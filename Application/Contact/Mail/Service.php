@@ -783,16 +783,27 @@ class Service extends AbstractService
         $Address,
         TblType $tblType,
         $Remark,
+        $IsAccountUserAlias,
+        $IsAccountRecoveryMail,
         $tblPersonList = array()
     ) {
         if (($tblMail = (new Data($this->getBinding()))->createMail($Address))) {
             foreach ($tblPersonList as $tblPerson) {
-                (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark);
+                (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsAccountUserAlias, $IsAccountRecoveryMail);
             }
 
             return  true;
         }
 
         return false;
+    }
+
+    /**
+     * @param string $address
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonListByAddress(string $address) {
+        return (new Data($this->getBinding()))->getToPersonListByAddress($address);
     }
 }

@@ -13,6 +13,8 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -791,24 +793,44 @@ class FrontendFamily extends FrontendReadOnly
 
         $key = 'M' . $Ranking;
 
+        if(($tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession())
+            && GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+        ){
+            $hasAccountOptions = true;
+        } else {
+            $hasAccountOptions = false;
+        }
+
         return new Panel(
             'Neue E-Mail Adresse',
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
-                    , 3),
-                new LayoutColumn(
-                    $this->getInputField('MailField', $key, 'Address', 'E-Mail Adresse', 'E-Mail Adresse', true, $Errors,
-                        array(), new \SPHERE\Common\Frontend\Icon\Repository\Mail())
-                    , 3),
-                new LayoutColumn(
-                    $this->getPersonOptions('Data[M' . $Ranking . '][PersonList]', $PersonIdList)
-                    , 3),
-                new LayoutColumn(
-                    new TextArea('Data[M' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
-                    , 3),
-            ))))
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
+                            array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
+                        , 3),
+                    new LayoutColumn(
+                        $this->getInputField('MailField', $key, 'Address', 'E-Mail Adresse', 'E-Mail Adresse', true, $Errors,
+                            array(), new \SPHERE\Common\Frontend\Icon\Repository\Mail())
+                        , 3),
+                    new LayoutColumn(
+                        $this->getPersonOptions('Data[M' . $Ranking . '][PersonList]', $PersonIdList)
+                        , 3),
+                    new LayoutColumn(
+                        new TextArea('Data[M' . $Ranking . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Edit(), 2)
+                        , 3),
+                )),
+                $hasAccountOptions
+                    ? new LayoutRow(array(
+                        new LayoutColumn(
+                            new CheckBox('Data[M' . $Ranking . '][IsAccountUserAlias]', 'E-Mail als späteren UCS Benutzernamen verwenden', 1)
+                            , 3),
+                        new LayoutColumn(
+                            new CheckBox('Data[M' . $Ranking . '][IsAccountRecoveryMail]', 'E-Mail als späteres UCS "Passwort vergessen" verwenden', 1)
+                            , 3)
+                    ))
+                    : null
+            )))
             . (isset($Errors[$key]['Message'])
                 ? new Danger($Errors[$key]['Message'], new Exclamation())
                 : ''

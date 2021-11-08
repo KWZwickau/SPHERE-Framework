@@ -24,6 +24,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -1345,6 +1346,8 @@ class Service extends AbstractService
                 $tblType = Mail::useService()->getTypeById($item['Type']);
                 $address = $item['Address'];
                 $remark = $item['Remark'];
+                $isAccountUserAlias = isset($item['IsAccountUserAlias']);
+                $isAccountRecoveryMail = isset($item['IsAccountRecoveryMail']);
 
                 $countPersons = 0;
                 if (isset($item['PersonList'])) {
@@ -1365,6 +1368,44 @@ class Service extends AbstractService
                         $errorMail = true;
                         $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese E-Mail Adresse aus.';
                     }
+
+                    // prüfen userAlias und recoverMail
+                    if ($isAccountUserAlias || $isAccountRecoveryMail) {
+                        // Typ muss Geschäftlich sein
+                        if ($tblType && $tblType->getName() != 'Geschäftlich') {
+                            $errorMail = true;
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse al UCS Benutzername 
+                                oder UCS "Passwort vergessen" muss der E-Mail Typ: Geschäftlich ausgewählt werden.';
+                        }
+
+                        // Es darf nur maximal eine Person ausgewählt werden
+                        if ($countPersons != 1) {
+                            $errorMail = true;
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse al UCS Benutzername 
+                                oder UCS "Passwort vergessen" darf nur genau eine Person ausgewählt werden.';
+                        }
+
+                        // Eindeutigkeit UCS Alias
+                        if ($isAccountUserAlias) {
+                            // Eindeutig im Gatekeeper
+                            if (Account::useService()->getAccountAllByUserAlias($address)) {
+                                $errorMail = true;
+                                $Errors[$key]['Message'] = 'Diese E-Mail Adresse existiert bereits als UCS Benutzername 
+                                    und kann für diese Person nicht als UCS Benutzername verwendet werden.';
+                            }
+                            // Eindeutig als vorgemerkter Alias im Consumer
+                            if (($tblToPersonList = Mail::useService()->getToPersonListByAddress($address))) {
+                                foreach ($tblToPersonList as $tblToPerson) {
+                                    if ($tblToPerson->isAccountUserAlias()) {
+                                        $errorMail = true;
+                                        $Errors[$key]['Message'] = 'Diese E-Mail Adresse wurde bereits als UCS Benutzername vorgemerkt
+                                            und kann für diese Person nicht als UCS Benutzername verwendet werden.';
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 if ($errorMail) {
@@ -1374,6 +1415,8 @@ class Service extends AbstractService
                         'tblType' => $tblType,
                         'Address' => $address,
                         'Remark' => $remark,
+                        'IsAccountUserAlias' => $isAccountUserAlias,
+                        'IsAccountRecoveryMail' => $isAccountRecoveryMail,
                         'tblPersonList' => $tblPersonList
                     );
                 }
@@ -1428,6 +1471,8 @@ class Service extends AbstractService
                     $mail['Address'],
                     $mail['tblType'],
                     $mail['Remark'],
+                    $mail['IsAccountUserAlias'],
+                    $mail['IsAccountRecoveryMail'],
                     $mail['tblPersonList']
                 );
             }

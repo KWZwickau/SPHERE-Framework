@@ -105,6 +105,32 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $address
+     *
+     * @return false|TblMail
+     */
+    public function getMailByAddress(string $address) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblMail', array(
+           TblMail::ATTR_ADDRESS => $address
+        ));
+    }
+
+    /**
+     * @param string $address
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonListByAddress(string $address) {
+        if (($tblMail = $this->getMailByAddress($address))) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+                TblToPerson::ATT_TBL_MAIL => $tblMail->getId()
+            ));
+        }
+
+        return false;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblToPerson
