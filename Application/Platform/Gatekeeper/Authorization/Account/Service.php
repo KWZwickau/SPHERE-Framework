@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
@@ -1033,5 +1034,76 @@ class Service extends AbstractService
     public function changeAuthenticatorAppSecret(TblAccount $tblAccount, $secret)
     {
         return (new Data($this->getBinding()))->changeAuthenticatorAppSecret($tblAccount, $secret);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $mailAddress
+     * @param string $errorMessage
+     *
+     * @return bool
+     */
+    public function isUserAliasUnique(TblPerson $tblPerson, string $mailAddress, string &$errorMessage) : bool {
+        $error = false;
+
+        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+            if (count($tblAccountListByPerson) > 1) {
+                $errorMessage = 'Die Person besitzt mehrere Benutzerkonten.';
+                return false;
+            }
+            /** @var TblAccount|false $tblAccount */
+            $tblAccount = current($tblAccountListByPerson);
+        } else {
+            $tblAccount = false;
+        }
+
+        if ($tblAccount) {
+            $tblConsumer = $tblAccount->getServiceTblConsumer();
+        } else {
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+        }
+
+        // Eindeutig im Gatekeeper
+        if (($tblAccountList = $this->getAccountAllByUserAlias($mailAddress))) {
+            foreach ($tblAccountList as $item) {
+                if (!$tblAccount
+                    || ($tblAccount && $tblAccount->getId() != $item->getId())
+                ) {
+                    if($tblConsumer &&  $item->getServiceTblConsumer()
+                        && $tblConsumer->getId() == $item->getServiceTblConsumer()->getId()
+                    ){
+                        $PersonString = 'Person nicht gefunden';
+                        if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
+                            $foundPerson = current($tblPersonList);
+                            /** @var TblPerson $foundPerson */
+                            $PersonString = $foundPerson->getLastFirstName();
+                        }
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet. ('
+                            . $item->getUsername() . ' - ' . $PersonString.')';
+                    } else {
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet.';
+                    }
+                    $error = true;
+                }
+            }
+        }
+
+        // Eindeutig als vorgemerkter Alias im Consumer
+        if (!$error
+            && ($tblToPersonList = Mail::useService()->getToPersonListByAddress($mailAddress))
+        ) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if ($tblToPerson->isAccountUserAlias()
+                    && ($tblPersonMail = $tblToPerson->getServiceTblPerson())
+                    && $tblPersonMail->getId() != $tblPerson->getId()
+                ) {
+                    $error = true;
+                    $errorMessage = 'Diese E-Mail Adresse wurde bereits als UCS Benutzername vorgemerkt. (' . $tblPersonMail->getLastFirstName() . ')';
+                    break;
+                }
+            }
+        }
+
+        return !$error;
     }
 }

@@ -1371,38 +1371,29 @@ class Service extends AbstractService
 
                     // prüfen userAlias und recoverMail
                     if ($isAccountUserAlias || $isAccountRecoveryMail) {
-                        // Typ muss Geschäftlich sein
-                        if ($tblType && $tblType->getName() != 'Geschäftlich') {
-                            $errorMail = true;
-                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse al UCS Benutzername 
-                                oder UCS "Passwort vergessen" muss der E-Mail Typ: Geschäftlich ausgewählt werden.';
-                        }
-
                         // Es darf nur maximal eine Person ausgewählt werden
                         if ($countPersons != 1) {
                             $errorMail = true;
-                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse al UCS Benutzername 
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als UCS Benutzername 
                                 oder UCS "Passwort vergessen" darf nur genau eine Person ausgewählt werden.';
+                            $tblPersonMail = false;
+                        } else {
+                            $tblPersonMail = current($tblPersonList);
+                        }
+
+                        // Typ muss Geschäftlich sein bei UCS Alias
+                        if ($isAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich') {
+                            $errorMail = true;
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als UCS Benutzername 
+                                muss der E-Mail Typ: Geschäftlich ausgewählt werden.';
                         }
 
                         // Eindeutigkeit UCS Alias
-                        if ($isAccountUserAlias) {
-                            // Eindeutig im Gatekeeper
-                            if (Account::useService()->getAccountAllByUserAlias($address)) {
+                        if ($isAccountUserAlias && $tblPersonMail) {
+                            $errorMessage = '';
+                            if (!Account::useService()->isUserAliasUnique($tblPersonMail, $address, $errorMessage)) {
                                 $errorMail = true;
-                                $Errors[$key]['Message'] = 'Diese E-Mail Adresse existiert bereits als UCS Benutzername 
-                                    und kann für diese Person nicht als UCS Benutzername verwendet werden.';
-                            }
-                            // Eindeutig als vorgemerkter Alias im Consumer
-                            if (($tblToPersonList = Mail::useService()->getToPersonListByAddress($address))) {
-                                foreach ($tblToPersonList as $tblToPerson) {
-                                    if ($tblToPerson->isAccountUserAlias()) {
-                                        $errorMail = true;
-                                        $Errors[$key]['Message'] = 'Diese E-Mail Adresse wurde bereits als UCS Benutzername vorgemerkt
-                                            und kann für diese Person nicht als UCS Benutzername verwendet werden.';
-                                        break;
-                                    }
-                                }
+                                $Errors[$key]['Message'] = $errorMessage;
                             }
                         }
                     }

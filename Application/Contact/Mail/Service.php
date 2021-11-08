@@ -12,8 +12,7 @@ use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -146,18 +145,19 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Address
-     * @param $Type
+     * @param string $Address
+     * @param array $Type
+     * @param bool $IsAccountUserAlias
      * @param TblToPerson|null $tblToPerson
      *
-     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
+     * @return bool|Form
      */
     public function checkFormMailToPerson(
         TblPerson $tblPerson,
-        $Address,
-        $Type,
-        TblToPerson $tblToPerson = null,
-        $Alias = null
+        string $Address,
+        array $Type,
+        bool $IsAccountUserAlias,
+        TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
@@ -165,43 +165,35 @@ class Service extends AbstractService
         $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
         $Address = $this->validateMailAddress($Address);
         if (isset($Address) && empty($Address)) {
-            $form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $form->setError('Address[Mail]', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $isValidatedMailAddress = false;
             $error = true;
         } else {
-            $form->setSuccess('Address');
+            $isValidatedMailAddress = true;
         }
         if (!($tblType = $this->getTypeById($Type['Type']))) {
             $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
             $error = true;
+        } elseif ($IsAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich' ) {
+            // UCS Benutzername muss als geschäftliche E-Mail Adresse angelegt werden
+            $form->setError('Type[Type]', 'Zur Verwendung der E-Mail Adresse als UCS Benutzername muss der E-Mail Typ: 
+                Geschäftlich ausgewählt werden.');
+            $error = true;
         } else {
             $form->setSuccess('Type[Type]');
         }
-        if($Alias !== null){
-            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                /** @var TblAccount $tblAccount */
-                $tblAccount = current($tblAccountList);
-                // prüfen ob Alias eineindeutig ist
-                if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Address))) {
-                    foreach ($tblAccountList as $item) {
-                        if ($tblAccount->getId() != $item->getId()) {
-                            if($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
-                                $PersonString = 'Person nicht gefunden';
-                                if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
-                                    $foundPerson = current($tblPersonList);
-                                    /** @var TblPerson $foundPerson */
-                                    $PersonString = $foundPerson->getLastFirstName();
-                                }
-                                $form->setError('Alias', 'E-Mail Adresse wird bereits verwendet. ('.$item->getUsername().' - '.$PersonString.')');
-                            } else {
-                                $form->setError('Alias', 'E-Mail Adresse wird bereits verwendet.');
-                            }
-                            $error = true;
-                            break;
-                        }
-                    }
-                }
-            }
 
+        if(!$error && $IsAccountUserAlias){
+            $errorMessage = '';
+            // Eindeutigkeit UCS Alias
+            if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
+                $error = true;
+                $form->setError('Address[Mail]', $errorMessage);
+            }
+        }
+
+        if (!$error && $isValidatedMailAddress) {
+            $form->setSuccess('Address[Mail]');
         }
 
         return $error ? $form : false;
@@ -213,7 +205,7 @@ class Service extends AbstractService
      * @param $Type
      * @param TblToCompany|null $tblToCompany
      *
-     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
+     * @return bool|Form
      */
     public function checkFormMailToCompany(
         TblCompany $tblCompany,
@@ -248,7 +240,6 @@ class Service extends AbstractService
      * @param           $Type
      * @param bool      $IsAccountUserAlias
      * @param bool      $IsAccountRecoveryMail
-     * @param string    $ErrorString
      *
      * @return bool
      */
@@ -257,9 +248,8 @@ class Service extends AbstractService
         $Address,
         $Type,
         $IsAccountUserAlias = false,
-        $IsAccountRecoveryMail = false,
-        &$ErrorString = ''
-    ) {
+        $IsAccountRecoveryMail = false
+    ): bool {
 
         $tblType = $this->getTypeById($Type['Type']);
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
@@ -271,62 +261,36 @@ class Service extends AbstractService
             return false;
         }
 
-        if (($tblToPerson = (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark']))) {
-            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))){
+        if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
+            $tblAccount = false;
+            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
                 if (count($tblAccountList) > 1) {
-                    $ErrorString = 'Die Person besitzt mehrere Benutzerkonten';
-                    return true;
+                    return false;
+                } else {
+                    $tblAccount = current($tblAccountList);
                 }
-
-                $tblAccount = current($tblAccountList);
-                // remove existing entry's
-                if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
-                    foreach($tblToPersonList as $tblToPersonTemp){
-                        if($IsAccountUserAlias){
-                            if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountUserAlias()){
-                                Account::useService()->changeUserAlias($tblAccount, '');
-                                Mail::useService()->updateMailToPersonAlias($tblToPersonTemp, false);
-                            }
-                        }
-                        if($IsAccountRecoveryMail){
-                            if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountRecoveryMail()){
-                                Account::useService()->changeRecoveryMail($tblAccount, '');
-                                Mail::useService()->updateMailToPersonRecoveryMail($tblToPersonTemp, false);
-                            }
-                        }
-                    }
-                }
-
-                    // prüfen ob Alias eineindeutig ist
-                    if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Address))) {
-                        foreach ($tblAccountList as $item) {
-                            if ($tblAccount->getId() != $item->getId()) {
-                                if($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
-                                    $PersonString = 'Person nicht gefunden';
-                                    if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
-                                        $foundPerson = current($tblPersonList);
-                                        /** @var TblPerson $foundPerson */
-                                        $PersonString = $foundPerson->getFirstName().', '.$foundPerson->getLastName();
-                                    }
-                                    $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet. ('.($item->getUsername().' - '.$PersonString.')');
-                                } else {
-                                    $ErrorString = 'E-Mail '.new Bold($Address).' bereits verwendet.';
-                                }
-                            }
-                        }
-                    }
-
-                if($IsAccountUserAlias
-                && (Account::useService()->changeUserAlias($tblAccount, $Address))){
-                    Mail::useService()->updateMailToPersonAlias($tblToPerson, $IsAccountUserAlias);
-                }
-                if($IsAccountRecoveryMail
-                && (Account::useService()->changeRecoveryMail($tblAccount, $Address))){
-                    Mail::useService()->updateMailToPersonRecoveryMail($tblToPerson, $IsAccountRecoveryMail);
-                }
-            } elseif($IsAccountUserAlias || $IsAccountRecoveryMail) {
-                $ErrorString = 'Person hat keinen Benutzeraccount';
             }
+
+            $errorMessage = '';
+            if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
+                return false;
+            }
+
+            if ($tblAccount) {
+                if($IsAccountUserAlias){
+                    Account::useService()->changeUserAlias($tblAccount, $Address);
+                    $this->resetMailWithUserAlias($tblPerson);
+                }
+                if($IsAccountRecoveryMail){
+                    Account::useService()->changeRecoveryMail($tblAccount, $Address);
+                    $this->resetMailWithRecoveryMail($tblPerson);
+                }
+            }
+        }
+
+        if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'],
+            $IsAccountUserAlias, $IsAccountRecoveryMail)
+        ) {
             return true;
         } else {
             return false;
@@ -429,7 +393,6 @@ class Service extends AbstractService
      * @param             $Type
      * @param bool        $IsAccountUserAlias
      * @param bool        $IsAccountRecoveryMail
-     * @param string      $ErrorString
      *
      * @return bool
      */
@@ -438,57 +401,46 @@ class Service extends AbstractService
         $Address,
         $Type,
         $IsAccountUserAlias = false,
-        $IsAccountRecoveryMail = false,
-        &$ErrorString = ''
+        $IsAccountRecoveryMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
-//        // Remove current
-//        (new Data($this->getBinding()))->removeMailToPerson($tblToPerson);
 
-        if ($tblToPerson->getServiceTblPerson()
+        if (($tblPerson = $tblToPerson->getServiceTblPerson())
             && ($tblType = $this->getTypeById($Type['Type']))
         ) {
-
-            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblToPerson->getServiceTblPerson()))){
-                $tblAccount = current($tblAccountList);
-                if(!$IsAccountUserAlias && !$IsAccountRecoveryMail){
-                    if($tblAccount->getUserAlias() == $Address){
-                        Account::useService()->changeUserAlias($tblAccount, '');
-                    }
-                    if($tblAccount->getRecoveryMail() == $Address){
-                        Account::useService()->changeRecoveryMail($tblAccount, '');
-                    }
-                    return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
-                        $tblType, $Type['Remark'], $IsAccountUserAlias, $IsAccountRecoveryMail);
-                } elseif(!$IsAccountUserAlias) {
-                    if($tblAccount->getUserAlias() == $Address){
-                        Account::useService()->changeUserAlias($tblAccount, '');
-                    }
-                } elseif(!$IsAccountRecoveryMail){
-                    if($tblAccount->getRecoveryMail() == $Address){
-                        Account::useService()->changeRecoveryMail($tblAccount, '');
+            if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
+                $tblAccount = false;
+                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+                    if (count($tblAccountList) > 1) {
+                        return false;
+                    } else {
+                        $tblAccount = current($tblAccountList);
                     }
                 }
 
-                if($IsAccountUserAlias){
-                    Account::useService()->changeUserAlias($tblAccount, $Address);
+                $errorMessage = '';
+                if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
+                    return false;
                 }
-                if($IsAccountRecoveryMail){
-                    Account::useService()->changeRecoveryMail($tblAccount, $Address);
-                }
-            }
 
-
-            if($IsAccountRecoveryMail){
-                $this->updateRecoveryMail($tblToPerson, $Address);
-            }
-            if($IsAccountUserAlias){
-                $this->updateAlias($tblToPerson, $Address, $ErrorString);
-                if($ErrorString){
-                    // bei Fehlern den Aliasflag entfernen
-                    (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
-                        $tblType, $Type['Remark'], false, $IsAccountRecoveryMail);
+                if ($tblAccount) {
+                    if($IsAccountUserAlias){
+                        Account::useService()->changeUserAlias($tblAccount, $Address);
+                        $this->resetMailWithUserAlias($tblPerson, $tblToPerson);
+                    } else {
+                        if ($tblToPerson->isAccountUserAlias()) {
+                            Account::useService()->changeUserAlias($tblAccount, '');
+                        }
+                    }
+                    if($IsAccountRecoveryMail){
+                        Account::useService()->changeRecoveryMail($tblAccount, $Address);
+                        $this->resetMailWithRecoveryMail($tblPerson, $tblToPerson);
+                    } else {
+                        if ($tblToPerson->isAccountRecoveryMail()) {
+                            Account::useService()->changeRecoveryMail($tblAccount, '');
+                        }
+                    }
                 }
             }
 
@@ -499,94 +451,40 @@ class Service extends AbstractService
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param TblToPerson $tblToPerson
-     * @param string      $Alias
-     * @param string      $ErrorString
-     *
-     * @return bool
+     * @param TblPerson $tblPerson
+     * @param TblToPerson|null $tblToPerson
      */
-    private function updateAlias(TblToPerson $tblToPerson, $Alias, &$ErrorString)
-    {
-        $isAlias = false;
-        if($Alias){
-            $isAlias = true;
-        }
-
-        if (($tblPerson = $tblToPerson->getServiceTblPerson())
-            && ($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))){
-            $tblAccount = current($tblAccountList);
-            // remove existing entry's
-            if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblToPerson->getServiceTblPerson()))){
-                foreach($tblToPersonList as $tblToPersonTemp){
-                    if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountUserAlias()){
-                        Account::useService()->changeUserAlias($tblAccount,'');
-                        Mail::useService()->updateMailToPersonAlias($tblToPersonTemp, false);
-                    }
+    private function resetMailWithUserAlias(TblPerson $tblPerson, TblToPerson $tblToPerson = null) {
+        if(($tblToPersonList = $this->getMailAllByPerson($tblPerson))){
+            foreach($tblToPersonList as $tblToPersonTemp){
+                if($tblToPersonTemp->isAccountUserAlias()
+                    && (!$tblToPerson || ($tblToPerson->getId() != $tblToPersonTemp->getId()))
+                ){
+                    $this->updateMailToPersonAlias($tblToPersonTemp, false);
                 }
             }
-            // prüfen ob Alias eineindeutig ist
-            if (($tblAccountList = Account::useService()->getAccountAllByUserAlias($Alias))){
-                foreach ($tblAccountList as $item) {
-                    if ($tblAccount->getId() != $item->getId()){
-                        if ($tblAccount->getServiceTblConsumer()->getId() == $item->getServiceTblConsumer()->getId()){
-                            $PersonString = 'Person nicht gefunden';
-                            if (($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
-                                $foundPerson = current($tblPersonList);
-                                /** @var TblPerson $foundPerson */
-                                $PersonString = $foundPerson->getFirstName().', '.$foundPerson->getLastName();
-                            }
-                            $ErrorString = 'E-Mail '.new Bold($Alias).' bereits verwendet. ('.($item->getUsername().' - '.$PersonString.')');
-                        } else {
-                            $ErrorString = 'E-Mail '.new Bold($Alias).' bereits verwendet.';
-                        }
-                    }
-                }
-            }
-            if ((Account::useService()->changeUserAlias($tblAccount, $Alias))){
-                return Mail::useService()->updateMailToPersonAlias($tblToPerson, $isAlias);
-            }
-        } else {
-            $ErrorString = 'Person hat keinen Benutzeraccount';
         }
-        return $ErrorString;
     }
 
     /**
-     * @param TblToPerson $tblToPerson
-     * @param string      $RecoveryMail
-     *
-     * @return bool
+     * @param TblPerson $tblPerson
+     * @param TblToPerson|null $tblToPerson
      */
-    private function updateRecoveryMail(TblToPerson $tblToPerson, $RecoveryMail)
-    {
-        $isRecoveryMail = false;
-        if($RecoveryMail){
-            $isRecoveryMail = true;
-        }
-
-        if (($tblPerson = $tblToPerson->getServiceTblPerson())
-            && ($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-            $tblAccount = current($tblAccountList);
-            // remove existing entry's
-            if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblToPerson->getServiceTblPerson()))){
-                foreach($tblToPersonList as $tblToPersonTemp){
-                    if($tblToPerson->getId() != $tblToPersonTemp->getId() && $tblToPersonTemp->isAccountRecoveryMail()){
-                        Account::useService()->changeRecoveryMail($tblAccount,'');
-                        Mail::useService()->updateMailToPersonRecoveryMail($tblToPersonTemp, false);
-                    }
+    private function resetMailWithRecoveryMail(TblPerson $tblPerson, TblToPerson $tblToPerson = null) {
+        if(($tblToPersonList = $this->getMailAllByPerson($tblPerson))){
+            foreach($tblToPersonList as $tblToPersonTemp){
+                if($tblToPersonTemp->isAccountRecoveryMail()
+                    && (!$tblToPerson || ($tblToPerson->getId() != $tblToPersonTemp->getId()))
+                ){
+                    $this->updateMailToPersonRecoveryMail($tblToPersonTemp, false);
                 }
             }
-
-
-            if ((Account::useService()->changeRecoveryMail($tblAccount, $RecoveryMail))){
-                return Mail::useService()->updateMailToPersonRecoveryMail($tblToPerson, $isRecoveryMail);
-            }
         }
-        return false;
     }
 
     /**

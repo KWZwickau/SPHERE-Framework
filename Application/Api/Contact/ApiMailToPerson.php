@@ -403,27 +403,16 @@ class ApiMailToPerson extends Extension implements IApiInterface
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
+        $IsAccountUserAlias = isset($Address['Alias']);
+        $IsAccountRecoveryMail = isset($Address['IsRecoveryMail']);
+
         $mailAddress = str_replace(' ', '', $Address['Mail']);
-        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $mailAddress, $Type))) {
+        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $mailAddress, $Type, $IsAccountUserAlias))) {
             // display Errors on form
             return $this->getMailToPersonModal($form, $tblPerson);
         }
-        $Alias = false;
-        if(isset($Address['Alias'])){
-            $Alias = true;
-        }
-        $IsRecoveryMail = false;
-        if(isset($Address['IsRecoveryMail'])){
-            $IsRecoveryMail = true;
-        }
 
-        $ErrorString = '';
-        if (Mail::useService()->createMailToPerson($tblPerson, $mailAddress, $Type, $Alias, $IsRecoveryMail, $ErrorString)) {
-            if($ErrorString){
-                return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
-                    . new Warning($ErrorString)
-                    . self::pipelineLoadMailToPersonContent($PersonId);
-            }
+        if (Mail::useService()->createMailToPerson($tblPerson, $mailAddress, $Type, $IsAccountUserAlias, $IsAccountRecoveryMail)) {
             return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
@@ -451,27 +440,16 @@ class ApiMailToPerson extends Extension implements IApiInterface
             return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
+        $IsAccountUserAlias = isset($Address['Alias']);
+        $IsAccountRecoveryMail = isset($Address['IsRecoveryMail']);
+
         $mailAddress = str_replace(' ', '', $Address['Mail']);
-        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $mailAddress, $Type, $tblToPerson))) {
+        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $mailAddress, $Type, $IsAccountUserAlias, $tblToPerson))) {
             // display Errors on form
             return $this->getMailToPersonModal($form, $tblPerson, $ToPersonId);
         }
-        $Alias = false;
-        if(isset($Address['Alias'])){
-            $Alias = true;
-        }
-        $IsRecoveryMail = false;
-        if(isset($Address['IsRecoveryMail'])){
-            $IsRecoveryMail = true;
-        }
 
-        $ErrorString = '';
-        if (Mail::useService()->updateMailToPerson($tblToPerson, $mailAddress, $Type, $Alias, $IsRecoveryMail, $ErrorString)) {
-            if($ErrorString){
-                return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
-                    . new Warning($ErrorString)
-                    . self::pipelineLoadMailToPersonContent($PersonId);
-            }
+        if (Mail::useService()->updateMailToPerson($tblToPerson, $mailAddress, $Type, $IsAccountUserAlias, $IsAccountRecoveryMail)) {
             return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();

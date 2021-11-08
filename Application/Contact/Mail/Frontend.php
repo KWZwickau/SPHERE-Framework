@@ -37,8 +37,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 
@@ -96,17 +96,13 @@ class Frontend extends Extension implements IFrontendInterface
         $CheckBoxAlias = '';
         $CheckBoxRecoveryMail = '';
         if($isUCS){
-            // Account exist?
             $tblPerson = Person::useService()->getPersonById($PersonId);
-            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                $CheckBoxAlias = new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1);
-                $CheckBoxRecoveryMail = new CheckBox('Address[IsRecoveryMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1);
-            } else {
-                $CheckBoxAlias = new ToolTip((new CheckBox('Address[Alias]', 'E-Mail als UCS Benutzername verwenden', 1))
-                    ->setDisabled(), 'Person benötigt ein Benutzerkonto');
-                $CheckBoxRecoveryMail = new ToolTip((new CheckBox('Address[IsRecoveryMail]', 'E-Mail als UCS "Passwort vergessen" verwenden', 1))
-                    ->setDisabled(), 'Person benötigt ein Benutzerkonto');
-            }
+            $hasAccount = Account::useService()->getAccountAllByPerson($tblPerson);
+
+            $CheckBoxAlias = new CheckBox('Address[Alias]', 'E-Mail als '
+                . ($hasAccount ? '' : new Bold('späteren')) . ' UCS Benutzername verwenden', 1);
+            $CheckBoxRecoveryMail = new CheckBox('Address[IsRecoveryMail]', 'E-Mail als '
+                . ($hasAccount ? '' : new Bold('späteres')) . ' UCS "Passwort vergessen" verwenden', 1);
         }
 
         return (new Form(
@@ -202,6 +198,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutPersonNew(TblPerson $tblPerson)
     {
 
+        $hasAccount = Account::useService()->getAccountAllByPerson($tblPerson);
+
         $mailList = array();
         if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))){
             foreach ($tblMailList as $tblToPerson) {
@@ -280,10 +278,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 if(($tblToPersonCurrent =  $personArray[$tblPerson->getId()])){
                                     /** @var $tblToPersonCurrent TblToPerson */
                                     if($tblToPersonCurrent->isAccountUserAlias()){
-                                        $content[] = new Check().' UCS Benutzername';
+                                        $content[] = new Check() . ' E-Mail als '
+                                            . ($hasAccount ? '' : new Bold('späteren'))
+                                            . ' UCS Benutzername verwenden';
                                     }
                                     if($tblToPersonCurrent->isAccountRecoveryMail()){
-                                        $content[] = new Check().' UCS "Passwort vergessen"';
+                                        $content[] = new Check() . ' E-Mail als '
+                                            . ($hasAccount ? '' : new Bold('späteres'))
+                                            . ' UCS "Passwort vergessen" verwenden';
                                     }
                                 }
                             }
