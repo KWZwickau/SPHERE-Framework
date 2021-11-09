@@ -756,6 +756,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $ErrorLog[] = new Bold($Account['name']).' '.$PersonLink;
 
+            // Umlautkontrolle, wenn ein Nutzername vorhanden ist
+            if($Account['name'] !== '' && Univention::useService()->checkName($Account['name'])){
+                $ErrorLog[] = 'Benutzername: '.new DangerText('enthält Umlaute oder Sonderzeichen');
+            }
+
             foreach($Account as $Key => $Value){
                 if(is_array($Value)){
                     $MouseOver = '';
@@ -866,7 +871,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $ErrorLog[] = new Bold($Account['name']).' '.$PersonLink;
-            $ErrorLog[] = 'Benutzername '.new DangerText('enthält Umlaute');
+            $ErrorLog[] = 'Benutzername: '.new DangerText('enthält Umlaute oder Sonderzeichen');
         }
         // Errorlog nur mit Namen wieder entfernen
         // Count 1 ist nur der Name ohne Fehlermeldung und ist im allgemeinen ein ungültiger "Fund"
@@ -905,15 +910,17 @@ class Frontend extends Extension implements IFrontendInterface
 //                $Data['groupArray'];
 
                 if(!$Data['name']){
-                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Person als '.
+                    // nur Schüler können vorkommen, die keinen Account haben, der Rest wird nur über vorhandenen Account gezogen
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Person als '.
                             new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
                         new DangerText('Account fehlt ');
                     $IsError = true;
                 } elseif(Univention::useService()->checkName($Data['name'])) {
-                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Benutzername beinhaltet '.
-                            new Bold('Umlaute / Sonderzeichen'))))->enableHtml().
+                    // Umlaute & Sonderzeichen im Benutzernamen sind nicht erlaubt
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Benutzername beinhaltet '.
+                            new Bold('Umlaute oder Sonderzeichen'))))->enableHtml().
                         new DangerText('Account '.$Data['name']);
-                    $Data['account'] = 'Umlaute&nbsp;oder&nbsp;Sonderzeichen';
+                    $Data['account'] = new DangerText('Umlaute&nbsp;oder&nbsp;Sonderzeichen');
                     $IsError = true;
                 }
                 if(!$Data['schools']){

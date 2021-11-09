@@ -620,7 +620,6 @@ class Service extends AbstractService
     public function checkName($UserName)
     {
         if((preg_match('!(^[a-zA-Z0-9-]+)!', $UserName, $Match)) && strlen($Match[0]) != strlen($UserName)){
-//            Debugger::devDump($Match[0].' -> '.$UserName);
             // enthält andere Zeichen
             return true;
         }
