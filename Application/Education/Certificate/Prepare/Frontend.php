@@ -6044,8 +6044,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'Id' => $tblLeaveStudent->getId(),
                             )
                         ),
-                        '</br>',
-                        '</br>'
+                        '<br />',
+                        '<br />'
                     )),
                 )),
             ));

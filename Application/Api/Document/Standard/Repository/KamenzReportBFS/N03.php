@@ -33,13 +33,13 @@ class N03
                 break;
             case 'N03_1_1_A':
                 $title = 'N03-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                        deren Herkunftssprache nicht oder nicht </br>' . Common::getBlankSpace(19) . 'ausschließlich
+                        deren Herkunftssprache nicht oder nicht <br />' . Common::getBlankSpace(19) . 'ausschließlich
                         Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen';
                 $columnName = 'Geburtsjahr';
                 break;
             case 'N03_1_1_U':
                 $title = 'N03-1.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                        deren Herkunftssprache nicht oder nicht ausschließlich</br>' . Common::getBlankSpace(19)
+                        deren Herkunftssprache nicht oder nicht ausschließlich<br />' . Common::getBlankSpace(19)
                         . 'Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen';
                 $columnName = 'Geburtsjahr';
                 break;
@@ -55,37 +55,37 @@ class N03
                 break;
             case 'N03_2_1_A':
                 $title = 'N03-2.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterrricht</u>,
-                        deren Herkunftssprache nicht oder nicht </br>' . Common::getBlankSpace(19) . 'ausschließlich
+                        deren Herkunftssprache nicht oder nicht <br />' . Common::getBlankSpace(19) . 'ausschließlich
                         Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen';
                 $columnName = 'Geburtsjahr';
                 break;
             case 'N03_2_1_U':
                 $title = 'N03-2.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teilzeitunterrricht</u>,
-                        deren Herkunftssprache nicht oder nicht ausschließlich</br>' . Common::getBlankSpace(19)
+                        deren Herkunftssprache nicht oder nicht ausschließlich<br />' . Common::getBlankSpace(19)
                     . 'Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen';
                 $columnName = 'Geburtsjahr';
                 break;
             case 'N04_1_1_A':
                 $title = 'N04-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                        deren Herkunftssprache nicht oder nicht </br>' . Common::getBlankSpace(19) . 'ausschließlich
+                        deren Herkunftssprache nicht oder nicht <br />' . Common::getBlankSpace(19) . 'ausschließlich
                         Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             case 'N04_1_1_U':
                 $title = 'N04-1.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                        deren Herkunftssprache nicht oder nicht ausschließlich</br>' . Common::getBlankSpace(19)
+                        deren Herkunftssprache nicht oder nicht ausschließlich<br />' . Common::getBlankSpace(19)
                     . 'Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             case 'N04_2_1_A':
                 $title = 'N04-2.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterrricht</u>,
-                        deren Herkunftssprache nicht oder nicht </br>' . Common::getBlankSpace(19) . 'ausschließlich
+                        deren Herkunftssprache nicht oder nicht <br />' . Common::getBlankSpace(19) . 'ausschließlich
                         Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;
             case 'N04_2_1_U':
                 $title = 'N04-2.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teilzeitunterrricht</u>,
-                        deren Herkunftssprache nicht oder nicht ausschließlich</br>' . Common::getBlankSpace(19)
+                        deren Herkunftssprache nicht oder nicht ausschließlich<br />' . Common::getBlankSpace(19)
                     . 'Deutsch ist, im Schuljahr {{ Content.SchoolYear.Current }} nach dem Land der Staatsangehörigkeit und Klassenstufen';
                 $columnName = 'Land der Staatsangehörigkeit';
                 break;

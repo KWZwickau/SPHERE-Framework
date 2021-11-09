@@ -64,9 +64,9 @@ class Frontend extends Extension implements IFrontendInterface
             $isSystem = true;
 
             $stage->setMessage(new Warning(
-                'Für den Mandanten Hormersdorf (FESH) gibt es jeweils noch eigene Einstellungen:' . '</br>'
+                'Für den Mandanten Hormersdorf (FESH) gibt es jeweils noch eigene Einstellungen:' . '<br />'
                 . '&nbsp;&nbsp;&nbsp;&nbsp; &#9679; Hormersdorf: Schriftgröße des Bemerkungsfeldes für jede einzelne Zeugnisvorlage
-                    (RemarkTextSizeHorHj, RemarkTextSizeHorHjOne, RemarkTextSizeHorJ, RemarkTextSizeHorJOne)' . '</br>'
+                    (RemarkTextSizeHorHj, RemarkTextSizeHorHjOne, RemarkTextSizeHorJ, RemarkTextSizeHorJOne)' . '<br />'
             ));
         } else {
             $isSystem = false;

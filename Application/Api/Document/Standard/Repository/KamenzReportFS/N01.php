@@ -25,19 +25,19 @@ class N01
         switch ($name) {
             case 'N01_1_A':
                 $title = 'N01-1-A. Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
                 break;
             case 'N01_1_U':
                 $title = 'N01-1-U. Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
                 break;
             case 'N01_1_1_A':
                 $title = 'N01-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
@@ -45,7 +45,7 @@ class N01
                 break;
             case 'N01_1_1_U':
                 $title = 'N01-1.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch<br />' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
@@ -53,19 +53,19 @@ class N01
                 break;
             case 'N01_2_A':
                 $title = 'N01-2-A. Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
                 break;
             case 'N01_2_U':
                 $title = 'N01-2-U. Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
                 break;
             case 'N01_2_1_A':
                 $title = 'N01-2.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
@@ -73,7 +73,7 @@ class N01
                 break;
             case 'N01_2_1_U':
                 $title = 'N01-2.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch<br />' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach allgemeinbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Allgemeinbildender Abschluss¹';
@@ -81,19 +81,19 @@ class N01
                 break;
             case 'N02_1_A':
                 $title = 'N02-1-A. Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
                 break;
             case 'N02_1_U':
                 $title = 'N02-1-U. Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
                 break;
             case 'N02_1_1_A':
                 $title = 'N02-1.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
@@ -101,7 +101,7 @@ class N01
                 break;
             case 'N02_1_1_U':
                 $title = 'N02-1.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch<br />' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
@@ -109,19 +109,19 @@ class N01
                 break;
             case 'N02_2_A':
                 $title = 'N02-2-A. Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
                 break;
             case 'N02_2_U':
                 $title = 'N02-2-U. Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen,<br />'
                     . Common::getBlankSpace(16) . 'Schularten, Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
                 break;
             case 'N02_2_1_A':
                 $title = 'N02-2.1-A. Darunter Neuanfänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';
@@ -129,7 +129,7 @@ class N01
                 break;
             case 'N02_2_1_U':
                 $title = 'N02-2.1-U. Darunter Neuanfänger im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch<br />' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach berufsbildenden Abschlüssen, Schularten, 
                     Förderschwerpunkten und Klassenstufen';
                 $columnName = 'Berufsbildender Abschluss¹';

@@ -291,7 +291,7 @@ class PrimarySchool extends AbstractStudentCard
                                          {% if(Content.Person.Parent.Mother.Name.Last is not empty) %}
                                             {% if(Content.Person.Parent.Father.Name.Last is not empty) %}
                                                 {{ Content.Person.Parent.Mother.Name.Last }}, {{ Content.Person.Parent.Mother.Name.First }}
-                                                </br>
+                                                <br />
                                                 {{ Content.Person.Parent.Father.Name.Last }}, {{ Content.Person.Parent.Father.Name.First }}
                                             {% else %}
                                                 {{ Content.Person.Parent.Mother.Name.Last }} {{ Content.Person.Parent.Mother.Name.First }}
@@ -325,7 +325,7 @@ class PrimarySchool extends AbstractStudentCard
                                          {% if(Content.Person.Address.Street.Name) %}
                                             {{ Content.Person.Address.Street.Name }}
                                             {{ Content.Person.Address.Street.Number }}
-                                            </br>
+                                            <br />
                                             {{ Content.Person.Address.City.Code }}
                                             {{ Content.Person.Address.City.Name }}
                                         {% else %}

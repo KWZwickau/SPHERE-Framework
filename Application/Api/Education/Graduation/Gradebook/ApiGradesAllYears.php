@@ -223,7 +223,7 @@ class ApiGradesAllYears extends Extension implements IApiInterface
         }
 
         ksort($divisionList);
-        $content = implode('</br>', $divisionList);
+        $content = implode('<br />', $divisionList);
 
         /*
         * Calc Average over all Years

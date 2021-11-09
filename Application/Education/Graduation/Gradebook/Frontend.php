@@ -2609,7 +2609,7 @@ class Frontend extends FrontendScoreRule
 
 
         if ($showDivisionInToolTip && ($tblDivision = $tblTest->getServiceTblDivision())) {
-            $toolTip = 'Klasse: ' . $tblDivision->getDisplayName() . '</br>';
+            $toolTip = 'Klasse: ' . $tblDivision->getDisplayName() . '<br />';
         } else {
             $toolTip = '';
         }
@@ -3393,7 +3393,7 @@ class Frontend extends FrontendScoreRule
                             'IsParentView' => true,
                         )
                     ),
-                    '</br></br>'
+                    '<br /><br />'
                 ))
             );
         } else {
@@ -3417,7 +3417,7 @@ class Frontend extends FrontendScoreRule
                             'IsParentView' => true,
                         )
                     ),
-                    '</br></br>'
+                    '<br /><br />'
                 ))
             );
         }

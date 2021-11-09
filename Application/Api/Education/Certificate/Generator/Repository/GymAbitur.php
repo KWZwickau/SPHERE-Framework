@@ -301,12 +301,12 @@ class GymAbitur extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('
-                        Dem Zeugnis liegen zugrunde: </br>
-                        – &nbsp;&nbsp; Vereinbarung zur Gestaltung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkonferenz vom </br>
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07.07.1972, in der jeweils geltenden Fassung) </br>
-                        – &nbsp;&nbsp; Vereinbarung über die Abiturprüfung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkon- </br>
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ferenz vom 13.12.1973, in der jeweils geltenden Fassung) </br>
-                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 1 der Verordnung </br>
+                        Dem Zeugnis liegen zugrunde: <br />
+                        – &nbsp;&nbsp; Vereinbarung zur Gestaltung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkonferenz vom <br />
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07.07.1972, in der jeweils geltenden Fassung) <br />
+                        – &nbsp;&nbsp; Vereinbarung über die Abiturprüfung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkon- <br />
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ferenz vom 13.12.1973, in der jeweils geltenden Fassung) <br />
+                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 1 der Verordnung <br />
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vom 7. Mai 2018 (SächsGVBl. S. 240) geändert worden ist, in der jeweils geltenden Fassung
                         ')
                         ->styleTextSize('11px')
@@ -1887,7 +1887,7 @@ class GymAbitur extends Certificate
                     ->styleMarginTop('15px')
                     , '35%')
                 ->addElementColumn((new Element())
-                    ->setContent('Dienstsiegel </br> der Schule' )
+                    ->setContent('Dienstsiegel <br /> der Schule' )
                     ->styleTextSize($textSize)
                     ->styleAlignCenter()
                     ->styleMarginTop('15px')
@@ -1955,7 +1955,7 @@ class GymAbitur extends Certificate
             ->addSection($this->setInfoRow(2, 'Alle Punktzahlen werden zweistellig angegeben.'))
             ->addSection($this->setInfoRow(3, 'Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu
                  kennzeichnen.'))
-            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftli-</br>
+            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftli-<br />
             chen Aufgabenfeld zugeordnet.'))
             ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
 

@@ -25,12 +25,12 @@ class F01
         switch ($name) {
             case 'F01_1':
                 $title = 'F01-1. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf <u>im Vollzeitunterricht</u>
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und </br>' . Common::getBlankSpace(11)
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und <br />' . Common::getBlankSpace(11)
                     . 'Klassenstufen';
                 break;
             case 'F01_2':
                 $title = 'F01-2. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf <u>im Teilzeitunterricht</u>
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und </br>' . Common::getBlankSpace(11)
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und <br />' . Common::getBlankSpace(11)
                     . 'Klassenstufen';
                 break;
             default: $title = '';
@@ -122,12 +122,12 @@ class F01
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler, deren</br> Herkunftsspr.</br> nicht oder nicht</br> ausschließlich</br> Deutsch ist')
+                            ->setContent('Schüler, deren<br /> Herkunftsspr.<br /> nicht oder nicht<br /> ausschließlich<br /> Deutsch ist')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler mit</br> gutachterlich</br> bestätigtem</br> Autismus')
+                            ->setContent('Schüler mit<br /> gutachterlich<br /> bestätigtem<br /> Autismus')
                             ->stylePaddingTop('8.5px')
                             ->stylePaddingBottom('8.6px')
                             ->styleBorderBottom(), '50%'

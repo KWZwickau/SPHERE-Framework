@@ -247,7 +247,7 @@ class Service
             } else {
                 return new Warning(
                     new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
-                    . '</br></br>'
+                    . '<br /><br />'
                 .($IsTableAccordion
                     ? (new Accordion())->addItem('Warnungen '.new Small('('.$totalCount.')'),
                             new TableData(
@@ -371,7 +371,7 @@ class Service
 
                 return new Warning(
                     new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
-                    . '</br></br>'
+                    . '<br /><br />'
                     . new TableData(
                         $contentTable,
                         null,
@@ -463,7 +463,7 @@ class Service
                 $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .=
                     (empty($list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'])
                         ? ''
-                        : '</br>')
+                        : '<br />')
                     . $value;
             }
         }
@@ -482,7 +482,7 @@ class Service
                 $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] .=
                     (empty($list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'])
                         ? ''
-                        : '</br>')
+                        : '<br />')
                     . $value;
             }
         }
@@ -505,7 +505,7 @@ class Service
                             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] .=
                                 (empty($list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'])
                                     ? ''
-                                    : '</br>')
+                                    : '<br />')
                                 . $value;
                         }
                     }
@@ -527,7 +527,7 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['Course']['Value'] .=
                             (empty($list[$tblPerson->getId()]['Filters']['Course']['Value'])
                                 ? ''
-                                : '</br>')
+                                : '<br />')
                             . $value;
                     }
                 }
@@ -553,7 +553,7 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .=
                             (empty($list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'])
                                 ? ''
-                                : '</br>')
+                                : '<br />')
                             . $value;
                     }
                 }
@@ -574,7 +574,7 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] .=
                             (empty($list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'])
                                 ? ''
-                                : '</br>')
+                                : '<br />')
                             . $value;
                     }
                 }

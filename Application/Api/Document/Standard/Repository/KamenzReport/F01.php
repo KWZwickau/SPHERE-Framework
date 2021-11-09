@@ -37,7 +37,7 @@ class F01
                 ->styleMarginBottom('5px')
                 ->addElement((new Element())
                     ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
-                {{ Content.SchoolYear.Current }} nach </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Förderschwerpunkten und Klassenstufen')
+                {{ Content.SchoolYear.Current }} nach <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Förderschwerpunkten und Klassenstufen')
                 );
 
             $sliceList[] = (new Slice())

@@ -766,14 +766,14 @@ class Frontend extends Extension implements IFrontendInterface
                             // sich ausschließende Gruppen vergeben, auch eine Fehlermeldung (roles wird im service geleert)
                             if($tblGroupStudent && ($tblGroupStaff || $tblGroupTeacher)){
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    new DangerText('Fehler:').'</br>'.
-                                    'Person ist Schüler und in mindestens einer der beiden Personengruppen:</br>'
+//                                    new DangerText('Fehler:').'<br />'.
+                                    'Person ist Schüler und in mindestens einer der beiden Personengruppen:<br />'
                                     .new DangerText('Mitarbeiter / Lehrer')
                                 )))->enableHtml();
                             } else {
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    new DangerText('Fehler:').'</br>'.
-                                    'Person in keiner der folgenen Personengruppen:</br>'
+//                                    new DangerText('Fehler:').'<br />'.
+                                    'Person in keiner der folgenen Personengruppen:<br />'
                                     .new DangerText('Schüler / Mitarbeiter / Lehrer')
                                 )))->enableHtml();
                             }
@@ -781,7 +781,7 @@ class Frontend extends Extension implements IFrontendInterface
                         case 'schools':
                             $KeyReplace = 'Schule:';
                             $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-                                'Schüler ist keiner Klasse zugewiesen </br>'
+                                'Schüler ist keiner Klasse zugewiesen <br />'
                                 .'oder Schule fehlt in UCS')))->enableHtml();
                         break;
 
@@ -790,7 +790,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if($tblMember && $Key == 'school_classes'){
                         $KeyReplace = 'Klassen:';
                         $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                            new DangerText('Fehler:').'</br>'.
+//                            new DangerText('Fehler:').'<br />'.
                             'Schüler ist keiner Klasse zugewiesen')))->enableHtml();
                     } elseif(!$tblMember && $Key == 'school_classes') {
                         continue;
@@ -808,14 +808,14 @@ class Frontend extends Extension implements IFrontendInterface
                             case 'email':
                                 $KeyReplace = 'E-Mail:';
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    new DangerText('Fehler:').'</br>'.
+//                                    new DangerText('Fehler:').'<br />'.
                                     'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
                             break;
                             case 'recoveryMail':
                                 $KeyReplace = 'E-Mail recovery:';
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    new DangerText('Fehler:').'</br>'.
+//                                    new DangerText('Fehler:').'<br />'.
                                     'keine Passwort vergessen E-Mail hinterlegt'
                                 )))->enableHtml();
                             break;

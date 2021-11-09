@@ -172,7 +172,7 @@ class People implements IClusterInterface
                     .$Calculation['countStudentsByYear']
                     . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName()
                     ))
-                    , htmlspecialchars(implode('</br>', $Calculation['PersonExcludeStudent']))))->enableHtml();
+                    , htmlspecialchars(implode('<br />', $Calculation['PersonExcludeStudent']))))->enableHtml();
             }
         }
         // Anhängen der Schulartzählung

@@ -23,45 +23,45 @@ class S01
         switch ($name) {
             case 'S01_1_A':
                 $title = 'S01-1-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger<br />'
                     . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
                 break;
             case 'S01_1_U':
                 $title = 'S01-1-U. Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger<br />'
                     . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
                 break;
             case 'S01_1_1_A':
                 $title = 'S01-1.1-A. Darunter Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
-                    Förderschwerpunkten und</br>' . Common::getBlankSpace(19) . 'Klassenstufen';
+                    Förderschwerpunkten und<br />' . Common::getBlankSpace(19) . 'Klassenstufen';
                 break;
             case 'S01_1_1_U':
                 $title = 'S01-1.1-U. Darunter Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch<br />' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
                     Förderschwerpunkten und Klassenstufen';
                 break;
             case 'S01_2_A':
                 $title = 'S01-2-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger<br />'
                     . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
                 break;
             case 'S01_2_U':
                 $title = 'S01-2-U. Schüler im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u> 
-                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger</br>'
+                    im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger<br />'
                     . Common::getBlankSpace(16) . 'Ausbildungsdauer, Förderschwerpunkten und Klassenstufen';
                 break;
             case 'S01_2_1_A':
                 $title = 'S01-2.1-A. Darunter Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teillzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(19) . 'ausschließlich Deutsch ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
-                    Förderschwerpunkten und</br>' . Common::getBlankSpace(19) . 'Klassenstufen';
+                    Förderschwerpunkten und<br />' . Common::getBlankSpace(19) . 'Klassenstufen';
                 break;
             case 'S01_2_1_U':
                 $title = 'S01-2.1-U. Darunter Schüler im <u>Ausbildungsstatus Umschüler im Teillzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch</br>' . Common::getBlankSpace(19) . 'ist,
+                    deren Herkunftssprache nicht oder nicht ausschließlich Deutsch<br />' . Common::getBlankSpace(19) . 'ist,
                     im Schuljahr {{ Content.SchoolYear.Current }} nach Bildungsgängen, planmäßiger Ausbildungsdauer, 
                     Förderschwerpunkten und Klassenstufen';
                 break;

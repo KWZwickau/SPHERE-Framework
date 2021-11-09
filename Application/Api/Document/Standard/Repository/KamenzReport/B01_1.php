@@ -24,7 +24,7 @@ class B01_1
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('B01.1 Darunter <u>Absolventen/Abgänger, deren Herkunftssprache nicht oder nicht
-                    ausschließlich Deutsch</u> </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    ausschließlich Deutsch</u> <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <u>ist,</u> aus dem Schuljahr {{ Content.SchoolYear.Past }} 
                     nach Abschlussarten und Klassenstufen')
             );
