@@ -459,7 +459,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblToPerson|null $tblToPerson
      */
-    private function resetMailWithUserAlias(TblPerson $tblPerson, TblToPerson $tblToPerson = null) {
+    public function resetMailWithUserAlias(TblPerson $tblPerson, TblToPerson $tblToPerson = null) {
         if(($tblToPersonList = $this->getMailAllByPerson($tblPerson))){
             foreach($tblToPersonList as $tblToPersonTemp){
                 if($tblToPersonTemp->isAccountUserAlias()

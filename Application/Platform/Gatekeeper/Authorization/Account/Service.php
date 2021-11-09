@@ -649,14 +649,17 @@ class Service extends AbstractService
      * @param null|TblConsumer $tblConsumer
      * @param bool $SaveInitialPW
      * @param bool $isAuthenticatorApp
+     * @param null $UserAlias
+     * @param null $RecoveryMail
      *
      * @return TblAccount
      */
-    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null
-        , $SaveInitialPW = false, $isAuthenticatorApp = false
+    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null,
+        $SaveInitialPW = false, $isAuthenticatorApp = false, $UserAlias = null, $RecoveryMail = null
     ) {
 
-        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer, $isAuthenticatorApp);
+        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer,
+            $isAuthenticatorApp, $UserAlias, $RecoveryMail);
         if($SaveInitialPW){
             (new Data($this->getBinding()))->createAccountInitial($tblAccount);
         }
@@ -1105,5 +1108,43 @@ class Service extends AbstractService
         }
 
         return !$error;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|string
+     */
+    public function getAccountUserAliasFromMails(TblPerson $tblPerson) {
+        if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if ($tblToPerson->isAccountUserAlias()
+                    && ($tblMail = $tblToPerson->getTblMail())
+                ) {
+                    return $tblMail->getAddress();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|string
+     */
+    public function getAccountRecoveryMailFromMails(TblPerson $tblPerson) {
+        if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if ($tblToPerson->isAccountRecoveryMail()
+                    && ($tblMail = $tblToPerson->getTblMail())
+                ) {
+                    return $tblMail->getAddress();
+                }
+            }
+        }
+
+        return false;
     }
 }
