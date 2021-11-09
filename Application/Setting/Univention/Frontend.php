@@ -805,6 +805,13 @@ class Frontend extends Extension implements IFrontendInterface
                         // Mousover Problembeschreibung
                         $MouseOver = '';
                         switch ($Key){
+                            case 'name':
+                                $KeyReplace = 'Benutzername:';
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+//                                    new DangerText('Fehler:').'</br>'.
+                                    'Umlaute oder Sonderzeichen'
+                                )))->enableHtml();
+                            break;
                             case 'email':
                                 $KeyReplace = 'E-Mail:';
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
@@ -843,6 +850,23 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
+        } elseif(Univention::useService()->checkName($Account['name'])){
+
+            $tblPerson = false;
+            if(($tblAccount = Account::useService()->getAccountById($Account['record_uid']))){
+                if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                    $tblPerson = current($tblPersonList);
+                }
+            }
+            if($tblPerson){
+                $PersonLink = (new Link(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'),
+                    '/People/Person', new Person(), array('Id' => $tblPerson->getId())))->setExternal();
+            } else {
+                $PersonLink = new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
+            }
+
+            $ErrorLog[] = new Bold($Account['name']).' '.$PersonLink;
+            $ErrorLog[] = 'Benutzername '.new DangerText('enthält Umlaute');
         }
         // Errorlog nur mit Namen wieder entfernen
         // Count 1 ist nur der Name ohne Fehlermeldung und ist im allgemeinen ein ungültiger "Fund"
@@ -868,6 +892,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
 
             foreach($AccountPrepareList as $Data){
+
                 $IsError = false;
 //                $Data['name'];
 //                $Data['firstname'];       // Account ohne Person wird bereits davor ausgefiltert
@@ -883,6 +908,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Person als '.
                             new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
                         new DangerText('Account fehlt ');
+                    $IsError = true;
+                } elseif(Univention::useService()->checkName($Data['name'])) {
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Benutzername beinhaltet '.
+                            new Bold('Umlaute / Sonderzeichen'))))->enableHtml().
+                        new DangerText('Account '.$Data['name']);
+                    $Data['account'] = 'Umlaute&nbsp;oder&nbsp;Sonderzeichen';
                     $IsError = true;
                 }
                 if(!$Data['schools']){
@@ -936,6 +967,9 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if($Notification['mail']){
                     $PanelContent[] = 'E-mail: '.$Notification['mail'];
+                }
+                if(isset($Notification['account']) && $Notification['account']){
+                    $PanelContent[] = 'Benutzername: '.$Notification['account'];
                 }
 
                 $Columnlist[] = new LayoutColumn(
