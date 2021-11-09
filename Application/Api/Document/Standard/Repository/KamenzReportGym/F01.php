@@ -37,7 +37,7 @@ class F01
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
-                    {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
+                    {{ Content.SchoolYear.Current }} <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
                     Förderschwerpunkten und Klassen- bzw. Jahrgangsstufen')
             );
 

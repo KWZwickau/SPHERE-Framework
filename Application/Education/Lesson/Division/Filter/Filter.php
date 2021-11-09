@@ -453,8 +453,8 @@ class Filter extends Extension
             ? null
             : new Warning(
                 new Bold(new Exclamation() . ' Folgende Schüler in dieser Fach-Gruppe stimmen nicht mit der Filterung überein:')
-                . '</br>'
-                . implode('</br>', $list)
+                . '<br />'
+                . implode('<br />', $list)
             );
     }
 

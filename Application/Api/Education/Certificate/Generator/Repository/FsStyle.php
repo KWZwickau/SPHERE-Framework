@@ -1854,7 +1854,7 @@ abstract class FsStyle extends Certificate
         if ($hasAdditionalRemarkFhr) {
             $postText = '
             {% if(Content.P' . $personId . '.Input.AdditionalRemarkFhr is not empty) %}
-                </br>
+                <br />
                 {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
                     {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
                 {% else %}

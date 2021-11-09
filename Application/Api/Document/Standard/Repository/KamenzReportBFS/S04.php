@@ -23,7 +23,7 @@ class S04
         switch ($name) {
             case 'S04_1_A':
                 $title = 'S04-1-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u> mit
-                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene</br>' . Common::getBlankSpace(16)
+                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene<br />' . Common::getBlankSpace(16)
                     . 'bzw. fortgeführte Fremdsprachen) im Schuljahr {{ Content.SchoolYear.Current }} nach Fremdsprachen und Klassenstufen';
                 $maxLevel = 4;
                 $width[0] = '25%';
@@ -32,7 +32,7 @@ class S04
                 break;
             case 'S04_1_U':
                 $title = 'S04-1-U. Schüler im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u> mit
-                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene</br>' . Common::getBlankSpace(16)
+                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene<br />' . Common::getBlankSpace(16)
                     . 'bzw. fortgeführte Fremdsprachen) im Schuljahr {{ Content.SchoolYear.Current }} nach Fremdsprachen und Klassenstufen';
                 $maxLevel = 4;
                 $width[0] = '25%';
@@ -41,7 +41,7 @@ class S04
                 break;
             case 'S04_2_A':
                 $title = 'S04-2-A. Schüler im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterricht</u> mit
-                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene</br>' . Common::getBlankSpace(16)
+                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene<br />' . Common::getBlankSpace(16)
                     . 'bzw. fortgeführte Fremdsprachen) im Schuljahr {{ Content.SchoolYear.Current }} nach Fremdsprachen und Klassenstufen';
                 $maxLevel = 5;
                 $width[0] = '25%';
@@ -50,7 +50,7 @@ class S04
                 break;
             case 'S04_2_U':
                 $title = 'S04-2-U. Schüler im <u>Ausbildungsstatus Umschüler im Teilzeitunterricht</u> mit
-                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene</br>' . Common::getBlankSpace(16)
+                    fremdsprachlichem Unterricht (an dieser Schule neu begonnene<br />' . Common::getBlankSpace(16)
                     . 'bzw. fortgeführte Fremdsprachen) im Schuljahr {{ Content.SchoolYear.Current }} nach Fremdsprachen und Klassenstufen';
                 $maxLevel = 5;
                 $width[0] = '25%';

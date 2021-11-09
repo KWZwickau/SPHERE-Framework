@@ -24,43 +24,43 @@ class B02
         switch ($name) {
             case 'B02_1_A':
                 $title = 'B02-1-A. Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>
-                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und</br>' . Common::getBlankSpace(16)
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und<br />' . Common::getBlankSpace(16)
                     . 'Abschlussarten';
                 break;
             case 'B02_1_U':
                 $title = 'B02-1-U. Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>
-                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und</br>' . Common::getBlankSpace(16)
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und<br />' . Common::getBlankSpace(16)
                     . 'Abschlussarten';
                 break;
             case 'B02_1_1_A':
                 $title = 'B02-1.1-A. Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(18)
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(18)
                     . 'ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten';
                 break;
             case 'B02_1_1_U':
                 $title = 'B02-1.1-U. Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(18)
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(18)
                     . 'ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten';
                 break;
 
             case 'B02_2_A':
                 $title = 'B02-2-A. Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterricht</u>
-                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und</br>' . Common::getBlankSpace(16)
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und<br />' . Common::getBlankSpace(16)
                     . 'Abschlussarten';
                 break;
             case 'B02_2_U':
                 $title = 'B02-2-U. Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Teilzeitunterricht</u>
-                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und</br>' . Common::getBlankSpace(16)
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und<br />' . Common::getBlankSpace(16)
                     . 'Abschlussarten';
                 break;
             case 'B02_2_1_A':
                 $title = 'B02-2.1-A. Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(18)
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(18)
                     . 'ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten';
                 break;
             case 'B02_2_1_U':
                 $title = 'B02-2.1-U. Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Teilzeitunterricht</u>,
-                    deren Herkunftssprache nicht oder nicht</br>' . Common::getBlankSpace(18)
+                    deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(18)
                     . 'ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten';
                 break;
 
@@ -226,7 +226,7 @@ class B02
             ->styleBorderRight()
             ->addSection($section);
 
-        $array[] = 'Nicht erfasst werden Schüler, die bei Verbleib im Bildungsgang die Schule wechseln!</br>'
+        $array[] = 'Nicht erfasst werden Schüler, die bei Verbleib im Bildungsgang die Schule wechseln!<br />'
             . Common::getBlankSpace(5) . 'Ohne Teilnehmer von Schulfremdenprüfungen. Diese werden als 
                     Absolventen/Abgänger an der Schule gezählt, an der die Ausbildung stattfand.';
         $array[] = 'Laut Eintrag im Geburtenregister';
