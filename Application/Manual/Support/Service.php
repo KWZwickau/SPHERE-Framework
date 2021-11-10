@@ -119,6 +119,7 @@ class Service extends Extension
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
+                $Mail->setFromHeader($mailAddress);
                 $Mail->setReplyHeader($mailAddress);
                 $Mail->sendMail();
                 $Mail->disconnectServer();
