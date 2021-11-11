@@ -405,6 +405,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Verwendungszweck')),
                                     new LayoutColumn('[GID] Gläubiger-ID', 4),
+                                    new LayoutColumn('[RN] Rechnungsnummer', 4),
                                     new LayoutColumn('[SN] Mandantsreferenz&shy;nummer', 4),
                                     new LayoutColumn('[BVN] Beitragsverursacher Name', 4),
                                     new LayoutColumn('[BVV] Beitragsverursacher Vorname', 4),
@@ -458,6 +459,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Buchungstext')),
                                     new LayoutColumn('[GID] Gläubiger-ID', 4),
+                                    new LayoutColumn('[RN] Rechnungsnummer', 4),
                                     new LayoutColumn('[SN] Mandantsreferenz&shy;nummer', 4),
                                     new LayoutColumn('[BVN] Beitragsverursacher Name', 4),
                                     new LayoutColumn('[BVV] Beitragsverursacher Vorname', 4),
