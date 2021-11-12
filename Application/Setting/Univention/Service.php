@@ -17,7 +17,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Authorization\Account\Account;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Univention\Service\Data;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
 use SPHERE\Application\Setting\Univention\Service\Setup;
@@ -522,6 +521,12 @@ class Service extends AbstractService
 
             foreach ($AccountData as $Account)
             {
+
+                // Accounts mit Umlauten überspringen
+                if($this->checkName($Account['name'])){
+                    continue;
+                }
+
                 $Column = 0;
                 $Row++;
 
@@ -604,5 +609,21 @@ class Service extends AbstractService
         $ClassName = str_replace('ö', 'oe', $ClassName);
         $ClassName = str_replace('ß', 'ss', $ClassName);
         return $ClassName;
+    }
+
+    /**
+     * return true if it's a problem with chars (Umlaute / Sonderzeichen)
+     * @param $UserName
+     *
+     * @return bool
+     */
+    public function checkName($UserName)
+    {
+        if((preg_match('!(^[a-zA-Z0-9-]+)!', $UserName, $Match)) && strlen($Match[0]) != strlen($UserName)){
+            // enthält andere Zeichen
+            return true;
+        }
+        //alles ok
+        return false;
     }
 }

@@ -756,6 +756,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $ErrorLog[] = new Bold($Account['name']).' '.$PersonLink;
 
+            // Umlautkontrolle, wenn ein Nutzername vorhanden ist
+            if($Account['name'] !== '' && Univention::useService()->checkName($Account['name'])){
+                $ErrorLog[] = 'Benutzername: '.new DangerText('enthält Umlaute oder Sonderzeichen');
+            }
+
             foreach($Account as $Key => $Value){
                 if(is_array($Value)){
                     $MouseOver = '';
@@ -805,6 +810,13 @@ class Frontend extends Extension implements IFrontendInterface
                         // Mousover Problembeschreibung
                         $MouseOver = '';
                         switch ($Key){
+                            case 'name':
+                                $KeyReplace = 'Benutzername:';
+                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+//                                    new DangerText('Fehler:').'</br>'.
+                                    'Umlaute oder Sonderzeichen'
+                                )))->enableHtml();
+                            break;
                             case 'email':
                                 $KeyReplace = 'E-Mail:';
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
@@ -843,6 +855,23 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
+        } elseif(Univention::useService()->checkName($Account['name'])){
+
+            $tblPerson = false;
+            if(($tblAccount = Account::useService()->getAccountById($Account['record_uid']))){
+                if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                    $tblPerson = current($tblPersonList);
+                }
+            }
+            if($tblPerson){
+                $PersonLink = (new Link(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'),
+                    '/People/Person', new Person(), array('Id' => $tblPerson->getId())))->setExternal();
+            } else {
+                $PersonLink = new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
+            }
+
+            $ErrorLog[] = new Bold($Account['name']).' '.$PersonLink;
+            $ErrorLog[] = 'Benutzername: '.new DangerText('enthält Umlaute oder Sonderzeichen');
         }
         // Errorlog nur mit Namen wieder entfernen
         // Count 1 ist nur der Name ohne Fehlermeldung und ist im allgemeinen ein ungültiger "Fund"
@@ -868,6 +897,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
 
             foreach($AccountPrepareList as $Data){
+
                 $IsError = false;
 //                $Data['name'];
 //                $Data['firstname'];       // Account ohne Person wird bereits davor ausgefiltert
@@ -880,9 +910,17 @@ class Frontend extends Extension implements IFrontendInterface
 //                $Data['groupArray'];
 
                 if(!$Data['name']){
-                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().' Person als '.
+                    // nur Schüler können vorkommen, die keinen Account haben, der Rest wird nur über vorhandenen Account gezogen
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Person als '.
                             new Bold('Schüler').' besitzt keinen Account')))->enableHtml().
                         new DangerText('Account fehlt ');
+                    $IsError = true;
+                } elseif(Univention::useService()->checkName($Data['name'])) {
+                    // Umlaute & Sonderzeichen im Benutzernamen sind nicht erlaubt
+                    $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Benutzername beinhaltet '.
+                            new Bold('Umlaute oder Sonderzeichen'))))->enableHtml().
+                        new DangerText('Account '.$Data['name']);
+                    $Data['account'] = new DangerText('Umlaute&nbsp;oder&nbsp;Sonderzeichen');
                     $IsError = true;
                 }
                 if(!$Data['schools']){
@@ -936,6 +974,9 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if($Notification['mail']){
                     $PanelContent[] = 'E-mail: '.$Notification['mail'];
+                }
+                if(isset($Notification['account']) && $Notification['account']){
+                    $PanelContent[] = 'Benutzername: '.$Notification['account'];
                 }
 
                 $Columnlist[] = new LayoutColumn(
