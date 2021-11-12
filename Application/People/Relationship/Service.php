@@ -781,7 +781,7 @@ class Service extends AbstractService
     public function getRelationshipInformationForContact(TblPerson $tblPerson, TblPerson $tblPersonContact, $remarkContact)
     {
         // abhängig von beziehungstyp
-        // Sorgeb. Bevol. Vormund -> beim From -> Kind
+        // Sorgeb., Bevol., Vormund, Notfallkontakt -> beim From -> Kind
         // Geschwisterkind beide Richtungen
         // der Rest weglassen
 
@@ -795,6 +795,7 @@ class Service extends AbstractService
                 case 'Sorgeberechtigt':
                 case 'Bevollmächtigt':
                 case 'Vormund':
+                case 'Notfallkontakt':
                 case 'Geschwisterkind':
                     $result = ' (' . $typeName
                         . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
@@ -817,6 +818,7 @@ class Service extends AbstractService
                 case 'Sorgeberechtigt':
                 case 'Bevollmächtigt':
                 case 'Vormund':
+                case 'Notfallkontakt':
                     $result = ' (Kind'
                         . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
                         . ')';
