@@ -16,19 +16,22 @@ class TextField extends AbstractTextField implements IFieldInterface
     private $Label = '';
     /** @var string $Label */
     private $Placeholder = '';
+
     /**
      * @param string         $Name
      * @param null|string    $Placeholder
      * @param null|string    $Label
      * @param IIconInterface $Icon
      * @param null|string    $Mask 9: Number, a:Char, w:Alphanumeric, *:Any, ?:Optional (plus following)
+     * @param int            $MaxLength
      */
     public function __construct(
         $Name,
         $Placeholder = '',
         $Label = '',
         IIconInterface $Icon = null,
-        $Mask = null
+        $Mask = null,
+        $MaxLength = 255
     ) {
 
         $this->Name = $Name;
@@ -44,6 +47,7 @@ class TextField extends AbstractTextField implements IFieldInterface
         if (null !== $Mask) {
             $this->Template->setVariable('ElementMask', $Mask);
         }
+        $this->Template->setVariable('ElementMaxLength', $MaxLength);
     }
 
     /**
