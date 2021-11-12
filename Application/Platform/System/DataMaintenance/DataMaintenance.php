@@ -2,7 +2,9 @@
 
 namespace SPHERE\Application\Platform\System\DataMaintenance;
 
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -11,9 +13,13 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -83,6 +89,16 @@ class DataMaintenance
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Restore\Person\Selected',
                 __CLASS__ . '::frontendPersonRestoreSelected'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Grade',
+                __CLASS__ . '::frontendGrade'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeUnreachable',
+                __CLASS__ . '::frontendGradeUnreachable'
             )
         );
     }
@@ -170,6 +186,11 @@ class DataMaintenance
                         new Standard('Alle Sorgeberechtigte '.new Label($CustodyAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView', new EyeOpen(),
                             array('AccountType' => 'CUSTODY'))
                     )),
+                    new LayoutColumn(array(
+                        new TitleLayout('Zensuren/Noten'),
+                        (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
+                            .  (new Standard('Unerreichbare Zensuren', __NAMESPACE__.'/GradeUnreachable'))
+                    ))
 //                    $IntegrationColumn,
                 ))
             )
@@ -700,5 +721,93 @@ class DataMaintenance
             return new \DateTime($Date->format('d.m.').'20'.$Date->format('y'));
         }
         return $Date;
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return Stage
+     */
+    public function frontendGrade(?array $Data = null): Stage
+    {
+        $stage = new Stage('Datenpflege', 'Zensuren verschieben');
+        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $tblYearList = Term::useService()->getYearAll();
+
+        $stage->setContent(
+            ApiGradeMaintenance::receiverBlock('', 'Message')
+            . new Form(new FormGroup(new FormRow(new FormColumn(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Source',
+                                array(
+                                    (new SelectBox('Data[Source][YearId]', 'Schuljahr',
+                                        array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
+                                        ->ajaxPipelineOnChange(array(
+                                            ApiGradeMaintenance::pipelineLoadDivisionSelect($Data, 'Source')
+                                        ))->setRequired(),
+                                    ApiGradeMaintenance::receiverBlock('', 'SourceDivisionSelect'),
+                                    ApiGradeMaintenance::receiverBlock('', 'SourceDivisionSubjectSelect'),
+                                    ApiGradeMaintenance::receiverBlock('', 'SourceDivisionSubjectInformation')
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            )
+                            , 6),
+                        new LayoutColumn(
+                            new Panel(
+                                'Target',
+                                array(
+                                    (new SelectBox('Data[Target][YearId]', 'Schuljahr',
+                                        array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
+                                        ->ajaxPipelineOnChange(array(
+                                                ApiGradeMaintenance::pipelineLoadDivisionSelect($Data, 'Target'))
+                                        )->setRequired(),
+                                    ApiGradeMaintenance::receiverBlock('', 'TargetDivisionSelect'),
+                                    ApiGradeMaintenance::receiverBlock('', 'TargetDivisionSubjectSelect'),
+                                    ApiGradeMaintenance::receiverBlock('', 'TargetDivisionSubjectInformation')
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            )
+                            , 6)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(ApiGradeMaintenance::receiverBlock(ApiGradeMaintenance::loadMoveButton($Data), 'MoveButton'))
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn('&nbsp;'),
+                        new LayoutColumn(ApiGradeMaintenance::receiverBlock('', 'OutputInformation'))
+                    )),
+                )))
+            ))))
+        );
+
+        return $stage;
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return Stage
+     */
+    public function frontendGradeUnreachable(?array $Data = null): Stage
+    {
+        $stage = new Stage('Unerreichbare Zensuren');
+        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $tblYearList = Term::useService()->getYearAll();
+
+        $stage->setContent(
+            (new SelectBox('Data[YearId]', 'Schuljahr',
+                array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
+                ->ajaxPipelineOnChange(array(
+                    ApiGradeMaintenance::pipelineLoadUnreachableGrades($Data)
+                ))->setRequired()
+            . ApiGradeMaintenance::receiverBlock('', 'UnreachableGrades')
+        );
+
+        return  $stage;
     }
 }

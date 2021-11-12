@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
+use DateTime;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -215,7 +216,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setGrade($Grade);
             $Entity->setComment($Comment);
             $Entity->setTrend($Trend);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
             $Entity->setPublicComment($PublicComment);
 
@@ -279,6 +280,32 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         return $this->getForceEntityListBy(__METHOD__,$this->getEntityManager(),(new TblGrade())->getEntityShortName(), $Parameter);
     }
 
+    /**
+     * @param DateTime $fromCreateDate
+     * @param DateTime $toCreateDate
+     *
+     * @return array|false|int|string
+     */
+    public function getGradeAllByFromCreateDate(DateTime $fromCreateDate, DateTime $toCreateDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblGrade', 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->gte('t.EntityCreate', '?1'),
+                $queryBuilder->expr()->lte('t.EntityCreate', '?2'),
+                $queryBuilder->expr()->isNull('t.EntityRemove')
+            ))
+            ->setParameter(1, $fromCreateDate)
+            ->setParameter(2, $toCreateDate)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
 
     /**
      * @param $Id
@@ -490,7 +517,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setComment($Comment);
             $Entity->setPublicComment($PublicComment);
             $Entity->setTrend($Trend);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
             $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
 
@@ -1042,5 +1069,75 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
             TblGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
         ));
+    }
+
+    /**
+     * @param $tblGradeList
+     */
+    public function destroyGradeList(
+        $tblGradeList
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            if (null !== $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
+
+    /**
+     * @param $tblGradeList
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblTest|null $tblTest
+     * @param TblPeriod|null $tblPeriod
+     */
+    public function updateGrades(
+        $tblGradeList,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null,
+        TblTest $tblTest = null,
+        TblPeriod $tblPeriod = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setServiceTblDivision($tblDivision);
+                $Entity->setServiceTblSubject($tblSubject);
+                $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+
+                if ($tblTest) {
+                    $Entity->setServiceTblTest($tblTest);
+                }
+
+                if ($tblPeriod) {
+                    $Entity->setServiceTblPeriod($tblPeriod);
+                }
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
     }
 }
