@@ -2226,19 +2226,24 @@ class Service extends ServiceScoreRule
         $destroyTests = array();
         if (($tblTargetTestList = Evaluation::useService()->getTestDistinctListBy($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup))) {
             foreach ($tblTargetTestList as $tblTargetTest) {
-                $test = 'Test: ' . $tblTargetTest->getDate() . ' ' . $tblTargetTest->getGradeTypeCode()
-                    . ' - ' . $tblTargetTest->getDescription() . ' gelöscht';
-                if (($tblTargetGradeList = Gradebook::useService()->getGradeAllByTest($tblTargetTest))) {
-                    $grades = count($tblTargetGradeList) . ' Zensuren gelöscht';
-                    $destroyGrades = array_merge($destroyGrades, $tblTargetGradeList);
-                } else {
-                    $grades = '0 Zensuren gelöscht';
+                // erstmal nur Notenaufträge löschen -> sind sonst eventuell doppelt
+                if (($tblTargetTestType = $tblTargetTest->getTblTestType())
+                    && ($tblTargetTestType == 'APPOINTED_DATE_TASK' || $tblTargetTestType == 'BEHAVIOR_TASK')
+                ) {
+                    $test = 'Test: ' . $tblTargetTest->getDate() . ' ' . $tblTargetTest->getGradeTypeCode()
+                        . ' - ' . $tblTargetTest->getDescription() . ' gelöscht';
+                    if (($tblTargetGradeList = Gradebook::useService()->getGradeAllByTest($tblTargetTest))) {
+                        $grades = count($tblTargetGradeList) . ' Zensuren gelöscht';
+                        $destroyGrades = array_merge($destroyGrades, $tblTargetGradeList);
+                    } else {
+                        $grades = '0 Zensuren gelöscht';
+                    }
+                    $destroyTests[] = $tblTargetTest;
+                    $protocol['DeleteTests'][$tblTargetTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($test, 6),
+                        new LayoutColumn($grades, 6)
+                    ))));
                 }
-                $destroyTests[] = $tblTargetTest;
-                $protocol['DeleteTests'][$tblTargetTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn($test, 6),
-                    new LayoutColumn($grades, 6)
-                ))));
             }
         }
         $protocol['DeleteTestsCount'] = count($destroyTests);

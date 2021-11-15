@@ -291,9 +291,10 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
                         ? new Bold($countGrades['BEHAVIOR_TASK']) . ' vorhanden' : new Warning('Keine Kopfnoten vorhanden!'));
                 }
 
-                if ($Identifier == 'Target' && $tblTestList) {
-                    $info[] = new Danger('Die vorhandenen Leistungsüberprüfungen und Zensuren werden gelöscht.');
-                }
+                // doch erstmal nicht löschen
+//                if ($Identifier == 'Target' && $tblTestList) {
+//                    $info[] = new Danger('Die vorhandenen Leistungsüberprüfungen und Zensuren werden gelöscht.');
+//                }
 
                 $result = implode('<br>', $info);
             }
