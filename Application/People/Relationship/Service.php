@@ -102,8 +102,10 @@ class Service extends AbstractService
                 if (($tblTypeRelationship = $tblToPerson->getTblType())) {
                     switch ($tblTypeRelationship->getName()) {
                         case 'Sorgeberechtigt':
-                            if (($ranking = $tblToPerson->getRanking())) {
-                                $resultList[intval($ranking)] = $tblToPerson;
+                            if (($ranking = $tblToPerson->getRanking())
+                                && ($tblPersonTemp = $tblToPerson->getServiceTblPersonTo())
+                                && $tblPersonTemp->getId() == $tblPerson->getId() ) {
+                                $resultList[$ranking] = $tblToPerson;
                             } else {
                                 $resultList[$count['Sorgeberechtigt']++] = $tblToPerson;
                             }
