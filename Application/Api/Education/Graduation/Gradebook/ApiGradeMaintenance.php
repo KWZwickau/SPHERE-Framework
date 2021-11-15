@@ -468,6 +468,11 @@ class ApiGradeMaintenance extends Extension implements IApiInterface
 
             if (($tblGradeList = Gradebook::useService()->getGradeAllByFromCreateDate($fromCreateDate, $toCreateDate))) {
                 foreach ($tblGradeList as $tblGrade) {
+                    // nicht teilgenommen ignorieren
+                    if ($tblGrade === null) {
+                        continue;
+                    }
+
                     $tblPerson = $tblGrade->getServiceTblPerson();
                     if (($tblDivision = $tblGrade->getServiceTblDivision())) {
                         $tblYear = $tblDivision->getServiceTblYear();

@@ -2164,15 +2164,15 @@ class Service extends ServiceScoreRule
             if (($tblTargetScoreRule = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblTargetDivision, $tblTargetSubject))) {
                 (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
                     $tblTargetScoreRule,
-                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule(),
-                    $tblSourceScoreRuleDivisionSubject->getTblScoreType()
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule() ? $tblSourceScoreRuleDivisionSubject->getTblScoreRule() : null,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreType() ? $tblSourceScoreRuleDivisionSubject->getTblScoreType() : null
                 );
             } else {
                 (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
                     $tblTargetDivision,
                     $tblTargetSubject,
-                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule(),
-                    $tblSourceScoreRuleDivisionSubject->getTblScoreType()
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule() ? $tblSourceScoreRuleDivisionSubject->getTblScoreRule() : null,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreType() ? $tblSourceScoreRuleDivisionSubject->getTblScoreType() : null
                 );
             }
         }
@@ -2310,11 +2310,14 @@ class Service extends ServiceScoreRule
                                     if (isset($personOtherGroupList[$tblPersonGrade->getId()])) {
                                         // [SubjectGroupId][TestId][GradeId]
                                         $createTestList
-                                            [$personOtherGroupList[$tblPersonGrade->getId()]->getId()]
-                                            [$tblSourceTest->getId()]
-                                            [$tblSourceGrade->getId()]
+                                        [$personOtherGroupList[$tblPersonGrade->getId()]->getId()]
+                                        [$tblSourceTest->getId()]
+                                        [$tblSourceGrade->getId()]
                                             = $tblSourceGrade;
                                         $gradeListAlreadyUpdated[$tblSourceGrade->getId()] = $tblSourceGrade;
+                                    } elseif ($tblSourceGrade->getGrade() === null) {
+                                        // nicht teilgenommen
+                                        // diese Zensuren ignorieren
                                     } else {
                                         $gradePersonNotInGroup[$tblPersonGrade->getId()] = $tblPersonGrade->getLastFirstName();
                                     }
