@@ -20,7 +20,7 @@ class Saml implements IModuleInterface
             __NAMESPACE__.'/Placeholder/MetaData', __NAMESPACE__.'/Frontend::XMLMetaDataPlaceholder'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/DLLP/MetaData', __NAMESPACE__.'/Frontend::XMLMetaData'
+            __NAMESPACE__.'/DLLP/MetaData', __NAMESPACE__.'/Frontend::XMLMetaDataDLLP'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/DLLPDemo/MetaData', __NAMESPACE__.'/Frontend::XMLMetaDataDLLPDemo'

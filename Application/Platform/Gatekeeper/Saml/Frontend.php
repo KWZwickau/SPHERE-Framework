@@ -13,7 +13,16 @@ use SPHERE\System\Extension\Repository\phpSaml;
 class Frontend
 {
 
-    public function XMLMetaData()
+    public function XMLMetaDataPlaceholder()
+    {
+
+        // no config needed
+        $PhpSaml = new phpSaml(SamlPlaceholder::getSAML());
+        echo $PhpSaml->getMetaData();
+        exit;
+    }
+
+    public function XMLMetaDataDLLP()
     {
 
         // no config needed
@@ -31,13 +40,11 @@ class Frontend
         exit;
     }
 
-    public function XMLMetaDataPlaceholder()
+    public function frontendLoginPlaceholder()
     {
 
-        // no config needed
         $PhpSaml = new phpSaml(SamlPlaceholder::getSAML());
-        echo $PhpSaml->getMetaData();
-        exit;
+        $PhpSaml->samlLogin();
     }
 
     public function frontendLoginDLLP()
@@ -51,13 +58,6 @@ class Frontend
     {
 
         $PhpSaml = new phpSaml(SamlDLLPDemo::getSAML());
-        $PhpSaml->samlLogin();
-    }
-
-    public function frontendLoginPlaceholder()
-    {
-
-        $PhpSaml = new phpSaml(SamlPlaceholder::getSAML());
         $PhpSaml->samlLogin();
     }
 }
