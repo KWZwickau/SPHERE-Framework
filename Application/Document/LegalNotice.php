@@ -6,12 +6,15 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Stage;
 
@@ -62,75 +65,68 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Listing(array(
-                                'Schulstiftung der Ev.-Luth. Landeskirche Sachsens',
-                                'Franklinstr. 22',
-                                '01069 Dresden'
-                            )),
-                        ))
-                    ), new Title(
-                        'Herausgeber'
-                    )
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            new Center(
+                                new Title(new Bold('Herausgeber'))
+                                .new Container('ESDi – Evangelische Schulen DienstleistungsGmbH')
+                                .new Container('Franklinstr. 22')
+                                .new Container('01069 Dresden')
+                            )
+                        , 6)
+                    ))
                 ),
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Listing(array(
-                                'rechtsfähige kirchliche Stiftung des bürgerlichen Rechts'
-                            )),
-                        ))
-                    ), new Title(
-                        'Art der Stiftung:'
-                    )
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            new Center(
+                            new Title(new Bold('Geschäftsführer'))
+                            .new Container('Niko Kleinknecht')
+                            .new Container('Sitz: Dresden')
+                            .new Container('HRB: 39730')
+                            )
+                        , 6)
+                    ))
                 ),
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Listing(array(
-                                'Volker Schmidt und Martin Herold'
-                            )),
-                        ))
-                    ), new Title(
-                        'Vorstand:'
-                    )
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            new Center(
+                            new Title(new Bold('Gesellschafter'))
+                            .new Container('Schulstiftung der Ev.-Luth. Landeskirche Sachsens')
+                            .new Container('Franklinstr. 22')
+                            .new Container('01069 Dresden')
+                            )
+                        , 6)
+                    ))
                 ),
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Listing(array(
-                                'Evangelisch-Lutherisches Landeskirchenamt Sachsens'
-                            )),
-                        ))
-                    ), new Title(
-                        'Aufsichtsbehörde:'
-                    )
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            new Center(
+                                new Title(new Bold('Kontakt'))
+                                .new Container('Tel.: +49 (0) 351 479330618')
+                                .new Container('Mail: info@esdigmbh.de')
+                            )
+                        , 6)
+                    ))
                 ),
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Listing(array(
-                                'Tel.: 0351/47933060',
-                                'Fax: 0351/479330699',
-                                'schulstiftung@evlks.de',
-                            )),
-                        ))
-                    ), new Title(
-                        'Kontakt:'
-                    )
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Listing(array(
-                                'Bitte wenden Sie sich für den Support der Schulsoftware direkt an die entsprechenden
-                                Ansprechpartner in Ihrer Schule.',
-                            )),
-                        ))
-                    ), new Title(
-                        'Support:'
-                    )
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            new Center(
+                                new Title(new Bold('Programmierung'))
+                                .new Container('K&W Informatik GmbH')
+                                .new Container('Feldstraße 2')
+                                .new Container('09366 Niederdorf / Erz.')
+                            )
+                        , 6)
+                    ))
                 ),
             ))
         );
