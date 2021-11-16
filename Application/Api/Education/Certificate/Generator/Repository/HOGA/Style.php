@@ -892,7 +892,7 @@ abstract class Style extends Certificate
                     if ($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane']) {
                         $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], self::TEXT_SIZE_SMALL)
                             ->styleMarginBottom('0px')
-                            ->styleBorderBottom('0.5px', '#000')
+//                            ->styleBorderBottom('0.5px', '#000')
                             ->styleMarginTop($marginTop)
                             ->styleLineHeight($lineHeight)
                             , (self::SUBJECT_WIDTH - 2) . '%');
@@ -975,5 +975,135 @@ abstract class Style extends Certificate
         } else {
             return $SectionList;
         }
+    }
+
+    /**
+     * @param $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomProfile($personId, string $marginTop = '5px') : Slice
+    {
+        $tblPerson = Person::useService()->getPersonById($personId);
+
+        $slice = new Slice();
+        $sectionList = array();
+
+        $tblSubjectProfile = false;
+        $tblSubjectForeign = false;
+
+        // Profil
+        if ($tblPerson
+            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+            $tblSubjectProfile = $tblStudentSubject->getServiceTblSubject();
+        }
+
+        // 3. Fremdsprache
+        if ($tblPerson
+            && ($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if ($tblStudentSubject->getTblStudentSubjectRanking()
+                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '3'
+                ) {
+                    $tblSubjectForeign = $tblStudentSubject->getServiceTblSubject();
+                }
+            }
+        }
+
+        $section = new Section();
+        $section
+            ->addElementColumn($this->getElement('Wahlpflichtbereich:', self::TEXT_SIZE_NORMAL)
+                ->styleTextBold()
+                ->styleMarginTop($marginTop)
+                ->styleMarginBottom('5px')
+            );
+
+        $profileSubjectName = $tblSubjectProfile ? $tblSubjectProfile->getName() : '&ndash;';
+        $subjectAcronymForGrade = $tblSubjectProfile ? $tblSubjectProfile->getAcronym() : 'SubjectAcronymForGrade';
+        if (strlen($profileSubjectName) > 15) {
+            $marginTopProfile = '0px';
+            $lineHeightProfile = '80%';
+        } else {
+            $marginTopProfile = self::MARGIN_TOP_GRADE_LINE;
+            $lineHeightProfile = '100%';
+        }
+
+        $foreignSubjectName = $tblSubjectForeign ? $tblSubjectForeign->getName() : '&ndash;';
+        if (strlen($foreignSubjectName) > 15) {
+            $marginTopForeign = '0px';
+            $lineHeightForeign = '80%';
+        } else {
+            $marginTopForeign = self::MARGIN_TOP_GRADE_LINE;
+            $lineHeightForeign = '100%';
+        }
+
+
+        $sectionList[] = $section;
+        $section = new Section();
+        $section
+            ->addElementColumn($this->getElement(
+                    $profileSubjectName,
+                    self::TEXT_SIZE_SMALL
+                )
+                ->styleMarginTop($marginTopProfile)
+                ->styleLineHeight($lineHeightProfile)
+                , self::SUBJECT_WIDTH . '%')
+            ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}',
+                    self::TEXT_SIZE_NORMAL
+                )
+                ->styleAlignCenter()
+                ->styleBackgroundColor(self::BACKGROUND)
+                ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                , self::GRADE_WIDTH . '%')
+            ->addElementColumn((new Element()), '4%')
+            ->addElementColumn($this->getElement(
+                    $foreignSubjectName,
+                    self::TEXT_SIZE_SMALL
+                )
+                ->styleMarginTop($marginTopForeign)
+                ->styleLineHeight($lineHeightForeign)
+                , self::SUBJECT_WIDTH . '%')
+            ->addElementColumn($this->getElement(
+                    $tblSubjectForeign
+                        ? '{% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}'
+                        : '&ndash;',
+                    self::TEXT_SIZE_NORMAL
+                )
+                ->styleAlignCenter()
+                ->styleBackgroundColor(self::BACKGROUND)
+                ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                , self::GRADE_WIDTH . '%');
+        $sectionList[] = $section;
+
+        $section = new Section();
+        $section
+            ->addElementColumn($this->getElement('besuchtes schulspezifisches Profil', '9px'), '52%')
+            ->addElementColumn($this->getElement('3. Fremdsprache (ab Klassenstufe 8)', '9px'));
+        $sectionList[] = $section;
+
+        return $slice->addSectionList($sectionList);
     }
 }
