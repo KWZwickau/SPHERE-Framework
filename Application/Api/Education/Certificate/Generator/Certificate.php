@@ -187,6 +187,8 @@ abstract class Certificate extends Extension
                 // normal
                 $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
             }
+        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'HOGA') {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         }
         else {
             $InjectStyle = '';
@@ -196,18 +198,21 @@ abstract class Certificate extends Extension
         $tblCertificateList = \SPHERE\Application\Education\Certificate\Generator\Generator::useService()->getCertificateAllByConsumer();
 
         // Vorbereitung auf Vergleich
-        foreach($tblCertificateList as &$tblCertificate){
-            $tblCertificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'.$tblCertificate->getCertificate();
-        }
+        if ($tblCertificateList) {
+            foreach ($tblCertificateList as &$tblCertificate) {
+                $tblCertificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+            }
 
-        $tblCertificateList = array_filter($tblCertificateList);
-        if (in_array($certificate, $tblCertificateList) || $isWidth){
-            // breiter (Standard)
-            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
-            $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
-            if($tblSetting && $tblSetting->getValue() == 1){
-                // normal
-                $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+            $tblCertificateList = array_filter($tblCertificateList);
+            if (in_array($certificate, $tblCertificateList) || $isWidth) {
+                // breiter (Standard)
+                $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+                $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate',
+                    'DocumentBorder');
+                if ($tblSetting && $tblSetting->getValue() == 1) {
+                    // normal
+                    $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
+                }
             }
         }
 

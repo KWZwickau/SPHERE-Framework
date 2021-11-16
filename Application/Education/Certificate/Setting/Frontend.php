@@ -395,6 +395,9 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     if ($tblSubjectAll) {
                         $LaneLength = ceil(count($tblSubjectAll) / 2);
+                        if ($LaneLength > 25) {
+                            $LaneLength = 25;
+                        }
                     } else {
                         $LaneLength = 2;
                     }
