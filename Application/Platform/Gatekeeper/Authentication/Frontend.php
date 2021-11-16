@@ -8,6 +8,8 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLPDemo;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlPlaceholder;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -386,15 +388,26 @@ class Frontend extends Extension implements IFrontendInterface
         // set depending information
         if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'
 //            || $this->getRequest()->getHost() == '192.168.75.128' // local test
+//            || $this->getRequest()->getHost() == '192.168.37.128' // local test
         ){
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
                     new Title('Anmeldung UCS (Pilot)'),
                     new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLP')
-                    //. new Link('.', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\EKM') // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
+                    // Frontend dazu muss noch entschieden werden
+                    .new PrimaryLink('Placeholder', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\Placeholder') // -> Beispiel kann für zukünftige IDP's verwendet werden
+
                 ))
             )));
+        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'){
+//            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+//                new LayoutColumn(array(
+//                    '<br/><br/><br/><br/>',
+//                    new Title('Anmeldung UCS Demo (Pilot)'),
+//                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLPDemo')
+//                ))
+//            )));
         }
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
@@ -407,10 +420,28 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
+    public function frontendIdentificationSamlPlaceholder()
+    {
+
+        return $this->LoginSecondPageLogic(SamlPlaceholder::getSAML());
+    }
+
+    /**
+     * @return Stage
+     */
     public function frontendIdentificationSamlDLLP()
     {
 
         return $this->LoginSecondPageLogic(SamlDLLP::getSAML());
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendIdentificationSamlDLLPDemo()
+    {
+
+        return $this->LoginSecondPageLogic(SamlDLLPDemo::getSAML());
     }
 
 //    /**

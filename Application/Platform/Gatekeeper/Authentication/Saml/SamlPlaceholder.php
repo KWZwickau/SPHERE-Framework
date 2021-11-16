@@ -1,8 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication\Saml;
 
-// EKM -> Beispiel kann für zukünftige IDP's verwendet werden
-class SamlEKM
+class SamlPlaceholder
 {
 
     /**
@@ -27,13 +26,13 @@ class SamlEKM
 
             // Service Provider Data that we are deploying
             'sp' => array(
-                // Identifier of the SP entity  (must be a URI)
-                'entityId' => 'https://www.schulsoftware.schule/Platform/Gatekeeper/Saml/MetaData',
+                // Identifier of the SP entity  (must be a URI) // ToDO
+                'entityId' => 'https://www.schulsoftware.schule/Platform/Gatekeeper/Saml/Placeholder/MetaData',
                 // Specifies info about where and how the <AuthnResponse> message MUST be
                 // returned to the requester, in this case our SP.
                 'assertionConsumerService' => array(
-                    // URL Location where the <Response> from the IdP will be returned
-                    'url' => 'https://www.schulsoftware.schule/Platform/Gatekeeper/Authentication/Saml/EKM',
+                    // URL Location where the <Response> from the IdP will be returned // ToDO
+                    'url' => 'https://www.schulsoftware.schule/Platform/Gatekeeper/Authentication/Saml/Placeholder',
                     // SAML protocol binding to be used when returning the <Response>
                     // message.  Onelogin Toolkit supports for this endpoint the
                     // HTTP-POST binding only
@@ -87,12 +86,12 @@ class SamlEKM
 
             // Identity Provider Data that we want connect with our SP
             'idp' => array(
-                // Identifier of the IdP entity  (must be a URI)
-                'entityId' => '',//ToDO
+                // Identifier of the IdP entity  (must be a URI) // ToDO
+                'entityId' => 'https://sso.dllp.schule/simplesamlphp/saml2/idp/metadata.php',
                 // SSO endpoint info of the IdP. (Authentication Request protocol)
                 'singleSignOnService' => array(
-                    // URL Target of the IdP where the SP will send the Authentication Request Message
-                    'url' => '',//ToDO
+                    // URL Target of the IdP where the SP will send the Authentication Request Message // ToDO
+                    'url' => 'https://sso.dllp.schule/simplesamlphp/saml2/idp/SSOService.php',
                     // SAML protocol binding to be used when returning the <Response>
                     // message.  Onelogin Toolkit supports for this endpoint the
                     // HTTP-Redirect binding only
@@ -100,8 +99,8 @@ class SamlEKM
                 ),
                 // SLO endpoint info of the IdP.
                 'singleLogoutService' => array(
-                    // URL Location of the IdP where the SP will send the SLO Request
-                    'url' => '',//ToDO
+                    // URL Location of the IdP where the SP will send the SLO Request // ToDO
+                    'url' => 'https://sso.dllp.schule/simplesamlphp/saml2/idp/SingleLogoutService.php',
                     // URL location of the IdP where the SP will send the SLO Response (ResponseLocation)
                     // if not set, url for the SLO Request will be used
                     'responseUrl' => '',
@@ -110,8 +109,8 @@ class SamlEKM
                     // HTTP-Redirect binding only
                     'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
                 ),
-                // Public x509 certificate of the IdP
-                'x509cert' => '',//ToDO
+                // Public x509 certificate of the IdP // ToDO
+                'x509cert' => 'MIIFhjCCBG6gAwIBAgIBAjANBgkqhkiG9w0BAQsFADCB0zELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVTMQswCQYDVQQHEwJVUzEhMB8GA1UEChMYRXYuIFNjaHVsdmVyZWluIFJhZGViZXVsMSQwIgYDVQQLExtVbml2ZW50aW9uIENvcnBvcmF0ZSBTZXJ2ZXIxOjA4BgNVBAMTMVVuaXZlbnRpb24gQ29ycG9yYXRlIFNlcnZlciBSb290IENBIChJRD1yMTBJZklQaikxJTAjBgkqhkiG9w0BCQEWFnNzbEBjb25uZXhpb24uZXZzc24uZGUwHhcNMjEwODA1MTQyMzI2WhcNMjYwODA0MTQyMzI2WjCBvDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVTMQswCQYDVQQHEwJVUzEhMB8GA1UEChMYRXYuIFNjaHVsdmVyZWluIFJhZGViZXVsMSQwIgYDVQQLExtVbml2ZW50aW9uIENvcnBvcmF0ZSBTZXJ2ZXIxIzAhBgNVBAMTGnVjcy1zc28uY29ubmV4aW9uLmV2c3NuLmRlMSUwIwYJKoZIhvcNAQkBFhZzc2xAY29ubmV4aW9uLmV2c3NuLmRlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5evDqJXB1W6P8ndbg79nuH92M2XaonznvlHCLphYOcl5OX6culhNmZC4c6ImFYwzbZUotFOAdzvhw7Ole0UEUMjd53EYdHhzVtuEKh/Gfav0X8Cj/6h6kjfaxpP8QedODifV50doUiQ7qOlM3Rw22nAJ7XVpCxC21tz2NzruTn2mIk2PARXSxOTcXM464CherP0vZcnhNqbnpd7VOlmifcwRNFu7uFf1BThq5XqmbwNL1Kn7lffg7TMy6jQ4TGkxyHJbTGNr5BYcSnr5PKZKuSrcJUWoYxI/iGgDVWdQ+23zx2GM1paRK9ObN4wIQrkVKP6fXTM7LMeGYCQKGhZGTwIDAQABo4IBeDCCAXQwCQYDVR0TBAIwADAdBgNVHQ4EFgQUimqXlNdUdEfOZPPLK91K4hP4bbUwggEJBgNVHSMEggEAMIH9gBR7kfM8STpNZeh5OHoMw2WSloMt4KGB2aSB1jCB0zELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVTMQswCQYDVQQHEwJVUzEhMB8GA1UEChMYRXYuIFNjaHVsdmVyZWluIFJhZGViZXVsMSQwIgYDVQQLExtVbml2ZW50aW9uIENvcnBvcmF0ZSBTZXJ2ZXIxOjA4BgNVBAMTMVVuaXZlbnRpb24gQ29ycG9yYXRlIFNlcnZlciBSb290IENBIChJRD1yMTBJZklQaikxJTAjBgkqhkiG9w0BCQEWFnNzbEBjb25uZXhpb24uZXZzc24uZGWCCQCybuWbR3dhIDALBgNVHQ8EBAMCBeAwLgYDVR0RBCcwJYIadWNzLXNzby5jb25uZXhpb24uZXZzc24uZGWCB3Vjcy1zc28wDQYJKoZIhvcNAQELBQADggEBAFvqnWq8+jm0o7NWgqfUExJJyPpEzMy9mHr0MQhHqFLsfmavylsbVkFmu14/wpEFjmOnM4jHRCNZjdYPx8PGpr4A0jJwY58eExEAw1hyZwBopBEfATzdVQNCzLhUHY2cXLuBbx0P1BLQ+bnMiDoLf1OWTbPwn8m9SDh7krk45JZERAoOvLebe7k7PjAy09fhUskkv7E/GHytXMCOilkxHHEKN0V1omw/AZ4sVOdqFRHwTH2lEwnPaxwRnzz8Q9IaQlxVe4ywkQqkRFsP3uxWvUeEZTJscvkEDDv4ybNdzlxn/vD85yExkEtJhImeyDFZztoTh1MM+K4nNKmhYg9Gm9w=',
                 /*
                  *  Instead of use the whole x509cert you can use a fingerprint in
                  *  order to validate the SAMLResponse, but we don't recommend to use
