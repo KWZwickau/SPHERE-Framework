@@ -23,6 +23,7 @@ class IDataHOGA
             self::setGymHjInfo($Data, $tblConsumerCertificate);
             self::setGymHjZ($Data, $tblConsumerCertificate);
             self::setGymJ($Data, $tblConsumerCertificate);
+            self::setBgjJue($Data, $tblConsumerCertificate);
         }
     }
 
@@ -322,5 +323,32 @@ class IDataHOGA
         $Data->setCertificateSubject($tblCertificate, 'INF', 2, $i++, false);
         $Data->setCertificateSubject($tblCertificate, 'INF1', 2, $i++, false);
         $Data->setCertificateSubject($tblCertificate, 'INF2', 2, $i++, false);
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setBgjJue(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Berufsgrundbildungsjahr Jahresübersicht', '',
+            'HOGA\BgjJahresuebersicht', $tblConsumerCertificate);
+        if ($tblCertificate){
+            if ($Data->getTblSchoolTypeBerufsgrundbildungsjahr()){
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
+            }
+            if (!$Data->getCertificateSubjectAll($tblCertificate)){
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'DE', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'MA', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'VBWL', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'GeSA', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'RE', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'INF', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'ETH', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'GE/GK', 1, $i++);
+            }
+        }
     }
 }

@@ -31,7 +31,7 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getHeader(array $school, string $title, bool $isSchoolLogoVisible = true) : Slice
+    protected function getHeader(array $school, string $title = '', bool $isSchoolLogoVisible = true) : Slice
     {
         $logoHeight = '50px';
         $logoWidth = '165px';
@@ -72,11 +72,13 @@ abstract class Style extends Certificate
             );
         }
 
-        $slice->addSection((new Section())->addElementColumn(
-            $this->getElement($title, '19px')
-                ->styleTextBold()
-                ->styleAlignCenter()
-        ));
+        if ($title) {
+            $slice->addSection((new Section())->addElementColumn(
+                $this->getElement($title, '19px')
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+            ));
+        }
 
         return $slice;
     }
@@ -114,6 +116,57 @@ abstract class Style extends Certificate
                 ->addElementColumn($this->getElement('Vorname und Name:')->stylePaddingTop($paddingTop), '20%')
                 ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Person.Data.Name.First }}
                     {{ Content.P'.$personId.'.Person.Data.Name.Last }}', self::TEXT_SIZE_LARGE)->styleTextBold())
+            );
+    }
+
+    /**
+     * @param int $personId
+     * @param string $period
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getDivisionYearStudentBgj(int $personId, string $period = '1. Schulhalbjahr', string $marginTop = '15px') : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('
+                    {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                    {% else %}
+                        Frau/Herr
+                    {% endif %}
+                    {{ Content.P'.$personId.'.Person.Data.Name.First }} {{ Content.P'.$personId.'.Person.Data.Name.Last }}'
+                    , self::TEXT_SIZE_NORMAL)->styleTextBold()
+                , '80%')
+                ->addElementColumn($this->getElement($period, self::TEXT_SIZE_NORMAL)
+                    ->styleAlignRight()
+                    , '10%')
+                ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Division.Data.Year }}', self::TEXT_SIZE_NORMAL)
+                    ->styleTextBold()
+                    ->styleAlignRight()
+                    , '10%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('geboren am', self::TEXT_SIZE_NORMAL), '13%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                        {{ Content.P'.$personId.'.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_NORMAL
+                )->styleTextBold(), '10%')
+                ->addElementColumn($this->getElement('in', self::TEXT_SIZE_NORMAL)->styleAlignRight(), '42%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                        {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_NORMAL
+                )->styleTextBold()->stylePaddingLeft('15px'))
             );
     }
 
@@ -242,6 +295,41 @@ abstract class Style extends Certificate
                 &nbsp;
             {% endif %}',
             self::TEXT_SIZE_SMALL
+        );
+        $element->styleLineHeight('80%');
+        if ($tblSetting && $tblSetting->getValue()) {
+            $element->styleAlignJustify();
+        }
+
+        return $slice->addElement($element);
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     * @param string $height
+     * #
+     * @return Slice
+     */
+    public function getCustomRemarkBgj(int $personId, string $marginTop = '10px', string $height = '150px') : Slice
+    {
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator',
+            'IsDescriptionAsJustify');
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->styleHeight($height)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Bemerkungen:', self::TEXT_SIZE_NORMAL)->styleBorderBottom()->stylePaddingBottom('-2px'), '12%')
+                ->addElementColumn(new Element())
+            );
+
+        $element = $this->getElement(
+            '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+            {% else %}
+                &nbsp;
+            {% endif %}',
+            self::TEXT_SIZE_NORMAL
         );
         $element->styleLineHeight('80%');
         if ($tblSetting && $tblSetting->getValue()) {
@@ -464,6 +552,64 @@ abstract class Style extends Certificate
         return $slice;
     }
 
+    public function getCustomSignPartBgj(int $personId, string $marginTop = '15px') : Slice
+    {
+        $textSize = self::TEXT_SIZE_NORMAL;
+        $paddingTop = '-5px';
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement(
+                        '{{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}',
+                        $textSize
+                    )
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+                ->addElementColumn((new Element()))
+                ->addElementColumn($this->getElement('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Ort, Datum', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignLeft()
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '40%')
+                ->addElementColumn($this->getElement('
+                        {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                        {% else %}
+                            Klassenlehrer(in)
+                        {% endif %}',
+                    $textSize
+                )
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '40%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}',
+                    $textSize
+                )
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+            );
+    }
+
     /**
      * @param string $marginTop
      *
@@ -512,6 +658,23 @@ abstract class Style extends Certificate
             ->addElement($this->getElement('Notenerläuterung:', $textSize))
             ->addElement($this->getElement('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 $textSize)->stylePaddingTop('-5px'));
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomInfoBgj(string $marginTop = '25px') : Slice
+    {
+        $textSize = '9.5px';
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement(
+                'Notenstufen: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)',
+                $textSize
+            )->stylePaddingTop('-5px'));
     }
 
     /**
@@ -572,6 +735,26 @@ abstract class Style extends Certificate
                 ->stylePaddingTop(self::PADDING_TOP_GRADE)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
             , self::GRADE_WIDTH . '%');
+    }
+
+    /**
+     * @param Section $section
+     * @param string $subjectName
+     * @param string $grade
+     */
+    protected function setGradeFullLine(Section $section, string $subjectName, string $grade)
+    {
+        $section->addElementColumn(
+            $this->getElement($subjectName, self::TEXT_SIZE_NORMAL)
+                ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+            , '75%');
+        $section->addElementColumn(
+            $this->getElement($grade, self::TEXT_SIZE_NORMAL)
+                ->styleAlignCenter()
+                ->styleBackgroundColor(self::BACKGROUND)
+                ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+            , '25%');
     }
 
     /**
@@ -978,6 +1161,84 @@ abstract class Style extends Certificate
     }
 
     /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomSubjectLanesBgj(int $personId, string $marginTop = '12px') : Slice {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
+
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('hat im zurückliegenden Schulhalbjahr folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)));
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $section = new Section();
+                    $this->setGradeFullLine(
+                        $section,
+                        $Subject['SubjectName'],
+                        '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}'
+                    );
+                    $slice->addSection($section);
+                }
+            }
+        }
+
+        return $slice;
+    }
+
+    /**
      * @param $personId
      * @param string $marginTop
      *
@@ -1105,5 +1366,20 @@ abstract class Style extends Certificate
         $sectionList[] = $section;
 
         return $slice->addSectionList($sectionList);
+    }
+
+    /**
+     * @param string $title
+     * @param string $subTitle
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomBgjTitle(string $title, string $subTitle, string $marginTop = '35px')
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement($title, '25px')->styleTextBold()->styleAlignCenter())
+            ->addElement($this->getElement($subTitle, '17px')->styleTextBold()->styleAlignCenter()->styleMarginTop('-5px'));
     }
 }
