@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -455,21 +456,29 @@ class Lectureship extends Extension implements IFrontendInterface
 
     /**
      * @param bool $Visible
+     * @param bool $IsSubjectDeleted
      *
      * @return Stage
      */
-    public function frontendLectureshipShow($Visible = false)
+    public function frontendLectureshipShow(bool $Visible = false, bool $IsSubjectDeleted = false) : Stage
     {
+        if (($global = $this->getGlobal())) {
+            $global->POST['IsSubjectDeleted'] = 1;
+            $global->savePost();
+        }
+
         $Stage = new Stage('Lehraufträge', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
         $tblIndiwareImportLectureshipList = Import::useService()->getIndiwareImportLectureshipAll(true);
         $TableContent = array();
         $TableCompare = array();
+        $divisionList = array();
+        $divisionSubjectList = array();
         $tblYear = false;
         if ($tblIndiwareImportLectureshipList) {
             array_walk($tblIndiwareImportLectureshipList,
                 function (TblIndiwareImportLectureship $tblIndiwareImportLectureship)
-                use (&$TableContent, &$tblYear, $Visible, &$TableCompare) {
+                use (&$TableContent, &$tblYear, $Visible, &$TableCompare, &$divisionList, &$divisionSubjectList) {
 
                     $ImportError = 0;
                     //compare informations
@@ -496,6 +505,7 @@ class Lectureship extends Extension implements IFrontendInterface
                     if (($tblDivision = $tblIndiwareImportLectureship->getServiceTblDivision())) {
                         $Item['AppDivision'] = $tblDivision->getDisplayName();
                         $Item['DivisionId'] = $tblDivision->getId();
+                        $divisionList[$tblDivision->getId()] = $tblDivision;
                     } else {
                         $ImportError++;
                     }
@@ -514,6 +524,28 @@ class Lectureship extends Extension implements IFrontendInterface
                     } else {
                         $ImportError++;
                     }
+
+                    if ($tblDivision && $tblSubject) {
+                        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision))) {
+                            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                if ($Item['AppSubjectGroup'] != '') {
+                                    if (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())) {
+                                        if ($tblSubjectGroup->getName() == $Item['AppSubjectGroup']) {
+                                            $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
+                                        }
+                                    } else {
+                                        $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
+                                    }
+                                } else {
+                                    if (!$tblDivisionSubject->getTblSubjectGroup()) {
+                                        $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
 //                // not empty SubjectGroup by import file
 //                if ($tblIndiwareImportLectureship->getSubjectGroupName() !== '') {
 //                    $Item['AppSubjectGroup'] = new Warning('Keine Gruppe');
@@ -697,6 +729,29 @@ class Lectureship extends Extension implements IFrontendInterface
             });
         }
 
+        // show divisionSubjects for delete
+        if (!empty($divisionList)) {
+            /** @var TblDivision $tblDivision */
+            foreach ($divisionList as $tblDivision) {
+                if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        if (!isset($divisionSubjectList[$tblDivisionSubject->getId()])) {
+                            $TableControl[] = array(
+                                'Division'     => $tblDivision->getDisplayName(),
+                                'Person'       => '',
+                                'Subject'      => ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                                    ? $tblSubject->getDisplayName() : '',
+                                'SubjectGroup' => ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                                    ? $tblSubjectGroup->getName() : '',
+                                // Sortierung ganz nach oben
+                                'Status'       => '<span hidden>zzzzz</span>' . new Danger(new Disable() . ' Fach löschen!'),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         $HeaderPanel = '';
         /** @var TblYear $tblYear */
         if ($tblYear) {
@@ -769,12 +824,18 @@ class Lectureship extends Extension implements IFrontendInterface
                                     )
                                 ))
                         )),
-                        new LayoutColumn(
-                            new Container(new PrimaryLink('Import der Änderungen',
-                                '/Transfer/Indiware/Import/Lectureship/Import', new Save(),
-                                array('YearId' => ($tblYear ? $tblYear->getId() : null)),
-                                'Diese Aktion ist unwiderruflich!'))
-                            , 4)
+                        new LayoutColumn(new Well(
+                            (new Form(new FormGroup(new FormRow(array(
+                                new FormColumn(new CheckBox('IsSubjectDeleted', new Bold('Nicht vorhandene Fächer in den Klassen löschen'), 1), 4),
+                                new FormColumn(new Primary('Import der Änderungen', new Save()), 8)
+                            ))), null, '/Transfer/Indiware/Import/Lectureship/Import',
+                                array('YearId' => $tblYear ? $tblYear->getId() : null, 'IsSubjectDeleted' => $IsSubjectDeleted)))
+                        ))
+//                            new Container(new PrimaryLink('Import der Änderungen',
+//                                '/Transfer/Indiware/Import/Lectureship/Import', new Save(),
+//                                array('YearId' => ($tblYear ? $tblYear->getId() : null)),
+//                                'Diese Aktion ist unwiderruflich!'))
+//                            , 4)
                     ))
                 )
             )
@@ -1033,11 +1094,12 @@ class Lectureship extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $YearId
+     * @param null $YearId
+     * @param false $IsSubjectDeleted
      *
      * @return Stage
      */
-    public function frontendImportLectureShip($YearId = null)
+    public function frontendImportLectureShip($YearId = null, bool $IsSubjectDeleted = false) : Stage
     {
         $Stage = new Stage('Import', 'Ergebnis');
         $tblYear = Term::useService()->getYearById($YearId);
@@ -1059,7 +1121,7 @@ class Lectureship extends Extension implements IFrontendInterface
         $Stage->setMessage(
             new Container('Abgebildet werden alle Lehraufträge aller importierten Klassen für das ausgewählte Jahr '.($tblYear ? $tblYear->getYear() : '').'.')
             .new Container('Lehraufträge anderer Klassen bleiben unangetastet!'));
-        $LayoutRowList = Import::useService()->importIndiwareLectureship();
+        $LayoutRowList = Import::useService()->importIndiwareLectureship($IsSubjectDeleted);
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(

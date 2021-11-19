@@ -547,10 +547,10 @@ class Service extends AbstractService
     /**
      * @return LayoutRow[]
      */
-    public function importIndiwareLectureship()
+    public function importIndiwareLectureship($isSubjectDeleted = false)
     {
-
         $InfoList = array();
+        $divisionSubjectList = array();
         $tblIndiwareImportLectureshipList = $this->getIndiwareImportLectureshipAll(true);
         if ($tblIndiwareImportLectureshipList) {
 
@@ -592,6 +592,11 @@ class Service extends AbstractService
                 if (!$tblDivisionSubject) {
                     // add Subject
                     $tblDivisionSubject = Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
+                    if ($tblDivisionSubject) {
+                        $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
+                    }
+                } else {
+                    $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
                 }
 
                 if ($SubjectGroup) {
@@ -608,6 +613,10 @@ class Service extends AbstractService
                         // create Group + add/get DivisionSubject
                         $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
                             $tblSubject, $SubjectGroup);
+                    }
+
+                    if ($tblDivisionSubject) {
+                        $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
                     }
                 }
                 if ($tblDivisionSubject) {
@@ -633,6 +642,33 @@ class Service extends AbstractService
             }
             // bulkSave for Lectureship
             Division::useService()->addSubjectTeacherList($createSubjectTeacherList);
+
+            // delete divisionSubjects
+            $deleteSubjectStudentList = array();
+            $deleteDivisionSubjectList = array();
+            if ($isSubjectDeleted && $tblDivisionList) {
+                foreach ($tblDivisionList as $tblDivision) {
+                    if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            if (!isset($divisionSubjectList[$tblDivisionSubject->getId()])) {
+                                if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))) {
+                                    $deleteSubjectStudentList = array_merge($tblSubjectStudentList, $deleteSubjectStudentList);
+                                }
+
+                                // SubjectTeacher sind bereits gelöscht
+
+                                $deleteDivisionSubjectList[] = $tblDivisionSubject;
+                            }
+                        }
+                    }
+                }
+            }
+            if (!empty($deleteSubjectStudentList)) {
+                Division::useService()->removeSubjectStudentBulk($deleteSubjectStudentList);
+            }
+            if (!empty($deleteDivisionSubjectList)) {
+                Division::useService()->removeDivisionSubjectBulk($deleteDivisionSubjectList);
+            }
 
             //Delete tblImport
             Import::useService()->destroyIndiwareImportLectureship();
