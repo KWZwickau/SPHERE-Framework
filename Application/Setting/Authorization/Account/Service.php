@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -129,13 +130,39 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if (!$Error) {
+            if (isset($Account['User'])) {
+                $tblPerson = Person::useService()->getPersonById($Account['User']);
+            } else {
+                $tblPerson = false;
+            }
+
+            //  für Mitarbeiter den AccountAlias aus E-Mails setzen
+            if ($tblPerson) {
+                if (($accountUserAlias = GatekeeperAccount::useService()->getAccountUserAliasFromMails($tblPerson))) {
+                    $errorMessage = '';
+                    if (!GatekeeperAccount::useService()->isUserAliasUnique($tblPerson, $accountUserAlias,
+                        $errorMessage)
+                    ) {
+                        $accountUserAlias = false;
+                        // Flag an der E-Mail Adresse entfernen
+                        Mail::useService()->resetMailWithUserAlias($tblPerson);
+                    }
+                }
+                $accountRecoveryMail = GatekeeperAccount::useService()->getAccountRecoveryMailFromMails($tblPerson);
+            } else {
+                $accountUserAlias = false;
+                $accountRecoveryMail = false;
+            }
+
             $tblAccount = GatekeeperAccount::useService()->insertAccount(
                 $Username,
                 $Password,
                 $tblToken ? $tblToken : null,
                 $tblConsumer,
                 true,
-                $isAuthenticatorApp
+                $isAuthenticatorApp,
+                $accountUserAlias ? $accountUserAlias : null,
+                $accountRecoveryMail ? $accountRecoveryMail : null
             );
             if ($tblAccount) {
                 if ($isAuthenticatorApp) {
@@ -164,12 +191,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                         }
                     }
                 }
-                if (isset( $Account['User'] )) {
-                    $tblPerson = Person::useService()->getPersonById($Account['User']);
-                    if ($tblPerson) {
-                        GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
-                    }
+                if ($tblPerson) {
+                    GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
                 }
+
                 return new Success('Das Benutzerkonto wurde erstellt')
                 .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS);
             } else {

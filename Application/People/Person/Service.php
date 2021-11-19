@@ -12,17 +12,24 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Frontend\FrontendFamily;
 use SPHERE\Application\People\Person\Service\Data;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -915,5 +922,578 @@ class Service extends AbstractService
         }
 
         return $result;
+    }
+
+    /**
+     * $tblNationalityAll, $tblDenominationAll
+     *
+     * @return array
+     */
+    public function getCommonInformationForAutoComplete()
+    {
+        $tblCommonInformationAll = Common::useService()->getCommonInformationAll();
+        $tblNationalityAll = array();
+        $tblDenominationAll = array();
+        if ($tblCommonInformationAll) {
+            array_walk($tblCommonInformationAll,
+                function (TblCommonInformation &$tblCommonInformation) use (&$tblNationalityAll, &$tblDenominationAll) {
+
+                    if ($tblCommonInformation->getNationality()) {
+                        if (!in_array($tblCommonInformation->getNationality(), $tblNationalityAll)) {
+                            array_push($tblNationalityAll, $tblCommonInformation->getNationality());
+                        }
+                    }
+                    if ($tblCommonInformation->getDenomination()) {
+                        if (!in_array($tblCommonInformation->getDenomination(), $tblDenominationAll)) {
+                            array_push($tblDenominationAll, $tblCommonInformation->getDenomination());
+                        }
+                    }
+                });
+            $DefaultDenomination = array(
+                'Altkatholisch',
+                'Evangelisch',
+                'Evangelisch-lutherisch',
+                'Evangelisch-reformiert',
+                'Französisch-reformiert',
+                'Freireligiöse Landesgemeinde Baden',
+                'Freireligiöse Landesgemeinde Pfalz',
+                'Israelitische Religionsgemeinschaft Baden',
+                'Römisch-katholisch',
+                'Saarland: israelitisch'
+            );
+            array_walk($DefaultDenomination, function ($Denomination) use (&$tblDenominationAll) {
+
+                if (!in_array($Denomination, $tblDenominationAll)) {
+                    array_push($tblDenominationAll, $Denomination);
+                }
+            });
+        }
+
+        return array($tblNationalityAll, $tblDenominationAll);
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param null $Data
+     *
+     * @return IFormInterface|string|null
+     */
+    public function CreateFamily(
+        IFormInterface $form = null, $Data = null
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data || empty($Data)) {
+            return $form;
+        }
+
+        $children = array();
+        $custodies = array();
+        $hasErrors = false;
+        $Errors = array();
+        $rankingCustodyList = array(
+            1 => false,
+            2 => false,
+        );
+        $personIdList = array();
+
+        ksort($Data);
+
+        if (($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Relationship', 'GenderOfS1'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $genderSetting = Common::useService()->getCommonGenderById($value);
+        } else {
+            $genderSetting = false;
+        }
+
+        foreach($Data as $key => $person) {
+            $type = substr($key, 0, 1);
+//            $ranking = substr($key, 1);
+
+            if ($type == 'C') {
+                // Student / Prospect
+
+                $errorChild = false;
+                $isAdd = false;
+
+                $firstName = $person['FirstName'];
+                $lastName = $person['LastName'];
+                $secondName = $person['SecondName'];
+                $callName = $person['CallName'];
+                $tblGroup = Group::useService()->getGroupById($person['Group']);
+                $birthday = $person['Birthday'];
+                $birthplace = $person['Birthplace'];
+                $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
+                $nationality = $person['Nationality'];
+                $denomination = $person['Denomination'];
+
+                if ($firstName || $lastName || $secondName || $callName || $birthday || $birthplace || $tblCommonGender
+                    || $nationality || $denomination
+                ) {
+                    $isAdd = true;
+                    $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorChild);
+                    $this->setMessage($lastName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorChild);
+                }
+
+                if ($errorChild) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $children[$key] = array(
+                        'FirstName' => $firstName,
+                        'LastName' => $lastName,
+                        'SecondName' => $secondName,
+                        'CallName' => $callName,
+                        'tblGroup' => $tblGroup,
+                        'Birthday' => $birthday,
+                        'Birthplace' => $birthplace,
+                        'tblCommonGender' => $tblCommonGender,
+                        'Nationality' => $nationality,
+                        'Denomination' => $denomination,
+                        'IsSibling' => isset($person['IsSibling'])
+                    );
+                }
+            } else {
+                // Custody
+
+                $errorCustody = false;
+                $isAdd = false;
+
+                $tblSalutation = Person::useService()->getSalutationById($person['Salutation']);
+                $title = $person['Title'];
+                $firstName = $person['FirstName'];
+                $lastName = $person['LastName'];
+                $birthName = $person['BirthName'];
+                $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
+                $isSingleParent = isset($person['IsSingleParent']);
+
+                if ($tblSalutation || $title || $firstName || $lastName || $birthName || $tblCommonGender) {
+                    $isAdd = true;
+                    $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorCustody);
+                    $this->setMessage($firstName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorCustody);
+                }
+
+                if ($errorCustody) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $rankingCustody = 3;
+                    // S1 ermitteln
+                    if ($tblCommonGender && $genderSetting && $tblCommonGender->getId() == $genderSetting->getId()
+                        && !$rankingCustodyList[1]
+                    ) {
+                        $rankingCustody = 1;
+                        $rankingCustodyList[1] = true;
+                    } elseif (!$rankingCustodyList[2]) {
+                        $rankingCustody = 2;
+                        $rankingCustodyList[2] = true;
+                    }
+
+                    $custodies[$key] = array(
+                        'tblSalutation' => $tblSalutation ? $tblSalutation : null,
+                        'Title' => $title,
+                        'FirstName' => $firstName,
+                        'LastName' => $lastName,
+                        'BirthName' => $birthName,
+                        'tblCommonGender' => $tblCommonGender,
+                        'Ranking' => $rankingCustody,
+                        'IsSingleParent' => $isSingleParent
+                    );
+                }
+            }
+        }
+
+        if ($hasErrors) {
+            return (new FrontendFamily())->formCreateFamily($Data, $Errors);
+        } else {
+            $siblingRelationships = array();
+            $custodyRelationships = array();
+            $tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON');
+            $tblGroupCustody = Group::useService()->getGroupByMetaTable('CUSTODY');
+            $tblTypeCustody = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+            $tblTypeSibling = Relationship::useService()->getTypeByName('Geschwisterkind');
+
+            $groups[] = $tblGroupCommon;
+            $groups[] = $tblGroupCustody;
+
+            foreach ($children as $child) {
+                if (($tblPerson = $this->insertPerson(null, '', $child['FirstName'], $child['SecondName'],
+                    $child['LastName'], array($tblGroupCommon), '', '', $child['CallName'])
+                )) {
+                    $personIdList[] = $tblPerson->getId();
+
+                    if (($tblGroup = $child['tblGroup'])) {
+                        Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                    }
+                    Common::useService()->insertMeta(
+                        $tblPerson,
+                        $child['Birthday'],
+                        $child['Birthplace'],
+                        ($tblCommonGender = $child['tblCommonGender']) ? $tblCommonGender : null,
+                        $child['Nationality'],
+                        $child['Denomination'],
+                        false,
+                        '',
+                        ''
+                    );
+
+                    if (isset($child['IsSibling'])) {
+                        $siblingRelationships[] = $tblPerson;
+                    }
+
+                    $custodyRelationships[] = $tblPerson;
+                }
+            }
+            foreach ($custodies as $key => $custody) {
+                if (($tblPerson = $this->insertPerson(($tblSalutation = $custody['tblSalutation']) ? $tblSalutation->getId() : null,
+                    $custody['Title'], $custody['FirstName'], '', $custody['LastName'], $groups, $custody['BirthName'])
+                )) {
+                    $personIdList[] = $tblPerson->getId();
+
+                    Common::useService()->insertMeta(
+                        $tblPerson,
+                        '',
+                        '',
+                        ($tblCommonGender = $custody['tblCommonGender']) ? $tblCommonGender : null,
+                        '',
+                        '',
+                        false,
+                        '',
+                        ''
+                    );
+
+                    foreach ($custodyRelationships as $child) {
+                        Relationship::useService()->insertRelationshipToPerson(
+                            $tblPerson,
+                            $child,
+                            $tblTypeCustody,
+                            '',
+                            $custody['Ranking'],
+                            $custody['IsSingleParent']
+                        );
+                    }
+                }
+            }
+
+
+            // Geschwisterkinder
+            while (count($siblingRelationships) > 0) {
+                $tblChildPerson = array_pop($siblingRelationships);
+                foreach ($siblingRelationships as $tblPersonSibling) {
+                    Relationship::useService()->insertRelationshipToPerson(
+                        $tblChildPerson,
+                        $tblPersonSibling,
+                        $tblTypeSibling,
+                        ''
+                    );
+                }
+            }
+        }
+
+        if (count($personIdList) > 0) {
+            return new Success('Die Personendaten wurden erfolgreich gespeichert',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/People/Person/Family/CreateAddress', Redirect::TIMEOUT_SUCCESS,
+                    array('PersonIdList' => $personIdList));
+        } else {
+            // es muss mindestens eine Person angelegt werden
+            $Errors['Person'][] = 'Bitte legen Sie mindestens eine Person an.';
+            return (new FrontendFamily())->formCreateFamily($Data, $Errors);
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param null $PersonIdList
+     * @param null $Data
+     *
+     * @return IFormInterface|string|null
+     */
+    public function CreateFamilyContact(
+        IFormInterface $form = null, $PersonIdList = null, $Data = null
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data || empty($Data)) {
+            return $form;
+        }
+
+        $addressAddList = array();
+        $mainAddressPersonList = array();
+        $phoneAddList = array();
+        $mailAddList = array();
+        $hasErrors = false;
+        $Errors = array();
+
+        foreach($Data as $key => $item) {
+            $type = substr($key, 0, 1);
+
+            if ($type == 'A') {
+                // Adressdaten
+
+                $errorAddress = false;
+                $isAdd = false;
+                $tblPersonList = array();
+
+                $tblType = Address::useService()->getTypeById($item['Type']);
+                $streetName = $item['StreetName'];
+                $streetNumber = $item['StreetNumber'];
+                $cityCode = $item['CityCode'];
+                $cityName = $item['CityName'];
+                $cityDistrict = $item['CityDistrict'];
+                $county = $item['County'];
+                $tblState = Address::useService()->getStateById($item['State']);
+                $nation = $item['Nation'];
+                $remark = $item['Remark'];
+
+                $countPersons = 0;
+                if (isset($item['PersonList'])) {
+                    foreach ($item['PersonList'] as $personId => $value) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $tblPersonList[] = $tblPerson;
+                            $countPersons++;
+
+                            if ($tblType && $tblType->getName() == 'Hauptadresse') {
+                                $mainAddressPersonList[$personId][] = 1;
+                            }
+                        }
+                    }
+                }
+
+                if ($tblType || $streetName || $streetNumber || $cityCode || $cityName || $cityDistrict || $county
+                    || $tblState || $nation || $remark
+                ) {
+                    $isAdd = true;
+                    $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorAddress);
+                    $this->setMessage($streetName, $key, 'StreetName', 'Bitte geben Sie eine Straße ein.', $Errors, $errorAddress);
+                    $this->setMessage($streetNumber, $key, 'StreetNumber', 'Bitte geben Sie eine Hausnummer ein.', $Errors, $errorAddress);
+                    $this->setMessage($cityCode, $key, 'CityCode', 'Bitte geben Sie eine Postleitzahl ein.', $Errors, $errorAddress);
+                    $this->setMessage($cityName, $key, 'CityName', 'Bitte geben Sie einen Ort ein.', $Errors, $errorAddress);
+
+                    if ($countPersons == 0) {
+                        $errorAddress = true;
+                        $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese Adresse aus.';
+                    }
+                }
+
+                if ($errorAddress) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $addressAddList[$key] = array(
+                        'tblType' => $tblType,
+                        'StreetName' => $streetName,
+                        'StreetNumber' => $streetNumber,
+                        'CityCode' => $cityCode,
+                        'CityName' => $cityName,
+                        'CityDistrict' => $cityDistrict,
+                        'County' => $county,
+                        'tblState' => $tblState,
+                        'Nation' => $nation,
+                        'Remark' => $remark,
+                        'tblPersonList' => $tblPersonList
+                    );
+                }
+            } elseif ($type == 'P') {
+                // Telefonnummern
+
+                $errorPhone = false;
+                $isAdd = false;
+                $tblPersonList = array();
+
+                $tblType = Phone::useService()->getTypeById($item['Type']);
+                $address = $item['Number'];
+                $remark = $item['Remark'];
+
+                $countPersons = 0;
+                if (isset($item['PersonList'])) {
+                    foreach ($item['PersonList'] as $personId => $value) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $tblPersonList[] = $tblPerson;
+                            $countPersons++;
+                        }
+                    }
+                }
+
+                if ($tblType || $address || $remark) {
+                    $isAdd = true;
+                    $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorPhone);
+                    $this->setMessage($address, $key, 'Number', 'Bitte geben Sie eine Telefonnummer ein.', $Errors, $errorPhone);
+
+                    if ($countPersons == 0) {
+                        $errorPhone = true;
+                        $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese Telefonnummer aus.';
+                    }
+                }
+
+                if ($errorPhone) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $phoneAddList[$key] = array(
+                        'tblType' => $tblType,
+                        'Number' => $address,
+                        'Remark' => $remark,
+                        'tblPersonList' => $tblPersonList
+                    );
+                }
+            } elseif ($type == 'M') {
+                // Emailadressen
+
+                $errorMail = false;
+                $isAdd = false;
+                $tblPersonList = array();
+
+                $tblType = Mail::useService()->getTypeById($item['Type']);
+                $address = $item['Address'];
+                $remark = $item['Remark'];
+                $isAccountUserAlias = isset($item['IsAccountUserAlias']);
+                $isAccountRecoveryMail = isset($item['IsAccountRecoveryMail']);
+
+                $countPersons = 0;
+                if (isset($item['PersonList'])) {
+                    foreach ($item['PersonList'] as $personId => $value) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $tblPersonList[] = $tblPerson;
+                            $countPersons++;
+                        }
+                    }
+                }
+
+                if ($tblType || $address || $remark) {
+                    $isAdd = true;
+                    $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorMail);
+                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine E-Mail Adresse ein.', $Errors, $errorMail);
+
+                    if ($countPersons == 0) {
+                        $errorMail = true;
+                        $Errors[$key]['Message'] = 'Bitte wählen Sie mindestens eine Person für diese E-Mail Adresse aus.';
+                    }
+
+                    // prüfen userAlias und recoverMail
+                    if ($isAccountUserAlias || $isAccountRecoveryMail) {
+                        // Es darf nur maximal eine Person ausgewählt werden
+                        if ($countPersons != 1) {
+                            $errorMail = true;
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als UCS Benutzername 
+                                oder UCS "Passwort vergessen" darf nur genau eine Person ausgewählt werden.';
+                            $tblPersonMail = false;
+                        } else {
+                            $tblPersonMail = current($tblPersonList);
+                        }
+
+                        // Typ muss Geschäftlich sein bei UCS Alias
+                        if ($isAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich') {
+                            $errorMail = true;
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als UCS Benutzername 
+                                muss der E-Mail Typ: Geschäftlich ausgewählt werden.';
+                        }
+
+                        // Eindeutigkeit UCS Alias
+                        if ($isAccountUserAlias && $tblPersonMail) {
+                            $errorMessage = '';
+                            if (!Account::useService()->isUserAliasUnique($tblPersonMail, $address, $errorMessage)) {
+                                $errorMail = true;
+                                $Errors[$key]['Message'] = $errorMessage;
+                            }
+                        }
+                    }
+                }
+
+                if ($errorMail) {
+                    $hasErrors = true;
+                } elseif ($isAdd) {
+                    $mailAddList[$key] = array(
+                        'tblType' => $tblType,
+                        'Address' => $address,
+                        'Remark' => $remark,
+                        'IsAccountUserAlias' => $isAccountUserAlias,
+                        'IsAccountRecoveryMail' => $isAccountRecoveryMail,
+                        'tblPersonList' => $tblPersonList
+                    );
+                }
+            }
+        }
+
+        // Prüfungen alle Personen muss mindestens eine Hauptadresse zugewiesen werden,
+        // weiterhin darf pro Person nur eine Hauptadresse zugewiesen werden
+        foreach ($PersonIdList as $Id) {
+            if (($tblPerson = Person::useService()->getPersonById($Id))) {
+                if (!isset($mainAddressPersonList[$Id])) {
+                    $hasErrors = true;
+                    $Errors['Address'][] = 'Bitte geben Sie für: ' . $tblPerson->getFullName() . ' eine Hauptadresse an.';
+                } elseif (count($mainAddressPersonList[$Id]) != 1) {
+                    $hasErrors = true;
+                    $Errors['Address'][] = $tblPerson->getFullName() . ' darf nur eine Hauptadresse besitzen.';
+                }
+            }
+        }
+
+        if ($hasErrors) {
+            return (new FrontendFamily())->getFamilyAddressForm($PersonIdList, $Data, $Errors);
+        } else {
+            foreach ($addressAddList as $address) {
+                $tblState = $address['tblState'];
+                Address::useService()->insertAddressToPersonList(
+                    $address['tblType'],
+                    $address['StreetName'],
+                    $address['StreetNumber'],
+                    $address['CityCode'],
+                    $address['CityName'],
+                    $address['CityDistrict'],
+                    $address['County'],
+                    $address['Nation'],
+                    $address['tblPersonList'],
+                    $tblState ? $tblState : null,
+                    $address['Remark']
+                );
+            }
+
+            foreach ($phoneAddList as $phone) {
+                Phone::useService()->insertPhoneToPersonList(
+                    $phone['Number'],
+                    $phone['tblType'],
+                    $phone['Remark'],
+                    $phone['tblPersonList']
+                );
+            }
+
+            foreach ($mailAddList as $mail) {
+                Mail::useService()->insertMailToPersonList(
+                    $mail['Address'],
+                    $mail['tblType'],
+                    $mail['Remark'],
+                    $mail['IsAccountUserAlias'],
+                    $mail['IsAccountRecoveryMail'],
+                    $mail['tblPersonList']
+                );
+            }
+
+            return new Success('Die Kontaktdaten wurden erfolgreich gespeichert.')
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $PersonIdList[0]));
+        }
+    }
+
+    /**
+     * @param $variable
+     * @param $key
+     * @param $identifier
+     * @param $message
+     * @param $Errors
+     * @param $errorAddress
+     */
+    private function setMessage($variable, $key, $identifier, $message, &$Errors, &$errorAddress)
+    {
+        if (!$variable) {
+            $errorAddress = true;
+            $Errors[$key][$identifier] = array(
+                'IsError' => true,
+                'Message' => $message
+            );
+        } else {
+            $Errors[$key][$identifier] = array(
+                'IsError' => false,
+                'Message' => ''
+            );
+        }
     }
 }

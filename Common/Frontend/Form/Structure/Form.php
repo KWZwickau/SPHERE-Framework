@@ -9,6 +9,9 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\System\Authenticator\Authenticator as Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Extension\Extension;
@@ -106,6 +109,25 @@ class Form extends Extension implements IFormInterface
                                     if ($PanelElement->getName() == $Name) {
                                         $PanelElement->setError($Message, $Icon);
                                     }
+                                } elseif (is_array($PanelElement)) {
+                                    // Layout im Panel
+                                    foreach ($PanelElement as $LayoutGroup) {
+                                        if ($LayoutGroup instanceof LayoutGroup) {
+                                            /** @var LayoutRow $LayoutRow */
+                                            foreach ((array) $LayoutGroup->getLayoutRow() as $LayoutRow) {
+                                                /** @var LayoutColumn $LayoutColumn */
+                                                foreach ((array) $LayoutRow->getLayoutColumn() as $LayoutColumn) {
+                                                    foreach ((array) $LayoutColumn->getFrontend() as $LayoutElement) {
+                                                        if ($LayoutElement instanceof AbstractField) {
+                                                            if ($LayoutElement->getName() == $Name) {
+                                                                $LayoutElement->setError($Message, $Icon);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -145,6 +167,25 @@ class Form extends Extension implements IFormInterface
                                     /** @var IFieldInterface $PanelElement */
                                     if ($PanelElement->getName() == $Name) {
                                         $PanelElement->setSuccess($Message, $Icon);
+                                    }
+                                } elseif (is_array($PanelElement)) {
+                                    // Layout im Panel
+                                    foreach ($PanelElement as $LayoutGroup) {
+                                        if ($LayoutGroup instanceof LayoutGroup) {
+                                            /** @var LayoutRow $LayoutRow */
+                                            foreach ((array) $LayoutGroup->getLayoutRow() as $LayoutRow) {
+                                                /** @var LayoutColumn $LayoutColumn */
+                                                foreach ((array) $LayoutRow->getLayoutColumn() as $LayoutColumn) {
+                                                    foreach ((array) $LayoutColumn->getFrontend() as $LayoutElement) {
+                                                        if ($LayoutElement instanceof AbstractField) {
+                                                            if ($LayoutElement->getName() == $Name) {
+                                                                $LayoutElement->setSuccess($Message, $Icon);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }

@@ -809,8 +809,27 @@ class Service extends AbstractService
                     }
                 }
 
-                $tblAccount = AccountGatekeeper::useService()->insertAccount($name, $password, null, $tblConsumer);
+                // nur bei Schüler-Accounts den AccountAlias aus Schüler-Mails setzen
+                if ($AccountType == 'S') {
+                    if (($accountUserAlias = AccountGatekeeper::useService()->getAccountUserAliasFromMails($tblPerson))) {
+                        $errorMessage = '';
+                        if (!AccountGatekeeper::useService()->isUserAliasUnique($tblPerson, $accountUserAlias,
+                            $errorMessage)
+                        ) {
+                            $accountUserAlias = false;
+                            // Flag an der E-Mail Adresse entfernen
+                            Mail::useService()->resetMailWithUserAlias($tblPerson);
+                        }
+                    }
+                    $accountRecoveryMail = AccountGatekeeper::useService()->getAccountRecoveryMailFromMails($tblPerson);
+                } else {
+                    $accountUserAlias = false;
+                    $accountRecoveryMail = false;
+                }
 
+                $tblAccount = AccountGatekeeper::useService()->insertAccount($name, $password, null, $tblConsumer,
+                    false, false, $accountUserAlias ? $accountUserAlias : null,
+                    $accountRecoveryMail ? $accountRecoveryMail : null);
 
                 if ($tblAccount) {
                     $tblIdentification = AccountGatekeeper::useService()->getIdentificationByName('UserCredential');

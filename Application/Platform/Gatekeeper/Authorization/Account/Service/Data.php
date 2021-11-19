@@ -195,15 +195,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param null|TblToken $tblToken
-     * @param null|TblConsumer $tblConsumer
-     * @param bool $isAuthenticatorApp
+     * @param $Username
+     * @param $Password
+     * @param TblToken|null $tblToken
+     * @param TblConsumer|null $tblConsumer
+     * @param false $isAuthenticatorApp
+     * @param null $UserAlias
+     * @param null $RecoveryMail
      *
      * @return TblAccount
      */
-    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null, $isAuthenticatorApp = false)
+    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null,
+        $isAuthenticatorApp = false, $UserAlias = null, $RecoveryMail = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -217,6 +220,13 @@ class Data extends AbstractData
             if ($isAuthenticatorApp) {
                 $twoFactorApp = new TwoFactorApp();
                 $Entity->setAuthenticatorAppSecret($twoFactorApp->createSecret());
+            }
+
+            if ($UserAlias) {
+                $Entity->setUserAlias($UserAlias);
+            }
+            if ($RecoveryMail) {
+                $Entity->setRecoveryMail($RecoveryMail);
             }
 
             $Manager->saveEntity($Entity);
