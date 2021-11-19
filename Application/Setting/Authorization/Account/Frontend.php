@@ -765,7 +765,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if (!empty($dataList)) {
                 return new Well(
-                    new Title(new PersonKey() . ' Benutzerkonten', '(' . new Bold($count) . ' nach Filterung)')
+                    new Title(new PersonKey() . ' Benutzerkonten Mitarbeiter', '(' . new Bold($count) . ' nach Filterung)')
                     . new ToggleCheckbox('Alle auswählen/abwählen', $form)
                     . $form
                 );
