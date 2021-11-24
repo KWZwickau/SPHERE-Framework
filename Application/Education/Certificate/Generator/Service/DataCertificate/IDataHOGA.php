@@ -24,6 +24,7 @@ class IDataHOGA
             self::setGymHjInfo($Data, $tblConsumerCertificate);
             self::setGymHjZ($Data, $tblConsumerCertificate);
             self::setGymJ($Data, $tblConsumerCertificate);
+            self::setGymAbgSekI($Data, $tblConsumerCertificate);
 
             self::setBgjJue($Data, $tblConsumerCertificate);
 
@@ -287,6 +288,22 @@ class IDataHOGA
         }
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
             self::setCertificateSubjectsStandardGym($tblCertificate, $Data);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setGymAbgSekI(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe I', 'HOGA\GymAbgSekI',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeGym());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardGym($tblCertificate, $Data);
+            }
         }
     }
 

@@ -5261,8 +5261,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                                     && ($tblConsumer->getAcronym() == 'EZSH')
                                     && intval($tblLevel->getName()) == 10
-                                ){
+                                ) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
+                                } elseif ($tblConsumer
+                                    && $tblConsumer->getAcronym() == 'HOGA'
+                                    && intval($tblLevel->getName()) <= 10
+                                ) {
+                                    // HOGA hat ein individuelles Abgangszeugnis
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\GymAbgSekI');
                                 } elseif (intval($tblLevel->getName()) <= 10) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
                                 } else {
@@ -5878,7 +5884,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 );
             }
 
-            if ($tblCertificate->getCertificate() == 'GymAbgSekI' || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
+            if ($tblCertificate->getCertificate() == 'GymAbgSekI'
+                || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg'
+                || $tblCertificate->getCertificate() == 'HOGA\GymAbgSekI'
+            ) {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 10 nach

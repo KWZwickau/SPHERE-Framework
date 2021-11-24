@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -770,15 +771,21 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomInfo(string $marginTop = '0px') : Slice
+    protected function getCustomInfo(string $marginTop = '0px', array $lines = array()) : Slice
     {
         $textSize = '9.5px';
 
-        return (new Slice())
+        $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addElement($this->getElement('Notenerläuterung:', $textSize))
             ->addElement($this->getElement('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 $textSize)->stylePaddingTop('-5px'));
+
+        foreach ($lines as $item) {
+            $slice->addElement($this->getElement($item, $textSize)->stylePaddingTop('-5px'));
+        }
+
+        return $slice;
     }
 
     /**
@@ -1590,10 +1597,11 @@ abstract class Style extends Certificate
     /**
      * @param $personId
      * @param string $marginTop
+     * @param false $hasFootNote
      *
      * @return Slice
      */
-    public function getCustomProfile($personId, string $marginTop = '5px') : Slice
+    public function getCustomProfile($personId, string $marginTop = '5px', $hasFootNote = false) : Slice
     {
         $tblPerson = Person::useService()->getPersonById($personId);
 
@@ -1634,7 +1642,7 @@ abstract class Style extends Certificate
 
         $section = new Section();
         $section
-            ->addElementColumn($this->getElement('Wahlpflichtbereich:', self::TEXT_SIZE_NORMAL)
+            ->addElementColumn($this->getElement('Wahlpflichtbereich' . ($hasFootNote ? '¹' : '') . ':', self::TEXT_SIZE_NORMAL)
                 ->styleTextBold()
                 ->styleMarginTop($marginTop)
                 ->styleMarginBottom('5px')
@@ -1642,7 +1650,7 @@ abstract class Style extends Certificate
 
         $profileSubjectName = $tblSubjectProfile ? $tblSubjectProfile->getName() : '&ndash;';
         $subjectAcronymForGrade = $tblSubjectProfile ? $tblSubjectProfile->getAcronym() : 'SubjectAcronymForGrade';
-        if (strlen($profileSubjectName) > 15) {
+        if (strlen($profileSubjectName) > 30) {
             $marginTopProfile = '0px';
             $lineHeightProfile = '80%';
         } else {
@@ -1651,7 +1659,7 @@ abstract class Style extends Certificate
         }
 
         $foreignSubjectName = $tblSubjectForeign ? $tblSubjectForeign->getName() : '&ndash;';
-        if (strlen($foreignSubjectName) > 15) {
+        if (strlen($foreignSubjectName) > 30) {
             $marginTopForeign = '0px';
             $lineHeightForeign = '80%';
         } else {
@@ -1710,8 +1718,8 @@ abstract class Style extends Certificate
 
         $section = new Section();
         $section
-            ->addElementColumn($this->getElement('besuchtes schulspezifisches Profil', '9px'), '52%')
-            ->addElementColumn($this->getElement('3. Fremdsprache (ab Klassenstufe 8)', '9px'));
+            ->addElementColumn($this->getElement('besuchtes schulspezifisches Profil' . ($hasFootNote ? '²' : ''), '9px'), '52%')
+            ->addElementColumn($this->getElement('3. Fremdsprache (ab Klassenstufe 8)' . ($hasFootNote ? '²' : ''), '9px'));
         $sectionList[] = $section;
 
         return $slice->addSectionList($sectionList);
@@ -1730,5 +1738,149 @@ abstract class Style extends Certificate
             ->styleMarginTop($marginTop)
             ->addElement($this->getElement($title, '25px')->styleTextBold()->styleAlignCenter())
             ->addElement($this->getElement($subTitle, '17px')->styleTextBold()->styleAlignCenter()->styleMarginTop('-5px'));
+    }
+
+    /**
+     * @param string $title
+     * @param string $subTitle
+     * @param string $description
+     *
+     * @return Page
+     */
+    public function getCoverPage(string $title, string $subTitle, string $description) : Page
+    {
+        // logo? wenn nicht zumindestens muster
+        // $Header = $this->getHead($this->isSample());
+
+        return (new Page())
+            ->addSlice((new Slice())
+                ->addElement($this->getElement($title, '33px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('24%')
+                    ->styleTextBold()
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement($this->getElement($subTitle, '22px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('15px')
+                    ->styleTextBold()
+                )
+            )->addSlice((new Slice())
+                ->addElement($this->getElement($description, '22px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('20px')
+                    ->styleTextBold()
+                )
+            );
+    }
+
+    public function getStudentHeader(int $personId, bool $hasDivision = false, string $marginTop = '65px') : Slice
+    {
+        $paddingTop = '4px';
+        $section = new Section();
+        $section
+            ->addElementColumn($this->getElement('Vorname und Name:')->stylePaddingTop($paddingTop), '20%')
+            ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                    {{ Content.P' . $personId . '.Person.Data.Name.Last }}', self::TEXT_SIZE_LARGE)
+                ->styleTextBold());
+
+        if ($hasDivision) {
+            $section
+                ->addElementColumn($this->getElement('Klasse:')->stylePaddingTop($paddingTop), '8%')
+                ->addElementColumn($this->getElement(
+                    '{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}'
+                    , self::TEXT_SIZE_LARGE
+                )
+                    ->styleTextBold()
+                , '20%');
+        }
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection($section);
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginSpace
+     *
+     * @return Page
+     */
+    public function getSecondPageTop(int $personId, string $marginSpace = '45px') : Page
+    {
+        $paddingTop = '4px';
+        return (new Page)
+            ->addSlice($this->getStudentHeader($personId, false))
+            ->addSlice((new Slice())
+                ->styleMarginTop($marginSpace)
+                ->addSection((new Section())
+                    ->addElementColumn($this->getElement('geboren am:')
+                        ->stylePaddingTop($paddingTop)
+                        , '20%')
+                    ->addElementColumn($this->getElement(
+                            '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                                {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                            , self::TEXT_SIZE_LARGE)
+                        ->styleTextBold()
+                        , '10%')
+                    ->addElementColumn($this->getElement('in:')
+                        ->stylePaddingTop($paddingTop)
+                        ->stylePaddingLeft('20px')
+                        , '4%')
+                    ->addElementColumn($this->getElement(
+                            '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                                {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        , self::TEXT_SIZE_LARGE)
+                        ->styleTextBold()
+                        ->stylePaddingLeft('8px')
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->styleMarginTop($marginSpace)
+                ->addSection((new Section())
+                    ->addElementColumn($this->getElement('wohnhaft in:')
+                        ->stylePaddingTop($paddingTop)
+                        , '20%')
+                    ->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
+                            {{ Content.P' . $personId . '.Person.Address.Street.Name }}
+                            {{ Content.P' . $personId . '.Person.Address.Street.Number }},
+                            {{ Content.P' . $personId . '.Person.Address.City.Code }}
+                            {{ Content.P' . $personId . '.Person.Address.City.Name }}
+                        {% else %}
+                              &nbsp;
+                        {% endif %}'
+                        , self::TEXT_SIZE_LARGE)
+                        ->styleTextBold()
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return Slice
+     */
+    protected function setCustomCheckBox(string $content = '&nbsp;') : Slice
+    {
+        return (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement($content, '22px')
+                    ->styleHeight('30px')
+                    ->stylePaddingLeft('8px')
+                    ->stylePaddingTop('-8px')
+                    ->stylePaddingBottom('8px')
+                    ->styleBorderAll('0.5px')
+                )
+            );
     }
 }
