@@ -5909,7 +5909,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     array($radio1, $radio2),
                     Panel::PANEL_TYPE_DEFAULT
                 );
-            } elseif ($tblCertificate->getCertificate() == 'MsAbg') {
+            } elseif ($tblCertificate->getCertificate() == 'MsAbg' || $tblCertificate->getCertificate() == 'HOGA\MsAbg') {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10

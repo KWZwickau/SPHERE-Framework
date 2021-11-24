@@ -20,6 +20,7 @@ class IDataHOGA
             self::setMsHjInfo($Data, $tblConsumerCertificate);
             self::setMsHjZ($Data, $tblConsumerCertificate);
             self::setMsJ($Data, $tblConsumerCertificate);
+            self::setMsAbg($Data, $tblConsumerCertificate);
 
             self::setGymHjInfo($Data, $tblConsumerCertificate);
             self::setGymHjZ($Data, $tblConsumerCertificate);
@@ -140,6 +141,21 @@ class IDataHOGA
                 $Data->setCertificateGradeAllStandard($tblCertificate);
             }
             if (!$Data->getCertificateSubjectAll($tblCertificate)){
+                self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setMsAbg(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', '', 'HOGA\MsAbg',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
             }
         }
