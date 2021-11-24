@@ -100,16 +100,20 @@ class SDataPrimary
         }
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
 
-            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-            $Data->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 3);
-            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-
-            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
-            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 3);
-            $Data->setCertificateSubject($tblCertificate, 'WE', 2, 4);
+            $row = 1;
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'SU', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, $row);
+            $row = 1;
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'RE/k', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'RE/j', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'WE', 2, $row);
         }
     }
 
@@ -151,16 +155,20 @@ class SDataPrimary
         }
         if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
 
-            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-            $Data->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 3);
-            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-
-            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
-            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 3);
-            $Data->setCertificateSubject($tblCertificate, 'WE', 2, 4);
+            $row = 1;
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'SU', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, $row);
+            $row = 1;
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, $row++);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'RE/k', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'RE/j', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $row++, false);
+            $Data->setCertificateSubject($tblCertificate, 'WE', 2, $row);
         }
     }
 
