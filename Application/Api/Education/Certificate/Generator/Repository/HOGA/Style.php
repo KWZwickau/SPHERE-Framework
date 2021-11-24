@@ -84,16 +84,106 @@ abstract class Style extends Certificate
     }
 
     /**
-     * @param int $personId
-     * @param string $period
+     * @param array $school
+     * @param bool $isSchoolLogoVisible
+     *
+     * @return Slice
+     */
+    protected function getHeaderBGym(array $school, bool $isSchoolLogoVisible = true) : Slice
+    {
+        $logoHeight = '50px';
+        $logoWidth = '165px';
+
+        $slice = new Slice();
+        $slice->addSection($this->getSectionSpace('5px'));
+
+        $section = new Section();
+        // Individually Logo
+        if ($isSchoolLogoVisible) {
+            $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/HOGA.jpg',
+                'auto', $logoHeight)), '39%');
+        } else {
+            $section->addElementColumn((new Element()), '39%');
+        }
+        // Sample
+        if($this->isSample()){
+            $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
+        } else {
+            $section->addElementColumn((new Element()), '22%');
+        }
+        // Standard Logo
+        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+            $logoWidth, $logoHeight))
+            ->styleAlignRight()
+            , '39%');
+        $slice->addSection($section);
+
+        $slice->addSection($this->getSectionSpace('5px'));
+
+        foreach ($school as $line) {
+            $slice->addSection((new Section())
+                ->addElementColumn(
+                    $this->getElement($line, self::TEXT_SIZE_SMALL)
+                        ->styleAlignCenter()
+                        ->styleMarginTop('-10px')
+                )
+            );
+        }
+
+        return $slice;
+    }
+
+    /**
+     * @param string $title
+     * @param string $subTitle
      * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getDivisionYearStudent(int $personId, string $period = '1. Schulhalbjahr:', string $marginTop = '10px') : Slice
+    protected function getTitleBGym(string $title, string $subTitle, string $marginTop = '15px') : Slice
     {
-        $paddingTop = '4.5px';
         return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement($title, '25px')->styleAlignCenter())
+            ->addElement($this->getElement($subTitle, '17px')->styleAlignCenter());
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getSubjectArea(int $personId, string $marginTop = '2px') : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement(
+                '{% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
+                    Fachrichtung {{ Content.P' . $personId . '.Input.SubjectArea }}
+                {% else %}
+                    Fachrichtung &ndash;
+                {% endif %}'
+                , '15px')->styleAlignCenter());
+    }
+
+    /**
+     * @param int $personId
+     * @param string $period
+     * @param string $marginTop
+     * @param bool $hasBirthInformation
+     *
+     * @return Slice
+     */
+    protected function getDivisionYearStudent(
+        int $personId,
+        string $period = '1. Schulhalbjahr:',
+        string $marginTop = '10px',
+        bool $hasBirthInformation = false
+    ) : Slice {
+
+        $paddingTop = '4px';
+        $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('Klasse:')->stylePaddingTop($paddingTop), '20%')
@@ -108,15 +198,46 @@ abstract class Style extends Certificate
                     , '15%')
                 ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Division.Data.Year }}', self::TEXT_SIZE_LARGE)
                     ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '15%')
-                ->addElementColumn($this->getElement('&nbsp;'), '10%')
+                    ->stylePaddingLeft('10px')
+                    , '25%')
+//                ->addElementColumn($this->getElement('&nbsp;'), '10%')
             )
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('Vorname und Name:')->stylePaddingTop($paddingTop), '20%')
                 ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Person.Data.Name.First }}
                     {{ Content.P'.$personId.'.Person.Data.Name.Last }}', self::TEXT_SIZE_LARGE)->styleTextBold())
             );
+
+        if ($hasBirthInformation) {
+            $slice->addSection((new Section())
+                ->addElementColumn($this->getElement('geboren am:')->stylePaddingTop($paddingTop), '20%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                        {{ Content.P'.$personId.'.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_LARGE
+                )->styleTextBold(), '20%')
+                ->addElementColumn($this->getElement('&nbsp;'))
+                ->addElementColumn($this->getElement('in:')
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignRight()
+                    , '15%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                        {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}'
+                    , self::TEXT_SIZE_LARGE)
+                    ->styleTextBold()
+                    ->stylePaddingLeft('10px')
+                    , '25%')
+            );
+        }
+
+        return $slice;
     }
 
     /**
@@ -1236,6 +1357,234 @@ abstract class Style extends Certificate
         }
 
         return $slice;
+    }
+
+    /**
+     * @param int $personId
+     * @param string $period
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomSubjectLanesBGym(int $personId, string $period = 'Schulhalbjahr', string $marginTop = '5px') : Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('hat im zurückliegenden ' . $period
+                    . ' folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)))
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Pflichtbereich', self::TEXT_SIZE_NORMAL)->styleTextBold()));
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject && $tblCertificateSubject->getRanking() < 20) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                $SubjectSection = (new Section());
+
+                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    // lange Fächernamen
+                    $Subject['SubjectName'] = str_replace('/', ' / ',  $Subject['SubjectName']);
+                    if (strlen($Subject['SubjectName']) > 30) {
+                        $marginTop = '0px';
+                        $lineHeight = '80%';
+                    } else {
+                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                        $lineHeight = '100%';
+                    }
+
+                    if ($Lane > 1) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '4%');
+                    }
+
+                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], self::TEXT_SIZE_SMALL)
+                        ->styleMarginTop($marginTop)
+                        ->styleLineHeight($lineHeight)
+                        , self::SUBJECT_WIDTH . '%');
+
+                    $SubjectSection->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}',
+                        self::TEXT_SIZE_NORMAL
+                    )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+                }
+
+                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+                    $SubjectSection->addElementColumn((new Element()), '52%');
+                }
+
+                $slice->addSection($SubjectSection);
+                $SectionList[] = $SubjectSection;
+            }
+        }
+
+        return $slice;
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomChosenLanesBGym(int $personId, string $marginTop = '5px') : Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Wahlbereich', self::TEXT_SIZE_NORMAL)->styleTextBold()));
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject && $tblCertificateSubject->getRanking() >= 20) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                $SubjectSection = (new Section());
+
+                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    // lange Fächernamen
+                    $Subject['SubjectName'] = str_replace('/', ' / ',  $Subject['SubjectName']);
+                    if (strlen($Subject['SubjectName']) > 30) {
+                        $marginTop = '0px';
+                        $lineHeight = '80%';
+                    } else {
+                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                        $lineHeight = '100%';
+                    }
+
+                    if ($Lane > 1) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '4%');
+                    }
+
+                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], self::TEXT_SIZE_SMALL)
+                        ->styleMarginTop($marginTop)
+                        ->styleLineHeight($lineHeight)
+                        , self::SUBJECT_WIDTH . '%');
+
+                    $SubjectSection->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}',
+                        self::TEXT_SIZE_NORMAL
+                    )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+                }
+
+                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+                    $SubjectSection->addElementColumn((new Element()), '52%');
+                }
+
+                $slice->addSection($SubjectSection);
+                $SectionList[] = $SubjectSection;
+            }
+        }
+
+        return $slice->styleHeight('100px');
     }
 
     /**

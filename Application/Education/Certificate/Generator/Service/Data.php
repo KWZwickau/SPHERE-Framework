@@ -67,6 +67,7 @@ class Data extends AbstractData
     private $tblSchoolTypeBerufsfachschule;
     private $tblSchoolTypeFachschule;
     private $tblSchoolTypeBerufsgrundbildungsjahr;
+    private $tblSchoolTypeBeruflichesGymnasium;
     private $tblCourseMain;
     private $tblCourseReal;
     private $tblConsumer;
@@ -176,6 +177,14 @@ class Data extends AbstractData
     }
 
     /**
+     * @return TblType|false
+     */
+    public function getTblSchoolTypeBeruflichesGymnasium()
+    {
+        return $this->tblSchoolTypeBeruflichesGymnasium;
+    }
+
+    /**
      * @return mixed
      */
     public function getTblCourseMain()
@@ -216,6 +225,7 @@ class Data extends AbstractData
         $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
         $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
         $this->tblSchoolTypeBerufsgrundbildungsjahr = Type::useService()->getTypeByName('Berufsgrundbildungsjahr');
+        $this->tblSchoolTypeBeruflichesGymnasium = Type::useService()->getTypeByName('Berufliches Gymnasium');
         $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
         $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();

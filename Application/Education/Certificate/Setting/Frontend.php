@@ -380,6 +380,66 @@ class Frontend extends Extension implements IFrontendInterface
 //                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
                 );
+            } elseif (preg_match('!Berufliches Gymnasium!', $tblCertificate->getName())) {
+
+                // Fach-Noten-Definition
+                $tblSubjectAll = Subject::useService()->getSubjectAll();
+                $chosenSubject = 20;
+
+                // Pflichtbereich
+                $SubjectLaneAcrossLeft = array();
+                $SubjectLaneAcrossRight = array();
+                for ($Run = 1; $Run < $chosenSubject; $Run++) {
+                    array_push($SubjectLaneAcrossLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneAcrossRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                // Wahlbereich
+                $SubjectLaneChosenLeft = array();
+                $SubjectLaneChosenRight = array();
+                for ($Run = $chosenSubject; $Run <= $chosenSubject + 6; $Run++) {
+                    array_push($SubjectLaneChosenLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneChosenRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                $Stage->setContent(
+                    new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
+                    , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
+                        Panel::PANEL_TYPE_INFO)
+                    . ($loadStandardFromNoConsumer && $tblTechnicalCourse
+                        ? new Warning('Es wurden die Fächereinstellungen von ohne "Bildungsgang / Berufsbezeichnung / Ausbildung" 
+                            voreingetragen. Bitte Speichern Sie diese Fächereinstellung am Ende der Seite (unten) um die
+                            Fächereinstellung für: ' . $tblTechnicalCourse->getName() . ' zu übernehmen.')
+                        : ''
+                    )
+                    . Generator::useService()->createCertificateSetting(
+                        new Form(array(
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneAcrossLeft, 6),
+                                    new FormColumn($SubjectLaneAcrossRight, 6),
+                                )),
+                            ), new FormTitle('Pflichtbereich')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneChosenLeft, 6),
+                                    new FormColumn($SubjectLaneChosenRight, 6),
+                                )),
+                            ), new FormTitle('Wahlbereich')),
+                        ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
+                );
             } else {
 
                 // Kopf-Noten-Definition
