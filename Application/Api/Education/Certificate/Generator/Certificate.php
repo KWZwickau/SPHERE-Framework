@@ -217,10 +217,11 @@ abstract class Certificate extends Extension
         }
 
         // SSW-1026 schmaler Zeugnisrand und SSW-1037
-        if (strpos($certificate, 'GymAbitur') !== false
+        if ((strpos($certificate, 'GymAbitur') !== false
             || strpos($certificate, 'GymAbgSekII') !== false
             || strpos($certificate, 'MsAbs') !== false
-            || strpos($certificate, 'MsAbg') !== false
+            || strpos($certificate, 'MsAbg') !== false)
+            && $tblConsumer && $tblConsumer->getAcronym() != 'HOGA'
         ) {
             $InjectStyle = '';
         }

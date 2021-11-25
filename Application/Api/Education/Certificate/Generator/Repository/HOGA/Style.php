@@ -3,11 +3,13 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -1882,5 +1884,182 @@ abstract class Style extends Certificate
                     ->styleBorderAll('0.5px')
                 )
             );
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
+    protected function getCustomAdditionalSubjectLanes($personId) : Slice
+    {
+        $slice = new Slice();
+        $slice
+            ->addElement($this->getElement(
+                    'Leistungen in Fächern, die in Klassenstufe 9 abgeschlossen wurden:',
+                    self::TEXT_SIZE_NORMAL
+                )->styleTextBold()
+            );
+        if (($tblGradeList = $this->getAdditionalGrade())) {
+            $count = 0;
+            $section = new Section();
+            foreach ($tblGradeList['Data'] as $subjectAcronym => $grade) {
+                if (($tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym))) {
+                    $count++;
+                    if ($count % 2 == 1) {
+                        $section = new Section();
+                        $slice->addSection($section);
+                    } else {
+                        $section->addElementColumn((new Element())
+                            , '4%');
+                    }
+
+                    $this->setGradeLine(
+                        $section,
+                        $tblSubject->getName(),
+                        '{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                             {{ Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] }}
+                         {% else %}
+                             &ndash;
+                         {% endif %}'
+                    );
+                }
+            }
+
+            if ($count % 2 == 1) {
+                $section->addElementColumn(new Element(), '52%');
+            }
+        }
+
+        return $slice->styleHeight('100px');
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomExaminationsBoard(string $marginTop = '45px') : Slice
+    {
+        $leaderName = '&nbsp;';
+        $leaderDescription = 'Vorsitzende(r)';
+        $firstMemberName = '&nbsp;';
+        $secondMemberName = '&nbsp;';
+
+        $textSize = '10px';
+        $paddingTop = '-5px';
+
+        if ($this->getTblPrepareCertificate()
+            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+        ) {
+
+            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+            ) {
+                $leaderName = $tblPersonLeader->getFullName();
+                if (($tblCommon = $tblPersonLeader->getCommon())
+                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                ) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $leaderDescription = 'Vorsitzender';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $leaderDescription = 'Vorsitzende';
+                    }
+                }
+            }
+
+            if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
+                && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
+            ) {
+                $firstMemberName = $tblPersonFirstMember->getFullName();
+            }
+
+            if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
+                && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
+            ) {
+                $secondMemberName = $tblPersonSecondMember->getFullName();
+            }
+        }
+
+        return (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Der Prüfungsausschuss')
+                    ->styleAlignCenter()
+                    ->styleMarginTop($marginTop)
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('&nbsp;')
+                    ->styleBorderBottom()
+//                    ->styleMarginTop('5px')
+                    , '30%')
+                ->addElementColumn($this->getElement(''))
+                ->addElementColumn($this->getElement('&nbsp;')
+                    ->styleBorderBottom()
+//                    ->styleMarginTop('5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement($leaderDescription, $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    , '30%')
+                ->addElementColumn($this->getElement('Stempel der Schule', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                )
+                ->addElementColumn($this->getElement('Mitglied', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement($leaderName, $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    , '30%')
+                ->addElementColumn($this->getElement(''))
+                ->addElementColumn($this->getElement($firstMemberName, $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('')
+                    , '30%')
+                ->addElementColumn($this->getElement(''))
+                ->addElementColumn($this->getElement('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('')
+                    , '30%')
+                ->addElementColumn($this->getElement(''))
+                ->addElementColumn($this->getElement('Mitglied', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('')
+                    , '30%')
+                ->addElementColumn($this->getElement(''))
+                ->addElementColumn($this->getElement($secondMemberName, $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+        ;
     }
 }

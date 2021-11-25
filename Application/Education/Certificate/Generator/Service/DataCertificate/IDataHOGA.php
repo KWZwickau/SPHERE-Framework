@@ -21,6 +21,9 @@ class IDataHOGA
             self::setMsHjZ($Data, $tblConsumerCertificate);
             self::setMsJ($Data, $tblConsumerCertificate);
             self::setMsAbg($Data, $tblConsumerCertificate);
+            self::setMsAbsHs($Data, $tblConsumerCertificate);
+            self::setMsAbsHsQ($Data, $tblConsumerCertificate);
+            self::setMsAbsRs($Data, $tblConsumerCertificate);
 
             self::setGymHjInfo($Data, $tblConsumerCertificate);
             self::setGymHjZ($Data, $tblConsumerCertificate);
@@ -155,6 +158,69 @@ class IDataHOGA
         $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', '', 'HOGA\MsAbg',
             $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setMsAbsHs(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Hauptschulabschluss', 'HOGA\MsAbsHs',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
+            $Data->getTblCourseMain());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
+                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
+                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setMsAbsHsQ(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'qualifizierter Hauptschulabschluss', 'HOGA\MsAbsHsQ',
+            $tblConsumerCertificate, false, false, true, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
+            $Data->getTblCourseMain());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
+                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
+                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setMsAbsRs(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Realschulabschluss', 'HOGA\MsAbsRs',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
+            $Data->getTblCourseReal());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
+                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))){
+                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
             }
