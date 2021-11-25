@@ -34,6 +34,9 @@ class IDataHOGA
 
             self::setBGymHjZ($Data, $tblConsumerCertificate);
             self::setBGymJ($Data, $tblConsumerCertificate);
+
+            self::setFosHjZ($Data, $tblConsumerCertificate);
+            self::setFosJ($Data, $tblConsumerCertificate);
         }
     }
 
@@ -526,5 +529,58 @@ class IDataHOGA
         $Data->setCertificateSubject($tblCertificate, 'BIO', 2, $i++);
         $Data->setCertificateSubject($tblCertificate, 'SPA', 2, $i++);
         $Data->setCertificateSubject($tblCertificate, 'GS', 2, $i++);
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setFosHjZ(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Fachoberschule Halbjahreszeugnis', '', 'HOGA\FosHjZ',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeFachoberschule());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setFosJ(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Fachoberschule Jahreszeugnis', '', 'HOGA\FosJ',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeFachoberschule());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $Data
+     */
+    private static function setCertificateSubjectsStandardFos(TblCertificate $tblCertificate, $Data)
+    {
+        $i = 1;
+        $Data->setCertificateSubject($tblCertificate, 'DE', 1, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'RE', 1, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'GE/GK', 1, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+
+        $Data->setCertificateSubject($tblCertificate, 'VBWL', 1, $i++, false);
+        $Data->setCertificateSubject($tblCertificate, 'GeSA', 1, $i++, false);
+
+        $i = 1;
+        $Data->setCertificateSubject($tblCertificate, 'BIO', 2, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'KU', 2, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'MA', 2, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'INF', 2, $i++);
+        $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $i++);
     }
 }

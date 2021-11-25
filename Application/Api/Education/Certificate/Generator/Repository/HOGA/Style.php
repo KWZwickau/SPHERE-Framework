@@ -1296,10 +1296,8 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomSubjectLanesBgj(int $personId, string $marginTop = '12px') : Slice {
-
-        $tblPerson = Person::useService()->getPersonById($personId);
-
+    protected function getCustomSubjectLanesBgj(int $personId, string $marginTop = '12px') : Slice
+    {
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
@@ -1599,11 +1597,11 @@ abstract class Style extends Certificate
     /**
      * @param $personId
      * @param string $marginTop
-     * @param false $hasFootNote
+     * @param bool $hasFootNote
      *
      * @return Slice
      */
-    public function getCustomProfile($personId, string $marginTop = '5px', $hasFootNote = false) : Slice
+    public function getCustomProfile($personId, string $marginTop = '5px', bool $hasFootNote = false) : Slice
     {
         $tblPerson = Person::useService()->getPersonById($personId);
 
@@ -2061,5 +2059,451 @@ abstract class Style extends Certificate
                     , '30%')
             )
         ;
+    }
+
+    /**
+     * @param string $title
+     * @param string $subTitle
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomFosTitle(
+        int $personId,
+        string $title = 'Jahreszeugnis',
+        string $marginTop = '10px'
+    ) : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement($title, '35px')->styleTextBold()->styleAlignCenter())
+            ->addElement($this->getElement('der Fachoberschule', '17px')->styleTextBold()->styleAlignCenter()->styleMarginTop('-5px'))
+            ->addElement($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
+                        Fachrichtung {{ Content.P' . $personId . '.Input.SubjectArea }}
+                    {% else %}
+                        Fachrichtung &ndash;
+                    {% endif %}'
+                    , '17px'
+                )
+                ->styleTextBold()
+                ->styleAlignCenter()
+                ->styleMarginTop('-10px')
+            );
+    }
+
+    /**
+     * @param int $personId
+     * @param string $period
+     * @param string $marginTop
+     * @param bool $hasBirthInformation
+     *
+     * @return Slice
+     */
+    protected function getCustomFosDivisionYearStudent(
+        int $personId,
+        string $period = '1. Schulhalbjahr',
+        string $marginTop = '10px'
+    ) : Slice {
+
+        $textSize = self::TEXT_SIZE_LARGE;
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Klassenstufe', $textSize), '20%')
+                ->addElementColumn($this->getElement(
+                    '{{ Content.P'.$personId.'.Division.Data.Level.Name }}',
+                    $textSize
+                ), '20%')
+                ->addElementColumn($this->getElement('&nbsp;'))
+                ->addElementColumn($this->getElement($period, $textSize)
+                    , '15%')
+                ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Division.Data.Year }}', $textSize)
+                    ->stylePaddingLeft('10px')
+                    , '20%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement(
+                        '{{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                        {{ Content.P'.$personId.'.Person.Data.Name.First }} {{ Content.P'.$personId.'.Person.Data.Name.Last }}'
+                        , '22px'
+                    )
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                    ->styleMarginBottom('10px')
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('geboren am', $textSize), '20%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                        {{ Content.P'.$personId.'.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    $textSize
+                ), '20%')
+                ->addElementColumn($this->getElement('&nbsp;'))
+                ->addElementColumn($this->getElement(
+                        'in &nbsp;&nbsp;&nbsp;
+                        {% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                            {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}',
+                        $textSize
+                    )
+                    , '35%')
+            );
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomFosSubjectLanes(int $personId, string $marginTop = '10px', bool $hasJobGrade = false) : Slice
+    {
+        $textSizeSubject = self::TEXT_SIZE_NORMAL;
+        $textSizeGrade = self::TEXT_SIZE_NORMAL;
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE))
+            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                $SubjectSection = (new Section());
+
+                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    // lange Fächernamen
+                    $Subject['SubjectName'] = str_replace('/', ' / ',  $Subject['SubjectName']);
+                    if (strlen($Subject['SubjectName']) > 20) {
+                        $marginTop = '0px';
+                        $lineHeight = '70%';
+                    } else {
+                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                        $lineHeight = '100%';
+                    }
+
+                    if ($Lane > 1) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '2%');
+                    }
+
+                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], $textSizeSubject)
+                        ->styleMarginTop($marginTop)
+                        ->styleLineHeight($lineHeight)
+//                        , self::SUBJECT_WIDTH . '%');
+                        , '26.5%');
+
+                    $SubjectSection->addElementColumn($this->getElement(
+                            '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}',
+                            $textSizeGrade
+                        )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+                }
+
+                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+                    $SubjectSection->addElementColumn((new Element()), '51%');
+                }
+
+                $slice->addSection($SubjectSection);
+                $SectionList[] = $SubjectSection;
+            }
+        }
+
+        if ($hasJobGrade) {
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn($this->getElement('Fachpraktischer Teil der Ausbildung', self::TEXT_SIZE_NORMAL))
+                    ->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Input.Job_Grade is not empty) %}
+                               {{ Content.P' . $personId . '.Input.Job_Grade }}
+                           {% else %}
+                               &ndash;
+                           {% endif %}',
+                        $textSizeGrade
+                    )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%')
+                );
+        }
+
+        return $slice;
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     * @param string $height
+     * #
+     * @return Slice
+     */
+    public function getCustomFosRemark(int $personId, string $marginTop = '10px', string $height = '75px') : Slice
+    {
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator',
+            'IsDescriptionAsJustify');
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->styleHeight($height)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Bemerkungen:', self::TEXT_SIZE_LARGE)
+                    ->styleTextUnderline()
+                , '40%')
+                ->addElementColumn($this->getElement('unentschuldigte Fehltage:', self::TEXT_SIZE_LARGE)
+                , '30%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}'
+                    , self::TEXT_SIZE_LARGE
+                ))
+            );
+
+        $element = $this->getElement(
+            '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+            {% else %}
+                &nbsp;
+            {% endif %}',
+            self::TEXT_SIZE_LARGE
+        );
+//        $element->styleLineHeight('80%');
+        if ($tblSetting && $tblSetting->getValue()) {
+            $element->styleAlignJustify();
+        }
+
+        return $slice->addElement($element);
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomFosTransfer(int $personId, string $marginTop = '5px') : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.Transfer) %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }} {{ Content.P' . $personId . '.Input.Transfer }}.
+                    {% else %}
+                          &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_LARGE
+                ))
+            );
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomFosSignPart(int $personId, string $marginTop = '25px') : Slice
+    {
+        $textSize = self::TEXT_SIZE_LARGE;
+        $paddingTop = '-8px';
+        $paddingTop2 = '-12px';
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('&nbsp;{{ Content.P' . $personId . '.Company.Address.City.Name }}', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+                ->addElementColumn($this->getElement('', $textSize))
+                ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Input.Date }}', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Ort', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+                ->addElementColumn($this->getElement('&nbsp;', $textSize))
+                ->addElementColumn($this->getElement('Datum', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+            )
+            ->addElement($this->getElement('Stempel', self::TEXT_SIZE_SMALL)->styleAlignCenter()->styleMarginTop('-10px'))
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('&nbsp;', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+                ->addElementColumn($this->getElement('', $textSize))
+                ->addElementColumn($this->getElement('&nbsp;', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('
+                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}',
+                        $textSize
+                    )
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+                ->addElementColumn($this->getElement('&nbsp;', $textSize))
+                ->addElementColumn($this->getElement('
+                        {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                        {% else %}
+                            Klassenlehrer(in)
+                        {% endif %}',
+                        $textSize
+                    )
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}',
+                        $textSize
+                    )
+                    ->stylePaddingTop($paddingTop2)
+                    ->styleAlignCenter()
+                    , '30%')
+                ->addElementColumn($this->getElement('', $textSize)->stylePaddingTop($paddingTop2))
+                ->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}',
+                        $textSize
+                    )
+                    ->stylePaddingTop($paddingTop2)
+                    ->styleAlignCenter()
+                    , '30%')
+            );
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomFosParentSign(string $marginTop = '10px') : Slice
+    {
+        $textSize = self::TEXT_SIZE_LARGE;
+        $paddingTop = '-8px';
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Zur Kenntnis genommen:', $textSize)
+                    , '30%')
+                ->addElementColumn($this->getElement('&nbsp;', $textSize)
+                    ->styleBorderBottom('0.5px')
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('&nbsp;', $textSize)
+                    , '30%')
+                ->addElementColumn($this->getElement('Eltern', $textSize)
+                    ->styleAlignCenter()
+                    ->stylePaddingTop($paddingTop)
+                )
+            );
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomFosInfo(string $marginTop = '0px') : Slice
+    {
+        $textSize = '11px';
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement(
+                'Notenstufen: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)',
+                $textSize
+            ));
     }
 }

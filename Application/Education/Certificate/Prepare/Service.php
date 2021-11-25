@@ -818,15 +818,13 @@ class Service extends AbstractService
         }
 
         // Company
-        $tblCompany = false;
+        $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision ? $tblDivision : null);
         if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
             && $tblStudent
         ) {
             $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                 $tblTransferType);
             if ($tblStudentTransfer) {
-                $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision ? $tblDivision : null);
-
                 // Abschluss (Bildungsgang)
                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                 if ($tblCourse) {

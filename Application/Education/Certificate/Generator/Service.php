@@ -556,6 +556,8 @@ class Service extends AbstractService
             'Content.Input.SkilledWork_Grade'   => 'SelectCompleter',
             'Content.Input.SkilledWork_GradeText' => 'SelectBox',
             'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
+            // Fachoberschule HOGA
+            'Content.Input.Job_Grade'   => 'SelectCompleter',
         );
 
         $Acronym = Account::useService()->getMandantAcronym();
@@ -670,6 +672,8 @@ class Service extends AbstractService
             'Content.Input.SkilledWork_Grade'   => 'Facharbeit - oder Zensur',
             'Content.Input.SkilledWork_GradeText' => 'Facharbeit - Zeugnistext',
             'Content.Input.AdditionalRemarkFhr' => 'Teilnahme an FHR-Prüfung',
+            // Fachoberschule HOGA
+            'Content.Input.Job_Grade'           => 'Fachpraktischer Teil der Ausbildung Zensur',
         );
     }
 
