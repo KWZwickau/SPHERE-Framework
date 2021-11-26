@@ -2,7 +2,6 @@
 namespace MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 
 use MOC\V\Component\Document\Component\Exception\ComponentException;
-use Nette\Diagnostics\Debugger;
 
 /**
  * Class Style
