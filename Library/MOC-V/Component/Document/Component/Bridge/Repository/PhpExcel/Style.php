@@ -2,6 +2,7 @@
 namespace MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 
 use MOC\V\Component\Document\Component\Exception\ComponentException;
+use Nette\Diagnostics\Debugger;
 
 /**
  * Class Style
@@ -49,6 +50,21 @@ class Style
                 $this->Worksheet->getColumnDimension($ColumnName)->setAutoSize(false);
                 $this->Worksheet->getColumnDimension($ColumnName)->setWidth((float)$Value);
             }
+        }
+        return $this;
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return $this
+     */
+    public function setCellType(string $Type = \PHPExcel_Cell_DataType::TYPE_STRING): self
+    {
+
+        $CellList = $this->getRangeCellList();
+        foreach ($CellList as $Cell) {
+            $this->Worksheet->getCell($Cell)->setDataType($Type);
         }
         return $this;
     }
