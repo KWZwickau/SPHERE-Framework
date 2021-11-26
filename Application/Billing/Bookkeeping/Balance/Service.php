@@ -1228,6 +1228,7 @@ class Service extends AbstractService
 
         if($bookingText){
             $tblInvoice = $tblInvoiceItemDebtor->getTblInvoice();
+            $InvoiceNumber = $tblInvoice->getInvoiceNumber();
             $CreditorId = '';
             $RefNumber = $tblInvoiceItemDebtor->getBankReference();
             $DebtorNumber = $tblInvoiceItemDebtor->getDebtorNumber();
@@ -1239,6 +1240,7 @@ class Service extends AbstractService
             }
 
             $bookingText = str_ireplace('[GID]', $CreditorId, $bookingText);
+            $bookingText = str_ireplace('[RN]', $InvoiceNumber, $bookingText);
             $bookingText = str_ireplace('[SN]', $RefNumber, $bookingText);
             $bookingText = str_ireplace('[BVN]', $CauserName, $bookingText);
             $bookingText = str_ireplace('[BVV]', $CauserFirstName, $bookingText);

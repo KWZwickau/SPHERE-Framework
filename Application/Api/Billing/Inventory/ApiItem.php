@@ -382,6 +382,7 @@ class ApiItem extends ItemVariant implements IApiInterface
                     new FormColumn(
                         new Panel('Freifelder für Buchungstext', array(
                                 '[GID] Gläubiger-ID',
+                                '[RN] Rechnungsnummer',
                                 '[SN] Mandantsreferenznummer',
                                 '[BVN] Beitragsverursacher Name',
                                 '[BVV] Beitragsverursacher Vorname',
