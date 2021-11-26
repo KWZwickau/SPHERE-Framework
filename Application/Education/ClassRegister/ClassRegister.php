@@ -1,10 +1,16 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
+use MOC\V\Component\Document\Document;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -455,6 +461,11 @@ class ClassRegister implements IApplicationInterface
                     'DivisionId' => $tblDivision->getId()
                 )
             );
+            $buttonList[] = new Standard('Download Fehlzeiten'
+                , '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', new Download(), array(
+                    'DivisionId' => $tblDivision->getId()
+                )
+            );
 
             $YearString = new Muted('-NA-');
             if (( $tblYear = $tblDivision->getServiceTblYear() )) {
@@ -544,6 +555,136 @@ class ClassRegister implements IApplicationInterface
         } else {
             return $Stage . new Danger('Klassenbuch nicht gefunden.', new Ban());
         }
+    }
+
+    /**
+     * @param int $DivisionId
+     *
+     * @return array
+     */
+    public function getAbsenceContentExcel(int $DivisionId):array
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $PersonList = array();
+        if ($tblDivision){
+            $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+            if($tblStudentList){
+                foreach($tblStudentList as $tblPerson) {
+//                    $tblAddress = $tblPerson->fetchMainAddress();
+                    $birthday = '';
+                    if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
+                        if($tblCommon->getTblCommonBirthDates()){
+                            $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                        }
+                    }
+                    $course = '';
+                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                        if($tblTransferType){
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if($tblStudentTransfer){
+                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                if($tblCourse){
+                                    $course = $tblCourse->getName();
+                                }
+                            }
+                        }
+                    }
+
+                    // Fehlzeiten
+                    $unExcusedLessons = 0;
+                    $excusedLessons = 0;
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision, null,
+                        $excusedLessons);
+                    $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision, null,
+                        $unExcusedLessons);
+
+                    $PersonList[] = array(
+                        'Number'           => (count($PersonList) + 1),
+                        'LastName'         => $tblPerson->getLastName(),
+                        'FirstName'        => $tblPerson->getFirstName(),
+//                        'Address'          => $tblAddress ? $tblAddress->getGuiString() : '',
+                        'Birthday'         => $birthday,
+                        'Course'           => $course,
+                        'ExcusedDays'      => $excusedDays,
+                        'unExcusedDays'    => $unExcusedDays,
+                        'ExcusedLessons'   => $excusedLessons,
+                        'unExcusedLessons' => $unExcusedLessons
+                    );
+                }
+            }
+        }
+        return $PersonList;
+    }
+
+    /**
+     * @param array $dataList
+     *
+     * @return bool|FilePointer
+     */
+    public function createAbsenceContentExcel(array $PersonList):?FilePointer
+    {
+        if (!empty($PersonList)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $column = 0;
+            $export->setValue($export->getCell($column++, 1), '#');
+            $export->setValue($export->getCell($column++, 1), 'Name');
+            $export->setValue($export->getCell($column++, 1), 'Vorname');
+//            $export->setValue($export->getCell($column++, 1), 'Adresse');
+            $export->setValue($export->getCell($column++, 1), 'Geburtsdatum');
+            $export->setValue($export->getCell($column++, 1), 'Bildungsgang');
+            $export->setValue($export->getCell($column, 0), 'Fehlzeiten Tage');
+            $AbsenceDays = $column;
+            $export->setValue($export->getCell($column++, 1), 'Entschuldigte');
+            $export->setValue($export->getCell($column++, 1), 'Unentschuldigte');
+            $AbsenceUE = $column;
+            $export->setValue($export->getCell($column, 0), 'Fehlzeiten Unterrichtseinheiten');
+            $export->setValue($export->getCell($column++, 1), 'Entschuldigte');
+            $export->setValue($export->getCell($column, 1), 'Unentschuldigte');
+
+            $row = 2;
+            foreach ($PersonList as $PersonData) {
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $PersonData['Number']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+//                $export->setValue($export->getCell($column++, $row), $PersonData['Address']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Course']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['ExcusedDays']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['unExcusedDays']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['ExcusedLessons']);
+                $export->setValue($export->getCell($column, $row), $PersonData['unExcusedLessons']);
+                $row++;
+            }
+            $column = 0;
+
+            // A4 Querformat|landscape
+            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
+            // header with merged cells
+            $export->setStyle($export->getCell($AbsenceDays++, 0), $export->getCell($AbsenceDays, 0))->mergeCells();
+            $export->setStyle($export->getCell($AbsenceUE++, 0), $export->getCell($AbsenceUE, 0))->mergeCells();
+            // with and type of cells
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(5)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+//            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(30);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
     }
 
     /**
