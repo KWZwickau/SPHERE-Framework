@@ -293,9 +293,15 @@ class FrontendFamily extends FrontendReadOnly
 
         $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
         $lastNameInput = $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors);
+        $tblSalutationList[] = new TblSalutation('');
+        $tblSalutationList[] = Person::useService()->getSalutationByName('Schüler');
+        $tblSalutationList[] = Person::useService()->getSalutationByName('Schülerin');
+        $salutationSelectBox = (new SelectBox('Data['.$key.'][Salutation]', 'Anrede', array('Salutation' => $tblSalutationList),
+            new Conversation()));
 
         $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
         $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
+        $salutationSelectBox->ajaxPipelineOnChange(ApiFamilyEdit::pipelineChangeSelectedGender($Ranking, 'C'));
 
         $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
 
@@ -311,9 +317,16 @@ class FrontendFamily extends FrontendReadOnly
             ))));
         }
 
+        $genderReceiver = ApiFamilyEdit::receiverBlock($this->getGenderSelectBox(0, $Ranking, 'C'), 'SelectedGenderChild' . $Ranking);
+
         return new Panel(
             $title,
             new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $salutationSelectBox, 2
+                    )
+                )),
                 new LayoutRow(array(
                     new LayoutColumn(
                         $firstNameInput, 3
@@ -339,7 +352,8 @@ class FrontendFamily extends FrontendReadOnly
                         new AutoCompleter('Data[C' . $Ranking . '][Birthplace]', 'Geburtsort', 'Geburtsort', $tblBirthplaceAll, new MapMarker()), 3
                     ),
                     new LayoutColumn(
-                        new SelectBox('Data[C' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child()), 3
+                        $genderReceiver, 3
+//                        new SelectBox('Data[C' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child()), 3
                     ),
                 )),
                 new LayoutRow(array(
@@ -409,7 +423,7 @@ class FrontendFamily extends FrontendReadOnly
             new LayoutColumn(new CheckBox('Data[S' . $Ranking . '][IsSingleParent]', 'alleinerziehend', 1), 3)
         ))));
 
-        $genderReceiver = ApiFamilyEdit::receiverBlock($this->getGenderSelectBox(0, $Ranking), 'SelectedGender' . $Ranking);
+        $genderReceiver = ApiFamilyEdit::receiverBlock($this->getGenderSelectBox(0, $Ranking, 'S'), 'SelectedGender' . $Ranking);
 
         $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
         $lastNameInput = $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors);
@@ -423,7 +437,7 @@ class FrontendFamily extends FrontendReadOnly
                 new LayoutRow(array(
                     new LayoutColumn(
                         (new SelectBox('Data[S' . $Ranking . '][Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-                            new Conversation()))->ajaxPipelineOnChange(ApiFamilyEdit::pipelineChangeSelectedGender($Ranking))
+                            new Conversation()))->ajaxPipelineOnChange(ApiFamilyEdit::pipelineChangeSelectedGender($Ranking, 'S'))
                         , 3
                     ),
                     new LayoutColumn(
@@ -461,14 +475,17 @@ class FrontendFamily extends FrontendReadOnly
      *
      * @return SelectBox
      */
-    public function getGenderSelectBox($GenderId, $Ranking)
+    public function getGenderSelectBox($GenderId, $Ranking, $Type)
     {
         $global = $this->getGlobal();
-        $global->POST['Data']['S' . $Ranking]['Gender'] = $GenderId;
+        $global->POST['Data'][$Type . $Ranking]['Gender'] = $GenderId;
         $global->savePost();
 
         $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
 
+        if($Type == 'C'){
+            return new SelectBox('Data[C' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child());
+        }
         return new SelectBox('Data[S' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child());
     }
 

@@ -8,6 +8,7 @@ use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Person\Frontend\FrontendFamily;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -141,15 +142,20 @@ class ApiFamilyEdit extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineChangeSelectedGender($Ranking)
+    public static function pipelineChangeSelectedGender($Ranking, $Type)
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SelectedGender' . $Ranking), self::getEndpoint());
+        if($Type == 'C'){
+            $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SelectedGenderChild' . $Ranking), self::getEndpoint());
+        } else {
+            $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SelectedGender' . $Ranking), self::getEndpoint());
+        }
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'changeSelectedGender',
         ));
         $ModalEmitter->setPostPayload(array(
-            'Ranking' => $Ranking
+            'Ranking' => $Ranking,
+            'Type' => $Type
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -161,26 +167,28 @@ class ApiFamilyEdit extends Extension implements IApiInterface
      *
      * @return SelectBox
      */
-    public function changeSelectedGender($Ranking)
+    public function changeSelectedGender($Ranking, $Type = 'S')
     {
 
         $Global = $this->getGlobal();
-        $Person = $Global->POST['Data']['S' . $Ranking];
+        $Person = $Global->POST['Data'][$Type . $Ranking];
 
         $genderId = 0;
         if (isset($Person['Salutation'])
             && isset($Person['Gender'])
         ) {
             if (($tblSalutation = Person::useService()->getSalutationById($Person['Salutation']))) {
-                if ($tblSalutation->getSalutation() == 'Frau') {
+                if ($tblSalutation->getSalutation() == TblSalutation::VALUE_WOMAN
+                || $tblSalutation->getSalutation() == TblSalutation::VALUE_STUDENT_FEMALE) {
                     $genderId = TblCommonBirthDates::VALUE_GENDER_FEMALE;
-                } elseif ($tblSalutation->getSalutation() == 'Herr') {
+                } elseif ($tblSalutation->getSalutation() == TblSalutation::VALUE_MAN
+                    || $tblSalutation->getSalutation() == TblSalutation::VALUE_STUDENT) {
                     $genderId = TblCommonBirthDates::VALUE_GENDER_MALE;
                 }
             }
         }
 
-        return (new FrontendFamily())->getGenderSelectBox($genderId, $Ranking);
+        return (new FrontendFamily())->getGenderSelectBox($genderId, $Ranking, $Type);
     }
 
     /**
