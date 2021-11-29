@@ -32,8 +32,8 @@ class Data extends AbstractData
     
     public function setupDatabaseContent()
     {
-        $this->createCommonGender( 'Männlich' );
-        $this->createCommonGender( 'Weiblich' );
+        $this->createCommonGender('Männlich');
+        $this->createCommonGender('Weiblich');
         $this->createCommonGender('Divers');
         $this->createCommonGender('Ohne Angabe');
     }

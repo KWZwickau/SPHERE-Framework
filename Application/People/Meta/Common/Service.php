@@ -191,8 +191,28 @@ class Service extends AbstractService
     /**
      * @return bool|TblCommonGender[]
      */
-    public function getCommonGenderAll()
+    public function getCommonGenderAll(bool $isPreSort = false)
     {
+
+        if($isPreSort){
+            $tblCommonGenderAll = (new Data($this->getBinding()))->getCommonGenderAll();
+            $returnList = array();
+            foreach($tblCommonGenderAll as $tblCommonGender){
+                if($tblCommonGender->getName() == 'Weiblich'){
+                    $returnList[0] = $tblCommonGender;
+                } elseif($tblCommonGender->getName() == 'Männlich'){
+                    $returnList[1] = $tblCommonGender;
+                } elseif($tblCommonGender->getName() == 'Divers'){
+                    $returnList[2] = $tblCommonGender;
+                } elseif($tblCommonGender->getName() == 'Ohne Angabe'){
+                    $returnList[3] = $tblCommonGender;
+                } else {
+                    $returnList[$tblCommonGender->getId()] = $tblCommonGender;
+                }
+            }
+            ksort($returnList);
+            return $returnList;
+        }
 
         return (new Data($this->getBinding()))->getCommonGenderAll();
     }

@@ -29,7 +29,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Envelope;
@@ -179,7 +178,10 @@ class FrontendFamily extends FrontendReadOnly
      */
     public function formCreateFamily($Data, $Errors)
     {
-        $tblSalutationAll = Person::useService()->getSalutationAll();
+        $tblSalutationList[] = new TblSalutation('');
+        $tblSalutationList[] = Person::useService()->getSalutationByName('Herr');
+        $tblSalutationList[] = Person::useService()->getSalutationByName('Frau');
+//        $tblSalutationAll = Person::useService()->getSalutationAll();
 
         $formRows = array();
         if (isset($Errors['Person'])) {
@@ -213,12 +215,12 @@ class FrontendFamily extends FrontendReadOnly
 
         $formRows[] = new FormRow(array(
             new FormColumn(
-                $this->getPanelCustody(1, $tblSalutationAll, $Errors)
+                $this->getPanelCustody(1, $tblSalutationList, $Errors)
             ),
         ));
         $formRows[] = new FormRow(array(
             new FormColumn(
-                $this->getPanelCustody(2, $tblSalutationAll, $Errors)
+                $this->getPanelCustody(2, $tblSalutationList, $Errors)
             ),
         ));
 
@@ -293,11 +295,10 @@ class FrontendFamily extends FrontendReadOnly
 
         $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
         $lastNameInput = $this->getInputField('TextField', $key, 'LastName', 'Nachname', 'Nachname', true, $Errors);
-        $tblSalutationList[] = new TblSalutation('');
-        $tblSalutationList[] = Person::useService()->getSalutationByName('Schüler');
-        $tblSalutationList[] = Person::useService()->getSalutationByName('Schülerin');
-        $salutationSelectBox = (new SelectBox('Data['.$key.'][Salutation]', 'Anrede', array('Salutation' => $tblSalutationList),
-            new Conversation()));
+        $tblSalutationAll = Person::useService()->getSalutationAll(true);
+
+        $salutationSelectBox = (new SelectBox('Data['.$key.'][Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
+            new Conversation(), true, null));
 
         $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
         $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
@@ -409,7 +410,7 @@ class FrontendFamily extends FrontendReadOnly
 
     /**
      * @param int $Ranking
-     * @param TblSalutation|false $tblSalutationAll
+     * @param TblSalutation[]|false $tblSalutationAll
      * @param $Errors
      *
      * @return Panel
@@ -436,8 +437,9 @@ class FrontendFamily extends FrontendReadOnly
             new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        (new SelectBox('Data[S' . $Ranking . '][Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-                            new Conversation()))->ajaxPipelineOnChange(ApiFamilyEdit::pipelineChangeSelectedGender($Ranking, 'S'))
+                        (new SelectBox('Data[S' . $Ranking . '][Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll)
+                            , new Conversation(), true, null
+                            ))->ajaxPipelineOnChange(ApiFamilyEdit::pipelineChangeSelectedGender($Ranking, 'S'))
                         , 3
                     ),
                     new LayoutColumn(
@@ -481,12 +483,14 @@ class FrontendFamily extends FrontendReadOnly
         $global->POST['Data'][$Type . $Ranking]['Gender'] = $GenderId;
         $global->savePost();
 
-        $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
+        $tblCommonGenderAll = Common::useService()->getCommonGenderAll(true);
 
         if($Type == 'C'){
-            return new SelectBox('Data[C' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child());
+            return new SelectBox('Data[C' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll)
+                , null, true, null);
         }
-        return new SelectBox('Data[S' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child());
+        return new SelectBox('Data[S' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll)
+            , null, true, null);
     }
 
     /**

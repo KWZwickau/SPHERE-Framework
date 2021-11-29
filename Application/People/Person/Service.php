@@ -70,10 +70,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isGenderSort
+     *
      * @return bool|TblSalutation[]
      */
-    public function getSalutationAll()
+    public function getSalutationAll(bool $isGenderSort = false)
     {
+
+        if($isGenderSort){
+            $tblSalutationAll = (new Data($this->getBinding()))->getSalutationAll();
+            $returnList = array();
+            foreach($tblSalutationAll as $tblSalutation){
+                if($tblSalutation->getSalutation() == TblSalutation::VALUE_WOMAN){
+                    $returnList[0] = $tblSalutation;
+                } elseif($tblSalutation->getSalutation() == TblSalutation::VALUE_MAN){
+                    $returnList[1] = $tblSalutation;
+                } elseif($tblSalutation->getSalutation() == TblSalutation::VALUE_STUDENT_FEMALE){
+                    $returnList[2] = $tblSalutation;
+                } elseif($tblSalutation->getSalutation() == TblSalutation::VALUE_STUDENT){
+                    $returnList[3] = $tblSalutation;
+                } else {
+                    $returnList[$tblSalutation->getId()] = $tblSalutation;
+                }
+            }
+            ksort($returnList);
+            return $returnList;
+        }
 
         return (new Data($this->getBinding()))->getSalutationAll();
     }
