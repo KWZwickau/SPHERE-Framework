@@ -2062,23 +2062,28 @@ abstract class Style extends Certificate
     }
 
     /**
+     * @param int $personId
      * @param string $title
-     * @param string $subTitle
      * @param string $marginTop
+     * @param bool $hasSubjectArea
      *
      * @return Slice
      */
     public function getCustomFosTitle(
         int $personId,
         string $title = 'Jahreszeugnis',
-        string $marginTop = '10px'
+        string $marginTop = '10px',
+        bool $hasSubjectArea = true
     ) : Slice
     {
-        return (new Slice())
+        $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addElement($this->getElement($title, '35px')->styleTextBold()->styleAlignCenter())
-            ->addElement($this->getElement('der Fachoberschule', '17px')->styleTextBold()->styleAlignCenter()->styleMarginTop('-5px'))
-            ->addElement($this->getElement(
+            ->addElement($this->getElement('der Fachoberschule', '17px')->styleTextBold()->styleAlignCenter()->styleMarginTop('-5px'));
+
+        if($hasSubjectArea) {
+            $slice
+                ->addElement($this->getElement(
                     '{% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
                         Fachrichtung {{ Content.P' . $personId . '.Input.SubjectArea }}
                     {% else %}
@@ -2086,10 +2091,13 @@ abstract class Style extends Certificate
                     {% endif %}'
                     , '17px'
                 )
-                ->styleTextBold()
-                ->styleAlignCenter()
-                ->styleMarginTop('-10px')
-            );
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleMarginTop('-10px')
+                );
+        }
+
+        return $slice;
     }
 
     /**
@@ -2165,14 +2173,21 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomFosSubjectLanes(int $personId, string $marginTop = '10px', bool $hasJobGrade = false) : Slice
+    protected function getCustomFosSubjectLanes(
+        int $personId,
+        string $marginTop = '10px',
+        bool $hasJobGrade = false,
+        bool $hasPretext = false
+    ) : Slice
     {
         $textSizeSubject = self::TEXT_SIZE_NORMAL;
         $textSizeGrade = self::TEXT_SIZE_NORMAL;
         $slice = (new Slice())
-            ->styleMarginTop($marginTop)
-            ->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE))
-            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
+            ->styleMarginTop($marginTop);
+        if ($hasPretext) {
+            $slice->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
+        }
+        $slice->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
@@ -2505,5 +2520,52 @@ abstract class Style extends Certificate
                 'Notenstufen: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)',
                 $textSize
             ));
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomFosSkilledWork(int $personId, string $marginTop = '5px')
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Thema der Facharbeit:', self::TEXT_SIZE_LARGE)
+                    , (self::SUBJECT_WIDTH + 1) . '%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P'.$personId.'.Input.SkilledWork is not empty) %}
+                        {{ Content.P'.$personId.'.Input.SkilledWork }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}',
+                    self::TEXT_SIZE_LARGE
+                ))
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Note der Facharbeit:', self::TEXT_SIZE_LARGE)
+                    , (self::SUBJECT_WIDTH + 1) . '%')
+                ->addElementColumn(
+                    $this->getElement(
+                            '{% if(Content.P'.$personId.'.Input.SkilledWork_GradeText is not empty) %}
+                                 {{ Content.P'.$personId.'.Input.SkilledWork_GradeText }}
+                            {% else %}
+                               {% if(Content.P'.$personId.'.Input.SkilledWork_Grade is not empty) %}
+                                   {{ Content.P'.$personId.'.Input.SkilledWork_Grade }}
+                               {% else %}
+                                   &ndash;
+                               {% endif %}
+                            {% endif %}',
+                            self::TEXT_SIZE_NORMAL
+                        )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                    , self::GRADE_WIDTH . '%')
+                ->addElementColumn($this->getElement('&nbsp;', self::TEXT_SIZE_LARGE))
+            );
     }
 }

@@ -76,6 +76,21 @@ class Frontend extends Extension
     private $selectListGrades = array();
     private $selectListGradeTexts = array();
 
+    public function __construct()
+    {
+        // Grades
+        $this->selectListGrades[-1] = '';
+        for ($i = 1; $i < 6; $i++) {
+            $this->selectListGrades[$i] = (string)($i);
+        }
+        $this->selectListGrades[6] = 6;
+
+        // GradeTexts
+        if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
+            $this->selectListGradeTexts = $tblGradeTextList;
+        }
+    }
+
     /**
      * @param TblCertificate|null $tblCertificate
      * @param TblLeaveStudent|null $tblLeaveStudent
@@ -121,6 +136,7 @@ class Frontend extends Extension
         }
 
         // Grades
+        $this->selectListGrades = array();
         $this->selectListGrades[-1] = '';
         for ($i = 1; $i < 6; $i++) {
             $this->selectListGrades[$i] = (string)($i);
@@ -128,6 +144,7 @@ class Frontend extends Extension
         $this->selectListGrades[6] = 6;
 
         // GradeTexts
+        $this->selectListGradeTexts = array();
         if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
             $this->selectListGradeTexts = $tblGradeTextList;
         }
@@ -805,7 +822,7 @@ class Frontend extends Extension
      *
      * @return Panel
      */
-    private function getPanel($panelName, $identifier, $inputName, $isApproved)
+    public function getPanel($panelName, $identifier, $inputName, $isApproved) : Panel
     {
         $input = new TextField('Data[InformationList][' . $identifier . ']', '', $inputName);
         $grade = new SelectCompleter('Data[InformationList][' . $identifier . '_Grade]', 'Zensur', '', $this->selectListGrades);
@@ -824,6 +841,34 @@ class Frontend extends Extension
                 new LayoutColumn($input, 8),
                 new LayoutColumn($grade, 2),
                 new LayoutColumn($gradeText, 2)
+            )))),
+            Panel::PANEL_TYPE_INFO
+        );
+    }
+
+    /**
+     * @param $panelName
+     * @param $identifier
+     * @param $isApproved
+     *
+     * @return Panel
+     */
+    public function getPanelWithoutInput($panelName, $identifier, $isApproved) : Panel
+    {
+        $grade = new SelectCompleter('Data[InformationList][' . $identifier . '_Grade]', 'Zensur', '', $this->selectListGrades);
+        $gradeText = new SelectBox('Data[InformationList][' . $identifier . '_GradeText]', 'oder Zeugnistext',
+            array(TblGradeText::ATTR_NAME => $this->selectListGradeTexts));
+
+        if ($isApproved) {
+            $grade->setDisabled();
+            $gradeText->setDisabled();
+        }
+
+        return new Panel(
+            $panelName,
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($grade, 6),
+                new LayoutColumn($gradeText, 6)
             )))),
             Panel::PANEL_TYPE_INFO
         );
@@ -863,6 +908,7 @@ class Frontend extends Extension
     ) {
         if ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId)) {
             // Grades
+            $this->selectListGrades = array();
             $this->selectListGrades[-1] = '';
             for ($i = 1; $i < 6; $i++) {
                 $this->selectListGrades[$i] = (string)($i);
@@ -870,6 +916,7 @@ class Frontend extends Extension
             $this->selectListGrades[6] = 6;
 
             // GradeTexts
+            $this->selectListGradeTexts = array();
             if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
                 $this->selectListGradeTexts = $tblGradeTextList;
             }

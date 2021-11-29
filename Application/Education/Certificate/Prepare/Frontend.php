@@ -5151,6 +5151,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             || $tblType->getName() == 'Gymnasium'
                             || $tblType->getName() == 'Berufsfachschule'
                             || $tblType->getName() == 'Fachschule'
+                            || $tblType->getName() == 'Fachoberschule'
                         )
                         && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
                     ) {
@@ -5235,6 +5236,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             $subjectData = array();
             $tblLeaveStudent = false;
 
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+
             if (($tblStudent = $tblPerson->getStudent())
                 && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
             ){
@@ -5258,8 +5261,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
                                 // Herrnhut hat ein individuelles Abgangszeugnis
-                                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                    && ($tblConsumer->getAcronym() == 'EZSH')
+                                if ($tblConsumer
+                                    && $tblConsumer->getAcronym() == 'EZSH'
                                     && intval($tblLevel->getName()) == 10
                                 ) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
@@ -5286,6 +5289,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
                         } elseif ($tblType->getName() == 'Fachschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FsAbg');
+                        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'HOGA' && $tblType->getName() == 'Fachoberschule') {
+                            // HOGA hat ein individuelles Abgangszeugnis
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
                         }
                     }
                 }
@@ -5515,6 +5521,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             $certificateDate = false;
 
             // Post setzen
+            $isSetSubjectArea = false;
             if ($tblLeaveStudent) {
                 $Global = $this->getGlobal();
 
@@ -5536,7 +5543,20 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         if ($tblLeaveInformation->getField() == 'CertificateDate' && $tblLeaveInformation->getValue() != '') {
                             $certificateDate = new DateTime($tblLeaveInformation->getValue());
                         }
+
+                        if ($tblLeaveInformation->getField() == 'SubjectArea') {
+                            $isSetSubjectArea = true;
+                        }
                     }
+                }
+
+                if (!$isSetSubjectArea
+                    && $tblCertificate->getCertificate() == 'HOGA\FosAbg'
+                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                    && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                    && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+                ) {
+                    $Global->POST['Data']['InformationList']['SubjectArea'] = $tblTechnicalSubjectArea->getName();
                 }
 
                 $Global->savePost();
@@ -5546,7 +5566,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $certificateDate = new DateTime('now');
             }
 
-            if ($tblCertificate && $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
+            if ($tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
                 $hasCertificateGrades = false;
             } else {
                 $hasCertificateGrades = true;
@@ -5951,13 +5971,32 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $teacherSelectBox->setDisabled();
             }
 
+            // Facharbeit
+            if ($tblCertificate->getCertificate() == 'HOGA\FosAbg') {
+                $frontend = (new \SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool\Frontend());
+                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+                $panelSkilledWork = $frontend->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
+
+                $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));
+                if ($isApproved) {
+                    $subjectAreaInput->setDisabled();
+                }
+                $panelEducation = new Panel(
+                    'Ausbildung',
+                    $subjectAreaInput,
+                    Panel::PANEL_TYPE_INFO
+                );
+            } else {
+                $panelJob = false;
+                $panelSkilledWork = false;
+                $panelEducation = false;
+            }
+
             $form = new Form(new FormGroup(array(
-                $subjectTable
-                    ? new FormRow(new FormColumn(
-                        $subjectTable
-                    ))
-                    : null
-                ,
+                $subjectTable ? new FormRow(new FormColumn($subjectTable)) : null,
+                $panelEducation ? new FormRow(new FormColumn($panelEducation)) : null,
+                $panelJob ? new FormRow(new FormColumn($panelJob)) : null,
+                $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',
