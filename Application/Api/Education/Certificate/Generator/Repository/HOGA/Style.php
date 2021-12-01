@@ -871,15 +871,16 @@ abstract class Style extends Certificate
      * @param Section $section
      * @param string $subjectName
      * @param string $grade
+     * @param string $textSize
      */
-    protected function setGradeFullLine(Section $section, string $subjectName, string $grade)
+    protected function setGradeFullLine(Section $section, string $subjectName, string $grade, string $textSize = self::TEXT_SIZE_NORMAL)
     {
         $section->addElementColumn(
-            $this->getElement($subjectName, self::TEXT_SIZE_NORMAL)
+            $this->getElement($subjectName, $textSize)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
             , '75%');
         $section->addElementColumn(
-            $this->getElement($grade, self::TEXT_SIZE_NORMAL)
+            $this->getElement($grade, $textSize)
                 ->styleAlignCenter()
                 ->styleBackgroundColor(self::BACKGROUND)
                 ->stylePaddingTop(self::PADDING_TOP_GRADE)
@@ -1118,22 +1119,6 @@ abstract class Style extends Certificate
 
             $hasAdditionalLine = false;
             $isShrinkMarginTop = false;
-
-            // Abschlusszeugnis 2. Fremdsprache anfügen
-            // todo
-//            if ($hasSecondLanguageDiploma) {
-//                // Zeiger auf letztes Element
-//                end($SubjectStructure);
-//                $lastItem = &$SubjectStructure[key($SubjectStructure)];
-//                //
-//                if (isset($lastItem[1])) {
-//                    $SubjectStructure[][1] = $this->addSecondForeignLanguageDiploma($tblSecondForeignLanguageDiploma
-//                        ? $tblSecondForeignLanguageDiploma : null);
-//                } else {
-//                    $lastItem[1] = $this->addSecondForeignLanguageDiploma($tblSecondForeignLanguageDiploma
-//                        ? $tblSecondForeignLanguageDiploma : null);
-//                }
-//            }
 
             // Mittelschulzeugnisse 2. Fremdsprache anfügen
             if ($hasSecondLanguageSecondarySchool) {
@@ -2477,6 +2462,121 @@ abstract class Style extends Certificate
     }
 
     /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public function getCustomFosAbsSignPart(int $personId, string $marginTop = '145px') : Slice
+    {
+        $textSize = self::TEXT_SIZE_LARGE;
+        $paddingTop = '-8px';
+        $paddingTop2 = '-12px';
+
+        $leaderName = '&nbsp;';
+        $leaderDescription = 'Vorsitzende/r des Prüfungsausschusses';
+        if ($this->getTblPrepareCertificate()
+            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+        ) {
+
+            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+            ) {
+                $leaderName = $tblPersonLeader->getFullName();
+                if (($tblCommon = $tblPersonLeader->getCommon())
+                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                ) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $leaderDescription = 'Vorsitzender des Prüfungsausschusses';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $leaderDescription = 'Vorsitzende des Prüfungsausschusses';
+                    }
+                }
+            }
+        }
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('&nbsp;{{ Content.P' . $personId . '.Company.Address.City.Name }}', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+                ->addElementColumn($this->getElement('', $textSize))
+                ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Input.Date }}', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Ort', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+                ->addElementColumn($this->getElement('&nbsp;', $textSize))
+                ->addElementColumn($this->getElement('Datum', $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+            )
+
+            ->addElement($this->getElement('Stempel', self::TEXT_SIZE_SMALL)
+                ->styleAlignCenter()
+                ->styleMarginTop('-10px')
+                ->styleMarginBottom('30px')
+            )
+
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('&nbsp;', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '45%')
+                ->addElementColumn($this->getElement('', $textSize))
+                ->addElementColumn($this->getElement('&nbsp;', $textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement($leaderDescription, $textSize)
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '45%')
+                ->addElementColumn($this->getElement('&nbsp;', $textSize))
+                ->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Description }}
+                        {% else %}
+                            Schulleiter(in)
+                        {% endif %}',
+                        $textSize
+                    )
+                    ->stylePaddingTop($paddingTop)
+                    ->styleAlignCenter()
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement($leaderName, $textSize)
+                    ->stylePaddingTop($paddingTop2)
+                    ->styleAlignCenter()
+                    , '45%')
+                ->addElementColumn($this->getElement('', $textSize)->stylePaddingTop($paddingTop2))
+                ->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}',
+                        $textSize
+                    )
+                    ->stylePaddingTop($paddingTop2)
+                    ->styleAlignCenter()
+                    , '30%')
+            );
+    }
+
+    /**
      * @param string $marginTop
      *
      * @return Slice
@@ -2528,7 +2628,7 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomFosSkilledWork(int $personId, string $marginTop = '5px')
+    protected function getCustomFosSkilledWork(int $personId, string $marginTop = '5px') : Slice
     {
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -2567,5 +2667,96 @@ abstract class Style extends Certificate
                     , self::GRADE_WIDTH . '%')
                 ->addElementColumn($this->getElement('&nbsp;', self::TEXT_SIZE_LARGE))
             );
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomSubjectLanesFosAbs(int $personId, string $marginTop = '28px') : Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement('Leistungen', self::TEXT_SIZE_LARGE)->styleTextBold())
+            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold()->styleMarginTop('5px'))
+        ;
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $section = new Section();
+                    $this->setGradeFullLine(
+                        $section,
+                        $Subject['SubjectName'],
+                        '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}',
+                        self::TEXT_SIZE_LARGE
+                    );
+                    $slice->addSection($section);
+                }
+            }
+        }
+
+        $section = new Section();
+        $this->setGradeFullLine(
+            $section,
+            'Fachpraktischer Teil der Ausbildung',
+            '{% if(Content.P' . $personId . '.Input.Job_Grade is not empty) %}
+               {{ Content.P' . $personId . '.Input.Job_Grade }}
+            {% else %}
+               &ndash;
+            {% endif %}',
+            self::TEXT_SIZE_LARGE
+        );
+        $slice->addSection($section);
+
+        return $slice;
     }
 }

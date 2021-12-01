@@ -38,6 +38,7 @@ class IDataHOGA
             self::setFosHjZ($Data, $tblConsumerCertificate);
             self::setFosJ($Data, $tblConsumerCertificate);
             self::setFosAbg($Data, $tblConsumerCertificate);
+            self::setFosAbs($Data, $tblConsumerCertificate);
         }
     }
 
@@ -570,6 +571,21 @@ class IDataHOGA
     {
         $tblCertificate = $Data->createCertificate('Fachoberschule Abgangszeugnis', '', 'HOGA\FosAbg',
             $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeFachoberschule());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setFosAbs(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Fachoberschule Abschlusszeugnis', 'Fachhochschulreife', 'HOGA\FosAbs',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeFachoberschule());
         if ($tblCertificate) {
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
