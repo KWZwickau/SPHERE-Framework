@@ -263,7 +263,8 @@ class Service extends AbstractService
 
         if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
             $tblAccount = false;
-            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+//            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                 if (count($tblAccountList) > 1) {
                     return false;
                 } else {
@@ -411,7 +412,8 @@ class Service extends AbstractService
         ) {
             if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
                 $tblAccount = false;
-                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+//                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                     if (count($tblAccountList) > 1) {
                         return false;
                     } else {

@@ -786,10 +786,11 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated (SSW-1540)
      * Eltern-Accounts werden ignoriert, es kann sein das Mitarbeiter auch zusätzlich einen Elternaccount haben
      *
      * @param TblPerson $tblPerson
-     * @param false $isForce
+     * @param false     $isForce
      *
      * @return false|TblAccount[]
      */
@@ -1074,7 +1075,8 @@ class Service extends AbstractService
     public function isUserAliasUnique(TblPerson $tblPerson, string $mailAddress, string &$errorMessage) : bool {
         $error = false;
 
-        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+//        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPerson($tblPerson))) {
             if (count($tblAccountListByPerson) > 1) {
                 $errorMessage = 'Die Person besitzt mehrere Benutzerkonten.';
                 return false;

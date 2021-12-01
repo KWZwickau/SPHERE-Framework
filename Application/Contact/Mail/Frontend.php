@@ -236,6 +236,16 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount = 0;
             $LayoutRow = null;
 
+            // Consumer with UCS?
+            $isUCS = false;
+            if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
+                    if($tblConsumerLogin->getSystemName() == TblConsumerLogin::VALUE_SYSTEM_UCS){
+                        $isUCS = true;
+                    }
+                }
+            }
+
             foreach ($mailList as $mailId => $typeArray) {
                 if (($tblMail = Mail::useService()->getMailById($mailId))) {
                     foreach ($typeArray as $typeId => $personArray) {
@@ -273,8 +283,7 @@ class Frontend extends Extension implements IFrontendInterface
                             }
 
                             $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
-
-                            if (isset($personArray[$tblPerson->getId()])) {
+                            if ($isUCS && isset($personArray[$tblPerson->getId()])) {
                                 if(($tblToPersonCurrent =  $personArray[$tblPerson->getId()])){
                                     /** @var $tblToPersonCurrent TblToPerson */
                                     if($tblToPersonCurrent->isAccountUserAlias()){
