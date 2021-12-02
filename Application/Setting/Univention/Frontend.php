@@ -734,23 +734,21 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblMember = false;
             $tblPerson = false;
+
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            $tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+            $tblGroupTeacher = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
             // ausnahme für Lehrer/Mitarbeiter ohne Klasse
             if(($tblAccount = Account::useService()->getAccountById($Account['record_uid']))){
-                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
                 if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
                     $tblPerson = current($tblPersonList);
                     $tblMember = Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup);
                 }
             }
-            $tblGroupStudent = $tblGroupStaff = $tblGroupTeacher = false;
             if($tblPerson){
                 $PersonId = $tblPerson->getId();
                 $PersonLink = (new Link(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'),
                     '/People/Person', new Person(), array('Id' => $PersonId)))->setExternal();
-
-                $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-                $tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
-                $tblGroupTeacher = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
             } else {
                 $PersonLink = new Muted(new Small('('.$Account['firstname'].' '.$Account['lastname'].')'));
             }
@@ -769,17 +767,20 @@ class Frontend extends Extension implements IFrontendInterface
                         case 'roles':
                             $KeyReplace = 'Rolle:';
                             // sich ausschließende Gruppen vergeben, auch eine Fehlermeldung (roles wird im service geleert)
-                            if($tblGroupStudent && ($tblGroupStaff || $tblGroupTeacher)){
+                            if($tblMember
+                            && (Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStaff)
+                              || Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTeacher)
+                                )){
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
-                                    'Person ist Schüler und in mindestens einer der beiden Personengruppen:<br />'
-                                    .new DangerText('Mitarbeiter / Lehrer')
+                                    'Person mit sich ausschließenden Personengruppen:<br />'
+                                    .new DangerText('Schüler, Mitarbeiter/Lehrer')
                                 )))->enableHtml();
                             } else {
                                 $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'Person in keiner der folgenen Personengruppen:<br />'
-                                    .new DangerText('Schüler / Mitarbeiter / Lehrer')
+                                    .new DangerText('Schüler, Mitarbeiter/Lehrer')
                                 )))->enableHtml();
                             }
                         break;
