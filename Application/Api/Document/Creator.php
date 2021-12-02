@@ -527,7 +527,7 @@ class Creator extends Extension
      * @return Stage|string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public static function createGradebookPdf($DivisionSubjectId, $Redirect = true)
+    public static function createGradebookPdf($DivisionSubjectId = null, $Redirect = true)
     {
 
         if ($Redirect) {
@@ -576,7 +576,7 @@ class Creator extends Extension
      * @return Stage|string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public static function createMultiGradebookPdf($DivisionId, $Redirect = true)
+    public static function createMultiGradebookPdf($DivisionId = null, $Redirect = true)
     {
 
         if ($Redirect) {
