@@ -26,7 +26,7 @@ class FosAbs extends Style
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
 
         $pageList[] = (new Page())
-            ->addSlice($this->getHeader($school))
+            ->addSlice($this->getHeader($school, '', true, true))
             ->addSlice((new Slice())
                 ->styleMarginTop('20px')
                 ->addElement($this->getElement('Zeugnis der Fachhochschulreife', '35px')->styleTextBold()->styleAlignCenter()))

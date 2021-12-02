@@ -34,7 +34,8 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getHeader(array $school, string $title = '', bool $isSchoolLogoVisible = true) : Slice
+    protected function getHeader(array $school, string $title = '', bool $isStateLogoVisible = false,
+        bool $isSchoolLogoVisible = false) : Slice
     {
         $logoHeight = '50px';
         $logoWidth = '165px';
@@ -50,19 +51,25 @@ abstract class Style extends Certificate
         } else {
             $section->addElementColumn((new Element()), '39%');
         }
+
         // Sample
         if($this->isSample()){
             $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
         } else {
             $section->addElementColumn((new Element()), '22%');
         }
-        // Standard Logo
-        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-            $logoWidth, $logoHeight))
-            ->styleAlignRight()
-            , '39%');
-        $slice->addSection($section);
 
+        // Standard Logo
+        if ($isStateLogoVisible) {
+            $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                $logoWidth, $logoHeight))
+                ->styleAlignRight()
+                , '39%');
+        } else {
+            $section->addElementColumn((new Element()), '39%');
+        }
+
+        $slice->addSection($section);
         $slice->addSection($this->getSectionSpace('15px'));
 
         foreach ($school as $line) {
@@ -1732,16 +1739,37 @@ abstract class Style extends Certificate
      *
      * @return Page
      */
-    public function getCoverPage(string $title, string $subTitle, string $description) : Page
+    public function getCoverPage(string $title, string $subTitle, string $description, bool $isStateLogoVisible = true) : Page
     {
-        // logo? wenn nicht zumindestens muster
-        // $Header = $this->getHead($this->isSample());
+        $logoHeight = '70px';
+
+        $section = new Section();
+        $section->addElementColumn((new Element()), '39%');
+
+        // Sample
+        if($this->isSample()){
+            $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
+        } else {
+            $section->addElementColumn((new Element()), '22%');
+        }
+
+        // Standard Logo
+        if ($isStateLogoVisible) {
+            $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                'auto', $logoHeight))
+                ->styleAlignRight()
+                , '39%');
+        } else {
+            $section->addElementColumn((new Element())->styleHeight($logoHeight), '39%');
+        }
 
         return (new Page())
             ->addSlice((new Slice())
+                ->styleMarginTop('50px')
+                ->addSection($section)
                 ->addElement($this->getElement($title, '33px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('24%')
+                    ->styleMarginTop('15%')
                     ->styleTextBold()
                 )
             )
@@ -1757,6 +1785,18 @@ abstract class Style extends Certificate
                     ->styleMarginTop('20px')
                     ->styleTextBold()
                 )
+            );
+    }
+
+    /**
+     * @return Slice
+     */
+    public function getLogoSecondPage() : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop('40px')
+            ->addElement((new Element\Image('/Common/Style/Resource/Logo/HOGA.jpg', 'auto', '100px'))
+                ->styleAlignCenter()
             );
     }
 

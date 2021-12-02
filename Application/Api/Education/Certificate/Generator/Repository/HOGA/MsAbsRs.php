@@ -34,8 +34,9 @@ class MsAbsRs extends Style
                         ->stylePaddingTop($paddingTop))
                 )
             )
+            ->addSlice($this->getLogoSecondPage())
             ->addSlice((new Slice())
-                ->styleMarginTop('170px')
+                ->styleMarginTop('30px')
                 ->addSection((new Section())
                     ->addElementColumn(
                         $this->getElement('Oberschule', self::TEXT_SIZE_SMALL)
