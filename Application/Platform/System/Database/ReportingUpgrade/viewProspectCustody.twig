@@ -211,6 +211,21 @@ SELECT
         AND vCM.TblType_Name LIKE 'Gesch%ftlich'
     ) TblMail_AddressCompany_S1,
 
+    (SELECT tCus.Occupation
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S1_Id
+    ) TblCustody_Occupation_S1,
+
+    (SELECT tCus.Employment
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S1_Id
+    ) TblCustody_Employment_S1,
+
+    (SELECT tCus.Remark
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S1_Id
+    ) TblCustody_Remark_S1,
+
     -- Person S2
     -- Definition S2 Id
     (SELECT vRTP.TblToPerson_serviceTblPersonFrom
@@ -415,6 +430,21 @@ SELECT
         WHERE TblPerson_S2_Id = vCM.TblPerson_Id
         AND vCM.TblType_Name LIKE 'Gesch%ftlich'
     ) TblMail_AddressCompany_S2,
+
+    (SELECT tCus.Occupation
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S2_Id
+    ) TblCustody_Occupation_S2,
+
+    (SELECT tCus.Employment
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S2_Id
+    ) TblCustody_Employment_S2,
+
+    (SELECT tCus.Remark
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S2_Id
+    ) TblCustody_Remark_S2,
 
     -- Person S3
     -- Definition S3 Id
@@ -625,7 +655,22 @@ SELECT
         ) FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
         WHERE TblPerson_S3_Id = vCM.TblPerson_Id
         AND vCM.TblType_Name LIKE 'Gesch%ftlich'
-    ) TblMail_AddressCompany_S3
+    ) TblMail_AddressCompany_S3,
+
+    (SELECT tCus.Occupation
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S3_Id
+    ) TblCustody_Occupation_S3,
+
+    (SELECT tCus.Employment
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S3_Id
+    ) TblCustody_Employment_S3,
+
+    (SELECT tCus.Remark
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCustody tCus
+        WHERE tCus.serviceTblPerson = TblPerson_S3_Id
+    ) TblCustody_Remark_S3
 
 FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
     JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = tP.Id
