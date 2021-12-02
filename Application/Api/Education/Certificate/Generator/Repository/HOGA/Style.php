@@ -504,6 +504,24 @@ abstract class Style extends Certificate
 
     /**
      * @param int $personId
+     *
+     * @return Slice
+     */
+    public function getCustomCourse(int $personId) : Slice
+    {
+        return (new Slice())
+            ->addElement($this->getElement('
+                    {% if(Content.P' . $personId . '.Student.Course.Degree is not empty) %}
+                        nahm am Unterricht mit dem Ziel des {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
+                    {% endif %}',
+                    self::TEXT_SIZE_SMALL
+                )
+                ->styleMarginTop('3px')
+            );
+    }
+
+    /**
+     * @param int $personId
      * @param string $marginTop
      *
      * @return Slice
