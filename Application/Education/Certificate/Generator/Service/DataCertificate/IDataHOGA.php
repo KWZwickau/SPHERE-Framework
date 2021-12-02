@@ -31,6 +31,7 @@ class IDataHOGA
             self::setGymAbgSekI($Data, $tblConsumerCertificate);
 
             self::setBgjJue($Data, $tblConsumerCertificate);
+            self::setBgjAbg($Data, $tblConsumerCertificate);
 
             self::setBGymHjZ($Data, $tblConsumerCertificate);
             self::setBGymJ($Data, $tblConsumerCertificate);
@@ -457,6 +458,22 @@ class IDataHOGA
                 $Data->setCertificateSubject($tblCertificate, 'INF', 1, $i++);
                 $Data->setCertificateSubject($tblCertificate, 'ETH', 1, $i++);
                 $Data->setCertificateSubject($tblCertificate, 'GE/GK', 1, $i++);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setBgjAbg(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Berufsgrundbildungsjahr Abgangszeugnis', '', 'HOGA\BgjAbg',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                // todo Fächer
+//                self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
             }
         }
     }
