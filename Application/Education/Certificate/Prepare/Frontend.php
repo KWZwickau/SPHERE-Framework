@@ -1936,6 +1936,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesType());
+                                }  elseif ($tblPrepareInformation->getField() == 'Success'
+                                    && method_exists($Certificate, 'selectValuesSuccess')
+                                ) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                        array_search($tblPrepareInformation->getValue(),
+                                            $Certificate->selectValuesSuccess());
                                 } elseif ($tblPrepareInformation->getField() == 'Transfer'
                                     && method_exists($Certificate, 'selectValuesTransfer')
                                 ) {
@@ -2294,6 +2300,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesType();
+                                                } elseif ($PlaceholderName == 'Content.Input.Success'
+                                                    && method_exists($Certificate, 'selectValuesSuccess')
+                                                ) {
+                                                    $selectBoxData = $Certificate->selectValuesSuccess();
                                                 } elseif ($PlaceholderName == 'Content.Input.Transfer'
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {

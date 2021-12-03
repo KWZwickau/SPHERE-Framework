@@ -654,6 +654,10 @@ class Service extends AbstractService
                                 && method_exists($Certificate, 'selectValuesType')
                             ) {
                                 $value = $Certificate->selectValuesType()[$value];
+                            } elseif ($field == 'Success'
+                                && method_exists($Certificate, 'selectValuesSuccess')
+                            ) {
+                                $value = $Certificate->selectValuesSuccess()[$value];
                             } elseif ($field == 'Transfer'
                                 && method_exists($Certificate, 'selectValuesTransfer')
                             ) {
@@ -2116,6 +2120,10 @@ class Service extends AbstractService
                     && method_exists($Certificate, 'selectValuesType')
                 ) {
                     $value = $Certificate->selectValuesType()[$value];
+                } elseif ($field == 'Success'
+                    && method_exists($Certificate, 'selectValuesSuccess')
+                ) {
+                    $value = $Certificate->selectValuesSuccess()[$value];
                 } elseif ($field == 'Transfer'
                     && method_exists($Certificate, 'selectValuesTransfer')
                 ) {
@@ -5266,6 +5274,10 @@ class Service extends AbstractService
                             && method_exists($Certificate, 'selectValuesType')
                         ) {
                             $value = $Certificate->selectValuesType()[$value];
+                        } elseif ($field == 'Success'
+                            && method_exists($Certificate, 'selectValuesSuccess')
+                        ) {
+                            $value = $Certificate->selectValuesSuccess()[$value];
                         } elseif ($field == 'Transfer'
                             && method_exists($Certificate, 'selectValuesTransfer')
                         ) {

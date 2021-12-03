@@ -557,7 +557,10 @@ class Service extends AbstractService
             'Content.Input.SkilledWork_GradeText' => 'SelectBox',
             'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
             // Fachoberschule HOGA
-            'Content.Input.Job_Grade'   => 'SelectCompleter',
+            'Content.Input.Job_Grade'           => 'SelectCompleter',
+            'Content.Input.Success'             => 'SelectBox',
+            'Content.Input.IndustrialPlacement' => 'TextField',
+            'Content.Input.IndustrialPlacementDuration' => 'TextField'
         );
 
         $Acronym = Account::useService()->getMandantAcronym();
@@ -661,7 +664,7 @@ class Service extends AbstractService
             'Content.Input.Focus'               => 'Schwerpunkt',
             'Content.Input.ChosenArea'          => 'Wahlplfichtbereich (Überschrift)',
             'Content.Input.JobEducation'        => 'Berufspraktische Ausbildung (Überschrift)',
-            'Content.Input.JobEducationDuration'=> 'Berufspraktische Ausbildung (dauer in Wochen)',
+            'Content.Input.JobEducationDuration'=> 'Berufspraktische Ausbildung (Dauer in Wochen)',
             'Content.Input.AddEducation'        => 'Zusatzausbildung zum Erwerb der Fachhochschulreife',
             'Content.Input.AddEducation_Grade'   => 'FHR - oder Zensur',
             'Content.Input.AddEducation_GradeText' => 'FHR - Zeugnistext',
@@ -674,6 +677,9 @@ class Service extends AbstractService
             'Content.Input.AdditionalRemarkFhr' => 'Teilnahme an FHR-Prüfung',
             // Fachoberschule HOGA
             'Content.Input.Job_Grade'           => 'Fachpraktischer Teil der Ausbildung Zensur',
+            'Content.Input.Success'             => 'Abschluss erfolgreich',
+            'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
+            'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)'
         );
     }
 

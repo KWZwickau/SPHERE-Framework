@@ -472,9 +472,17 @@ class IDataHOGA
             $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
         if ($tblCertificate) {
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
-                // todo Fächer
-//                self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'DE', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'GE/GK', 2, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $i++);
             }
+
+            $Data->createCertificateInformation($tblCertificate, 'IndustrialPlacement', 2);
+            $Data->createCertificateInformation($tblCertificate, 'IndustrialPlacementDuration', 2);
         }
     }
 
