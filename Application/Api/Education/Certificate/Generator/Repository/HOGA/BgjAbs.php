@@ -7,7 +7,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
-class BgjAbg extends Style
+class BgjAbs extends Style
 {
     /**
      * @param TblPerson|null $tblPerson
@@ -25,6 +25,7 @@ class BgjAbg extends Style
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
 
         $pageList[] = (new Page())
+            // todo logo
             ->addSlice($this->getHeader($school))
             ->addSlice((new Slice())
                 ->styleMarginTop('20px')

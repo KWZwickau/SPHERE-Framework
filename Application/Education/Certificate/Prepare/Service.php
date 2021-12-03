@@ -1279,6 +1279,8 @@ class Service extends AbstractService
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                     && $tblSchoolType->getName() != 'Fachschule'
                     && $tblSchoolType->getName() != 'Berufsfachschule'
+                    && $tblSchoolType->getName() != 'Berufsgrundbildungsjahr'
+                    && $tblSchoolType->getName() != 'Fachoberschule'
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))

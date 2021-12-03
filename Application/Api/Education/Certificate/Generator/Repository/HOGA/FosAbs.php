@@ -205,8 +205,8 @@ class FosAbs extends Style
                         ->styleTextUnderline()
                         , '20%')
                     ->addElementColumn($this->getElement(
-                        '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                            {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                        '{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
+                            {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
                         {% else %}
                             &nbsp;
                         {% endif %}',

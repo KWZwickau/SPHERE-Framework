@@ -31,7 +31,7 @@ class IDataHOGA
             self::setGymAbgSekI($Data, $tblConsumerCertificate);
 
             self::setBgjJue($Data, $tblConsumerCertificate);
-            self::setBgjAbg($Data, $tblConsumerCertificate);
+            self::setBgjAbs($Data, $tblConsumerCertificate);
 
             self::setBGymHjZ($Data, $tblConsumerCertificate);
             self::setBGymJ($Data, $tblConsumerCertificate);
@@ -466,10 +466,10 @@ class IDataHOGA
      * @param Data        $Data
      * @param TblConsumer $tblConsumerCertificate
      */
-    private static function setBgjAbg(Data $Data, TblConsumer $tblConsumerCertificate)
+    private static function setBgjAbs(Data $Data, TblConsumer $tblConsumerCertificate)
     {
-        $tblCertificate = $Data->createCertificate('Berufsgrundbildungsjahr Abgangszeugnis', '', 'HOGA\BgjAbg',
-            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
+        $tblCertificate = $Data->createCertificate('Berufsgrundbildungsjahr Abschlusszeugnis', '', 'HOGA\BgjAbs',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
         if ($tblCertificate) {
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 // todo Fächer
@@ -607,6 +607,15 @@ class IDataHOGA
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardFos($tblCertificate, $Data);
             }
+
+            $Data->createCertificateInformation($tblCertificate, 'SubjectArea', 1);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Average', 1);
+            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 1);
+            $Data->createCertificateInformation($tblCertificate, 'Job_Grade', 1);
+
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork', 2);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork_Grade', 2);
+            $Data->createCertificateInformation($tblCertificate, 'SkilledWork_GradeText', 2);
         }
     }
 
@@ -621,6 +630,8 @@ class IDataHOGA
         $Data->setCertificateSubject($tblCertificate, 'RE', 1, $i++);
         $Data->setCertificateSubject($tblCertificate, 'GE/GK', 1, $i++);
         $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+
+        $Data->setCertificateSubject($tblCertificate, 'SPO', 1, $i++, false);
 
         $Data->setCertificateSubject($tblCertificate, 'VBWL', 1, $i++, false);
         $Data->setCertificateSubject($tblCertificate, 'GeSA', 1, $i++, false);

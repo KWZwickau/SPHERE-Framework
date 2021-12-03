@@ -455,8 +455,8 @@ abstract class Style extends Certificate
             );
 
         $element = $this->getElement(
-            '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+            '{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
+                {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
             {% else %}
                 &nbsp;
             {% endif %}',
@@ -2368,7 +2368,17 @@ abstract class Style extends Certificate
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('Bemerkungen:', self::TEXT_SIZE_LARGE)
                     ->styleTextUnderline()
-                , '40%')
+                , '25%')
+                ->addElementColumn($this->getElement('entschuldigte Fehltage:', self::TEXT_SIZE_LARGE)
+                , '27%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Missing }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_LARGE)
+                , '10%')
                 ->addElementColumn($this->getElement('unentschuldigte Fehltage:', self::TEXT_SIZE_LARGE)
                 , '30%')
                 ->addElementColumn($this->getElement(
@@ -2382,8 +2392,8 @@ abstract class Style extends Certificate
             );
 
         $element = $this->getElement(
-            '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+            '{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
+                {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
             {% else %}
                 &nbsp;
             {% endif %}',
@@ -2716,7 +2726,7 @@ abstract class Style extends Certificate
                                    &ndash;
                                {% endif %}
                             {% endif %}',
-                            self::TEXT_SIZE_NORMAL
+                            self::TEXT_SIZE_LARGE
                         )
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)

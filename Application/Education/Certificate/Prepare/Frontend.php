@@ -216,6 +216,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 && $tblLevel->getName() == '12'))
                             || $tblSchoolType->getName() == 'Berufsfachschule'
                             || $tblSchoolType->getName() == 'Fachschule'
+                            || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
+                            || (($tblSchoolType->getName() == 'Fachoberschule'
+                                && $tblLevel->getName() == '12'))
                         )
                     ) {
                         $divisionTable[] = array(
@@ -697,7 +700,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         '', '/Education/Certificate/Prepare/Prepare'
                         . ($Route == 'Diploma'
                             ? '/Diploma' . ($tblSchoolType
-                                && ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule')
+                                && ($tblSchoolType->getName() == 'Berufsfachschule'
+                                    || $tblSchoolType->getName() == 'Fachschule'
+                                    || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
+                                    || $tblSchoolType->getName() == 'Fachoberschule'
+                                )
                                 ? '/Technical' : '')
                             : '')
                         . '/Setting', new Setup(),
@@ -4061,6 +4068,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
      * @param null $IsFinalGrade
      * @param null $Data
      * @param null $CertificateList
+     *
+     * Schulart Mittelschule / Oberschule
      *
      * @return Stage|string
      */
