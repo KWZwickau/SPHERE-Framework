@@ -10,11 +10,32 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class BgjAbs extends Style
 {
     /**
+     * @return array
+     */
+    public function getApiModalColumns() : array
+    {
+        return array(
+            'Success' => 'Abschluss erfolgreich',
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function selectValuesSuccess() : array
+    {
+        return array(
+            1 => "mit Erfolg",
+            2 => "ohne Erfolg"
+        );
+    }
+
+    /**
      * @param TblPerson|null $tblPerson
      *
      * @return Page[]
      */
-    public function buildPages(TblPerson $tblPerson = null)
+    public function buildPages(TblPerson $tblPerson = null) : array
     {
         $textSize = self::TEXT_SIZE_LARGE;
         $textSize2 = '19px';
@@ -25,8 +46,7 @@ class BgjAbs extends Style
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
 
         $pageList[] = (new Page())
-            // todo logo
-            ->addSlice($this->getHeader($school))
+            ->addSlice($this->getHeader($school, '', true, true))
             ->addSlice((new Slice())
                 ->styleMarginTop('20px')
                 ->addElement($this->getElement('Zeugnis der Berufsschule', '35px')->styleTextBold()->styleAlignCenter())
@@ -86,7 +106,12 @@ class BgjAbs extends Style
                     {% endif %}'
                     , $textSize2)->styleAlignCenter()->styleTextBold()->styleMarginTop('-10px'))
                 ->addElement($this->getElement(
-                        'ohne Erfolg besucht. Die Berufsschulpflicht
+                        '{% if(Content.P' . $personId . '.Input.Success is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Success }}
+                        {% else %}
+                            mit/ohne Erfolg
+                        {% endif %}
+                        besucht. Die Berufsschulpflicht
                         {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
                             der Schülerin
                         {% else %}
@@ -95,9 +120,8 @@ class BgjAbs extends Style
                             {% else %}
                                 der Schülerin/des Schülers
                             {% endif %}
-                        {% endif %}
-                        '
-                        , $textSize
+                        {% endif %}',
+                        $textSize
                     )
                     ->styleAlignCenter()
                     ->styleMarginTop('30px')
@@ -142,10 +166,9 @@ class BgjAbs extends Style
                     )
                 )
             )
-            // todo Fächer berufsübergreifender, berufsbezogener Bereich
-//            ->addSlice($this->getCustomSubjectLanesFosAbs($personId)->styleHeight('580px'))
-                // todo Betriebspraktikum
-            ->addSlice($this->getCustomFosRemark($personId))
+            ->addSlice($this->getCustomSubjectLanesBgjAbs($personId)->styleHeight('680px'))
+            ->addSlice($this->getCustomIndustrialPlacement($personId))
+            ->addSlice($this->getCustomFosRemark($personId, '10px', '180px'))
             ->addSlice($this->getCustomFosInfo());
 
         return $pageList;

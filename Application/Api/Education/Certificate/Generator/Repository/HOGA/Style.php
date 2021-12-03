@@ -2827,4 +2827,249 @@ abstract class Style extends Certificate
 
         return $slice;
     }
+
+    /**
+     * @param int $personId
+     *
+     * @return Slice
+     */
+    public function getCustomIndustrialPlacement(int $personId) : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop('10px')
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement('Betriebspraktikum', self::TEXT_SIZE_LARGE)->styleTextBold(), '25%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.IndustrialPlacement is not empty) %}
+                       {{ Content.P' . $personId . '.Input.IndustrialPlacement }}
+                    {% else %}
+                       &ndash;
+                    {% endif %}'
+                    , self::TEXT_SIZE_LARGE))
+                ->addElementColumn($this->getElement(
+                    'Dauer:
+                    {% if(Content.P' . $personId . '.Input.IndustrialPlacementDuration is not empty) %}
+                       {{ Content.P' . $personId . '.Input.IndustrialPlacementDuration }}
+                    {% else %}
+                       &ndash;
+                    {% endif %}
+                    Wochen',
+                    self::TEXT_SIZE_LARGE)->styleAlignRight(), '20%')
+            );
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomSubjectLanesBgjAbs(int $personId, string $marginTop = '28px') : Slice
+    {
+        $textSizeGrade = self::TEXT_SIZE_NORMAL;
+        $textSizeSubject = self::TEXT_SIZE_NORMAL;
+
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement('Leistungen', self::TEXT_SIZE_LARGE)->styleTextBold())
+            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold()->styleMarginTop('5px'));
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            // Berufsübergreifender Bereich, 2 spaltig
+            $slice->addElement($this->getElement('Berufsübergreifender Bereich', self::TEXT_SIZE_LARGE)
+                ->styleTextUnderline()
+                ->stylePaddingBottom('-5px')
+                ->stylePaddingBottom('4px')
+            );
+            $SubjectStructure = $this->getSubjectStructure($tblCertificateSubjectAll, $tblGradeList, 1, 4);
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                $SubjectSection = (new Section());
+
+                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    // lange Fächernamen
+                    $Subject['SubjectName'] = str_replace('/', ' / ', $Subject['SubjectName']);
+                    if (strlen($Subject['SubjectName']) > 20) {
+                        $marginTop = '0px';
+                        $lineHeight = '70%';
+                    } else {
+                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                        $lineHeight = '100%';
+                    }
+
+                    if ($Lane > 1) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '2%');
+                    }
+
+                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], $textSizeSubject)
+                        ->styleMarginTop($marginTop)
+                        ->styleLineHeight($lineHeight)
+                        , (self::SUBJECT_WIDTH + 1) . '%');
+
+                    $SubjectSection->addElementColumn($this->getElement(
+                        '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}',
+                        $textSizeGrade
+                    )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+                }
+
+                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+                    $SubjectSection->addElementColumn((new Element()), '51%');
+                }
+
+                $slice->addSection($SubjectSection);
+            }
+
+            // Berufsbezogener Bereich - fachtheoretischer Unterricht, 1 spaltig
+            $slice->addElement($this->getElement('Berufsbezogener Bereich - fachtheoretischer Unterricht', self::TEXT_SIZE_LARGE)
+                ->styleTextUnderline()
+                ->stylePaddingBottom('-5px')
+                ->stylePaddingBottom('4px')
+                ->styleMarginTop('4px')
+            );
+            $SubjectStructure = $this->getSubjectStructure($tblCertificateSubjectAll, $tblGradeList, 5, 10);
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $section = new Section();
+
+                    $section->addElementColumn(
+                        $this->getElement($Subject['SubjectName'], $textSizeSubject)
+                            ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                    );
+                    $section->addElementColumn(
+                        $this->getElement(
+                                '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                    {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                                {% else %}
+                                    &ndash;
+                                {% endif %}',
+                                $textSizeGrade
+                            )
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor(self::BACKGROUND)
+                            ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                            ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+
+                    $slice->addSection($section);
+                }
+            }
+
+            // Berufsbezogener Bereich - fachpraktischer Unterricht, 1 spaltig
+            $slice->addElement($this->getElement('Berufsbezogener Bereich - fachpraktischer Unterricht', self::TEXT_SIZE_LARGE)
+                ->styleTextUnderline()
+                ->stylePaddingBottom('-5px')
+                ->stylePaddingBottom('4px')
+                ->styleMarginTop('4px')
+            );
+            $SubjectStructure = $this->getSubjectStructure($tblCertificateSubjectAll, $tblGradeList, 11, 15);
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $section = new Section();
+
+                    $section->addElementColumn(
+                        $this->getElement($Subject['SubjectName'], $textSizeSubject)
+                            ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                    );
+                    $section->addElementColumn(
+                        $this->getElement(
+                            '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                    {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                                {% else %}
+                                    &ndash;
+                                {% endif %}',
+                            $textSizeGrade
+                        )
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor(self::BACKGROUND)
+                            ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                            ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+
+                    $slice->addSection($section);
+                }
+            }
+        }
+
+        return $slice;
+    }
+
+    /**
+     * @param array $tblCertificateSubjectAll
+     * @param array $tblGradeList
+     * @param int $subjectRankingFrom
+     * @param int $subjectRankingTo
+     *
+     * @return array
+     */
+    private function getSubjectStructure(array $tblCertificateSubjectAll, array $tblGradeList,
+        int $subjectRankingFrom, int $subjectRankingTo) : array
+    {
+        foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+            $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+            if ($tblSubject) {
+                if($tblCertificateSubject->getRanking() >= $subjectRankingFrom
+                    && $tblCertificateSubject->getRanking() <= $subjectRankingTo){
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Shrink Lanes
+        $LaneCounter = array(1 => 0, 2 => 0);
+        $SubjectLayout = array();
+        ksort($SubjectStructure);
+        foreach ($SubjectStructure as $SubjectList) {
+            ksort($SubjectList);
+            foreach ($SubjectList as $Lane => $Subject) {
+                $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                $LaneCounter[$Lane]++;
+            }
+        }
+
+        return $SubjectLayout;
+    }
 }
