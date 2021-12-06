@@ -325,7 +325,7 @@ class FrontendFamily extends FrontendReadOnly
             new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        $salutationSelectBox, 2
+                        $salutationSelectBox, 3
                     )
                 )),
                 new LayoutRow(array(
