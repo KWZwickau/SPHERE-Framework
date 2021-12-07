@@ -37,7 +37,7 @@ SELECT
     tCI.Nationality AS TblCommonInformation_Nationality,
     tCI.Denomination AS TblCommonInformation_Denomination,
     tCI.AssistanceActivity AS TblCommonInformation_AssistanceActivity,
-    IF (tCI.IsAssistance, 'Ja', 'Nein') AS TblCommonInformation_IsAssistance,
+    IF (tCI.IsAssistance = 1, 'Ja', 'Nein') AS TblCommonInformation_IsAssistance,
 -- tblGroup
     (select
         group_concat(
