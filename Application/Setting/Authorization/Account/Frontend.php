@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
@@ -54,6 +55,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -323,9 +325,16 @@ class Frontend extends Extension implements IFrontendInterface
             }
             if ($tblPersonAll){
                 array_walk($tblPersonAll, function(TblPerson &$tblPersonItem) use ($tblPerson, $Global){
+                    if($tblPersonItem){
+                        $PersonId = $tblPersonItem->getId();
+                        $PersonColumn = '<span hidden>'.$tblPersonItem->getLastFirstName().'</span>'
+                            .(new Link($tblPersonItem->getLastFirstName(), '/People/Person', new Person(), array('Id' => $PersonId)))->setExternal();
+                    } else {
+                        $PersonColumn = $tblPersonItem->getLastFirstName();
+                    }
                     $tblPersonItem = array(
                         'Select'  => new RadioBox('Account[User]', '&nbsp;', $tblPersonItem->getId()),
-                        'Person'  => $tblPersonItem->getLastFirstName(),
+                        'Person'  => $PersonColumn,
                         'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiTwoRowString() : ''
                     );
                 });
@@ -340,9 +349,10 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $interactive =  array(
-            'order' => array(
-                array(1, 'asc'),
+            'columnDefs' => array(
+                array("orderable" => false, 'width' => '20px', "targets" => 0),
             ),
+            'order' => array(array(1, 'asc')),
             'responsive' => false,
             'lengthMenu' => [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, "All"]],
             'pageLength' => 5
