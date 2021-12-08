@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\QrCode;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -332,9 +333,25 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $PersonColumn = $tblPersonItem->getLastFirstName();
                     }
+
+                    $tblUserNameList = array();
+
+                    $Account = '';
+                    if(($tblAccountList = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountAllByPerson($tblPersonItem))) {
+                        foreach($tblAccountList as $tempAccount){
+                            $Icon = new PersonKey();
+                            if($tempAccount->getServiceTblIdentification()->getName() == TblIdentification::NAME_USER_CREDENTIAL){
+                                $Icon = new PersonParent();
+                            }
+                            $tblUserNameList[] = '<span hidden>'.$tempAccount->getUsername().'</span> '.$Icon.' '.$tempAccount->getUsername();
+                        }
+                        $Account = implode(', ', $tblUserNameList);
+                    }
+
                     $tblPersonItem = array(
-                        'Select'  => new RadioBox('Account[User]', '&nbsp;', $tblPersonItem->getId()),
+                        'Select'  => ($Account ? '': new RadioBox('Account[User]', '&nbsp;', $tblPersonItem->getId())),
                         'Person'  => $PersonColumn,
+                        'Account' => $Account,
                         'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiTwoRowString() : ''
                     );
                 });
@@ -345,6 +362,7 @@ class Frontend extends Extension implements IFrontendInterface
         $columns = array(
             'Select' => '',
             'Person' => 'Name',
+            'Account' => 'Benutzerkonto',
             'Address' => 'Adresse'
         );
 
