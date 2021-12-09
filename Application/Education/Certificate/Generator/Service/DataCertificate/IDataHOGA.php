@@ -543,7 +543,7 @@ class IDataHOGA
     private static function setBGymHjZ(Data $Data, TblConsumer $tblConsumerCertificate)
     {
 
-        $tblCertificate = $Data->createCertificate('Berufliches Gymnasium Jahreszeugnis', 'Klasse 11', 'HOGA\BGymHjZ', $tblConsumerCertificate);
+        $tblCertificate = $Data->createCertificate('Berufliches Gymnasium Halbjahreszeugnis', 'Klasse 11', 'HOGA\BGymHjZ', $tblConsumerCertificate);
         if ($tblCertificate) {
             if ($Data->getTblSchoolTypeBeruflichesGymnasium()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeBeruflichesGymnasium());

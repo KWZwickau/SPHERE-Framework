@@ -99,13 +99,14 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getHeaderBGym(array $school, bool $isSchoolLogoVisible = true) : Slice
+    protected function getHeaderBGym(array $school, bool $isStateLogoVisible = false,
+        bool $isSchoolLogoVisible = false) : Slice
     {
         $logoHeight = '50px';
         $logoWidth = '165px';
 
         $slice = new Slice();
-        $slice->addSection($this->getSectionSpace('5px'));
+        $slice->addSection($this->getSectionSpace('50px'));
 
         $section = new Section();
         // Individually Logo
@@ -122,10 +123,14 @@ abstract class Style extends Certificate
             $section->addElementColumn((new Element()), '22%');
         }
         // Standard Logo
-        $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-            $logoWidth, $logoHeight))
-            ->styleAlignRight()
-            , '39%');
+        if ($isStateLogoVisible) {
+            $section->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                $logoWidth, $logoHeight))
+                ->styleAlignRight()
+                , '39%');
+        } else {
+            $section->addElementColumn((new Element()), '39%');
+        }
         $slice->addSection($section);
 
         $slice->addSection($this->getSectionSpace('5px'));
@@ -189,34 +194,57 @@ abstract class Style extends Certificate
         int $personId,
         string $period = '1. Schulhalbjahr:',
         string $marginTop = '10px',
-        bool $hasBirthInformation = false
+        bool $hasBirthInformation = false,
+        bool $hasLevel = false
     ) : Slice {
 
         $paddingTop = '4px';
-        $slice = (new Slice())
-            ->styleMarginTop($marginTop)
-            ->addSection((new Section())
-                ->addElementColumn($this->getElement('Klasse:')->stylePaddingTop($paddingTop), '20%')
-                ->addElementColumn($this->getElement(
-                    '{{ Content.P'.$personId.'.Division.Data.Level.Name }}{{ Content.P'.$personId.'.Division.Data.Name }}',
-                    self::TEXT_SIZE_LARGE
-                )->styleTextBold(), '20%')
-                ->addElementColumn($this->getElement('&nbsp;'))
-                ->addElementColumn($this->getElement($period)
-                    ->stylePaddingTop($paddingTop)
-                    ->styleAlignRight()
-                    , '15%')
-                ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Division.Data.Year }}', self::TEXT_SIZE_LARGE)
-                    ->styleTextBold()
-                    ->stylePaddingLeft('10px')
-                    , '25%')
-//                ->addElementColumn($this->getElement('&nbsp;'), '10%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn($this->getElement('Vorname und Name:')->stylePaddingTop($paddingTop), '20%')
-                ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Person.Data.Name.First }}
-                    {{ Content.P'.$personId.'.Person.Data.Name.Last }}', self::TEXT_SIZE_LARGE)->styleTextBold())
-            );
+        if ($hasLevel) {
+            $slice = (new Slice())
+                ->styleMarginTop($marginTop)
+                ->addSection((new Section())
+                    ->addElementColumn($this->getElement('Klassenstufe:')->stylePaddingTop($paddingTop), '20%')
+                    ->addElementColumn($this->getElement(
+                        '{{ Content.P' . $personId . '.Division.Data.Level.Name }}',
+                        self::TEXT_SIZE_LARGE
+                    )->styleTextBold(), '20%')
+                    ->addElementColumn($this->getElement('&nbsp;'))
+                    ->addElementColumn($this->getElement($period)
+                        ->stylePaddingTop($paddingTop)
+                        ->styleAlignRight()
+                        , '15%')
+                    ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Division.Data.Year }}',
+                        self::TEXT_SIZE_LARGE)
+                        ->styleTextBold()
+                        ->stylePaddingLeft('10px')
+                        , '25%')
+                );
+        } else {
+            $slice = (new Slice())
+                ->styleMarginTop($marginTop)
+                ->addSection((new Section())
+                    ->addElementColumn($this->getElement('Klasse:')->stylePaddingTop($paddingTop), '20%')
+                    ->addElementColumn($this->getElement(
+                        '{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}',
+                        self::TEXT_SIZE_LARGE
+                    )->styleTextBold(), '20%')
+                    ->addElementColumn($this->getElement('&nbsp;'))
+                    ->addElementColumn($this->getElement($period)
+                        ->stylePaddingTop($paddingTop)
+                        ->styleAlignRight()
+                        , '15%')
+                    ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Division.Data.Year }}',
+                        self::TEXT_SIZE_LARGE)
+                        ->styleTextBold()
+                        ->stylePaddingLeft('10px')
+                        , '25%')
+                );
+        }
+        $slice->addSection((new Section())
+            ->addElementColumn($this->getElement('Vorname und Name:')->stylePaddingTop($paddingTop), '20%')
+            ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                    {{ Content.P' . $personId . '.Person.Data.Name.Last }}', self::TEXT_SIZE_LARGE)->styleTextBold())
+        );
 
         if ($hasBirthInformation) {
             $slice->addSection((new Section())
@@ -1391,7 +1419,7 @@ abstract class Style extends Certificate
                 ->addElementColumn($this->getElement('hat im zurückliegenden ' . $period
                     . ' folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)))
             ->addSection((new Section())
-                ->addElementColumn($this->getElement('Pflichtbereich', self::TEXT_SIZE_NORMAL)->styleTextBold()));
+                ->addElementColumn($this->getElement('Pflichtbereich', self::TEXT_SIZE_NORMAL)->styleAlignCenter()->styleTextBold()));
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
@@ -1503,7 +1531,7 @@ abstract class Style extends Certificate
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
-                ->addElementColumn($this->getElement('Wahlbereich', self::TEXT_SIZE_NORMAL)->styleTextBold()));
+                ->addElementColumn($this->getElement('Wahlbereich', self::TEXT_SIZE_NORMAL)->styleAlignCenter()->styleTextBold()));
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
@@ -1601,7 +1629,7 @@ abstract class Style extends Certificate
             }
         }
 
-        return $slice->styleHeight('100px');
+        return $slice->styleHeight('90px');
     }
 
     /**
