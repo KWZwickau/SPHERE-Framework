@@ -440,7 +440,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), new FormTitle('Wahlbereich')),
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
                 );
-            } elseif ($tblCertificate->getCertificate() == @'HOGA\BgjAbs') {
+            } elseif ($tblCertificate->getCertificate() == @'HOGA\BgjAbs' || $tblCertificate->getCertificate() == @'HOGA\BgjHjInfo') {
                 $tblTechnicalCourse = null;
                 // Fach-Noten-Definition
                 $tblSubjectAll = Subject::useService()->getSubjectAll();

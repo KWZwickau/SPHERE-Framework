@@ -704,7 +704,7 @@ abstract class Style extends Certificate
     public function getCustomSignPartBgj(int $personId, string $marginTop = '15px') : Slice
     {
         $textSize = self::TEXT_SIZE_NORMAL;
-        $paddingTop = '-5px';
+        $paddingTop = '-8px';
 
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -1746,7 +1746,7 @@ abstract class Style extends Certificate
     {
         return (new Slice())
             ->styleMarginTop($marginTop)
-            ->addElement($this->getElement($title, '25px')->styleTextBold()->styleAlignCenter())
+            ->addElement($this->getElement($title, '35px')->styleTextBold()->styleAlignCenter())
             ->addElement($this->getElement($subTitle, '17px')->styleTextBold()->styleAlignCenter()->styleMarginTop('-5px'));
     }
 
@@ -2358,7 +2358,8 @@ abstract class Style extends Certificate
      * #
      * @return Slice
      */
-    public function getCustomFosRemark(int $personId, string $marginTop = '10px', string $height = '75px') : Slice
+    public function getCustomFosRemark(int $personId, string $marginTop = '10px', string $height = '75px',
+        string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
         $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator',
             'IsDescriptionAsJustify');
@@ -2366,10 +2367,10 @@ abstract class Style extends Certificate
             ->styleMarginTop($marginTop)
             ->styleHeight($height)
             ->addSection((new Section())
-                ->addElementColumn($this->getElement('Bemerkungen:', self::TEXT_SIZE_LARGE)
+                ->addElementColumn($this->getElement('Bemerkungen:', $textSize)
                     ->styleTextUnderline()
                 , '25%')
-                ->addElementColumn($this->getElement('entschuldigte Fehltage:', self::TEXT_SIZE_LARGE)
+                ->addElementColumn($this->getElement('entschuldigte Fehltage:', $textSize)
                 , '27%')
                 ->addElementColumn($this->getElement(
                     '{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
@@ -2377,9 +2378,9 @@ abstract class Style extends Certificate
                     {% else %}
                         &nbsp;
                     {% endif %}',
-                    self::TEXT_SIZE_LARGE)
+                    $textSize)
                 , '10%')
-                ->addElementColumn($this->getElement('unentschuldigte Fehltage:', self::TEXT_SIZE_LARGE)
+                ->addElementColumn($this->getElement('unentschuldigte Fehltage:', $textSize)
                 , '30%')
                 ->addElementColumn($this->getElement(
                     '{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
@@ -2387,7 +2388,7 @@ abstract class Style extends Certificate
                     {% else %}
                         &nbsp;
                     {% endif %}'
-                    , self::TEXT_SIZE_LARGE
+                    , $textSize
                 ))
             );
 
@@ -2397,7 +2398,7 @@ abstract class Style extends Certificate
             {% else %}
                 &nbsp;
             {% endif %}',
-            self::TEXT_SIZE_LARGE
+            $textSize
         );
 //        $element->styleLineHeight('80%');
         if ($tblSetting && $tblSetting->getValue()) {
@@ -2435,9 +2436,8 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    public function getCustomFosSignPart(int $personId, string $marginTop = '25px') : Slice
+    public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
-        $textSize = self::TEXT_SIZE_LARGE;
         $paddingTop = '-8px';
         $paddingTop2 = '-12px';
 
@@ -2864,21 +2864,31 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomSubjectLanesBgjAbs(int $personId, string $marginTop = '28px') : Slice
+    protected function getCustomSubjectLanesBgjAbs(int $personId, string $marginTop = '28px', $isHalfYear = false) : Slice
     {
+        $textSize = $isHalfYear ? self::TEXT_SIZE_NORMAL : self::TEXT_SIZE_LARGE;
         $textSizeGrade = self::TEXT_SIZE_NORMAL;
         $textSizeSubject = self::TEXT_SIZE_NORMAL;
 
-        $slice = (new Slice())
-            ->styleMarginTop($marginTop)
-            ->addElement($this->getElement('Leistungen', self::TEXT_SIZE_LARGE)->styleTextBold())
-            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold()->styleMarginTop('5px'));
+        if ($isHalfYear) {
+            $slice = (new Slice())
+                ->styleMarginTop($marginTop)
+                ->addElement($this->getElement('hat im zurückliegenden Schulhalbjahr folgende Leistungen erreicht:', $textSize))
+                ->addElement($this->getElement('Pflichtbereich',
+                    $textSize)->styleTextBold()->styleMarginTop('5px'));
+        } else {
+            $slice = (new Slice())
+                ->styleMarginTop($marginTop)
+                ->addElement($this->getElement('Leistungen', $textSize)->styleTextBold())
+                ->addElement($this->getElement('Pflichtbereich',
+                    $textSize)->styleTextBold()->styleMarginTop('5px'));
+        }
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
         if ($tblCertificateSubjectAll) {
             // Berufsübergreifender Bereich, 2 spaltig
-            $slice->addElement($this->getElement('Berufsübergreifender Bereich', self::TEXT_SIZE_LARGE)
+            $slice->addElement($this->getElement('Berufsübergreifender Bereich', $textSize)
                 ->styleTextUnderline()
                 ->stylePaddingBottom('-5px')
                 ->stylePaddingBottom('4px')
@@ -2940,7 +2950,7 @@ abstract class Style extends Certificate
             }
 
             // Berufsbezogener Bereich - fachtheoretischer Unterricht, 1 spaltig
-            $slice->addElement($this->getElement('Berufsbezogener Bereich - fachtheoretischer Unterricht', self::TEXT_SIZE_LARGE)
+            $slice->addElement($this->getElement('Berufsbezogener Bereich - fachtheoretischer Unterricht', $textSize)
                 ->styleTextUnderline()
                 ->stylePaddingBottom('-5px')
                 ->stylePaddingBottom('4px')
@@ -2980,7 +2990,7 @@ abstract class Style extends Certificate
             }
 
             // Berufsbezogener Bereich - fachpraktischer Unterricht, 1 spaltig
-            $slice->addElement($this->getElement('Berufsbezogener Bereich - fachpraktischer Unterricht', self::TEXT_SIZE_LARGE)
+            $slice->addElement($this->getElement('Berufsbezogener Bereich - fachpraktischer Unterricht', $textSize)
                 ->styleTextUnderline()
                 ->stylePaddingBottom('-5px')
                 ->stylePaddingBottom('4px')
@@ -3034,6 +3044,7 @@ abstract class Style extends Certificate
     private function getSubjectStructure(array $tblCertificateSubjectAll, array $tblGradeList,
         int $subjectRankingFrom, int $subjectRankingTo) : array
     {
+        $SubjectStructure = array();
         foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
             $tblSubject = $tblCertificateSubject->getServiceTblSubject();
             if ($tblSubject) {

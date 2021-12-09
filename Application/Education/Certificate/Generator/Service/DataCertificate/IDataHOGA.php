@@ -30,6 +30,8 @@ class IDataHOGA
             self::setGymJ($Data, $tblConsumerCertificate);
             self::setGymAbgSekI($Data, $tblConsumerCertificate);
 
+            self::setBgjHjue($Data, $tblConsumerCertificate);
+            self::setBgjHjInfo($Data, $tblConsumerCertificate);
             self::setBgjJue($Data, $tblConsumerCertificate);
             self::setBgjAbs($Data, $tblConsumerCertificate);
 
@@ -433,6 +435,54 @@ class IDataHOGA
         $Data->setCertificateSubject($tblCertificate, 'INF', 2, $i++, false);
         $Data->setCertificateSubject($tblCertificate, 'INF1', 2, $i++, false);
         $Data->setCertificateSubject($tblCertificate, 'INF2', 2, $i++, false);
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setBgjHjue(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Berufsgrundbildungsjahr Halbjahresübersicht', '',
+            'HOGA\BgjHalbjahresuebersicht', $tblConsumerCertificate, false, true);
+        if ($tblCertificate){
+            if ($Data->getTblSchoolTypeBerufsgrundbildungsjahr()){
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
+            }
+            if (!$Data->getCertificateSubjectAll($tblCertificate)){
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'DE', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'MA', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'VBWL', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'GeSA', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'RE', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'INF', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'ETH', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'GE/GK', 1, $i++);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setBgjHjInfo(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Berufsgrundbildungsjahr Halbjahresinformation', '', 'HOGA\BgjHjInfo',
+            $tblConsumerCertificate, false, true, false, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeBerufsgrundbildungsjahr());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'DE', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'GE/GK', 2, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $i++);
+            }
+        }
     }
 
     /**
