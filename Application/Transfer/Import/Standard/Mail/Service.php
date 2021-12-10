@@ -121,7 +121,7 @@ class Service
                 $countMissingPersons = 0;
                 $countDuplicatePersons = 0;
                 $countAccounts = 0;
-                $countMissingAccounts = 0;
+//                $countMissingAccounts = 0;
                 $countMultipleAccounts = 0;
                 $countAddMail = 0;
 
@@ -201,15 +201,25 @@ class Service
                                                 . ' besitzt mehrere Benutzerkonten';
                                         }
                                     } else {
-                                        $countMissingAccounts++;
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
-                                            . ' besitzt kein Benutzerkonto';
+//                                        $countMissingAccounts++;
+//                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName
+//                                            . ' besitzt kein Benutzerkonto';
+
+                                        // Email-Adresse vormerken
+                                        $errorMessage = '';
+                                        if (Account::useService()->isUserAliasUnique($tblPerson, $mail, $errorMessage)) {
+                                            $addMail = true;
+                                            $personMailIsAccountAlias = $isAccountAlias;
+                                            $personMailIsRecoveryMail = $isAccountRecoveryMail;
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . $errorMessage;
+                                        }
                                     }
                                 } elseif ($isOnlyEmail) {
                                     $addMail = true;
                                 }
 
-                                if ($addMail && $tblPerson && !$isTest) {
+                                if ($addMail && !$isTest) {
                                     // alle Emailadressen der Person mit isAccountUserAlias zurücksetzen
                                     if ($isAccountAlias
                                         && (($tblMailToPersonList = MailAlias::useService()->getMailAllByPerson($tblPerson)))
@@ -264,7 +274,7 @@ class Service
                             ($countAddMail > 0 ? new Success('Es wurden ' . $countAddMail . ' Emailadressen erfolgreich angelegt') : '') .
                             ($countDuplicatePersons > 0 ? new Warning($countDuplicatePersons . ' Doppelte Personen gefunden') : '') .
                             ($countMissingPersons > 0 ? new Warning($countMissingPersons . ' Personen nicht gefunden') : '') .
-                            ($countMissingAccounts > 0 ? new Warning($countMissingAccounts . ' Benutzerkonten nicht gefunden') : '') .
+//                            ($countMissingAccounts > 0 ? new Warning($countMissingAccounts . ' Benutzerkonten nicht gefunden') : '') .
                             ($countMultipleAccounts > 0 ? new Warning($countMultipleAccounts . ' für Personen wurde mehrere Benutzerkonten gefunden') : '') .
                             (empty($error)
                                 ? ''
