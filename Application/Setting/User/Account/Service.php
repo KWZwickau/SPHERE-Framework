@@ -809,8 +809,8 @@ class Service extends AbstractService
                     }
                 }
 
-                // nur bei Schüler-Accounts den AccountAlias aus Schüler-Mails setzen
-                if ($AccountType == 'S') {
+//                // nur bei Schüler-Accounts den AccountAlias aus Schüler-Mails setzen
+//                if ($AccountType == 'S') {
                     if (($accountUserAlias = AccountGatekeeper::useService()->getAccountUserAliasFromMails($tblPerson))) {
                         $errorMessage = '';
                         if (!AccountGatekeeper::useService()->isUserAliasUnique($tblPerson, $accountUserAlias,
@@ -822,10 +822,10 @@ class Service extends AbstractService
                         }
                     }
                     $accountRecoveryMail = AccountGatekeeper::useService()->getAccountRecoveryMailFromMails($tblPerson);
-                } else {
-                    $accountUserAlias = false;
-                    $accountRecoveryMail = false;
-                }
+//                } else {
+//                    $accountUserAlias = false;
+//                    $accountRecoveryMail = false;
+//                }
 
                 $tblAccount = AccountGatekeeper::useService()->insertAccount($name, $password, null, $tblConsumer,
                     false, false, $accountUserAlias ? $accountUserAlias : null,
