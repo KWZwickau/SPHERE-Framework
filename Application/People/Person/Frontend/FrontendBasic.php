@@ -343,7 +343,7 @@ class FrontendBasic extends FrontendReadOnly
      */
     private function getBasicFormRow($isCreate)
     {
-        $tblSalutationAll = Person::useService()->getSalutationAll();
+        $tblSalutationAll = Person::useService()->getSalutationAll(true);
 
         $tblGroupList = Group::useService()->getGroupAllSorted();
         if ($tblGroupList) {
@@ -380,7 +380,7 @@ class FrontendBasic extends FrontendReadOnly
         $lastNameInput = (new TextField('Person[LastName]', 'Nachname', 'Nachname'))->setRequired()
             ->setTabIndex(3);
         $salutationSelectBox = (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-            new Conversation()))->setTabIndex(1);
+            new Conversation(), true, null))->setTabIndex(1);
         if ($isCreate) {
             $firstNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
             $lastNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());

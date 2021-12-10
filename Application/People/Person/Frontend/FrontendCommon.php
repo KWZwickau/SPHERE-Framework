@@ -319,8 +319,9 @@ class FrontendCommon extends FrontendReadOnly
         $global->POST['Meta']['BirthDates']['Gender'] = $GenderId;
         $global->savePost();
 
-        $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
+        $tblCommonGenderAll = Common::useService()->getCommonGenderAll(true);
 
-        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child());
+        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll)
+            , new Child(), true, null);
     }
 }

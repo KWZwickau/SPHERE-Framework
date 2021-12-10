@@ -70,10 +70,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isGenderSort
+     *
      * @return bool|TblSalutation[]
      */
-    public function getSalutationAll()
+    public function getSalutationAll(bool $isGenderSort = false)
     {
+
+        if($isGenderSort){
+            $tblSalutationAll = (new Data($this->getBinding()))->getSalutationAll();
+            $returnList = array();
+            foreach($tblSalutationAll as $tblSalutation){
+                if($tblSalutation->getSalutation() == TblSalutation::VALUE_WOMAN){
+                    $returnList[0] = $tblSalutation;
+                } elseif($tblSalutation->getSalutation() == TblSalutation::VALUE_MAN){
+                    $returnList[1] = $tblSalutation;
+                } elseif($tblSalutation->getSalutation() == TblSalutation::VALUE_STUDENT_FEMALE){
+                    $returnList[2] = $tblSalutation;
+                } elseif($tblSalutation->getSalutation() == TblSalutation::VALUE_STUDENT){
+                    $returnList[3] = $tblSalutation;
+                } else {
+                    $returnList[$tblSalutation->getId()] = $tblSalutation;
+                }
+            }
+            ksort($returnList);
+            return $returnList;
+        }
 
         return (new Data($this->getBinding()))->getSalutationAll();
     }
@@ -1008,6 +1030,15 @@ class Service extends AbstractService
             $genderSetting = false;
         }
 
+        if (isset($Data['S1']['Gender']) && isset($Data['S2']['Gender'])
+            && $Data['S1']['Gender'] == 0
+            && $Data['S2']['Gender'] == 0
+        ) {
+            $hasCustodiesGenders = false;
+        } else {
+            $hasCustodiesGenders = true;
+        }
+
         foreach($Data as $key => $person) {
             $type = substr($key, 0, 1);
 //            $ranking = substr($key, 1);
@@ -1071,22 +1102,32 @@ class Service extends AbstractService
                 if ($tblSalutation || $title || $firstName || $lastName || $birthName || $tblCommonGender) {
                     $isAdd = true;
                     $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorCustody);
-                    $this->setMessage($firstName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorCustody);
+                    $this->setMessage($lastName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorCustody);
                 }
 
                 if ($errorCustody) {
                     $hasErrors = true;
                 } elseif ($isAdd) {
-                    $rankingCustody = 3;
-                    // S1 ermitteln
-                    if ($tblCommonGender && $genderSetting && $tblCommonGender->getId() == $genderSetting->getId()
-                        && !$rankingCustodyList[1]
-                    ) {
-                        $rankingCustody = 1;
-                        $rankingCustodyList[1] = true;
-                    } elseif (!$rankingCustodyList[2]) {
-                        $rankingCustody = 2;
-                        $rankingCustodyList[2] = true;
+                    if ($hasCustodiesGenders) {
+                        $rankingCustody = 3;
+                        // S1 ermitteln
+                        if ($tblCommonGender && $genderSetting && $tblCommonGender->getId() == $genderSetting->getId()
+                            && !$rankingCustodyList[1]
+                        ) {
+                            $rankingCustody = 1;
+                            $rankingCustodyList[1] = true;
+                        } elseif (!$rankingCustodyList[2]) {
+                            $rankingCustody = 2;
+                            $rankingCustodyList[2] = true;
+                        }
+                    } else {
+                        if (!$rankingCustodyList[1]) {
+                            $rankingCustody = 1;
+                            $rankingCustodyList[1] = true;
+                        } else {
+                            $rankingCustody = 2;
+                            $rankingCustodyList[2] = true;
+                        }
                     }
 
                     $custodies[$key] = array(

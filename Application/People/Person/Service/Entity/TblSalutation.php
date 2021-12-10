@@ -19,6 +19,7 @@ class TblSalutation extends Element
     const VALUE_MAN = 'Herr';
     const VALUE_WOMAN = 'Frau';
     const VALUE_STUDENT = 'Schüler';
+    const VALUE_STUDENT_FEMALE = 'Schülerin';
 
     /**
      * @Column(type="string")
