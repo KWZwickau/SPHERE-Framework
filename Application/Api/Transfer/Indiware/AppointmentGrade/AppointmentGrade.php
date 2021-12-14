@@ -52,7 +52,7 @@ class AppointmentGrade implements IModuleInterface
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Stichtagsnoten"." Stichtag ".$tblTask->getDate().".csv")->__toString();
         }
-        return false;
+        return 'Die zu erzeugende CSV ist leer, eine Datei konnte nicht erstellt werden.';
 
 //        $Display = new Display();
 //        $Stage = new Stage('Notenexport für Indiware');

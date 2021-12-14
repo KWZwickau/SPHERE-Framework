@@ -2,11 +2,14 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
+use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -108,44 +111,47 @@ class StudentCourse extends Extension implements IFrontendInterface
 //        parent::registerModule();
     }
 
-    public function frontendStudentCoursePrepare()
+    /**
+     * @param string $SchoolTypeId
+     *
+     * @return Stage
+     */
+    public function frontendStudentCoursePrepare(string $SchoolTypeId = ''): Stage
     {
         $Stage = new Stage('Indiware', 'Datentransfer');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
-//        $tblYearAll = Term::useService()->getYearAll();
-        // get short list of years (year must have periods)
+
+        $YearId = null;
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            // Vorauswahl nur wenn das Jahr eindeutig ist
+            if(count($tblYearList) == 1){
+                $YearId = current($tblYearList)->getId();
+            }
+        }
+
+        $SchoolType = array();
+        $tblType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
+        $PreselectId = $tblType->getId();
+        $SchoolType[$tblType->getId()] = $tblType->getName();
+        $tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFLICHES_GYMNASIUM);
+        $SchoolType[$tblType->getId()] = $tblType->getName();
+        $ReceiverPeriod = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadPeriodSelect($PreselectId), 'Period');
+
+        if($SchoolTypeId !== null){
+            $Global = $this->getGlobal();
+            $Global->POST['tblYear'] = $YearId;
+            $Global->POST['SchoolTypeId'] = $PreselectId;
+            $Global->savePost();
+        }
+
         $tblYearAll = Term::useService()->getYearAllSinceYears(1);
         if (!$tblYearAll) {
             $tblYearAll = array();
         }
 
-//        // try to POST tblYear if YearByNow exist
-//        $tblYearList = Term::useService()->getYearByNow();
-//        if ($tblYearList) {
-//            $tblYear = false;
-//            // last Entity should be the first created year
-//            foreach ($tblYearList as $tblYearEntity) {
-//                $tblYear = $tblYearEntity;
-//            }
-//            if ($tblYear) {
-//                $Global = $this->getGlobal();
-//                $Global->POST['tblYear'] = $tblYear->getId();
-//                $Global->savePost();
-//            }
-//        }
-
         $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
-
-
-        $LevelList = array(
-            0 => '',
-            1 => 'Stufe 11 - 1.Halbjahr',
-            2 => 'Stufe 11 - 2.Halbjahr',
-            3 => 'Stufe 12 - 1.Halbjahr',
-            4 => 'Stufe 12 - 2.Halbjahr'
-        );
 
         $Stage->setContent(
             new Layout(
@@ -170,11 +176,10 @@ class StudentCourse extends Extension implements IFrontendInterface
                                                         array(
                                                             '{{ Year }} {{ Description }}' => $tblYearAll
                                                         )))->setRequired(),
-                                                    (new SelectBox('Level',
-                                                        'Importauswahl '.new ToolTip(new InfoIcon(),
-                                                            'Weche Werte sollen importiert werden'),
-                                                        $LevelList
-                                                    ))->setRequired(),
+                                                    (new SelectBox('SchoolTypeId', 'Schulart', $SchoolType, null, false, null))
+                                                        ->ajaxPipelineOnChange(ApiAppointmentGrade::pipelineCreatePeriodSelect($ReceiverPeriod))
+                                                        ->setRequired(),
+                                                    $ReceiverPeriod,
                                                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
                                                         .new ToolTip(new InfoIcon(), 'Schueler.csv'), null,
                                                         array('showPreview' => false)))->setRequired()
@@ -197,15 +202,17 @@ class StudentCourse extends Extension implements IFrontendInterface
     /**
      * @param null|UploadedFile $File
      * @param null|int          $tblYear
-     * @param null              $Level
+     * @param null|int          $Period
+     * @param null|int          $SchoolTypeId
      *
      * @return Stage|string
      */
     public function frontendStudentCourseUpload(
         UploadedFile $File = null,
-        $tblYear = null,
-        $Level = null
-    ) {
+        int $tblYear = null,
+        int $Period = null,
+        int $SchoolTypeId = null
+    ): string {
 
         $Stage = new Stage('Indiware', 'Daten importieren');
         $Stage->setMessage('Schüler-Kurse SEK II  importieren');
@@ -217,17 +224,17 @@ class StudentCourse extends Extension implements IFrontendInterface
                     : new WarningMessage('Bitte geben sie die Datei an.'))
                 .new Redirect(new Route(__NAMESPACE__.'/StudentCourse/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear,
-                    'Level'   => $Level
+                    'Level'   => $Period
                 ))
             );
             return $Stage;
         }
-        if ($Level == 0) {
+        if ($Period == 0) {
             $Stage->setContent(
                 new WarningMessage('Bitte geben Sie den zu importierenden Abschnitt "Importauswahl" an')
                 .new Redirect(new Route(__NAMESPACE__.'/StudentCourse/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear,
-                    'Level'   => $Level
+                    'Period'   => $Period
                 ))
             );
             return $Stage;
@@ -297,16 +304,28 @@ class StudentCourse extends Extension implements IFrontendInterface
 //            return $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Success('Datei Stimmt'));
 
             // add import
-            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level, $Control);
+            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Period, $Control);
 
             $ImportList = $Gateway->getImportList();
             $tblAccount = Account::useService()->getAccountBySession();
 
+            // switch start year
+            $Grade = 11;
+            if(($TblType = Type::useService()->getTypeById($SchoolTypeId))
+                && $TblType->getName() == 'Berufliches Gymnasium'){
+                $Grade = 12;
+            }
+
             $LevelString = false;
-            if ($Level == 1 || $Level == 2) {
-                $LevelString = '11';
-            } elseif ($Level == 3 || $Level == 4) {
-                $LevelString = '12';
+            switch ($Period) {
+                case 1:
+                case 2:
+                    $LevelString = $Grade;
+                    break;
+                case 3:
+                case 4:
+                $LevelString = ++$Grade;
+                    break;
             }
 
             if ($ImportList && $tblYear && $tblAccount && $LevelString) {
@@ -861,7 +880,7 @@ class StudentCourse extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendStudentCourseDestroy($Confirm = false)
+    public function frontendStudentCourseDestroy(bool $Confirm = false): string
     {
 
         $Stage = new Stage('Importvorbereitung', 'Leeren');
@@ -892,18 +911,22 @@ class StudentCourse extends Extension implements IFrontendInterface
             );
         } else {
 
+
+            if(Import::useService()->destroyIndiwareImportStudentAll()){
+                $Message = new SuccessMessage('Der Import ist nun leer')
+                    .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_SUCCESS);
+            } else {
+                $Message = new WarningMessage('Der Import konnte nicht vollständig gelöscht werden')
+                    .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_ERROR);
+            }
+
             // Destroy Basket
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
-                            (Import::useService()->destroyIndiwareImportStudentAll()
-                                ? new SuccessMessage('Der Import ist nun leer')
-                                .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_SUCCESS)
-                                : new WarningMessage('Der Import konnte nicht vollständig gelöscht werden')
-                                .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_ERROR)
-                            )
-                        )))
+                        new LayoutRow(new LayoutColumn(
+                            $Message
+                        ))
                     ))
                 )
             );
