@@ -380,6 +380,150 @@ class Frontend extends Extension implements IFrontendInterface
 //                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
                 );
+            } elseif (preg_match('!Berufliches Gymnasium!', $tblCertificate->getName())) {
+
+                // Fach-Noten-Definition
+                $tblSubjectAll = Subject::useService()->getSubjectAll();
+                $chosenSubject = 20;
+
+                // Pflichtbereich
+                $SubjectLaneAcrossLeft = array();
+                $SubjectLaneAcrossRight = array();
+                for ($Run = 1; $Run < $chosenSubject; $Run++) {
+                    array_push($SubjectLaneAcrossLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneAcrossRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                // Wahlbereich
+                $SubjectLaneChosenLeft = array();
+                $SubjectLaneChosenRight = array();
+                for ($Run = $chosenSubject; $Run <= $chosenSubject + 6; $Run++) {
+                    array_push($SubjectLaneChosenLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneChosenRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                $Stage->setContent(
+                    new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
+                    , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
+                        Panel::PANEL_TYPE_INFO)
+                    . ($loadStandardFromNoConsumer && $tblTechnicalCourse
+                        ? new Warning('Es wurden die Fächereinstellungen von ohne "Bildungsgang / Berufsbezeichnung / Ausbildung" 
+                            voreingetragen. Bitte Speichern Sie diese Fächereinstellung am Ende der Seite (unten) um die
+                            Fächereinstellung für: ' . $tblTechnicalCourse->getName() . ' zu übernehmen.')
+                        : ''
+                    )
+                    . Generator::useService()->createCertificateSetting(
+                        new Form(array(
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneAcrossLeft, 6),
+                                    new FormColumn($SubjectLaneAcrossRight, 6),
+                                )),
+                            ), new FormTitle('Pflichtbereich')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneChosenLeft, 6),
+                                    new FormColumn($SubjectLaneChosenRight, 6),
+                                )),
+                            ), new FormTitle('Wahlbereich')),
+                        ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
+                );
+            } elseif ($tblCertificate->getCertificate() == @'HOGA\BgjAbs' || $tblCertificate->getCertificate() == @'HOGA\BgjHjInfo') {
+                $tblTechnicalCourse = null;
+                // Fach-Noten-Definition
+                $tblSubjectAll = Subject::useService()->getSubjectAll();
+
+                $haveToAcrossSubject = 4;
+                $haveToBaseSubject = 10;
+                $chosenSubject = 15;
+
+                // Berufsübergreifender Bereich
+                $SubjectLaneAcrossLeft = array();
+                $SubjectLaneAcrossRight = array();
+                for ($Run = 1; $Run <= $haveToAcrossSubject; $Run++) {
+                    array_push($SubjectLaneAcrossLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneAcrossRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                // Berufsbezogener Bereich - fachtheoretischer Unterricht
+                $SubjectLaneBaseLeft = array();
+                $SubjectLaneBaseRight = array();
+                $countLF = 1;
+                for ($Run = ($haveToAcrossSubject + 1); $Run <= $haveToBaseSubject; $Run++) {
+                    array_push($SubjectLaneBaseLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', 'LF'.$countLF++,
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneBaseRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', 'LF'.$countLF++,
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                // Berufsbezogener Bereich – fachpraktischer Unterricht
+                $SubjectLaneChosenLeft = array();
+                $SubjectLaneChosenRight = array();
+                for ($Run = ($haveToBaseSubject + 1); $Run <= $chosenSubject; $Run++) {
+                    array_push($SubjectLaneChosenLeft,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                    array_push($SubjectLaneChosenRight,
+                        $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                            $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                    );
+                }
+
+                $Stage->setContent(
+                    new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
+                    , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
+                        Panel::PANEL_TYPE_INFO)
+                    . ($loadStandardFromNoConsumer && $tblTechnicalCourse
+                        ? new Warning('Es wurden die Fächereinstellungen von ohne "Bildungsgang / Berufsbezeichnung / Ausbildung" 
+                            voreingetragen. Bitte Speichern Sie diese Fächereinstellung am Ende der Seite (unten) um die
+                            Fächereinstellung für: ' . $tblTechnicalCourse->getName() . ' zu übernehmen.')
+                        : ''
+                    )
+                    . Generator::useService()->createCertificateSetting(
+                        new Form(array(
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneAcrossLeft, 6),
+                                    new FormColumn($SubjectLaneAcrossRight, 6),
+                                )),
+                            ), new FormTitle('Pflicht Berufsübergreifender Bereich')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneBaseLeft, 6),
+                                    new FormColumn($SubjectLaneBaseRight, 6),
+                                )),
+                            ), new FormTitle('Pflicht Berufsbezogener Bereich - fachtheoretischer Unterricht (LF Reihenfolge Links -> Rechts)')),
+                            new FormGroup(array(
+                                new FormRow(array(
+                                    new FormColumn($SubjectLaneChosenLeft, 6),
+                                    new FormColumn($SubjectLaneChosenRight, 6),
+                                )),
+                            ), new FormTitle('Pflicht Berufsbezogener Bereich - fachpraktischer Unterricht (LF Reihenfolge Links -> Rechts)')),
+                        ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
+                );
             } else {
 
                 // Kopf-Noten-Definition
@@ -395,6 +539,9 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     if ($tblSubjectAll) {
                         $LaneLength = ceil(count($tblSubjectAll) / 2);
+                        if ($LaneLength > 25) {
+                            $LaneLength = 25;
+                        }
                     } else {
                         $LaneLength = 2;
                     }

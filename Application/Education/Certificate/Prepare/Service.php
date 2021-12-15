@@ -654,6 +654,10 @@ class Service extends AbstractService
                                 && method_exists($Certificate, 'selectValuesType')
                             ) {
                                 $value = $Certificate->selectValuesType()[$value];
+                            } elseif ($field == 'Success'
+                                && method_exists($Certificate, 'selectValuesSuccess')
+                            ) {
+                                $value = $Certificate->selectValuesSuccess()[$value];
                             } elseif ($field == 'Transfer'
                                 && method_exists($Certificate, 'selectValuesTransfer')
                             ) {
@@ -818,15 +822,13 @@ class Service extends AbstractService
         }
 
         // Company
-        $tblCompany = false;
+        $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision ? $tblDivision : null);
         if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
             && $tblStudent
         ) {
             $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                 $tblTransferType);
             if ($tblStudentTransfer) {
-                $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision ? $tblDivision : null);
-
                 // Abschluss (Bildungsgang)
                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                 if ($tblCourse) {
@@ -1281,6 +1283,8 @@ class Service extends AbstractService
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                     && $tblSchoolType->getName() != 'Fachschule'
                     && $tblSchoolType->getName() != 'Berufsfachschule'
+                    && $tblSchoolType->getName() != 'Berufsgrundbildungsjahr'
+                    && $tblSchoolType->getName() != 'Fachoberschule'
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
@@ -2116,6 +2120,10 @@ class Service extends AbstractService
                     && method_exists($Certificate, 'selectValuesType')
                 ) {
                     $value = $Certificate->selectValuesType()[$value];
+                } elseif ($field == 'Success'
+                    && method_exists($Certificate, 'selectValuesSuccess')
+                ) {
+                    $value = $Certificate->selectValuesSuccess()[$value];
                 } elseif ($field == 'Transfer'
                     && method_exists($Certificate, 'selectValuesTransfer')
                 ) {
@@ -5266,6 +5274,10 @@ class Service extends AbstractService
                             && method_exists($Certificate, 'selectValuesType')
                         ) {
                             $value = $Certificate->selectValuesType()[$value];
+                        } elseif ($field == 'Success'
+                            && method_exists($Certificate, 'selectValuesSuccess')
+                        ) {
+                            $value = $Certificate->selectValuesSuccess()[$value];
                         } elseif ($field == 'Transfer'
                             && method_exists($Certificate, 'selectValuesTransfer')
                         ) {
