@@ -1015,16 +1015,41 @@ class Creator extends Extension
         return "Kein Benutzerkonto vorhanden!";
     }
 
-
-    public static function createManualIndiwarePdf()
+    /**
+     * @param string $Select Help|UserRole|Billing|Indiware|PrintA3Certificate
+     */
+    public static function createManualPdf(string $Select = '')
     {
-        $file = "Common/Style/Resource/Document/Manual/Indiware.pdf";
-        header("Content-Type: application/pdf");
-        header("Content-Disposition: attachment; filename=Indiware.pdf");
-        header("Content-Length: ". filesize($file));
+
+        if($Select == 'Help'){
+            $file = "Common/Style/Resource/Document/Manual/SSWHelp.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_25.11.2021.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'UserRole') {
+            $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'Billing') {
+            $file = "Common/Style/Resource/Document/Manual/AnleitungFakturierung.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Anleitung_Fakturierung_14.12.2021.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'Indiware') {
+            $file = "Common/Style/Resource/Document/Manual/Indiware.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Indiware.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'PrintA3Certificate') {
+            $file = "Common/Style/Resource/Document/Manual/SSWPrintA3Certificate.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Zeugnisdruck_A3.pdf");
+            header("Content-Length: ".filesize($file));
+        }
+
         readfile($file);
     }
-
     /**
      * @param string $DivisionId
      * @param bool $Redirect

@@ -118,8 +118,8 @@ class Import extends Extension implements IModuleInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new External('Download der Anleitung für den Export der Lehraufträge aus Indiware',
-                                '/Api/Document/Standard/Manual/Indiware/Create',
-                                new Download(), array(), false)
+                                '/Api/Document/Standard/Manual/Create/Pdf',
+                                new Download(), array('Select' => 'Billing'), false)
                         )
                     ),
                     new LayoutRow(

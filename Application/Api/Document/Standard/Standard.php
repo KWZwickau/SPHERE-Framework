@@ -67,8 +67,11 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__.'/Account/Create', 'SPHERE\Application\Api\Document\Creator::createAccountPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Manual/Indiware/Create', 'SPHERE\Application\Api\Document\Creator::createManualIndiwarePdf'
+            __NAMESPACE__.'/Manual/Create/Pdf', 'SPHERE\Application\Api\Document\Creator::createManualPdf'
         ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Manual/Create/xlsx', 'SPHERE\Application\Api\Document\Creator::createManualExcel'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/EnrollmentDocument/CreateMulti', __CLASS__ . '::createEnrollmentDocumentMultiPdf'
         ));

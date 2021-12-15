@@ -248,7 +248,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Gateway = new AppointmentGradeGateway($Payload->getRealPath(), $Control);
 
             $ImportList = $Gateway->getImportList();
-            if ($ImportList) {
+            if (!empty($ImportList)) {
                 AppointmentGrade::useService()->createIndiwareStudentSubjectOrderBulk($ImportList, $Period, $tblTask);
             }
 
