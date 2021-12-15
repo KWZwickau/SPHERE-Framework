@@ -142,6 +142,7 @@ class Service extends AbstractService
         if (!$tblTask) {
             return false;
         }
+
         $PeopleGradeList = array();
         $tblTestList = Evaluation::useService()->getTestAllByTask($tblTask);
         if ($tblTestList) {
@@ -278,7 +279,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function createIndiwareStudentSubjectOrderBulk(array $ImportList, int $Period, TblTask $tblTask): bool
+    public function createIndiwareStudentSubjectOrderBulk($ImportList, $Period, TblTask $tblTask)
     {
 
         return (new Data($this->getBinding()))->createIndiwareStudentSubjectOrderBulk($ImportList, $Period, $tblTask);

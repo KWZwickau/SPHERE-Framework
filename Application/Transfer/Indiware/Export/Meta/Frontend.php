@@ -27,7 +27,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendPrepare()
+    public function frontendPrepare(): Stage
     {
         $Stage = new Stage('Indiware', 'Datentransfer');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Export', new ChevronLeft()));
@@ -41,7 +41,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $currentList = Division::useService()->getDivisionAllByYear($tblYear);
                 if($currentList){
                     foreach($currentList as $current){
-                        if($current->getTypeName() == 'Gymnasium'){
+                        if($current->getTypeName() == 'Gymnasium'
+                        || $current->getTypeName() == 'Berufliches Gymnasium'
+                        ){
                             $tblDivisionList[] = $current;
                         }
                     }

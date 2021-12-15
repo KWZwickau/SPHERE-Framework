@@ -179,7 +179,6 @@ class Frontend extends Extension
             $Form = null;
         }
 
-        // ToDO
         $Stage->setContent(
             new Layout(array(
                     new LayoutGroup(array(
@@ -447,6 +446,13 @@ class Frontend extends Extension
                                     } elseif ($type->getName() == 'Berufsfachschule') {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     } elseif ($type->getName() == 'Fachschule') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Berufsgrundbildungsjahr') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Fachoberschule'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && $tblLevel->getName() == '12'
+                                    ) {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     }
                                 } elseif ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {

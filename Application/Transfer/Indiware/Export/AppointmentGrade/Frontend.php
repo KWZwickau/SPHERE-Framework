@@ -7,6 +7,8 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Entity\TblIndiwareStudentSubjectOrder;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
@@ -56,19 +58,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendAppointmentGradePrepare()
+    public function frontendAppointmentGradePrepare(): Stage
     {
         $Stage = new Stage('Indiware', 'Datentransfer');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Export', new ChevronLeft()));
         $Stage->setMessage('Exportvorbereitung / Daten exportieren');
-
-        $PeriodList = array(
-            0 => '',
-            1 => 'Stufe 11 - 1.Halbjahr',
-            2 => 'Stufe 11 - 2.Halbjahr',
-            3 => 'Stufe 12 - 1.Halbjahr',
-            4 => 'Stufe 12 - 2.Halbjahr'
-        );
 
         $YearId = null;
         if(($tblYearList = Term::useService()->getYearByNow())){
@@ -78,14 +72,25 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $SchoolType = array();
+        $tblType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
+        $PreselectId = $tblType->getId();
+        $SchoolType[$tblType->getId()] = $tblType->getName();
+        $tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFLICHES_GYMNASIUM);
+        $SchoolType[$tblType->getId()] = $tblType->getName();
+
         if($YearId !== null){
             $Global = $this->getGlobal();
             $Global->POST['YearId'] = $YearId;
+            $Global->POST['SchoolTypeId'] = $PreselectId;
             $Global->savePost();
         }
 
         // Vorladen der Selectbox mit Notenaufträgen des aktuellen Schuljahres
-        $Receiver = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId));
+        $ReceiverAppointmentTask = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId), 'AppointmentTask');
+        $ReceiverPeriod = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadPeriodSelect($PreselectId), 'Period');
+
+
 
         // Anzeige nur für alle aktuellen Jahre + das letzte Schuljahr
         $tblYearList = Term::useService()->getYearAllSinceYears(1);
@@ -105,13 +110,19 @@ class Frontend extends Extension implements IFrontendInterface
                                                         'Auswahl Schuljahr '.new ToolTip(new InfoIcon(),
                                                             'Auswahl der Notenaufträge wird nach der Selektion geladen.'),
                                                         array('{{ Name }} {{ Description }}' => $tblYearList)
-                                                    ))->ajaxPipelineOnChange(ApiAppointmentGrade::pipelineCreateTaskSelect($Receiver)),
-                                                    $Receiver,
-                                                    (new SelectBox('Period',
-                                                        'Auswahl Schulhalbjahr '.new ToolTip(new InfoIcon(),
-                                                            'Indiware benötigt diese Information um den Export zuweisen zu können'),
-                                                        $PeriodList
-                                                    ))->setRequired(),
+                                                    ))
+                                                        ->ajaxPipelineOnChange(ApiAppointmentGrade::pipelineCreateTaskSelect($ReceiverAppointmentTask))
+                                                        ->setRequired(),
+                                                    $ReceiverAppointmentTask,
+                                                    (new SelectBox('SchoolTypeId', 'Schulart', $SchoolType, null, false, null))
+                                                        ->ajaxPipelineOnChange(ApiAppointmentGrade::pipelineCreatePeriodSelect($ReceiverPeriod))
+                                                        ->setRequired(),
+                                                    $ReceiverPeriod,
+//                                                    (new SelectBox('Period',
+//                                                        'Auswahl Schulhalbjahr '.new ToolTip(new InfoIcon(),
+//                                                            'Indiware benötigt diese Information um den Export zuweisen zu können'),
+//                                                        $PeriodList
+//                                                    ))->setRequired(),
                                                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
                                                         .new ToolTip(new InfoIcon(), 'Schueler.csv'), null,
                                                         array('showPreview' => false)))->setRequired()
@@ -145,19 +156,21 @@ class Frontend extends Extension implements IFrontendInterface
      * @param UploadedFile|null $File
      * @param int|null          $Period
      * @param int|null          $TaskId
+     * @param int|null          $SchoolTypeId
      *
      * @return Stage|string
      */
     public function frontendAppointmentGradeUpload(
         UploadedFile $File = null,
-        $Period = null,
-        $TaskId = null
-    ) {
+        int $Period = null,
+        int $TaskId = null,
+        int $SchoolTypeId = null
+    ): string {
 
         $Stage = new Stage('Indiware', 'Daten Export');
         $Stage->setMessage('Schüler-Fächer-Reihenfolge SEK II importieren');
 
-        if ($TaskId === null || $TaskId == 0) {
+        if ($TaskId == null || $TaskId == 0) {
             $Stage->setContent(
                 new WarningMessage('Bitte wählen Sie einen Notenauftrag aus')
                 .new Redirect(new Route(__NAMESPACE__.'/Prepare'), Redirect::TIMEOUT_ERROR, array(
@@ -221,7 +234,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $DifferenceList = $Control->getDifferenceList();
                 if (!empty($DifferenceList)) {
 
-                    foreach ($DifferenceList as $Column => $Value) {
+                    foreach ($DifferenceList as $Value) {
                         $LayoutColumnList[] = new LayoutColumn(new Panel('Fehlende Spalte', $Value,
                             Panel::PANEL_TYPE_DANGER), 3);
                     }
@@ -230,7 +243,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/Prepare', new ChevronLeft(),
                     array(
                         'TaskId' => $TaskId,
-                        'Period' => $Period
+                        'Period' => $Period,
+                        'SchoolTypeId' => $SchoolTypeId
                     )));
                 $Stage->setContent(
                     new Layout(
@@ -248,7 +262,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Gateway = new AppointmentGradeGateway($Payload->getRealPath(), $Control);
 
             $ImportList = $Gateway->getImportList();
-            if (!empty($ImportList)) {
+            if(!empty($ImportList)){
                 AppointmentGrade::useService()->createIndiwareStudentSubjectOrderBulk($ImportList, $Period, $tblTask);
             }
 
@@ -258,13 +272,15 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage->setContent(new SuccessMessage('Reihenfolge erfolgreich aufgenommen. Weiterleitung erfolgt.'))
-            .new Redirect('/Transfer/Indiware/Export/AppointmentGrade', Redirect::TIMEOUT_SUCCESS);
+            .new Redirect('/Transfer/Indiware/Export/AppointmentGrade', Redirect::TIMEOUT_SUCCESS, array('SchoolTypeId' => $SchoolTypeId));
     }
 
     /**
+     * @param string|null $SchoolTypeId
+     *
      * @return Stage
      */
-    public function frontendExport()
+    public function frontendExport(string $SchoolTypeId = null): Stage
     {
 
         $Stage = new Stage('Export', 'Stichtagsnoten eines Halbjahres');
@@ -349,19 +365,26 @@ class Frontend extends Extension implements IFrontendInterface
             $MissingDownloadInfo = new WarningMessage('Download nicht möglich: Keine Personen im ausgewähltem Notenauftrag');
         }
 
+        // switch start year
+        $Grade = 11;
+        if(($TblType = Type::useService()->getTypeById($SchoolTypeId))
+            && $TblType->getName() == 'Berufliches Gymnasium'){
+            $Grade = 12;
+        }
+
         $PeriodString = '---';
         switch ($SelectPeriod) {
             case 1:
-                $PeriodString = new Bold('Stufe 11 1. Halbjahr');
+                $PeriodString = new Bold('Stufe '.$Grade.' 1. Halbjahr');
                 break;
             case 2:
-                $PeriodString = new Bold('Stufe 11 2. Halbjahr');
+                $PeriodString = new Bold('Stufe '.$Grade.' 2. Halbjahr');
                 break;
             case 3:
-                $PeriodString = new Bold('Stufe 12 1. Halbjahr');
+                $PeriodString = new Bold('Stufe '.++$Grade.' 1. Halbjahr');
                 break;
             case 4:
-                $PeriodString = new Bold('Stufe 12 2. Halbjahr');
+                $PeriodString = new Bold('Stufe '.++$Grade.' 2. Halbjahr');
                 break;
         }
 
@@ -412,7 +435,10 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendMissExport()
+    /**
+     * @return Stage
+     */
+    public function frontendMissExport(): Stage
     {
 
         $Stage = new Stage('Export CSV', 'Fehler');

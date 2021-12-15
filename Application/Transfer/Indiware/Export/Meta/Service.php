@@ -66,6 +66,7 @@ class Service extends AbstractService
             $fileLocation = Storage::createFilePointer('csv');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setDelimiter(';');
 
             $export->setValue($export->getCell("0", "0"), "Name");
             $export->setValue($export->getCell("1", "0"), "Vorname");
