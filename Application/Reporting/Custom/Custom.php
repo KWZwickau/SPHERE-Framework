@@ -12,6 +12,7 @@ use SPHERE\Application\Reporting\Custom\Schneeberg\Person\Person as SchneebergPe
 use SPHERE\Application\Reporting\Custom\Radebeul\Person\Person as RadebeulPerson;
 use SPHERE\Application\Reporting\Custom\BadDueben\Person\Person as BadDuebenPerson;
 use SPHERE\Application\Reporting\Custom\Annaberg\Person\Person as AnnabergPerson;
+use SPHERE\Application\Reporting\Custom\Gersdorf\Person\Person as GersdorfPerson;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -63,6 +64,10 @@ class Custom implements IApplicationInterface
         // Annaberg
         if ($consumerAcronym === 'EGE') {
             AnnabergPerson::registerModule();
+        }
+        // Gersdorf
+        if ($consumerAcronym === 'EVOSG') {
+            GersdorfPerson::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

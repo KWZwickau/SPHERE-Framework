@@ -179,6 +179,29 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'\Annaberg\Common::downloadPrintClassList'
             ));
         }
+
+
+        /*
+         * Gersdorf
+         */
+        if ($consumerAcronym === 'EVOSG') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/ClassList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadClassList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/SignList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadSignList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/ElectiveClassList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadElectiveClassList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/ClassPhoneList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadClassPhoneList'
+            ));
+        }
     }
 
     /**
