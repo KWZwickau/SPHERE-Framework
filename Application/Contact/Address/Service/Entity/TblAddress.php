@@ -118,7 +118,9 @@ class TblAddress extends Element
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
                         .($Extended
-                            ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
+                            ? ($this->getLocation()
+                                ? ' ('.$this->getLocation().')'
+                                : '')
                             : ''
                         );
                     break;
@@ -130,7 +132,9 @@ class TblAddress extends Element
                         .', '.$this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
                         .($Extended
-                            ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
+                            ? ($this->getLocation()
+                                ? ' ('.$this->getLocation().')'
+                                : '')
                             : ''
                         );
                     break;
@@ -141,7 +145,12 @@ class TblAddress extends Element
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
-                        .($this->getLocation() ? ' ('.$this->getLocation().')' : '');
+                        .($Extended
+                            ?($this->getLocation()
+                                ? ' ('.$this->getLocation().')'
+                                : '')
+                            : ''
+                        );
             }
             $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
         }

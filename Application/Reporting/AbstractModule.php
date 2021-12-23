@@ -89,6 +89,28 @@ abstract class AbstractModule implements IModuleInterface
      *
      * @return int
      */
+    static public function countDiversGenderByPersonList($tblPersonList)
+    {
+        // Divers
+        return self::countGender($tblPersonList, 3);
+    }
+
+    /**
+     * @param TblPerson[] $tblPersonList
+     *
+     * @return int
+     */
+    static public function countOtherGenderByPersonList($tblPersonList)
+    {
+        // Other
+        return self::countGender($tblPersonList, 4);
+    }
+
+    /**
+     * @param TblPerson[] $tblPersonList
+     *
+     * @return int
+     */
     static public function countMissingGenderByPersonList($tblPersonList)
     {
 
