@@ -29,7 +29,7 @@ class EsbdMsHjFsGeistigeEntwicklung extends EsbdStyle
         ));
 
         $pageList[] = $certificate->getPageOne($personId, 'Halbjahreszeugnis der Oberschule', true);
-        $pageList[] = $certificate->getPageTwo($personId);
+//        $pageList[] = $certificate->getPageTwo($personId);
 
         return $pageList;
     }
