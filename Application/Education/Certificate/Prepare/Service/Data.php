@@ -1353,6 +1353,7 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param bool $isForced
      *
      * @return false|TblPrepareAdditionalGrade
      */
@@ -1360,20 +1361,35 @@ class Data extends AbstractData
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         TblSubject $tblSubject,
-        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        bool $isForced = false
     ) {
 
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
-            array(
-                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
-                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
-            )
-        );
+        if ($isForced) {
+            return $this->getForceEntityBy(
+                __METHOD__,
+                $this->getEntityManager(),
+                'TblPrepareAdditionalGrade',
+                array(
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityBy(
+                __METHOD__,
+                $this->getEntityManager(),
+                'TblPrepareAdditionalGrade',
+                array(
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+                )
+            );
+        }
     }
 
     /**
