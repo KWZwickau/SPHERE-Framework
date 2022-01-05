@@ -478,7 +478,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($Filter) {
-            $YearList = Invoice::useService()->getYearList(2, 1);
+            $YearList = Invoice::useService()->getYearList(3, 1);
             $MonthList = Invoice::useService()->getMonthList();
             $tblItemAll = Item::useService()->getItemAll();
 
