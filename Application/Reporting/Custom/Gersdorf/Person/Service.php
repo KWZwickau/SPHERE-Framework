@@ -155,16 +155,8 @@ class Service extends Extension
 
                 // react for font size
                 $AddressLength = strlen($PersonData['Address']);
-                if($AddressLength > 33){
-                    if($AddressLength > 40){
-                        $export->setStyle($export->getCell($i, $Row))->setFontSize(6);
-                    } else {
-                        $export->setStyle($export->getCell($i, $Row))->setFontSize(8);
-                    }
-                }
-                $AddressLength = strlen($PersonData['Address']);
-                if($AddressLength > 33){
-                    if($AddressLength > 40){
+                if($AddressLength > 30){
+                    if($AddressLength > 39){
                         $export->setStyle($export->getCell($i, $Row))->setFontSize(6);
                     } else {
                         $export->setStyle($export->getCell($i, $Row))->setFontSize(8);

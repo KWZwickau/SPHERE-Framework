@@ -65,8 +65,8 @@ class Custom implements IApplicationInterface
         if ($consumerAcronym === 'EGE') {
             AnnabergPerson::registerModule();
         }
-        // Gersdorf
-        if ($consumerAcronym === 'EVOSG') {
+        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
+        if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
             GersdorfPerson::registerModule();
         }
 

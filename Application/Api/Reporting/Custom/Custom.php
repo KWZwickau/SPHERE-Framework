@@ -181,10 +181,11 @@ class Custom implements IModuleInterface
         }
 
 
+        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
         /*
          * Gersdorf
          */
-        if ($consumerAcronym === 'EVOSG') {
+        if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Gersdorf/Common/ClassList/Download',
                 __NAMESPACE__.'\Gersdorf\Common::downloadClassList'

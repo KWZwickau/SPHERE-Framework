@@ -380,7 +380,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'Wahlfächer in Klassenlisten');
         if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/ElectiveClassList',
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Gersdorf/Person/ElectiveList',
                 new ChevronLeft()));
         }
         $tblDivisionAll = Division::useService()->getDivisionAll();
