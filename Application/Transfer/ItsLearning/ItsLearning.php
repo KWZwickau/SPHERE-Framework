@@ -51,7 +51,7 @@ class ItsLearning implements IApplicationInterface
      */
     public function frontendDashboard()
     {
-        $Stage = new Stage('Indiware', 'Datentransfer');
+        $Stage = new Stage('ItsLearning', 'Datentransfer');
         $Stage->addButton(new Standard('Zurück', '/Transfer', new ChevronLeft()));
 
         return $Stage;
