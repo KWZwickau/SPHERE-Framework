@@ -525,12 +525,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $AccordionCreate = new Accordion();
-        $AccordionCreate->addItem('Benutzer für UCS anlegen ('.$count['create'].')',
-            new Listing($ContentCreate)
-        );
         $AccordionCreate->addItem('Benutzer die nicht in UCS angelegt werden können ('.$count['cantCreate'].')',
             '<br/><br/>'.
             new Listing($CantCreatePanelContent)
+        );
+        $AccordionCreate->addItem('Benutzer für UCS anlegen ('.$count['create'].')',
+            new Listing($ContentCreate)
         );
 
         $AccordionDelete = new Accordion();
@@ -595,8 +595,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new SuccessText('('.$count['create'].') Benutzer für UCS anlegen').'<br/>'.
-                                    new SuccessText('('.$count['cantCreate'].') Benutzer, die nicht angelegt werden können')
+                                    new SuccessText('('.$count['cantCreate'].') Benutzer, die nicht angelegt werden können').'<br/>'.
+                                    new SuccessText('('.$count['create'].') Benutzer für UCS anlegen')
                                 , 3),
                                 new LayoutColumn(
                                     new DangerText('('.$count['delete'].') Benutzer in UCS entfernen')

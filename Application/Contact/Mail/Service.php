@@ -12,6 +12,7 @@ use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -410,41 +411,47 @@ class Service extends AbstractService
         if (($tblPerson = $tblToPerson->getServiceTblPerson())
             && ($tblType = $this->getTypeById($Type['Type']))
         ) {
-            if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
-                $tblAccount = false;
-//                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
-                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
-                    if (count($tblAccountList) > 1) {
-                        return false;
-                    } else {
-                        $tblAccount = current($tblAccountList);
-                    }
-                }
 
+            if ($IsAccountUserAlias){
                 $errorMessage = '';
-                if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
+                if(!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)){
                     return false;
                 }
+            }
 
-                if ($tblAccount) {
-                    if($IsAccountUserAlias){
-                        Account::useService()->changeUserAlias($tblAccount, $Address);
-                        $this->resetMailWithUserAlias($tblPerson, $tblToPerson);
-                    } else {
-                        if ($tblToPerson->isAccountUserAlias()) {
-                            Account::useService()->changeUserAlias($tblAccount, '');
-                        }
+            /** @var TblAccount $tblAccount */
+            $tblAccount = false;
+//                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                if (count($tblAccountList) > 1) {
+                    return false;
+                } else {
+                    $tblAccount = current($tblAccountList);
+                }
+            }
+
+            if ($tblAccount) {
+                if($IsAccountUserAlias){
+                    Account::useService()->changeUserAlias($tblAccount, $Address);
+                    $this->resetMailWithUserAlias($tblPerson, $tblToPerson);
+                } else {
+                    // Entfernen vorhandener Einträge am Benutzeraccount Wenn E-Mail vergeben ist
+                    if($tblAccount->getUserAlias() == $Address){
+                        Account::useService()->changeUserAlias($tblAccount, '');
                     }
-                    if($IsAccountRecoveryMail){
-                        Account::useService()->changeRecoveryMail($tblAccount, $Address);
-                        $this->resetMailWithRecoveryMail($tblPerson, $tblToPerson);
-                    } else {
-                        if ($tblToPerson->isAccountRecoveryMail()) {
-                            Account::useService()->changeRecoveryMail($tblAccount, '');
-                        }
+                }
+                if($IsAccountRecoveryMail){
+                    Account::useService()->changeRecoveryMail($tblAccount, $Address);
+                    $this->resetMailWithRecoveryMail($tblPerson, $tblToPerson);
+                } else {
+                    // Entfernen vorhandener Einträge am Benutzeraccount Wenn E-Mail vergeben ist
+                    if($tblAccount->getRecoveryMail() == $Address){
+                        Account::useService()->changeRecoveryMail($tblAccount, '');
                     }
                 }
             }
+
+
 
             // update
             if ((new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,

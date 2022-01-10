@@ -23,6 +23,7 @@ use SPHERE\Application\Setting\Univention\Service\Setup;
 use SPHERE\Application\Setting\User\Account\Account as AccountUser;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -232,6 +233,11 @@ class Service extends AbstractService
         if($UniventionUserList){
             $EmptyCount = 0;
             foreach($UniventionUserList as $User){
+                //  Ignore DllpServiceAccounts
+                if(isset($User['udm_properties']['DllpServiceAccount']) && $User['udm_properties']['DllpServiceAccount']){
+                    continue;
+                }
+
                 // Nutzer ohne record_uid müssen in das Array mit eigenem Key aufgenommen werden
                 if(!$User['record_uid']){
                     $User['record_uid'] = 'E'.$EmptyCount++;
