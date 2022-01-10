@@ -28,7 +28,7 @@ class Frontend extends Extension
     public function frontendDownload()
     {
 
-        $Stage = new Stage('ItsLearning', 'Benutzer exportieren');
+        $Stage = new Stage('itslearning', 'Benutzer exportieren');
         $Stage->addButton(new Standard('Zurück', '/Transfer/ItsLearning', new ChevronLeft()));
 
         $StudentAccountList = Export::useService()->getStudentCustodyAccountList();
@@ -74,7 +74,7 @@ class Frontend extends Extension
             new LayoutRow(array(
                 new LayoutColumn(
                     new Primary('CSV Schüler & Sorgeberechtigte herunterladen', '/Api/Transfer/ItsLearning/StudentCustody/Download', new Download())
-                    .new Title(new Family().' Export Schüler/Sorgeberechtigte nach ItsLearning')
+                    .new Title(new Family().' Export Schüler/Sorgeberechtigte nach itslearning')
                     .(!empty($TableStudentWarningContent)
                         ? new TableData($TableStudentWarningContent, null,
                             array(
@@ -86,7 +86,7 @@ class Frontend extends Extension
                     , 6),
                 new LayoutColumn(
                     new Primary('CSV Lehrer herunterladen', '/Api/Transfer/ItsLearning/Teacher/Download', new Download())
-                    .new Title(new PersonKey().' Export Lehrer nach ItsLearning')
+                    .new Title(new PersonKey().' Export Lehrer nach itslearning')
                     .(!empty($TableTeacherWarningContent)
                         ? new TableData($TableTeacherWarningContent, null,
                             array(

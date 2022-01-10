@@ -42,7 +42,7 @@ class ItsLearning implements IModuleInterface
         $fileLocation = Export::useService()->downloadStudentCustodyCSV();
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "ItsLearning_Schüler_Sorgeberechtigte.csv")->__toString();
+                "itslearning_Schüler_Sorgeberechtigte.csv")->__toString();
         }
         return false;
     }
@@ -56,7 +56,7 @@ class ItsLearning implements IModuleInterface
         $fileLocation = Export::useService()->downloadTeacherCSV();
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "ItsLearning_Lehrer.csv")->__toString();
+                "itslearning_Lehrer.csv")->__toString();
         }
         return false;
     }
