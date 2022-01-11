@@ -892,7 +892,7 @@ class Service extends Extension
                 // Fill Header
                 if ($Row == 4) {
                     $export->setValue($export->getCell(0, 0), 'Klasse: '.$PersonData['Division'].
-                        ' - Unterschriften Liste');
+                        ' - Telefon Liste');
                     $export->setValue($export->getCell(0, 1), $PersonData['Consumer']);
                     $export->setValue($export->getCell(0, 2), 'KL: '.$PersonData['DivisionTeacher']);
                     $export->setValue($export->getCell(3, 2), $PersonData['DivisionYear']);
