@@ -268,6 +268,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 // entfernen aller Rechte nur, wenn ein Token entfernt wird
                 if($tblAccount->getServiceTblToken() || $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP){
                     if($Account['Token'] === '0'){
+                        $tblIdentificationCredential = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+                        GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
+                        GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationCredential);
                         return Account::useFrontend()->frontendConfirmChange($tblAccount->getId(), $Account);
                     }
                 }
@@ -543,14 +546,26 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $tblAccountConsumerTokenList = array();
         if($tblIdentificationToken){
             $tblAccountConsumerTokenList = Account::useService()->getAccountListByIdentification($tblIdentificationToken);
+            if(!$tblAccountConsumerTokenList){
+                $tblAccountConsumerTokenList = array();
+            }
         }
         if (($tblIdentificationAuthenticatorApp = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP))
             && ($tblAccountConsumerAuthenticatorAppList = Account::useService()->getAccountListByIdentification($tblIdentificationAuthenticatorApp))
         ) {
-            if ($tblAccountConsumerTokenList) {
+            if (!empty($tblAccountConsumerTokenList)) {
                 $tblAccountConsumerTokenList = array_merge($tblAccountConsumerTokenList, $tblAccountConsumerAuthenticatorAppList);
             } else {
                 $tblAccountConsumerTokenList = $tblAccountConsumerAuthenticatorAppList;
+            }
+        }
+        if (($tblIdentificationCredential = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL))
+            && ($tblAccountConsumerCredentialList = Account::useService()->getAccountListByIdentification($tblIdentificationCredential))
+        ) {
+            if (!empty($tblAccountConsumerTokenList)) {
+                $tblAccountConsumerTokenList = array_merge($tblAccountConsumerTokenList, $tblAccountConsumerCredentialList);
+            } else {
+                $tblAccountConsumerTokenList = $tblAccountConsumerCredentialList;
             }
         }
 

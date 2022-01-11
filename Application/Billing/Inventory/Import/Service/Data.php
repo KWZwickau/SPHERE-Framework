@@ -51,7 +51,7 @@ class Data extends AbstractData
             foreach ($ImportList as $Result) {
 
                 $Entity = new TblImport();
-                $Entity->setNumber($Result['Row']);
+                $Entity->setNumber($Result['Number']);
                 $Entity->setFirstName($Result['FirstName']);
                 $Entity->setLastName($Result['LastName']);
                 $Entity->setBirthday($Result['Birthday']);

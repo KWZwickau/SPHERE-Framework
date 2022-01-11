@@ -2263,9 +2263,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     foreach($Row as $Key => &$value) {
                         if($Key == 'Link'){
                             $tblPerson = Person::useService()->getPersonById($value);
-                            $PersonName = $tblPerson->getLastFirstName();
-                            $Row[$Key] = '<span hidden>'.$PersonName.'</span>'.(new Link($PersonName, '/People/Person', new PersonIcon(),
-                                array('Id' => $value)))->setExternal();
+                            if($tblPerson){
+                                $PersonName = $tblPerson->getLastFirstName();
+                                $Row[$Key] = '<span hidden>'.$PersonName.'</span>'.(new Link($PersonName, '/People/Person', new PersonIcon(),
+                                        array('Id' => $value)))->setExternal();
+                            }
                         }
                     }
                 }

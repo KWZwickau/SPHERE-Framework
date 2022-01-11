@@ -158,7 +158,7 @@ class Session extends Extension implements IModuleInterface
                         , 'Mitarbeiter');
                 } elseif ($tblAccount) {
                     $UserName = $tblAccount->getUsername();
-                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Soreberechtigte / Schüler');
+                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Sorgeberechtigte / Schüler');
                 } else {
                     $UserName = '-NA-';
                     $AccountType = '-NA-';

@@ -67,7 +67,7 @@ class ViewGroupClub extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_CLUB_IDENTIFIER, 'Verein: Mitgleidsnummer');
+        $this->setNameDefinition(self::TBL_CLUB_IDENTIFIER, 'Verein: Mitgliedsnummer');
         $this->setNameDefinition(self::TBL_CLUB_ENTRY_DATE, 'Verein: Eintrittsdatum');
         $this->setNameDefinition(self::TBL_CLUB_EXIT_DATE, 'Verein: Austrittsdatum');
         $this->setNameDefinition(self::TBL_CLUB_REMARK, 'Verein: Bemerkung');

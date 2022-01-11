@@ -807,7 +807,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendApproval($Data = null)
     {
 
-        $Stage = new Stage('Einsellungen', 'Automatische Freigabe');
+        $Stage = new Stage('Einstellungen', 'Automatische Freigabe');
         $Stage = self::setSettingMenue($Stage, 'Approval');
 
         $certificateTypeList = array();
