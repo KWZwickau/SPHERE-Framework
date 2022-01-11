@@ -4,9 +4,9 @@ namespace SPHERE\Application\Reporting\Custom\Annaberg\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Reporting\Standard\Person\Person as PersonReportingStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -195,34 +195,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Weiblich', array(
-                                        'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Männlich', array(
-                                        'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Gesamt', array(
-                                        'Anzahl: ' . count($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4)
-                            )),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                        new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                        null)
-                                )
-                            )
-                        ))
+                        PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
                     ))
                 );
             } else {

@@ -21,7 +21,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\System\Extension\Extension;
 
@@ -181,7 +181,8 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $this->setFooter($export, $tblPersonList, $Row);
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
+
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -299,7 +300,7 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $this->setFooter($export, $tblPersonList, $Row);
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -598,7 +599,7 @@ class Service extends Extension
             // Personenanzahl
             $Row++;
             $RowReference = $RowReference2 = $Row;
-            $this->setFooter($export, $tblPersonList, $Row, true);
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             // Stand
             $Row += 2;
@@ -963,7 +964,7 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $this->setFooter($export, $tblPersonList, $Row);
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1008,43 +1009,4 @@ class Service extends Extension
             ->setFontBold();
         return $export;
     }
-
-    /**
-     * @param PhpExcel $export
-     * @param array    $tblPersonList
-     * @param int      $Row
-     * @param bool     $FirstColumn
-     *
-     * @return PhpExcel
-     */
-    private function setFooter(PhpExcel $export,array $tblPersonList, int &$Row, $FirstColumn = false): PhpExcel
-    {
-
-        $i = 1;
-        if($FirstColumn){
-            $i = 0;
-        }
-
-        $export->setValue($export->getCell($i, $Row), 'Weiblich:');
-        $export->setValue($export->getCell($i + 1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-        $Row++;
-        $export->setValue($export->getCell($i, $Row), 'Männlich:');
-        $export->setValue($export->getCell($i + 1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-        $Row++;
-        if(($DiversCount = Person::countDiversGenderByPersonList($tblPersonList))){
-            $export->setValue($export->getCell($i, $Row), 'Divers:');
-            $export->setValue($export->getCell($i + 1, $Row), $DiversCount);
-            $Row++;
-        }
-        if(($OtherCount = Person::countOtherGenderByPersonList($tblPersonList))){
-            $export->setValue($export->getCell($i, $Row), 'Ohne Angabe:');
-            $export->setValue($export->getCell($i + 1, $Row), $OtherCount);
-            $Row++;
-        }
-
-        $export->setValue($export->getCell($i, $Row), 'Gesamt:');
-        $export->setValue($export->getCell($i + 1, $Row), count($tblPersonList));
-        return $export;
-    }
-
 }

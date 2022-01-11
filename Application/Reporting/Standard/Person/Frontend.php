@@ -141,6 +141,95 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param Stage $Stage
+     * @param int   $DivisionId
+     * @param bool  $showDownLoadButton
+     *
+     * @return Stage|string
+     */
+    public function showClassList(Stage $Stage, $DivisionId, $showDownLoadButton = true)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $PersonList = Person::useService()->createClassList($tblDivision);
+
+        if ($tblDivision) {
+            if ($PersonList) {
+                if($showDownLoadButton){
+                    $Stage->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
+                            array('DivisionId' => $tblDivision->getId()))
+                    );
+                }
+                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+
+            }
+
+            $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            ($tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : ''),
+                            new LayoutColumn(
+                                new Panel('Klasse', $DivisionPanelContent,
+                                    Panel::PANEL_TYPE_SUCCESS), 4
+                            ),
+                            ($tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : ''),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
+                    new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new TableData($PersonList, null,
+                            array(
+                                'Number'       => '#',
+                                'LastName'     => 'Name',
+                                'FirstName'    => 'Vorname',
+                                'Gender'       => 'Geschlecht',
+                                'Denomination' => 'Konfession',
+                                'Birthday'     => 'Geburtsdatum',
+                                'Birthplace'   => 'Geburtsort',
+                                'Address'      => 'Adresse',
+                                'Phone'        => new ToolTip('Telefon '.new Info(),
+                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
+                                'Mail'         => 'E-Mail',
+
+                            ),
+                            array(
+                                'pageLength' => -1,
+                                'responsive' => false,
+                                'columnDefs' => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                ),
+                            )
+                        ))
+                    ))),
+                    $this->getGenderLayoutGroup($tblPersonList)
+                ))
+            );
+        } else {
+            return $Stage . new Danger('Klasse nicht gefunden.', new Ban());
+        }
+
+        return $Stage;
+    }
+
+    /**
      * @param null $DivisionId
      *
      * @return Stage
@@ -293,34 +382,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Weiblich', array(
-                                        'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Männlich', array(
-                                        'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Gesamt', array(
-                                        'Anzahl: ' . count($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4)
-                            )),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                        new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                        null)
-                                )
-                            )
-                        ))
+                        $this->getGenderLayoutGroup($tblPersonList)
                     ))
                 );
             } else {
@@ -474,34 +536,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -648,34 +683,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -892,152 +900,9 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param Stage $Stage
-     * @param int   $DivisionId
-     * @param bool  $showDownLoadButton
-     *
-     * @return Stage|string
-     */
-    public function showClassList(Stage $Stage, $DivisionId, $showDownLoadButton = true)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        $PersonList = Person::useService()->createClassList($tblDivision);
-
-        if ($tblDivision) {
-            if ($PersonList) {
-                if($showDownLoadButton){
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-                }
-                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-
-            }
-
-            $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            ($tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                            new LayoutColumn(
-                                new Panel('Klasse', $DivisionPanelContent,
-                                    Panel::PANEL_TYPE_SUCCESS), 4
-                            ),
-                            ($tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                        )),
-                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
-                            ? new LayoutRow(new LayoutColumn($inActivePanel))
-                            : null
-                    )),
-                    new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(new TableData($PersonList, null,
-                            array(
-                                'Number'       => '#',
-                                'LastName'     => 'Name',
-                                'FirstName'    => 'Vorname',
-                                'Gender'       => 'Geschlecht',
-                                'Denomination' => 'Konfession',
-                                'Birthday'     => 'Geburtsdatum',
-                                'Birthplace'   => 'Geburtsort',
-                                'Address'      => 'Adresse',
-                                'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
-                                'Mail'         => 'E-Mail',
-
-                            ),
-                            array(
-                                'pageLength' => -1,
-                                'responsive' => false,
-                                'columnDefs' => array(
-                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                ),
-                            )
-                        ))
-                    ))),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
-                ))
-            );
-        } else {
-            return $Stage . new Danger('Klasse nicht gefunden.', new Ban());
         }
 
         return $Stage;
@@ -1144,34 +1009,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Weiblich', array(
-                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Männlich', array(
-                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Gesamt', array(
-                                'Anzahl: ' . count($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                null)
-                        )
-                    )
-                ))
+                $this->getGenderLayoutGroup($tblPersonList)
             ))
         );
 
@@ -1317,34 +1155,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: '.count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -1799,5 +1610,56 @@ class Frontend extends Extension implements IFrontendInterface
             $DivisionPanelContent .= new Bold('Klassensprecher: ').implode(', ', $Representation);
         }
         return $DivisionPanelContent;
+    }
+
+    /**
+     * @return LayoutGroup
+     */
+    public function getGenderLayoutGroup($tblPersonList): LayoutGroup
+    {
+
+        $Divers = Person::countDiversGenderByPersonList($tblPersonList);
+        $DiversColumn = new LayoutColumn(
+            new Panel('Divers', array(
+                'Anzahl: ' . $Divers,
+            ), Panel::PANEL_TYPE_INFO)
+            , 2);
+        $Other = Person::countOtherGenderByPersonList($tblPersonList);
+        $OtherColumn = new LayoutColumn(
+            new Panel('Ohne Angabe', array(
+                'Anzahl: ' . $Other,
+            ), Panel::PANEL_TYPE_INFO)
+            , 2);
+
+        return new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Weiblich', array(
+                        'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2),
+                new LayoutColumn(
+                    new Panel('Männlich', array(
+                        'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2),
+                ($Divers ? $DiversColumn : ''),
+                ($Other ? $OtherColumn : ''),
+                new LayoutColumn(
+                    new Panel('Gesamt', array(
+                        'Anzahl: '.($tblPersonList ? count($tblPersonList) : 0),
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2)
+            )),
+            new LayoutRow(
+                new LayoutColumn(
+                    (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                        new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                        null)
+                )
+            )
+        ));
     }
 }

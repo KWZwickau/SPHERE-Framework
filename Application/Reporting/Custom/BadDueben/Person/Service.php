@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 
 /**
  * Class Service
@@ -428,16 +429,28 @@ class Service
             $Row++;
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Weiblich:');
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))->mergeCells();
-            $export->setValue($export->getCell(3, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(3, $Row))->mergeCells();
+            $export->setValue($export->getCell(4, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Männlich:');
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))->mergeCells();
-            $export->setValue($export->getCell(3, $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(3, $Row))->mergeCells();
+            $export->setValue($export->getCell(4, $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            if(Person::countDiversGenderByPersonList($tblPersonList)){
+                $Row++;
+                $export->setValue($export->getCell(0, $Row), 'Divers:');
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(3, $Row))->mergeCells();
+                $export->setValue($export->getCell(4, $Row), Person::countDiversGenderByPersonList($tblPersonList));
+            }
+            if(Person::countOtherGenderByPersonList($tblPersonList)){
+                $Row++;
+                $export->setValue($export->getCell(0, $Row), 'Ohne Angabe:');
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(3, $Row))->mergeCells();
+                $export->setValue($export->getCell(4, $Row), Person::countOtherGenderByPersonList($tblPersonList));
+            }
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Gesamt:');
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))->mergeCells();
-            $export->setValue($export->getCell(3, $Row), count($tblPersonList));
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(3, $Row))->mergeCells();
+            $export->setValue($export->getCell(4, $Row), count($tblPersonList));
 
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Stand '.date("d.m.Y"));

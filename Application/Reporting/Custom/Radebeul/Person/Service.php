@@ -10,6 +10,7 @@ namespace SPHERE\Application\Reporting\Custom\Radebeul\Person;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Contact\Address\Address;
@@ -540,19 +541,19 @@ class Service extends Extension
             $export = Document::getDocument($fileLocation->getFileLocation());
 
             $export->setValue($export->getCell(0, $row), 'Klassenliste - Kinderhaus');
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->setFontBold();
             $row++;
             $export->setValue($export->getCell(0, $row), 'Klasse: ' . $tblGroup->getName());
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->setFontBold();
             $row++;
-            $export->setValue($export->getCell(3, $row), date('d.m.Y'));
-            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setAlignmentRight();
+            $export->setValue($export->getCell(4, $row), date('d.m.Y'));
+            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->setAlignmentRight();
 
-            $export->setStyle($export->getCell(0, 0), $export->getCell(3, $row))->setBorderOutline();
+            $export->setStyle($export->getCell(0, 0), $export->getCell(4, $row))->setBorderOutline();
 
             $row++;
             $row++;
@@ -585,6 +586,8 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(15);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(50);
+
+            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -770,19 +773,19 @@ class Service extends Extension
             $export = Document::getDocument($fileLocation->getFileLocation());
 
             $export->setValue($export->getCell(0, $row), 'Klassenliste - Allergie');
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells();
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontSize(14);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontBold();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
             $row++;
             $export->setValue($export->getCell(0, $row), 'Klasse: ' . $tblGroup->getName());
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells();
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontSize(14);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontBold();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
             $row++;
-            $export->setValue($export->getCell(2, $row), date('d.m.Y'));
-            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setAlignmentRight();
+            $export->setValue($export->getCell(3, $row), date('d.m.Y'));
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setAlignmentRight();
 
-            $export->setStyle($export->getCell(0, 0), $export->getCell(2, $row))->setBorderOutline();
+            $export->setStyle($export->getCell(0, 0), $export->getCell(3, $row))->setBorderOutline();
 
             $row++;
             $row++;
@@ -811,6 +814,8 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(60);
+
+            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
