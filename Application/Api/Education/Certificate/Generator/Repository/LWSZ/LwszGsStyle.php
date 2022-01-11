@@ -165,7 +165,7 @@ class LwszGsStyle
                     ->styleMarginTop('20px')
                     ->styleAlignJustify()
 //                    ->styleHeight('745px')
-                    ->styleHeight('780px')
+                    ->styleHeight('804px')
                 )
             )
 //            ->addSlice($certificate->getSignPart($personId, false))
