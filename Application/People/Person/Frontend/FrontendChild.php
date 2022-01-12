@@ -83,12 +83,13 @@ class FrontendChild extends FrontendReadOnly
 
                 $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditChildContent($PersonId));
+                $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
                 return TemplateReadOnly::getContent(
                     self::TITLE,
                     self::getSubContent('', $content),
                     array($editLink),
-                    'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                    'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                     new Tag()
                 );
             }
@@ -130,8 +131,9 @@ class FrontendChild extends FrontendReadOnly
      */
     public function getEditChildTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
         $title = new Title(new Tag() . ' ' . self::TITLE, 'der Person '
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '').$DivisionString
             . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
         if ($isCreatePerson) {
             return $title;
