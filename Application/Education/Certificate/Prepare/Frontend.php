@@ -2014,8 +2014,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 $tblStudentSubject = reset($tblStudentSubjectList);
                                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['Orientation']
-                                        = $tblPerson->getFirstSecondName() . ' nimmt im Rahmen des Wahlbereiches am Kurs '
-                                        . $tblSubject->getName() . ' teil.';
+                                        = $tblPerson->getFirstSecondName() . ' hat im Rahmen des Wahlbereiches am Kurs '
+                                        . $tblSubject->getName() . ' teilgenommen.';
                                 }
                             }
                         }
