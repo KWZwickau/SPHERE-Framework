@@ -59,16 +59,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png')
-                                , 'Benutzerrechte'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole'))
+                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;15.10.2021'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole'))
                         , 3),
                         new LayoutColumn(
                             new Link(
-                                new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung '.new Muted(new Small('Stand:&nbsp;14.12.2021')))
+                                new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung', 'Stand:&nbsp;14.12.2021')
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing'))
                             , 3),
                         new LayoutColumn(new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Import aus Indiware'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware'))
+                                , 'Import aus Indiware', 'Export der Lehraufträge aus Indiware'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware'))
                         , 3),
                         new LayoutColumn(new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')

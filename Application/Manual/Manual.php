@@ -43,7 +43,7 @@ class Manual implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Hilfe', 'Tips & Tricks');
+        $Stage = new Stage('Hilfe', 'Tipps & Tricks');
 
         return $Stage;
     }
