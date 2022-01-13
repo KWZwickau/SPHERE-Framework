@@ -23,7 +23,7 @@ class FosHjZ extends Style
         return (new Page())
             ->addSlice($this->getHeader($school))
             ->addSlice($this->getCustomFosTitle($personId, 'Halbjahreszeugnis'))
-            ->addSlice($this->getCustomFosDivisionYearStudent($personId, 'Schulhalbjahr'))
+            ->addSlice($this->getCustomFosDivisionYearStudent($personId, '1. Schulhalbjahr'))
             ->addSlice($this->getCustomFosSubjectLanes($personId, '10px', false)->styleHeight('270px'))
             ->addSlice($this->getCustomFosRemark($personId, '10px', '100px'))
             ->addSlice($this->getCustomFosSignPart($personId))

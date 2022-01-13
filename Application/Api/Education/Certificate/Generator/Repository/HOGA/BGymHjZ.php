@@ -24,7 +24,7 @@ class BGymHjZ extends Style
             ->addSlice($this->getHeaderBGym($school))
             ->addSlice($this->getTitleBGym('Halbjahreszeugnis', 'des Beruflichen Gymnasiums', '10px'))
             ->addSlice($this->getSubjectArea($personId))
-            ->addSlice($this->getDivisionYearStudent($personId, 'Schulhalbjahr:', '10px', false, true))
+            ->addSlice($this->getDivisionYearStudent($personId, '1. Schulhalbjahr:', '10px', true, true))
             ->addSlice($this->getCustomSubjectLanesBGym($personId, 'Schulhalbjahr'))
             ->addSlice($this->getCustomChosenLanesBGym($personId))
             ->addSlice($this->getCustomRemark($personId, '5px', '120px'))

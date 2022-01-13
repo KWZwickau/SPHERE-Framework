@@ -771,7 +771,7 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateSubject', array(
                 TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => ($TechnicalCourse !== null ? $TechnicalCourse->getId() : null)
+                TblCertificateSubject::SERVICE_TBL_TECHNICAL_COURSE => ($TechnicalCourse ? $TechnicalCourse->getId() : null)
             ));
     }
 

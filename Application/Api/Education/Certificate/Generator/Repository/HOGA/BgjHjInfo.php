@@ -42,7 +42,7 @@ class BgjHjInfo extends Style
             ->addSlice((new Slice())
                 ->styleMarginTop('3px')
                 ->addSection((new Section())
-                    ->addElementColumn($this->getElement('Schuljahr&nbsp;', $textSize)->styleAlignRight(), '50%')
+                    ->addElementColumn($this->getElement('1. Schulhalbjahr&nbsp;', $textSize)->styleAlignRight(), '50%')
                     ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Division.Data.Year }}', $textSize)
                         ->styleTextBold(), '50%')
                 )

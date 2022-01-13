@@ -22,7 +22,7 @@ class BgjHalbjahresuebersicht extends Style
         return (new Page())
             ->addSlice($this->getHeader($school))
             ->addSlice($this->getCustomBgjTitle('Halbjahresübersicht', 'zu den Fächern entsprechend der Fachoberschule'))
-            ->addSlice($this->getDivisionYearStudentBgj($personId, 'Schuljahr'))
+            ->addSlice($this->getDivisionYearStudentBgj($personId, '1. Schulhalbjahr'))
             ->addSlice($this->getCustomSubjectLanesBgj($personId)->styleHeight('450px'))
             ->addSlice($this->getCustomRemarkBgj($personId, '2px'))
             ->addSlice($this->getCustomSignPartBgj($personId))

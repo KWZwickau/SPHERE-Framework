@@ -1888,7 +1888,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         && ($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
                         && ($tblSchoolType->getShortName() == 'OS');
 
-                    $tblDivision = $tblPrepareCertificate->getServiceTblDivision();
+                    if (($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
+                        $tblLevel = $tblDivision->getTblLevel();
+                    } else {
+                        $tblLevel = false;
+                    }
+
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                     $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
 
@@ -1972,7 +1977,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             && $tblCertificateType->getIdentifier() == 'YEAR'
                         ) {
                             $nextLevel = 'x';
-                            if (($tblLevel = $tblDivision->getTblLevel())
+                            if ($tblLevel
                                 && is_numeric($tblLevel->getName())
                             ) {
                                 $nextLevel = floatval($tblLevel->getName()) + 1;
@@ -2027,8 +2032,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                         // SSW-340 Halbjahreszeugnis Klasse 10 OS -> abgewählte Fächer in die Bemerkung vorsetzen
                         if (!$hasRemarkText
-                            && ($Certificate->getCertificateEntity()->getCertificate() == 'MsHjRs')
-                        ) {
+                            && (($Certificate->getCertificateEntity()->getCertificate() == 'MsHjRs')
+                                || ($tblLevel
+                                    && intval($tblLevel->getName()) == 10
+                                    && $Certificate->getCertificateEntity()->getCertificate() == 'HOGA\MsHjZ')
+                        )) {
                             if (($tblDroppedSubjectList = Prepare::useService()->getAutoDroppedSubjects($tblPerson, $tblDivision))) {
                                 $countDroppedSubjects = count($tblDroppedSubjectList);
                                 if ($countDroppedSubjects == 1) {

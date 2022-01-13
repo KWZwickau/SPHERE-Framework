@@ -35,7 +35,7 @@ class BGymJ extends Style
             ->addSlice($this->getHeaderBGym($school))
             ->addSlice($this->getTitleBGym('Jahreszeugnis', 'des Beruflichen Gymnasiums', '10px'))
             ->addSlice($this->getSubjectArea($personId))
-            ->addSlice($this->getDivisionYearStudent($personId, 'Schuljahr:', '10px', false, true))
+            ->addSlice($this->getDivisionYearStudent($personId, 'Schuljahr:', '10px', true, true))
             ->addSlice($this->getCustomSubjectLanesBGym($personId, 'Schuljahr'))
             ->addSlice($this->getCustomChosenLanesBGym($personId))
             ->addSlice($this->getCustomRemark($personId, '5px', '100px'))
