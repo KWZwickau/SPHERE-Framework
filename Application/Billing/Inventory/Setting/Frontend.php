@@ -400,7 +400,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $_POST['Setting'][TblSetting::IDENT_SEPA_REMARK] = $tblSetting->getValue();
                     $elementList[3] =
                         new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(new Panel('SEPA-Verwendungszweck', array(
+                            new LayoutColumn(new Panel('SEPA-Verwendungszweck '.new ToolTip('(max. 140 Zeichen '.new Info().')',
+                                    'Der Standard erlaubt max. 140 Zeichen (inkl. ausgeschriebener Platzhalter). Weitere
+                                     Zeichen werden ggf. automatisch abgeschnitten.'), array(
                                 new TextField('Setting['.TblSetting::IDENT_SEPA_REMARK.']', '', ''),
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Verwendungszweck')),
@@ -454,7 +456,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $_POST['Setting'][TblSetting::IDENT_DATEV_REMARK] = $tblSetting->getValue();
                     $elementList[6] =
                         new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(new Panel('DATEV-Buchungstext '.new ToolTip(new Info(), 'Datev erlaubt maximal 60 Zeichen, der rest wird abgeschnitten'), array(
+                            new LayoutColumn(new Panel('DATEV-Buchungstext '.new ToolTip('(max. 60 Zeichen '.new Info().')',
+                                    'Der Standard erlaubt max. 60 Zeichen (inkl. ausgeschriebener Platzhalter). Weitere
+                                     Zeichen werden ggf. automatisch abgeschnitten.'), array(
                                 new TextField('Setting['.TblSetting::IDENT_DATEV_REMARK.']', '', ''),
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(new Bold('Freifelder für Buchungstext')),

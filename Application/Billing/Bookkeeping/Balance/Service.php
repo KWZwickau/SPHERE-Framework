@@ -1072,7 +1072,8 @@ class Service extends AbstractService
                             $item[$Ref]['Owner'] = $tblInvoiceItemDebtor->getOwner();
                             $item[$Ref]['BankReference'] = $Ref;
                             $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
-                            $item[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                            $Quantity = $tblInvoiceItemDebtor->getQuantity();
+                            $item[$Ref]['ItemNameAndPrice'] = $Quantity.'x '.$tblInvoiceItemDebtor->getName().' '.$tblInvoiceItemDebtor->getPriceString('EUR');
 
                         } else {
                             if(isset($item[$Ref]['ItemName'])){
@@ -1080,10 +1081,11 @@ class Service extends AbstractService
                             } else {
                                 $item[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
                             }
+                            $Quantity = $tblInvoiceItemDebtor->getQuantity();
                             if(isset($item[$Ref]['ItemNameAndPrice'])){
-                                $item[$Ref]['ItemNameAndPrice'] .= ', '.$tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                                $item[$Ref]['ItemNameAndPrice'] .= ', '.$Quantity.'x '.$tblInvoiceItemDebtor->getName().' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             } else {
-                                $item[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                                $item[$Ref]['ItemNameAndPrice'] = $Quantity.'x '.$tblInvoiceItemDebtor->getName().' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             }
 
                             // Standard
@@ -1154,7 +1156,8 @@ class Service extends AbstractService
                             $CombOpenList[$Ref]['Owner'] = $tblInvoiceItemDebtor->getOwner();
                             $CombOpenList[$Ref]['BankReference'] = $Ref;
                             $CombOpenList[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
-                            $CombOpenList[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                            $Quantity = $tblInvoiceItemDebtor->getQuantity();
+                            $CombOpenList[$Ref]['ItemNameAndPrice'] = $Quantity.'x '.$tblInvoiceItemDebtor->getName().' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             $CombOpenList[$Ref]['tblInvoice'] = $tblInvoice;
                         } else {
                             if(isset($CombOpenList[$Ref]['ItemName'])){
@@ -1162,10 +1165,11 @@ class Service extends AbstractService
                             } else {
                                 $CombOpenList[$Ref]['ItemName'] = $tblInvoiceItemDebtor->getName();
                             }
+                            $Quantity = $tblInvoiceItemDebtor->getQuantity();
                             if(isset($CombOpenList[$Ref]['ItemNameAndPrice'])){
-                                $CombOpenList[$Ref]['ItemNameAndPrice'] .= ', '.$tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                                $CombOpenList[$Ref]['ItemNameAndPrice'] .= ', '.$Quantity.'x '.$tblInvoiceItemDebtor->getName().' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             } else {
-                                $CombOpenList[$Ref]['ItemNameAndPrice'] = $tblInvoiceItemDebtor->getName(). ' '.$tblInvoiceItemDebtor->getPriceString('EUR');
+                                $CombOpenList[$Ref]['ItemNameAndPrice'] = $Quantity.'x '.$tblInvoiceItemDebtor->getName().' '.$tblInvoiceItemDebtor->getPriceString('EUR');
                             }
 
                             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_SEPA_REMARK))){
@@ -1222,7 +1226,8 @@ class Service extends AbstractService
             if(($tblItem = $tblInvoiceItemDebtor->getServiceTblItem())){
                 $Price = $tblInvoiceItemDebtor->getPriceString('EUR');
                 $ItemName = $tblItem->getName();
-                $ItemNameAndPrice = $tblItem->getName(). ' '.$Price;
+                $Quantity = $tblInvoiceItemDebtor->getQuantity();
+                $ItemNameAndPrice = $Quantity.'x '.$tblItem->getName().' '.$Price;
             }
         }
 
