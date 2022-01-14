@@ -61,7 +61,8 @@ class Service extends Extension
                 }
                 $PersonAccountList[$tblPerson->getId()]['Level'] = $Level;
                 $PersonAccountList[$tblPerson->getId()]['Division'] = $Division;
-                $PersonAccountList[$tblPerson->getId()]['Sibling'] = '';
+                // Standard 1
+                $PersonAccountList[$tblPerson->getId()]['Sibling'] = '1';
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                     if(($tblStudentBilling = $tblStudent->getTblStudentBilling())){
                         if(($tblSiblingRank = $tblStudentBilling->getServiceTblSiblingRank())){
@@ -143,9 +144,11 @@ class Service extends Extension
                 $Item['LastName'] = $StudentData['LastName'];
                 $Item['Level'] = $StudentData['Level'];
                 $Item['Division'] = $StudentData['Division'];
-                $Item['Sibling'] = $StudentData['Sibling'];
 
                 if(isset($StudentData['Custody'])){
+                    // Geschwisterkind Angabe, nur wenn Elternaccounts vorhanden sind
+                    $Item['Sibling'] = $StudentData['Sibling'];
+
                     if(count($StudentData['Custody']) > $countCustody){
                         $countCustody = count($StudentData['Custody']);
                     }
@@ -194,7 +197,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($Column++, $Row), $Upload['AccountName']);
                 $export->setValue($export->getCell($Column++, $Row), $Upload['Level']);
                 $export->setValue($export->getCell($Column++, $Row), $Upload['Division']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['Sibling']);
+                $export->setValue($export->getCell($Column++, $Row), ($Upload['Sibling'] ?? ''));
                 for($j = 1; $j <= $countCustody; $j++) {
                     $export->setValue($export->getCell($Column++, $Row), (isset($Upload['IdS'.$j]) ? $Upload['IdS'.$j] : ''));
                     $export->setValue($export->getCell($Column++, $Row), (isset($Upload['FirstNameS'.$j]) ? $Upload['FirstNameS'.$j] : ''));

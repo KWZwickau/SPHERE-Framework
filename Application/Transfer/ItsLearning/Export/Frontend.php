@@ -6,6 +6,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -29,6 +30,13 @@ class Frontend extends Extension
     {
 
         $Stage = new Stage('itslearning', 'Benutzer exportieren');
+        $Stage->setMessage(
+            new Container('Die Validierung beinhaltet nur Schüler- und Lehrerdaten.')
+            .new Container('Da itslearning auch ohne die Eltern genutzt werden kann erfolgt an dieser Stelle keine Validierung.')
+            .new Container('Die Daten der Eltern werden automatisch mit ergänzt wenn entsprechende Benutzeraccounts vorhanden sind.')
+        .new Container('Bitte beachten Sie dabei, dass das Feld "Geschwisterkind" im 
+        Block "Schülerakte - Allgemeines" der Schülerakte gepflegt sein muss, falls es sich um Geschwisterkinder handelt, 
+        damit die Identifizierung der Geschwisterkinder in itslearning korrekt erfolgen kann.'));
         $Stage->addButton(new Standard('Zurück', '/Transfer/ItsLearning', new ChevronLeft()));
 
         $StudentAccountList = Export::useService()->getStudentCustodyAccountList();
