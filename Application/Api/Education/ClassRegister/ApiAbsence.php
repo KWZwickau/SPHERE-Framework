@@ -897,7 +897,7 @@ class ApiAbsence extends Extension implements IApiInterface
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         TblAbsence $tblAbsence,
-        $date
+        string $date
     ) {
         // bei Unterrichtseinheiten dahinter in Klammern (1.UE)
         // E entschuldig, U unentschuldig
@@ -909,7 +909,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $type = $tblAbsence->getTypeDisplayShortName();
         $tblPersonStaff = $tblAbsence->getDisplayStaff();
 
-        $dataList[$tblDivision->getId()][$date][$tblPerson->getId()] = (new Link(
+        $dataList[$tblDivision->getId()][$date][$tblPerson->getId() . '_' . $tblAbsence->getId()] = (new Link(
             $tblPerson->getLastFirstName()
                 . ' ('
                 . $tblAbsence->getStatusDisplayShortName()

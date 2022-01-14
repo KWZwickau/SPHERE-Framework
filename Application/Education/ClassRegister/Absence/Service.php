@@ -464,13 +464,22 @@ class Service extends AbstractService
         }
 
         // Prüfung ob in diesem Zeitraum bereits eine Fehlzeit existiert
-        if (!$error && !$tblAbsence && $tblPerson && $fromDate) {
-            if ((new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($fromDate, $tblPerson, $toDate == $fromDate ? null : $toDate)) {
-                $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
+        if (!$error && $tblPerson && $fromDate) {
+            if (($resultList = (new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($fromDate, $tblPerson, $toDate == $fromDate ? null : $toDate))) {
+                foreach ($resultList as $item) {
+                    // beim Bearbeiten der Fehlzeit, die zu bearbeitende Fehlzeit ignorieren
+                    if ($tblAbsence && $tblAbsence->getId() == $item->getId()) {
+                        continue;
+                    }
+
+                    $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
 //                if ($toDate) {
 //                    $form->setError('Data[ToDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
 //                }
-                $error = true;
+                    $error = true;
+                    break;
+                }
+
             }
         }
 
