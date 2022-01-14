@@ -25,7 +25,7 @@ class EsbdMsHjInfoFsGeistigeEntwicklung extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $pageList[] = $this->getPageOne($personId);
-        $pageList[] = $this->getPageTwo($personId);
+//        $pageList[] = $this->getPageTwo($personId);
 
         return $pageList;
     }
