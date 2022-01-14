@@ -129,12 +129,13 @@ class FrontendCommon extends FrontendReadOnly
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditCommonContent($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 self::getSubContent('Personendaten', $content),
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
             );
         }
@@ -189,8 +190,9 @@ class FrontendCommon extends FrontendReadOnly
      */
     public function getEditCommonTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
         $title = new Title(new Tag() . ' ' . self::TITLE, 'der Person '
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '').$DivisionString
             . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
         if ($isCreatePerson) {
             return $title;

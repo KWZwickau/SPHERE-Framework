@@ -83,12 +83,13 @@ class FrontendStudent extends FrontendReadOnly
             $AllowEdit = 1;
             $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 new Info('Die Schülerakte ist ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
                 array($showLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag(),
                 true
             );
@@ -190,12 +191,13 @@ class FrontendStudent extends FrontendReadOnly
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($hideLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
                 , true
             );
@@ -235,6 +237,7 @@ class FrontendStudent extends FrontendReadOnly
             } else {
                 $hasSchoolAttendance = '';
             }
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
@@ -267,7 +270,7 @@ class FrontendStudent extends FrontendReadOnly
                 self::TITLE . ' - Grunddaten',
                 self::getSubContent('Grunddaten', $content),
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Nameplate()
             );
         }

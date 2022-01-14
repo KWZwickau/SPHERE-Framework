@@ -90,12 +90,13 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentTransferContent($PersonId));
             }
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new SizeHorizontal()
             );
         }
