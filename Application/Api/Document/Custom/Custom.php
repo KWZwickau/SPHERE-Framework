@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Api\Document\Custom;
 
+use SPHERE\Application\Api\Document\Custom\Gersdorf\Gersdorf;
 use SPHERE\Application\Api\Document\Custom\Hoga\Hoga;
 use SPHERE\Application\Api\Document\Custom\Lebenswelt\Lebenswelt;
 use SPHERE\Application\Api\Document\Custom\Limbach\Limbach;
@@ -49,6 +50,10 @@ class Custom extends Extension implements IModuleInterface
         }
         if ($consumerAcronym === 'HOGA') {
             Hoga::registerModule();
+        }
+        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
+        if ($consumerAcronym === 'EVOSG'|| $consumerAcronym === 'REF') {
+            Gersdorf::registerModule();
         }
     }
 

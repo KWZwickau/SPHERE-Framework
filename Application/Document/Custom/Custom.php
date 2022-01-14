@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Document\Custom;
 
+use SPHERE\Application\Document\Custom\Gersdorf\Gersdorf;
 use SPHERE\Application\Document\Custom\Hoga\Hoga;
 use SPHERE\Application\Document\Custom\Lebenswelt\Lebenswelt;
 use SPHERE\Application\Document\Custom\Limbach\Limbach;
@@ -39,6 +40,10 @@ class Custom implements IApplicationInterface
         }
         if ($consumerAcronym === 'HOGA') {
             Hoga::registerModule();
+        }
+        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
+        if ($consumerAcronym === 'EVOSG'|| $consumerAcronym === 'REF') {
+            Gersdorf::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

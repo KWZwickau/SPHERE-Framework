@@ -444,18 +444,11 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-
+            $RowDescription = $Row;
             $export->setValue($export->getCell("0", $Row), 'Klasse:');
             $export->setValue($export->getCell("1", $Row), $tblDivision->getDisplayName());
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Klassenlehrer:');
             if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
@@ -484,7 +477,7 @@ class Service extends Extension
             }
 
             // Legende
-            $Row = $Row - 4;
+            $Row = $RowDescription;
             $export->setValue($export->getCell("11", $Row), 'Abkürzungen Telefon:');
             $Row++;
             $export->setValue($export->getCell("11", $Row), 'p = Privat');
@@ -755,17 +748,11 @@ class Service extends Extension
             }
 
             $Row++;
+            $RowDescription = $Row;
             $export->setValue($export->getCell("0", $Row), 'Klasse:');
             $export->setValue($export->getCell("1", $Row), $tblDivision->getDisplayName());
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Klassenlehrer:');
@@ -795,7 +782,7 @@ class Service extends Extension
             }
 
             // Legende
-            $Row = $Row - 5;
+            $Row = $RowDescription;
             $column = 14;
             $export->setValue($export->getCell($column, $Row), 'Abkürzungen Telefon:');
             $Row++;
@@ -952,14 +939,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1189,14 +1169,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1646,13 +1619,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row),
-                'Weiblich: '.Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row),
-                'Männlich: '.Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt: '.count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -2362,14 +2329,7 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 0))->setColumnWidth(50);
 
             $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Männlich:');
-            $export->setValue($export->getCell(1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(1, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -2639,13 +2599,6 @@ class Service extends Extension
                 $export->setValue($export->getCell(6, $Row), $PersonData['Profile']);
                 $export->setValue($export->getCell(7, $Row), $PersonData['Orientation']);
                 $export->setValue($export->getCell(8, $Row), $PersonData['Religion']);
-
-//                if (isset($PersonData['ExcelElective']) && !empty($PersonData['ExcelElective'])) {
-//                    foreach ($PersonData['ExcelElective'] as $Elective) {
-//                        $export->setValue($export->getCell(9, $ElectiveRow), $Elective);
-//                        $ElectiveRow++;
-//                    }
-//                }
                 if(!empty($PersonData['ExcelElective'])){
                     $export->setValue($export->getCell(9, $Row), implode(', ', $PersonData['ExcelElective']));
                 }
@@ -2659,26 +2612,12 @@ class Service extends Extension
                 if ($ElectiveRow > $Row) {
                     $Row = $ElectiveRow;
                 }
-
-                // Gittertrennlinie
-//                $export->setStyle($export->getCell(0, $Row - 1), $export->getCell(14, $Row - 1))->setBorderBottom();
             }
-
-//            // Gitterlinien
-//            $export->setStyle($export->getCell(0, 1), $export->getCell(14, 1))->setBorderBottom();
-//            $export->setStyle($export->getCell(0, 1), $export->getCell(14, $Row - 1))->setBorderVertical();
             $export->setStyle($export->getCell(0, 1), $export->getCell(14, $Row - 1))->setBorderAll();
 
             // Personenanzahl
             $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Männlich:');
-            $export->setValue($export->getCell(1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(1, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             // Stand
             $Row += 2;
@@ -2700,19 +2639,6 @@ class Service extends Extension
             $export->setStyle($export->getCell(12, 0))->setColumnWidth(6);
             $export->setStyle($export->getCell(13, 0))->setColumnWidth(6);
             $export->setStyle($export->getCell(14, 0))->setColumnWidth(6);
-            //
-            //            // Schriftgröße
-            //            $export->setStyle($export->getCell(0, 0), $export->getCell(7, 0))->setFontSize(12)
-            //                ->setFontBold()
-            //                ->mergeCells();
-            //            $export->setStyle($export->getCell(0, 1), $export->getCell(7, $Row))->setFontSize(10);
-            //
-            //            // Spalten zentriert
-            //            $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setAlignmentCenter();
-            //            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setAlignmentCenter();
-            //            $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setAlignmentCenter();
-            //            $export->setStyle($export->getCell(6, 0), $export->getCell(6, $Row))->setAlignmentCenter();
-            //            $export->setStyle($export->getCell(7, 0), $export->getCell(7, $Row))->setAlignmentCenter();
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

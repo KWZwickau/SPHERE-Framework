@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Reporting\Standard\Person\Person as PersonReportingStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
@@ -189,34 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -280,34 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Weiblich', array(
-                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Männlich', array(
-                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Gesamt', array(
-                                'Anzahl: ' . count($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                null)
-                        )
-                    )
-                ))
+                PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
             ))
         );
 
@@ -370,34 +317,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Weiblich', array(
-                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Männlich', array(
-                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Gesamt', array(
-                                'Anzahl: ' . count($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                null)
-                        )
-                    )
-                ))
+                PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
             ))
         );
 
@@ -537,34 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -635,34 +528,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Weiblich', array(
-                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Männlich', array(
-                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Gesamt', array(
-                                'Anzahl: ' . count($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                null)
-                        )
-                    )
-                ))
+                PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
             ))
         );
 
@@ -803,34 +669,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -896,34 +735,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Weiblich', array(
-                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Männlich', array(
-                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Gesamt', array(
-                                'Anzahl: ' . count($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                null)
-                        )
-                    )
-                ))
+                PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
             ))
         );
 
@@ -1120,10 +932,15 @@ class Frontend extends Extension implements IFrontendInterface
 
 
             $LayoutColumnCounterList = array();
+            $Divers = Person::countDiversGenderByPersonList($tblPersonList);
+            $Other = Person::countOtherGenderByPersonList($tblPersonList);
+
             $LayoutColumnCounterList[] = new LayoutColumn(
                 new Panel('Geschlecht', array(
                     'Anzahl Weiblich: ' . Person::countFemaleGenderByPersonList($tblPersonList) .
                     new Container('Anzahl Männlich: ' . Person::countMaleGenderByPersonList($tblPersonList)) .
+                    ($Divers ? new Container('Anzahl Divers: '.$Divers) : '').
+                    ($Other ? new Container('Anzahl ohne Angabe: '.$Other) : '').
                     new Container( 'Anzahl Gesamt: ' . count($tblPersonList)),
                 ), Panel::PANEL_TYPE_INFO)
                 , 3);

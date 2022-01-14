@@ -19,6 +19,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\System\Extension\Extension;
 
 class Service extends Extension
@@ -147,14 +148,7 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(2, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Männlich:');
-            $export->setValue($export->getCell(2, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(2, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
             $Row++;
             $Row++;
             $Result = $this->countProfile($tblPersonList);
@@ -286,14 +280,7 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(2, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Männlich:');
-            $export->setValue($export->getCell(2, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(2, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -526,32 +513,24 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(2, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Männlich:');
-            $export->setValue($export->getCell(2, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(2, $Row), count($tblPersonList));
-
-            $Row -= 3;
+            $RowForeign = $Row;
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
 
             foreach ($count as $ranking => $list) {
-                $Row++;
-                $export->setValue($export->getCell(3, $Row), 'Fremdsprache ' . str_replace('FS', '', $ranking));
-                $export->setStyle($export->getCell(3, $Row), $export->getCell(4, $Row))
+                $export->setValue($export->getCell(3, $RowForeign), 'Fremdsprache ' . str_replace('FS', '', $ranking));
+                $export->setStyle($export->getCell(3, $RowForeign), $export->getCell(4, $RowForeign))
                     ->mergeCells()
                     ->setFontBold();
                 if (isset($list['Subjects'])) {
                     ksort($list['Subjects']);
                     foreach ($list['Subjects'] as $acronym => $countValue) {
-                        $Row++;
+                        $RowForeign++;
                         $tblSubject = Subject::useService()->getSubjectByAcronym($acronym);
-                        $export->setValue($export->getCell(3, $Row), ($tblSubject ? $tblSubject->getName() : $acronym) . ':');
-                        $export->setValue($export->getCell(4, $Row), $countValue);
+                        $export->setValue($export->getCell(3, $RowForeign), ($tblSubject ? $tblSubject->getName() : $acronym) . ':');
+                        $export->setValue($export->getCell(4, $RowForeign), $countValue);
                     }
                 }
+                $RowForeign++;
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -700,14 +679,7 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(2, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Männlich:');
-            $export->setValue($export->getCell(2, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(2, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -998,14 +970,7 @@ class Service extends Extension
 
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(2, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Männlich:');
-            $export->setValue($export->getCell(2, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(1, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(2, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 
 class Service
 {
@@ -122,9 +123,7 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return false|\SPHERE\Application\Document\Storage\FilePointer
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -228,14 +227,7 @@ class Service
 
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Männlich:');
-            $export->setValue($export->getCell(1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(1, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Stand '.date("d.m.Y"));

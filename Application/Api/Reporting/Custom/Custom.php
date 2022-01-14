@@ -23,7 +23,7 @@ class Custom implements IModuleInterface
         /*
          * Chemnitz
          */
-        if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'ESZC') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Chemnitz/Common/ClassList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadClassList'
             ));
@@ -58,7 +58,7 @@ class Custom implements IModuleInterface
         /*
         * Hormersdorf
         */
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Hormersdorf/Person/ClassList/Download',
                 __NAMESPACE__.'\Hormersdorf\Person::downloadClassList'
@@ -72,7 +72,7 @@ class Custom implements IModuleInterface
         /*
          * Herrnhut
          */
-        if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EZSH') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Herrnhut/Common/ProfileList/Download',
                 __NAMESPACE__.'\Herrnhut\Common::downloadProfileList'
@@ -98,7 +98,7 @@ class Custom implements IModuleInterface
         /*
          * Coswig
          */
-        if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EVSC') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Coswig/Common/ClassList/Download',
                 __NAMESPACE__.'\Coswig\Common::downloadClassList'
@@ -108,7 +108,7 @@ class Custom implements IModuleInterface
         /*
          * Schneeberg
          */
-        if ($consumerAcronym === 'ESS' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'ESS') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Schneeberg/Person/ClassList/Download',
                 __NAMESPACE__.'\Schneeberg\Person::downloadClassList'
@@ -118,7 +118,7 @@ class Custom implements IModuleInterface
         /*
         * Radebeul
         */
-        if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EVSR') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Radebeul/Person/ParentTeacherConferenceList/Download',
                 __NAMESPACE__.'\Radebeul\Person::downloadParentTeacherConferenceList'
@@ -155,7 +155,7 @@ class Custom implements IModuleInterface
         }
 
         // Muldental
-        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EVAMTL') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Muldental/Common/ClassList/Download',
                 __NAMESPACE__.'\Muldental\Common::downloadClassList'
@@ -163,7 +163,7 @@ class Custom implements IModuleInterface
         }
 
         // Bad Düben
-        if ($consumerAcronym === 'ESBD' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'ESBD') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/BadDueben/Common/ClassList/Download',
                 __NAMESPACE__.'\BadDueben\Common::downloadClassList'
@@ -177,6 +177,30 @@ class Custom implements IModuleInterface
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Annaberg/Common/PrintClassList/Download',
                 __NAMESPACE__.'\Annaberg\Common::downloadPrintClassList'
+            ));
+        }
+
+
+        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
+        /*
+         * Gersdorf
+         */
+        if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/ClassList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadClassList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/SignList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadSignList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/ElectiveClassList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadElectiveClassList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/ClassPhoneList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadClassPhoneList'
             ));
         }
     }
