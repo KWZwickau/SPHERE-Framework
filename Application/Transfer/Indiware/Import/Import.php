@@ -115,7 +115,7 @@ class Import extends Extension implements IModuleInterface
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(array(
+            new Layout(new LayoutGroup(array(new LayoutRow(array(
                 new LayoutColumn(
                     new \SPHERE\Common\Frontend\Link\Repository\Link(
                         new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png'),
@@ -140,7 +140,19 @@ class Import extends Extension implements IModuleInterface
                         ))))
                     )
                 , 10)
-            ))))
+            )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel(
+                            'Indiware-Import der Kurseinbringung fürs Abitur',
+                            new PullClear('Kurseinbringung importieren: '
+                                . new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/SelectedCourse/Import', new Upload()))
+                            ),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    , 4),
+                ))
+            )))
         );
 
         return $Stage;
