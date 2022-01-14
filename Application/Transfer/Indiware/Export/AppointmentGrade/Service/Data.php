@@ -58,7 +58,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function createIndiwareStudentSubjectOrderBulk($ImportList, $Period, TblTask $tblTask)
+    public function createIndiwareStudentSubjectOrderBulk(array $ImportList,int $Period, TblTask $tblTask): bool
     {
 
         $Manager = $this->getConnection()->getEntityManager();

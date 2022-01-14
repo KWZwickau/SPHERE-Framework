@@ -3,6 +3,7 @@ namespace SPHERE\Application\Manual;
 
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Manual\General\General;
+use SPHERE\Application\Manual\Help\Help;
 use SPHERE\Application\Manual\Kreda\Kreda;
 use SPHERE\Application\Manual\StyleBook\StyleBook;
 use SPHERE\Application\Manual\Support\Support;
@@ -25,6 +26,7 @@ class Manual implements IClusterInterface
         General::registerApplication();
         Kreda::registerApplication();
         StyleBook::registerApplication();
+        Help::registerApplication();
         Support::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(
@@ -41,7 +43,7 @@ class Manual implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Hilfe', 'Tips & Tricks');
+        $Stage = new Stage('Hilfe', 'Tipps & Tricks');
 
         return $Stage;
     }
