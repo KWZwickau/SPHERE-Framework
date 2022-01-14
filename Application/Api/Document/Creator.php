@@ -354,6 +354,7 @@ class Creator extends Extension
 
                 foreach ($tblPersonList as $tblPerson) {
                     $count++;
+                    $Data = array();
 
                     // nur entsprechenden Personenteil berücksichtigen
                     if ($isList
