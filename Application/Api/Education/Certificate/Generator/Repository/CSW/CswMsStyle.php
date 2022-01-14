@@ -7,6 +7,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 
 /**
+ * @deprecated
+ *
  * Class CswMsStyle
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW

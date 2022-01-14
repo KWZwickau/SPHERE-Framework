@@ -140,6 +140,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeight', TblSetting::TYPE_STRING, '',
             'Zeugnisse', 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo Maximalmaße 100 x 250.
              Das Bild ist ohne Einstellung 66px Hoch, wie das Sachsenlogo. Höhe des Bildes: [Standard: ]');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForOS', TblSetting::TYPE_STRING, '',
+            'Zeugnisse', 'Für die Standard-Zeugnisse der Oberschule kann ein Bild (Logo) hinterlegt werden. Logo Maximalmaße 100 x 250.
+            Adresse des Bildes: [Standard: ]');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeightForOS', TblSetting::TYPE_STRING, '',
+            'Zeugnisse', 'Für die Standard-Zeugnisse der Oberschule kann ein Bild (Logo) hinterlegt werden. Logo Maximalmaße 100 x 250.
+             Das Bild ist ohne Einstellung 66px Hoch, wie das Sachsenlogo. Höhe des Bildes: [Standard: ]');
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate',
             TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse kann ein Bild (Logo)
              hinterlegt werden. Adresse des Bildes: []');

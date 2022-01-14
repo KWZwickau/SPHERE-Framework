@@ -484,8 +484,16 @@ abstract class Certificate extends Extension
     protected function getIndividuallyLogo($IsSample)
     {
 
-        $picturePath = $this->getUsedPicture();
-        $IndividuallyLogoHeight = $this->getPictureHeight();
+        $isOS = false;
+        if (($tblCertificate = $this->getCertificateEntity())
+            && ($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
+            && $tblSchoolType->getShortName() == 'OS'
+        ) {
+            $isOS = true;
+        }
+
+        $picturePath = $this->getUsedPicture($isOS);
+        $IndividuallyLogoHeight = $this->getPictureHeight($isOS);
 
 //        $Head = new Slice();
         $Section = new Section();
@@ -524,8 +532,16 @@ abstract class Certificate extends Extension
     protected function getHead($IsSample, $isBigLogo = true)
     {
 
-        $picturePath = $this->getUsedPicture();
-        $IndividuallyLogoHeight = $this->getPictureHeight();
+        $isOS = false;
+        if (($tblCertificate = $this->getCertificateEntity())
+            && ($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
+            && $tblSchoolType->getShortName() == 'OS'
+        ) {
+            $isOS = true;
+        }
+
+        $picturePath = $this->getUsedPicture($isOS);
+        $IndividuallyLogoHeight = $this->getPictureHeight($isOS);
 
         $StandardLogoHeight = '50px';
         $StandardLogoWidth = '165px';
@@ -4297,29 +4313,47 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param bool $isOS
+     *
      * @return string
      */
-    public function getUsedPicture()
+    public function getUsedPicture(bool $isOS = false) : string
     {
+        if ($isOS
+            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureAddressForOS'))
+            && $tblSetting->getValue() != ''
+        ) {
+            return (string)$tblSetting->getValue();
+        }
+
         if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
             'Education', 'Certificate', 'Generate', 'PictureAddress'))
         ) {
             return (string)$tblSetting->getValue();
         }
+
         return '';
     }
 
     /**
-     * @param string $StandardHeight
+     * @param bool $isOS
      *
      * @return string
      */
-    private function getPictureHeight($StandardHeight = '66px')
+    private function getPictureHeight(bool $isOS = false) : string
     {
-
+        $StandardHeight = '66px';
         $value = '';
 
-        if (($tblSetting = Consumer::useService()->getSetting(
+        if ($isOS
+            && ($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureHeightForOS'))
+        ) {
+            $value = $tblSetting->getValue();
+        }
+
+        if ($value == '' && ($tblSetting = Consumer::useService()->getSetting(
             'Education', 'Certificate', 'Generate', 'PictureHeight'))
         ) {
             $value = $tblSetting->getValue();

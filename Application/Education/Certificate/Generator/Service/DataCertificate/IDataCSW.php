@@ -14,14 +14,15 @@ class IDataCSW
 
         $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('CSW');
         if ($tblConsumerCertificate){
-            self::setCswMsHalbjahresinformation($Data, $tblConsumerCertificate);
-            self::setCswMsJahreszeugnis($Data, $tblConsumerCertificate);
             self::setCswGsOneHjInfo($Data, $tblConsumerCertificate);
             self::setCswGsJOne($Data, $tblConsumerCertificate);
             self::setCswGsHjInfo($Data, $tblConsumerCertificate);
             self::setCswGsJ($Data, $tblConsumerCertificate);
-            self::setCswMsHalbjahresinformationFsLernen($Data, $tblConsumerCertificate);
-            self::setCswMsJFsLernen($Data, $tblConsumerCertificate);
+
+//            self::setCswMsHalbjahresinformation($Data, $tblConsumerCertificate);
+//            self::setCswMsJahreszeugnis($Data, $tblConsumerCertificate);
+//            self::setCswMsHalbjahresinformationFsLernen($Data, $tblConsumerCertificate);
+//            self::setCswMsJFsLernen($Data, $tblConsumerCertificate);
         }
 
     }

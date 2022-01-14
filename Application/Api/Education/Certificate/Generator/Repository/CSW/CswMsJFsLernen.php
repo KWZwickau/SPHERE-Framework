@@ -11,6 +11,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
+ * @deprecated
+ *
  * Class CswMsJFsLernen
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW
