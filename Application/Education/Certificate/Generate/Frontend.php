@@ -250,7 +250,7 @@ class Frontend extends Extension
                 $Global->POST['Data']['Year'] = $tblYear ? $tblYear->getId() : 0;
 
                 // Halbjahr oder Jahreszeugnis vorauswählen an Hand des aktuellen Datums
-                if (($tblPeriodList = $tblYear->getTblPeriodAll(false))
+                if (($tblPeriodList = $tblYear->getTblPeriodAll(null))
                     && count($tblPeriodList) == 2
                 ) {
                     $tblCurrentPeriod = false;

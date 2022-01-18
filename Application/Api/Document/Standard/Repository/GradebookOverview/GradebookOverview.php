@@ -147,8 +147,7 @@ class GradebookOverview extends AbstractDocument
 
             $data = array();
             $maxGradesPerPeriodCount = array();
-            $tblLevel = $tblDivision->getTblLevel();
-            $tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12');
+            $tblPeriodList = $tblYear->getTblPeriodAll($tblDivision);
             foreach ($divisionList as $tblDivision) {
                 if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
                     foreach ($tblDivisionSubjectList as $tblDivisionSubject) {

@@ -960,7 +960,7 @@ class Frontend extends FrontendScoreRule
         $tblYear = $tblDivision->getServiceTblYear();
         if ($tblYear) {
             $YearString = $tblYear->getYear();
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
         } else {
             $tblPeriodList = false;
         }
@@ -1569,13 +1569,9 @@ class Frontend extends FrontendScoreRule
                         $tblPerson = Person::useService()->getPersonById($personId);
                         if ($tblPerson && is_array($divisionList)) {
                             $tableHeaderList = array();
-                            if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson, $tblYear))) {
-                                $tblLevel = $tblMainDivision->getTblLevel();
-                            } else {
-                                $tblLevel = false;
-                            }
+                            $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson, $tblYear);
 
-                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblMainDivision ? $tblMainDivision : null);
                             if ($tblPeriodList) {
                                 $tableHeaderList['Subject'] = 'Fach';
                                 foreach ($tblPeriodList as $tblPeriod) {
@@ -3484,8 +3480,7 @@ class Frontend extends FrontendScoreRule
 
         if (($tblYear = $tblDivision->getServiceTblYear())) {
             $tableHeaderList = array();
-            $tblLevel = $tblDivision->getTblLevel();
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
             if ($tblPeriodList) {
                 $tableHeaderList['Subject'] = 'Fach';
                 foreach ($tblPeriodList as $tblPeriod) {

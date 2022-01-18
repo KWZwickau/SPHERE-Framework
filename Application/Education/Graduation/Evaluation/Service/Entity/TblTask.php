@@ -186,10 +186,8 @@ class TblTask extends Element
     {
 
         if ($this->serviceTblPeriod < 0) {
-            if (($tblLevel = $tblDivision->getTblLevel())
-                && ($tblYear = $tblDivision->getServiceTblYear())
-            ) {
-                if (($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel->getName() == '12'))) {
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                if (($tblPeriodList = $tblYear->getTblPeriodAll($tblDivision))) {
                     if (isset($tblPeriodList[0]) && $this->serviceTblPeriod == self::FIRST_PERIOD_ID) {
                         return $tblPeriodList[0];
                     }

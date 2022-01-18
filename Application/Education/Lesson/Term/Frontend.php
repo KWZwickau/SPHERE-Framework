@@ -132,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$TableContent) {
 
-                $tblPeriodAll = $tblYear->getTblPeriodAll(false, true);
+                $tblPeriodAll = $tblYear->getTblPeriodAll(null, true);
                 $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Option'] =

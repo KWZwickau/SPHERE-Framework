@@ -601,7 +601,7 @@ class Creator extends Extension
 
             if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))
                 && ($tblYear = $tblDivision->getServiceTblYear())
-                && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
+                && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision))
             ) {
                 // todo Sortierung
                 foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {

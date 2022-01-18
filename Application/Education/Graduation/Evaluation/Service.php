@@ -254,10 +254,8 @@ class Service extends AbstractService
             $this->createTestLink($tblTest, $LinkId);
 
             $tblPeriodOriginList = false;
-            if (($tblLevel = $tblDivision->getTblLevel())
-                && ($tblYear = $tblDivision->getServiceTblYear())
-            ) {
-                $tblPeriodOriginList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel->getName() == '12');
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                $tblPeriodOriginList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
             }
 
             foreach ($Test['Link'] as $divisionSubjectToLinkId => $value) {
@@ -266,8 +264,7 @@ class Service extends AbstractService
                     // SSW-389, korrekte Periode ermitteln
                     if (($tblDivisionToLink = $tblDivisionSubjectToLink->getTblDivision())
                         && ($tblYear = $tblDivisionToLink->getServiceTblYear())
-                        && ($tblLevel = $tblDivisionToLink->getTblLevel())
-                        && (($tblPeriodLinkList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel->getName() == '12')))
+                        && (($tblPeriodLinkList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision)))
                     ) {
                         $hasPeriod = false;
                         foreach ($tblPeriodLinkList as $tblPeriodItem) {
