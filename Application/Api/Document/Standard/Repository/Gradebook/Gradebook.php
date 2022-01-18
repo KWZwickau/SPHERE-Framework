@@ -56,8 +56,7 @@ class Gradebook extends AbstractDocument
         $pageList = array();
         if (($tblDivision = $tblDivisionSubject->getTblDivision())
             && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
+            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision))
         ) {
             $count = 0;
             foreach ($tblPeriodList as $tblPeriod) {
@@ -89,8 +88,7 @@ class Gradebook extends AbstractDocument
         $pageList = array();
         if (($tblDivision = $tblDivisionSubject->getTblDivision())
             && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
+            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision))
         ) {
             $count = 0;
             foreach ($tblPeriodList as $tblPeriod) {
@@ -391,7 +389,7 @@ class Gradebook extends AbstractDocument
 
         $tblYear = $tblDivision->getServiceTblYear();
         if ($tblYear) {
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
         } else {
             $tblPeriodList = false;
         }

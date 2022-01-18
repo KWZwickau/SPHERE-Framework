@@ -314,10 +314,8 @@ abstract class Service extends AbstractService
             $tblPeriod = false;
             if ($tblMinimumGradeCount->getPeriod() != SelectBoxItem::PERIOD_FULL_YEAR) {
                 $index = $tblMinimumGradeCount->getPeriod() - 1;
-                $tblLevel = $tblDivision->getTblLevel();
                 if (($tblYear = $tblDivision->getServiceTblYear())
-                    && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear,
-                        $tblLevel && $tblLevel->getName() == '12'))
+                    && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision))
                     && isset($tblPeriodList[$index])
                 ) {
                     $tblPeriod = $tblPeriodList[$index];

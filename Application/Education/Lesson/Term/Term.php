@@ -113,7 +113,7 @@ class Term extends Extension implements IModuleInterface
         $Year = array();
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$Year) {
-                $tblPeriodAll = $tblYear->getTblPeriodAll(false, true);
+                $tblPeriodAll = $tblYear->getTblPeriodAll(null, true);
                 if ($tblPeriodAll) {
                     array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use ($tblYear) {
 

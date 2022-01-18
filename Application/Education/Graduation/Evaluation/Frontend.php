@@ -1472,8 +1472,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
         }
 
-        $tblLevel = $tblDivision->getTblLevel();
-        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
 
         // select current period
         $Global = $this->getGlobal();
@@ -1670,9 +1669,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblDivision
                 && ($tblYear = $tblDivision->getServiceTblYear())
-                && ($tblLevel = $tblDivision->getTblLevel())
             ) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
             } else {
                 $tblPeriodList = array();
             }
@@ -2220,14 +2218,13 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $tblPeriodList = false;
-                $tblLevel = $tblDivision->getTblLevel();
                 // ist Stichtagsnotenauftrag auf eine Periode beschränkt oder wird das gesamte Schuljahr genutzt
                 if ($isAllYears) {
                     $tblPeriodList = false;
                 } elseif ($tblPeriodByDivision) {
                     $tblPeriodList[] = $tblPeriodByDivision;
                 } elseif ($tblTask->getServiceTblYear()) {
-                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblTask->getServiceTblYear(), $tblLevel && $tblLevel->getName() == '12');
+                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblTask->getServiceTblYear(), $tblDivision);
                 } else {
                     // alte Daten wo noch kein Schuljahr ausgewählt werde musste bei der Erstellung des Stichtagsnotenauftrags
                     $tblYearAll = Term::useService()->getYearAllByDate(DateTime::createFromFormat('d.m.Y',

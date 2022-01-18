@@ -78,7 +78,7 @@ class YearPeriod extends Extension implements IApiInterface
      */
     public static function getTableContentUsed(TblYear $tblYear)
     {
-        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
+        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
         $usedList = array();
         if ($tblPeriodUsedList) {
             foreach ($tblPeriodUsedList as $tblPeriodUsed) {
@@ -103,7 +103,7 @@ class YearPeriod extends Extension implements IApiInterface
      */
     public static function getTableContentAvailable(TblYear $tblYear)
     {
-        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
+        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
         $tblPeriodAll = Term::useService()->getPeriodAll();
 
         $contentPeriodAvailable = array();
