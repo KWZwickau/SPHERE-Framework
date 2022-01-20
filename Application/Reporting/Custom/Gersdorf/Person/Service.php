@@ -778,7 +778,7 @@ class Service extends Extension
                             $phoneList = Phone::useService()->getPhoneAllByPerson($tblPersonParent);
                             if ($phoneList) {
                                 foreach ($phoneList as $phone) {
-                                    $PhoneParent[$tblToPerson->getRanking()][$phone->getTblType()->getId()][] = $phone->getTblPhone()->getNumber();
+                                    $PhoneParent[$tblToPerson->getRanking()][$phone->getTblType()->getName()][] = $phone->getTblPhone()->getNumber();
                                 }
                             }
                         }
@@ -787,26 +787,24 @@ class Service extends Extension
                 if(!empty($PhoneParent)){
                     foreach($PhoneParent as $Ranking => $PhoneTypeList){
                         if($Ranking == 1){
-                            foreach($PhoneTypeList as $TypeId => $PhoneList){
-                                if($TypeId){
-                                    $tblType = Phone::useService()->getTypeById($TypeId);
-                                    if($tblType->getName() == TblType::VALUE_NAME_PRIVATE){
+                            foreach($PhoneTypeList as $Type => $PhoneList){
+                                if($Type){
+                                    if($Type == TblType::VALUE_NAME_PRIVATE){
                                         $Item['S1Private'] = implode(', ', $PhoneList);
                                         $Item['S1ExcelPrivate'] = $PhoneList;
-                                    }elseif($tblType->getName() == TblType::VALUE_NAME_BUSINESS){
+                                    }elseif($Type == TblType::VALUE_NAME_BUSINESS){
                                         $Item['S1Business'] = implode(', ', $PhoneList);
                                         $Item['S1ExcelBusiness'] = $PhoneList;
                                     }
                                 }
                             }
                         } elseif($Ranking == 2){
-                            foreach($PhoneTypeList as $TypeId => $PhoneList){
-                                if($TypeId){
-                                    $tblType = Phone::useService()->getTypeById($TypeId);
-                                    if($tblType->getName() == TblType::VALUE_NAME_PRIVATE){
+                            foreach($PhoneTypeList as $Type => $PhoneList){
+                                if($Type){
+                                    if($Type == TblType::VALUE_NAME_PRIVATE){
                                         $Item['S2Private'] = implode(', ', $PhoneList);
                                         $Item['S2ExcelPrivate'] = $PhoneList;
-                                    } elseif($tblType->getName() == TblType::VALUE_NAME_BUSINESS) {
+                                    } elseif($Type == TblType::VALUE_NAME_BUSINESS) {
                                         $Item['S2Business'] = implode(', ', $PhoneList);
                                         $Item['S2ExcelBusiness'] = $PhoneList;
                                     }
