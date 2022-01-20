@@ -424,7 +424,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'Number'           => '#',
                                         'Name'             => 'Name',
-                                        'Birthday'         => 'Geb.-Datum',
+//                                        'Birthday'         => 'Geb.-Datum',
                                         'Education'        => 'Bildungsgang',
                                         'ForeignLanguage1' => 'Fremdsprache 1',
                                         'ForeignLanguage2' => 'Fremdsprache 2',
