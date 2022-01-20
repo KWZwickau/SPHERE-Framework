@@ -78,7 +78,7 @@ class Service extends Extension
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
-                $Item['Address'] = '';
+                $Item['Address'] = $Item['AddressExcel'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = '';
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
@@ -92,7 +92,11 @@ class Service extends Extension
                     $Item['City'] = $tblAddress->getTblCity()->getName();
                     $Item['District'] = $tblAddress->getTblCity()->getDistrict();
 
-                    $Item['Address'] = $tblAddress->getGuiString(false);
+                    $Item['Address'] = $Item['AddressExcel'] = $tblAddress->getGuiString(false);
+                    if(strlen($Item['Address']) > 41){
+                        $Item['Address'] = $tblAddress->getGuiTwoRowString(false);
+                        $Item['AddressExcel'] = str_replace("<br>", "\n", $Item['Address']);
+                    }
                 }
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
@@ -151,30 +155,22 @@ class Service extends Extension
 //                $export->setValue($export->getCell(2, $Row), $PersonData['Count2']);
                 $export->setValue($export->getCell($i++, $Row), $PersonData['Birthday']);
                 $export->setValue($export->getCell($i++, $Row), $PersonData['Birthplace']);
-                $export->setValue($export->getCell($i, $Row), $PersonData['Address']);
-
-                // react for font size
-                $AddressLength = strlen($PersonData['Address']);
-                if($AddressLength > 30){
-                    if($AddressLength > 39){
-                        $export->setStyle($export->getCell($i, $Row))->setFontSize(6);
-                    } else {
-                        $export->setStyle($export->getCell($i, $Row))->setFontSize(8);
-                    }
-                }
+                $export->setValue($export->getCell($i, $Row), $PersonData['AddressExcel']);
             }
 
             // TableBorder
             $export->setStyle($export->getCell(0, ( $Start + 1 )), $export->getCell(4, $Row))
-                ->setBorderAll();
+                ->setBorderAll()
+                ->setWrapText()
+                ->setAlignmentMiddle();
 
             $i = 0;
             // Spaltenbreite
             $export->setStyle($export->getCell($i++, 0), $export->getCell(0, $Row))->setColumnWidth(6);
             $export->setStyle($export->getCell($i++, 0), $export->getCell(1, $Row))->setColumnWidth(26);
-            $export->setStyle($export->getCell($i++, 0), $export->getCell(3, $Row))->setColumnWidth(13);
-            $export->setStyle($export->getCell($i++, 0), $export->getCell(4, $Row))->setColumnWidth(15);
-            $export->setStyle($export->getCell($i, 0), $export->getCell(5, $Row))->setColumnWidth(30);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(2, $Row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(3, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($i, 0), $export->getCell(4, $Row))->setColumnWidth(38);
 
             // Center
             $export->setStyle($export->getCell(0, 3), $export->getCell(0, $Row))->setAlignmentCenter();
@@ -183,6 +179,7 @@ class Service extends Extension
             $Row++;
             Person::setGenderFooter($export, $tblPersonList, $Row, 1);
 
+            $export->setPagePrintMargin('0.4', '0.4', '0.4', '0.4');
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -284,16 +281,22 @@ class Service extends Extension
                 $export->setValue($export->getCell(2, $Row), $PersonData['FirstName']);
             }
 
+            //Zeilenhöhe
+            $RowHeight = '23';
+
             // TableBorder
             $export->setStyle($export->getCell(0, ( $Start + 1 )), $export->getCell(4, $Row))
-                ->setBorderAll();
+                ->setBorderAll()
+                ->setRowHeight($RowHeight)
+                ->setWrapText()
+                ->setAlignmentMiddle();
 
             // Spaltenbreite
-            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(5);
-            $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(6);
+            $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setColumnWidth(21);
             $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(21);
-            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(22);
-            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(22);
+            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(25);
+            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(25);
 
             // Center
             $export->setStyle($export->getCell(0, 4), $export->getCell(0, $Row))->setAlignmentCenter();
@@ -301,6 +304,8 @@ class Service extends Extension
             $Row++;
             $Row++;
             Person::setGenderFooter($export, $tblPersonList, $Row, 1);
+
+            $export->setPagePrintMargin('0.4', '0.4', '0.4', '0.4');
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -327,7 +332,7 @@ class Service extends Extension
 
                 $Item['Number'] = $count++;
                 $Item['Name'] = '';
-                $Item['Birthday'] = '';
+//                $Item['Birthday'] = '';
                 $Item['Education'] = '';
                 $Item['ForeignLanguage1'] = '';
                 $Item['ForeignLanguage2'] = '';
@@ -340,10 +345,10 @@ class Service extends Extension
                 $Item['Elective1'] = $Item['Elective2'] = $Item['Elective3'] = $Item['Elective4'] = $Item['Elective5'] = '';
 
                 $Item['Name'] = $tblPerson->getLastFirstName();
-                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
-                if ($tblCommon) {
-                    $Item['Birthday'] = $tblCommon->getTblCommonBirthDates()->getBirthday();
-                }
+//                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+//                if ($tblCommon) {
+//                    $Item['Birthday'] = $tblCommon->getTblCommonBirthDates()->getBirthday();
+//                }
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 // NK/Profil
@@ -533,13 +538,13 @@ class Service extends Extension
             $i = 0;
             // Header
             $export->setValue($export->getCell($i++, 1), "Name");
-            $export->setValue($export->getCell($i++, 1), "Geb.-Datum");
+//            $export->setValue($export->getCell($i++, 1), "Geb.-Datum");
             $export->setValue($export->getCell($i++, 1), "Bg");
             $export->setValue($export->getCell($i++, 1), "FS 1");
             $export->setValue($export->getCell($i++, 1), "FS 2");
             $export->setValue($export->getCell($i++, 1), "FS 3");
 //            $export->setValue($export->getCell($i++, 1), "Profil");
-            $export->setValue($export->getCell($i++, 1), "Neig.k.");
+            $export->setValue($export->getCell($i++, 1), "WB");
             $export->setValue($export->getCell($i++, 1), "Rel.");
             $export->setValue($export->getCell($i++, 1), "WF 1-5");
             $export->setValue($export->getCell($i++, 1), "WF 1");
@@ -558,14 +563,14 @@ class Service extends Extension
                 $ElectiveRow = $Row;
 
                 $export->setValue($export->getCell(0, $Row), $PersonData['Name']);
-                $export->setValue($export->getCell(1, $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell(2, $Row), $PersonData['Education']);
-                $export->setValue($export->getCell(3, $Row), $PersonData['ForeignLanguage1']);
-                $export->setValue($export->getCell(4, $Row), $PersonData['ForeignLanguage2']);
-                $export->setValue($export->getCell(5, $Row), $PersonData['ForeignLanguage3']);
+//                $export->setValue($export->getCell(1, $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell(1, $Row), $PersonData['Education']);
+                $export->setValue($export->getCell(2, $Row), $PersonData['ForeignLanguage1']);
+                $export->setValue($export->getCell(3, $Row), $PersonData['ForeignLanguage2']);
+                $export->setValue($export->getCell(4, $Row), $PersonData['ForeignLanguage3']);
 //                $export->setValue($export->getCell(6, $Row), $PersonData['Profile']);
-                $export->setValue($export->getCell(6, $Row), $PersonData['Orientation']);
-                $export->setValue($export->getCell(7, $Row), $PersonData['Religion']);
+                $export->setValue($export->getCell(5, $Row), $PersonData['Orientation']);
+                $export->setValue($export->getCell(6, $Row), $PersonData['Religion']);
 
 //                if (isset($PersonData['ExcelElective']) && !empty($PersonData['ExcelElective'])) {
 //                    foreach ($PersonData['ExcelElective'] as $Elective) {
@@ -574,13 +579,13 @@ class Service extends Extension
 //                    }
 //                }
                 if(!empty($PersonData['ExcelElective'])){
-                    $export->setValue($export->getCell(8, $Row), implode(', ', $PersonData['ExcelElective']));
+                    $export->setValue($export->getCell(7, $Row), implode(', ', $PersonData['ExcelElective']));
                 }
-                $export->setValue($export->getCell(9, $Row), $PersonData['Elective1']);
-                $export->setValue($export->getCell(10, $Row), $PersonData['Elective2']);
-                $export->setValue($export->getCell(11, $Row), $PersonData['Elective3']);
-                $export->setValue($export->getCell(12, $Row), $PersonData['Elective4']);
-                $export->setValue($export->getCell(13, $Row), $PersonData['Elective5']);
+                $export->setValue($export->getCell(8, $Row), $PersonData['Elective1']);
+                $export->setValue($export->getCell(9, $Row), $PersonData['Elective2']);
+                $export->setValue($export->getCell(10, $Row), $PersonData['Elective3']);
+                $export->setValue($export->getCell(11, $Row), $PersonData['Elective4']);
+                $export->setValue($export->getCell(12, $Row), $PersonData['Elective5']);
 
                 $Row++;
                 if ($ElectiveRow > $Row) {
@@ -594,7 +599,10 @@ class Service extends Extension
 //            // Gitterlinien
 //            $export->setStyle($export->getCell(0, 1), $export->getCell(14, 1))->setBorderBottom();
 //            $export->setStyle($export->getCell(0, 1), $export->getCell(14, $Row - 1))->setBorderVertical();
-            $export->setStyle($export->getCell(0, 1), $export->getCell(13, $Row - 1))->setBorderAll();
+            $export->setStyle($export->getCell(0, 1), $export->getCell(12, $Row - 1))
+                ->setBorderAll()
+                ->setWrapText()
+                ->setAlignmentMiddle();
 
             // Personenanzahl
             $Row++;
@@ -609,7 +617,7 @@ class Service extends Extension
                 foreach($SubjectList as $SubjectId => $Count){
                     if(!($Type == 'Elective')){
                         // Spalte 1
-                        $j = 2;
+                        $j = 3;
                         $tblSubject = Subject::useService()->getSubjectById($SubjectId);
                         $export->setValue($export->getCell($j, $RowReference), $Count);
                         $export->setStyle($export->getCell($j++, $RowReference))->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
@@ -617,7 +625,7 @@ class Service extends Extension
                         $export->setValue($export->getCell($j, $RowReference++), $tblSubject->getName());
                     } else {
                         // Spalte 2
-                        $j = 6;
+                        $j = 7;
                         $tblSubject = Subject::useService()->getSubjectById($SubjectId);
                         $export->setValue($export->getCell($j, $RowReference2), $Count);
                         $export->setStyle($export->getCell($j++, $RowReference2))->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
@@ -628,21 +636,21 @@ class Service extends Extension
             }
 
             // Spaltenbreite
-            $export->setStyle($export->getCell(0, 0))->setColumnWidth(24);
-            $export->setStyle($export->getCell(1, 0))->setColumnWidth(12);
-            $export->setStyle($export->getCell(2, 0))->setColumnWidth(7);
-            $export->setStyle($export->getCell(3, 0))->setColumnWidth(6);
-            $export->setStyle($export->getCell(4, 0))->setColumnWidth(6);
-            $export->setStyle($export->getCell(5, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(0, 0))->setColumnWidth(27);
+            $export->setStyle($export->getCell(1, 0))->setColumnWidth(7);
+            $export->setStyle($export->getCell(2, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(3, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(4, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(5, 0))->setColumnWidth(7);
             $export->setStyle($export->getCell(6, 0))->setColumnWidth(7);
-            $export->setStyle($export->getCell(7, 0))->setColumnWidth(7);
-            $export->setStyle($export->getCell(8, 0))->setColumnWidth(16);
-            $export->setStyle($export->getCell(9, 0))->setColumnWidth(6);
-            $export->setStyle($export->getCell(10, 0))->setColumnWidth(6);
-            $export->setStyle($export->getCell(11, 0))->setColumnWidth(6);
-            $export->setStyle($export->getCell(12, 0))->setColumnWidth(6);
-            $export->setStyle($export->getCell(13, 0))->setColumnWidth(6);
+            $export->setStyle($export->getCell(7, 0))->setColumnWidth(17);
+            $export->setStyle($export->getCell(8, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(9, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(10, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(11, 0))->setColumnWidth(8);
+            $export->setStyle($export->getCell(12, 0))->setColumnWidth(8);
 
+            $export->setPagePrintMargin('0.4', '0.4', '0.4', '0.4');
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -846,12 +854,12 @@ class Service extends Extension
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export = $this->setHeader($export, 6);
             //TableHead
-            $export->setValue($export->getCell(0, 3), "lfdNr.");
+            $export->setValue($export->getCell(0, 3), "Nr.");
             $export->setValue($export->getCell(1, 3), "Name");
 //            $export->setValue($export->getCell(2, 3), "Vorname");
             $export->setValue($export->getCell(2, 3), "Telefon Schüler");
-            $export->setValue($export->getCell(3, 3), "Sorgeberechtiger 1 (Vater)");
-            $export->setValue($export->getCell(5, 3), "Sorgeberechtige 2 (Mutter)");
+            $export->setValue($export->getCell(3, 3), "Sorgeberechtigter 1 (Vater)");
+            $export->setValue($export->getCell(5, 3), "Sorgeberechtigte 2 (Mutter)");
             $export->setValue($export->getCell(3, 4), "privat");
             $export->setValue($export->getCell(4, 4), "geschäftlich");
             $export->setValue($export->getCell(5, 4), "privat");
@@ -908,63 +916,26 @@ class Service extends Extension
                 $export->setValue($export->getCell(4, $Row), $S1ExcelBusiness);
                 $export->setValue($export->getCell(5, $Row), $S2ExcelPrivate);
                 $export->setValue($export->getCell(6, $Row), $S2ExcelBusiness);
-
-//                if (!empty( $PersonData['ExcelPhoneNumbers'] )) {
-//                    foreach ($PersonData['ExcelPhoneNumbers'] as $Phone) {
-//                        $export->setValue($export->getCell(2, $RowPhone++), $Phone);
-//                    }
-//                }
-//                if (!empty( $PersonData['ExcelEmail'] )) {
-//                    foreach ($PersonData['ExcelEmail'] as $Mail) {
-//                        $export->setValue($export->getCell(3, $RowEmail++), $Mail);
-//                    }
-//                }
-//                if (!empty( $PersonData['ExcelParants'] )) {
-//                    foreach ($PersonData['ExcelParants'] as $Parent) {
-//                        $export->setValue($export->getCell(4, $RowParent++), $Parent);
-//                    }
-//                }
-
-//                if ($RowPhone > $Row) {
-//                    $Row = ( $RowPhone - 1 );
-//                }
-//                if ($RowEmail > $Row) {
-//                    $Row = ( $RowEmail - 1 );
-//                }
-//                if ($RowParent > $Row) {
-//                    $Row = ( $RowParent - 1 );
-//                }
-//                $export->setStyle($export->getCell(0, $Row), $export->getCell(8, $Row))
-//                    ->setBorderBottom();
             }
 
-//            // TableBorder
-////            $export->setStyle($export->getCell(0, ($Start + 1)), $export->getCell(7, $Row))
-////                ->setBorderAll();
-//            $export->setStyle($export->getCell(0, ( $Start + 1 )), $export->getCell(0, $Row))
-//                ->setBorderLeft();
-//            $export->setStyle($export->getCell(0, ( $Start + 1 )), $export->getCell(6, $Row))
-//                ->setBorderVertical();
-//            $export->setStyle($export->getCell(6, ( $Start + 1 )), $export->getCell(6, $Row))
-//                ->setBorderRight();
-//            $export->setStyle($export->getCell(0, $Row), $export->getCell(6, $Row))
-//                ->setBorderBottom();
-
             // Spaltenbreite
-            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(6);
+            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(4);
             $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setColumnWidth(26);
-            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(18);
-            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(18);
-            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(18);
-            $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setColumnWidth(18);
-            $export->setStyle($export->getCell(6, 0), $export->getCell(6, $Row))->setColumnWidth(18);
+            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(6, 0), $export->getCell(6, $Row))->setColumnWidth(20);
 
             // Center
-            $export->setStyle($export->getCell(0, 5), $export->getCell(6, $Row))->setBorderAll()->setWrapText();
+            $export->setStyle($export->getCell(0, 5), $export->getCell(6, $Row))
+                ->setBorderAll()
+                ->setWrapText()
+                ->setAlignmentMiddle();
+            $export->setPagePrintMargin('0.4', '0.4', '0.4', '0.4');
 
-            $Row++;
-            $Row++;
-            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
+//            $Row++; $Row++;
+//            Person::setGenderFooter($export, $tblPersonList, $Row, 1);
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
