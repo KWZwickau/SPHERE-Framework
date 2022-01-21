@@ -234,7 +234,7 @@ class Service extends AbstractService
             $EmptyCount = 0;
             foreach($UniventionUserList as $User){
                 //  Ignore DllpServiceAccounts
-                if(isset($User['udm_properties']['DllpServiceAccount']) && $User['udm_properties']['DllpServiceAccount']){
+                if(isset($User['udm_properties']['DllpServiceAccount']) && !$User['udm_properties']['DllpServiceAccount']){
                     continue;
                 }
 
