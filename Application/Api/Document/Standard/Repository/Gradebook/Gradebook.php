@@ -22,6 +22,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Gradebook
@@ -432,14 +433,12 @@ class Gradebook extends AbstractDocument
                         $date = '';
                     }
 
-                    $text = trim($date . ' ' .
-                        $tblGradeType->getCode() . ' '
-                        . trim($tblTest->getDescription()));
-
-                    if (!empty($text)) {
-                        $text = str_replace(' ', '&nbsp;', $text);
-                        $text = str_replace('-', '&nbsp;', $text);
+                    $description = trim($tblTest->getDescription());
+                    if (!empty($description)) {
+                        $description = str_replace('-', ' ', $description);
                     }
+
+                    $text = trim($date . ' ' . $tblGradeType->getCode() . ' ' . $description);
 
                     $testList[$tblPeriod->getId()][$tblTest->getId()] = $text;
 
@@ -1006,7 +1005,7 @@ class Gradebook extends AbstractDocument
         } elseif ($countHeaders < 10) {
             $paddingTop = '-130px';
         } else {
-            $paddingTop = '-120px';
+            $paddingTop = '-130px';
         }
 
 //        $paddingTop = '-150px';
