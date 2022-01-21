@@ -22,7 +22,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Gradebook
