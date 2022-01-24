@@ -4209,6 +4209,12 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivision, $tblSubject, $tblSubjectGroup ? $tblSubjectGroup : null
         );
 
+        if (($tblTask = $tblTest->getTblTask())) {
+            $testDate = new DateTime($tblTask->getDate());
+        } else {
+            $testDate = new DateTime($tblTest->getDate());
+        }
+
         $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
         if ($tblGradeList && $tblDivision && $tblSubject && $tblDivisionSubject) {
             foreach ($tblGradeList as $tblGrade) {
@@ -4250,7 +4256,7 @@ class Frontend extends Extension implements IFrontendInterface
                             if (!$tblDivisionStudent->isInActive()) {
                                 $count++;
                             }
-                        } elseif (!$tblDivisionStudent->isInActiveByDateTime(new DateTime($tblTest->getDate()))) {
+                        } elseif (!$tblDivisionStudent->isInActiveByDateTime($testDate)) {
                             $count++;
                         }
                     }
@@ -4266,7 +4272,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (!$divisionStudent->isInActive()) {
                             $count++;
                         }
-                    } elseif (!$divisionStudent->isInActiveByDateTime(new DateTime($tblTest->getDate()))) {
+                    } elseif (!$divisionStudent->isInActiveByDateTime($testDate)) {
                         $count++;
                     }
                 }

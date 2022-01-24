@@ -1371,7 +1371,12 @@ class Service extends AbstractService
                     ) {
                         if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectTemp))) {
                             foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                if (($tblSubjectStudent->getServiceTblPerson())) {
+                                if ($tblSubjectStudent->getServiceTblPerson()
+                                    && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                                        $tblDivision, $tblSubjectStudent->getServiceTblPerson()
+                                    ))
+                                    && !$tblDivisionStudent->isInActiveByDateTime(new DateTime($tblTask->getDate()))
+                                ) {
                                     $countPersons++;
                                 }
                             }
