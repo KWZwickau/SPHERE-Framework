@@ -95,6 +95,12 @@ class Service extends AbstractService
             $tblAccountList = array_merge($tblAccountList, $tblAccountList2);
         }
 
+        // Mitarbeiter ohne 2 Wege Authentifizierung
+        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+        if(($tblAccountList3 = Account::useService()->getAccountListByIdentification($tblIdentification))){
+            $tblAccountList = array_merge($tblAccountList, $tblAccountList3);
+        }
+
         // Student
         if ($tblUserAccountList = AccountUser::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT)){
             foreach ($tblUserAccountList as $tblUserAccount) {
