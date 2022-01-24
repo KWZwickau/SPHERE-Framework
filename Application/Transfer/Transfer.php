@@ -5,7 +5,6 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Transfer\Export\Export;
 use SPHERE\Application\Transfer\Import\Import;
 use SPHERE\Application\Transfer\Indiware\Indiware;
-use SPHERE\Application\Transfer\ItsLearning\ItsLearning;
 use SPHERE\Application\Transfer\Untis\Untis;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -26,7 +25,6 @@ class Transfer implements IClusterInterface
         Export::registerApplication();
         Untis::registerApplication();
         Indiware::registerApplication();
-        ItsLearning::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datentransfer'))

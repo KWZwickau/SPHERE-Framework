@@ -1,19 +1,20 @@
 <?php
-namespace SPHERE\Application\Transfer\ItsLearning\Export;
+namespace SPHERE\Application\Setting\ItsLearning;
 
+use SPHERE\Application\Api\Setting\ItsLearning\ApiItsLearning;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -37,9 +38,24 @@ class Frontend extends Extension
         .new Container('Bitte beachten Sie dabei, dass das Feld "Geschwisterkind" im 
         Block "Schülerakte - Allgemeines" der Schülerakte gepflegt sein muss, falls es sich um Geschwisterkinder handelt, 
         damit die Identifizierung der Geschwisterkinder in itslearning korrekt erfolgen kann.'));
-        $Stage->addButton(new Standard('Zurück', '/Transfer/ItsLearning', new ChevronLeft()));
 
-        $StudentAccountList = Export::useService()->getStudentCustodyAccountList();
+        $LoadContent = new Info('Inhalt lädt...'.new ProgressBar(0, 100, 0, 12));
+        $ApiReciver = ApiItsLearning::receiverContent($LoadContent);
+
+        $Stage->setContent(
+            $ApiReciver
+            .ApiItsLearning::pipelineLoad()
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Layout|string
+     */
+    public function loadContentComplete()
+    {
+        $StudentAccountList = ItsLearning::useService()->getStudentCustodyAccountList();
         $TableStudentWarningContent = array();
         if(!empty($StudentAccountList)){
             foreach($StudentAccountList as $PersonId => $Data){
@@ -60,7 +76,7 @@ class Frontend extends Extension
             }
         }
 
-        $TeacherAccountList = Export::useService()->getTeacherAccountList();
+        $TeacherAccountList = ItsLearning::useService()->getTeacherAccountList();
         $TableTeacherWarningContent = array();
         if(!empty($TeacherAccountList)){
             foreach($TeacherAccountList as $PersonId => $Data){
@@ -78,7 +94,7 @@ class Frontend extends Extension
             }
         }
 
-        $Stage->setContent(new Layout(new LayoutGroup(array(
+        return new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
                     new Primary('CSV Schüler & Sorgeberechtigte herunterladen', '/Api/Transfer/ItsLearning/StudentCustody/Download', new Download())
@@ -105,8 +121,6 @@ class Frontend extends Extension
                     )
                     , 6),
             ))
-        ))));
-
-        return $Stage;
+        )));
     }
 }

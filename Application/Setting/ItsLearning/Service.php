@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Transfer\ItsLearning\Export;
+namespace SPHERE\Application\Setting\ItsLearning;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
