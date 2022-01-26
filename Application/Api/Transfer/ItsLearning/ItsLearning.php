@@ -44,7 +44,7 @@ class ItsLearning implements IModuleInterface
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "itslearning_Schüler_Sorgeberechtigte.csv")->__toString();
         }
-        return false;
+        return 'Es konnte keine Datei erzeugt werden.';
     }
 
     /**
@@ -58,7 +58,7 @@ class ItsLearning implements IModuleInterface
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "itslearning_Lehrer.csv")->__toString();
         }
-        return false;
+        return 'Es konnte keine Datei erzeugt werden.';
     }
 
 }

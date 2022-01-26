@@ -212,7 +212,7 @@ class Service extends Extension
             return $fileLocation;
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -291,6 +291,6 @@ class Service extends Extension
             return $fileLocation;
         }
 
-        return false;
+        return null;
     }
 }

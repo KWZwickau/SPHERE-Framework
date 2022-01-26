@@ -13,7 +13,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -97,7 +97,7 @@ class Frontend extends Extension
         return new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Primary('CSV Schüler & Sorgeberechtigte herunterladen', '/Api/Transfer/ItsLearning/StudentCustody/Download', new Download())
+                    new External('CSV Schüler & Sorgeberechtigte herunterladen', '/Api/Transfer/ItsLearning/StudentCustody/Download', new Download(), array(), false, External::STYLE_BUTTON_PRIMARY)
                     .new Title(new Family().' Export Schüler/Sorgeberechtigte nach itslearning')
                     .(!empty($TableStudentWarningContent)
                         ? new TableData($TableStudentWarningContent, null,
@@ -109,7 +109,7 @@ class Frontend extends Extension
                     )
                     , 6),
                 new LayoutColumn(
-                    new Primary('CSV Lehrer herunterladen', '/Api/Transfer/ItsLearning/Teacher/Download', new Download())
+                    new External('CSV Lehrer herunterladen', '/Api/Transfer/ItsLearning/Teacher/Download', new Download(), array(), false, External::STYLE_BUTTON_PRIMARY)
                     .new Title(new PersonKey().' Export Lehrer nach itslearning')
                     .(!empty($TableTeacherWarningContent)
                         ? new TableData($TableTeacherWarningContent, null,
