@@ -895,21 +895,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
 
         $ErrorLog = array();
+        $countFirstStudent = 0;
         if(($AccountPrepareList = Univention::useService()->getExportAccount(true))){
-
+            $i = 0;
             foreach($AccountPrepareList as $Data){
-
                 $IsError = false;
-//                $Data['name'];
-//                $Data['firstname'];       // Account ohne Person wird bereits davor ausgefiltert
-//                $Data['lastname'];
-//                $Data['record_uid'];      // Accountabhängig
-//                $Data['roles'];           // benutzer ohne Rollen werden bereits entfernt. nachträglich werden Schüler herrangezogen, die besitzen immer Student
-//                $Data['schools'];
-//                $Data['password'];        // noch keine Prüfung
-//                $Data['school_classes'];
-//                $Data['groupArray'];
-
                 if(!$Data['name']){
                     // nur Schüler können vorkommen, die keinen Account haben, der Rest wird nur über vorhandenen Account gezogen
                     $Data['name'] = (new ToolTip(new Exclamation(), htmlspecialchars('Person als '.
@@ -957,14 +947,25 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $Data['mail'] = new SuccessText(new SuccessIcon().' gefunden');
                 }
                 if($IsError){
+                    $i++;
+                    if($countFirstStudent == 0
+                        && isset($Data['Type'])
+                        && $Data['Type'] == 'Student'){
+                        $countFirstStudent = $i;
+                    }
+
                     $ErrorLog[] = $Data;
                 }
             }
         }
 
-        $Columnlist = array();
+        $countWarning = 0;
+        $LayoutRowList = array();
         if(!empty($ErrorLog)){
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
             foreach ($ErrorLog as $Notification){
+                $countWarning++;
                 $PanelContent = array();
                 $PanelContent[] = 'Person: '.$Notification['firstname'].' '. $Notification['lastname'];
                 if($Notification['schools']){
@@ -980,22 +981,37 @@ class Frontend extends Extension implements IFrontendInterface
                     $PanelContent[] = 'Benutzername: '.$Notification['account'];
                 }
 
-                $Columnlist[] = new LayoutColumn(
-                    new Panel($Notification['name'], $PanelContent)
-                , 2);
+                if ($LayoutRowCount % 6 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                    // Mitarbeiterzeile, wenn der erste Fehler kein Schüler ist
+                    if($countWarning == 1 && $countFirstStudent != 1){
+                        $LayoutRow->addColumn(new LayoutColumn(new Title('Mitarbeiter')));
+                    }
+                }
+
+                // erster Fehler der auf einen Schüler zeigt -> Überschrift + Umbruch (Zählung von vorn)
+                if($countWarning == ($countFirstStudent)){
+                    $LayoutRow->addColumn(new LayoutColumn(new Title('Schüler')));
+                    $LayoutRowCount = 0;
+                }
+
+                $LayoutRow->addColumn(new LayoutColumn(new Panel($Notification['name'], $PanelContent)
+                    , 2));
+                $LayoutRowCount++;
             }
         }
 
-        $Stage->setcontent(new Layout(new LayoutGroup(array(
+        $Stage->setcontent(new Layout(array(new LayoutGroup(
             new LayoutRow(
                 new LayoutColumn(
-                    new Title(count($Columnlist).' Warnungen')
+                    new Title($countWarning.' Warnungen', 'insgesamt')
                 )
-            ),
-            new LayoutRow(
-                $Columnlist
             )
-        ))));
+        ), new LayoutGroup(
+            $LayoutRowList
+        )
+        )));
 
         return $Stage;
     }

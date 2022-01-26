@@ -361,8 +361,13 @@ class Service extends AbstractService
         }
 
         if($tblAccountList){
+            /** @var TblAccount $tblAccount */
             foreach ($tblAccountList as $tblAccount) {
                 $UploadItem = array();
+                $UploadItem['Type'] = 'Teacher';
+                if($tblAccount->getServiceTblIdentification()->getName() == TblIdentification::NAME_USER_CREDENTIAL){
+                    $UploadItem['Type'] = 'Student';
+                }
                 $UploadItem['name'] = $tblAccount->getUsername();
                 $UploadItem['firstname'] = '';
                 $UploadItem['lastname'] = '';
@@ -400,6 +405,7 @@ class Service extends AbstractService
                         // ignore students with account
                         continue;
                     }
+                    $Item['Type'] = 'Student';
                     $Item['name'] = '';
                     $Item['firstname'] = '';
                     $Item['lastname'] = '';
