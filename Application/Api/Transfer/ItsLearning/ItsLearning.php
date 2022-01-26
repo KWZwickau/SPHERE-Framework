@@ -3,7 +3,7 @@ namespace SPHERE\Application\Api\Transfer\ItsLearning;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\Transfer\ItsLearning\Export\Export;
+use SPHERE\Application\Setting\ItsLearning\ItsLearning as ItsLearningApp;
 use SPHERE\Common\Main;
 
 class ItsLearning implements IModuleInterface
@@ -39,7 +39,7 @@ class ItsLearning implements IModuleInterface
     public function downloadStudentCustodyList()
     {
 
-        $fileLocation = Export::useService()->downloadStudentCustodyCSV();
+        $fileLocation = ItsLearningApp::useService()->downloadStudentCustodyCSV();
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "itslearning_Schüler_Sorgeberechtigte.csv")->__toString();
@@ -53,7 +53,7 @@ class ItsLearning implements IModuleInterface
     public function downloadTeacherList()
     {
 
-        $fileLocation = Export::useService()->downloadTeacherCSV();
+        $fileLocation = ItsLearningApp::useService()->downloadTeacherCSV();
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "itslearning_Lehrer.csv")->__toString();
