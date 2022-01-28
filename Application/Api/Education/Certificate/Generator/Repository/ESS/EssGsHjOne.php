@@ -90,14 +90,14 @@ class EssGsHjOne extends Certificate
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '25%'
+                        , '24.5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('1. Schulhalbjahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '45%'
+                        , '30%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Schneeberg, den 
@@ -110,7 +110,7 @@ class EssGsHjOne extends Certificate
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignRight()
-                        , '30%'
+                        , '45.5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
@@ -178,7 +178,7 @@ class EssGsHjOne extends Certificate
                         ->styleAlignJustify()
                         ->stylePaddingTop('20px')
                         ->stylePaddingBottom('20px')
-                        ->styleHeight('402px')
+                        ->styleHeight('412px')
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
@@ -188,8 +188,13 @@ class EssGsHjOne extends Certificate
             )
 
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '0%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
                             {% if(Content.P' . $personId . '.DivisionTeacher.Gender is not empty) %}
                                 {% if(Content.P' . $personId . '.DivisionTeacher.Gender == "M") %}
                                     Dein Lehrer
@@ -204,30 +209,38 @@ class EssGsHjOne extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleLineHeight('90%')
-                    ->styleFontFamily(self::TEXT_FAMILY)
-                    ->stylePaddingTop('30px')
-                    ->stylePaddingRight('40px')
-                    ->stylePaddingLeft('40px')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '40%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Zur Kenntnis genommen:')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop('30px')
-                        , '26%'
+                    , '100%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '0%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '42%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Zur Kenntnis genommen:')
+                        ->styleTextSize('10pt')
+                        ->styleLineHeight('90%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->stylePaddingTop('20px')
+                        , '23%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        ->stylePaddingTop('30px')
+                        ->stylePaddingTop('20px')
                         ->styleBorderBottom('1px', '#000', 'dotted')
                         , '34%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '1%'
                     )
                 )
                 ->addSection((new Section())
