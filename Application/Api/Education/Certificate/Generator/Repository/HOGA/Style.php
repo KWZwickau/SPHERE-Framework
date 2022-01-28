@@ -2199,10 +2199,10 @@ abstract class Style extends Certificate
                 ), '20%')
                 ->addElementColumn($this->getElement('&nbsp;'))
                 ->addElementColumn($this->getElement($period, $textSize)
-                    , '15%')
+                    , '20%')
                 ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Division.Data.Year }}', $textSize)
                     ->stylePaddingLeft('10px')
-                    , '20%')
+                    , '15%')
             )
             ->addSection((new Section())
                 ->addElementColumn($this->getElement(
