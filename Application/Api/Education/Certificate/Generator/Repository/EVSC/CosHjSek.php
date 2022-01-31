@@ -34,7 +34,7 @@ class CosHjSek extends Certificate
         $obligationToVotePart = $this->getObligationToVotePartCustomForCoswig($personId,
             self::TEXT_SIZE);
 
-        return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Sekundarstufe)',
+        return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Oberschule',
             '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart, true
         );
     }
@@ -54,7 +54,7 @@ class CosHjSek extends Certificate
     public static function buildContentPage(
         $personId,
         $isSample,
-        $title = 'Halbjahresinformation der Schule (Sekundarstufe)',
+        $title,
         $term,
         Slice $gradeLanesSlice,
         Slice $subjectLanesSlice,
@@ -223,7 +223,7 @@ class CosHjSek extends Certificate
                                     ->addElementColumn((new Element())
                                         ->setContent('
                                 {% if(Content.P' . $personId . '.Student.Course.Degree is not empty) %}
-                                        nahm am Unterricht der Schulart Mittelschule mit dem Ziel des
+                                        nahm am Unterricht mit dem Ziel des
                                         {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
                                     {% else %}
                                         &nbsp;

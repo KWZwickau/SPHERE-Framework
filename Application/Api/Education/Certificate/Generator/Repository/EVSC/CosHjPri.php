@@ -34,7 +34,7 @@ class CosHjPri extends Certificate
         $subjectLanesSlice = $this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
             false);
 
-        return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Primarstufe)',
+        return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Grundschule',
             '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, true
         );
     }
@@ -53,7 +53,7 @@ class CosHjPri extends Certificate
     public static function buildContentPage(
         $personId,
         $isSample,
-        $title = 'Halbjahresinformation der Schule (Primarstufe)',
+        $title,
         $term,
         $gradeLanesSlice,
         $subjectLanesSlice,
