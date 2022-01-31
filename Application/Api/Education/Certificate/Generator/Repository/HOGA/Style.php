@@ -2939,7 +2939,7 @@ abstract class Style extends Certificate
                 foreach ($SubjectList as $Lane => $Subject) {
                     // lange Fächernamen
                     $Subject['SubjectName'] = str_replace('/', ' / ', $Subject['SubjectName']);
-                    if (strlen($Subject['SubjectName']) > 20) {
+                    if (strlen($Subject['SubjectName']) > 25) {
                         $marginTop = '0px';
                         $lineHeight = '70%';
                     } else {
@@ -3065,13 +3065,13 @@ abstract class Style extends Certificate
 
     /**
      * @param array $tblCertificateSubjectAll
-     * @param array $tblGradeList
+     * @param $tblGradeList
      * @param int $subjectRankingFrom
      * @param int $subjectRankingTo
      *
      * @return array
      */
-    private function getSubjectStructure(array $tblCertificateSubjectAll, array $tblGradeList,
+    private function getSubjectStructure(array $tblCertificateSubjectAll, $tblGradeList,
         int $subjectRankingFrom, int $subjectRankingTo) : array
     {
         $SubjectStructure = array();
@@ -3102,15 +3102,16 @@ abstract class Style extends Certificate
         // Shrink Lanes
         $LaneCounter = array(1 => 0, 2 => 0);
         $SubjectLayout = array();
-        ksort($SubjectStructure);
-        foreach ($SubjectStructure as $SubjectList) {
-            ksort($SubjectList);
-            foreach ($SubjectList as $Lane => $Subject) {
-                $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
-                $LaneCounter[$Lane]++;
+        if (!empty($SubjectStructure)) {
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
             }
         }
-
         return $SubjectLayout;
     }
 }
