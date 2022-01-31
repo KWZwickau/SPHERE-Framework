@@ -82,7 +82,7 @@ class BgjHjInfo extends Style
                     ), '35%')
                 )
             )
-            ->addSlice($this->getCustomSubjectLanesBgjAbs($personId, '5px', true)->styleHeight('460px'))
+            ->addSlice($this->getCustomSubjectLanesBgjAbs($personId, '5px', true)->styleHeight('480px'))
             ->addSlice($this->getCustomFosRemark($personId, '10px', '70px', self::TEXT_SIZE_NORMAL))
             ->addSlice($this->getCustomSignPartBgj($personId, '5px'))
             ->addSlice($this->getCustomParentSign('0px'))
