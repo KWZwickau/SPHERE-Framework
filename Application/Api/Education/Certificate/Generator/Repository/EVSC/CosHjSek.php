@@ -35,7 +35,7 @@ class CosHjSek extends Certificate
             self::TEXT_SIZE);
 
         return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Sekundarstufe)',
-            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
+            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart, true
         );
     }
 
@@ -47,6 +47,7 @@ class CosHjSek extends Certificate
      * @param Slice $gradeLanesSlice
      * @param Slice $subjectLanesSlice
      * @param Slice $obligationToVotePart
+     * @param bool $isInformation
      *
      * @return Page
      */
@@ -57,7 +58,8 @@ class CosHjSek extends Certificate
         $term,
         Slice $gradeLanesSlice,
         Slice $subjectLanesSlice,
-        Slice $obligationToVotePart
+        Slice $obligationToVotePart,
+        bool $isInformation
     ) {
 
         $subjectLanesSlice->styleHeight('248px');
@@ -337,82 +339,7 @@ class CosHjSek extends Certificate
                                 )->styleMarginTop('15px')
                             )
                         )
-                        ->addSection((new Section())
-                            ->addSliceColumn((new Slice())
-                                ->addSection((new Section())
-                                    ->addElementColumn((new Element())
-                                        ->setContent('&nbsp;')
-                                        ->styleBorderBottom()
-                                        ->styleAlignCenter()
-                                        ->styleTextSize(self::TEXT_SIZE)
-                                        , '35%')
-                                    ->addElementColumn((new Element())
-                                        , '30%')
-                                    ->addElementColumn((new Element())
-                                        ->setContent('&nbsp;')
-                                        ->styleBorderBottom()
-                                        ->styleAlignCenter()
-                                        ->styleTextSize(self::TEXT_SIZE)
-                                        , '35%')
-                                )
-                                ->addSection((new Section())
-                                    ->addElementColumn((new Element())
-                                        ->setContent('
-                                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
-                                                    {{ Content.P' . $personId . '.Headmaster.Description }}
-                                                {% else %}
-                                                    Schulleiter/in
-                                                {% endif %}
-                                            ')
-                                        ->styleFontFamily('Trebuchet MS')
-                                        ->styleTextSize('11px')
-                                        , '35%'
-                                    )
-                                    ->addElementColumn((new Element())
-                                        , '30%'
-                                    )
-                                    ->addElementColumn((new Element())
-                                        ->setContent('
-                                                {% if(Content.P' . $personId . '.DivisionTeacherList.Description is not empty) %}
-                                                    {{ Content.P' . $personId . '.DivisionTeacherList.Description }}
-                                                {% else %}
-                                                    Klassenleiter/in
-                                                {% endif %}
-                                            ')
-                                        ->styleFontFamily('Trebuchet MS')
-                                        ->styleTextSize('11px')
-                                        , '35%')
-                                )
-                                ->addSection((new Section())
-                                    ->addElementColumn((new Element())
-                                        ->setContent('{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
-                                                    {{ Content.P' . $personId . '.Headmaster.Name }}
-                                                {% else %}
-                                                    &nbsp;
-                                                {% endif %}'
-                                        )
-                                        ->styleFontFamily('Trebuchet MS')
-                                        ->styleLineHeight('85%')
-                                        ->styleTextSize('11px')
-                                        ->stylePaddingBottom('3px')
-                                        , '35%')
-                                    ->addElementColumn((new Element())
-                                        , '30%')
-                                    ->addElementColumn((new Element())
-                                        ->setContent('{% if(Content.P' . $personId . '.DivisionTeacherList.Name is not empty) %}
-                                                    {{ Content.P' . $personId . '.DivisionTeacherList.Name }}
-                                                {% else %}
-                                                    &nbsp;
-                                                {% endif %}')
-                                        ->styleFontFamily('Trebuchet MS')
-                                        ->styleLineHeight('85%')
-                                        ->styleTextSize('11px')
-                                        ->stylePaddingBottom('3px')
-                                        , '35%')
-
-                                )->styleMarginTop('25px')
-                            )
-                        )
+                        ->addSection(self::getSignSection($personId, $isInformation))
                         ->addSection((new Section())
                             ->addSliceColumn((new Slice())
                                 ->addSection((new Section())
@@ -454,5 +381,132 @@ class CosHjSek extends Certificate
                 ->stylePaddingLeft('20px')
                 ->stylePaddingRight('20px')
             );
+    }
+
+    private static function getSignSection(int $personId, bool $isInformation) : Section
+    {
+        if ($isInformation) {
+            return (new Section())
+                ->addSliceColumn((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '65%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom()
+                            ->styleAlignCenter()
+                            ->styleTextSize(self::TEXT_SIZE)
+                            , '35%')
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '65%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.P' . $personId . '.DivisionTeacherList.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacherList.Description }}
+                                {% else %}
+                                    Klassenleiter/in
+                                {% endif %}
+                            ')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleTextSize('11px')
+                            , '35%')
+                    )
+                        ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '65%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.P' . $personId . '.DivisionTeacherList.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacherList.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
+                            ->styleTextSize('11px')
+                            ->stylePaddingBottom('3px')
+                            , '35%')
+
+                    )->styleMarginTop('25px')
+                );
+        } else {
+            return (new Section())
+            ->addSliceColumn((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderBottom()
+                        ->styleAlignCenter()
+                        ->styleTextSize(self::TEXT_SIZE)
+                        , '35%')
+                    ->addElementColumn((new Element())
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderBottom()
+                        ->styleAlignCenter()
+                        ->styleTextSize(self::TEXT_SIZE)
+                        , '35%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.Headmaster.Description }}
+                                {% else %}
+                                    Schulleiter/in
+                                {% endif %}
+                            ')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleTextSize('11px')
+                        , '35%'
+                    )
+                    ->addElementColumn((new Element())
+                        , '30%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {% if(Content.P' . $personId . '.DivisionTeacherList.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacherList.Description }}
+                                {% else %}
+                                    Klassenleiter/in
+                                {% endif %}
+                            ')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleTextSize('11px')
+                        , '35%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                    {{ Content.P' . $personId . '.Headmaster.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                        )
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleTextSize('11px')
+                        ->stylePaddingBottom('3px')
+                        , '35%')
+                    ->addElementColumn((new Element())
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.DivisionTeacherList.Name is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacherList.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleTextSize('11px')
+                        ->stylePaddingBottom('3px')
+                        , '35%')
+
+                )->styleMarginTop('25px')
+            );
+        }
     }
 }

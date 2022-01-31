@@ -31,7 +31,7 @@ class CosJPri extends Certificate
             false);
 
         return CosHjPri::buildContentPage($personId, $this->isSample(), 'Jahreszeugnis der Schule (Primarstufe)', 'Schuljahr',
-            $gradeLanesSlice, $subjectLanesSlice
+            $gradeLanesSlice, $subjectLanesSlice, false
         );
     }
 }
