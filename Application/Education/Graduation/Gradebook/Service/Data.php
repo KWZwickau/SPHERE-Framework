@@ -65,6 +65,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
              $this->updateGradeText($tblGradeText, 'keine Benotung');
         }
         $this->createGradeText('befreit', 'LIBERATED');
+        $this->createGradeText('&ndash;', 'DASH');
     }
 
     /**
