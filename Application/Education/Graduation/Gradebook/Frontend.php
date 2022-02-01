@@ -1749,7 +1749,11 @@ class Frontend extends FrontendScoreRule
             $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
             if ($tblPersonRelationshipList) {
                 foreach ($tblPersonRelationshipList as $relationship) {
-                    if ($relationship->getTblType()->getName() == 'Sorgeberechtigt' && $relationship->getServiceTblPersonTo()) {
+                    if ($relationship->getServiceTblPersonTo()
+                        && ($relationship->getTblType()->getName() == 'Sorgeberechtigt'
+                            || $relationship->getTblType()->getName() == 'Bevollmächtigt'
+                            || $relationship->getTblType()->getName() == 'Vormund')
+                    ) {
                         $tblPersonList[] = $relationship->getServiceTblPersonTo();
                     }
                 }
