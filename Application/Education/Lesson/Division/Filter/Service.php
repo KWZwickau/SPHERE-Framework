@@ -560,13 +560,13 @@ class Service
                 }
             }
 
-            // Gym in Klassen 8-10 muss ein Profil hinterlegt sein
+            // Gym in Klassen 8-10 muss ein Profil oder 3.FS hinterlegt sein
             if (preg_match('!(0?(8|9|10))!is', $tblLevel->getName())) {
                 if (!$tblStudent
-                    || !$tblStudent->getTblSubjectProfile()
+                    || (!$tblStudent->getTblSubjectProfile() && !$tblStudent->getTblSubjectForeignLanguage(3))
                 ) {
                     $field = Filter::DESCRIPTION_SUBJECT_PROFILE;
-                    $value = new Exclamation() . ' Kein Profil hinterlegt.';
+                    $value = new Exclamation() . ' Kein Profil/3.FS hinterlegt.';
                     if (!isset($list[$tblPerson->getId()]['Filters']['SubjectProfile'])) {
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Field'] = $field;
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] = $value;
