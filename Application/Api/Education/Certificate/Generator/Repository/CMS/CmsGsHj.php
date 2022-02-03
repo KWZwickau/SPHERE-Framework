@@ -73,14 +73,14 @@ class CmsGsHj extends CmsStyle
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId, false, '140px')
+                        self::getCMSSubjectLanes($personId, false, '160px')
                     )
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '274px')
+                    self::getCMSRemark($personId, '254px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
