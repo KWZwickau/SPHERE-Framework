@@ -298,10 +298,10 @@ abstract class Style extends Certificate
                     {% endif %}
                     {{ Content.P'.$personId.'.Person.Data.Name.First }} {{ Content.P'.$personId.'.Person.Data.Name.Last }}'
                     , self::TEXT_SIZE_NORMAL)->styleTextBold()
-                , '80%')
+                , '70%')
                 ->addElementColumn($this->getElement($period, self::TEXT_SIZE_NORMAL)
                     ->styleAlignRight()
-                    , '10%')
+                    , '20%')
                 ->addElementColumn($this->getElement('{{ Content.P'.$personId.'.Division.Data.Year }}', self::TEXT_SIZE_NORMAL)
                     ->styleTextBold()
                     ->styleAlignRight()
