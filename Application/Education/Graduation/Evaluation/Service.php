@@ -547,14 +547,15 @@ class Service extends AbstractService
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         } else {
-            $nowDate = new DateTime('now');
+//            $nowDate = new DateTime('now');
             $toDate = new DateTime($Task['ToDate']);
             $fromDate = new DateTime($Task['FromDate']);
 
-            if ($nowDate > $toDate) {
-                $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
-                $Error = true;
-            } elseif ($fromDate > $toDate) {
+//            if ($nowDate > $toDate) {
+//                $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
+//                $Error = true;
+//            } else
+            if ($fromDate > $toDate) {
                 $Stage->setError('Task[ToDate]', 'Der "Bearbeitungszeitraum bis" darf nicht kleiner sein, als der "Bearbeitungszeitraum von".');
                 $Error = true;
             }
@@ -623,14 +624,15 @@ class Service extends AbstractService
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         } else {
-            $nowDate = new DateTime('now');
+//            $nowDate = new DateTime('now');
             $toDate = new DateTime($Task['ToDate']);
             $fromDate = new DateTime($Task['FromDate']);
 
-            if ($nowDate > $toDate) {
-                $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
-                $Error = true;
-            } elseif ($fromDate > $toDate) {
+//            if ($nowDate > $toDate) {
+//                $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
+//                $Error = true;
+//            } else
+            if ($fromDate > $toDate) {
                 $Stage->setError('Task[ToDate]', 'Der "Bearbeitungszeitraum bis" darf nicht kleiner sein, als der "Bearbeitungszeitraum von".');
                 $Error = true;
             }
