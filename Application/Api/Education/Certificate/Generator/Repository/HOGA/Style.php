@@ -1413,7 +1413,7 @@ abstract class Style extends Certificate
      * @return Slice
      */
     protected function getCustomSubjectLanesBGym(int $personId, string $period = 'Schulhalbjahr', string $marginTop = '5px',
-        string $height = '260px') : Slice
+        string $height = '290px') : Slice
     {
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
@@ -1631,7 +1631,7 @@ abstract class Style extends Certificate
             }
         }
 
-        return $slice->styleHeight('90px');
+        return $slice->styleHeight('60px');
     }
 
     /**
