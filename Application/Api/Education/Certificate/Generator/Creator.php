@@ -738,6 +738,7 @@ class Creator extends Extension
                     && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
                 ) {
                     foreach ($tblStudentList as $tblPerson) {
+                        ini_set('memory_limit', '1G');
                         if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                             if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
                                     $tblPerson))
