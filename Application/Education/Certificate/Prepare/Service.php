@@ -1077,6 +1077,10 @@ class Service extends AbstractService
                                 && $tblLevel && intval($tblLevel->getName()) <= 4
                             ) {
                                 $remark = $teamChange . " \n " . $remark;
+                            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                && $tblConsumer->getAcronym() == 'HOGA'
+                            ) {
+                                $remark = $teamChange . " \n " . $remark;
                             } else {
                                 $remark = $team . " \n\n " . $remark;
                             }
