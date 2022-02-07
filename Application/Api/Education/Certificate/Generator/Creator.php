@@ -26,6 +26,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\PdfMerge;
 
 /**
  * Class Creator
@@ -403,22 +404,38 @@ class Creator extends Extension
             }
 
             if (!empty($FileList)) {
-                $ZipFile = new FilePointer('zip');
-                $ZipFile->saveFile();
+//                $ZipFile = new FilePointer('zip');
+//                $ZipFile->saveFile();
+                $MergeFile = Storage::createFilePointer('pdf');
+                $PdfMerger = new PdfMerge();
 
-                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
+//                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
                 /** @var FilePointer $File */
                 foreach ($FileList as $File) {
-                    $ZipArchive->compactFile(
-                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
-                            $File->getRealPath()
-                        )
-                        , false);
+//                    $ZipArchive->compactFile(
+//                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
+//                            $File->getRealPath()
+//                        )
+//                        , false);
+                    $PdfMerger->addPdf($File);
                 }
 
-                return FileSystem::getDownload(
-                    $ZipFile->getRealPath(),
-                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+
+//                return FileSystem::getDownload(
+//                    $MergeFile->getRealPath(),
+//                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
+//                )->__toString();
+                return FileSystem::getStream(
+                    $MergeFile->getRealPath(),
+                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
                 )->__toString();
             } else {
                 return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
@@ -467,22 +484,38 @@ class Creator extends Extension
             }
 
             if (!empty($FileList)) {
-                $ZipFile = new FilePointer('zip');
-                $ZipFile->saveFile();
+//                $ZipFile = new FilePointer('zip');
+//                $ZipFile->saveFile();
+                $MergeFile = Storage::createFilePointer('pdf');
+                $PdfMerger = new PdfMerge();
 
-                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
+//                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
                 /** @var FilePointer $File */
                 foreach ($FileList as $File) {
-                    $ZipArchive->compactFile(
-                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
-                            $File->getRealPath()
-                        )
-                        , false);
+//                    $ZipArchive->compactFile(
+//                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
+//                            $File->getRealPath()
+//                        )
+//                        , false);
+                    $PdfMerger->addPdf($File);
                 }
 
-                return FileSystem::getDownload(
-                    $ZipFile->getRealPath(),
-                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+
+//                return FileSystem::getDownload(
+//                    $MergeFile->getRealPath(),
+//                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
+//                )->__toString();
+                return FileSystem::getStream(
+                    $MergeFile->getRealPath(),
+                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
                 )->__toString();
             } else {
                 return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
