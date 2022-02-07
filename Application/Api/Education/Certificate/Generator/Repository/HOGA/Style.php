@@ -1228,7 +1228,7 @@ abstract class Style extends Certificate
 
                     // lange Fächernamen
                     $Subject['SubjectName'] = str_replace('/', ' / ',  $Subject['SubjectName']);
-                    if (strlen($Subject['SubjectName']) > 15) {
+                    if (strlen($Subject['SubjectName']) > 20) {
                         $marginTop = '0px';
                         $lineHeight = '80%';
                     } else {

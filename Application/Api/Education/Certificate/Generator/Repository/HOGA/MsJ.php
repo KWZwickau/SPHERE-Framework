@@ -39,7 +39,7 @@ class MsJ extends Style
             ->addSlice($this->getCustomCourse($personId))
             ->addSlice($this->getCustomGradeLanes($personId, '3px'))
             ->addSlice($this->getCustomRating($personId))
-            ->addSlice($this->getCustomSubjectLanes($personId, true, array(), false, true)->styleHeight('300px'))
+            ->addSlice($this->getCustomSubjectLanes($personId, true, array(), false, true)->styleHeight('310px'))
             ->addSlice($this->getCustomElective($personId))
             ->addSlice($this->getCustomTeamExtra($personId))
             ->addSlice($this->getCustomRemark($personId, '2px'))
