@@ -940,30 +940,31 @@ class GymAbitur extends Certificate
                     $width = '41%';
                 }
             }
-        } else {
-            // Leistungskurse markieren
-            if (isset($this->AdvancedCourses[0])) {
-                /** @var TblSubject $advancedSubject1 */
-                $advancedSubjectAcronym1 = $this->AdvancedCourses[0];
-                if (($tblAdvancedSubject1 = Subject::useService()->getSubjectByAcronym($advancedSubjectAcronym1))
-                    && $tblAdvancedSubject1->getName() == $subjectName
-                ) {
-                    $isAdvancedSubject = true;
-                }
+        }
+
+        // Leistungskurse markieren
+        if (isset($this->AdvancedCourses[0])) {
+            /** @var TblSubject $advancedSubject1 */
+            $advancedSubjectAcronym1 = $this->AdvancedCourses[0];
+            if (($tblAdvancedSubject1 = Subject::useService()->getSubjectByAcronym($advancedSubjectAcronym1))
+                && $tblAdvancedSubject1->getName() == $subjectName
+            ) {
+                $isAdvancedSubject = true;
             }
-            if (isset($this->AdvancedCourses[1])) {
-                /** @var TblSubject $advancedSubject2 */
-                $advancedSubjectAcronym2 = $this->AdvancedCourses[1];
-                if (($tblAdvancedSubject2 = Subject::useService()->getSubjectByAcronym($advancedSubjectAcronym2))
-                    && $tblAdvancedSubject2->getName() == $subjectName
-                ) {
-                    $isAdvancedSubject = true;
-                }
+        }
+        if (isset($this->AdvancedCourses[1])) {
+            /** @var TblSubject $advancedSubject2 */
+            $advancedSubjectAcronym2 = $this->AdvancedCourses[1];
+            if (($tblAdvancedSubject2 = Subject::useService()->getSubjectByAcronym($advancedSubjectAcronym2))
+                && $tblAdvancedSubject2->getName() == $subjectName
+            ) {
+                $isAdvancedSubject = true;
             }
         }
 
         if ($subjectName == 'Informatik') {
             $postfix = '5';
+            $width = '19%';
         }
 
         $grades = array(
@@ -1069,21 +1070,25 @@ class GymAbitur extends Certificate
         }
 
         return (new Section())
-            ->addElementColumn((new Element())
-                ->setContent($subjectName)
-                ->stylePaddingLeft('5px')
-                ->styleBorderTop()
-                ->styleBorderLeft()
-                ->styleBorderBottom($isLastRow ? '1px' : '0px')
-                , $hasAdvancedCourse ? '45%' : '50%')
-            ->addElementColumn((new Element())
-                ->setContent($isAdvancedSubject ? 'LF' : '&nbsp;')
-                ->styleAlignCenter()
-                ->styleBackgroundColor($hasAdvancedCourse ? $color : '#FFF')
-                ->styleBorderTop()
-                ->styleBorderLeft($hasAdvancedCourse ? '1px' : '0px')
-                ->styleBorderBottom($isLastRow ? '1px' : '0px')
-                , $hasAdvancedCourse ? '5%' : '0%')
+            ->addSliceColumn((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($subjectName)
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderTop()
+                        ->styleBorderLeft()
+                        ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                        , $hasAdvancedCourse ? '90%' : '100%')
+                    ->addElementColumn((new Element())
+                        ->setContent($isAdvancedSubject ? 'LF' : '&nbsp;')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor($hasAdvancedCourse ? $color : '#FFF')
+                        ->styleBorderTop()
+                        ->styleBorderLeft($hasAdvancedCourse ? '1px' : '0px')
+                        ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                        , $hasAdvancedCourse ? '10%' : '0%')
+                )
+                , '50%')
             ->addElementColumn((new Element())
                 ->setContent($grades['11-1'])
                 ->styleAlignCenter()
