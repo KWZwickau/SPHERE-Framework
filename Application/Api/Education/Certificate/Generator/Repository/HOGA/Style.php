@@ -56,7 +56,7 @@ abstract class Style extends Certificate
         if($this->isSample()){
             $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
         } else {
-            $section->addElementColumn((new Element()), '22%');
+            $section->addElementColumn((new Element())->setContent('&nbsp;')->styleTextSize('30px'), '22%');
         }
 
         // Standard Logo
@@ -70,12 +70,12 @@ abstract class Style extends Certificate
         }
 
         $slice->addSection($section);
-        $slice->addSection($this->getSectionSpace('15px'));
+        $slice->addSection($this->getSectionSpace('35px'));
 
         foreach ($school as $line) {
             $slice->addSection((new Section())
                 ->addElementColumn(
-                    $this->getElement($line, '15px')
+                    $this->getElement($line, '14.5px')
                         ->styleAlignCenter()
                         ->styleMarginTop('-10px')
                 )
@@ -116,11 +116,12 @@ abstract class Style extends Certificate
         } else {
             $section->addElementColumn((new Element()), '39%');
         }
+
         // Sample
         if($this->isSample()){
             $section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
         } else {
-            $section->addElementColumn((new Element()), '22%');
+            $section->addElementColumn((new Element())->setContent('&nbsp;')->styleTextSize('30px'), '22%');
         }
         // Standard Logo
         if ($isStateLogoVisible) {
