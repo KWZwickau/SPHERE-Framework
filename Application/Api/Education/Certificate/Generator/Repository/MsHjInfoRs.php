@@ -60,7 +60,7 @@ class MsHjInfoRs extends Certificate
                 false,
                 false,
                 true
-            )->styleHeight('220px'))
+            )->styleHeight('230px'))
 //            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
             ->addSlice($this->getDescriptionContent($personId, '118px', '15px'))
