@@ -1220,7 +1220,7 @@ class Frontend extends Extension implements IFrontendInterface
             $TableHead['Custody_'.$i.'_Title'] = 'Sorg'.$i.' Titel';
             $TableHead['Custody_'.$i.'_FirstName'] = 'Sorg'.$i.' Vorname';
             $TableHead['Custody_'.$i.'_LastName'] = 'Sorg'.$i.' Nachname';
-            $TableHead['Custody_'.$i.'_BirthDay'] = 'Sorg'.$i.' Geburtstag';
+            $TableHead['Custody_'.$i.'_Birthday'] = 'Sorg'.$i.' Geburtsdatum';
             $TableHead['Custody_'.$i.'_BirthPlace'] = 'Sorg'.$i.' Geburtsort';
             $TableHead['Custody_'.$i.'_Job'] = 'Sorg'.$i.' Beruf';
             $TableHead['Custody_'.$i.'_Address'] = 'Sorg'.$i.' Adresse';
