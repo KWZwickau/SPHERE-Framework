@@ -3056,8 +3056,8 @@ class Service extends Extension
                                 $DataPerson['Custody_'.$i.'_LastName'] = $tblPersonCustody->getLastName();
                                 if(($tblCommonCustody = Common::useService()->getCommonByPerson($tblPersonCustody))){
                                     if(($tblCommonBirthDatesCustody = $tblCommonCustody->getTblCommonBirthDates())){
-                                        $DataPerson['Custody_'.$i.'_Birthday'] = '';
-                                        $DataPerson['Custody_'.$i.'_BirthPlace'] = '';
+                                        $DataPerson['Custody_'.$i.'_Birthday'] = $tblCommonBirthDatesCustody->getBirthday();
+                                        $DataPerson['Custody_'.$i.'_BirthPlace'] = $tblCommonBirthDatesCustody->getBirthplace();
                                     }
                                 }
                                 if(($tblCustody = Custody::useService()->getCustodyByPerson($tblPersonCustody))){
