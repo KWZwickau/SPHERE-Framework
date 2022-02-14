@@ -138,7 +138,7 @@ class Service extends Extension
                     $StudentData = false;
                     continue;
                 }
-                $Item['Id'] = $StudentData['Account'];
+                $Item['Id'] = $PersonId;
                 $Item['AccountName'] = $StudentData['AccountName'];
                 $Item['FirstName'] = $StudentData['FirstName'];
                 $Item['LastName'] = $StudentData['LastName'];
@@ -248,19 +248,18 @@ class Service extends Extension
 
         $countCustody = 0;
         $UploadList = array();
-        // Maximale spalten Sorgeberechtigte
-        if(($StudentAccountList = $this->getTeacherAccountList())){
-            foreach($StudentAccountList as $PersonId => &$StudentData){
+        if(($TeacherAccountList = $this->getTeacherAccountList())){
+            foreach($TeacherAccountList as $PersonId => &$TeacherData){
                 $Item = array();
                 // Fehler werden bereinigt
-                if(!$StudentData['Account']){
-                    $StudentData = false;
+                if(!$TeacherData['AccountName']){
+                    $TeacherData = false;
                     continue;
                 }
                 $Item['Id'] = $PersonId;
-                $Item['AccountName'] = $StudentData['AccountName'];
-                $Item['FirstName'] = $StudentData['FirstName'];
-                $Item['LastName'] = $StudentData['LastName'];
+                $Item['AccountName'] = $TeacherData['AccountName'];
+                $Item['FirstName'] = $TeacherData['FirstName'];
+                $Item['LastName'] = $TeacherData['LastName'];
                 array_push($UploadList, $Item);
             }
         }

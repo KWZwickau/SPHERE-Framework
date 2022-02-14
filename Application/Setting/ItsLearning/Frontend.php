@@ -67,10 +67,10 @@ class Frontend extends Extension
                 $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['Info'] = '';
                 if(!$Data['Account']){
-                    $Item['Info'] .= new Warning('Schüler ohne Account', null, false, 3, 3);
+                    $Item['Info'] .= new Warning('Schüler ohne Account', null, false, 3, 2);
                 }
                 if(!$Data['Division'] || !$Data['Level']){
-                    $Item['Info'] .= new Warning('Schüler ohne Klasse/Jahrgang', null, false, 3, 3);
+                    $Item['Info'] .= new Warning('Schüler ohne Klasse/Jahrgang', null, false, 3, 2);
                 }
                 array_push($TableStudentWarningContent, $Item);
             }
@@ -86,10 +86,11 @@ class Frontend extends Extension
                 $Item = array();
                 $tblPerson = Person::useService()->getPersonById($PersonId);
                 $Item['Name'] = $tblPerson->getLastFirstName();
-                $Item['Info'] = '';
-                if(!$Data['Account']){
-                    $Item['Info'] .= new Warning('Lehrer ohne Account', null, false, 3, 3);
-                }
+                // einzige Bedingung, kommen mehrere hinzu, könnte die Auswahl wieder interessant werden.
+//                $Item['Info'] = '';
+//                if(!$Data['Account']){
+                $Item['Info'] = new Warning('Lehrer ohne Account', null, false, 3, 2);
+//                }
                 array_push($TableTeacherWarningContent, $Item);
             }
         }
