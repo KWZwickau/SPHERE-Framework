@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -567,6 +568,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblYear = reset($tblYearList);
             $global->POST['Data']['Year'] = $tblYear->getId();
+            $global->POST['Data']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
 
             $global->savePost();
         }
@@ -583,6 +585,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
 
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FIRST_PERIOD, '1. Halbjahr');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_SECOND_PERIOD, '2. Halbjahr');
+
+        $periodSelectBox = new SelectBox('Data[Period]', 'Zeitraum', array('Name' => $periodList));
+
         $button = (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filtern', '', new Filter()))
             ->ajaxPipelineOnClick(ApiMinimumGradeCount::pipelineCreateMinimumGradeCountReportingContent($receiverContent, $Data, $IsDivisionTeacher, $PersonId));
 
@@ -593,13 +601,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout (new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                $yearSelectBox, 4
+                                $yearSelectBox, 3
                             ),
                             new LayoutColumn(
-                                $typeSelectBox, 4
+                                $typeSelectBox, 3
                             ),
                             new LayoutColumn(
-                                $divisionTextField, 4
+                                $divisionTextField, 3
+                            ),
+                            new LayoutColumn(
+                                $periodSelectBox, 3
                             ),
                         )),
                         new LayoutRow(array(
