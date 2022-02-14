@@ -119,7 +119,7 @@ class Term extends Extension implements IModuleInterface
 
                         $tblPeriod = $tblPeriod->getName()
                             . ($tblPeriod->getDescription() ? ' ' . new Muted(new Small($tblPeriod->getDescription())) : '')
-                            . ($tblPeriod->isLevel12() ? new Muted(' 12. Klasse') : '')
+                            . ($tblPeriod->isLevel12() ? new Muted(' 12. Klasse Gy / 13. Klasse BGy') : '')
                             . '<br/>' . $tblPeriod->getFromDate() . ' - ' . $tblPeriod->getToDate();
                     });
                 } else {

@@ -284,7 +284,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Name' => 'Name',
                                     'Description' => 'Beschreibung',
-                                    'IsLevel12' => 'Für 12. Klasse',
+                                    'IsLevel12' => 'Für 12. Klasse Gy / 13. Klasse BGy',
                                     'PeriodFrom' => 'Zeitraum von',
                                     'PeriodTo' => 'Zeitraum Bis',
                                     'Option' => '',
@@ -362,7 +362,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $acNameAll, new Pencil()),
                                 new TextField('Period[Description]', 'z.B: für Gymnasium', 'Beschreibung',
                                     new Pencil()),
-                                new CheckBox('Period[IsLevel12]', 'Ist ein Halbjahr für die 12. Klasse', 1)
+                                new CheckBox('Period[IsLevel12]', 'Ist ein Halbjahr für die 12. Klasse Gy / 13. Klasse BGy', 1)
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
