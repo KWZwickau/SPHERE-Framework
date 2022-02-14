@@ -1129,15 +1129,16 @@ class Service extends Support
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isStudentGroup
      *
      * @return false|TblDivision[]
      */
-    public function getCurrentDivisionListByPerson(TblPerson $tblPerson)
+    public function getCurrentDivisionListByPerson(TblPerson $tblPerson, bool $isStudentGroup = true)
     {
 
         $tblDivisionList = array();
-        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
-            $tblPerson)
+        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)
+            || !$isStudentGroup
         ) {
             $tblYearList = Term::useService()->getYearByNow();
             if ($tblYearList) {

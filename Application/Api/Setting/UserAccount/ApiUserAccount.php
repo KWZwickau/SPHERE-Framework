@@ -45,7 +45,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class SerialLetter
+ * Class ApiUserAccount
  * @package SPHERE\Application\Api\Setting\UserAccount
  */
 class ApiUserAccount extends Extension implements IApiInterface

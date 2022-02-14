@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Setting\Authorization\ApiAccount;
 use SPHERE\Application\Api\Setting\Authorization\ApiGroupRole;
 use SPHERE\Application\Api\Setting\UserAccount\AccountUserExcel;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
+use SPHERE\Application\Api\Setting\UserAccount\ApiUserDelete;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -25,5 +26,6 @@ class Setting implements IApplicationInterface
         ApiUnivention::registerApi();
         ApiGroupRole::registerApi();
         ApiAccount::registerApi();
+        ApiUserDelete::registerApi();
     }
 }
