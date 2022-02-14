@@ -138,7 +138,7 @@ class Service extends Extension
                     $StudentData = false;
                     continue;
                 }
-                $Item['Id'] = $PersonId;
+                $Item['Id'] = $StudentData['Account'];
                 $Item['AccountName'] = $StudentData['AccountName'];
                 $Item['FirstName'] = $StudentData['FirstName'];
                 $Item['LastName'] = $StudentData['LastName'];
