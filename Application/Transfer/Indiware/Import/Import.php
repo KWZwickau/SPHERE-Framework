@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
@@ -14,7 +13,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -115,32 +114,39 @@ class Import extends Extension implements IModuleInterface
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    new \SPHERE\Common\Frontend\Link\Repository\Link(
-                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png'),
-                            'Anleitung Indiware', 'Export der Lehraufträge aus Indiware')
-                        , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware'))
-                , 2),
+            new Layout(new LayoutGroup(array(new LayoutRow(array(
                 new LayoutColumn(
                     new Warning(
                         new Container('Bitte beachten Sie die Reihenfolge für den Import:')
                         .new Container('1. Indiware-Import für Schüler-Kurse SEK II')
                         .new Container('2. Indiware-Import für Lehraufträge')
-                        .'<br/>'
                         .new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
-                                    , Panel::PANEL_TYPE_INFO)
-                            , 4),
-                            new LayoutColumn(
-                                new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
-                                    , Panel::PANEL_TYPE_INFO)
-                            , 4),
                         ))))
                     )
-                , 10)
-            ))))
+                ),
+                new LayoutColumn(
+                    new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
+                        , Panel::PANEL_TYPE_INFO)
+                    , 4),
+                new LayoutColumn(
+                    new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
+                        , Panel::PANEL_TYPE_INFO)
+                    , 4),
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Ruler()
+                ),
+                new LayoutColumn(
+                    new Panel(
+                        'Indiware-Import der Kurseinbringung fürs Abitur',
+                        new PullClear('Kurseinbringung importieren: '
+                            . new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/SelectedCourse/Import', new Upload()))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                    , 4),
+            )))))
         );
 
         return $Stage;

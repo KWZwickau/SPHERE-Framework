@@ -2752,6 +2752,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param bool $isForced
      *
      * @return false|TblPrepareAdditionalGrade
      */
@@ -2759,14 +2760,16 @@ class Service extends AbstractService
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         TblSubject $tblSubject,
-        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        bool $isForced = false
     ) {
 
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeBy(
             $tblPrepareCertificate,
             $tblPerson,
             $tblSubject,
-            $tblPrepareAdditionalGradeType
+            $tblPrepareAdditionalGradeType,
+            $isForced
         );
     }
 

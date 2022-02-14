@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\Authorization\Authorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\ItsLearning\ItsLearning;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\Univention\Univention;
 use SPHERE\Application\Setting\User\User;
@@ -38,6 +39,7 @@ class Setting implements IClusterInterface
                 }
             }
         }
+        ItsLearning::registerApplication();
         Agb::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(

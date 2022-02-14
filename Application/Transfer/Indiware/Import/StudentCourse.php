@@ -4,6 +4,8 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -11,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Transfer\Indiware\Import\Import as ImportIndiware;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -106,6 +109,9 @@ class StudentCourse extends Extension implements IFrontendInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __CLASS__.'/Import', __CLASS__.'::frontendImportStudentCourse'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __CLASS__.'/SelectedCourse/Import', __CLASS__.'::frontendImportSelectedCourse'
         ));
 
 //        parent::registerModule();
@@ -993,5 +999,82 @@ class StudentCourse extends Extension implements IFrontendInterface
             )
         );
         return $Stage;
+    }
+
+    /**
+     * @param null $File
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendImportSelectedCourse($File = null, $Data = null) : Stage
+    {
+        $stage = new Stage('Import', 'Abitur Kurseinbringung');
+
+        $list = array();
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAllByYear($tblYear))) {
+                    foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
+                        if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                        ) {
+                            if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                                foreach ($tblPrepareList as $tblPrepare) {
+                                    if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                        && ($tblLevel = $tblDivision->getTblLevel())
+                                        && ($tblSchoolType = $tblLevel->getServiceTblType())
+                                        && $tblSchoolType->getName() == 'Gymnasium'
+                                        && intval($tblLevel->getName()) == 12
+                                    ) {
+                                        $list[] = $tblGenerateCertificate;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (empty($list)) {
+            $stage->setContent(
+                new \SPHERE\Common\Frontend\Message\Repository\Warning('Es wurde im aktuellen Schuljahr kein Zeugnisauftrag
+                 für Abiturzeugnisse gefunden!<br /> Bitte legen Sie erst unter: Bildung->Zeugnisse->Zeugnisse generieren, einen
+                 Zeugnisauftrag für die 12. Klasse Gymnasium an.<br /> Danach können Sie die Kurseinbringung aus Indiware in die
+                 Schulsoftware importieren.')
+            );
+        } else {
+            $stage->setContent(
+                new Well(
+                    ImportIndiware::useService()->createSelectedCourseFromFile(
+                        new Form(new FormGroup(array(
+                            new FormRow(array(
+                                new FormColumn(
+                                    (new FileUpload(
+                                        'File',
+                                        'Datei auswählen',
+                                        'Datei auswählen ' . new ToolTip(new InfoIcon(), 'Schueler.csv'),
+                                        null,
+                                        array('showPreview' => false)
+                                    ))->setRequired()
+                                )
+                            )),
+                            new FormRow(array(
+                                new FormColumn(
+                                    (new SelectBox('Data[GenerateCertificateId]', 'Zeugnisauftrag',
+                                        array('{{ Name }}' => $list)
+                                    ))->setRequired()
+                                ),
+                            )),
+                        )), new Primary('Hochladen')),
+                        $File,
+                        $Data
+                    )
+                )
+            );
+        }
+
+        return $stage;
     }
 }
