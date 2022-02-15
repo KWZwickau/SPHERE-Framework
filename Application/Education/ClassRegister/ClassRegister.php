@@ -100,16 +100,6 @@ class ClassRegister implements IApplicationInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\DivisionList', __NAMESPACE__ . '\ReportingClassList\Frontend::frontendDivisionList')
         );
-
-        /*
-         * Sort
-         */
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Sort', __NAMESPACE__ . '\Sort\Frontend::frontendSortDivision')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'\Sort\Gender', __NAMESPACE__.'\Sort\Frontend::frontendSortDivisionGender')
-        );
     }
 
     /**
@@ -330,15 +320,7 @@ class ClassRegister implements IApplicationInterface
                             $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
                             $tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender();
                             if ($tblGender) {
-                                $Gender = $tblGender->getName();
-                                switch ($Gender) {
-                                    case 'Männlich':
-                                        $Gender = 'M';
-                                        break;
-                                    case 'Weiblich':
-                                        $Gender = 'W';
-                                        break;
-                                }
+                                $Gender = $tblGender->getShortName();
                             }
                         }
                     }
@@ -394,11 +376,7 @@ class ClassRegister implements IApplicationInterface
 
                     $studentTable[] = array(
                         'Number'        => (count($studentTable) + 1),
-                        'Name'          => (($isTeacher || !$IsSortable)
-                                            ? $tblPerson->getLastFirstName()
-                                            : new PullClear(
-                                                new PullLeft(new ResizeVertical().' '.$tblPerson->getLastFirstName())
-                                            )),
+                        'Name'          => $tblPerson->getLastFirstName(),
                         'Integration'   => $IntegrationButton,
                         'MedicalRecord' => $MedicalRecord,
                         'Agreement'     => $Agreement,
@@ -431,14 +409,6 @@ class ClassRegister implements IApplicationInterface
                 }
             }
 
-            if (!$isTeacher) {
-                $buttonList[] = (new Standard(
-                    'Sortierung alphabetisch', ApiSortDivision::getEndpoint(), new ResizeVertical()))
-                ->ajaxPipelineOnClick(ApiSortDivision::pipelineOpenSortModal($tblDivision->getId(), 'Sortierung alphabetisch'));
-                $buttonList[] = (new Standard(
-                    'Sortierung Geschlecht (alphabetisch)', ApiSortDivision::getEndpoint(), new ResizeVertical()))
-                ->ajaxPipelineOnClick(ApiSortDivision::pipelineOpenSortModal($tblDivision->getId(), 'Sortierung Geschlecht (alphabetisch)'));
-            }
             $buttonList[] = new Standard(
                 'Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Absence/Month', new Calendar(), array(
                     'DivisionId' => $tblDivision->getId(),
@@ -474,7 +444,6 @@ class ClassRegister implements IApplicationInterface
 
             $Stage->setContent(
                 ApiSupportReadOnly::receiverOverViewModal()
-                .ApiSortDivision::receiverModal()
                 .MedicalRecordReadOnly::receiverOverViewModal()
                 .ApiAgreementReadOnly::receiverOverViewModal()
                 .new Layout(array(
@@ -518,24 +487,7 @@ class ClassRegister implements IApplicationInterface
                                     'AbsenceLessons'=> 'Fehlzeiten UE<br>(E, U)',
                                     'Option'        => ''
                                 ),
-                                    ($isTeacher || !$IsSortable)
-                                        ? array(
-                                            'paging' => false,
-                                            'columnDefs' => array(
-                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                                array('width' => '1%', 'targets' => 2),
-                                                array('orderable' => false, 'width' => '60px', 'targets' => -1),
-                                            ),
-                                            'responsive' => false
-                                        )
-                                        : array(
-                                        'rowReorderColumn' => 1,
-                                        'ExtensionRowReorder' => array(
-                                            'Enabled' => true,
-                                            'Url'     => '/Api/Education/ClassRegister/Reorder',
-                                            'Data'    => array('DivisionId' => $tblDivision->getId()
-                                            )
-                                        ),
+                                    array(
                                         'paging' => false,
                                         'columnDefs' => array(
                                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
