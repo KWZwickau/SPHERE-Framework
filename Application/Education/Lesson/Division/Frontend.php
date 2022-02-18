@@ -58,6 +58,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\SizeVertical;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -256,6 +257,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new EyeOpen(), array('Id' => $tblDivision->getId()), 'Klasse einsehen')
                     .new Standard('', '/Education/Lesson/Division/Change', new Pencil(),
                         array('Id' => $tblDivision->getId()), 'Beschreibung bearbeiten')
+                    .new Standard('', '/Education/Lesson/Division/Sort', new SizeVertical(),
+                        array('DivisionId' => $tblDivision->getId()), 'Schüler der Klasse sortieren')
                     .new Standard('', '/Education/Lesson/Division/Copy', new MoreItems(),
                         array('Id' => $tblDivision->getId()), 'Klasse kopieren')
                     .(new Standard('', '/Education/Lesson/Division/Destroy', new Remove(),
