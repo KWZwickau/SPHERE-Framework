@@ -116,6 +116,12 @@ class ApiStandard extends Extension implements IApiInterface
             $tblType = false;
         }
 
+        switch ($Data['IsCertificateRelevant']) {
+            case 1: $isCertificateRelevant = true; break;
+            case 2: $isCertificateRelevant = false; break;
+            default: $isCertificateRelevant = null;
+        }
+
         $divisionName = $Data['DivisionName'];
         $groupName = $Data['GroupName'];
         $isGroup = false;
@@ -132,7 +138,8 @@ class ApiStandard extends Extension implements IApiInterface
                 $tblType ? $tblType : null,
                 $divisionList,
                 array(),
-                $hasAbsenceTypeOptions
+                $hasAbsenceTypeOptions,
+                $isCertificateRelevant
             );
         } elseif ($groupName != '') {
             $isGroup = true;
@@ -148,7 +155,8 @@ class ApiStandard extends Extension implements IApiInterface
                 $tblType ? $tblType : null,
                 array(),
                 $groupList,
-                $hasAbsenceTypeOptions
+                $hasAbsenceTypeOptions,
+                $isCertificateRelevant
             );
         } else {
             $absenceList = Absence::useService()->getAbsenceAllByDay(
@@ -157,7 +165,8 @@ class ApiStandard extends Extension implements IApiInterface
                 $tblType ? $tblType : null,
                 array(),
                 array(),
-                $hasAbsenceTypeOptions
+                $hasAbsenceTypeOptions,
+                $isCertificateRelevant
             );
         }
 
@@ -172,10 +181,11 @@ class ApiStandard extends Extension implements IApiInterface
                 'Group'       => 'Gruppe',
                 'Division'    => 'Klasse',
                 'Person'      => 'Schüler',
-                'DateFrom'    => 'Zeitraum (von)',
+                'DateFrom'    => 'Zeitraum von',
                 'DateTo'      => 'Zeitraum bis',
                 'Lessons'     => 'Unterrichts&shy;einheiten',
                 'AbsenceType' => 'Typ',
+                'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status'      => 'Status',
                 'Remark'      => 'Bemerkung'
             );
@@ -201,7 +211,8 @@ class ApiStandard extends Extension implements IApiInterface
                                 'DateTo' => $Data['ToDate'],
                                 'Type' => $Data['Type'],
                                 'DivisionName' => $Data['DivisionName'],
-                                'GroupName' => $Data['GroupName']
+                                'GroupName' => $Data['GroupName'],
+                                'IsCertificateRelevant' => $Data['IsCertificateRelevant']
                             )
                         )
                     )

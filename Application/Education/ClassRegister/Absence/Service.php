@@ -112,7 +112,8 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         DateTime $tillDate = null,
-        &$countLessons = 0
+        int &$countLessons = 0,
+        bool $IsCertificateRelevant = true
     ) {
         $list = array();
         // Fehlzeiten aus alle Klassen des Schuljahrs
@@ -127,7 +128,9 @@ class Service extends AbstractService
         $days = 0;
         /** @var TblAbsence $item */
         foreach ($list as $item) {
-            if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+            if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED
+                && $item->getIsCertificateRelevant() == $IsCertificateRelevant
+            ) {
                 $tblDivisionByAbsence = $item->getServiceTblDivision();
                 $days += intval($item->getDays($tillDate, $countLessons,
                     ($tblCompany = $tblDivisionByAbsence->getServiceTblCompany()) ? $tblCompany : null
@@ -142,15 +145,17 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param DateTime|null $tillDate
-     *
      * @param int $countLessons
+     * @param bool $IsCertificateRelevant
+     *
      * @return int
      */
     public function getExcusedDaysByPerson(
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         DateTime $tillDate = null,
-        &$countLessons = 0
+        int &$countLessons = 0,
+        bool $IsCertificateRelevant = true
     ) {
         $list = array();
         // Fehlzeiten aus alle Klassen des Schuljahrs
@@ -165,7 +170,9 @@ class Service extends AbstractService
         $days = 0;
         /** @var TblAbsence $item */
         foreach ($list as $item) {
-            if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+            if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED
+                && $item->getIsCertificateRelevant() == $IsCertificateRelevant
+            ) {
                 $tblDivisionByAbsence = $item->getServiceTblDivision();
                 $days += intval($item->getDays($tillDate, $countLessons,
                     ($tblCompany = $tblDivisionByAbsence->getServiceTblCompany()) ? $tblCompany : null
@@ -228,9 +235,9 @@ class Service extends AbstractService
      * @param array $divisionList
      * @param array $groupList
      * @param bool $hasAbsenceTypeOptions
+     * @param null|bool $IsCertificateRelevant
      *
      * @return array
-     * @throws \Exception
      */
     public function getAbsenceAllByDay(
         DateTime $fromDate,
@@ -238,7 +245,8 @@ class Service extends AbstractService
         TblType $tblType = null,
         $divisionList = array(),
         $groupList = array(),
-        &$hasAbsenceTypeOptions = false
+        &$hasAbsenceTypeOptions = false,
+        $IsCertificateRelevant = true
     ) {
         $resultList = array();
         $tblAbsenceList = array();
@@ -282,6 +290,11 @@ class Service extends AbstractService
                     && ($tblLevel = $tblDivision->getTblLevel())
                     && ($tblTypeItem = $tblLevel->getServiceTblType())
                 ) {
+                    // Zeugnisrelevant filtern
+                    if ($IsCertificateRelevant !== null && $IsCertificateRelevant !== $tblAbsence->getIsCertificateRelevant()) {
+                        continue;
+                    }
+
                     if (!$tblType || ($tblType->getId() == $tblTypeItem->getId())) {
                         $resultList = $this->setAbsenceContent($tblTypeItem, $tblDivision, $isGroup, $groupPersonList,
                             $tblPerson, $tblAbsence, $resultList);
@@ -349,7 +362,8 @@ class Service extends AbstractService
             'Remark' => $tblAbsence->getRemark(),
             'AbsenceType' => $tblAbsence->getTypeDisplayName(),
             'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
-            'Lessons' => $tblAbsence->getLessonStringByAbsence()
+            'Lessons' => $tblAbsence->getLessonStringByAbsence(),
+            'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
         );
 
         return $resultList;
@@ -560,7 +574,8 @@ class Service extends AbstractService
                 $Data['Status'],
                 $Data['Remark'],
                 isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
-                $tblPersonStaff ? $tblPersonStaff : null
+                $tblPersonStaff ? $tblPersonStaff : null,
+                isset($Data['IsCertificateRelevant'])
             ))) {
                 if (isset($Data['UE'])) {
                     foreach ($Data['UE'] as $lesson => $value) {
@@ -599,7 +614,8 @@ class Service extends AbstractService
             $Data['Status'],
             $Data['Remark'],
             isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
-            $tblPersonStaff ? $tblPersonStaff : null
+            $tblPersonStaff ? $tblPersonStaff : null,
+            isset($Data['IsCertificateRelevant'])
         )) {
             for ($i = 0; $i < 13; $i++) {
                 if (isset($Data['UE'][$i])) {

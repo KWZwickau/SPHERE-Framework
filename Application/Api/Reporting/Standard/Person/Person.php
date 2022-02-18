@@ -275,10 +275,12 @@ class Person
      * @param null $Type
      * @param string $DivisionName
      * @param string $GroupName
+     * @param int $IsCertificateRelevant
      *
      * @return bool|string
      */
-    public function downloadAbsenceList($Date = null, $DateTo = null, $Type = null, $DivisionName = '', $GroupName = '')
+    public function downloadAbsenceList($Date = null, $DateTo = null, $Type = null, $DivisionName = '', $GroupName = '',
+        int $IsCertificateRelevant = 0)
     {
         // das Datum darf keine Uhrzeit enthalten
         $dateTime = new DateTime((new DateTime($Date))->format('d.m.Y'));
@@ -287,7 +289,9 @@ class Person
         } else {
             $dateTimeTo = new DateTime((new DateTime($DateTo))->format('d.m.Y'));
         }
-        if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTime, $dateTimeTo, $Type, $DivisionName, $GroupName))) {
+        if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTime, $dateTimeTo, $Type,
+            $DivisionName, $GroupName, $IsCertificateRelevant))
+        ) {
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Fehlzeiten " . $dateTime->format("Y-m-d") . ".xlsx")->__toString();
         }

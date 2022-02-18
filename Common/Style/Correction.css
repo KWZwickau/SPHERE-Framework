@@ -451,6 +451,16 @@ a.type-white-link:focus {
     text-decoration: none;
 }
 
+a.type-muted-link {
+    color: #777777;
+    text-decoration: none;
+}
+a.type-muted-link:hover,
+a.type-muted-link:focus {
+    color: #333333;
+    text-decoration: none;
+}
+
 .wellReadOnly {
     min-height: 20px;
     padding: 5px;

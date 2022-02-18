@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -908,6 +909,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $lesson = $tblAbsence->getLessonStringByAbsence($countLessons);
         $type = $tblAbsence->getTypeDisplayShortName();
         $tblPersonStaff = $tblAbsence->getDisplayStaff();
+        $remark = $tblAbsence->getRemark();
 
         $dataList[$tblDivision->getId()][$date][$tblPerson->getId() . '_' . $tblAbsence->getId()] = (new Link(
             $tblPerson->getLastFirstName()
@@ -921,6 +923,9 @@ class ApiAbsence extends Extension implements IApiInterface
             array(),
             ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
             . ($tblPersonStaff ? ' - ' . $tblPersonStaff : '')
+            . ($remark ? ' - ' . $remark : ''),
+            null,
+            $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
     }
 
@@ -1547,8 +1552,8 @@ class ApiAbsence extends Extension implements IApiInterface
     ) {
         $lesson = $tblAbsence->getLessonStringByAbsence();
         $type = $tblAbsence->getTypeDisplayShortName();
+        $remark = $tblAbsence->getRemark();
 
-        $backgroundColor = '#E0F0FF';
         $isWhiteLink = false;
 
         if (($tblAbsenceType = $tblAbsence->getType())) {
@@ -1559,14 +1564,21 @@ class ApiAbsence extends Extension implements IApiInterface
                 $backgroundColor = '#337ab7';
                 $isWhiteLink = true;
             }
+        } else {
+            if ($tblAbsence->getIsCertificateRelevant()) {
+                $backgroundColor = '#E0F0FF';
+            } else {
+                $backgroundColor = '#FFFFFF';
+            }
         }
 
         if ($hasToolTip) {
             $toolTip = ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
-                . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '');
+                . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                . ($remark ? ' - ' . $remark : '');
             $name = $tblAbsence->getStatusDisplayShortName();
         } else {
-            $toolTip = false;
+            $toolTip = $remark ? $remark : false;
             $name = $tblAbsence->getStatusDisplayShortName()
                 .($lesson ? ' - ' . $lesson : '') . ($type ? ' - ' . $type : '')
                 . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '');
@@ -1579,7 +1591,9 @@ class ApiAbsence extends Extension implements IApiInterface
             array(),
             $toolTip,
             null,
-            $isWhiteLink ? Link::TYPE_WHITE_LINK : Link::TYPE_LINK
+            $isWhiteLink
+                ? AbstractLink::TYPE_WHITE_LINK
+                : ($tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK)
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
 
         $dataList[$tblPerson->getId()][$date]['BackgroundColor'] = $backgroundColor;

@@ -117,6 +117,7 @@ class Data extends AbstractData
      * @param string $Remark
      * @param int $Type
      * @param TblPerson|null $tblPersonStaff
+     * @param bool $IsCertificateRelevant
      *
      * @return TblAbsence
      */
@@ -128,7 +129,8 @@ class Data extends AbstractData
         $Status,
         $Remark = '',
         $Type = TblAbsence::VALUE_TYPE_NULL,
-        TblPerson $tblPersonStaff = null
+        TblPerson $tblPersonStaff = null,
+        bool $IsCertificateRelevant = true
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -149,6 +151,7 @@ class Data extends AbstractData
             $Entity->setRemark($Remark);
             $Entity->setType($Type);
             $Entity->setServiceTblPersonStaff($tblPersonStaff);
+            $Entity->setIsCertificateRelevant($IsCertificateRelevant);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -165,6 +168,7 @@ class Data extends AbstractData
      * @param $Remark
      * @param $Type
      * @param TblPerson|null $tblPersonStaff
+     * @param bool $IsCertificateRelevant
      *
      * @return bool
      */
@@ -175,7 +179,8 @@ class Data extends AbstractData
         $Status,
         $Remark,
         $Type,
-        TblPerson $tblPersonStaff = null
+        TblPerson $tblPersonStaff = null,
+        bool $IsCertificateRelevant = true
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -190,6 +195,7 @@ class Data extends AbstractData
             $Entity->setRemark($Remark);
             $Entity->setType($Type);
             $Entity->setServiceTblPersonStaff($tblPersonStaff);
+            $Entity->setIsCertificateRelevant($IsCertificateRelevant);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
