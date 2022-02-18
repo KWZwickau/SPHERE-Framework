@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\User\Account;
 use DateTime;
 use SPHERE\Application\Api\Contact\ApiContactAddress;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
+use SPHERE\Application\Api\Setting\UserAccount\ApiUserDelete;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Web\Web;
@@ -442,7 +443,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $DataPerson['Name'] = false;
                     $DataPerson['Check'] = '';
                     $DataPerson['Course'] = '';
-                    $DataPerson['Course'] = '';
                     $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
                     $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
@@ -833,15 +833,48 @@ class Frontend extends Extension implements IFrontendInterface
 
         ini_set('memory_limit', '256M');
         $Stage = new Stage('Schüler-Accounts', 'Übersicht');
-
         $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
+
+        $ApiDeleteModalButton = (new Standard('Ehemalige Schüler-Accounts löschen', '#'))
+            ->ajaxPipelineOnClick(ApiUserDelete::pipelineOpenModal('STUDENT'));
+        $Stage->addButton($ApiDeleteModalButton);
+
+
+        $StudentTable = $this->getStudentTable();
+        $tableReceiver = ApiUserDelete::receiverTable($StudentTable);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+//                        new LayoutColumn(),
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                            .ApiUserDelete::receiverAccountModal('Löschen ehemaliger '.new Bold('Schüler-Accounts'))
+                            .ApiUserDelete::receiverAccountService()
+                        ),
+                        new LayoutColumn(
+                            $tableReceiver
+                        )
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    public function getStudentTable($IsDeleteModal = false)
+    {
 
         $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT);
         $TableContent = array();
         if ($tblUserAccountAll) {
             $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent) {
-
+            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent, $IsDeleteModal) {
+                if($IsDeleteModal){
+                    $Item['Select'] = (new CheckBox('Data['.$tblUserAccount->getId().']', '&nbsp;', $tblUserAccount->getServiceTblAccount()->getId()))->setChecked();
+                }
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
@@ -849,26 +882,30 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['PersonListCustody'] = '';
                 $Item['Division'] = new Muted('-NA-');
                 $Item['ActiveInfo'] = new Center(new ToolTip(new InfoIcon(), 'Aktuell kein Schüler'));
-                $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
-                        ? ''.$tblUserAccount->getAccountCreator().' - '
-                        : new Muted('-NA-  ')
-                    ).$tblUserAccount->getGroupByTime('d.m.Y');
-                $Item['LastUpdate'] = '';
-                $Item['Option'] =
-                    new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Student/Show'
-                        )
-                        , 'Neues Passwort generieren')
-                    .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Student/Show'
-                        )
-                        , 'Passwort zurücksetzen')
-                    .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
-                        array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                $Item['IsInfo'] = true;
+                if(!$IsDeleteModal){
+                    $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
+                            ? ''.$tblUserAccount->getAccountCreator().' - '
+                            : new Muted('-NA-  ')
+                        ).$tblUserAccount->getGroupByTime('d.m.Y');
+                    $Item['LastUpdate'] = '';
+                    $Item['Option'] =
+                        new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Student/Show'
+                            )
+                            , 'Neues Passwort generieren')
+                        .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Student/Show'
+                            )
+                            , 'Passwort zurücksetzen')
+                        .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
+                            array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                }
+
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
@@ -877,14 +914,27 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
                     $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                    $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
+                    if(!$IsDeleteModal){
+                        $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
+                    }
+
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
-                    if(($tblDivision =  Student::useService()->getCurrentDivisionByPerson($tblPerson))){
-                        $Item['Division'] = $tblDivision->getDisplayName();
+                    // Sortierung der Info's nach Namen
+                    $Item['ActiveInfo'] = '<span hidden>'.$Item['Name'].'</span>'.$Item['ActiveInfo'];
+
+                    if(($tblDivisionList =  Student::useService()->getCurrentDivisionListByPerson($tblPerson, false))){
+                        $DivisionCount = 1;
+                        foreach($tblDivisionList as $tblDivision){
+                            if($DivisionCount == 1){
+                                $Item['Division'] = $tblDivision->getDisplayName();
+                            } elseif($DivisionCount > 1){
+                                $Item['Division'] .= ', '.$tblDivision->getDisplayName();
+                            }
+                        }
                     }
 
                     $CustodyList = array();
@@ -904,79 +954,100 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonListCustody'] = implode($CustodyList);
                     }
                     if((Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent))){
-                        $Item['ActiveInfo'] = '';
+                        $Item['ActiveInfo'] = '<span hidden>ZZ'.$Item['Name'].'</span>';
+                        $Item['IsInfo'] = false;
                     }
                 }
 
 
-                if($tblUserAccount->getUpdateDate()){
-                    $UpdateTypeString = '';
-                    $UpdateTypeAcronym = '';
-                    $UpdateType = $tblUserAccount->getUpdateType();
-                    if($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RESET){
-                        $UpdateTypeAcronym = 'Z';
-                        $UpdateTypeString = 'Zurückgesetzt';
-                    } elseif($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RENEW){
-                        $UpdateTypeAcronym = 'G';
-                        $UpdateTypeString = 'Neu Generiert';
-                    }
+                if(!$IsDeleteModal) {
+                    if($tblUserAccount->getUpdateDate()){
+                        $UpdateTypeString = '';
+                        $UpdateTypeAcronym = '';
+                        $UpdateType = $tblUserAccount->getUpdateType();
+                        if($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RESET){
+                            $UpdateTypeAcronym = 'Z';
+                            $UpdateTypeString = 'Zurückgesetzt';
+                        } elseif($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RENEW){
+                            $UpdateTypeAcronym = 'G';
+                            $UpdateTypeString = 'Neu Generiert';
+                        }
 
-                    $Updater = new Muted('-NA- ');
-                    if($tblUserAccount->getAccountUpdater()){
-                        $Updater = $tblUserAccount->getAccountUpdater();
+                        $Updater = new Muted('-NA- ');
+                        if($tblUserAccount->getAccountUpdater()){
+                            $Updater = $tblUserAccount->getAccountUpdater();
+                        }
+                        $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
+                        $Item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
                     }
-                    $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
-                    $Item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
+                    $Item['Option'] = '<div style="width: 155px">' . $Item['Option'] . '</div>';
                 }
 
-                $Item['Option'] = '<div style="width: 155px">'.$Item['Option'].'</div>';
-
-                array_push($TableContent, $Item);
+                if($IsDeleteModal){
+                    if($Item['IsInfo']){
+                        array_push($TableContent, $Item);
+                    }
+                } else {
+                    array_push($TableContent, $Item);
+                }
             });
         }
+        if(!$IsDeleteModal) {
+            return (!empty($TableContent)
+                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
+                    array(
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListCustody' => 'Sorgeberechtigte',
+                        'Division'          => 'aktuelle Klasse',
+                        'ActiveInfo'        => 'Info',
+                        'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
+                        'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
+                        'Option'            => ''
+                    ), array(
+                        'order'      => array(
+                            array(6, 'asc'),
 
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            ApiContactAddress::receiverModal()
                         ),
-                        new LayoutColumn(
-                            (!empty($TableContent)
-                                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
-                                    array(
-                                        'Salutation'        => 'Anrede',
-                                        'Name'              => 'Name',
-                                        'UserName'          => 'Account',
-                                        'Address'           => 'Adresse',
-                                        'PersonListCustody' => 'Sorgeberechtigte',
-                                        'Division'          => 'aktuelle Klasse',
-                                        'ActiveInfo'        => 'Info',
-                                        'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
-                                        'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
-                                        'Option'            => ''
-                                    ), array(
-                                        'order'      => array(
-                                            array(6, 'desc'),
-                                            array(1, 'asc')
-
-                                        ),
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('width' => '142px', 'orderable' => false, 'targets' => -1)
-                                        )
-                                    )
-                                )
-                                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
-                            )
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('width' => '142px', 'orderable' => false, 'targets' => -1)
                         )
-                    ))
+                    )
                 )
-            )
-        );
+                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
+            );
+        } else {
+            return (!empty($TableContent)
+                ? new TableData($TableContent, null,
+                    array(
+                        'Select'            => 'Auswahl',
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListCustody' => 'Sorgeberechtigte',
+                        'Division'          => 'aktuelle Klasse',
+                        'ActiveInfo'        => 'Info',
+                    ), array(
+                        'order'      => array(
+                            array(7, 'asc'),
 
-        return $Stage;
+                        ),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                        ),
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                    )
+                )
+                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
+            );
+        }
     }
 
     /**
@@ -987,15 +1058,47 @@ class Frontend extends Extension implements IFrontendInterface
 
         ini_set('memory_limit', '256M');
         $Stage = new Stage('Sorgeberechtigten-Accounts', 'Übersicht');
-
         $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
+
+        $ApiDeleteModalButton = (new Standard('Ehemalige Sorgeberechtigten-Accounts löschen', '#'))
+            ->ajaxPipelineOnClick(ApiUserDelete::pipelineOpenModal('CUSTODY'));
+        $Stage->addButton($ApiDeleteModalButton);
+
+        $CustodyTable = $this->getCustodyTable();
+        $tableReceiver = ApiUserDelete::receiverTable($CustodyTable);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                            .ApiUserDelete::receiverAccountModal('Löschen ehemaliger '.new Bold('Sorgeberechtigten-Accounts'))
+                            .ApiUserDelete::receiverAccountService()
+                        ),
+                        new LayoutColumn(
+                            $tableReceiver
+                        )
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    public function getCustodyTable($IsDeleteModal = false)
+    {
 
         $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_CUSTODY);
         $TableContent = array();
         if ($tblUserAccountAll) {
             $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent) {
+            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent, $IsDeleteModal) {
 
+                if($IsDeleteModal){
+                    $Item['Select'] = (new CheckBox('Data['.$tblUserAccount->getId().']', '&nbsp;', $tblUserAccount->getServiceTblAccount()->getId()))->setChecked();
+                }
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
@@ -1003,27 +1106,30 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = '';
                 $Item['PersonListStudent'] = '';
                 $Item['ActiveInfo'] = new ToolTip(new InfoIcon(), 'keine aktiven Schüler');
-                $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
-                        ? ''.$tblUserAccount->getAccountCreator().' - '
-                        : new Muted('-NA-  ')
-                    ).$tblUserAccount->getGroupByTime('d.m.Y');
-                $Item['LastUpdate'] = '';
-                $Item['Option'] =
-                    new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Custody/Show',
-                            'IsParent' => true
-                        )
-                        , 'Neues Passwort generieren')
-                    .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Custody/Show'
-                        )
-                        , 'Passwort zurücksetzen')
-                    .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
-                        array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                $Item['IsInfo'] = true;
+                if(!$IsDeleteModal){
+                    $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
+                            ? ''.$tblUserAccount->getAccountCreator().' - '
+                            : new Muted('-NA-  ')
+                        ).$tblUserAccount->getGroupByTime('d.m.Y');
+                    $Item['LastUpdate'] = '';
+                    $Item['Option'] =
+                        new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Custody/Show',
+                                'IsParent' => true
+                            )
+                            , 'Neues Passwort generieren')
+                        .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Custody/Show'
+                            )
+                            , 'Passwort zurücksetzen')
+                        .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
+                            array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                }
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
@@ -1032,12 +1138,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
                     $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                    $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
+                    if(!$IsDeleteModal) {
+                        $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson) . $Item['Option'];
+                    }
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
+                    // Sortierung der Info's nach Namen
+                    $Item['ActiveInfo'] = '<span hidden>'.$Item['Name'].'</span>'.$Item['ActiveInfo'];
 
                     $StudentList = array();
                     $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
@@ -1051,7 +1161,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     $StudentList[] = new Container($tblPersonStudent->getLastFirstName());
                                     // Gruppenkontrolle
                                     if((Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroupStudent))){
-                                        $Item['ActiveInfo'] = '';
+                                        $Item['ActiveInfo'] = '<span hidden>ZZ'.$Item['Name'].'</span>';
+                                        $Item['IsInfo'] = false;
                                     }
                                 }
                             }
@@ -1081,54 +1192,72 @@ class Frontend extends Extension implements IFrontendInterface
                     $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
                     $Item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
                 }
+                if(!$IsDeleteModal) {
+                    $Item['Option'] = '<div style="width: 155px">' . $Item['Option'] . '</div>';
+                }
 
-                $Item['Option'] = '<div style="width: 155px">'.$Item['Option'].'</div>';
-
-                array_push($TableContent, $Item);
+                if($IsDeleteModal){
+                    if($Item['IsInfo']){
+                        array_push($TableContent, $Item);
+                    }
+                } else {
+                    array_push($TableContent, $Item);
+                }
             });
         }
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            ApiContactAddress::receiverModal()
-                        ),
-                        new LayoutColumn(
-                            (!empty($TableContent)
-                                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
-                                    array(
-                                        'Salutation'        => 'Anrede',
-                                        'Name'              => 'Name',
-                                        'UserName'          => 'Account',
-                                        'Address'           => 'Adresse',
-                                        'PersonListStudent' => 'Sorgeberechtigt für',
-                                        'ActiveInfo'        => 'Info',
-                                        'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
-                                        'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
-                                        'Option'            => ''
-                                    ), array(
-                                        'order'      => array(array(1, 'asc')),
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('width' => '142px', 'orderable' => false, 'targets' => -1)
-                                        )
-                                    )
-                                )
-                                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
-                            )
+        if(!$IsDeleteModal){
+            return (!empty($TableContent)
+                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
+                    array(
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListStudent' => 'Sorgeberechtigt für',
+                        'ActiveInfo'        => 'Info',
+                        'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
+                        'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
+                        'Option'            => ''
+                    ), array(
+                        'order'      => array(array(5, 'asc')),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('width' => '142px', 'orderable' => false, 'targets' => -1)
                         )
-                    ))
+                    )
                 )
-            )
-        );
+                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
+            );
+        } else {
+            return (!empty($TableContent)
+                ? new TableData($TableContent, null,
+                    array(
+                        'Select'            => 'Auswahl',
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListStudent' => 'Sorgeberechtigt für',
+                        'ActiveInfo'        => 'Info'
+                    ), array(
+                        'order'      => array(array(2, 'asc')),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                        ),
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                    )
+                )
+                : new WarningMessage('Keine mit Info versehenen Benutzerzugänge vorhanden.')
+            );
+        }
 
-        return $Stage;
     }
 
     /**
-     * @param null|string $Time
+     * @param $Time
      *
      * @return Stage
      */
