@@ -86,10 +86,10 @@ class ApiSortDivision extends Extension implements IApiInterface
         $button = new ToolTip((new Standard('Ja', '#'))->setDisabled(), 'Sortierung wurde nicht gefunden');
         if($sortType == 'Sortierung alphabetisch'){
             $button = new Standard(
-                'Ja', '/Education/ClassRegister/Sort', new Ok(), array('DivisionId' => $DivisionId)
+                'Ja', '/Education/Lesson/Division/Sort/Alphabetically', new Ok(), array('DivisionId' => $DivisionId)
             );
         } elseif($sortType == 'Sortierung Geschlecht (alphabetisch)'){
-            $button = new Standard('Ja', '/Education/ClassRegister/Sort/Gender', new Ok(),
+            $button = new Standard('Ja', '/Education/Lesson/Division/Sort/Gender', new Ok(),
                 array('DivisionId' => $DivisionId));
         }
 
