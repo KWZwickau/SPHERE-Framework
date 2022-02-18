@@ -11,6 +11,7 @@ namespace SPHERE\Application\Api\Education\Graduation\Gradebook;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
@@ -196,11 +197,19 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
 
                             if ($tblPersonList) {
                                 foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+                                    // nach Zeiträumen filtern, beim "Gesamtes Schuljahr" werden alle angezeigt
+                                    if ($Data['Period'] != SelectBoxItem::PERIOD_FULL_YEAR
+                                        && $Data['Period'] != $tblMinimumGradeCount->getPeriod()
+                                    ) {
+                                        continue;
+                                    }
+
                                     $minimumCount = $tblMinimumGradeCount->getCount();
                                     $countPersons = 0;
                                     $countFulfil = 0;
                                     $minimumPersonCount = 0;
                                     $maximumPersonCount = 0;
+                                    $personCountSum = 0;
                                     foreach ($tblPersonList as $tblPerson) {
                                         $countPersons++;
                                         $countMinimumGradeByPerson = Gradebook::useService()->getMinimumGradeCountNumber(
@@ -222,6 +231,8 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
                                         } elseif ($countMinimumGradeByPerson < $minimumPersonCount) {
                                             $minimumPersonCount = $countMinimumGradeByPerson;
                                         }
+
+                                        $personCountSum += $countMinimumGradeByPerson;
                                     }
 
                                     $status = $countFulfil . ' von ' . $countPersons . ' Schüler';
@@ -244,7 +255,11 @@ class ApiMinimumGradeCount  extends Extension implements IApiInterface
                                         new LayoutColumn($tblMinimumGradeCount->getGradeTypeDisplayName(), 3),
                                         new LayoutColumn($tblMinimumGradeCount->getPeriodDisplayName(), 2),
                                         new LayoutColumn($tblMinimumGradeCount->getCourseDisplayName(), 1),
-                                        new LayoutColumn($minimumCount . ' (Min: ' . $minimumPersonCount . ', Max: ' . $maximumPersonCount . ')', 2),
+                                        new LayoutColumn($minimumCount
+                                            . ' (Min: ' . $minimumPersonCount
+                                            . ($countPersons > 0 ? ', &#216;: '
+                                                . round(floatval($personCountSum) / $countPersons, 1) : '')
+                                            . ', Max: ' . $maximumPersonCount . ')', 2),
                                         new LayoutColumn($status . new PullRight($external), 2)
                                     ))));
                                 }
