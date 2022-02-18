@@ -170,7 +170,7 @@ class YearPeriod extends Extension implements IApiInterface
                     'FromDate'    => 'Von',
                     'ToDate'      => 'Bis',
                     'Description' => 'Beschreibung',
-                    'IsLevel12' => 'Für 12. Klasse',
+                    'IsLevel12' => 'Für 12. Klasse Gy / 13. Klasse BGy',
                     'Option'      => ''
                 ),
                     array(
@@ -212,7 +212,7 @@ class YearPeriod extends Extension implements IApiInterface
                     'FromDate'    => 'Von',
                     'ToDate'      => 'Bis',
                     'Description' => 'Beschreibung',
-                    'IsLevel12' => 'Für 12. Klasse',
+                    'IsLevel12' => 'Für 12. Klasse Gy / 13. Klasse BGy',
                     'Option'      => ''
                 ),
                     array(
