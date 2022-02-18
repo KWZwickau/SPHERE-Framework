@@ -63,6 +63,7 @@ class Frontend extends Extension implements IFrontendInterface
             $ContentArray = Individual::useService()->getPersonListByGroup($tblGroup);
             $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
             $filterWarning = false;
+            $showDivision = false;
 
             $tableContent = array();
             if ($ContentArray){
@@ -72,7 +73,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblRelationshipList = Relationship::useService()->getPersonRelationshipArrayByType($tblRelationshipType);
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
 
-                array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $Acronym, $tblRelationshipList, $tblStudentTransferType){
+                array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $Acronym, $tblRelationshipList,
+                    $tblStudentTransferType, &$showDivision
+                ){
 
 //                    // Custody
                     $childrenList = array();
@@ -122,9 +125,12 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $displayDivisionList = '';
-                    if ($tblGroup->getMetaTable() == 'STUDENT') {
+                    if ($tblGroup->getMetaTable() == 'STUDENT' || !$tblGroup->isLocked()) {
                         if(($tblPerson = Person::useService()->getPersonById($contentRow['TblPerson_Id']))){
                             $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                            if ($displayDivisionList) {
+                                $showDivision = true;
+                            }
                         }
                     }
                     $LeaveDate = '';
@@ -255,6 +261,13 @@ class Frontend extends Extension implements IFrontendInterface
                     'LeaveDate'       => 'Abgang Datum',
                     'Option'          => '',
                 );
+            } elseif ($showDivision) {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address'  => 'Adresse',
+                    'Division'   => 'Klasse (SJ '.$YearNow.')',
+                    'Option' => '',
+                );
             } else {
                 $ColumnArray = array(
                     'FullName' => 'Name',
@@ -290,6 +303,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefs = array(
                     array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                     array('type' => 'de_date', 'targets' => 4),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                );
+            }
+            if ($showDivision) {
+                $columnDefs = array(
+                    array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                    array('type' => 'natural', 'targets' => 2),
                     array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
