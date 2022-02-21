@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Certificate\Approve;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -244,6 +245,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblPrepareList as $tblPrepare) {
                     $countStudents = 0;
                     $countApproved = 0;
+                    $countPrepared = 0;
                     $isAutomaticallyApproved = false;
                     $tblDivision = $tblPrepare->getServiceTblDivision();
 
@@ -253,6 +255,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $isAutomaticallyApproved = true;
                     }
 
+                    $isInEdit = false;
                     if ($tblDivision) {
                         if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                             foreach ($tblPersonList as $tblPerson) {
@@ -260,6 +263,18 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblPerson))) {
                                     if ($tblPrepareStudent->getServiceTblCertificate()) {
                                         $countStudents++;
+
+                                        if ($tblPrepareStudent->getIsPrepared()) {
+                                            $countPrepared++;
+                                        } else {
+                                            if (!$isInEdit
+                                                && (Prepare::useService()->getPrepareGradeAllByPerson(
+                                                        $tblPrepare, $tblPerson, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                                                    || Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare, $tblPerson))
+                                            ) {
+                                                $isInEdit = true;
+                                            }
+                                        }
                                     }
                                     if ($tblPrepareStudent->isApproved()) {
                                         $countApproved++;
@@ -275,6 +290,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $status = $this->getApproveStatusText($isAutomaticallyApproved, $countApproved, $countStudents);
 
+                    if ($countPrepared == $countStudents) {
+                        $prepareStatus = new Success('abgeschlossen');
+                    } elseif ($isInEdit) {
+                        $prepareStatus = new Warning('in Bearbeitung');
+                    } else {
+                        $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Danger('offen');
+                    }
+
                     if ($countStudents > 0) {
                         $prepareList[] = array(
                             'Year' => $YearString,
@@ -283,6 +306,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
                             'CertificateType' =>
                                 $tblCertificateType ? $tblCertificateType->getName() : '',
+                            'PrepareStatus' => $prepareStatus,
                             'Status' => $status,
                             'Option' =>
                                 (new Standard(
@@ -334,6 +358,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Division' => 'Klasse',
                         'Name' => 'Zeugnisauftrag',
                         'CertificateType' => 'Zeugnistyp',
+                        'PrepareStatus' => 'Zeugnis&shy;vorbereitung abge&shy;schlossen',
                         'Status' => 'Freigaben',
                         'Option' => ''
                     ),
@@ -357,6 +382,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Division' => 'Klasse',
                         'Name' => 'Zeugnisauftrag',
                         'CertificateType' => 'Zeugnistyp',
+                        'PrepareStatus' => 'Zeugnis&shy;vorbereitung abge&shy;schlossen',
                         'Status' => 'Freigaben',
                         'Option' => ''
                     ),
@@ -740,10 +766,25 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
 
+                            $prepareStatus = '&nbsp;';
                             $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                             if ($tblPrepareStudent) {
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
                                 $isApproved = $tblPrepareStudent->isApproved();
+                                if ($tblCertificate) {
+                                    if ($tblPrepareStudent->getIsPrepared()) {
+                                        $prepareStatus = new Success('abgeschlossen');
+                                    } else {
+                                        if (Prepare::useService()->getPrepareGradeAllByPerson(
+                                                $tblPrepare, $tblPerson, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                                            || Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare, $tblPerson)
+                                        ) {
+                                            $prepareStatus = new Warning('in Bearbeitung');
+                                        } else {
+                                            $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Danger('offen');
+                                        }
+                                    }
+                                }
                             } else {
                                 $tblCertificate = false;
                                 $isApproved = false;
@@ -759,6 +800,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Warning(new Exclamation() . ' nicht freigegeben');
                             }
 
+                            if (!$tblPrepareStudent || !$tblCertificate) {
+                                $status = '&nbsp;';
+                            }
+
                             $studentTable[] = array(
                                 'Number' => count($studentTable) + 1,
                                 'Name' => $tblPerson->getLastFirstName(),
@@ -767,6 +812,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Success(new Enable() . ' ' . $tblCertificate->getName()
                                         . ($tblCertificate->getDescription() ? '<br>' . $tblCertificate->getDescription() : ''))
                                     : new Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
+                                'PrepareStatus' => $prepareStatus,
                                 'Status' => $status,
                                 'Option' =>
                                     ($tblCertificate ? new External(
@@ -861,6 +907,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Name' => 'Name',
                                         'Course' => 'Bildungs&shy;gang',
                                         'Template' => 'Zeugnis&shy;vorlage',
+                                        'PrepareStatus' => 'Zeugnis&shy;vorbereitung abge&shy;schlossen',
                                         'Status' => 'Freigabe',
                                         'Option' => ''
                                     ), array(

@@ -166,6 +166,7 @@ class Setup extends AbstractSetup
         }
         $this->createColumn($Table, 'ExcusedDaysFromLessons', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($Table, 'UnexcusedDaysFromLessons', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($Table, 'IsPrepared', self::FIELD_TYPE_BOOLEAN, false, false);
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
         $this->createIndex($Table, array('serviceTblPerson' , 'tblPrepareCertificate'));
