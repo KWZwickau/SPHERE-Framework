@@ -214,7 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => 'Klasse',
                                     'Name' => 'Name',
                                     'CertificateType' => 'Zeugnistyp',
-                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung abge&shy;schlossen',
+                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung',
                                     'Option' => ''
                                 ),
                                 array(
@@ -410,7 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => 'Klasse/Gruppe',
                                     'Name' => 'Name',
                                     'CertificateType' => 'Zeugnistyp',
-                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung abge&shy;schlossen',
+                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung',
                                     'Option' => ''
                                 ),
                                 array(

@@ -2994,7 +2994,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             }
             $personSignerDisplayData[] = $buttonSigner;
 
-            $columnTable['PrepareStatus'] = 'Vor&shy;bereitung abge&shy;schlossen';
+            $columnTable['PrepareStatus'] = 'Zeugnis&shy;vorbereitung';
             $columnTable['Option'] = '';
 
             $columnDef = array(
