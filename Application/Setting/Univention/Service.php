@@ -10,6 +10,8 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -17,6 +19,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Univention\Service\Data;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
 use SPHERE\Application\Setting\Univention\Service\Setup;
@@ -149,12 +152,13 @@ class Service extends AbstractService
                 $UploadItem['record_uid'] = $tblAccount->getId();
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = array();
-                $UploadItem['schools'] = array();
+                $UploadItem['schools'] = array($schoolList[$Acronym]);
                 $UploadItem['recoveryMail'] = $tblAccount->getRecoveryMail();
 
 //            $UploadItem['password'] = '';// no passwort transfer
                 $UploadItem['school_classes'] = array();
-                $UploadItem['group'] = '';
+                $UploadItem['school_type'] = '';
+                $UploadItem['groupArray'] = '';
 
                 $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
                 if($tblPerson){
@@ -196,11 +200,8 @@ class Service extends AbstractService
                     $UploadItem['roles'] = $roles;
                 }
                 if(!empty($groups)){
-                    $Item['groupArray'] = $groups;
+                    $UploadItem['groupArray'] = $groups;
                 }
-
-                // Mandant wird als Schule verwendet
-                $Item['schools'] = array($schoolList[$Acronym]);
 
                 $tblDivision = false;
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
@@ -209,6 +210,8 @@ class Service extends AbstractService
                 if($tblDivision){
                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
                     $UploadItem['school_classes'][$Acronym][] = $ClassName;
+                    if($tblDivision->getType() && ( $SchoolTypeString = $tblDivision->getType()->getShortName() ))
+                    $UploadItem['school_type'] = $SchoolTypeString;
                 } else {
                     if(isset($TeacherClasses[$tblPerson->getId()])){
                         $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
@@ -216,8 +219,6 @@ class Service extends AbstractService
                         $UploadItem['school_classes'] = $SchoolListWithClasses;
                     }
                 }
-
-                $UploadItem['schools'] = array($schoolList[$Acronym]);
 
                 array_push($activeAccountList, $UploadItem);
             });
@@ -248,7 +249,6 @@ class Service extends AbstractService
                 if(!$User['record_uid']){
                     $User['record_uid'] = 'E'.$EmptyCount++;
                 }
-                $UserUniventionList[$User['record_uid']] =
                     // dn, url, ucsschool_roles[], name, school, firstname, lastname, birthday, disabled, email, record_uid,
                     // roles, schools, school_classes, source_uid, udm_properties
                 $UserUniventionList[$User['record_uid']] = array(
@@ -382,6 +382,7 @@ class Service extends AbstractService
                 $UploadItem['password'] = '';
 //                $UploadItem['password'] = $tblAccount->getPassword(); // ??
                 $UploadItem['school_classes'] = '';
+                $UploadItem['school_type'] = '';
 
                 if ($tblPerson = Account::useService()->getPersonAllByAccount($tblAccount)){
                     $tblPerson = current($tblPerson);
@@ -415,6 +416,7 @@ class Service extends AbstractService
                     $Item['schools'] = '';
                     $Item['password'] = '';
                     $Item['school_classes'] = '';
+                    $Item['school_type'] = '';
                     $Item['mail'] = '';
                     $Item['BackupMail'] = '';
                     $Item['groupArray'] = '';
@@ -429,6 +431,26 @@ class Service extends AbstractService
         }
 
         return (!empty($UploadToAPI) ? $UploadToAPI : false);
+    }
+
+    /**
+     * @return array ShortName of SchoolTypes as array
+     */
+    public function getSchoolTypeException(){
+        $list = array();
+        if(!($tblSetting = Consumer::useService()->getSetting('Setting', 'Univention', 'Univention', 'API_Mail'))){
+            return $list;
+        }
+        $Value = $tblSetting->getValue();
+        if(($TypeList = explode(',', $Value))){
+            foreach($TypeList as $Type){
+                if(($tblType = Type::useService()->getTypeByShortName(trim($Type)))){
+                    $list[] = $tblType->getShortName();
+                }
+            }
+        }
+
+        return $list;
     }
 
     /**
@@ -493,6 +515,7 @@ class Service extends AbstractService
         // Student Search Division
         if ($tblDivision){
             $Item['school_classes'] = $Acronym.'-'.$this->getCorrectionClassNameByDivision($tblDivision);
+            $Item['school_type'] = $tblDivision->getType()->getShortName();
         } else {
             if(isset($TeacherClasses[$tblPerson->getId()])){
                 $ClassList = $TeacherClasses[$tblPerson->getId()];

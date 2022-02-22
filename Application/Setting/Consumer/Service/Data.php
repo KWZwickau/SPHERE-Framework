@@ -246,6 +246,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
             '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch [Standard: Ja]'
             , true);
+
+        // UCS
+        $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
+            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für UCS Benutzername
+             ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy). Mehrere Schularten sind mit
+             Komma zu trennen. [Standard: ]');
     }
 
     /**
