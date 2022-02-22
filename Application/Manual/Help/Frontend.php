@@ -63,7 +63,7 @@ class Frontend extends Extension implements IFrontendInterface
                         , 3),
                         new LayoutColumn(
                             new Link(
-                                new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung', 'Stand:&nbsp;14.12.2021')
+                                new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung', 'Stand:&nbsp;21.02.2022')
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing'))
                             , 3),
                         new LayoutColumn(new Link(new Thumbnail(

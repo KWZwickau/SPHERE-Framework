@@ -1035,7 +1035,7 @@ class Creator extends Extension
         } elseif($Select == 'Billing') {
             $file = "Common/Style/Resource/Document/Manual/AnleitungFakturierung.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Anleitung_Fakturierung_14.12.2021.pdf");
+            header("Content-Disposition: attachment; filename=Anleitung_Fakturierung_21.02.2022.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'Indiware') {
             $file = "Common/Style/Resource/Document/Manual/Indiware.pdf";
