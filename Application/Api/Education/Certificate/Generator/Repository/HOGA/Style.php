@@ -18,7 +18,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 abstract class Style extends Certificate
 {
     const FONT_FAMILY = 'FreeSans';
-    const BACKGROUND = '#CCC';
+    const BACKGROUND = self::BACKGROUND_GRADE_FIELD;
     const TEXT_SIZE_SMALL = '12.5px';
     const TEXT_SIZE_NORMAL = '14px';
     const TEXT_SIZE_LARGE = '15.5px';

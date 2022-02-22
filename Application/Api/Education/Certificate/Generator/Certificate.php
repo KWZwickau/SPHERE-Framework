@@ -25,6 +25,7 @@ use SPHERE\System\Extension\Extension;
 
 abstract class Certificate extends Extension
 {
+    const BACKGROUND_GRADE_FIELD = '#CCC';
 
     /** @var null|Frame $Certificate */
     private $Certificate = null;
@@ -931,7 +932,7 @@ abstract class Certificate extends Extension
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1043,7 +1044,7 @@ abstract class Certificate extends Extension
         $IsGradeUnderlined = false,
         $hasSecondLanguageDiploma = false,
         $hasSecondLanguageSecondarySchool = false,
-        $backgroundColor = '#BBB'
+        $backgroundColor = self::BACKGROUND_GRADE_FIELD
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -2272,7 +2273,7 @@ abstract class Certificate extends Extension
                                          &ndash;
                                      {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
@@ -2306,7 +2307,7 @@ abstract class Certificate extends Extension
         $TextSize = '14px',
         $IsGradeUnderlined = false,
         $MarginTop = '10px',
-        $backgroundColor = '#BBB'
+        $backgroundColor = self::BACKGROUND_GRADE_FIELD
     ) {
 
         $TextSizeSmall = '8px';
@@ -2628,7 +2629,7 @@ abstract class Certificate extends Extension
                     {% endif %}
                 ')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')
@@ -2645,7 +2646,7 @@ abstract class Certificate extends Extension
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')
@@ -2817,7 +2818,7 @@ abstract class Certificate extends Extension
                     {% endif %}
                 ')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop(
                     '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
@@ -2852,7 +2853,7 @@ abstract class Certificate extends Extension
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop($paddingTop)
                 ->stylePaddingBottom($paddingBottom)
@@ -2945,7 +2946,7 @@ abstract class Certificate extends Extension
             $elementForeignGrade = (new Element())
                 ->setContent($contentForeignGrade)
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop($paddingTopGrade)
                 ->stylePaddingBottom($paddingBottomGrade)
@@ -2962,7 +2963,7 @@ abstract class Certificate extends Extension
             $elementForeignGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop($paddingTop)
                 ->stylePaddingBottom($paddingBottom)
@@ -3100,7 +3101,7 @@ abstract class Certificate extends Extension
                                 &ndash;
                             {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
@@ -3160,7 +3161,7 @@ abstract class Certificate extends Extension
                                 &ndash;
                             {% endif %}')
                             ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                             ->stylePaddingTop(
                                 '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
@@ -3247,7 +3248,7 @@ abstract class Certificate extends Extension
                 $elementGrade = (new Element())
                     ->setContent('&ndash;')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                     ->stylePaddingTop('0px')
                     ->stylePaddingBottom('0px')
@@ -3293,7 +3294,7 @@ abstract class Certificate extends Extension
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')
