@@ -86,11 +86,22 @@ class Service extends AbstractService
 
     /**
      * @param TblConsumer $tblConsumer
+     *
+     * @return TblConsumerLogin[]|false
+     */
+    public function getConsumerLoginListByConsumer(TblConsumer $tblConsumer)
+    {
+
+        return (new Data($this->getBinding()))->getConsumerLoginListByConsumer($tblConsumer);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
      * @param string      $SystemName
      *
      * @return TblConsumerLogin|false
      */
-    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, $SystemName = '')
+    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, string $SystemName = '')
     {
 
         return (new Data($this->getBinding()))->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
