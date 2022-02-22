@@ -63,7 +63,7 @@ class Billing implements IClusterInterface
             new LayoutRow(array(
                 new LayoutColumn(
                     new \SPHERE\Common\Frontend\Link\Repository\Link(
-                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung', 'Stand: 14.12.2021')
+                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung', 'Stand: 21.02.2022')
                         , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing'))
                 , 2),
             )),
