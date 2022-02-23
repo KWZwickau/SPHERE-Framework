@@ -431,7 +431,7 @@ class ClassRegister implements IApplicationInterface
                     'DivisionId' => $tblDivision->getId()
                 )
             );
-            $buttonList[] = new Standard('Download Fehlzeiten'
+            $buttonList[] = new Standard('Download zeugnisrelevante Fehlzeiten'
                 , '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', new Download(), array(
                     'DivisionId' => $tblDivision->getId()
                 )
@@ -483,8 +483,8 @@ class ClassRegister implements IApplicationInterface
                                     'Address'       => 'Adresse',
                                     'Birthday'      => 'Geburts&shy;datum',
                                     'Course'        => 'Bildungs&shy;gang',
-                                    'AbsenceDays'   => 'Fehlzeiten Tage<br>(E, U)',
-                                    'AbsenceLessons'=> 'Fehlzeiten UE<br>(E, U)',
+                                    'AbsenceDays'   => 'Zeugnis&shy;relevante Fehlzeiten Tage<br>(E, U)',
+                                    'AbsenceLessons'=> 'Zeugnis&shy;relevante Fehlzeiten UE<br>(E, U)',
                                     'Option'        => ''
                                 ),
                                     array(

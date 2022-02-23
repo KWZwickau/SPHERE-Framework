@@ -3651,16 +3651,24 @@ class Service extends Extension
      * @param null $Type
      * @param string $DivisionName
      * @param string $GroupName
+     * @param int $IsCertificateRelevant
+     *
      * @return false|FilePointer
      */
     public function createAbsenceListExcel(DateTime $dateTimeFrom, DateTime $dateTimeTo = null, $Type = null,
-        $DivisionName = '', $GroupName = '')
+        $DivisionName = '', $GroupName = '', int $IsCertificateRelevant = 0)
     {
 
         if ($Type != null) {
             $tblType = Type::useService()->getTypeById($Type);
         } else {
             $tblType = false;
+        }
+
+        switch ($IsCertificateRelevant) {
+            case 1: $IsCertificateRelevant = true; break;
+            case 2: $IsCertificateRelevant = false; break;
+            default: $IsCertificateRelevant = null;
         }
 
         $isGroup = false;
@@ -3674,7 +3682,8 @@ class Service extends Extension
                     $tblType ? $tblType : null,
                     $divisionList,
                     array(),
-                    $hasAbsenceTypeOptions
+                    $hasAbsenceTypeOptions,
+                    $IsCertificateRelevant
                 );
             } else {
                 $absenceList = array();
@@ -3689,7 +3698,8 @@ class Service extends Extension
                     $tblType ? $tblType : null,
                     array(),
                     $groupList,
-                    $hasAbsenceTypeOptions
+                    $hasAbsenceTypeOptions,
+                    $IsCertificateRelevant
                 );
             } else {
                 $absenceList = array();
@@ -3701,7 +3711,8 @@ class Service extends Extension
                 $tblType ? $tblType : null,
                 array(),
                 array(),
-                $hasAbsenceTypeOptions
+                $hasAbsenceTypeOptions,
+                $IsCertificateRelevant
             );
         }
 
@@ -3775,6 +3786,7 @@ class Service extends Extension
         if ($hasAbsenceTypeOptions) {
             $export->setValue($export->getCell($column++, $row), "Typ");
         }
+        $export->setValue($export->getCell($column++, $row), "ZR");
         $export->setValue($export->getCell($column++, $row), "Status");
         $export->setValue($export->getCell($column, $row), "Bemerkung");
 
@@ -3797,6 +3809,7 @@ class Service extends Extension
                 if ($hasAbsenceTypeOptions) {
                     $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
                 }
+                $export->setValue($export->getCell($column++, $row), $absence['IsCertificateRelevant']);
                 $export->setValue($export->getCell($column++, $row), $absence['StatusExcel']);
                 $export->setValue($export->getCell($column, $row), $absence['Remark']);
 
@@ -3816,6 +3829,7 @@ class Service extends Extension
         if ($hasAbsenceTypeOptions) {
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
         }
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(7);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
             $hasAbsenceTypeOptions ? 18 : 23

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use phpDocumentor\Reflection\Types\Boolean;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -83,6 +84,11 @@ class TblAbsence extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPersonStaff;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCertificateRelevant;
 
     /**
      * @return bool|TblPerson
@@ -459,5 +465,21 @@ class TblAbsence extends Element
         }
 
         return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsCertificateRelevant() : bool
+    {
+        return (bool) $this->IsCertificateRelevant;
+    }
+
+    /**
+     * @param bool $IsCertificateRelevant
+     */
+    public function setIsCertificateRelevant(bool $IsCertificateRelevant): void
+    {
+        $this->IsCertificateRelevant = $IsCertificateRelevant;
     }
 }

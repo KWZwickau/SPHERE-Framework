@@ -166,6 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
             $global = $this->getGlobal();
             $global->POST['Data']['IsFullDay'] = $isFullDay;
             $global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_UNEXCUSED;
+            $global->POST['Data']['IsCertificateRelevant'] = true;
             if ($Date) {
                 $global->POST['Data']['FromDate'] = $Date;
             }
@@ -188,6 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
             $global->POST['Data']['Remark'] = $tblAbsence->getRemark();
             $global->POST['Data']['Type'] = $tblAbsence->getType();
             $global->POST['Data']['Status'] = $tblAbsence->getStatus();
+            $global->POST['Data']['IsCertificateRelevant'] = $tblAbsence->getIsCertificateRelevant();
 
             $global->savePost();
         } else {
@@ -256,6 +258,11 @@ class Frontend extends Extension implements IFrontendInterface
                     Panel::PANEL_TYPE_INFO
                 )
             ),
+        ));
+        $formRows[] = new FormRow(array(
+           new FormColumn(
+               new CheckBox('Data[IsCertificateRelevant]', 'Zeugnisrelevant', 1)
+           )
         ));
 
         $buttons = array();
@@ -548,6 +555,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Lessons' => $tblAbsence->getLessonStringByAbsence(),
                     'Remark' => $tblAbsence->getRemark(),
                     'Status' => $status,
+                    'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein',
                     'PersonStaff' => $tblAbsence->getDisplayStaff(),
                     'Option' =>
                         (new Standard(
@@ -583,6 +591,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Type' => 'Typ',
                 'Remark' => 'Bemerkung',
                 'PersonStaff' => 'Bearbeiter',
+                'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status' => 'Status',
                 'Option' => ''
             );
@@ -594,6 +603,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Remark' => 'Bemerkung',
                 'PersonStaff' => 'Bearbeiter',
+                'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status' => 'Status',
                 'Option' => ''
             );

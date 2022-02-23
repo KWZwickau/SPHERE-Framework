@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -1374,11 +1375,17 @@ class Frontend extends Extension implements IFrontendInterface
             (new ApiStandard())->reloadAbsenceContent(), 'AbsenceContent'
         );
 
+        $certificateRelevantList[] = new SelectBoxItem(0, '');
+        $certificateRelevantList[] = new SelectBoxItem(1, 'ja');
+        $certificateRelevantList[] = new SelectBoxItem(2, 'nein');
+
         $datePickerFrom = new DatePicker('Data[Date]', '', 'Datum von', new Calendar());
         $datePickerTo = new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar());
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
         $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
+        $certificateRelevantSelectBox = new SelectBox('Data[IsCertificateRelevant]', 'Zeugnisrelevant',
+            array('Name' => $certificateRelevantList));
         $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent());
 
         $stage->setContent(
@@ -1389,19 +1396,24 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout (new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    $datePickerFrom, 2
+                                    $datePickerFrom, 4
                                 ),
                                 new LayoutColumn(
-                                    $datePickerTo, 2
+                                    $datePickerTo, 4
                                 ),
+                                new LayoutColumn(
+                                    $certificateRelevantSelectBox, 4
+                                ),
+                            )),
+                            new LayoutRow(array(
                                 new LayoutColumn(
                                     $typeSelectBox, 4
                                 ),
                                 new LayoutColumn(
-                                    $divisionTextField, 2
+                                    $divisionTextField, 4
                                 ),
                                 new LayoutColumn(
-                                    $groupTextField, 2
+                                    $groupTextField, 4
                                 ),
                             )),
                             new LayoutRow(array(
