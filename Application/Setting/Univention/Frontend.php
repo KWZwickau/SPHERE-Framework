@@ -161,6 +161,13 @@ class Frontend extends Extension implements IFrontendInterface
                     if(($Error = $this->controlAccount($AccountActive))){
                         $cantCreateList[] = $Error;
                         $count['cantCreate']++;
+//                        // lokaler Test einzelner Benutzer
+                    } elseif($AccountActive['name'] !== 'REF-BoRe18'
+                          && $AccountActive['name'] !== 'REF-FeWe05'
+                          && $AccountActive['name'] !== 'REF-Lehrer'
+                    ) {
+                        $cantCreateList[] = array(new Muted(new Bold($AccountActive['name']).' manuell deaktiviert'));
+                        $count['cantCreate']++;
                     } else {
                         $count['create']++;
                         $createList[] = $AccountActive;
@@ -727,7 +734,7 @@ class Frontend extends Extension implements IFrontendInterface
             || $Account['lastname'] == ''
             || $Account['email'] == ''
             || $Account['record_uid'] == ''
-            || $Account['recoveryMail'] == ''
+//            || $Account['recoveryMail'] == ''
             || empty($Account['school_classes'])
             || empty($Account['roles'])
             || empty($Account['schools'])) {
@@ -759,10 +766,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $ErrorLog[] = 'Benutzername: '.new DangerText('enthält Umlaute oder Sonderzeichen');
             }
 
+            // Schularten, welche keine E-Mail als Benutzernamen benötigen
+            $SchoolTypeList = Univention::useService()->getSchoolTypeException();
+
             foreach($Account as $Key => $Value){
+                $MouseOver = '';
+                $KeyReplace = '';
                 if(is_array($Value)){
-                    $MouseOver = '';
-                    $KeyReplace = '';
                     switch ($Key){
                         case 'roles':
                             $KeyReplace = 'Rolle:';
@@ -807,9 +817,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                 } else {
                     if($Value == ''){
-
-                        // Mousover Problembeschreibung
-                        $MouseOver = '';
                         switch ($Key){
                             case 'name':
                                 $KeyReplace = 'Benutzername:';
@@ -825,13 +832,14 @@ class Frontend extends Extension implements IFrontendInterface
                                     'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
                             break;
-                            case 'recoveryMail':
-                                $KeyReplace = 'E-Mail recovery:';
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
-//                                    new DangerText('Fehler:').'<br />'.
-                                    'keine Passwort vergessen E-Mail hinterlegt'
-                                )))->enableHtml();
-                            break;
+                            // recovery Mail optional
+//                            case 'recoveryMail':
+//                                $KeyReplace = 'E-Mail recovery:';
+//                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+////                                    new DangerText('Fehler:').'<br />'.
+//                                    'keine Passwort vergessen E-Mail hinterlegt'
+//                                )))->enableHtml();
+//                            break;
                             case 'lastname':
                                 $KeyReplace = 'Person:';
                                 $MouseOver = new ToolTip(new Info(), 'keine Person am Account');
@@ -843,15 +851,23 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if(empty($Value)){
-                            // Mousover Problembeschreibung
-                            switch($Key){
-                                case 'group':
-                                    // no log
-                                break;
-                                default:
-                                    $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                            //Mail wird für Schularten aus der Einstellung nicht geprüft
+                            $isExcluded = in_array($Account['school_type'], $SchoolTypeList);
+                            if(!$isExcluded){
+                                // Mousover Problembeschreibung
+                                switch($Key){
+                                        // Stammgruppe ist optional
+                                    case 'groupArray':
+                                        // recoveryMail ist optional
+                                    case 'recoveryMail':
+                                        // Schulart ist optional (Lehrer etc.)
+                                    case 'school_type':
+                                        // no log
+                                        break;
+                                    default:
+                                        $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
+                                }
                             }
-
                         }
                     }
                 }
@@ -893,6 +909,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
         $Stage->addButton(new Standard('CSV Mandant herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download()));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
+        // Schularten, welche keine E-Mail als Benutzernamen benötigen
+        $SchoolTypeList = Univention::useService()->getSchoolTypeException();
 
         $ErrorLog = array();
         $countFirstStudent = 0;
@@ -937,7 +955,11 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $Data['school_classes'] = new SuccessText(new SuccessIcon().' gefunden');
                     $Data['school_classes'] = false;
                 }
-                if(!$Data['mail']){
+
+                //Mail wird für Schularten aus der Einstellung nicht geprüft
+                $isExcluded = in_array($Data['school_type'], $SchoolTypeList);
+
+                if(!$Data['mail'] && !$isExcluded){
                     $Data['mail'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().'
                     Keine E-mail als '.new Bold('UCS Benutzername').' gepflegt')))->enableHtml().
                     new DangerText('kein UCS Benutzername');

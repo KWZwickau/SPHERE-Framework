@@ -97,19 +97,38 @@ class Data extends AbstractData
 
     /**
      * @param TblConsumer $tblConsumer
-     * @param string      $SystemName
      *
-     * @return TblConsumerLogin|bool
+     * @return TblConsumerLogin[]|false
      */
-    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, $SystemName)
+    public function getConsumerLoginListByConsumer(TblConsumer $tblConsumer)
     {
 
-        return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblConsumerLogin',
+        /** @var $tblConsumerLoginList TblConsumerLogin[]|false */
+        $tblConsumerLoginList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblConsumerLogin',
+            array(
+                TblConsumerLogin::ATTR_TBL_CONSUMER => $tblConsumer->getId()
+            )
+        );
+        return $tblConsumerLoginList;
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
+     *
+     * @return TblConsumerLogin|false
+     */
+    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, string $SystemName)
+    {
+
+        /** @var $tblConsumerLogin TblConsumerLogin|false */
+        $tblConsumerLogin = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblConsumerLogin',
             array(
                 TblConsumerLogin::ATTR_TBL_CONSUMER => $tblConsumer->getId(),
                 TblConsumerLogin::ATTR_SYSTEM_NAME => $SystemName
             )
         );
+        return $tblConsumerLogin;
     }
 
     /**

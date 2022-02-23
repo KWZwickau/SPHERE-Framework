@@ -182,6 +182,16 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        // specialLogin?
+        $isConsumerLogin = false;
+        if(($tblAccount = Account::useService()->getAccountBySession())) {
+            if (($tblConsumer = $tblAccount->getServiceTblConsumer())) {
+                if(Consumer::useService()->getConsumerLoginListByConsumer($tblConsumer)){
+                    $isConsumerLogin = true;
+                }
+            }
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -195,7 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .($IsChangePassword
+            .($IsChangePassword && !$isConsumerLogin
                 ? $this->layoutPasswordChange()
                 : ''
             )
