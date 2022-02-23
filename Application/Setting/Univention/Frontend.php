@@ -162,12 +162,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $cantCreateList[] = $Error;
                         $count['cantCreate']++;
 //                        // lokaler Test einzelner Benutzer
-                    } elseif($AccountActive['name'] !== 'REF-BoRe18'
-                          && $AccountActive['name'] !== 'REF-FeWe05'
-                          && $AccountActive['name'] !== 'REF-Lehrer'
-                    ) {
-                        $cantCreateList[] = array(new Muted(new Bold($AccountActive['name']).' manuell deaktiviert'));
-                        $count['cantCreate']++;
+//                    } elseif($AccountActive['name'] !== 'REF-BoRe18'
+//                          && $AccountActive['name'] !== 'REF-FeWe05'
+//                          && $AccountActive['name'] !== 'REF-Lehrer'
+//                    ) {
+//                        $cantCreateList[] = array(new Muted(new Bold($AccountActive['name']).' manuell deaktiviert'));
+//                        $count['cantCreate']++;
                     } else {
                         $count['create']++;
                         $createList[] = $AccountActive;
