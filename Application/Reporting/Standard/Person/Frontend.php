@@ -195,30 +195,33 @@ class Frontend extends Extension implements IFrontendInterface
                             : null
                     )),
                     new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(new TableData($PersonList, null,
-                            array(
-                                'Number'       => '#',
-                                'LastName'     => 'Name',
-                                'FirstName'    => 'Vorname',
-                                'Gender'       => 'Geschlecht',
-                                'Denomination' => 'Konfession',
-                                'Birthday'     => 'Geburtsdatum',
-                                'Birthplace'   => 'Geburtsort',
-                                'Address'      => 'Adresse',
-                                'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
-                                'Mail'         => 'E-Mail',
-
-                            ),
-                            array(
+                        new LayoutColumn(new TableData($PersonList, null, array(
+                            'Number'           => '#',
+                            'LastName'         => 'Name',
+                            'FirstName'        => 'Vorname',
+                            'Gender'           => 'Geschlecht',
+                            'Denomination'     => 'Konfession',
+                            'Birthday'         => 'Geburtsdatum',
+                            'Birthplace'       => 'Geburtsort',
+                            'Address'          => 'Adresse',
+                            'Phone'            => new ToolTip('Telefon ' . new Info(),
+                                'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
+                            'Mail'             => 'E-Mail',
+                            'ForeignLanguage1' => 'Fremdsprache 1',
+                            'ForeignLanguage2' => 'Fremdsprache 2',
+                            'ForeignLanguage3' => 'Fremdsprache 3',
+                            'Profile'          => 'Profil',
+                            'Orientation'      => 'Wahlbereich',
+                            'Religion'         => 'Religion',
+                            'Elective'         => 'Wahlfächer',
+                            ), array(
                                 'pageLength' => -1,
                                 'responsive' => false,
                                 'columnDefs' => array(
                                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                 ),
-                            )
-                        ))
+                            )))
                     ))),
                     $this->getGenderLayoutGroup($tblPersonList)
                 ))

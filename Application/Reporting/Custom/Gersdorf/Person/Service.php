@@ -331,7 +331,7 @@ class Service extends Extension
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblDivision, &$count, &$SubjectCount) {
 
                 $Item['Number'] = $count++;
-                $Item['Name'] = '';
+                $Item['Name'] = $tblPerson->getLastFirstName();
 //                $Item['Birthday'] = '';
                 $Item['Education'] = '';
                 $Item['ForeignLanguage1'] = '';
@@ -344,7 +344,6 @@ class Service extends Extension
                 $Item['ExcelElective'] = array();
                 $Item['Elective1'] = $Item['Elective2'] = $Item['Elective3'] = $Item['Elective4'] = $Item['Elective5'] = '';
 
-                $Item['Name'] = $tblPerson->getLastFirstName();
 //                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
 //                if ($tblCommon) {
 //                    $Item['Birthday'] = $tblCommon->getTblCommonBirthDates()->getBirthday();
@@ -358,9 +357,6 @@ class Service extends Extension
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
                         $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                             $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
-                        if ($tblPerson->getId() == 15) {
-                            echo new Code(print_r($tblStudentSubject, true));
-                        }
 
                         if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject()) && ($tblDivisionLevel = $tblDivision->getTblLevel())) {
                             $Item['ForeignLanguage'. $i] = $tblSubject->getAcronym();
@@ -381,9 +377,6 @@ class Service extends Extension
                                 }
                             }
                         }
-                    }
-                    if ($tblPerson->getId() == 15) {
-                        exit;
                     }
 
 //                    // Profil
