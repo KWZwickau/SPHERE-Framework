@@ -1625,10 +1625,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param false|array $tblPersonList
+     *
      * @return LayoutGroup
      */
     public function getGenderLayoutGroup($tblPersonList): LayoutGroup
     {
+
+        if(false === $tblPersonList){
+            $tblPersonList = array();
+        }
 
         $Divers = Person::countDiversGenderByPersonList($tblPersonList);
         $DiversColumn = new LayoutColumn(
