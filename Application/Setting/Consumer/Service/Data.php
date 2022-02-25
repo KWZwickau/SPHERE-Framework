@@ -211,9 +211,20 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView', TblSetting::TYPE_STRING, '', 'Notenbücher',
             'Anzeige der Noten in der Eltern/Schüler-Übersicht ab folgenden Schuljahr (z.B. 2019/20). Wenn leer werden
             Noten aller Schuljahre angezeigt [Standard: ]', true);
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType', TblSetting::TYPE_STRING, '',
-            'Notenbücher', 'Eingrenzung der Schüler- und Elternzugänge nach Schulart(en). Festlegung der Zugänge mittels
-             Zahleneingabe. Mehrere Schularten sind mit Komma zu trennen. 1=GS, 2=OS, 3=GYM [Standard: ]', true);
+
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType', TblSetting::TYPE_STRING, '',
+            'Notenbücher', 'Eingrenzung Anzeige Eltern/Schüler-Übersicht nach Schulart(en). Festlegung mittels Zahleneingabe.
+             Mehrere Schularten sind mit Komma zu trennen. (Kürzel z.B. GS, OS, Gy) [Standard: ]', true)))
+        {
+            $this->updateSettingDescription(
+                $tblSetting,
+                $tblSetting->getCategory(),
+                'Eingrenzung Anzeige Eltern/Schüler-Übersicht nach Schulart(en). Festlegung mittels Zahleneingabe.
+                 Mehrere Schularten sind mit Komma zu trennen. (Kürzel z.B. GS, OS, Gy) [Standard: ]',
+                $tblSetting->isPublic()
+            );
+        }
+
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount', TblSetting::TYPE_INTEGER, 10,
             'Notenbücher', 'Anzeige zusätzliche Namensspalte im Notenbuch bei mehr als (Anzahl) Noten im gesamten
             Schuljahr [Standard: 10]', true);
