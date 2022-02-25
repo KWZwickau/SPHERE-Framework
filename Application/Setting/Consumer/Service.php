@@ -94,17 +94,9 @@ class Service extends AbstractService
         $ValueList = explode(',', $Value);
         $tblSchoolTypeList = array();
         if($ValueList){
-            foreach ($ValueList as $Number){
-                switch ($Number) {
-                    case '1':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
-                    break;
-                    case '2':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
-                    break;
-                    case '3':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
-                    break;
+            foreach ($ValueList as $ShortName){
+                if(($tblType = Type::useService()->getTypeByShortName($ShortName))){
+                    $tblSchoolTypeList[] = $tblType;
                 }
             }
         }

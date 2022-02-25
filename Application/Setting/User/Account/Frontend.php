@@ -156,15 +156,16 @@ class Frontend extends Extension implements IFrontendInterface
         $MaxResult = 800;
         $TableContent = $this->getStudentTableContent($Result, $MaxResult);
 
-        // erlaubte Schularten:
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-        if($tblSchoolTypeList){
-            // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                $tblSchoolTypeControl = $tblSchoolTypeControl->getName();
-            }
-        }
+        // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//        // erlaubte Schularten:
+//        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+//        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+//        if($tblSchoolTypeList){
+//            // erzeuge eine Namensliste, wenn Schularten erlaubt werden
+//            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+//                $tblSchoolTypeControl = $tblSchoolTypeControl->getName();
+//            }
+//        }
 
         $Table = new TableData($TableContent, null, array(
             'Check'         => 'Auswahl',
@@ -195,9 +196,11 @@ class Frontend extends Extension implements IFrontendInterface
         $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
             (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
                 ? new WarningMessage(new Container('Filterung findet keine Personen (ohne Account)')
-                . ($tblSchoolTypeList
-                    ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
-                    : ''))
+                // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//                . ($tblSchoolTypeList
+//                    ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
+//                    : '')
+                )
                 : new WarningMessage('Die Filterung benötigt ein Schuljahr'))
         ))));
         if (!empty($TableContent)) {
@@ -414,15 +417,16 @@ class Frontend extends Extension implements IFrontendInterface
         $SearchResult = array();
         if (!empty($Result)) {
 
-            // erlaubte Schularten:
-            $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-            $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-            if($tblSchoolTypeList){
-                // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-                foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                    $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
-                }
-            }
+            // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//            // erlaubte Schularten:
+//            $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+//            $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+//            if($tblSchoolTypeList){
+//                // erzeuge eine Id Liste, wenn Schularten erlaubt werden
+//                foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+//                    $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
+//                }
+//            }
 
             $countRow = 0;
             /**
@@ -441,7 +445,6 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblPerson && !AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
                     $DataPerson['Name'] = false;
                     $DataPerson['Check'] = '';
-                    $DataPerson['Course'] = '';
                     $DataPerson['Course'] = '';
                     $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
                     $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
@@ -469,13 +472,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
                     if ($tblDivision) {
                         $DataPerson['Division'] = $tblDivision->getDisplayName();
-                        // Schüler, die sich nicht in erlaubte Schularten befinden sollen übersprungen werden (wenn es diese Einstellung gibt)
-                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
-                            if(($tblType = $tblLevel->getServiceTblType()) && !in_array($tblType->getId(), $tblSchoolTypeList)){
-                                // Schüler Überspringen
-                                continue;
-                            }
-                        }
+                        // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//                        // Schüler, die sich nicht in erlaubte Schularten befinden sollen übersprungen werden (wenn es diese Einstellung gibt)
+//                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
+//                            if(($tblType = $tblLevel->getServiceTblType()) && !in_array($tblType->getId(), $tblSchoolTypeList)){
+//                                // Schüler Überspringen
+//                                continue;
+//                            }
+//                        }
                     }
                     $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
                     if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
@@ -550,15 +554,16 @@ class Frontend extends Extension implements IFrontendInterface
         $MaxResult = 800;
         $TableContent = $this->getCustodyTableContent($Result, $MaxResult, $TypeId);
 
-        // erlaubte Schularten:
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-        if($tblSchoolTypeList){
-            // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                $tblSchoolTypeControl = $tblSchoolTypeControl->getName();
-            }
-        }
+        // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//        // erlaubte Schularten:
+//        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+//        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+//        if($tblSchoolTypeList){
+//            // erzeuge eine Namensliste, wenn Schularten erlaubt werden
+//            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+//                $tblSchoolTypeControl = $tblSchoolTypeControl->getName();
+//            }
+//        }
 
         $Table = new TableData($TableContent, null, array(
             'Check'   => 'Auswahl',
@@ -587,9 +592,11 @@ class Frontend extends Extension implements IFrontendInterface
         $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
             (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
                 ? new WarningMessage(new Container('Filterung findet keine Personen (ohne Account)')
-                    .($tblSchoolTypeList
-                        ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
-                        : ''))
+                // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//                    .($tblSchoolTypeList
+//                        ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
+//                        : '')
+                )
                 : new WarningMessage('Die Filterung benötigt ein Schuljahr'))
         ))));
         if (!empty($TableContent)) {
@@ -742,15 +749,16 @@ class Frontend extends Extension implements IFrontendInterface
         $SearchResult = array();
         if (!empty($Result)) {
 
-            // erlaubte Schularten:
-            $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-            $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-            if($tblSchoolTypeList){
-                // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-                foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                    $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
-                }
-            }
+            // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//            // erlaubte Schularten:
+//            $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+//            $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+//            if($tblSchoolTypeList){
+//                // erzeuge eine Id Liste, wenn Schularten erlaubt werden
+//                foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+//                    $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
+//                }
+//            }
 
             if(($tblType = Relationship::useService()->getTypeById($TypeId))){
                 $tblTypeList[] = $tblType;
@@ -770,16 +778,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $DivisionStudent = $Row[2]->__toArray();
                 $tblPersonStudent = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
                 // Schüler, die sich nicht in erlaubte Schularten befinden sollen übersprungen werden (wenn es diese Einstellung gibt)
-                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
-                if ($tblSchoolTypeList && $tblDivision) {
-                    // $DataPerson['Division'] = $tblDivision->getDisplayName();
-                    if(($tblLevel = $tblDivision->getTblLevel())){
-                        if(($tblTypeLevel = $tblLevel->getServiceTblType()) && !in_array($tblTypeLevel->getId(), $tblSchoolTypeList)){
-                            // Schüler Überspringen
-                            continue;
-                        }
-                    }
-                }
+//                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
+                // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//                if ($tblSchoolTypeList && $tblDivision) {
+//                    // $DataPerson['Division'] = $tblDivision->getDisplayName();
+//                    if(($tblLevel = $tblDivision->getTblLevel())){
+//                        if(($tblTypeLevel = $tblLevel->getServiceTblType()) && !in_array($tblTypeLevel->getId(), $tblSchoolTypeList)){
+//                            // Schüler Überspringen
+//                            continue;
+//                        }
+//                    }
+//                }
 
                 foreach($tblTypeList as $tblType) {
                     $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonStudent, $tblType);
