@@ -162,12 +162,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $cantCreateList[] = $Error;
                         $count['cantCreate']++;
 //                        // lokaler Test einzelner Benutzer
-                    } elseif($AccountActive['name'] !== 'REF-BoRe18'
-                          && $AccountActive['name'] !== 'REF-FeWe05'
-                          && $AccountActive['name'] !== 'REF-Lehrer'
-                    ) {
-                        $cantCreateList[] = array(new Muted(new Bold($AccountActive['name']).' manuell deaktiviert'));
-                        $count['cantCreate']++;
+//                    } elseif($AccountActive['name'] !== 'REF-BoRe18'
+//                          && $AccountActive['name'] !== 'REF-FeWe05'
+//                          && $AccountActive['name'] !== 'REF-Lehrer'
+//                    ) {
+//                        $cantCreateList[] = array(new Muted(new Bold($AccountActive['name']).' manuell deaktiviert'));
+//                        $count['cantCreate']++;
                     } else {
                         $count['create']++;
                         $createList[] = $AccountActive;
@@ -851,22 +851,28 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if(empty($Value)){
-                            //Mail wird für Schularten aus der Einstellung nicht geprüft
-                            $isExcluded = in_array($Account['school_type'], $SchoolTypeList);
-                            if(!$isExcluded){
                                 // Mousover Problembeschreibung
-                                switch($Key){
-                                        // Stammgruppe ist optional
-                                    case 'groupArray':
-                                        // recoveryMail ist optional
-                                    case 'recoveryMail':
-                                        // Schulart ist optional (Lehrer etc.)
-                                    case 'school_type':
-                                        // no log
+                            switch($Key){
+                                    // Stammgruppe ist optional
+                                case 'groupArray':
+                                    // recoveryMail ist optional
+                                case 'recoveryMail':
+                                    // Schulart ist optional (Lehrer etc.)
+                                case 'school_type':
+
+                                // no log
+                                break;
+
+                                    //Mail wird für Schularten aus der Einstellung nicht geprüft
+                                    // Accounts ohne Schulart sind von der Ausnahme nicht betroffen
+                                case 'email':
+                                    if(!empty($SchoolTypeList) && in_array($Account['school_type'], $SchoolTypeList)){
                                         break;
-                                    default:
-                                        $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
-                                }
+                                    }
+//                                    $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
+//                                    break;
+                                default:
+                                    $ErrorLog[] = ($KeyReplace ? : $Key).' '.new DangerText('nicht vorhanden! ').$MouseOver;
                             }
                         }
                     }
