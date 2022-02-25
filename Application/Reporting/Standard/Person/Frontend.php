@@ -1384,7 +1384,7 @@ class Frontend extends Extension implements IFrontendInterface
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
         $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
-        $certificateRelevantSelectBox = new SelectBox('Data[IsCertificateRelevant]', 'Zeugnisrelevant',
+        $certificateRelevantSelectBox = new SelectBox('Data[IsCertificateRelevant]', 'Fehlzeit zeugnisrelevant',
             array('Name' => $certificateRelevantList));
         $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent());
 

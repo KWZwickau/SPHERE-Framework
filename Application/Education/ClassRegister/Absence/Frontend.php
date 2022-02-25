@@ -261,7 +261,7 @@ class Frontend extends Extension implements IFrontendInterface
         ));
         $formRows[] = new FormRow(array(
            new FormColumn(
-               new CheckBox('Data[IsCertificateRelevant]', 'Zeugnisrelevant', 1)
+               new CheckBox('Data[IsCertificateRelevant]', 'zeugnisrelevant', 1)
            )
         ));
 
