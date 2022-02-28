@@ -221,7 +221,7 @@ class ApiStandard extends Extension implements IApiInterface
                                 'Type' => $Data['Type'],
                                 'DivisionName' => $Data['DivisionName'],
                                 'GroupName' => $Data['GroupName'],
-                                'IsCertificateRelevant' => $Data['IsCertificateRelevant']
+                                'IsCertificateRelevant' => isset($Data['IsCertificateRelevant']) ? $Data['IsCertificateRelevant'] : 0
                             )
                         )
                     )
