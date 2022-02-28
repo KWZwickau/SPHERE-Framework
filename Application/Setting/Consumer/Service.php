@@ -93,7 +93,7 @@ class Service extends AbstractService
         $Value = str_replace(' ', '', $Value);
         $ValueList = explode(',', $Value);
         $tblSchoolTypeList = array();
-        if($ValueList){
+        if($Value != '' && $ValueList){
             foreach ($ValueList as $ShortName){
                 if(($tblType = Type::useService()->getTypeByShortName($ShortName))){
                     $tblSchoolTypeList[] = $tblType;
