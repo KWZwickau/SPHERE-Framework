@@ -325,13 +325,13 @@ class PasswordChange extends AbstractDocument
                 ->addElementColumn((new Element())
                     ->setContent('
                     {% if '.$this->FieldValue['Gender'].' == 1 %}
-                        Lieber 
+                        Lieber
                     {% elseif '.$this->FieldValue['Gender'].' == 2 %}
-                        Liebe 
+                        Liebe
                     {% else %}
-                        Liebe(r) 
+                        Liebe(r)
                     {% endif %}'
-                    .'{% if '.$this->FieldValue['PersonSalutation'].' == "" %}
+                    .'{% if "'.$this->FieldValue['PersonSalutation'].'" == "" %}
                         Herr/Frau
                     {% else %}
                         '.$this->FieldValue["PersonSalutation"].' '.'
@@ -398,7 +398,7 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten zur Einsicht der Noten 
+                    ->setContent('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten zur Einsicht der Noten
                     {% if '.$this->FieldValue['ChildCount'].' == 1 %}
                         Ihres Kindes.
                     {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}

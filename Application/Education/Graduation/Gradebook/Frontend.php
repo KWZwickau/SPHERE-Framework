@@ -3589,7 +3589,7 @@ class Frontend extends FrontendScoreRule
         $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
         $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
         if($tblSchoolTypeList){
-            // erzeuge eine Id Liste, wenn Schularten blokiert werden.
+            // erzeuge eine Id Liste, wenn Schularten blockiert werden
             foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
                 $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
             }

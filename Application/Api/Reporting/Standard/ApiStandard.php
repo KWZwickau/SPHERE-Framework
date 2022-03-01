@@ -116,10 +116,19 @@ class ApiStandard extends Extension implements IApiInterface
             $tblType = false;
         }
 
-        switch ($Data['IsCertificateRelevant']) {
-            case 1: $isCertificateRelevant = true; break;
-            case 2: $isCertificateRelevant = false; break;
-            default: $isCertificateRelevant = null;
+        if (isset($Data['IsCertificateRelevant'])) {
+            switch ($Data['IsCertificateRelevant']) {
+                case 1:
+                    $isCertificateRelevant = true;
+                    break;
+                case 2:
+                    $isCertificateRelevant = false;
+                    break;
+                default:
+                    $isCertificateRelevant = null;
+            }
+        } else {
+            $isCertificateRelevant = null;
         }
 
         $divisionName = $Data['DivisionName'];
@@ -212,7 +221,7 @@ class ApiStandard extends Extension implements IApiInterface
                                 'Type' => $Data['Type'],
                                 'DivisionName' => $Data['DivisionName'],
                                 'GroupName' => $Data['GroupName'],
-                                'IsCertificateRelevant' => $Data['IsCertificateRelevant']
+                                'IsCertificateRelevant' => isset($Data['IsCertificateRelevant']) ? $Data['IsCertificateRelevant'] : 0
                             )
                         )
                     )

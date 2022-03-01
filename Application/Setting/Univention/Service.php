@@ -26,7 +26,6 @@ use SPHERE\Application\Setting\Univention\Service\Setup;
 use SPHERE\Application\Setting\User\Account\Account as AccountUser;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -442,14 +441,13 @@ class Service extends AbstractService
             return $list;
         }
         $Value = $tblSetting->getValue();
-        if(($TypeList = explode(',', $Value))){
+        if($Value != '' && ($TypeList = explode(',', $Value))){
             foreach($TypeList as $Type){
                 if(($tblType = Type::useService()->getTypeByShortName(trim($Type)))){
                     $list[] = $tblType->getShortName();
                 }
             }
         }
-
         return $list;
     }
 
