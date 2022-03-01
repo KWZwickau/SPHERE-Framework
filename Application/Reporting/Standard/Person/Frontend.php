@@ -211,8 +211,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'ForeignLanguage2' => 'Fremdsprache 2',
                             'ForeignLanguage3' => 'Fremdsprache 3',
                             'Profile'          => 'Profil',
-                            'Orientation'      => 'Wahlbereich',
                             'Religion'         => 'Religion',
+                            'Orientation'      => 'Wahlbereich',
                             'Elective'         => 'Wahlfächer',
                             ), array(
                                 'pageLength' => -1,

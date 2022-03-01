@@ -91,8 +91,8 @@ class Service extends Extension
                 $Item['ForeignLanguage2'] = '';
                 $Item['ForeignLanguage3'] = '';
                 $Item['Profile'] = '';
-                $Item['Orientation'] = '';
                 $Item['Religion'] = '';
+                $Item['Orientation'] = '';
                 $Item['Elective'] = '';
                 $Item['ExcelElective'] = array();
 
@@ -521,8 +521,8 @@ class Service extends Extension
             $export->setValue($export->getCell($Column++, $Row), "FS 2");
             $export->setValue($export->getCell($Column++, $Row), "FS 3");
             $export->setValue($export->getCell($Column++, $Row), "Profil");
-            $export->setValue($export->getCell($Column++, $Row), "Wahlbereich");
             $export->setValue($export->getCell($Column++, $Row), "Religion");
+            $export->setValue($export->getCell($Column++, $Row), "Wahlbereich");
             $export->setValue($export->getCell($Column, $Row), "Wahlfächer");
 
             $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
@@ -567,8 +567,8 @@ class Service extends Extension
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['ForeignLanguage2']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['ForeignLanguage3']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Profile']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Orientation']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Religion']);
+                $export->setValue($export->getCell($Column++, $Row), $PersonData['Orientation']);
                 $export->setValue($export->getCell($Column, $Row), (is_array($PersonData['ExcelElective'])
                     ? implode(', ', $PersonData['ExcelElective'])
                     : '') );
@@ -609,8 +609,8 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(6);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(6);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(7);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(12);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(8);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(12);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(12);
 
             $Row++;
