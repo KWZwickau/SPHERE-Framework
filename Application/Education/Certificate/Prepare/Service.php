@@ -1491,13 +1491,19 @@ class Service extends AbstractService
 
             if ($useClassRegisterForAbsence) {
                 // Fehlzeiten werden im Klassenbuch gepflegt
+                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                    && $tblGenerateCertificate->getAppointedDateForAbsence()
+                ) {
+                    $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                } else {
+                    $date = new DateTime($tblPrepare->getDate());
+                }
+
                 if ($excusedDays === null) {
-                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                        new DateTime($tblPrepare->getDate()));
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision, $date);
                 }
                 if ($unexcusedDays === null) {
-                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                        new DateTime($tblPrepare->getDate()));
+                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision, $date);
                 }
 
                 // Zusatztage für die fehlenden Unterrichtseinheiten addieren

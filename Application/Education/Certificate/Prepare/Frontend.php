@@ -1460,13 +1460,13 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'Course' => 'Bildungsgang',
 
                                 'ExcusedDays' => 'Ganze Tage',
-                                'ExcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten'),
-                                'ExcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für UE',
+                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten'),
+                                'ExcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für Unterrichts&shy;einheiten',
                                     'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden'),
 
                                 'UnexcusedDays' => 'Ganze Tage',
-                                'UnexcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten'),
-                                'UnexcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für UE',
+                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten'),
+                                'UnexcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für Unterrichts&shy;einheiten',
                                     'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden')
                             );
                         } else {
@@ -1477,11 +1477,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'Course' => 'Bildungsgang',
 
                                 'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
-                                'ExcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten im Klassenbuch'),
+                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
                                 'ExcusedDays' => 'Tage auf dem Zeugnis',
 
                                 'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
-                                'UnexcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten im Klassenbuch'),
+                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
                                 'UnexcusedDays' => 'Tage auf dem Zeugnis',
                             );
                         }
@@ -1572,7 +1572,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         $unexcusedDaysFromClassRegister = 0;
 
                                         if ($tblPrepareStudent) {
-                                            $date = new DateTime($tblPrepareItem->getDate());
+                                            if ($tblGenerateCertificate && $tblGenerateCertificate->getAppointedDateForAbsence()) {
+                                                $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                                            } else {
+                                                $date = new DateTime($tblPrepareItem->getDate());
+                                            }
 
                                             $excusedDays =  $tblPrepareStudent->getExcusedDays();
                                             $excusedDaysFromClassRegister = Absence::useService()->getExcusedDaysByPerson(
@@ -2777,15 +2781,21 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $excusedDays = $tblPrepareStudent->getExcusedDays();
                                     $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                                     if ($useClassRegisterForAbsence) {
+                                        if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                                            && $tblGenerateCertificate->getAppointedDateForAbsence()
+                                        ) {
+                                            $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                                        } else {
+                                            $date = new DateTime($tblPrepare->getDate());
+                                        }
+
                                         if ($excusedDays === null) {
                                             $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                                $tblDivision,
-                                                new DateTime($tblPrepare->getDate()));
+                                                $tblDivision, $date);
                                         }
                                         if ($unexcusedDays === null) {
                                             $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                                $tblDivision,
-                                                new DateTime($tblPrepare->getDate()));
+                                                $tblDivision, $date);
                                         }
                                         // Zusatz-Tage von fehlenden Unterrichtseinheiten
                                         $excusedDaysFromLessons = $tblPrepareStudent->getExcusedDaysFromLessons();

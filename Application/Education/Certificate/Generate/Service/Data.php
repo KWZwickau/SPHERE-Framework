@@ -88,8 +88,9 @@ class Data extends AbstractData
      * @param TblTask|null $tblBehaviorTask
      * @param string $HeadmasterName
      * @param bool $IsDivisionTeacherAvailable
+     * @param TblCommonGender|null $tblCommonGender
+     * @param null $AppointedDateForAbsence
      *
-     * @param TblCommonGender $tblCommonGender
      * @return TblGenerateCertificate
      */
     public function createGenerateCertificate(
@@ -101,7 +102,8 @@ class Data extends AbstractData
         TblTask $tblBehaviorTask = null,
         $HeadmasterName = '',
         $IsDivisionTeacherAvailable = false,
-        TblCommonGender $tblCommonGender = null
+        TblCommonGender $tblCommonGender = null,
+        $AppointedDateForAbsence = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -117,6 +119,7 @@ class Data extends AbstractData
         $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
         $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
         $Entity->setIsLocked(false);
+        $Entity->setAppointedDateForAbsence($AppointedDateForAbsence ? new \DateTime($AppointedDateForAbsence) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -133,6 +136,7 @@ class Data extends AbstractData
      * @param TblTask|null $tblAppointedDateTask
      * @param TblTask|null $tblBehaviorTask
      * @param string $Name
+     * @param null $AppointedDateForAbsence
      *
      * @return bool
      */
@@ -144,7 +148,8 @@ class Data extends AbstractData
         TblCommonGender $tblCommonGender = null,
         TblTask $tblAppointedDateTask = null,
         TblTask $tblBehaviorTask = null,
-        $Name = ''
+        $Name = '',
+        $AppointedDateForAbsence = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -160,6 +165,7 @@ class Data extends AbstractData
             $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
             $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
             $Entity->setName($Name);
+            $Entity->setAppointedDateForAbsence($AppointedDateForAbsence ? new \DateTime($AppointedDateForAbsence) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

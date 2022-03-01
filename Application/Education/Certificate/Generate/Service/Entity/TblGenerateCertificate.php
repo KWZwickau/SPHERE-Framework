@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Generate\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -38,6 +39,11 @@ class TblGenerateCertificate extends Element
      * @Column(type="datetime")
      */
     protected $Date;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $AppointedDateForAbsence;
 
     /**
      * @Column(type="string")
@@ -93,9 +99,9 @@ class TblGenerateCertificate extends Element
         if (null === $this->Date) {
             return false;
         }
-        /** @var \DateTime $Date */
+        /** @var DateTime $Date */
         $Date = $this->Date;
-        if ($Date instanceof \DateTime) {
+        if ($Date instanceof DateTime) {
             return $Date->format('d.m.Y');
         } else {
             return (string)$Date;
@@ -103,12 +109,37 @@ class TblGenerateCertificate extends Element
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @param null|DateTime $Date
      */
-    public function setDate(\DateTime $Date = null)
+    public function setDate(DateTime $Date = null)
     {
 
         $this->Date = $Date;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAppointedDateForAbsence()
+    {
+        if (null === $this->AppointedDateForAbsence) {
+            return false;
+        }
+        /** @var DateTime $Date */
+        $Date = $this->AppointedDateForAbsence;
+        if ($Date instanceof DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|DateTime $AppointedDateForAbsence
+     */
+    public function setAppointedDateForAbsence(DateTime $AppointedDateForAbsence = null)
+    {
+        $this->AppointedDateForAbsence = $AppointedDateForAbsence;
     }
 
     /**
