@@ -144,13 +144,13 @@ class Service extends AbstractService
                 $roleList
             ) {
                 $UploadItem['name'] = $tblAccount->getUsername();
+                $UploadItem['roles'] = array();
                 $UploadItem['email'] = $tblAccount->getUserAlias();
 //                $UploadItem['password'] = $tblAccount->getPassword();
                 $UploadItem['firstname'] = '';
                 $UploadItem['lastname'] = '';
                 $UploadItem['record_uid'] = $tblAccount->getId();
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
-                $UploadItem['roles'] = array();
                 $UploadItem['schools'] = array($schoolList[$Acronym]);
                 $UploadItem['recoveryMail'] = $tblAccount->getRecoveryMail();
 
