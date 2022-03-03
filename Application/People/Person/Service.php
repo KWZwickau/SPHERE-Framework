@@ -1049,6 +1049,7 @@ class Service extends AbstractService
                 $errorChild = false;
                 $isAdd = false;
 
+                $tblSalutation = Person::useService()->getSalutationById($person['Salutation']);
                 $firstName = $person['FirstName'];
                 $lastName = $person['LastName'];
                 $secondName = $person['SecondName'];
@@ -1060,8 +1061,8 @@ class Service extends AbstractService
                 $nationality = $person['Nationality'];
                 $denomination = $person['Denomination'];
 
-                if ($firstName || $lastName || $secondName || $callName || $birthday || $birthplace || $tblCommonGender
-                    || $nationality || $denomination
+                if ($tblSalutation ||  $firstName || $lastName || $secondName || $callName || $birthday || $birthplace
+                    || $tblCommonGender || $nationality || $denomination
                 ) {
                     $isAdd = true;
                     $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorChild);
@@ -1072,6 +1073,7 @@ class Service extends AbstractService
                     $hasErrors = true;
                 } elseif ($isAdd) {
                     $children[$key] = array(
+                        'tblSalutation' => $tblSalutation ? $tblSalutation : null,
                         'FirstName' => $firstName,
                         'LastName' => $lastName,
                         'SecondName' => $secondName,
@@ -1158,7 +1160,9 @@ class Service extends AbstractService
             $groups[] = $tblGroupCustody;
 
             foreach ($children as $child) {
-                if (($tblPerson = $this->insertPerson(null, '', $child['FirstName'], $child['SecondName'],
+                if (($tblPerson = $this->insertPerson(
+                    ($tblSalutation = $child['tblSalutation']) ? $tblSalutation->getId() : null,
+                    '', $child['FirstName'], $child['SecondName'],
                     $child['LastName'], array($tblGroupCommon), '', '', $child['CallName'])
                 )) {
                     $personIdList[] = $tblPerson->getId();
