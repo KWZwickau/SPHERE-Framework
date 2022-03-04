@@ -10,6 +10,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Transfer\Gateway\Converter\Sanitizer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -218,6 +219,13 @@ class Service
                                     }
                                 } elseif ($isOnlyEmail) {
                                     $addMail = true;
+                                }
+
+                                // Fehlerhafte E-Mail (Umlaute vor dem @, nur ein zeichen nach dem letzten Punkt, etc.)
+                                $Sanitizer = new Sanitizer();
+                                if(!$Sanitizer->validateMailAddress($mail)){
+                                    $addMail = false;
+                                    $error[] = 'Zeile: '.($RunY + 1).' '.$mail.' ist als E-Mail Adresse nicht gültig';
                                 }
 
                                 if ($addMail && !$isTest) {
