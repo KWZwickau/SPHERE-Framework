@@ -164,6 +164,13 @@ class Service
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName . ' wurde nicht gefunden';
                             }
 
+                            // Fehlerhafte E-Mail (Umlaute vor dem @, nur ein zeichen nach dem letzten Punkt, etc.)
+                            $Sanitizer = new Sanitizer();
+                            if(!$Sanitizer->validateMailAddress($mail)){
+                                $addMail = false;
+                                $error[] = 'Zeile: '.($RunY + 1).' '.$mail.' ist als E-Mail Adresse nicht gültig';
+                            }
+
                             if ($addMail && $tblPerson) {
                                 $personMailIsAccountAlias = false;
                                 $personMailIsRecoveryMail = false;
@@ -219,13 +226,6 @@ class Service
                                     }
                                 } elseif ($isOnlyEmail) {
                                     $addMail = true;
-                                }
-
-                                // Fehlerhafte E-Mail (Umlaute vor dem @, nur ein zeichen nach dem letzten Punkt, etc.)
-                                $Sanitizer = new Sanitizer();
-                                if(!$Sanitizer->validateMailAddress($mail)){
-                                    $addMail = false;
-                                    $error[] = 'Zeile: '.($RunY + 1).' '.$mail.' ist als E-Mail Adresse nicht gültig';
                                 }
 
                                 if ($addMail && !$isTest) {
