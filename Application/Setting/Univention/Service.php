@@ -642,7 +642,7 @@ class Service extends AbstractService
      */
     public function getCorrectionClassNameByDivision(TblDivision $tblDivision = null)
     {
-        $ClassName = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+        $ClassName = $tblDivision->getDisplayName();
         $ClassName = str_replace('ä', 'ae', $ClassName);
         $ClassName = str_replace('ü', 'ue', $ClassName);
         $ClassName = str_replace('ö', 'oe', $ClassName);
