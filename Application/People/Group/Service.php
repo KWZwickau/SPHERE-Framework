@@ -764,45 +764,25 @@ class Service extends AbstractService
     /**
      * @param TblPerson|null $tblPerson
      *
-     * @return TblGroup[]
+     * @return TblGroup[]|false
      */
     public function getTudorGroupAll(TblPerson $tblPerson = null)
     {
-        $list = array();
-        if (($tblStudentGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
-            && ($tblTudorGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-            && ($tblGroupList = $this->getGroupAll())
+        $list = $this->getGroupListByIsCoreGroup(true);
+        if ($tblPerson
+            && $list
         ) {
-            foreach ($tblGroupList as $tblGroup) {
-                if (!$tblGroup->isLocked()) {
-                    if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
-                        continue;
-                    }
-
-                    if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))) {
-                        $isAdded = false;
-                        foreach ($tblPersonList as $tblMember) {
-                            if (($hasTudor = $this->existsGroupPerson($tblTudorGroup, $tblMember))) {
-                                $isAdded = true;
-                            }
-
-                            if (!$this->existsGroupPerson($tblStudentGroup, $tblMember)
-                                && !$hasTudor
-                            ) {
-                                $isAdded = false;
-                                break;
-                            }
-                        }
-
-                        if ($isAdded) {
-                            $list[] = $tblGroup;
-                        }
-                    }
+            $tudorGroupList = array();
+            foreach ($list as $tblGroup) {
+                if ($this->existsGroupPerson($tblGroup, $tblPerson)) {
+                    $tudorGroupList[] = $tblGroup;
                 }
             }
-        }
 
-        return $list;
+            return empty($tudorGroupList) ? false : $tudorGroupList;
+        } else {
+            return $list;
+        }
     }
 
     /**
