@@ -12,6 +12,7 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -67,9 +68,13 @@ class ClassRegister implements IApplicationInterface
     {
 
         Absence::registerModule();
+        Digital::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassenbuch'))
+        );
+        Main::getDisplay()->addApplicationNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Digital'), new Link\Name('Digitales Klassenbuch'))
         );
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\Absence'), new Link\Name('Fehlzeiten'))
