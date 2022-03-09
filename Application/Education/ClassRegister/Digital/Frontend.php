@@ -2,15 +2,30 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Digital;
 
+use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\Certificate\Prepare\View;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Home;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -18,12 +33,14 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -32,7 +49,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendSelectDivision()
+    public function frontendSelectDivision(): Stage
     {
         $hasHeadmasterRight = Access::useService()->hasAuthorization(self::BASE_ROUTE . '/Headmaster');
         $hasTeacherRight = Access::useService()->hasAuthorization(self::BASE_ROUTE . '/Teacher');
@@ -55,7 +72,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendTeacherSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
+    public function frontendTeacherSelectDivision(bool $IsAllYears = false, bool $IsGroup = false, $YearId = null): Stage
     {
 
         $Stage = new Stage('Digitales Klassenbuch', 'Klasse auswählen');
@@ -144,7 +161,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $divisionTable[] = array(
                                 'Group' => $tblGroup->getName(),
                                 'Option' => new Standard(
-                                    '', self::BASE_ROUTE . '/Selected', new Select(),
+                                    '', self::BASE_ROUTE . '/LessonContent', new Select(),
                                     array(
                                         'GroupId' => $tblGroup->getId(),
                                         'BasicRoute' => self::BASE_ROUTE . '/Teacher'
@@ -179,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Type' => $item->getTypeName(),
                         'Division' => $item->getDisplayName(),
                         'Option' => new Standard(
-                            '', self::BASE_ROUTE . '/Selected', new Select(),
+                            '', self::BASE_ROUTE . '/LessonContent', new Select(),
                             array(
                                 'DivisionId' => $item->getId(),
                                 'BasicRoute' => self::BASE_ROUTE . '/Teacher'
@@ -237,7 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendHeadmasterSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
+    public function frontendHeadmasterSelectDivision(bool $IsAllYears = false, bool $IsGroup = false, $YearId = null): Stage
     {
 
         $Stage = new Stage('Digitales Klassenbuch', 'Klasse auswählen');
@@ -257,7 +274,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $divisionTable[] = array(
                         'Group' => $tblGroup->getName(),
                         'Option' => new Standard(
-                            '', self::BASE_ROUTE . '/Selected', new Select(),
+                            '', self::BASE_ROUTE . '/LessonContent', new Select(),
                             array(
                                 'GroupId' => $tblGroup->getId(),
                                 'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
@@ -294,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Type' => $tblDivision->getTypeName(),
                             'Division' => $tblDivision->getDisplayName(),
                             'Option' => new Standard(
-                                '', self::BASE_ROUTE . '/Selected', new Select(),
+                                '', self::BASE_ROUTE . '/LessonContent', new Select(),
                                 array(
                                     'DivisionId' => $tblDivision->getId(),
                                     'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
@@ -338,5 +355,157 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendLessonContent(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Übersicht');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+
+        $tblYear = null;
+//        $tblPerson = Account::useService()->getPersonByLogin();
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        if ($tblDivision || $tblGroup) {
+
+
+            $stage->setContent(
+                ApiDigital::receiverModal()
+                . new Layout(new LayoutGroup(array(
+                    Digital::useService()->getHeadColumnRow(
+                        $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary(
+                                new Plus() . ' Unterrichtseinheit hinzufügen',
+                                ApiDigital::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId))
+                        )
+                    ))
+                )))
+                . ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return string
+     */
+    public function loadLessonContentTable(TblDivision $tblDivision = null, TblGroup $tblGroup = null): string
+    {
+        return 'Hallo';
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param null $LessonContentId
+     * @param bool $setPost
+     *
+     * @return Form
+     */
+    public function formLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null, $LessonContentId = null,
+        bool $setPost = false): Form
+    {
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        if ($setPost && $LessonContentId
+            && ($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))
+        ) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Date'] = $tblLessonContent->getDate();
+            $Global->POST['Data']['Subject'] =
+                ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            $Global->POST['Data']['Lesson'] = $tblLessonContent->getLesson();
+            $Global->POST['Data']['Subject'] =
+                ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
+            $Global->POST['Data']['Content'] = $tblLessonContent->getContent();
+            $Global->POST['Data']['Homework'] = $tblLessonContent->getHomework();
+
+            $Global->savePost();
+        }
+
+        if ($LessonContentId) {
+            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonContentSave($LessonContentId));
+        } else {
+            // todo befüllen bei neuen Einträge aus dem importierten Stundenplan
+            // todo eingeloggten Lehrer vorsetzen falls er das Fach unterrichtet
+
+            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineCreateLessonContentSave(
+                    $tblDivision ? $tblDivision->getId() : null,
+                    $tblGroup ? $tblGroup->getId() : null
+                ));
+        }
+
+        // todo Gruppen auswahl?
+
+        // todo Lehrer vorauswahl -> eventuell dynamische abhängig
+        $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER'));
+
+        // todo Fächer eingrenzen
+        $tblSubjectList = Subject::useService()->getSubjectAll();
+
+        for ($i = 0; $i < 13; $i++) {
+            $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
+        }
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Name }}' => $tblSubjectList))
+                        , 6),
+                    new FormColumn(
+                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Content]', 'Thema/Inhalt', 'Thema/Inhalt', new Edit())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $saveButton
+                    )
+                )),
+            ))
+        ))->disableSubmitAction();
     }
 }

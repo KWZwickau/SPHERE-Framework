@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -186,5 +187,39 @@ class TblGroup extends Element
     {
 
         $this->IsCoreGroup = (bool)$IsCoreGroup;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTudorsString(): string
+    {
+        if (($tudors = $this->getTudors())) {
+            $list = array();
+            foreach ($tudors as $tblPerson) {
+                $list[] = $tblPerson->getFullName();
+            }
+            return 'Tudoren: ' . implode(', ', $list);
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @return bool|TblYear
+     */
+    public function getCurrentYear()
+    {
+        if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblStudent = $tblPerson->getStudent())
+                    && ($tblMainDivision = $tblStudent->getCurrentMainDivision())
+                ) {
+                    return $tblMainDivision->getServiceTblYear();
+                }
+            }
+        }
+
+        return false;
     }
 }
