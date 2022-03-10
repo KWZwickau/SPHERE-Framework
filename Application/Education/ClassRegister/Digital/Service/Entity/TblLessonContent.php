@@ -26,6 +26,11 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblLessonContent extends Element
 {
+    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
+    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
+    const ATTR_DATE = 'Date';
+    const ATTR_LESSON = 'Lesson';
+
     /**
      * @Column(type="bigint")
      */

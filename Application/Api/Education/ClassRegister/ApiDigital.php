@@ -99,10 +99,12 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
+     * @param string $Date
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonContentContent(string $DivisionId = null, string $GroupId = null): Pipeline
+    public static function pipelineLoadLessonContentContent(string $DivisionId = null, string $GroupId = null,
+        string $Date = 'today'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentContent'), self::getEndpoint());
@@ -111,7 +113,8 @@ class ApiDigital extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId
+            'GroupId' => $GroupId,
+            'Date' => $Date
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -121,10 +124,12 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
+     * @param string $Date
      *
      * @return string
      */
-    public function loadLessonContentContent(string $DivisionId = null, string $GroupId = null) : string
+    public function loadLessonContentContent(string $DivisionId = null, string $GroupId = null,
+        string $Date = 'today') : string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -133,16 +138,19 @@ class ApiDigital extends Extension implements IApiInterface
             return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null);
+        return Digital::useFrontend()->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null, $Date);
     }
-    
+
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
+     * @param string|null $Date
+     * @param string|null $Lesson
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateLessonContentModal(string $DivisionId = null, string $GroupId = null): Pipeline
+    public static function pipelineOpenCreateLessonContentModal(string $DivisionId = null, string $GroupId = null,
+        string $Date = null, string $Lesson = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -151,7 +159,9 @@ class ApiDigital extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId
+            'GroupId' => $GroupId,
+            'Date' => $Date,
+            'Lesson' => $Lesson
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -161,10 +171,13 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
+     * @param string|null $Date
+     * @param string|null $Lesson
      *
-     * @return Danger|string
+     * @return string
      */
-    public function openCreateLessonContentModal(string $DivisionId = null, string $GroupId = null)
+    public function openCreateLessonContentModal(string $DivisionId = null, string $GroupId = null,
+        string $Date = null, string $Lesson = null): string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -174,7 +187,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivision ?: null,
-            $tblGroup ?: null));
+            $tblGroup ?: null, null, false, $Date, $Lesson));
     }
 
     /**
@@ -251,7 +264,7 @@ class ApiDigital extends Extension implements IApiInterface
 
         if (Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null)) {
             return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
-                . self::pipelineLoadLessonContentContent($DivisionId, $GroupId)
+                . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'])
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -338,7 +351,8 @@ class ApiDigital extends Extension implements IApiInterface
 
         if (Digital::useService()->updateLessonContent($tblLessonContent, $Data)) {
             return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
-                . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null)
+                . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
+                    $tblGroup ? $tblGroup->getId() : null, $Data['Date'])
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -368,6 +382,46 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string $LessonContentId
      *
+     * @return string
+     */
+    public function openDeleteLessonContentModal(string $LessonContentId)
+    {
+        if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
+            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Unterrichtseinheit löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diese Unterrichtseinheit wirklich löschen?',
+                                array(
+                                    $tblLessonContent->getDate(),
+                                    $tblLessonContent->getLessonDisplay(),
+                                    ($tblSubject = $tblLessonContent->getServiceTblSubject())
+                                        ? $tblSubject->getDisplayName() : '',
+                                    ($tblPerson = $tblLessonContent->getServiceTblPerson())
+                                        ? $tblPerson->getFullName() : '',
+                                    $tblLessonContent->getContent(),
+                                    $tblLessonContent->getHomework(),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteLessonContentSave($LessonContentId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param string $LessonContentId
+     *
      * @return Pipeline
      */
     public static function pipelineDeleteLessonContentSave(string $LessonContentId): Pipeline
@@ -390,42 +444,6 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string $LessonContentId
      *
-     * @return string
-     */
-    public function openDeleteLessonContentModal(string $LessonContentId)
-    {
-        if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
-        }
-
-        return new Title(new Remove() . ' Unterrichtseinheit löschen')
-            . new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(
-                                new Question() . ' Diese Unterrichtseinheit wirklich löschen?',
-                                array(
-                                    $tblLessonContent->getDate(),
-                                    $tblLessonContent->getLessonDisplay(),
-                                    $tblLessonContent->getContent(),
-                                    $tblLessonContent->getHomework(),
-                                ),
-                                Panel::PANEL_TYPE_DANGER
-                            )
-                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                                ->ajaxPipelineOnClick(self::pipelineDeleteLessonContentSave($LessonContentId))
-                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
-                                ->ajaxPipelineOnClick(self::pipelineClose())
-                        )
-                    )
-                )
-            );
-    }
-
-    /**
-     * @param string $LessonContentId
-     *
      * @return Danger|string
      */
     public function saveDeleteLessonContentModal(string $LessonContentId)
@@ -433,12 +451,14 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
             return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
         }
+        $date = $tblLessonContent->getDate();
         $tblDivision = $tblLessonContent->getServiceTblDivision();
         $tblGroup = $tblLessonContent->getServiceTblGroup();
 
         if (Digital::useService()->destroyLessonContent($tblLessonContent)) {
             return new Success('Die Unterrichtseinheit wurde erfolgreich gelöscht.')
-                . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null)
+                . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
+                    $tblGroup ? $tblGroup->getId() : null, $date)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gelöscht werden.') . self::pipelineClose();

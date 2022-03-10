@@ -348,6 +348,7 @@ class Service extends AbstractService
         array $resultList
     ) {
         $resultList[] = array(
+            'AbsenceId' => $tblAbsence->getId(),
             'Type' => $tblType->getName(),
             'TypeExcel' => $tblType->getShortName(),
             'Division' => $tblDivision->getDisplayName(),

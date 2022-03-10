@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Digital;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Setup;
@@ -280,6 +281,18 @@ class Service extends AbstractService
     public function getLessonContentById($Id)
     {
         return (new Data($this->getBinding()))->getLessonContentById($Id);
+    }
+
+    /**
+     * @param DateTime $date
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return false|TblLessonContent[]
+     */
+    public function getLessonContentAllByDate(DateTime $date, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByDate($date, $tblDivision, $tblGroup);
     }
 
     /**

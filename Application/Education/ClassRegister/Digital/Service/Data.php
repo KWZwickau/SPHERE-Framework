@@ -133,4 +133,20 @@ class Data  extends AbstractData
     {
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblLessonContent', $Id);
     }
+
+    /**
+     * @param DateTime $date
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return false|TblLessonContent[]
+     */
+    public function getLessonContentAllByDate(DateTime $date, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
+            TblLessonContent::ATTR_DATE => $date,
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+            TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+        ), array(TblLessonContent::ATTR_LESSON => self::ORDER_ASC) );
+    }
 }

@@ -390,6 +390,7 @@ class ApiAbsence extends Extension implements IApiInterface
 //                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
                 . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
+                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'))
                 . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -508,6 +509,7 @@ class ApiAbsence extends Extension implements IApiInterface
 //                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
                 . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
+                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'))
                 . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gelöscht werden.') . self::pipelineClose();
