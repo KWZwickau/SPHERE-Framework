@@ -100,11 +100,12 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionId
      * @param string|null $GroupId
      * @param string $Date
+     * @param string $View
      *
      * @return Pipeline
      */
     public static function pipelineLoadLessonContentContent(string $DivisionId = null, string $GroupId = null,
-        string $Date = 'today'): Pipeline
+        string $Date = 'today', string $View = 'Day'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentContent'), self::getEndpoint());
@@ -114,7 +115,8 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionId' => $DivisionId,
             'GroupId' => $GroupId,
-            'Date' => $Date
+            'Date' => $Date,
+            'View' => $View
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -125,11 +127,12 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionId
      * @param string|null $GroupId
      * @param string $Date
+     * @param string $View
      *
      * @return string
      */
     public function loadLessonContentContent(string $DivisionId = null, string $GroupId = null,
-        string $Date = 'today') : string
+        string $Date = 'today', string $View = 'Day') : string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -138,7 +141,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null, $Date);
+        return Digital::useFrontend()->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null, $Date, $View);
     }
 
     /**

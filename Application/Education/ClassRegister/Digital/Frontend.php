@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -417,11 +418,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 )))
                 . new Container('&nbsp;')
-                . new Panel(
-                    new Book() . ' Klassenbuch',
-                    ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent'),
-                    Panel::PANEL_TYPE_PRIMARY
-                )
+                . ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
             );
         } else {
             return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
@@ -435,11 +432,44 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      * @param string $DateString
+     * @param string $View
      *
      * @return string
      */
-    public function loadLessonContentTable(TblDivision $tblDivision = null, TblGroup $tblGroup = null, string $DateString = 'today'): string
+    public function loadLessonContentTable(TblDivision $tblDivision = null, TblGroup $tblGroup = null,
+        string $DateString = 'today', string $View = 'Day'): string
     {
+        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
+        $GroupId = $tblGroup ? $tblGroup->getId() : null;
+        if ($View == 'Day') {
+            $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
+            $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Week'));
+        } else {
+            $content =  $this->getWeekViewContent($DateString, $tblDivision, $tblGroup);
+            $link = (new Link('Tagesansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
+        }
+
+        return new Panel(
+            new Book() . ' Klassenbuch' . new PullRight($link),
+            $content,
+            Panel::PANEL_TYPE_PRIMARY
+        );
+    }
+
+    /**
+     * @param string $DateString
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return string
+     */
+    private function getDayViewContent(
+        string $DateString,
+        ?TblDivision $tblDivision,
+        ?TblGroup $tblGroup
+    ): string {
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
         $date = new DateTime($DateString);
@@ -458,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
             '6' => 'Samstag',
         );
 
-        $headerList['Lesson'] = $this->getTableHeadColumn('UE', '30px');
+        $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '30px');
         $headerList['Subject'] = $this->getTableHeadColumn('Fach', '50px');
         $headerList['Teacher'] = $this->getTableHeadColumn('Lehrer', '50px');
         $headerList['Content'] = $this->getTableHeadColumn('Thema / Inhalt');
@@ -467,7 +497,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $maxLesson = 6;
         $bodyList = array();
-        // todo gruppen prüfen
         $divisionList = $tblDivision ? array('0' => $tblDivision) : array();
         $groupList = $tblGroup ? array('0' => $tblGroup) : array();
         $absenceContent = array();
@@ -479,7 +508,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $lesson = $tblAbsence->getLessonStringByAbsence();
                     $type = $tblAbsence->getTypeDisplayShortName();
                     $remark = $tblAbsence->getRemark();
-                    $toolTip = ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
+                    $toolTip = ($lesson ? $lesson . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
                         . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
                         . ($remark ? ' - ' . $remark : '');
 
@@ -513,7 +542,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if (isset($absenceContent['Day'])) {
                 $bodyList[0] = array(
-                    'Lesson' => new ToolTip(new Bold('GT'), 'ganztägig'),
+                    'Lesson' => new ToolTip(new Bold('GT'), 'Ganztägig'),
                     'Subject' => '',
                     'Teacher' => '',
                     'Content' => '',
@@ -523,7 +552,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivision ?: null, $tblGroup ?: null))) {
+        if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivision ?: null,
+            $tblGroup ?: null))) {
             foreach ($tblLessonContentList as $tblLessonContent) {
                 $teacher = '';
                 if (($tblPerson = $tblLessonContent->getServiceTblPerson())) {
@@ -553,10 +583,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $bodyList[$index] = array(
                     'Lesson' => $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson),
                     'Subject' => $this->getLessonsEditLink(
-                        ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getAcronym() : '', $lessonContentId, $lesson),
+                        ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getAcronym() : '',
+                        $lessonContentId, $lesson),
                     'Teacher' => $this->getLessonsEditLink($teacher, $lessonContentId, $lesson),
                     'Content' => $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson),
-                    'Homework'=> $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson),
+                    'Homework' => $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId,
+                        $lesson),
 
                     'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
                 );
@@ -574,7 +606,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $i . '. Unterrichtseinheit hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, 'Day',
                     $date->format('d.m.Y'), $i));
 
                 $link = (new Link(
@@ -583,7 +615,7 @@ class Frontend extends Extension implements IFrontendInterface
                     null,
                     array(),
                     $i . '. Unterrichtseinheit hinzufügen'
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, 'Day',
                     $date->format('d.m.Y'), $i));
 
                 $bodyList[$i * 10] = array(
@@ -609,8 +641,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ->setVerticalAlign('middle')
                     ->setMinHeight('30px')
                     ->setPadding('3')
-                    ->setBackgroundColor($key == 0 ? '#E0F0FF' : '')
-                ;
+                    ->setBackgroundColor($key == 0 ? '#E0F0FF' : '');
             }
             $rows[] = new TableRow($columns);
         }
@@ -626,20 +657,180 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Center(
                                         (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(),
-                                            $dayName[$previewsDate->format('w')] .  ', den ' . $previewsDate->format('d.m.Y')))
+                                            $dayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
                                             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
                                                 $DivisionId, $GroupId, $previewsDate->format('d.m.Y')))
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    new Center(new Bold($dayName[$dayAtWeek] .  ', den ' . $date->format('d.m.Y')))
+                                    new Center(new Bold($dayName[$dayAtWeek] . ', den ' . $date->format('d.m.Y')))
                                     , 4),
                                 new LayoutColumn(
                                     new Center(
                                         (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(),
-                                            $dayName[$nextDate->format('w')] .  ', den ' . $nextDate->format('d.m.Y')))
+                                            $dayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
                                             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
                                                 $DivisionId, $GroupId, $nextDate->format('d.m.Y')))
+                                    )
+                                    , 1),
+                                new LayoutColumn('&nbsp;', 3),
+                            )))
+                        )
+                        . '<div style="height: 5px;"></div>'
+                        , 12)
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        $table
+                    )
+                )
+            ))
+        );
+
+        return $content . ' ';
+    }
+
+    /**
+     * @param string $DateString
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return string
+     */
+    private function getWeekViewContent(
+        string $DateString,
+        ?TblDivision $tblDivision,
+        ?TblGroup $tblGroup
+    ): string {
+        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
+        $GroupId = $tblGroup ? $tblGroup->getId() : null;
+        $date = new DateTime($DateString);
+
+        $currentWeek =  (int) $date->format('W');
+
+        $nextWeekDate = new DateTime($DateString);
+        $nextWeekDate = $nextWeekDate->add(new DateInterval('P7D'));
+        $nextWeek = $nextWeekDate->format('W');
+
+        $previewsWeekDate = new DateTime($DateString);
+        $previewsWeekDate = $previewsWeekDate->sub(new DateInterval('P7D'));
+        $previewsWeek = $previewsWeekDate->format('W');
+
+        $dayName = array(
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag',
+        );
+
+        $maxLesson = 6;
+        $headerList = array();
+        $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '5%');
+        $bodyList = array();
+        $dateStringList = array();
+
+        $year = $date->format('Y');
+        $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
+        $startDate  = new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
+
+        for ($day = 1; $day < 6; $day++) {
+            $headerList[$day] = $this->getTableHeadColumn($dayName[$day], '19%');
+            $dateStringList[$day] = $startDate->format('d.m.Y');
+            if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($startDate, $tblDivision ?: null,
+                $tblGroup ?: null))
+            ) {
+                foreach ($tblLessonContentList as $tblLessonContent) {
+                    $teacher = '';
+                    if (($tblPerson = $tblLessonContent->getServiceTblPerson())) {
+                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                            && ($acronym = $tblTeacher->getAcronym())
+                        ) {
+                            $teacher = $acronym;
+                        } else {
+                            if (strlen($tblPerson->getLastName()) > 5) {
+                                $teacher = substr($tblPerson->getLastName(), 0, 5) . '.';
+                            }
+                        }
+                    }
+
+                    $lesson = $tblLessonContent->getLesson();
+                    if ($lesson > $maxLesson) {
+                        $maxLesson = $lesson;
+                    }
+
+                    $item = $this->getLessonsEditLink(
+                        (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '')
+                        . ($teacher ? ' (' . $teacher . ')' : '')
+                        . ($tblLessonContent->getContent() ? new Container($tblLessonContent->getContent())  : '')
+                        . ($tblLessonContent->getHomework() ? new Container($tblLessonContent->getHomework())  : '')
+                    , $tblLessonContent->getId(), $lesson);
+
+                    if (isset($bodyList[$lesson][$day])) {
+                        $bodyList[$lesson][$day] .= new Container(new Center('--------------------')) . new Container($item);
+                    } else {
+                        $bodyList[$lesson][$day] = $item;
+                    }
+                }
+            }
+
+            $startDate->modify('+1  day');
+        }
+
+        $tableHead = new TableHead(new TableRow($headerList));
+        $rows = array();
+        for ($i = 1; $i <= $maxLesson; $i++) {
+            $columns = array();
+            $columns[] = (new TableColumn(new Center($i)))
+                ->setVerticalAlign('middle')
+                ->setMinHeight('30px')
+                ->setPadding('3');
+            for ($j = 1; $j< 6; $j++ ) {
+                if (isset($bodyList[$i][$j])) {
+                    $cell = $bodyList[$i][$j];
+                } else {
+                    $cell = (new Link(
+                        '<div style="height: 22px"></div>',
+                        ApiDigital::getEndpoint(),
+                        null,
+                        array(),
+                        $i . '. Unterrichtseinheit hinzufügen'
+                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, 'Week',
+                        $dateStringList[$j], $i));
+                }
+                $columns[] = (new TableColumn($cell))
+                    ->setVerticalAlign('middle')
+                    ->setMinHeight('30px')
+                    ->setPadding('3');
+            }
+            $rows[] = new TableRow($columns);
+        }
+        $tableBody = new TableBody($rows);
+        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+
+        $content = new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn('&nbsp;', 3),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(), 'KW' . $previewsWeek))
+                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+                                                $DivisionId, $GroupId, $previewsWeekDate->format('d.m.Y'), 'Week'))
+                                    )
+                                    , 1),
+                                new LayoutColumn(
+                                    new Center(new Bold('KW' . $currentWeek. ' '))
+                                    , 4),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(), 'KW' . $nextWeek))
+                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+                                                $DivisionId, $GroupId, $nextWeekDate->format('d.m.Y'), 'Week'))
                                     )
                                     , 1),
                                 new LayoutColumn('&nbsp;', 3),
