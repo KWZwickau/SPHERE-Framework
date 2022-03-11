@@ -8,6 +8,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -141,6 +142,9 @@ class ApiDigital extends Extension implements IApiInterface
             return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
+        // View speichern
+        Consumer::useService()->createAccountSetting('LessonContentView', $View);
+
         return Digital::useFrontend()->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null, $Date, $View);
     }
 
@@ -267,7 +271,8 @@ class ApiDigital extends Extension implements IApiInterface
 
         if (Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null)) {
             return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
-                . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'])
+                . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'],
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -355,7 +360,8 @@ class ApiDigital extends Extension implements IApiInterface
         if (Digital::useService()->updateLessonContent($tblLessonContent, $Data)) {
             return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null, $Data['Date'])
+                    $tblGroup ? $tblGroup->getId() : null, $Data['Date'],
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -461,7 +467,8 @@ class ApiDigital extends Extension implements IApiInterface
         if (Digital::useService()->destroyLessonContent($tblLessonContent)) {
             return new Success('Die Unterrichtseinheit wurde erfolgreich gelöscht.')
                 . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null, $date)
+                    $tblGroup ? $tblGroup->getId() : null, $date,
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gelöscht werden.') . self::pipelineClose();

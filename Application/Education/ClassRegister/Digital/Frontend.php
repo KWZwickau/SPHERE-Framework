@@ -17,6 +17,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -400,6 +401,10 @@ class Frontend extends Extension implements IFrontendInterface
 //        $tblPerson = Account::useService()->getPersonByLogin();
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        // View speichern
+        Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
+
         if ($tblDivision || $tblGroup) {
             $stage->setContent(
                 ApiDigital::receiverModal()
@@ -606,7 +611,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $i . '. Unterrichtseinheit hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, 'Day',
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
                     $date->format('d.m.Y'), $i));
 
                 $link = (new Link(
@@ -615,7 +620,7 @@ class Frontend extends Extension implements IFrontendInterface
                     null,
                     array(),
                     $i . '. Unterrichtseinheit hinzufügen'
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, 'Day',
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
                     $date->format('d.m.Y'), $i));
 
                 $bodyList[$i * 10] = array(
@@ -659,7 +664,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(),
                                             $dayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
                                             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                $DivisionId, $GroupId, $previewsDate->format('d.m.Y')))
+                                                $DivisionId, $GroupId, $previewsDate->format('d.m.Y'), 'Day'))
                                     )
                                     , 1),
                                 new LayoutColumn(
@@ -670,7 +675,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(),
                                             $dayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
                                             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                $DivisionId, $GroupId, $nextDate->format('d.m.Y')))
+                                                $DivisionId, $GroupId, $nextDate->format('d.m.Y'), 'Day'))
                                     )
                                     , 1),
                                 new LayoutColumn('&nbsp;', 3),
@@ -797,7 +802,7 @@ class Frontend extends Extension implements IFrontendInterface
                         null,
                         array(),
                         $i . '. Unterrichtseinheit hinzufügen'
-                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, 'Week',
+                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
                         $dateStringList[$j], $i));
                 }
                 $columns[] = (new TableColumn($cell))

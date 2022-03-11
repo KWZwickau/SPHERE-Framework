@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -682,5 +683,59 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $Identifier
+     * @param string $Value
+     *
+     * @return TblAccountSetting
+     */
+    public function createAccountSetting(
+        TblAccount $tblAccount,
+        string $Identifier,
+        string $Value
+    ): TblAccountSetting {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblAccountSetting $Entity */
+        $Entity = $Manager->getEntity('TblAccountSetting')->findOneBy(array(
+            TblAccountSetting::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+            TblAccountSetting::ATTR_IDENTIFIER => $Identifier,
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblAccountSetting();
+            $Entity->setServiceTblAccount($tblAccount);
+            $Entity->setIdentifier($Identifier);
+            $Entity->setValue($Value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            $Entity->setValue($Value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $Identifier
+     *
+     * @return false|TblAccountSetting
+     */
+    public function getAccountSetting(
+        TblAccount $tblAccount,
+        string $Identifier
+    ) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblAccountSetting', array(
+            TblAccountSetting::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+            TblAccountSetting::ATTR_IDENTIFIER => $Identifier
+        ));
     }
 }

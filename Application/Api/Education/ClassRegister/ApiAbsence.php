@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -390,7 +391,8 @@ class ApiAbsence extends Extension implements IApiInterface
 //                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
                 . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
-                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'))
+                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'),
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -509,7 +511,8 @@ class ApiAbsence extends Extension implements IApiInterface
 //                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
                 . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
-                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'))
+                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'),
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gelöscht werden.') . self::pipelineClose();
