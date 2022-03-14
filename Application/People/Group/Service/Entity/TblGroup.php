@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -221,5 +222,25 @@ class TblGroup extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return TblCompany[]
+     */
+    public function getCurrentCompanyList(): array
+    {
+        $list = array();
+        if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblStudent = $tblPerson->getStudent())
+                    && ($tblMainDivision = $tblStudent->getCurrentMainDivision())
+                    && ($tblCompany = $tblMainDivision->getServiceTblCompany())
+                ) {
+                    $list[$tblCompany->getId()] = $tblCompany;
+                }
+            }
+        }
+
+        return $list;
     }
 }

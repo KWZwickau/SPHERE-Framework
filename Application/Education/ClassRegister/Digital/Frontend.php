@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -59,6 +60,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -462,6 +464,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ApiAbsence::getEndpoint()
             // todo GroupId?
             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId));
+
             $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Week'));
@@ -495,11 +498,20 @@ class Frontend extends Extension implements IFrontendInterface
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
         $date = new DateTime($DateString);
-        $nextDate = new DateTime($DateString);
-        $nextDate = $nextDate->add(new DateInterval('P1D'));
-        $previewsDate = new DateTime($DateString);
-        $previewsDate = $previewsDate->sub(new DateInterval('P1D'));
         $dayAtWeek = $date->format('w');
+        $addDays = 1;
+        $subDays = 1;
+        // nur zwischen Wochentagen springen
+        switch ($dayAtWeek) {
+            case 0: $subDays = 2; break;
+            case 1: $subDays = 3; break;
+            case 5: $addDays = 3; break;
+            case 6: $addDays = 2; break;
+        }
+        $nextDate = new DateTime($DateString);
+        $nextDate = $nextDate->add(new DateInterval('P'. $addDays . 'D'));
+        $previewsDate = new DateTime($DateString);
+        $previewsDate = $previewsDate->sub(new DateInterval('P' . $subDays . 'D'));
         $dayName = array(
             '0' => 'Sonntag',
             '1' => 'Montag',
@@ -510,6 +522,36 @@ class Frontend extends Extension implements IFrontendInterface
             '6' => 'Samstag',
         );
 
+        if ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            if ($tblDivision->getServiceTblCompany()) {
+                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
+            } else {
+                $tblCompanyList = array();
+            }
+        } elseif ($tblGroup) {
+            $tblYear = $tblGroup->getCurrentYear();
+            $tblCompanyList = $tblGroup->getCurrentCompanyList();
+        } else {
+            $tblYear = false;
+            $tblCompanyList = array();
+        }
+        // Ferien, Feiertage
+        $isHoliday = false;
+        if ($tblYear) {
+            if ($tblCompanyList) {
+                foreach ($tblCompanyList as $tblCompany) {
+                    if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany))) {
+                        break;
+                    }
+                }
+            } else {
+                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $date, null);
+            }
+        }
+        // aktueller Tag
+        $isCurrentDay = (new DateTime('today'))->format('d.m.Y') ==  $date->format('d.m.Y');
+
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '30px');
         $headerList['Subject'] = $this->getTableHeadColumn('Fach', '50px');
         $headerList['Teacher'] = $this->getTableHeadColumn('Lehrer', '50px');
@@ -519,6 +561,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $maxLesson = 6;
         $bodyList = array();
+        $bodyBackgroundList = array();
         $divisionList = $tblDivision ? array('0' => $tblDivision) : array();
         $groupList = $tblGroup ? array('0' => $tblGroup) : array();
         $absenceContent = array();
@@ -614,6 +657,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
                 );
+
+                $bodyBackgroundList[$index] = true;
             }
         }
 
@@ -658,17 +703,26 @@ class Frontend extends Extension implements IFrontendInterface
 //            $rows[] = new TableRow($columnList);
 
             $columns = array();
+            $count = 0;
             foreach ($columnList as $column) {
                 $columns[] = (new TableColumn($column))
                     ->setVerticalAlign('middle')
                     ->setMinHeight('30px')
                     ->setPadding('3')
-                    ->setBackgroundColor($key == 0 ? '#E0F0FF' : '');
+                    ->setBackgroundColor($key == 0 || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '');
+                $count++;
             }
             $rows[] = new TableRow($columns);
         }
         $tableBody = new TableBody($rows);
         $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+
+        $dayText = new Bold($dayName[$dayAtWeek] . ', den ' . $date->format('d.m.Y'));
+        if ($isHoliday) {
+            $dayText = $this->getTextColor($dayText, 'lightgray');
+        } elseif ($isCurrentDay) {
+            $dayText = $this->getTextColor($dayText, 'darkorange');
+        }
 
         $content = new Layout(
             new LayoutGroup(array(
@@ -685,7 +739,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    new Center(new Bold($dayName[$dayAtWeek] . ', den ' . $date->format('d.m.Y')))
+                                    new Center($dayText)
                                     , 4),
                                 new LayoutColumn(
                                     new Center(
@@ -728,6 +782,21 @@ class Frontend extends Extension implements IFrontendInterface
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
         $date = new DateTime($DateString);
 
+        if ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            if ($tblDivision->getServiceTblCompany()) {
+                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
+            } else {
+                $tblCompanyList = array();
+            }
+        } elseif ($tblGroup) {
+            $tblYear = $tblGroup->getCurrentYear();
+            $tblCompanyList = $tblGroup->getCurrentCompanyList();
+        } else {
+            $tblYear = false;
+            $tblCompanyList = array();
+        }
+
         $currentWeek =  (int) $date->format('W');
 
         $nextWeekDate = new DateTime($DateString);
@@ -753,13 +822,39 @@ class Frontend extends Extension implements IFrontendInterface
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '5%');
         $bodyList = array();
         $dateStringList = array();
+        $holidayList = array();
 
         $year = $date->format('Y');
         $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
         $startDate  = new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
 
         for ($day = 1; $day < 6; $day++) {
-            $headerList[$day] = $this->getTableHeadColumn($dayName[$day], '19%');
+            // Ferien, Feiertage
+            $isHoliday = false;
+            if ($tblYear) {
+                if ($tblCompanyList) {
+                    foreach ($tblCompanyList as $tblCompany) {
+                        if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany))) {
+                            break;
+                        }
+                    }
+                } else {
+                    $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, null);
+                }
+            }
+            if ($isHoliday) {
+                $holidayList[$day] = true;
+            }
+
+            // aktueller Tag
+            $isCurrentDay = (new DateTime('today'))->format('d.m.Y') ==  $startDate->format('d.m.Y');
+
+            $headerContent = $dayName[$day] . new Muted(', den ' . $startDate->format('d.m.Y'));
+            $headerList[$day] = $this->getTableHeadColumn(
+                $isCurrentDay ? $this->getTextColor($headerContent, 'darkorange') : $headerContent,
+                '19%',
+                $isHoliday ? 'lightgray' : '#E0F0FF'
+            );
             $dateStringList[$day] = $startDate->format('d.m.Y');
             if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($startDate, $tblDivision ?: null,
                 $tblGroup ?: null))
@@ -810,8 +905,11 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setMinHeight('30px')
                 ->setPadding('3');
             for ($j = 1; $j< 6; $j++ ) {
+                $isHoliday = isset($holidayList[$j]);
                 if (isset($bodyList[$i][$j])) {
                     $cell = $bodyList[$i][$j];
+                } elseif ($isHoliday) {
+                    $cell = new Center(new Muted('f'));
                 } else {
                     $cell = (new Link(
                         '<div style="height: 22px"></div>',
@@ -823,6 +921,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $dateStringList[$j], $i));
                 }
                 $columns[] = (new TableColumn($cell))
+                    ->setBackgroundColor($isHoliday ? 'lightgray' : '')
+                    ->setOpacity($isHoliday ? '0.5' : '1.0')
                     ->setVerticalAlign('middle')
                     ->setMinHeight('30px')
                     ->setPadding('3');
@@ -893,17 +993,29 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param string $name
      * @param string $width
+     * @param string $backgroundColor
      *
      * @return TableColumn
      */
-    private function getTableHeadColumn(string $name, string $width = 'auto'): TableColumn
+    private function getTableHeadColumn(string $name, string $width = 'auto', string $backgroundColor = '#E0F0FF'): TableColumn
     {
-        $backgroundColor = '#E0F0FF';
         $size = 1;
         return (new TableColumn(new Center(new Bold($name)), $size, $width))
             ->setBackgroundColor($backgroundColor)
+            ->setOpacity($backgroundColor == 'lightgray' ? '0.5' : '1.0')
             ->setVerticalAlign('middle')
             ->setMinHeight('35px');
+    }
+
+    /**
+     * @param string $content
+     * @param string $color
+     *
+     * @return string
+     */
+    private function getTextColor(string $content, string $color): string
+    {
+        return '<span style="color: ' . $color . ';">' . $content . '</span>';
     }
 
     /**
