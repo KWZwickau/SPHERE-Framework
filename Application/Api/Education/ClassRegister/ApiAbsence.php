@@ -301,8 +301,11 @@ class ApiAbsence extends Extension implements IApiInterface
         )) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
-//                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
-                . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
+                // Kalenderansicht der Klasse
+                . (Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
+                    ? ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+                    : ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
+                )
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'),
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
@@ -397,8 +400,11 @@ class ApiAbsence extends Extension implements IApiInterface
         if (Absence::useService()->updateAbsenceService($tblAbsence, $Data)) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
-//                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
-                . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
+                // Kalenderansicht der Klasse
+                . (Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
+                    ? ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+                    : ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
+                )
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'),
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
@@ -517,8 +523,11 @@ class ApiAbsence extends Extension implements IApiInterface
         if (Absence::useService()->destroyAbsence($tblAbsence)) {
             return new Success('Die Fehlzeit wurde erfolgreich gelöscht.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
-//                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
-                . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
+                // Kalenderansicht der Klasse
+                . (Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
+                    ? ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
+                    : ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
+                )
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
                 . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'),
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
@@ -1002,8 +1011,14 @@ class ApiAbsence extends Extension implements IApiInterface
     public static function generateOrganizerForDivision($DivisionId, $IsWeek, $Year = '', $WeekNumber = '', $Month = '')
     {
         if ($IsWeek == 'true') {
+            // View speichern
+            Consumer::useService()->createAccountSetting('AbsenceView', 'Week');
+
             return self::generateOrganizerForDivisionWeekly($DivisionId, $WeekNumber, $Year);
         } else {
+            // View speichern
+            Consumer::useService()->createAccountSetting('AbsenceView', 'Month');
+
             return self::generateOrganizerMonthly($DivisionId, $Month, $Year);
         }
     }
