@@ -143,8 +143,10 @@ class Service extends AbstractService
                 $schoolList,
                 $roleList
             ) {
+                // Reihenfolge für Fehleranzeige wichtig
                 $UploadItem['name'] = $tblAccount->getUsername();
                 $UploadItem['roles'] = array();
+                $UploadItem['school_classes'] = array();
                 $UploadItem['email'] = $tblAccount->getUserAlias();
 //                $UploadItem['password'] = $tblAccount->getPassword();
                 $UploadItem['firstname'] = '';
@@ -153,9 +155,7 @@ class Service extends AbstractService
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['schools'] = array($schoolList[$Acronym]);
                 $UploadItem['recoveryMail'] = $tblAccount->getRecoveryMail();
-
 //            $UploadItem['password'] = '';// no passwort transfer
-                $UploadItem['school_classes'] = array();
                 $UploadItem['school_type'] = '';
                 $UploadItem['groupArray'] = '';
 
