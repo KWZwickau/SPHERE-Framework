@@ -547,7 +547,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function createAbsence($Data, TblPerson $tblPerson = null, TblDivision $tblDivision = null)
+    public function createAbsence($Data, TblPerson &$tblPerson = null, TblDivision &$tblDivision = null)
     {
         if ($tblPerson == null) {
             $tblPerson = Person::useService()->getPersonById($Data['PersonId']);

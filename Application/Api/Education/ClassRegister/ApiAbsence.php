@@ -276,8 +276,8 @@ class ApiAbsence extends Extension implements IApiInterface
 
         $date = new DateTime(isset($Data['FromDate']) ? $Data['FromDate'] : 'now');
 
-        $tblPerson = false;
-        $tblDivision = false;
+        $tblPerson = null;
+        $tblDivision = null;
         if (!$hasSearch) {
             if ($PersonId) {
                 $tblPerson = Person::useService()->getPersonById($PersonId);
@@ -285,18 +285,27 @@ class ApiAbsence extends Extension implements IApiInterface
             if ($DivisionId) {
                 $tblDivision = Division::useService()->getDivisionById($DivisionId);
             }
+
+            if (!$tblPerson) {
+                $tblPerson = null;
+            }
+            if (!$tblDivision) {
+                $tblDivision = null;
+            }
         }
 
         if (Absence::useService()->createAbsence(
             $Data,
-            $tblPerson ? $tblPerson :  null,
-            $tblDivision ? $tblDivision : null
+            $tblPerson,
+            $tblDivision
         )) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
                 . self::pipelineChangeWeek($date->format('W') , $date->format('Y'))
 //                . ($tblDivision ? self::pipelineChangeMonth($tblDivision->getId(), $date->format('m') , $date->format('Y')) : '')
                 . ($tblDivision ? self::pipelineChangeWeekForDivision($tblDivision->getId(), $date->format('W') , $date->format('Y')) : '')
                 . self::pipelineLoadAbsenceContent($tblPerson ? $tblPerson->getId() : null, $tblDivision ? $tblDivision->getId() : null)
+                . ApiDigital::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, null, $date->format('d.m.Y'),
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();

@@ -413,16 +413,20 @@ class Frontend extends Extension implements IFrontendInterface
                     Digital::useService()->getHeadColumnRow(
                         $tblDivision ?: null, $tblGroup ?: null, $tblYear
                     ),
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Primary(
-                                new Plus() . ' Unterrichtseinheit hinzufügen',
-                                ApiDigital::getEndpoint()
-                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId))
-                        )
-                    ))
+//                    new LayoutRow(array(
+//                        new LayoutColumn(
+//                            (new Primary(
+//                                new Plus() . ' Unterrichtseinheit hinzufügen',
+//                                ApiDigital::getEndpoint()
+//                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId))
+//                            . (new Primary(
+//                                new Plus() . ' Fehlzeit hinzufügen',
+//                                ApiAbsence::getEndpoint()
+//                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId))
+//                        )
+//                    ))
                 )))
-                . new Container('&nbsp;')
+//                . new Container('&nbsp;')
                 . ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
             );
         } else {
@@ -446,7 +450,18 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
+
+        $buttons = (new Primary(
+            new Plus() . ' Unterrichtseinheit hinzufügen',
+            ApiDigital::getEndpoint()
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId));
+
         if ($View == 'Day') {
+            $buttons .= (new Primary(
+                new Plus() . ' Fehlzeit hinzufügen',
+                ApiAbsence::getEndpoint()
+            // todo GroupId?
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId));
             $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Week'));
@@ -456,11 +471,13 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
         }
 
-        return new Panel(
-            new Book() . ' Klassenbuch' . new PullRight($link),
-            $content,
-            Panel::PANEL_TYPE_PRIMARY
-        );
+        return $buttons
+            . new Container('&nbsp;')
+            . new Panel(
+                new Book() . ' Klassenbuch' . new PullRight($link),
+                $content,
+                Panel::PANEL_TYPE_PRIMARY
+            );
     }
 
     /**
