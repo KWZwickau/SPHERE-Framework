@@ -4,6 +4,8 @@ namespace SPHERE\Application\Reporting\Custom\Gersdorf\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Reporting\Standard\Person\Person as PersonReportingStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -612,5 +614,60 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return empty($inActiveStudentList) ? false : new Panel('Ehemaliger Schüler dieser Klasse', $inActiveStudentList, Panel::PANEL_TYPE_WARNING);
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendTeacherList()
+    {
+
+        $Stage = new Stage();
+        $Stage->setTitle('Auswertung');
+        $Stage->setDescription('Lehrerliste');
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
+        $PersonList = Person::useService()->createTeacherList();
+        if ($PersonList) {
+            $Stage->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download())
+            );
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'Number'   => '#',
+                                    'Name'     => 'Name',
+                                    'Gender'   => 'Geschlecht',
+                                    'Address'  => 'Anschrift',
+                                    'Phone'    => 'Telefon',
+                                    'Birthday' => 'Geburtsdatum',
+                                ),
+                                array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                    ),
+//                                    'pageLength' => -1,
+//                                    'paging' => false,
+//                                    'info' => false,
+//                                    'responsive' => false
+                                )
+                            )
+                        )
+                    )
+                ),
+                PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+            ))
+        );
+
+        return $Stage;
     }
 }
