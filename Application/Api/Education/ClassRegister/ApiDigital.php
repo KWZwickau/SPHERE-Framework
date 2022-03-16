@@ -139,13 +139,17 @@ class ApiDigital extends Extension implements IApiInterface
      * @return string
      */
     public function loadLessonContentContent(string $DivisionId = null, string $GroupId = null,
-        string $Date = 'today', string $View = 'Day') : string
+        string $Date = 'today', string $View = 'Day', $Data = null) : string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
 
         if (!($tblDivision || $tblGroup)) {
             return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        if (isset($Data['Date'])) {
+            $Date = $Data['Date'];
         }
 
         // View speichern

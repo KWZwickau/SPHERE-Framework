@@ -24,7 +24,6 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -544,7 +543,22 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
         }
 
-        return $buttons
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new PullRight(new DatePicker('Data[Date]', '', '', new Calendar()))
+                , 7),
+            new FormColumn(
+                new PullRight((new Primary('Auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+                    $DivisionId, $GroupId, $DateString, $View
+                )))
+                , 5)
+        )))));
+
+        return
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($buttons, 9),
+                new LayoutColumn($form, 3)
+            ))))
             . new Container('&nbsp;')
             . new Panel(
                 new Book() . ' Klassenbuch' . new PullRight($link),
