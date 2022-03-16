@@ -24,6 +24,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -523,7 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
 
         $buttons = (new Primary(
-            new Plus() . ' Unterrichtseinheit hinzufügen',
+            new Plus() . ' Thema/Hausaufgaben hinzufügen',
             ApiDigital::getEndpoint()
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId));
 
@@ -624,7 +625,7 @@ class Frontend extends Extension implements IFrontendInterface
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '30px');
         $headerList['Subject'] = $this->getTableHeadColumn('Fach', '50px');
         $headerList['Teacher'] = $this->getTableHeadColumn('Lehrer', '50px');
-        $headerList['Content'] = $this->getTableHeadColumn('Thema / Inhalt');
+        $headerList['Content'] = $this->getTableHeadColumn('Thema');
         $headerList['Homework'] = $this->getTableHeadColumn('Hausaufgaben');
         $headerList['Absence'] = $this->getTableHeadColumn('Fehlzeiten');
 
@@ -725,7 +726,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ApiDigital::getEndpoint(),
                     null,
                     array(),
-                    $i . '. Unterrichtseinheit hinzufügen',
+                    $i . '. Thema/Hausaufgaben hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
                 ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
@@ -736,7 +737,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ApiDigital::getEndpoint(),
                     null,
                     array(),
-                    $i . '. Unterrichtseinheit hinzufügen'
+                    $i . '. Thema/Hausaufgaben hinzufügen'
                 ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
                     $date->format('d.m.Y'), $i));
 
@@ -936,8 +937,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $item = $this->getLessonsEditLink(
                         (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '')
                         . ($teacher ? ' (' . $teacher . ')' : '')
-                        . ($tblLessonContent->getContent() ? new Container($tblLessonContent->getContent())  : '')
-                        . ($tblLessonContent->getHomework() ? new Container($tblLessonContent->getHomework())  : '')
+                        . ($tblLessonContent->getContent() ? new Container('Inhalt: ' . $tblLessonContent->getContent())  : '')
+                        . ($tblLessonContent->getHomework() ? new Container('Hausaufgaben: ' . $tblLessonContent->getHomework())  : '')
                     , $tblLessonContent->getId(), $lesson);
 
                     if (isset($bodyList[$lesson][$day])) {
@@ -971,7 +972,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiDigital::getEndpoint(),
                         null,
                         array(),
-                        $i . '. Unterrichtseinheit hinzufügen'
+                        $i . '. Thema/Hausaufgaben hinzufügen'
                     ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
                         $dateStringList[$j], $i));
                 }
@@ -1041,7 +1042,7 @@ class Frontend extends Extension implements IFrontendInterface
             ApiDigital::getEndpoint(),
             null,
             array(),
-            $Lesson . '. Unterrichtseinheit bearbeiten'
+            $Lesson . '. Thema/Hausaufgaben bearbeiten'
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonContentModal($LessonContentId));
     }
 
@@ -1114,7 +1115,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonContentSave($LessonContentId));
         } else {
             // todo befüllen bei neuen Einträge aus dem importierten Stundenplan
-            // todo eingeloggten Lehrer vorsetzen falls er das Fach unterrichtet
 
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineCreateLessonContentSave(
@@ -1126,10 +1126,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         // todo Gruppen auswahl?
 
-        // todo Lehrer vorauswahl -> eventuell dynamische abhängig
-        $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER'));
+//        $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER'));
 
-        // todo Fächer eingrenzen
         $tblSubjectList = Subject::useService()->getSubjectAll();
 
         for ($i = 0; $i < 13; $i++) {
@@ -1161,13 +1159,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
                         , 6),
-                    new FormColumn(
-                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
-                        , 6),
+//                    new FormColumn(
+//                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
+//                        , 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('Data[Content]', 'Thema/Inhalt', 'Thema/Inhalt', new Edit())
+                        new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
                     ),
                 )),
                 new FormRow(array(
@@ -1228,7 +1226,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             (new Primary(
-                                new Plus() . ' Unterrichtseinheit hinzufügen',
+                                new Plus() . ' Thema/Hausaufgaben hinzufügen',
                                 ApiDigital::getEndpoint()
                             ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateCourseContentModal($DivisionId, $SubjectId, $SubjectGroupId))
                             . (new Primary(
@@ -1346,7 +1344,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Date' => 'Datum',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
                 'IsDoubleLesson' => 'Doppel&shy;stunde',
-                'Content' => 'Thema / Inhalt',
+                'Content' => 'Thema',
                 'Homework' => 'Hausaufgaben',
                 'Absence' => 'Fehlzeiten',
                 'Teacher' => 'Lehrer',
@@ -1442,7 +1440,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                new FormRow(array(
                     new FormColumn(
-                        new TextField('Data[Content]', 'Thema/Inhalt', 'Thema/Inhalt', new Edit())
+                        new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
                     ),
                 )),
                 new FormRow(array(

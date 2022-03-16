@@ -212,9 +212,9 @@ class ApiDigital extends Extension implements IApiInterface
     private function getLessonContentModal($form, string $LessonContentId = null): string
     {
         if ($LessonContentId) {
-            $title = new Title(new Edit() . ' Unterrichtseinheit bearbeiten');
+            $title = new Title(new Edit() . ' Thema/Hausaufgaben bearbeiten');
         } else {
-            $title = new Title(new Plus() . ' Unterrichtseinheit hinzufügen');
+            $title = new Title(new Plus() . ' Thema/Hausaufgaben hinzufügen');
         }
 
         return $title
@@ -276,12 +276,12 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null)) {
-            return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
+            return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -334,7 +334,7 @@ class ApiDigital extends Extension implements IApiInterface
     public function openEditLessonContentModal($LessonContentId)
     {
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
         $tblDivision = $tblLessonContent->getServiceTblDivision();
         $tblGroup = $tblLessonContent->getServiceTblGroup();
@@ -353,7 +353,7 @@ class ApiDigital extends Extension implements IApiInterface
     public function saveEditLessonContentModal($LessonContentId, $Data)
     {
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
         $tblDivision = $tblLessonContent->getServiceTblDivision();
         $tblGroup = $tblLessonContent->getServiceTblGroup();
@@ -364,13 +364,13 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateLessonContent($tblLessonContent, $Data)) {
-            return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
+            return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
                     $tblGroup ? $tblGroup->getId() : null, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -402,16 +402,16 @@ class ApiDigital extends Extension implements IApiInterface
     public function openDeleteLessonContentModal(string $LessonContentId)
     {
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
 
-        return new Title(new Remove() . ' Unterrichtseinheit löschen')
+        return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(
-                                new Question() . ' Diese Unterrichtseinheit wirklich löschen?',
+                                new Question() . ' Diese Thema/Hausaufgaben wirklich löschen?',
                                 array(
                                     $tblLessonContent->getDate(),
                                     $tblLessonContent->getLessonDisplay(),
@@ -464,20 +464,20 @@ class ApiDigital extends Extension implements IApiInterface
     public function saveDeleteLessonContentModal(string $LessonContentId)
     {
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
         $date = $tblLessonContent->getDate();
         $tblDivision = $tblLessonContent->getServiceTblDivision();
         $tblGroup = $tblLessonContent->getServiceTblGroup();
 
         if (Digital::useService()->destroyLessonContent($tblLessonContent)) {
-            return new Success('Die Unterrichtseinheit wurde erfolgreich gelöscht.')
+            return new Success('Thema/Hausaufgaben wurde erfolgreich gelöscht.')
                 . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
                     $tblGroup ? $tblGroup->getId() : null, $date,
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Unterrichtseinheit konnte nicht gelöscht werden.') . self::pipelineClose();
+            return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 
@@ -583,9 +583,9 @@ class ApiDigital extends Extension implements IApiInterface
     private function getCourseContentModal($form, string $CourseContentId = null): string
     {
         if ($CourseContentId) {
-            $title = new Title(new Edit() . ' Unterrichtseinheit bearbeiten');
+            $title = new Title(new Edit() . ' Thema/Hausaufgaben bearbeiten');
         } else {
-            $title = new Title(new Plus() . ' Unterrichtseinheit hinzufügen');
+            $title = new Title(new Plus() . ' Thema/Hausaufgaben hinzufügen');
         }
 
         return $title
@@ -653,11 +653,11 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->createCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup)) {
-            return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
+            return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadCourseContentContent($DivisionId, $SubjectId, $SubjectGroupId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -689,7 +689,7 @@ class ApiDigital extends Extension implements IApiInterface
     public function openEditCourseContentModal($CourseContentId)
     {
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
 
         $tblDivision = $tblCourseContent->getServiceTblDivision();
@@ -734,7 +734,7 @@ class ApiDigital extends Extension implements IApiInterface
     public function saveEditCourseContentModal($CourseContentId, $Data)
     {
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
 
         $tblDivision = $tblCourseContent->getServiceTblDivision();
@@ -750,11 +750,11 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateCourseContent($tblCourseContent, $Data)) {
-            return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
+            return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadCourseContentContent($tblDivision->getId(), $tblSubject->getId(), $tblSubjectGroup->getId())
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -786,16 +786,16 @@ class ApiDigital extends Extension implements IApiInterface
     public function openDeleteCourseContentModal(string $CourseContentId)
     {
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
 
-        return new Title(new Remove() . ' Unterrichtseinheit löschen')
+        return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(
-                                new Question() . ' Diese Unterrichtseinheit wirklich löschen?',
+                                new Question() . ' Diese Thema/Hausaufgaben wirklich löschen?',
                                 array(
                                     $tblCourseContent->getDate(),
                                     $tblCourseContent->getLessonDisplay(),
@@ -848,7 +848,7 @@ class ApiDigital extends Extension implements IApiInterface
     public function saveDeleteCourseContentModal(string $CourseContentId)
     {
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
-            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+            return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
 
         $tblDivision = $tblCourseContent->getServiceTblDivision();
@@ -859,11 +859,11 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->destroyCourseContent($tblCourseContent)) {
-            return new Success('Die Unterrichtseinheit wurde erfolgreich gelöscht.')
+            return new Success('Thema/Hausaufgaben wurde erfolgreich gelöscht.')
                 . self::pipelineLoadCourseContentContent($tblDivision->getId(), $tblSubject->getId(), $tblSubjectGroup->getId())
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Unterrichtseinheit konnte nicht gelöscht werden.') . self::pipelineClose();
+            return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }

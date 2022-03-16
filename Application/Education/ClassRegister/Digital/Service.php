@@ -258,6 +258,9 @@ class Service extends AbstractService
             $tblYear = false;
         }
 
+        $tblPerson = Account::useService()->getPersonByLogin();
+//        $tblPerson = Person::useService()->getPersonById($Data['serviceTblPerson'])
+
         (new Data($this->getBinding()))->createLessonContent(
             $Data['Date'],
             $Data['Lesson'],
@@ -266,7 +269,7 @@ class Service extends AbstractService
             $tblDivision ?: null,
             $tblGroup ?: null,
             $tblYear ?: null,
-            ($tblPerson = Person::useService()->getPersonById($Data['serviceTblPerson'])) ? $tblPerson : null,
+            $tblPerson ?: null,
             ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null
         );
 
@@ -281,13 +284,16 @@ class Service extends AbstractService
      */
     public function updateLessonContent(TblLessonContent $tblLessonContent, $Data): bool
     {
+        $tblPerson = Account::useService()->getPersonByLogin();
+//        $tblPerson = Person::useService()->getPersonById($Data['serviceTblPerson'])
+
         return (new Data($this->getBinding()))->updateLessonContent(
             $tblLessonContent,
             $Data['Date'],
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
-            ($tblPerson = Person::useService()->getPersonById($Data['serviceTblPerson'])) ? $tblPerson : null,
+            $tblPerson ?: null,
             ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null
         );
     }
