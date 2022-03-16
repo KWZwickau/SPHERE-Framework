@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -54,15 +55,20 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadLessonContentContent');
-
         $Dispatcher->registerMethod('openCreateLessonContentModal');
         $Dispatcher->registerMethod('saveCreateLessonContentModal');
-
         $Dispatcher->registerMethod('openEditLessonContentModal');
         $Dispatcher->registerMethod('saveEditLessonContentModal');
-
         $Dispatcher->registerMethod('openDeleteLessonContentModal');
         $Dispatcher->registerMethod('saveDeleteLessonContentModal');
+
+        $Dispatcher->registerMethod('loadCourseContentContent');
+        $Dispatcher->registerMethod('openCreateCourseContentModal');
+        $Dispatcher->registerMethod('saveCreateCourseContentModal');
+        $Dispatcher->registerMethod('openEditCourseContentModal');
+        $Dispatcher->registerMethod('saveEditCourseContentModal');
+        $Dispatcher->registerMethod('openDeleteCourseContentModal');
+        $Dispatcher->registerMethod('saveDeleteCourseContentModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -469,6 +475,392 @@ class ApiDigital extends Extension implements IApiInterface
                 . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
                     $tblGroup ? $tblGroup->getId() : null, $date,
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Unterrichtseinheit konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $SubjectId
+     * @param string|null $SubjectGroupId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCourseContentContent(string $DivisionId = null, string $SubjectId = null,
+        string $SubjectGroupId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseContentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCourseContentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'SubjectId' => $SubjectId,
+            'SubjectGroupId' => $SubjectGroupId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $SubjectId
+     * @param string|null $SubjectGroupId
+     *
+     * @return string
+     */
+    public function loadCourseContentContent(string $DivisionId = null, string $SubjectId = null,
+        string $SubjectGroupId = null) : string
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
+
+        if (!($tblDivision || $tblSubjectGroup || $tblSubject)) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return Digital::useFrontend()->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup);
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $SubjectId
+     * @param string|null $SubjectGroupId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateCourseContentModal(string $DivisionId = null, string $SubjectId = null,
+        string $SubjectGroupId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateCourseContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'SubjectGroupId' => $SubjectGroupId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $SubjectId
+     * @param string|null $SubjectGroupId
+     *
+     * @return string
+     */
+    public function openCreateCourseContentModal(string $DivisionId = null, string $SubjectId = null,
+        string $SubjectGroupId = null): string
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
+
+        if (!($tblDivision || $tblSubjectGroup || $tblSubject)) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent($tblDivision, $tblSubject,
+            $tblSubjectGroup));
+    }
+
+    /**
+     * @param $form
+     * @param string|null $CourseContentId
+     *
+     * @return string
+     */
+    private function getCourseContentModal($form, string $CourseContentId = null): string
+    {
+        if ($CourseContentId) {
+            $title = new Title(new Edit() . ' Unterrichtseinheit bearbeiten');
+        } else {
+            $title = new Title(new Plus() . ' Unterrichtseinheit hinzufügen');
+        }
+
+        return $title
+            . new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    $form
+                                )
+                            )
+                        )
+                    ))
+            );
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $SubjectId
+     * @param string|null $SubjectGroupId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateCourseContentSave(string $DivisionId = null, string $SubjectId = null,
+        string $SubjectGroupId = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateCourseContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'SubjectGroupId' => $SubjectGroupId,
+            'SubjectId' => $SubjectId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $SubjectId
+     * @param string|null $SubjectGroupId
+     * @param array|null $Data
+     *
+     * @return Danger|string
+     */
+    public function saveCreateCourseContentModal(string $DivisionId = null, string $SubjectId = null,
+        string $SubjectGroupId = null, array $Data = null)
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
+
+        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Digital::useService()->checkFormCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup))) {
+            // display Errors on form
+            return $this->getCourseContentModal($form);
+        }
+
+        if (Digital::useService()->createCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup)) {
+            return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
+                . self::pipelineLoadCourseContentContent($DivisionId, $SubjectId, $SubjectGroupId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $CourseContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditCourseContentModal(string $CourseContentId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditCourseContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'CourseContentId' => $CourseContentId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $CourseContentId
+     *
+     * @return string
+     */
+    public function openEditCourseContentModal($CourseContentId)
+    {
+        if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
+            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblDivision = $tblCourseContent->getServiceTblDivision();
+        $tblSubject = $tblCourseContent->getServiceTblSubject();
+        $tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup();
+        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent(
+            $tblDivision, $tblSubject, $tblSubjectGroup, $CourseContentId, true
+        ), $CourseContentId);
+    }
+
+    /**
+     * @param string $CourseContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditCourseContentSave(string $CourseContentId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditCourseContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'CourseContentId' => $CourseContentId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $CourseContentId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditCourseContentModal($CourseContentId, $Data)
+    {
+        if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
+            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblDivision = $tblCourseContent->getServiceTblDivision();
+        $tblSubject = $tblCourseContent->getServiceTblSubject();
+        $tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup();
+        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Digital::useService()->checkFormCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup, $tblCourseContent))) {
+            // display Errors on form
+            return $this->getCourseContentModal($form, $CourseContentId);
+        }
+
+        if (Digital::useService()->updateCourseContent($tblCourseContent, $Data)) {
+            return new Success('Die Unterrichtseinheit wurde erfolgreich gespeichert.')
+                . self::pipelineLoadCourseContentContent($tblDivision->getId(), $tblSubject->getId(), $tblSubjectGroup->getId())
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Unterrichtseinheit konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $CourseContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteCourseContentModal(string $CourseContentId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteCourseContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'CourseContentId' => $CourseContentId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $CourseContentId
+     *
+     * @return string
+     */
+    public function openDeleteCourseContentModal(string $CourseContentId)
+    {
+        if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
+            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Unterrichtseinheit löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diese Unterrichtseinheit wirklich löschen?',
+                                array(
+                                    $tblCourseContent->getDate(),
+                                    $tblCourseContent->getLessonDisplay(),
+                                    ($tblSubject = $tblCourseContent->getServiceTblSubject())
+                                        ? $tblSubject->getDisplayName() : '',
+                                    ($tblPerson = $tblCourseContent->getServiceTblPerson())
+                                        ? $tblPerson->getFullName() : '',
+                                    $tblCourseContent->getContent(),
+                                    $tblCourseContent->getHomework(),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteCourseContentSave($CourseContentId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param string $CourseContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteCourseContentSave(string $CourseContentId): Pipeline
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteCourseContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'CourseContentId' => $CourseContentId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $CourseContentId
+     *
+     * @return Danger|string
+     */
+    public function saveDeleteCourseContentModal(string $CourseContentId)
+    {
+        if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
+            return new Danger('Die Unterrichtseinheit wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblDivision = $tblCourseContent->getServiceTblDivision();
+        $tblSubject = $tblCourseContent->getServiceTblSubject();
+        $tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup();
+        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (Digital::useService()->destroyCourseContent($tblCourseContent)) {
+            return new Success('Die Unterrichtseinheit wurde erfolgreich gelöscht.')
+                . self::pipelineLoadCourseContentContent($tblDivision->getId(), $tblSubject->getId(), $tblSubjectGroup->getId())
                 . self::pipelineClose();
         } else {
             return new Danger('Die Unterrichtseinheit konnte nicht gelöscht werden.') . self::pipelineClose();

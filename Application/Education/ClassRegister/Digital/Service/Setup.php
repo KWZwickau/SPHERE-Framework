@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 class Setup  extends AbstractSetup
@@ -21,6 +20,7 @@ class Setup  extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableLessonContent($Schema);
+        $this->setTableCourseContent($Schema);
 
         /**
          * Migration & Protocol
@@ -37,10 +37,8 @@ class Setup  extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     *
-     * @return Table
      */
-    private function setTableLessonContent(Schema &$Schema): Table
+    private function setTableLessonContent(Schema &$Schema)
     {
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonContent');
 
@@ -53,7 +51,23 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'Lesson', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Homework', self::FIELD_TYPE_TEXT);
+    }
 
-        return $Table;
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableCourseContent(Schema &$Schema)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterCourseContent');
+
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubjectGroup', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'Lesson', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'Homework', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'IsDoubleLesson', self::FIELD_TYPE_BOOLEAN);
     }
 }

@@ -11,6 +11,8 @@ use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -19,6 +21,7 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -65,6 +68,8 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -230,6 +235,8 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
 
+                // todo sekII-kurse
+
                 if (empty($divisionTable)) {
                     $table = new Warning('Keine entsprechenden Lehraufträge vorhanden.', new Exclamation());
                 } else {
@@ -237,12 +244,14 @@ class Frontend extends Extension implements IFrontendInterface
                         'Year' => 'Schuljahr',
                         'Type' => 'Schulart',
                         'Division' => 'Klasse',
+                        'Course' => 'Kurs',
                         'Option' => ''
                     ), array(
                         'order' => array(
                             array('0', 'desc'),
                             array('1', 'asc'),
                             array('2', 'asc'),
+                            array('3', 'asc'),
                         ),
                         'columnDefs' => array(
                             array('type' => 'natural', 'targets' => 2),
@@ -343,6 +352,41 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Auswählen'
                             )
                         );
+
+                        // SekII-Kurse
+                        if (($tblLevel = $tblDivision->getTblLevel())
+                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                        ) {
+                            if (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
+                                || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName()))
+                            ) {
+                                if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                                    foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                                        if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                                            && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                                            && $tblDivisionSubject->getHasGrading()
+                                        ) {
+                                            $divisionTable[] = array(
+                                                'Year' => $tblYear->getDisplayName(),
+                                                'Type' => $tblDivision->getTypeName(),
+                                                'Division' => $tblDivision->getDisplayName(),
+                                                'Course' => $tblSubject->getDisplayName() . ' ' . $tblSubjectGroup->getName(),
+                                                'Option' => new Standard(
+                                                    '', self::BASE_ROUTE . '/CourseContent', new Select(),
+                                                    array(
+                                                        'DivisionId' => $tblDivision->getId(),
+                                                        'SubjectId' => $tblSubject->getId(),
+                                                        'SubjectGroupId' => $tblSubjectGroup->getId(),
+                                                        'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
+                                                    ),
+                                                    'Auswählen'
+                                                )
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -351,12 +395,14 @@ class Frontend extends Extension implements IFrontendInterface
                 'Year' => 'Schuljahr',
                 'Type' => 'Schulart',
                 'Division' => 'Klasse',
+                'Course' => 'Kurs',
                 'Option' => ''
             ), array(
                 'order' => array(
                     array('0', 'desc'),
                     array('1', 'asc'),
                     array('2', 'asc'),
+                    array('3', 'asc'),
                 ),
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 2),
@@ -620,20 +666,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivision ?: null,
             $tblGroup ?: null))) {
             foreach ($tblLessonContentList as $tblLessonContent) {
-                $teacher = '';
-                if (($tblPerson = $tblLessonContent->getServiceTblPerson())) {
-                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
-                        && ($acronym = $tblTeacher->getAcronym())
-                    ) {
-                        $teacher = $acronym;
-                    } else {
-                        if (strlen($tblPerson->getLastName()) > 5) {
-                            $teacher = substr($tblPerson->getLastName(), 0, 5) . '.';
-                        }
-                    }
-                    $teacher = new ToolTip($teacher, $tblPerson->getFullName());
-                }
-
                 $lesson = $tblLessonContent->getLesson();
                 if ($lesson > $maxLesson) {
                     $maxLesson = $lesson;
@@ -650,7 +682,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Subject' => $this->getLessonsEditLink(
                         ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getAcronym() : '',
                         $lessonContentId, $lesson),
-                    'Teacher' => $this->getLessonsEditLink($teacher, $lessonContentId, $lesson),
+                    'Teacher' => $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson),
                     'Content' => $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson),
                     'Homework' => $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId,
                         $lesson),
@@ -1111,6 +1143,279 @@ class Frontend extends Extension implements IFrontendInterface
                         , 6),
                 )),
                 new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Content]', 'Thema/Inhalt', 'Thema/Inhalt', new Edit())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $buttonList
+                    )
+                )),
+            ))
+        ))->disableSubmitAction();
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $SubjectId
+     * @param null $SubjectGroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendCourseContent(
+        $DivisionId = null,
+        $SubjectId = null,
+        $SubjectGroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('SekII-Kurs-Heft', 'Übersicht');
+
+        // todo zurück zur Klasse
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
+
+        if ($tblDivision && $tblSubject && $tblSubjectGroup) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            $content[] = 'Klasse: ' . $tblDivision->getDisplayName();
+            $content[] = 'Fach: ' . $tblSubject->getDisplayName();
+            $content[] = 'Kurs: ' . $tblSubjectGroup->getName();
+
+            $stage->setContent(
+                ApiDigital::receiverModal()
+                . ApiAbsence::receiverModal()
+                . new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Panel('SekII-Kurs', $content, Panel::PANEL_TYPE_INFO), 6),
+                        new LayoutColumn(new Panel('Schuljahr', $tblYear ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO), 6)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary(
+                                new Plus() . ' Unterrichtseinheit hinzufügen',
+                                ApiDigital::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateCourseContentModal($DivisionId, $SubjectId, $SubjectGroupId))
+                            . (new Primary(
+                                new Plus() . ' Fehlzeit hinzufügen',
+                                ApiAbsence::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId))
+                        )
+                    ))
+                )))
+                . new Container('&nbsp;')
+                . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup),
+                    'CourseContentContent')
+            );
+        } else {
+            return new Danger('SekII-Kurs nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return string
+     */
+    public function loadCourseContentTable(TblDivision $tblDivision, TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup): string
+    {
+        $dataList = array();
+        $divisionList = array('0' => $tblDivision);
+        if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))) {
+            foreach ($tblCourseContentList as $tblCourseContent) {
+                $absenceList = array();
+                $lessonArray = array();
+                if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime($tblCourseContent->getDate()),
+                    null, null, $divisionList, array(), $hasTypeOption, null))
+                ) {
+                    $lesson = $tblCourseContent->getLesson();
+                    $lessonArray[$lesson] = $lesson;
+                    if ($tblCourseContent->getIsDoubleLesson()) {
+                        $lesson++;
+                        $lessonArray[$lesson] = $lesson;
+                    }
+                    foreach ($AbsenceList as $Absence) {
+                        if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
+                            $isAdd = false;
+                            if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
+                                foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
+                                    if (isset($lessonArray[$tblAbsenceLesson->getLesson()])) {
+                                        $isAdd = true;
+                                        break;
+                                    }
+                                }
+                            // ganztägig
+                            } else {
+                                $isAdd = true;
+                            }
+
+                            if ($isAdd) {
+                                $lessonString = $tblAbsence->getLessonStringByAbsence();
+                                $type = $tblAbsence->getTypeDisplayShortName();
+                                $remark = $tblAbsence->getRemark();
+                                $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
+                                    . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                                    . ($remark ? ' - ' . $remark : '');
+
+                                $absenceList[] = new Container((new Link(
+                                    $Absence['Person'],
+                                    ApiAbsence::getEndpoint(),
+                                    null,
+                                    array(),
+                                    $toolTip,
+                                    null,
+                                    $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
+                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId())));
+                            }
+                        }
+                    }
+                }
+
+                $dataList[] = array(
+                    'Date' => $tblCourseContent->getDate(),
+                    'Lesson' => new Center(implode(', ', $lessonArray)),
+                    'IsDoubleLesson' => new Center($tblCourseContent->getIsDoubleLesson() ? 'X' : ''),
+                    'Content' => $tblCourseContent->getContent(),
+                    'Homework' => $tblCourseContent->getHomework(),
+                    'Absence' => implode(' ', $absenceList),
+                    'Teacher' => $tblCourseContent->getTeacherString(),
+                    'Option' =>
+                        (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Edit(),
+                            array(),
+                            'Bearbeiten'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditCourseContentModal($tblCourseContent->getId()))
+                        . (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Remove(),
+                            array(),
+                            'Löschen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteCourseContentModal($tblCourseContent->getId()))
+                );
+            }
+        }
+
+        return new TableData(
+            $dataList,
+            null,
+            array(
+                'Date' => 'Datum',
+                'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
+                'IsDoubleLesson' => 'Doppel&shy;stunde',
+                'Content' => 'Thema / Inhalt',
+                'Homework' => 'Hausaufgaben',
+                'Absence' => 'Fehlzeiten',
+                'Teacher' => 'Lehrer',
+                'Option' => ''
+            ),
+            array(
+                'order' => array(
+                    array(0, 'desc')
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 0),
+                    array('width' => '50px', 'targets' => 0),
+                    array('width' => '25px', 'targets' => 1),
+                    array('width' => '25px', 'targets' => 2),
+                    array('width' => '50px', 'targets' => 6),
+                    array('width' => '60px', 'targets' => -1),
+                ),
+                'responsive' => false
+            )
+        );
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param null $CourseContentId
+     * @param bool $setPost
+     *
+     * @return Form
+     */
+    public function formCourseContent(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup,
+        $CourseContentId = null, bool $setPost = false): Form
+    {
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        if ($setPost && $CourseContentId
+            && ($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))
+        ) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Date'] = $tblCourseContent->getDate();
+            $Global->POST['Data']['Lesson'] = $tblCourseContent->getLesson();
+            $Global->POST['Data']['serviceTblPerson'] =
+                ($tblPerson = $tblCourseContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
+            $Global->POST['Data']['Content'] = $tblCourseContent->getContent();
+            $Global->POST['Data']['Homework'] = $tblCourseContent->getHomework();
+            $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getIsDoubleLesson() ? 1 : 0;
+
+            $Global->savePost();
+        }
+
+        if ($CourseContentId) {
+            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineEditCourseContentSave($CourseContentId));
+        } else {
+            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineCreateCourseContentSave(
+                    $tblDivision->getId(),
+                    $tblSubject->getId(),
+                    $tblSubjectGroup->getId()
+                ));
+        }
+        $buttonList[] = $saveButton;
+
+        for ($i = 0; $i < 13; $i++) {
+            $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
+        }
+
+        // Unterrichteinheit löchen
+        if ($CourseContentId) {
+            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
+                'Löschen',
+                ApiDigital::getEndpoint(),
+                new Remove(),
+                array(),
+                false
+            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteCourseContentModal($CourseContentId));
+        }
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde', 1)
+                    ),
+                )),
+               new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Content]', 'Thema/Inhalt', 'Thema/Inhalt', new Edit())
                     ),

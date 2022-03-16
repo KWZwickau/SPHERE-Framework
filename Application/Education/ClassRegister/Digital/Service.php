@@ -4,17 +4,23 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 
 use DateTime;
 use SPHERE\Application\Education\Certificate\Prepare\View;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -25,6 +31,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -213,6 +220,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param bool $IsToolTip
+     *
+     * @return string
+     */
+    public function getTeacherString(TblPerson $tblPerson, bool $IsToolTip = true): string
+    {
+        $teacher = '';
+        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+            && ($acronym = $tblTeacher->getAcronym())
+        ) {
+            $teacher = $acronym;
+        } else {
+            if (strlen($tblPerson->getLastName()) > 5) {
+                $teacher = substr($tblPerson->getLastName(), 0, 5) . '.';
+            }
+        }
+
+        return $IsToolTip ? new ToolTip($teacher, $tblPerson->getFullName()) : $teacher;
+    }
+
+    /**
      * @param $Data
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
@@ -324,5 +353,114 @@ class Service extends AbstractService
         }
 
         return $error ? $form : false;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblCourseContent
+     */
+    public function getCourseContentById($Id)
+    {
+        return (new Data($this->getBinding()))->getCourseContentById($Id);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return false|TblCourseContent[]
+     */
+    public function getCourseContentListBy(TblDivision $tblDivision, TblSubject $tblSubject,TblSubjectGroup $tblSubjectGroup)
+    {
+        return (new Data($this->getBinding()))->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup);
+    }
+
+    /**
+     * @param $Data
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblCourseContent|null $tblCourseContent
+     *
+     * @return false|Form
+     */
+    public function checkFormCourseContent(
+        $Data,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup,
+        TblCourseContent $tblCourseContent = null
+    ) {
+        $error = false;
+
+        $form = Digital::useFrontend()->formCourseContent(
+            $tblDivision, $tblSubject, $tblSubjectGroup, $tblCourseContent ? $tblCourseContent->getId() : null
+        );
+        if (isset($Data['Date']) && empty($Data['Date'])) {
+            $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
+            $error = true;
+        }
+        if (isset($Data['Lesson']) && $Data['Lesson'] < 1) {
+            $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
+            $error = true;
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param $Data
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return bool
+     */
+    public function createCourseContent($Data, TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup): bool
+    {
+        (new Data($this->getBinding()))->createCourseContent(
+            $tblDivision,
+            $tblSubject,
+            $tblSubjectGroup,
+            $Data['Date'],
+            $Data['Lesson'],
+            $Data['Content'],
+            $Data['Homework'],
+            isset($Data['IsDoubleLesson']),
+            ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
+        );
+
+        return  true;
+    }
+
+    /**
+     * @param TblCourseContent $tblCourseContent
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateCourseContent(TblCourseContent $tblCourseContent, $Data): bool
+    {
+        return (new Data($this->getBinding()))->updateCourseContent(
+            $tblCourseContent,
+            $Data['Date'],
+            $Data['Lesson'],
+            $Data['Content'],
+            $Data['Homework'],
+            isset($Data['IsDoubleLesson']),
+            ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
+        );
+    }
+
+    /**
+     * @param TblCourseContent $tblCourseContent
+     *
+     * @return bool
+     */
+    public function destroyCourseContent(TblCourseContent $tblCourseContent): bool
+    {
+        return (new Data($this->getBinding()))->destroyCourseContent($tblCourseContent);
     }
 }

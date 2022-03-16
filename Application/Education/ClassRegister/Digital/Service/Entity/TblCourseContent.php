@@ -10,27 +10,24 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblClassRegisterLessonContent")
+ * @Table(name="tblClassRegisterCourseContent")
  * @Cache(usage="READ_ONLY")
  */
-class TblLessonContent extends Element
+class TblCourseContent extends Element
 {
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
     const ATTR_DATE = 'Date';
-    const ATTR_LESSON = 'Lesson';
 
     /**
      * @Column(type="bigint")
@@ -40,22 +37,17 @@ class TblLessonContent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblGroup;
+    protected $serviceTblSubject;
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblYear;
+    protected $serviceTblSubjectGroup;
 
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblSubject;
 
     /**
      * @Column(type="datetime")
@@ -78,6 +70,11 @@ class TblLessonContent extends Element
     protected string $Homework;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsDoubleLesson;
+
+    /**
      * @return bool|TblDivision
      */
     public function getServiceTblDivision()
@@ -98,43 +95,43 @@ class TblLessonContent extends Element
     }
 
     /**
-     * @return bool|TblGroup
+     * @return bool|TblSubject
      */
-    public function getServiceTblGroup()
+    public function getServiceTblSubject()
     {
-        if(null === $this->serviceTblGroup){
+        if (null === $this->serviceTblSubject) {
             return false;
         } else {
-            return Group::useService()->getGroupById($this->serviceTblGroup);
+            return Subject::useService()->getSubjectById($this->serviceTblSubject);
         }
     }
 
     /**
-     * @param null|TblGroup $serviceTblGroup
+     * @param TblSubject|null $tblSubject
      */
-    public function setServiceTblGroup(TblGroup $serviceTblGroup = null)
+    public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
-        $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());
+        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
     }
 
     /**
-     * @return bool|TblYear
+     * @return bool|TblSubjectGroup
      */
-    public function getServiceTblYear()
+    public function getServiceTblSubjectGroup()
     {
-        if (null === $this->serviceTblYear) {
+        if (null === $this->serviceTblSubjectGroup) {
             return false;
         } else {
-            return Term::useService()->getYearById($this->serviceTblYear);
+            return Division::useService()->getSubjectGroupById($this->serviceTblSubjectGroup);
         }
     }
 
     /**
-     * @param TblYear|null $tblYear
+     * @param TblSubjectGroup|null $tblSubjectGroup
      */
-    public function setServiceTblYear(TblYear $tblYear = null)
+    public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
     {
-        $this->serviceTblYear = ( null === $tblYear ? null : $tblYear->getId() );
+        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**
@@ -155,26 +152,6 @@ class TblLessonContent extends Element
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
-    }
-
-    /**
-     * @return bool|TblSubject
-     */
-    public function getServiceTblSubject()
-    {
-        if (null === $this->serviceTblSubject) {
-            return false;
-        } else {
-            return Subject::useService()->getSubjectById($this->serviceTblSubject);
-        }
-    }
-
-    /**
-     * @param TblSubject|null $tblSubject
-     */
-    public function setServiceTblSubject(TblSubject $tblSubject = null)
-    {
-        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
     }
 
     /**
@@ -219,19 +196,19 @@ class TblLessonContent extends Element
     }
 
     /**
-     * @param integer $Lesson
-     */
-    public function setLesson(int $Lesson)
-    {
-        $this->Lesson = $Lesson;
-    }
-
-    /**
      * @return string
      */
     public function getContent(): string
     {
         return $this->Content;
+    }
+
+    /**
+     * @param integer $Lesson
+     */
+    public function setLesson(int $Lesson)
+    {
+        $this->Lesson = $Lesson;
     }
 
     /**
@@ -256,6 +233,22 @@ class TblLessonContent extends Element
     public function setHomework(string $Homework)
     {
         $this->Homework = $Homework;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsDoubleLesson() : bool
+    {
+        return (bool) $this->IsDoubleLesson;
+    }
+
+    /**
+     * @param bool $IsDoubleLesson
+     */
+    public function setIsDoubleLesson(bool $IsDoubleLesson): void
+    {
+        $this->IsDoubleLesson = $IsDoubleLesson;
     }
 
     /**

@@ -3,8 +3,10 @@
 namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use DateTime;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -148,5 +150,136 @@ class Data  extends AbstractData
             TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
             TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
         ), array(TblLessonContent::ATTR_LESSON => self::ORDER_ASC) );
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param $Date
+     * @param $Lesson
+     * @param $Content
+     * @param $Homework
+     * @param $IsDoubleLesson
+     * @param TblPerson|null $tblPerson
+     *
+     * @return TblCourseContent
+     */
+    public function createCourseContent(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup,
+        $Date,
+        $Lesson,
+        $Content,
+        $Homework,
+        $IsDoubleLesson,
+        TblPerson $tblPerson = null
+    ): TblCourseContent {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblCourseContent();
+        $Entity->setServiceTblDivision($tblDivision);
+        $Entity->setServiceTblSubject($tblSubject);
+        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+        $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setDate($Date ? new DateTime($Date) : null);
+        $Entity->setLesson($Lesson);
+        $Entity->setContent($Content);
+        $Entity->setHomework($Homework);
+        $Entity->setIsDoubleLesson($IsDoubleLesson);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblCourseContent $tblCourseContent
+     * @param $Date
+     * @param $Lesson
+     * @param $Content
+     * @param $Homework
+     * @param $IsDoubleLesson
+     * @param TblPerson|null $tblPerson
+     *
+     * @return bool
+     */
+    public function updateCourseContent(
+        TblCourseContent $tblCourseContent,
+        $Date,
+        $Lesson,
+        $Content,
+        $Homework,
+        $IsDoubleLesson,
+        TblPerson $tblPerson = null
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCourseContent $Entity */
+        $Entity = $Manager->getEntityById('TblCourseContent', $tblCourseContent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDate($Date ? new DateTime($Date) : null);
+            $Entity->setLesson($Lesson);
+            $Entity->setContent($Content);
+            $Entity->setHomework($Homework);
+            $Entity->setIsDoubleLesson($IsDoubleLesson);
+            $Entity->setServiceTblPerson($tblPerson);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblCourseContent $tblCourseContent
+     *
+     * @return bool
+     */
+    public function destroyCourseContent(TblCourseContent $tblCourseContent): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCourseContent $Entity */
+        $Entity = $Manager->getEntityById('TblCourseContent', $tblCourseContent->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblCourseContent
+     */
+    public function getCourseContentById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblCourseContent', $Id);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return false|TblCourseContent[]
+     */
+    public function getCourseContentListBy(TblDivision $tblDivision, TblSubject $tblSubject,TblSubjectGroup $tblSubjectGroup)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCourseContent', array(
+            TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblCourseContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblCourseContent::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+        ));
     }
 }
