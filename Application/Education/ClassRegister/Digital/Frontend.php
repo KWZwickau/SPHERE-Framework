@@ -68,8 +68,6 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
-use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -235,8 +233,6 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
 
-                // todo sekII-kurse
-
                 if (empty($divisionTable)) {
                     $table = new Warning('Keine entsprechenden Lehraufträge vorhanden.', new Exclamation());
                 } else {
@@ -244,7 +240,6 @@ class Frontend extends Extension implements IFrontendInterface
                         'Year' => 'Schuljahr',
                         'Type' => 'Schulart',
                         'Division' => 'Klasse',
-                        'Course' => 'Kurs',
                         'Option' => ''
                     ), array(
                         'order' => array(
@@ -352,41 +347,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Auswählen'
                             )
                         );
-
-                        // SekII-Kurse
-                        if (($tblLevel = $tblDivision->getTblLevel())
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
-                        ) {
-                            if (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
-                                || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName()))
-                            ) {
-                                if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
-                                    foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                                        if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-                                            && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                                            && $tblDivisionSubject->getHasGrading()
-                                        ) {
-                                            $divisionTable[] = array(
-                                                'Year' => $tblYear->getDisplayName(),
-                                                'Type' => $tblDivision->getTypeName(),
-                                                'Division' => $tblDivision->getDisplayName(),
-                                                'Course' => $tblSubject->getDisplayName() . ' ' . $tblSubjectGroup->getName(),
-                                                'Option' => new Standard(
-                                                    '', self::BASE_ROUTE . '/CourseContent', new Select(),
-                                                    array(
-                                                        'DivisionId' => $tblDivision->getId(),
-                                                        'SubjectId' => $tblSubject->getId(),
-                                                        'SubjectGroupId' => $tblSubjectGroup->getId(),
-                                                        'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
-                                                    ),
-                                                    'Auswählen'
-                                                )
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -395,7 +355,6 @@ class Frontend extends Extension implements IFrontendInterface
                 'Year' => 'Schuljahr',
                 'Type' => 'Schulart',
                 'Division' => 'Klasse',
-                'Course' => 'Kurs',
                 'Option' => ''
             ), array(
                 'order' => array(
@@ -446,35 +405,99 @@ class Frontend extends Extension implements IFrontendInterface
         ));
 
         $tblYear = null;
-//        $tblPerson = Account::useService()->getPersonByLogin();
+        $tblPerson = Account::useService()->getPersonByLogin();
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
 
-        // View speichern
-        Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
+        // Auswahl der SEKII-Kurshefte
+        if ($tblDivision
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
+                || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName())))
+        ) {
+            // Klassenlehrer sieht alle Kurshefte
+            if ($tblPerson && (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))) {
+                $isTeacher = false;
+            } else {
+                // Fachlehrer
+                $isTeacher = strpos($BasicRoute, 'Teacher');
+            }
 
-        if ($tblDivision || $tblGroup) {
+            $subjectGroupList = array();
+            if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+                && $tblPerson
+            ) {
+                foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                    if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                        && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                        && $tblDivisionSubject->getHasGrading()
+                    ) {
+                        // Fachlehrer benötigt einen Lehrauftrag
+                        if ($isTeacher && !Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
+                            continue;
+                        }
+
+                        $subjectGroupList[] = array(
+                            'Subject' => $tblSubject->getDisplayName(),
+                            'SubjectGroup' => $tblSubjectGroup->getName(),
+                            'Option' => new Standard(
+                                '', self::BASE_ROUTE . '/CourseContent', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'SubjectId' => $tblSubject->getId(),
+                                    'SubjectGroupId' => $tblSubjectGroup->getId(),
+                                    'BasicRoute' => $BasicRoute
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
+                }
+            }
+
+            $stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    Digital::useService()->getHeadColumnRow($tblDivision, null, $tblYear)
+                )))
+                . new Panel(
+                    'SEKII-Kurshefte',
+                    new TableData(
+                        $subjectGroupList,
+                        null,
+                        array(
+                            'Subject' => 'Fach',
+                            'SubjectGroup' => 'Fach-Gruppe',
+                            'Option' => ''
+                        ),
+                        array(
+                            'order' => array(
+                                array('0', 'asc'),
+                                array('1', 'asc'),
+                            ),
+                            'columnDefs' => array(
+                                array('type' => 'natural', 'targets' => 2),
+                                array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                            ),
+                        )
+                    ),
+                    Panel::PANEL_TYPE_PRIMARY
+                )
+            );
+
+        // Klassenbuch Ansicht
+        } elseif ($tblDivision || $tblGroup) {
+            // View speichern
+            Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
+
             $stage->setContent(
                 ApiDigital::receiverModal()
                 . ApiAbsence::receiverModal()
                 . new Layout(new LayoutGroup(array(
                     Digital::useService()->getHeadColumnRow(
                         $tblDivision ?: null, $tblGroup ?: null, $tblYear
-                    ),
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            (new Primary(
-//                                new Plus() . ' Unterrichtseinheit hinzufügen',
-//                                ApiDigital::getEndpoint()
-//                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId))
-//                            . (new Primary(
-//                                new Plus() . ' Fehlzeit hinzufügen',
-//                                ApiAbsence::getEndpoint()
-//                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId))
-//                        )
-//                    ))
+                    )
                 )))
-//                . new Container('&nbsp;')
                 . ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
             );
         } else {
@@ -1177,9 +1200,11 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
         $stage = new Stage('SekII-Kurs-Heft', 'Übersicht');
 
-        // todo zurück zur Klasse
         $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
+            'Zurück', '/Education/ClassRegister/Digital/LessonContent', new ChevronLeft(), array(
+                'DivisionId' => $DivisionId,
+                'BasicRoute' => $BasicRoute
+            )
         ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);

@@ -2736,4 +2736,18 @@ class Data extends AbstractData
 
         return empty($result) ? false : $result;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject): bool
+    {
+        return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTeacher', array(
+           TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+           TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
+        ));
+    }
 }

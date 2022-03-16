@@ -3170,4 +3170,15 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getMainDivisionStudentAllByYear($tblYear);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject): bool
+    {
+        return (new Data($this->getBinding()))->existsSubjectTeacher($tblPerson, $tblDivisionSubject);
+    }
 }
