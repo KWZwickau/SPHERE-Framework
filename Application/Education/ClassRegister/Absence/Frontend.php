@@ -145,8 +145,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionId
      * @param IMessageInterface|null $messageSearch
      * @param IMessageInterface|null $messageLesson
-     *
      * @param null $Date
+     * @param null $Type
+     * @param null $TypeId
+     *
      * @return Form
      */
     public function formAbsence(
@@ -158,7 +160,9 @@ class Frontend extends Extension implements IFrontendInterface
         $DivisionId = null,
         IMessageInterface $messageSearch = null,
         IMessageInterface $messageLesson = null,
-        $Date = null
+        $Date = null,
+        $Type = null,
+        $TypeId = null
     ) {
         if ($Data === null && $AbsenceId === null) {
             $isFullDay = true;
@@ -201,11 +205,36 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionId, $hasSearch));
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionId, $hasSearch, $Type, $TypeId));
         }
 
         $formRows = array();
-        if ($hasSearch) {
+        if ($Type && $TypeId) {
+            $tblPersonList = false;
+            switch ($Type) {
+                case 'Division':
+                    if (($tblDivision = Division::useService()->getDivisionById($TypeId))) {
+                        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                    }
+                    break;
+                case 'Group':
+                    if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
+                        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                    }
+                    break;
+                case 'DivisionSubject':
+                    if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($TypeId))) {
+                        $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+                    }
+                    break;
+            }
+
+            if ($tblPersonList) {
+                $formRows[] = new FormRow(new FormColumn(
+                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))->setRequired()
+                ));
+            }
+        } elseif ($hasSearch) {
             $formRows[] = new FormRow(array(
                 new FormColumn(array(
                     new Panel(

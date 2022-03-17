@@ -400,6 +400,8 @@ class Service extends AbstractService
      * @param null $PersonId
      * @param null $DivisionId
      * @param bool $hasSearch
+     * @param null $Type
+     * @param null $TypeId
      *
      * @return bool|Form
      */
@@ -409,7 +411,9 @@ class Service extends AbstractService
         TblAbsence $tblAbsence = null,
         $PersonId = null,
         $DivisionId = null,
-        $hasSearch = false
+        $hasSearch = false,
+        $Type = null,
+        $TypeId = null
     ) {
 
         $error = false;
@@ -425,6 +429,8 @@ class Service extends AbstractService
         } elseif ($tblAbsence) {
             $tblPerson = $tblAbsence->getServiceTblPerson();
             $tblDivision = $tblAbsence->getServiceTblDivision();
+        } elseif ($Type) {
+            // Prüfung kann erst nach dem Erstellen des Forms erfolgen
         } else {
             if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
                 $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
@@ -454,12 +460,26 @@ class Service extends AbstractService
             $tblPerson ? $tblPerson->getId() : null,
             $tblDivision ? $tblDivision->getId() : null,
             $messageSearch,
-            $messageLesson
+            $messageLesson,
+            null,
+            $Type,
+            $TypeId
         );
 
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
             $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $error = true;
+        }
+
+        if ($Type) {
+            if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
+                $form->setError('Data[PersonId]', 'Bitte wählen Sie einen Schüler aus.');
+                $error = true;
+            }
+
+            if ($tblPerson) {
+                $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+            }
         }
 
         $fromDate = null;

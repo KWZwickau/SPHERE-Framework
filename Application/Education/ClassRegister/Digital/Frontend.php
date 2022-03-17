@@ -527,12 +527,22 @@ class Frontend extends Extension implements IFrontendInterface
             ApiDigital::getEndpoint()
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId));
 
+        if ($tblDivision) {
+            $Type = 'Division';
+            $TypeId = $DivisionId;
+        } elseif ($tblGroup) {
+            $Type = 'Group';
+            $TypeId = $tblGroup->getId();
+        } else {
+            $Type = null;
+            $TypeId = null;
+        }
+
         if ($View == 'Day') {
             $buttons .= (new Primary(
                 new Plus() . ' Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint()
-            // todo GroupId?
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, null, $Type, $TypeId));
 
             $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
@@ -1223,7 +1233,11 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSubject = Subject::useService()->getSubjectById($SubjectId);
         $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
 
-        if ($tblDivision && $tblSubject && $tblSubjectGroup) {
+        if ($tblDivision && $tblSubject && $tblSubjectGroup
+            && ($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblDivision, $tblSubject, $tblSubjectGroup
+            ))
+        ) {
             $tblYear = $tblDivision->getServiceTblYear();
             $content[] = 'Klasse: ' . $tblDivision->getDisplayName();
             $content[] = 'Fach: ' . $tblSubject->getDisplayName();
@@ -1246,7 +1260,8 @@ class Frontend extends Extension implements IFrontendInterface
                             . (new Primary(
                                 new Plus() . ' Fehlzeit hinzufügen',
                                 ApiAbsence::getEndpoint()
-                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId))
+                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId, null,
+                                'DivisionSubject', $tblDivisionSubject->getId()))
                         )
                     ))
                 )))

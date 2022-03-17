@@ -138,7 +138,7 @@ class ApiAbsence extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateAbsenceModal($PersonId = null, $DivisionId = null, $Date = null)
+    public static function pipelineOpenCreateAbsenceModal($PersonId = null, $DivisionId = null, $Date = null, $Type = null, $TypeId = null)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -148,7 +148,9 @@ class ApiAbsence extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'DivisionId' => $DivisionId,
-            'Date' => $Date
+            'Date' => $Date,
+            'Type' => $Type,
+            'TypeId' => $TypeId
         ));
 
         $Pipeline->appendEmitter($ModalEmitter);
@@ -163,10 +165,11 @@ class ApiAbsence extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openCreateAbsenceModal($PersonId = null, $DivisionId = null, $Date = null)
+    public function openCreateAbsenceModal($PersonId = null, $DivisionId = null, $Date = null, $Type = null, $TypeId = null)
     {
         return $this->getAbsenceModal(
-            Absence::useFrontend()->formAbsence(null, $PersonId == null, '', null, $PersonId, $DivisionId, null, null, $Date),
+            Absence::useFrontend()->formAbsence(null, $PersonId == null, '', null, $PersonId, $DivisionId, null, null,
+                $Date, $Type, $TypeId),
             null,
             $PersonId,
             $DivisionId,
@@ -238,7 +241,8 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $hasSearch
      * @return Pipeline
      */
-    public static function pipelineCreateAbsenceSave($PersonId = null, $DivisionId = null, $hasSearch = null)
+    public static function pipelineCreateAbsenceSave($PersonId = null, $DivisionId = null, $hasSearch = null,
+        $Type = null, $TypeId = null)
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -248,7 +252,9 @@ class ApiAbsence extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'DivisionId' => $DivisionId,
-            'hasSearch' => $hasSearch
+            'hasSearch' => $hasSearch,
+            'Type' => $Type,
+            'TypeId' => $TypeId
         ));
 
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
@@ -263,13 +269,18 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $PersonId
      * @param null $DivisionId
      * @param null $hasSearch
+     * @param null $Type
+     * @param null $TypeId
      *
      * @return string
      */
-    public function saveCreateAbsenceModal($Data, $Search, $PersonId = null, $DivisionId = null, $hasSearch = null)
+    public function saveCreateAbsenceModal($Data, $Search, $PersonId = null, $DivisionId = null, $hasSearch = null,
+        $Type = null, $TypeId = null)
     {
         $hasSearch = $hasSearch == 'true';
-        if (($form = Absence::useService()->checkFormAbsence($Data, $Search, null, $PersonId, $DivisionId, $hasSearch))) {
+        if (($form = Absence::useService()->checkFormAbsence($Data, $Search, null, $PersonId, $DivisionId, $hasSearch,
+            $Type, $TypeId
+        ))) {
             // display Errors on form
             return $this->getAbsenceModal($form, null, $PersonId, $DivisionId, $hasSearch);
         }
