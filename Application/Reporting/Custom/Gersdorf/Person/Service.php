@@ -1062,6 +1062,24 @@ class Service extends Extension
                 } else {
                     $RowCount++;
                 }
+                if(($RowCount - $Row) > 1){
+                    // number merge
+                    $export->setStyle($export->getCell(($i - 4), $Row), $export->getCell(($i - 4), ($RowCount - 1)))
+                        ->mergeCells();
+                    // name merge
+                    $export->setStyle($export->getCell(($i - 3), $Row), $export->getCell(($i - 3), ($RowCount - 1)))
+                        ->mergeCells();
+                    // gender merge
+                    $export->setStyle($export->getCell(($i - 2), $Row), $export->getCell(($i - 2), ($RowCount - 1)))
+                        ->mergeCells();
+                    // address merge
+                    $export->setStyle($export->getCell(($i - 1), $Row), $export->getCell(($i - 1), ($RowCount - 1)))
+                    ->mergeCells();
+                    // birthday merge
+                    $export->setStyle($export->getCell(($i + 1), $Row), $export->getCell(($i + 1), ($RowCount - 1)))
+                    ->mergeCells();
+                }
+
                 $i++;
                 $export->setValue($export->getCell($i, $Row), $PersonData['Birthday']);
 
