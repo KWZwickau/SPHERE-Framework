@@ -538,11 +538,13 @@ class Frontend extends Extension implements IFrontendInterface
             $TypeId = null;
         }
 
+        $Date = $DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString;
+
         if ($View == 'Day') {
             $buttons .= (new Primary(
                 new Plus() . ' Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, null, $Type, $TypeId));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $Date, $Type, $TypeId));
 
             $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
@@ -558,7 +560,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new PullRight(new DatePicker('Data[Date]', '', '', new Calendar()))
                 , 7),
             new FormColumn(
-                new PullRight((new Primary('Auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+                new PullRight((new Primary('Datum auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
                     $DivisionId, $GroupId, $DateString, $View
                 )))
                 , 5)
@@ -566,8 +568,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         return
             new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($buttons, 9),
-                new LayoutColumn($form, 3)
+                new LayoutColumn($buttons, 8),
+                new LayoutColumn($form, 4)
             ))))
             . new Container('&nbsp;')
             . new Panel(
@@ -623,12 +625,18 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblCompanyList = array();
             }
+            $Type = 'Division';
+            $TypeId = $DivisionId;
         } elseif ($tblGroup) {
             $tblYear = $tblGroup->getCurrentYear();
             $tblCompanyList = $tblGroup->getCurrentCompanyList();
+            $Type = 'Group';
+            $TypeId = $tblGroup->getId();
         } else {
             $tblYear = false;
             $tblCompanyList = array();
+            $Type = null;
+            $TypeId = null;
         }
         // Ferien, Feiertage
         $isHoliday = false;
@@ -679,7 +687,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $toolTip,
                         null,
                         $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $Type, $TypeId));
 
                     if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
                         foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
@@ -1290,6 +1298,9 @@ class Frontend extends Extension implements IFrontendInterface
         $dataList = array();
         $divisionList = array('0' => $tblDivision);
         if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))) {
+            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblDivision, $tblSubject, $tblSubjectGroup
+            );
             foreach ($tblCourseContentList as $tblCourseContent) {
                 $absenceList = array();
                 $lessonArray = array();
@@ -1333,7 +1344,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     $toolTip,
                                     null,
                                     $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
-                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId())));
+                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(),
+                                    'DivisionSubject', $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
                             }
                         }
                     }
