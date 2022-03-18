@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -656,12 +657,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '30px');
         $headerList['Subject'] = $this->getTableHeadColumn('Fach', '50px');
+        $headerList['Room'] = $this->getTableHeadColumn('Raum', '50px');
         $headerList['Teacher'] = $this->getTableHeadColumn('Lehrer', '50px');
         $headerList['Content'] = $this->getTableHeadColumn('Thema');
         $headerList['Homework'] = $this->getTableHeadColumn('Hausaufgaben');
         $headerList['Absence'] = $this->getTableHeadColumn('Fehlzeiten');
 
-        $maxLesson = 6;
+        $maxLesson = 10;
         $bodyList = array();
         $bodyBackgroundList = array();
         $divisionList = $tblDivision ? array('0' => $tblDivision) : array();
@@ -708,13 +710,26 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if (isset($absenceContent['Day'])) {
-                $bodyList[0] = array(
+                $bodyList[-1] = array(
                     'Lesson' => new ToolTip(new Bold('GT'), 'Ganztägig'),
                     'Subject' => '',
+                    'Room' => '',
                     'Teacher' => '',
                     'Content' => '',
                     'Homework' => '',
                     'Absence' => implode(' - ', $absenceContent['Day'])
+                );
+            }
+
+            if (isset($absenceContent[0])) {
+                $bodyList[0] = array(
+                    'Lesson' => new ToolTip(new Center(new Bold('0')), '0. Unterrichtseinheit'),
+                    'Subject' => '',
+                    'Room' => '',
+                    'Teacher' => '',
+                    'Content' => '',
+                    'Homework' => '',
+                    'Absence' => implode(' - ', $absenceContent[0])
                 );
             }
         }
@@ -738,10 +753,10 @@ class Frontend extends Extension implements IFrontendInterface
                     'Subject' => $this->getLessonsEditLink(
                         ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getAcronym() : '',
                         $lessonContentId, $lesson),
+                    'Room' => $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson),
                     'Teacher' => $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson),
                     'Content' => $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson),
-                    'Homework' => $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId,
-                        $lesson),
+                    'Homework' => $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson),
 
                     'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
                 );
@@ -776,9 +791,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $bodyList[$i * 10] = array(
                     'Lesson' => $linkLesson,
                     'Subject' => $link,
+                    'Room' => $link,
                     'Teacher' => $link,
                     'Content' => $link,
                     'Homework' => $link,
+
                     'Absence' => isset($absenceContent[$i]) ? implode(' - ', $absenceContent[$i]) : ''
                 );
             }
@@ -797,7 +814,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ->setVerticalAlign('middle')
                     ->setMinHeight('30px')
                     ->setPadding('3')
-                    ->setBackgroundColor($key == 0 || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '');
+                    ->setBackgroundColor($key == -1 || $key == 0 || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '');
                 $count++;
             }
             $rows[] = new TableRow($columns);
@@ -905,7 +922,7 @@ class Frontend extends Extension implements IFrontendInterface
             '6' => 'Samstag',
         );
 
-        $maxLesson = 6;
+        $maxLesson = 10;
         $headerList = array();
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '5%');
         $bodyList = array();
@@ -1132,6 +1149,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblLessonContent->getContent();
             $Global->POST['Data']['Homework'] = $tblLessonContent->getHomework();
+            $Global->POST['Data']['Room'] = $tblLessonContent->getRoom();
 
             $Global->savePost();
         } elseif ($Date || $Lesson) {
@@ -1156,13 +1174,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $buttonList[] = $saveButton;
 
-        // todo Gruppen auswahl?
-
 //        $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER'));
 
         $tblSubjectList = Subject::useService()->getSubjectAll();
 
-        for ($i = 0; $i < 13; $i++) {
+        for ($i = 0; $i < 11; $i++) {
             $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
         }
 
@@ -1203,6 +1219,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
                     ),
                 )),
                 new FormRow(array(
@@ -1357,6 +1378,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'IsDoubleLesson' => new Center($tblCourseContent->getIsDoubleLesson() ? 'X' : ''),
                     'Content' => $tblCourseContent->getContent(),
                     'Homework' => $tblCourseContent->getHomework(),
+                    'Room' => $tblCourseContent->getRoom(),
                     'Absence' => implode(' ', $absenceList),
                     'Teacher' => $tblCourseContent->getTeacherString(),
                     'Option' =>
@@ -1385,6 +1407,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Date' => 'Datum',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
                 'IsDoubleLesson' => 'Doppel&shy;stunde',
+                'Room' => 'Raum',
                 'Content' => 'Thema',
                 'Homework' => 'Hausaufgaben',
                 'Absence' => 'Fehlzeiten',
@@ -1400,7 +1423,8 @@ class Frontend extends Extension implements IFrontendInterface
                     array('width' => '50px', 'targets' => 0),
                     array('width' => '25px', 'targets' => 1),
                     array('width' => '25px', 'targets' => 2),
-                    array('width' => '50px', 'targets' => 6),
+                    array('width' => '25px', 'targets' => 3),
+                    array('width' => '50px', 'targets' => 7),
                     array('width' => '60px', 'targets' => -1),
                 ),
                 'responsive' => false
@@ -1431,6 +1455,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ($tblPerson = $tblCourseContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblCourseContent->getContent();
             $Global->POST['Data']['Homework'] = $tblCourseContent->getHomework();
+            $Global->POST['Data']['Room'] = $tblCourseContent->getRoom();
             $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getIsDoubleLesson() ? 1 : 0;
 
             $Global->savePost();
@@ -1449,7 +1474,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $buttonList[] = $saveButton;
 
-        for ($i = 0; $i < 13; $i++) {
+        for ($i = 0; $i < 11; $i++) {
             $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
         }
 
@@ -1479,7 +1504,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde', 1)
                     ),
                 )),
-               new FormRow(array(
+                new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
                     ),
@@ -1487,6 +1512,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
                     ),
                 )),
                 new FormRow(array(

@@ -17,7 +17,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -266,6 +265,7 @@ class Service extends AbstractService
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
+            $Data['Room'],
             $tblDivision ?: null,
             $tblGroup ?: null,
             $tblYear ?: null,
@@ -293,6 +293,7 @@ class Service extends AbstractService
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
+            $Data['Room'],
             $tblPerson ?: null,
             ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null
         );
@@ -434,6 +435,7 @@ class Service extends AbstractService
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
+            $Data['Room'],
             isset($Data['IsDoubleLesson']),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
         );
@@ -455,6 +457,7 @@ class Service extends AbstractService
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
+            $Data['Room'],
             isset($Data['IsDoubleLesson']),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
         );

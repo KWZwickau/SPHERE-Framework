@@ -70,6 +70,11 @@ class TblCourseContent extends Element
     protected string $Homework;
 
     /**
+     * @Column(type="string")
+     */
+    protected string $Room;
+
+    /**
      * @Column(type="boolean")
      */
     protected $IsDoubleLesson;
@@ -233,6 +238,22 @@ class TblCourseContent extends Element
     public function setHomework(string $Homework)
     {
         $this->Homework = $Homework;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRoom(): string
+    {
+        return $this->Room;
+    }
+
+    /**
+     * @param string $Room
+     */
+    public function setRoom(string $Room): void
+    {
+        $this->Room = $Room;
     }
 
     /**

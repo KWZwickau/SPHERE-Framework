@@ -78,6 +78,11 @@ class TblLessonContent extends Element
     protected string $Homework;
 
     /**
+     * @Column(type="string")
+     */
+    protected string $Room;
+
+    /**
      * @return bool|TblDivision
      */
     public function getServiceTblDivision()
@@ -256,6 +261,22 @@ class TblLessonContent extends Element
     public function setHomework(string $Homework)
     {
         $this->Homework = $Homework;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRoom(): string
+    {
+        return $this->Room;
+    }
+
+    /**
+     * @param string $Room
+     */
+    public function setRoom(string $Room): void
+    {
+        $this->Room = $Room;
     }
 
     /**

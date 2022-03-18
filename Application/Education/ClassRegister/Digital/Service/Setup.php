@@ -51,6 +51,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'Lesson', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Homework', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
     }
 
     /**
@@ -68,6 +69,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'Lesson', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Homework', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IsDoubleLesson', self::FIELD_TYPE_BOOLEAN);
     }
 }

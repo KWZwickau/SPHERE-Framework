@@ -26,6 +26,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $Room
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      * @param TblYear|null $tblYear
@@ -39,6 +40,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $Room,
         TblDivision $tblDivision = null,
         TblGroup $tblGroup = null,
         TblYear $tblYear = null,
@@ -53,6 +55,7 @@ class Data  extends AbstractData
         $Entity->setLesson($Lesson);
         $Entity->setContent($Content);
         $Entity->setHomework($Homework);
+        $Entity->setRoom($Room);
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setServiceTblGroup($tblGroup);
         $Entity->setServiceTblYear($tblYear);
@@ -71,6 +74,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $Room
      * @param TblPerson|null $tblPerson
      * @param TblSubject|null $tblSubject
      *
@@ -82,6 +86,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $Room,
         TblPerson $tblPerson = null,
         TblSubject $tblSubject = null
     ): bool {
@@ -94,6 +99,7 @@ class Data  extends AbstractData
             $Entity->setLesson($Lesson);
             $Entity->setContent($Content);
             $Entity->setHomework($Homework);
+            $Entity->setRoom($Room);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblSubject($tblSubject);
 
@@ -160,6 +166,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $Room
      * @param $IsDoubleLesson
      * @param TblPerson|null $tblPerson
      *
@@ -173,6 +180,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $Room,
         $IsDoubleLesson,
         TblPerson $tblPerson = null
     ): TblCourseContent {
@@ -188,6 +196,7 @@ class Data  extends AbstractData
         $Entity->setLesson($Lesson);
         $Entity->setContent($Content);
         $Entity->setHomework($Homework);
+        $Entity->setRoom($Room);
         $Entity->setIsDoubleLesson($IsDoubleLesson);
 
         $Manager->saveEntity($Entity);
@@ -202,6 +211,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $Room
      * @param $IsDoubleLesson
      * @param TblPerson|null $tblPerson
      *
@@ -213,6 +223,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $Room,
         $IsDoubleLesson,
         TblPerson $tblPerson = null
     ): bool {
@@ -225,6 +236,7 @@ class Data  extends AbstractData
             $Entity->setLesson($Lesson);
             $Entity->setContent($Content);
             $Entity->setHomework($Homework);
+            $Entity->setRoom($Room);
             $Entity->setIsDoubleLesson($IsDoubleLesson);
             $Entity->setServiceTblPerson($tblPerson);
 
