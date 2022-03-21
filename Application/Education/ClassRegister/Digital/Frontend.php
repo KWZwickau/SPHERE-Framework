@@ -1665,7 +1665,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
 
-        if ($tblDivision) {
+        if ($tblDivision || $tblGroup) {
+            if ($tblGroup) {
+                $name = 'Stammgruppenliste';
+            } else {
+                $name = 'Klassenliste';
+            }
+
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -1677,36 +1683,41 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
-                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation())
+                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
+                                new Exclamation())
                         ),
                         new LayoutColumn(
-                            new Standard('Klassenliste (Auswertung)'
+                            new Standard('Download ' . $name . ' (Auswertung)'
                                 , '/Api/Reporting/Standard/Person/ClassList/Download', new Download(), array(
-                                    'DivisionId' => $tblDivision->getId()
+                                    'DivisionId' => $DivisionId,
+                                    'GroupId'    => $GroupId
                                 )
                             )
                         ),
                         new LayoutColumn(new Container('&nbsp;')),
                         new LayoutColumn(
-                            new Standard('Download Klassenliste Krankenakte'
+                            new Standard('Download ' . $name . ' Krankenakte'
                                 , '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', new Download(), array(
-                                    'DivisionId' => $tblDivision->getId()
+                                    'DivisionId' => $DivisionId,
+                                    'GroupId'    => $GroupId
                                 )
                             )
                         ),
                         new LayoutColumn(new Container('&nbsp;')),
                         new LayoutColumn(
-                            new Standard('Download Klassenliste Einverständniserklärung'
+                            new Standard('Download ' . $name . ' Einverständniserklärung'
                                 , '/Api/Reporting/Standard/Person/AgreementClassList/Download', new Download(), array(
-                                    'DivisionId' => $tblDivision->getId()
+                                    'DivisionId' => $DivisionId,
+                                    'GroupId'    => $GroupId
                                 )
                             )
                         ),
                         new LayoutColumn(new Container('&nbsp;')),
                         new LayoutColumn(
-                            new Standard('Download zeugnisrelevante Fehlzeiten'
+                            new Standard('Download ' . $name . ' zeugnisrelevante Fehlzeiten'
                                 , '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', new Download(), array(
-                                    'DivisionId' => $tblDivision->getId()
+                                    'DivisionId' => $DivisionId,
+                                    'GroupId'    => $GroupId
                                 )
                             )
                         )

@@ -258,13 +258,14 @@ class Service extends AbstractService
         $buttonList[] = $this->getButton('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
             $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
 
-        // Fehlzeiten (Kalenderansicht) und Download nur bei Klassen anzeigen
+        // Fehlzeiten (Kalenderansicht) nur bei Klassen anzeigen
         if ($tblDivision) {
             $buttonList[] = $this->getButton('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth',
                 new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
-            $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
-                new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
         }
+
+        $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
+            new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
         return new LayoutRow(new LayoutColumn($buttonList));
     }

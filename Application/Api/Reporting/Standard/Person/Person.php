@@ -3,7 +3,6 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -20,25 +19,31 @@ class Person
 
     /**
      * @param null $DivisionId
+     * @param null $GroupId
      *
      * @return bool|string
      */
-    public function downloadClassList($DivisionId = null)
+    public function downloadClassList($DivisionId = null, $GroupId = null)
     {
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $tblGroup = false;
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $name = 'Klassenliste ' . $tblDivision->getDisplayName();
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $name = 'Stammgruppenliste ' . $tblGroup->getName();
+        } else {
+            return false;
+        }
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createClassListExcel($PersonList, $tblPersonList, $tblDivision);
+        if ($tblPersonList
+            && ($DataList = ReportingPerson::useService()->createClassList($tblPersonList))
+        ) {
+            $fileLocation = ReportingPerson::useService()->createClassListExcel($DataList, $tblPersonList,
+                $tblDivision ?: null, $tblGroup ?: null);
 
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
@@ -224,21 +229,25 @@ class Person
      *
      * @return bool|string
      */
-    public function downloadMedicalRecordClassList($DivisionId = null)
+    public function downloadMedicalRecordClassList($DivisionId = null, $GroupId = null)
     {
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $name = 'Krankenakte_Klassenliste ' . $tblDivision->getDisplayName();
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $name = 'Krankenakte_Stammgruppenliste ' . $tblGroup->getName();
+        } else {
+            return false;
+        }
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createMedicalRecordClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createMedicalRecordClassListExcel($PersonList, $tblPersonList);
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Krankenakte_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if ($tblPersonList
+            && ($DataList = ReportingPerson::useService()->createMedicalRecordClassList($tblPersonList))
+        ) {
+            $fileLocation = ReportingPerson::useService()->createMedicalRecordClassListExcel($DataList, $tblPersonList);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
@@ -246,24 +255,29 @@ class Person
 
     /**
      * @param null $DivisionId
+     * @param null $GroupId
      *
      * @return bool|string
      */
-    public function downloadAgreementClassList($DivisionId = null)
+    public function downloadAgreementClassList($DivisionId = null, $GroupId = null)
     {
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
+        } else {
+            return false;
+        }
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createAgreementClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($PersonList, $tblPersonList);
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Einverständniserklärung_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if ($tblPersonList
+            && ($DataList = ReportingPerson::useService()->createAgreementClassList($tblPersonList))
+        ) {
+            $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
@@ -357,16 +371,30 @@ class Person
     }
 
     /**
-     * @return string|bool
+     * @param null $DivisionId
+     * @param null $GroupId
+     *
+     * @return bool|string
      */
-    public function downloadClassRegisterAbsence(int $DivisionId)
+    public function downloadClassRegisterAbsence($DivisionId = null, $GroupId = null)
     {
-        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($PersonList = (new ClassRegister)->getAbsenceContentExcel($DivisionId))
-            && ($fileLocation = (new ClassRegister)->createAbsenceContentExcel($PersonList))
-        ){
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $name = 'Fehlzeiten der Stammgruppe ' . $tblGroup->getName();
+        } else {
+            return false;
+        }
+
+        if ($tblPersonList
+            && ($DataList = ReportingPerson::useService()->createAbsenceContentList($tblPersonList, $tblDivision ?: null))
+        ) {
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcel($DataList);
+
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                'Fehlzeiten der Klasse '.$tblDivision->getDisplayName().' '.date("Y-m-d H:i:s").".xlsx")->__toString();
+                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;

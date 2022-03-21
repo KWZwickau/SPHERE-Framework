@@ -191,16 +191,18 @@ class TblGroup extends Element
     }
 
     /**
+     * @param bool $hasPrefix
+     *
      * @return string
      */
-    public function getTudorsString(): string
+    public function getTudorsString($hasPrefix = true): string
     {
         if (($tudors = $this->getTudors())) {
             $list = array();
             foreach ($tudors as $tblPerson) {
                 $list[] = $tblPerson->getFullName();
             }
-            return 'Tudoren: ' . implode(', ', $list);
+            return ($hasPrefix ? 'Tudoren: ' : '') . implode(', ', $list);
         } else {
             return '';
         }
