@@ -33,10 +33,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -399,7 +401,7 @@ class Frontend extends Extension implements IFrontendInterface
         $GroupId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Übersicht');
+        $stage = new Stage('Digitales Klassenbuch', 'Klassentagebuch');
 
         $stage->addButton(new Standard(
             'Zurück', $BasicRoute, new ChevronLeft()
@@ -459,7 +461,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $stage->setContent(
                 new Layout(new LayoutGroup(array(
-                    Digital::useService()->getHeadColumnRow($tblDivision, null, $tblYear)
+                    Digital::useService()->getHeadLayoutRow($tblDivision, null, $tblYear)
                 )))
                 . new Panel(
                     'SEKII-Kurshefte',
@@ -494,13 +496,21 @@ class Frontend extends Extension implements IFrontendInterface
             $stage->setContent(
                 ApiDigital::receiverModal()
                 . ApiAbsence::receiverModal()
-                . new Layout(new LayoutGroup(array(
-                    Digital::useService()->getHeadColumnRow(
-                        $tblDivision ?: null, $tblGroup ?: null, $tblYear
-                    )
-                )))
-                . ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
-                . Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null)
+                . new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/LessonContent', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
+                    )), new Title(new Book() . ' Klassentagebuch')),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null)
+                    )), new Title(new PersonGroup() . ' Schülerliste'))
+                ))
             );
         } else {
             return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
@@ -1527,5 +1537,187 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ))->disableSubmitAction();
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendStudentList(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Schülerliste');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblYear = null;
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblDivision || $tblGroup) {
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/Student', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null)
+                    )), new Title(new PersonGroup() . ' Schülerliste'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendAbsenceMonth(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+
+        if ($tblDivision) {
+            $currentDate = new DateTime('now');
+            // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDate && $endDate
+                    && ($currentDate < $startDate || $currentDate > $endDate)
+                ) {
+                    $currentDate = $startDate;
+                }
+            }
+
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision, null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
+                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        ApiAbsence::receiverModal()
+                        . ApiAbsence::receiverBlock(
+                            ApiAbsence::generateOrganizerForDivisionWeekly(
+                                $tblDivision->getId(),
+                                $currentDate->format('W'),
+                                $currentDate->format('Y')
+                            ),
+                            'CalendarContent'
+                        )
+                    )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendDownload(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Download');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblYear = null;
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblDivision) {
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/Download', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation())
+                        ),
+                        new LayoutColumn(
+                            new Standard('Klassenliste (Auswertung)'
+                                , '/Api/Reporting/Standard/Person/ClassList/Download', new Download(), array(
+                                    'DivisionId' => $tblDivision->getId()
+                                )
+                            )
+                        ),
+                        new LayoutColumn(new Container('&nbsp;')),
+                        new LayoutColumn(
+                            new Standard('Download Klassenliste Krankenakte'
+                                , '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', new Download(), array(
+                                    'DivisionId' => $tblDivision->getId()
+                                )
+                            )
+                        ),
+                        new LayoutColumn(new Container('&nbsp;')),
+                        new LayoutColumn(
+                            new Standard('Download Klassenliste Einverständniserklärung'
+                                , '/Api/Reporting/Standard/Person/AgreementClassList/Download', new Download(), array(
+                                    'DivisionId' => $tblDivision->getId()
+                                )
+                            )
+                        ),
+                        new LayoutColumn(new Container('&nbsp;')),
+                        new LayoutColumn(
+                            new Standard('Download zeugnisrelevante Fehlzeiten'
+                                , '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', new Download(), array(
+                                    'DivisionId' => $tblDivision->getId()
+                                )
+                            )
+                        )
+                    )), new Title(new Download() . ' Download'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
     }
 }

@@ -30,10 +30,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Book;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Commodity;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -195,7 +199,7 @@ class Service extends AbstractService
      *
      * @return LayoutRow
      */
-    public function getHeadColumnRow(TblDivision $tblDivision = null, TblGroup $tblGroup = null, TblYear &$tblYear = null): LayoutRow
+    public function getHeadLayoutRow(TblDivision $tblDivision = null, TblGroup $tblGroup = null, TblYear &$tblYear = null): LayoutRow
     {
         if ($tblGroup) {
             $title = 'Stammgruppe';
@@ -233,6 +237,61 @@ class Service extends AbstractService
             new LayoutColumn(new Panel($title, $content, Panel::PANEL_TYPE_INFO), 6),
             new LayoutColumn(new Panel('Schuljahr', $tblYear ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO), 6)
         ));
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param string $Route
+     * @param string $BasicRoute
+     *
+     * @return LayoutRow
+     */
+    public function getHeadButtonListLayoutRow(TblDivision $tblDivision = null, TblGroup $tblGroup = null,
+        string $Route = '/Education/ClassRegister/Digital/LessonContent', string $BasicRoute = ''): LayoutRow
+    {
+        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
+        $GroupId = $tblGroup ? $tblGroup->getId() : null;
+
+        $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
+            $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
+        $buttonList[] = $this->getButton('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
+            $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
+
+        // Fehlzeiten (Kalenderansicht) und Download nur bei Klassen anzeigen
+        if ($tblDivision) {
+            $buttonList[] = $this->getButton('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth',
+                new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
+            $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
+                new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
+        }
+
+        return new LayoutRow(new LayoutColumn($buttonList));
+    }
+
+    /**
+     * @param string $name
+     * @param string $route
+     * @param $icon
+     * @param $DivisionId
+     * @param $GroupId
+     * @param $BasicRoute
+     * @param bool $isSelected
+     *
+     * @return Standard
+     */
+    private function getButton(string $name, string $route, $icon, $DivisionId, $GroupId, $BasicRoute, bool $isSelected = false): Standard
+    {
+        return new Standard(
+            $isSelected ? new Info(new Bold($name)) : $name,
+            $route,
+            $icon,
+            array(
+               'DivisionId' => $DivisionId,
+                'GroupId' =>  $GroupId,
+                'BasicRoute' => $BasicRoute
+            )
+        );
     }
 
     /**
