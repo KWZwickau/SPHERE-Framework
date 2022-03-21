@@ -500,6 +500,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )))
                 . ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
+                . Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null)
             );
         } else {
             return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())

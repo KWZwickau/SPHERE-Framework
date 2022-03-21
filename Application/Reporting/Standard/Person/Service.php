@@ -80,12 +80,6 @@ class Service extends Extension
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['Gender'] = '';
-                $Item['Phone'] = '';
-                $Item['ExcelPhone'] = '';
-                $Item['Mail'] = '';
-                $Item['ExcelMail'] = '';
-                $Item['ExcelMailPrivate'] = '';
-                $Item['ExcelMailBusiness'] = '';
 
                 if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
                     $Item['StreetName'] = $tblAddress->getStreetName();
@@ -107,224 +101,7 @@ class Service extends Extension
                     $Item['Gender'] = $tblCommonGender->getName();
                 }
 
-                //Phone
-                $tblPhoneList = array();
-                $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
-                if ($tblToPersonPhoneList) {
-                    $key = 'Sort_1_' . $tblPerson->getId();
-                    foreach ($tblToPersonPhoneList as $tblToPersonPhone) {
-                        $tblPhone = $tblToPersonPhone->getTblPhone();
-                        if ($tblPhone) {
-                            if (isset($tblPhoneList[$key])) {
-                                $tblPhoneList[$key] = $tblPhoneList[$key] . ', '
-                                    . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
-                            } else {
-                                $tblPhoneList[$key] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' ('
-                                    . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
-                            }
-                        }
-                    }
-                    if (isset($tblPhoneList[$key])) {
-                        $tblPhoneList[$key] = $tblPhoneList[$key].')';
-                    }
-                }
-
-                //Mail
-                $tblMailList = array();
-                $tblMailFrontendList = array();
-                $mailBusinessList = array();
-                $mailPrivateList = array();
-                $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson);
-                if ($tblToPersonMailList) {
-                    $key = 'Sort_1_' . $tblPerson->getId();
-                    foreach ($tblToPersonMailList as $tblToPersonMail) {
-                        $tblMail = $tblToPersonMail->getTblMail();
-                        if ($tblMail) {
-                            if (isset($tblMailList[$key])) {
-                                $preString = ', ';
-                                $tblMailList[$key] = $tblMailList[$key].$preString.$tblMail->getAddress();
-                                $tblMailFrontendList[$key] = $tblMailFrontendList[$key].$preString.
-                                    new Mailto($tblMail->getAddress(), $tblMail->getAddress());
-                            } else {
-                                $preString = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' (';
-                                $tblMailList[$key] = $preString. $tblMail->getAddress();
-                                $tblMailFrontendList[$key] = $preString.
-                                    new Mailto($tblMail->getAddress(), $tblMail->getAddress());
-                            }
-
-                            // für die Excel-Trennung der  Emailadressen nach Type
-                            if ($tblToPersonMail->getTblType()->getName() == 'Privat') {
-                                $mailPrivateList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
-                            } else {
-                                $mailBusinessList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
-                            }
-                        }
-                    }
-                    if (isset($tblMailList[$key])) {
-                        $tblMailList[$key] = $tblMailList[$key].')';
-                        $tblMailFrontendList[$key] = $tblMailFrontendList[$key].')';
-                    }
-                }
-
-                $tblToPersonGuardianList = array();
-                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
-                if ($tblType
-                    && ($GuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
-                ){
-                    $tblToPersonGuardianList = $GuardianList;
-                }
-                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
-                if ($tblType
-                    && ($AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
-                ){
-                    $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $AuthorizedList);
-                }
-                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN_SHIP);
-                if ($tblType
-                    && ($GuardianShipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
-                ){
-                    $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $GuardianShipList);
-                }
-                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_EMERGENCY_CONTACT);
-                if ($tblType
-                    && ($EmergencyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
-                ){
-                    $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $EmergencyList);
-                }
-                if (!empty($tblToPersonGuardianList)) {
-                    foreach ($tblToPersonGuardianList as $tblToPersonGuardian) {
-                        if (($tblPersonGuardian = $tblToPersonGuardian->getServiceTblPersonFrom())) {
-                            // Für die Sortierung der Telefonnummern und Mailadressen
-                            // Schüler zuerst, dann Mutter, dann Vater, dann Bevollmächtigter
-                            $genderString = $tblPersonGuardian->getGenderString();
-                            if ($genderString == 'Weiblich') {
-                                $isFemale = true;
-                            } elseif ($genderString == 'Männlich') {
-                                $isFemale = false;
-                            } else {
-                                if ($tblPersonGuardian->getSalutation() == 'Frau') {
-                                    $isFemale = true;
-                                } elseif ($tblPersonGuardian->getSalutation() == 'Herr') {
-                                    $isFemale = false;
-                                } else {
-                                    $isFemale = false;
-                                }
-                            }
-
-                            $pre = '';
-                            if ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_AUTHORIZED) {
-                                $pre = 'Bev. ';
-
-                                if ($isFemale) {
-                                    $key = 'Sort_4_' . $tblPersonGuardian->getId();
-                                } else {
-                                    $key = 'Sort_5_' . $tblPersonGuardian->getId();
-                                }
-                            } elseif ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN_SHIP) {
-                                $pre = 'Vorm. ';
-                                if ($isFemale) {
-                                    $key = 'Sort_6_' . $tblPersonGuardian->getId();
-                                } else {
-                                    $key = 'Sort_7_' . $tblPersonGuardian->getId();
-                                }
-                            } elseif ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_EMERGENCY_CONTACT) {
-                                $pre = 'NK ';
-                                if ($isFemale) {
-                                    $key = 'Sort_8_' . $tblPersonGuardian->getId();
-                                } else {
-                                    $key = 'Sort_9_' . $tblPersonGuardian->getId();
-                                }
-                            } else {
-                                if ($isFemale) {
-                                    $key = 'Sort_2_' . $tblPersonGuardian->getId();
-                                } else {
-                                    $key = 'Sort_3_' . $tblPersonGuardian->getId();
-                                }
-                            }
-
-                            $tblPhoneList[$key] = $pre . $tblPersonGuardian->getFirstName() . ' ' .
-                            $tblPersonGuardian->getLastName();
-
-                            //Phone Guardian
-                            $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
-                            if ($tblToPersonPhoneList) {
-                                $FirstNumber = true;
-                                foreach ($tblToPersonPhoneList as $tblToPersonPhone) {
-                                    $tblPhone = $tblToPersonPhone->getTblPhone();
-                                    if ($tblPhone) {
-                                        if (!$FirstNumber) {
-                                            $tblPhoneList[$key] = $tblPhoneList[$key].', '
-                                                . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
-                                        } else {
-                                            $tblPhoneList[$key] = $tblPhoneList[$key].' ('. $tblPhone->getNumber() . ' '
-                                                . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
-                                            $FirstNumber = false;
-                                        }
-                                    }
-                                }
-                                if (isset($tblPhoneList[$key])) {
-                                    $tblPhoneList[$key] = $tblPhoneList[$key].')';
-                                }
-                            }
-
-                            //Mail Guardian
-                            $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian);
-                            if ($tblToPersonMailList) {
-                                foreach ($tblToPersonMailList as $tblToPersonMail) {
-                                    $tblMail = $tblToPersonMail->getTblMail();
-                                    if ($tblMail) {
-                                        if (isset($tblMailList[$key])) {
-                                            $preString = ', ';
-
-                                            $tblMailList[$key] = $tblMailList[$key].$preString.$tblMail->getAddress();
-                                            $tblMailFrontendList[$key] = $tblMailFrontendList[$key].$preString.
-                                                new Mailto($tblMail->getAddress(), $tblMail->getAddress());
-                                        } else {
-                                            $preString = $pre . $tblPersonGuardian->getFirstName() . ' ' .
-                                                $tblPersonGuardian->getLastName() . ' (';
-                                            $tblMailList[$key] = $preString. $tblMail->getAddress();
-                                            $tblMailFrontendList[$key] = $preString. new Mailto($tblMail->getAddress(), $tblMail->getAddress());
-                                        }
-
-                                        // für die Excel-Trennung der  Emailadressen nach Type
-                                        if ($tblToPersonMail->getTblType() == 'Privat') {
-                                            $mailPrivateList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
-                                        } else {
-                                            $mailBusinessList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
-                                        }
-                                    }
-                                }
-                                if (isset($tblMailList[$key])) {
-                                    $tblMailList[$key] = $tblMailList[$key].')';
-                                    $tblMailFrontendList[$key] = $tblMailFrontendList[$key].')';
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Insert PhoneList
-                if (!empty($tblPhoneList)) {
-                    ksort($tblPhoneList);
-                    $Item['Phone'] = $Item['Phone'].implode('<br>', $tblPhoneList);
-                    $Item['ExcelPhone'] = $tblPhoneList;
-                }
-                // Insert MailList
-                if (!empty($tblMailList)) {
-                    ksort($tblMailList);
-                    $Item['ExcelMail'] = $tblMailList;
-                    $Item['Mail'] = $Item['Mail'].implode('<br>', $tblMailFrontendList);
-
-                    if (!empty($mailPrivateList)) {
-                        ksort($mailPrivateList);
-                        $Item['ExcelMailPrivate'] = implode('; ', $mailPrivateList);
-                    }
-
-                    if (!empty($mailBusinessList)) {
-                        ksort($mailBusinessList);
-                        $Item['ExcelMailBusiness'] = implode('; ', $mailBusinessList);
-                    }
-                }
+                $Item = $this->getContactDataFromPerson($tblPerson, $Item);
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
@@ -4182,5 +3959,241 @@ class Service extends Extension
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $Item
+     * @return array
+     */
+    public function getContactDataFromPerson(TblPerson $tblPerson, array $Item): array
+    {
+        $Item['Phone'] = '';
+        $Item['ExcelPhone'] = '';
+        $Item['Mail'] = '';
+        $Item['ExcelMail'] = '';
+        $Item['ExcelMailPrivate'] = '';
+        $Item['ExcelMailBusiness'] = '';
+
+        //Phone
+        $tblPhoneList = array();
+        $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+        if ($tblToPersonPhoneList) {
+            $key = 'Sort_1_' . $tblPerson->getId();
+            foreach ($tblToPersonPhoneList as $tblToPersonPhone) {
+                $tblPhone = $tblToPersonPhone->getTblPhone();
+                if ($tblPhone) {
+                    if (isset($tblPhoneList[$key])) {
+                        $tblPhoneList[$key] = $tblPhoneList[$key] . ', '
+                            . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                    } else {
+                        $tblPhoneList[$key] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' ('
+                            . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                    }
+                }
+            }
+            if (isset($tblPhoneList[$key])) {
+                $tblPhoneList[$key] = $tblPhoneList[$key] . ')';
+            }
+        }
+
+        //Mail
+        $tblMailList = array();
+        $tblMailFrontendList = array();
+        $mailBusinessList = array();
+        $mailPrivateList = array();
+        $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson);
+        if ($tblToPersonMailList) {
+            $key = 'Sort_1_' . $tblPerson->getId();
+            foreach ($tblToPersonMailList as $tblToPersonMail) {
+                $tblMail = $tblToPersonMail->getTblMail();
+                if ($tblMail) {
+                    if (isset($tblMailList[$key])) {
+                        $preString = ', ';
+                        $tblMailList[$key] = $tblMailList[$key] . $preString . $tblMail->getAddress();
+                        $tblMailFrontendList[$key] = $tblMailFrontendList[$key] . $preString .
+                            new Mailto($tblMail->getAddress(), $tblMail->getAddress());
+                    } else {
+                        $preString = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' (';
+                        $tblMailList[$key] = $preString . $tblMail->getAddress();
+                        $tblMailFrontendList[$key] = $preString .
+                            new Mailto($tblMail->getAddress(), $tblMail->getAddress());
+                    }
+
+                    // für die Excel-Trennung der  Emailadressen nach Type
+                    if ($tblToPersonMail->getTblType()->getName() == 'Privat') {
+                        $mailPrivateList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
+                    } else {
+                        $mailBusinessList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
+                    }
+                }
+            }
+            if (isset($tblMailList[$key])) {
+                $tblMailList[$key] = $tblMailList[$key] . ')';
+                $tblMailFrontendList[$key] = $tblMailFrontendList[$key] . ')';
+            }
+        }
+
+        $tblToPersonGuardianList = array();
+        $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+        if ($tblType
+            && ($GuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+        ) {
+            $tblToPersonGuardianList = $GuardianList;
+        }
+        $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
+        if ($tblType
+            && ($AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+        ) {
+            $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $AuthorizedList);
+        }
+        $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN_SHIP);
+        if ($tblType
+            && ($GuardianShipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+        ) {
+            $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $GuardianShipList);
+        }
+        $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_EMERGENCY_CONTACT);
+        if ($tblType
+            && ($EmergencyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))
+        ) {
+            $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $EmergencyList);
+        }
+        if (!empty($tblToPersonGuardianList)) {
+            foreach ($tblToPersonGuardianList as $tblToPersonGuardian) {
+                if (($tblPersonGuardian = $tblToPersonGuardian->getServiceTblPersonFrom())) {
+                    // Für die Sortierung der Telefonnummern und Mailadressen
+                    // Schüler zuerst, dann Mutter, dann Vater, dann Bevollmächtigter
+                    $genderString = $tblPersonGuardian->getGenderString();
+                    if ($genderString == 'Weiblich') {
+                        $isFemale = true;
+                    } elseif ($genderString == 'Männlich') {
+                        $isFemale = false;
+                    } else {
+                        if ($tblPersonGuardian->getSalutation() == 'Frau') {
+                            $isFemale = true;
+                        } elseif ($tblPersonGuardian->getSalutation() == 'Herr') {
+                            $isFemale = false;
+                        } else {
+                            $isFemale = false;
+                        }
+                    }
+
+                    $pre = '';
+                    if ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_AUTHORIZED) {
+                        $pre = 'Bev. ';
+
+                        if ($isFemale) {
+                            $key = 'Sort_4_' . $tblPersonGuardian->getId();
+                        } else {
+                            $key = 'Sort_5_' . $tblPersonGuardian->getId();
+                        }
+                    } elseif ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN_SHIP) {
+                        $pre = 'Vorm. ';
+                        if ($isFemale) {
+                            $key = 'Sort_6_' . $tblPersonGuardian->getId();
+                        } else {
+                            $key = 'Sort_7_' . $tblPersonGuardian->getId();
+                        }
+                    } elseif ($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_EMERGENCY_CONTACT) {
+                        $pre = 'NK ';
+                        if ($isFemale) {
+                            $key = 'Sort_8_' . $tblPersonGuardian->getId();
+                        } else {
+                            $key = 'Sort_9_' . $tblPersonGuardian->getId();
+                        }
+                    } else {
+                        if ($isFemale) {
+                            $key = 'Sort_2_' . $tblPersonGuardian->getId();
+                        } else {
+                            $key = 'Sort_3_' . $tblPersonGuardian->getId();
+                        }
+                    }
+
+                    $tblPhoneList[$key] = $pre . $tblPersonGuardian->getFirstName() . ' ' .
+                        $tblPersonGuardian->getLastName();
+
+                    //Phone Guardian
+                    $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                    if ($tblToPersonPhoneList) {
+                        $FirstNumber = true;
+                        foreach ($tblToPersonPhoneList as $tblToPersonPhone) {
+                            $tblPhone = $tblToPersonPhone->getTblPhone();
+                            if ($tblPhone) {
+                                if (!$FirstNumber) {
+                                    $tblPhoneList[$key] = $tblPhoneList[$key] . ', '
+                                        . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                                } else {
+                                    $tblPhoneList[$key] = $tblPhoneList[$key] . ' (' . $tblPhone->getNumber() . ' '
+                                        . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                                    $FirstNumber = false;
+                                }
+                            }
+                        }
+                        if (isset($tblPhoneList[$key])) {
+                            $tblPhoneList[$key] = $tblPhoneList[$key] . ')';
+                        }
+                    }
+
+                    //Mail Guardian
+                    $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian);
+                    if ($tblToPersonMailList) {
+                        foreach ($tblToPersonMailList as $tblToPersonMail) {
+                            $tblMail = $tblToPersonMail->getTblMail();
+                            if ($tblMail) {
+                                if (isset($tblMailList[$key])) {
+                                    $preString = ', ';
+
+                                    $tblMailList[$key] = $tblMailList[$key] . $preString . $tblMail->getAddress();
+                                    $tblMailFrontendList[$key] = $tblMailFrontendList[$key] . $preString .
+                                        new Mailto($tblMail->getAddress(), $tblMail->getAddress());
+                                } else {
+                                    $preString = $pre . $tblPersonGuardian->getFirstName() . ' ' .
+                                        $tblPersonGuardian->getLastName() . ' (';
+                                    $tblMailList[$key] = $preString . $tblMail->getAddress();
+                                    $tblMailFrontendList[$key] = $preString . new Mailto($tblMail->getAddress(),
+                                            $tblMail->getAddress());
+                                }
+
+                                // für die Excel-Trennung der  Emailadressen nach Type
+                                if ($tblToPersonMail->getTblType() == 'Privat') {
+                                    $mailPrivateList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
+                                } else {
+                                    $mailBusinessList[$key . '_' . $tblMail->getId()] = $tblMail->getAddress();
+                                }
+                            }
+                        }
+                        if (isset($tblMailList[$key])) {
+                            $tblMailList[$key] = $tblMailList[$key] . ')';
+                            $tblMailFrontendList[$key] = $tblMailFrontendList[$key] . ')';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Insert PhoneList
+        if (!empty($tblPhoneList)) {
+            ksort($tblPhoneList);
+            $Item['Phone'] = $Item['Phone'] . implode('<br>', $tblPhoneList);
+            $Item['ExcelPhone'] = $tblPhoneList;
+        }
+        // Insert MailList
+        if (!empty($tblMailList)) {
+            ksort($tblMailList);
+            $Item['ExcelMail'] = $tblMailList;
+            $Item['Mail'] = $Item['Mail'] . implode('<br>', $tblMailFrontendList);
+
+            if (!empty($mailPrivateList)) {
+                ksort($mailPrivateList);
+                $Item['ExcelMailPrivate'] = implode('; ', $mailPrivateList);
+            }
+
+            if (!empty($mailBusinessList)) {
+                ksort($mailBusinessList);
+                $Item['ExcelMailBusiness'] = implode('; ', $mailBusinessList);
+            }
+        }
+        return $Item;
     }
 }
