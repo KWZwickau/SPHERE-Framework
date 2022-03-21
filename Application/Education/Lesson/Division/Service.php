@@ -318,6 +318,59 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $DivisionDisplayName
+     * @param TblYear $tblYear
+     *
+     * @return TblDivision|null
+     */
+    public function getDivisionByDivisionDisplayNameAndYear(string $DivisionDisplayName, TblYear $tblYear): ?TblDivision
+    {
+
+        $LevelName = $DivisionName = '';
+        $this->matchDivision($DivisionDisplayName, $LevelName, $DivisionName);
+
+        if(($tblDivisionList = $this->getDivisionAllByLevelName($LevelName, $tblYear))){
+            foreach($tblDivisionList as $tblDivision){
+                if($tblDivision->getName() === $DivisionName){
+                    return $tblDivision;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $Value
+     * @param $LevelName
+     * @param $DivisionName
+     */
+    protected function matchDivision($Value, &$LevelName, &$DivisionName)
+    {
+
+        if (strpos($Value, '-') !== false
+            && ($Match = explode('-', $Value))
+            && is_numeric($Match[0])
+            && is_numeric($Match[1])
+        ) {
+            // Klasse 5-2
+            $LevelName = $Match[0];
+            $DivisionName = $Match[1];
+        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+            // Klasse 5a
+            $LevelName = $Match[1];
+            $DivisionName = $Match[2];
+        } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
+            // Klasse 5
+            $DivisionName = null;
+            $LevelName = $Match[1];
+        }
+
+        $DivisionName = trim($DivisionName);
+        $LevelName = trim($LevelName);
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblLevel

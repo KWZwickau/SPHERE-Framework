@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -1117,7 +1118,7 @@ class Service extends AbstractService
 
                         $text = $firstName . ' ' . $lastName . ' wurden ' . $countSelectedCourse . ' von 40 Kursen zugeordnet.';
                         $success[] =  $countSelectedCourse == 40
-                            ? new \SPHERE\Common\Frontend\Text\Repository\Success($text)
+                            ? new SuccessText($text)
                             : new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                     }
                 }

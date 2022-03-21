@@ -90,6 +90,8 @@ class Import extends Extension implements IModuleInterface
                 new Center(new Standard('', '/Transfer/Untis/Import/StudentCourse/Show', new Edit(), array(), 'Bearbeiten')
                     .new Standard('', '/Transfer/Untis/Import/StudentCourse/Destroy', new Remove(), array(), 'Löschen'));
         }
+//        $PanelTimetable[] = new PullClear('Stundenplan aus Untis: '.
+//            new Center(new Standard('', '/Transfer/Davinci/Import/StudentCourse/Prepare', new Upload()))); // ToDO Link
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
@@ -114,6 +116,10 @@ class Import extends Extension implements IModuleInterface
                             new Panel('Untis-Import für Lehraufträge:', $PanelLectureshipImport
                                 , Panel::PANEL_TYPE_INFO)
                         , 4),
+//                        new LayoutColumn(
+//                            new Panel('Import Stundenplan:', $PanelTimetable
+//                                , Panel::PANEL_TYPE_INFO)
+//                        , 4),
 
                     ))
                 ))
