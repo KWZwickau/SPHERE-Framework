@@ -553,10 +553,11 @@ class Service extends AbstractService
     /**
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param string $BasicRoute
      *
      * @return string
      */
-    public function getStudentTable(?TblDivision $tblDivision, ?TblGroup $tblGroup): string
+    public function getStudentTable(?TblDivision $tblDivision, ?TblGroup $tblGroup, string $BasicRoute, string $ReturnRoute): string
     {
         $tblPersonList = false;
         $hasColumnCourse = false;
@@ -678,16 +679,19 @@ class Service extends AbstractService
 //                                    ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                             ),
                             'Fehlzeiten des Schülers verwalten'
-                        ).new Standard(
-                            '', '/Education/ClassRegister/Integration', new Commodity(),
-                            array(
-//                                'DivisionId' => $tblDivisionStudent->getId(),
-//                                'PersonId'   => $tblPerson->getId(),
-//                                'BasicRoute' => $isTeacher
-//                                    ? '/Education/ClassRegister/Teacher/Selected' : '/Education/ClassRegister/All/Selected'
-                            ),
-                            'Integration des Schülers verwalten'
                         )
+                        . ($tblMainDivision
+                            ? (new Standard(
+                                '', '/Education/ClassRegister/Digital/Integration', new Commodity(),
+                                array(
+                                    'DivisionId' => $tblMainDivision->getId(),
+                                    'PersonId'   => $tblPerson->getId(),
+                                    'BasicRoute' => $BasicRoute,
+                                    'ReturnRoute'=> $ReturnRoute,
+                                    'GroupId'    => $tblGroup ? $tblGroup->getId() : null
+                                ),
+                                'Integration des Schülers verwalten'
+                            )) : '')
                 );
             }
 

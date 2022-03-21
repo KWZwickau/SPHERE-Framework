@@ -17,7 +17,9 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -48,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -508,7 +511,8 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
                     )), new Title(new Book() . ' Klassentagebuch')),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null)
+                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null, $BasicRoute,
+                            '/Education/ClassRegister/Digital/LessonContent')
                     )), new Title(new PersonGroup() . ' Schülerliste'))
                 ))
             );
@@ -1571,7 +1575,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Education/ClassRegister/Digital/Student', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null)
+                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null, $BasicRoute,
+                            '/Education/ClassRegister/Digital/Student')
                     )), new Title(new PersonGroup() . ' Schülerliste'))
                 ))
             );
@@ -1730,5 +1735,69 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $PersonId
+     * @param string $BasicRoute
+     * @param string $ReturnRoute
+     * @param null $GroupId
+     *
+     * @return Stage
+     */
+    public function frontendIntegration($DivisionId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '',
+        $GroupId = null): Stage
+    {
+
+        $Stage = new Stage('Digitales Klassenbuch', 'Integration verwalten');
+
+        if ($ReturnRoute) {
+            $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
+                array(
+                    'DivisionId' => $GroupId ? null : $DivisionId,
+                    'GroupId'    => $GroupId,
+                    'BasicRoute' => $BasicRoute,
+                ))
+            );
+        }
+
+        $PersonPanel = '';
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
+        }
+        $DivisionPanel = '';
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
+            $DivisionPanel = new Panel('Klasse, Schulart', $tblDivision->getDisplayName().', '.$tblDivision->getTypeName(), Panel::PANEL_TYPE_INFO);
+        }
+
+
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $Content = (new Well(Student::useFrontend()->frontendIntegration($tblPerson)));
+        } else {
+            $Content = (new Warning('Person wurde nicht gefunden.'));
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $PersonPanel
+                            , 6),
+                        new LayoutColumn(
+                            $DivisionPanel
+                            , 6),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $Content
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 }

@@ -38,6 +38,9 @@ class Digital  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Download', __NAMESPACE__ . '\Frontend::frontendDownload')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Integration', __NAMESPACE__ . '\Frontend::frontendIntegration')
+        );
     }
 
     /**
