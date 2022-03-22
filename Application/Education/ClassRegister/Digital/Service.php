@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Service extends AbstractService
 {
@@ -554,6 +555,7 @@ class Service extends AbstractService
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      * @param string $BasicRoute
+     * @param string $ReturnRoute
      *
      * @return string
      */
@@ -569,8 +571,9 @@ class Service extends AbstractService
                 $hasColumnCourse = $tblSchoolType->getShortName() == 'OS';
             }
         } elseif ($tblGroup) {
-            // todo sortieren nach Klasse und Name?
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+            }
         }
 
         if ($tblPersonList) {
@@ -669,19 +672,19 @@ class Service extends AbstractService
                     'Course'        => $course,
                     'AbsenceDays'   => $absenceDays,
                     'AbsenceLessons'=> $absenceLessons,
-                    // todo routen und gruppen
-                    'Option'        => new Standard(
-                            '', '/Education/ClassRegister/Absence', new Time(),
-                            array(
-//                                'DivisionId' => $tblDivisionStudent->getId(),
-//                                'PersonId'   => $tblPerson->getId(),
-//                                'BasicRoute' => $isTeacher
-//                                    ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
-                            ),
-                            'Fehlzeiten des Schülers verwalten'
-                        )
-                        . ($tblMainDivision
+                    'Option'        => ($tblMainDivision
                             ? (new Standard(
+                                '', '/Education/ClassRegister/Digital/AbsenceStudent', new Time(),
+                                array(
+                                    'DivisionId' => $tblMainDivision->getId(),
+                                    'PersonId'   => $tblPerson->getId(),
+                                    'BasicRoute' => $BasicRoute,
+                                    'ReturnRoute'=> $ReturnRoute,
+                                    'GroupId'    => $tblGroup ? $tblGroup->getId() : null
+                                ),
+                                'Fehlzeiten des Schülers verwalten'
+                            ))
+                            . (new Standard(
                                 '', '/Education/ClassRegister/Digital/Integration', new Commodity(),
                                 array(
                                     'DivisionId' => $tblMainDivision->getId(),
@@ -721,7 +724,7 @@ class Service extends AbstractService
                 ApiSupportReadOnly::receiverOverViewModal()
                 . MedicalRecordReadOnly::receiverOverViewModal()
                 . ApiAgreementReadOnly::receiverOverViewModal()
-                . ($tblDivision && ($inActivePanel = \SPHERE\Application\Reporting\Standard\Person\Person::useFrontend()
+                . ($tblDivision && ($inActivePanel = Person::useFrontend()
                     ->getInActiveStudentPanel($tblDivision))
                     ? $inActivePanel : '')
                 . (new TableData($studentTable, null, $columns,

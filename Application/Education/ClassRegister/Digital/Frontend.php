@@ -1595,67 +1595,6 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendAbsenceMonth(
-        $DivisionId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-
-        if ($tblDivision) {
-            $currentDate = new DateTime('now');
-            // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-                if ($startDate && $endDate
-                    && ($currentDate < $startDate || $currentDate > $endDate)
-                ) {
-                    $currentDate = $startDate;
-                }
-            }
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision, null, $tblYear
-                        ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
-                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        ApiAbsence::receiverModal()
-                        . ApiAbsence::receiverBlock(
-                            ApiAbsence::generateOrganizerForDivisionWeekly(
-                                $tblDivision->getId(),
-                                $currentDate->format('W'),
-                                $currentDate->format('Y')
-                            ),
-                            'CalendarContent'
-                        )
-                    )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
     public function frontendDownload(
         $DivisionId = null,
         $GroupId = null,
