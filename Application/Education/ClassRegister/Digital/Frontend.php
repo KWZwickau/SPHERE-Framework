@@ -464,8 +464,11 @@ class Frontend extends Extension implements IFrontendInterface
 
             $stage->setContent(
                 new Layout(new LayoutGroup(array(
-                    Digital::useService()->getHeadLayoutRow($tblDivision, null, $tblYear)
+                    Digital::useService()->getHeadLayoutRow($tblDivision, null, $tblYear),
+                    Digital::useService()->getHeadButtonListLayoutRow($tblDivision, $tblGroup ?: null,
+                        '/Education/ClassRegister/Digital/LessonContent', $BasicRoute)
                 )))
+                . new Container('&nbsp;')
                 . new Panel(
                     'SEKII-Kurshefte',
                     new TableData(
