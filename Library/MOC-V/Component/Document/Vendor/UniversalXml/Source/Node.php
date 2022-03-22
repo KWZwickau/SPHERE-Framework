@@ -360,8 +360,7 @@ class Node extends NodeType
     {
 
         $AttributeList = $this->AttributeList;
-//        array_walk($AttributeList, create_function(, '$Value = $Key.\'="\'.$Value.\'"\';'));
-        array_walk($AttributeList, function(&$Value,$Key){ return "ln($Value) + ln($Key) = $Value";});
+        array_walk($AttributeList, function(&$Value,$Key){ $Value = $Key.'="'.$Value.'"';});
 
         return implode(' ', $AttributeList);
     }

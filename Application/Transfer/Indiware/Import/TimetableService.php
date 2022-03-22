@@ -139,70 +139,95 @@ class TimetableService
         /** @var Node $Node */
         // note = "upsp"
         $Node = $this->Document->getContent();
-        if(($Unterricht = $Node->getChild('unterricht'))){
-            $UnterrichtChildList = $Unterricht->getChildList();
-            /** @var Node $UnterrichtChild */
-            foreach($UnterrichtChildList as $UnterrichtChild){
-                $item = array();
-                $item['un_nummer'] = '';
-//                $item['un_stunden'] = '';
-                $item['un_stufe'] = '';
-                $item['un_klassen'] = array();
-                $item['un_fach'] = '';
-                $item['un_lehrer'] = array();
-                $item['un_gruppe'] = '';
-                if(($unList = $UnterrichtChild->getChildList())){
-//                    Debugger::devDump($unList);
-                    foreach($unList as $un){
-                        if($un->getName() == 'un_lehrer'){
-                            $unLehrerList = $un->getChildList();
-                            foreach($unLehrerList as $unLehrer){
-                                $item[$un->getName()][] = $unLehrer->getContent();
-                            }
-                        } elseif($un->getName() == 'un_klassen'){
-                            $unKlassenList = $un->getChildList();
-                            foreach($unKlassenList as $unKlassen){
-                                $item[$un->getName()][] = $unKlassen->getContent();
-                            }
-                        } else {
-                            $item[$un->getName()] = $un->getContent();
-                        }
-                    }
-                }
-                if($item['un_nummer'] !== ''
-                && $item['un_fach'] !== ''
-                && !empty($item['un_lehrer'])
-                && !empty($item['un_klassen'])
-                && $item['un_stufe'] !== ''
-                ){
-                    array_push($unterrichtList, $item);
-                }
-            }
-        }
-
-        if(($Unterricht = $Node->getChild('plan'))){
-            $PlanChildList = $Unterricht->getChildList();
-            /** @var Node $UnterrichtChild */
-            foreach($PlanChildList as $PlanChild){
-                if($PlanChild->getName() == 'pl'){
-                    $plList = $PlanChild->getChildList();
+//        if(($Unterricht = $Node->getChild('unterricht'))){
+//            $UnterrichtChildList = $Unterricht->getChildList();
+//            /** @var Node $UnterrichtChild */
+//            foreach($UnterrichtChildList as $UnterrichtChild){
+//                $item = array();
+//                $item['un_nummer'] = '';
+////                $item['un_stunden'] = '';
+//                $item['un_stufe'] = '';
+//                $item['un_klassen'] = array();
+//                $item['un_fach'] = '';
+//                $item['un_lehrer'] = array();
+//                $item['un_gruppe'] = '';
+//                if(($unList = $UnterrichtChild->getChildList())){
+////                    Debugger::devDump($unList);
+//                    foreach($unList as $un){
+//                        if($un->getName() == 'un_lehrer'){
+//                            $unLehrerList = $un->getChildList();
+//                            foreach($unLehrerList as $unLehrer){
+//                                $item[$un->getName()][] = $unLehrer->getContent();
+//                            }
+//                        } elseif($un->getName() == 'un_klassen'){
+//                            $unKlassenList = $un->getChildList();
+//                            foreach($unKlassenList as $unKlassen){
+//                                $item[$un->getName()][] = $unKlassen->getContent();
+//                            }
+//                        } else {
+//                            $item[$un->getName()] = $un->getContent();
+//                        }
+//                    }
+//                }
+//                if($item['un_nummer'] !== ''
+//                && $item['un_fach'] !== ''
+//                && !empty($item['un_lehrer'])
+//                && !empty($item['un_klassen'])
+//                && $item['un_stufe'] !== ''
+//                ){
+//                    array_push($unterrichtList, $item);
+//                }
+//            }
+//        }
+//
+//        if(($Unterricht = $Node->getChild('plan'))){
+//            $PlanChildList = $Unterricht->getChildList();
+//            /** @var Node $UnterrichtChild */
+//            foreach($PlanChildList as $PlanChild){
+//                if($PlanChild->getName() == 'pl'){
+//                    $plList = $PlanChild->getChildList();
+//                    $item = array();
+//                    $item['pl_nummer'] = '';
+//                    $item['pl_stunde'] = '';
+//                    $item['pl_tag'] = '';
+//                    $item['pl_woche'] = '';
+//                    $item['pl_raum'] = '';
+//                    foreach($plList as $pl){
+//                        $item[$pl->getName()] = $pl->getContent();
+//                    }
+//                    if($item['pl_nummer'] !== ''
+//                    || $item['pl_tag'] !== ''
+//                    || $item['pl_stunde'] !== ''){
+//                        array_push($planList, $item);
+//                    }
+//                }
+//            }
+//        }
+        // Wochen
+        $WeekImport = array();
+        if(($Grunddaten = $Node->getChild('grunddaten'))){
+            if(($Weeks = $Grunddaten->getChild('g_schulwochen'))){
+                $WeekList = $Weeks->getChildList();
+                foreach($WeekList as $Week){
                     $item = array();
-                    $item['pl_nummer'] = '';
-                    $item['pl_stunde'] = '';
-                    $item['pl_tag'] = '';
-                    $item['pl_woche'] = '';
-                    $item['pl_raum'] = '';
-                    foreach($plList as $pl){
-                        $item[$pl->getName()] = $pl->getContent();
+                    $item['Nr'] = $Week->getAttribute('g_sw_nr');
+                    $item['Week'] = $Week->getAttribute('g_sw_wo');
+                    preg_match('!\d{2}.\d{2}.\d{4}!is',$Week->getContent(), $Match);
+                    if(isset($Match[0])){
+                        $item['Date'] = $Match[0];
+                    } else {
+                        $item['Date'] = '';
                     }
-                    if($item['pl_nummer'] !== ''
-                    || $item['pl_tag'] !== ''
-                    || $item['pl_stunde'] !== ''){
-                        array_push($planList, $item);
+                    if($item['Nr'] != ''
+                    && $item['Week'] != ''
+                    && $item['Date'] != ''){
+                        array_push($WeekImport, $item);
                     }
+
                 }
             }
         }
+//        Debugger::devDump($WeekImport);
 
         // Kombiniren der Einträge
         foreach($unterrichtList as $unterricht){
@@ -242,7 +267,7 @@ class TimetableService
             $raum = $lehrer = $klasse = $fach = '';
             $Row['SSWLehrer'] = $Row['SSWKlasse'] = $Row['SSWFach'] = '';
             // backend
-            $Row['tblPerson'] = $Row['tblDivision'] = $Row['tblSubject'] = false;
+            $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
             if(isset($Row['fach']) && $Row['fach'] !== ''){
                 $Row['tblSubject'] = Subject::useService()->getSubjectByAcronym($Row['fach']);
                 if ($Row['tblSubject']) {
@@ -256,14 +281,16 @@ class TimetableService
                 $isFach = false;
             }
             if(isset($Row['klasse']) && $Row['klasse'] !== ''){
-                // Suche nach SSW Klasse
-                foreach ($tblYearList as $tblYear) {
-                    //ToDO Change Division to Course
-                    if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['klasse'], $tblYear))) {
+                if($tblYearList){
+                    // Suche nach SSW Klasse
+                    foreach ($tblYearList as $tblYear) {
+                        //ToDO Change Division to Course
+                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['klasse'], $tblYear))) {
 //                        $Row['tblDivision'] = $tblDivision;
-                        $Row['tblCourse'] = $tblDivision;
-                        $Row['SSWKlasse'] = $tblDivision->getDisplayName();
-                        break;
+                            $Row['tblCourse'] = $tblDivision;
+                            $Row['SSWKlasse'] = $tblDivision->getDisplayName();
+                            break;
+                        }
                     }
                 }
                 if(!$Row['tblCourse']){
