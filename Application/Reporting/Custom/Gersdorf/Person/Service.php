@@ -374,6 +374,7 @@ class Service extends Extension
                                 && (is_numeric($LevelFrom)) && (is_numeric($tblDivisionLevel->getName()))) {
                                 if ($tblDivisionLevel->getName() < $LevelFrom) {
                                     $Item['ForeignLanguage' . $i] = '';
+                                    unset($Item['ForeignLanguage'. $i.'Id']);
                                 }
                             }
                             if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill()) &&
@@ -381,6 +382,7 @@ class Service extends Extension
                                 && (is_numeric($LevelTill)) && (is_numeric($tblDivisionLevel->getName()))) {
                                 if ($tblDivisionLevel->getName() > $LevelTill) {
                                     $Item['ForeignLanguage' . $i] = '';
+                                    unset($Item['ForeignLanguage'. $i.'Id']);
                                 }
                             }
                         }
