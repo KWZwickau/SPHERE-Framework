@@ -1585,7 +1585,7 @@ class Frontend extends FrontendScoreRule
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, true);
+                                $tableHeaderList, true, false);
                         }
                     }
                 }
@@ -2607,18 +2607,25 @@ class Frontend extends FrontendScoreRule
         $gradeMirror = array();
         $testAverage = Gradebook::useService()->getAverageByTest($tblTest, $gradeMirror);
         $description = $tblTest->getDescription();
-        $text = new Small(new Muted($date)) . '<br>'
-            . ($tblTest->getServiceTblGradeType()->isHighlighted()
-                ? $tblTest->getServiceTblGradeType()->getCode()
-                : new Muted($tblTest->getServiceTblGradeType()->getCode()));
-
+        $tblGradeTypeTest = $tblTest->getServiceTblGradeType();
+        $text = new Small(new Muted($date)) . '<br>';
+        if ($tblGradeTypeTest) {
+            $alternativeDescription = '';
+            $text .= $tblGradeTypeTest->isHighlighted()
+                    ? $tblGradeTypeTest->getCode()
+                    : new Muted($tblGradeTypeTest->getCode());
+        } else {
+            // Stichtagsnote
+            $text .= 'SN';
+            $alternativeDescription = 'Stichtagsnote';
+        }
 
         if ($showDivisionInToolTip && ($tblDivision = $tblTest->getServiceTblDivision())) {
             $toolTip = 'Klasse: ' . $tblDivision->getDisplayName() . '<br />';
         } else {
             $toolTip = '';
         }
-        $toolTip .= $description ? 'Thema: ' . $description : '';
+        $toolTip .= $description ? 'Thema: ' . $description : $alternativeDescription;
         if ($isShownGradeMirror) {
             if (!empty($gradeMirror)) {
                 $toolTip .= ($toolTip ? '<br />' : '');
@@ -2689,6 +2696,7 @@ class Frontend extends FrontendScoreRule
      * @param $isShownGradeMirror
      * @param $tableHeaderList
      * @param $isParentView
+     * @param $isShownAppointedDateGrade
      */
     private function setGradeOverview(
         TblYear $tblYear,
@@ -2701,11 +2709,13 @@ class Frontend extends FrontendScoreRule
         $isShownDivisionSubjectScore,
         $isShownGradeMirror,
         $tableHeaderList,
-        $isParentView
+        $isParentView,
+        $isShownAppointedDateGrade
     ) {
 
         /** @var TblDivision $tblDivision */
         foreach ($divisionList as $tblDivision) {
+            $tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
             if ($tblDivision && $tblDivision->getServiceTblYear()) {
                 // alle Klassen zum aktuellen Jahr
                 if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
@@ -2758,15 +2768,25 @@ class Frontend extends FrontendScoreRule
                                         $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName();
 
                                         if ($tblPeriodList) {
-                                            if ($isParentView
-                                                && ($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
-                                            ) {
+                                            if ($isParentView && $tblTestTypeAppointedDateTask) {
                                                 $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
                                                 if ($tblTaskList) {
                                                     $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
                                                 }
                                             } else {
                                                 $tblTaskList = false;
+                                            }
+
+                                            // Stichtagsnoten anzeigen
+                                            if ($isShownAppointedDateGrade) {
+                                                $appointedDateGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject(
+                                                    $tblPerson,
+                                                    $tblYear,
+                                                    $tblSubject,
+                                                    $tblTestTypeAppointedDateTask
+                                                );
+                                            } else {
+                                                $appointedDateGradeList = false;
                                             }
 
                                             /**@var TblPeriod $tblPeriod **/
@@ -2779,6 +2799,19 @@ class Frontend extends FrontendScoreRule
                                                     $tblTestType,
                                                     $tblPeriod
                                                 );
+
+                                                // Stichtagsnoten den Halbjahren zuordnen
+                                                if ($appointedDateGradeList) {
+                                                    if (!$tblGradeList) {
+                                                        $tblGradeList = array();
+                                                    }
+                                                    /**@var TblGrade $appointedDateGrade **/
+                                                    foreach ($appointedDateGradeList as $appointedDateGrade) {
+                                                        if (Gradebook::useService()->isAppointedDateGradeInPeriod($appointedDateGrade, $tblPeriod)) {
+                                                            $tblGradeList[] = $appointedDateGrade;
+                                                        }
+                                                    }
+                                                }
 
                                                 $subTableHeaderList = array();
                                                 $subTableDataList = array();
@@ -2898,7 +2931,9 @@ class Frontend extends FrontendScoreRule
                                                                     $showDivisionInToolTip
                                                                 );
 
-                                                                $gradeListForAverage[] = $tblGrade;
+                                                                if ($tblGrade->getTblGradeType()) {
+                                                                    $gradeListForAverage[] = $tblGrade;
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -3474,10 +3509,12 @@ class Frontend extends FrontendScoreRule
         if ($IsParentView) {
              list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
                  = $this->getConsumerSettingsForGradeOverview();
+            $isShownAppointedDateGrade = false;
         } else {
             $isShownAverage = true;
             $isShownDivisionSubjectScore = true;
             $isShownGradeMirror = true;
+            $isShownAppointedDateGrade = true;
             $tblSchoolTypeList = false;
             $startYear = '';
         }
@@ -3530,7 +3567,7 @@ class Frontend extends FrontendScoreRule
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, $IsParentView);
+                                $tableHeaderList, $IsParentView, $isShownAppointedDateGrade);
                         }
                     }
                 }

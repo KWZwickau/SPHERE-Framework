@@ -131,7 +131,7 @@ class GradebookOverview extends AbstractDocument
             && $tblPerson
             && ($tblYear = $tblDivision->getServiceTblYear())
         ) {
-
+            $tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
             $divisionList = array();
             if ($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson)) {
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
@@ -183,6 +183,13 @@ class GradebookOverview extends AbstractDocument
                                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                                         );
 
+                                        $appointedDateGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject(
+                                            $tblPerson,
+                                            $tblYear,
+                                            $tblDivisionSubject->getServiceTblSubject(),
+                                            $tblTestTypeAppointedDateTask
+                                        );
+
                                         $hasGrades = false;
                                         $yearGradeList = array();
                                         foreach ($tblPeriodList as $tblPeriod) {
@@ -194,6 +201,19 @@ class GradebookOverview extends AbstractDocument
                                                 $tblTestType,
                                                 $tblPeriod
                                             );
+
+                                            // Stichtagsnoten den Halbjahren zuordnen
+                                            if ($appointedDateGradeList) {
+                                                if (!$tblGradeList) {
+                                                    $tblGradeList = array();
+                                                }
+                                                /**@var TblGrade $appointedDateGrade **/
+                                                foreach ($appointedDateGradeList as $appointedDateGrade) {
+                                                    if (Gradebook::useService()->isAppointedDateGradeInPeriod($appointedDateGrade, $tblPeriod)) {
+                                                        $tblGradeList[] = $appointedDateGrade;
+                                                    }
+                                                }
+                                            }
 
                                             if ($tblGradeList) {
                                                 $hasGrades = true;
@@ -393,8 +413,11 @@ class GradebookOverview extends AbstractDocument
                                         if (strlen($date) > 6) {
                                             $date = substr($date, 0, 6);
                                         }
-                                        $text = $date . '<br>'
-                                            . $tblTest->getServiceTblGradeType()->getCode() . '<br>'
+                                        $tblGradeTypeTest = $tblTest->getServiceTblGradeType();
+                                        $text = $date
+                                            . '<br>'
+                                            . ($tblGradeTypeTest ? $tblGradeTypeTest->getCode() : 'SN')
+                                            . '<br>'
                                             . ($tblGrade->getDisplayGrade() !== null
                                             && $tblGrade->getDisplayGrade() !== '' ? $tblGrade->getDisplayGrade() : '&nbsp;');
                                         $section
@@ -404,7 +427,8 @@ class GradebookOverview extends AbstractDocument
                                                 ->styleBorderTop()
                                                 ->styleBorderRight()
                                                 ->styleBorderLeft($count++ < 1 ? '1px' : '0px')
-                                                ->styleTextBold($tblTest->getServiceTblGradeType()->isHighlighted() ? 'bold' : 'normal')
+                                                ->styleBackgroundColor(!$tblGradeTypeTest ? 'lightgrey' : '')
+                                                ->styleTextBold(!$tblGradeTypeTest || $tblGradeTypeTest->isHighlighted() ? 'bold' : 'normal')
                                                 , $widthGradeString);
                                     }
                                 }
