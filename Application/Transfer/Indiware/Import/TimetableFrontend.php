@@ -14,23 +14,21 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -59,8 +57,9 @@ class TimetableFrontend extends Extension implements IFrontendInterface
                 $item['Description'] = $tblTimetable->getDescription();
                 $item['DateFrom'] = $tblTimetable->getDateFrom();
                 $item['DateTo'] = $tblTimetable->getDateTo();
-                $item['Option'] = new Standard('', '#', new Edit(), array('tblTimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan')
-                .new Standard('', '#', new Remove(), array('tblTimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan');
+                $item['Option'] =
+                    // new Standard('', '#', new Edit(), array('tblTimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan') .
+                    new Standard('', '/Transfer/Indiware/Import/Timetable/Remove', new Remove(), array('TimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan');
                 array_push($TableContent, $item);
             }
         }
@@ -90,7 +89,12 @@ class TimetableFrontend extends Extension implements IFrontendInterface
     public function frontendTimetableImport($File = null, array $Data = array())
     {
 
-        $_POST['Data']['IsImport'] = '0';
+        if(!isset($_POST['Data']['IsImport'])){
+            $_POST['Data']['IsImport'] = '0';
+        }
+//        $_POST['Data']['Name'] = 'Test123';
+//        $_POST['Data']['DateFrom'] = '01.03.2022';
+//        $_POST['Data']['DateTo'] = '02.03.2022';
 
         $Stage = new Stage('Import', 'Stundenplan aus Indiware');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import/Timetable', new ChevronLeft()));
@@ -156,80 +160,88 @@ class TimetableFrontend extends Extension implements IFrontendInterface
     public function frontendImportTimetable(File $File, array $Data = array())
     {
 
-        $result = Timetable::useService()->getArrayFromTimetableFile($File);
+        $ImportRead = Timetable::useService()->getTimeTableImportFromFile($File);
+        $WeekImport = Timetable::useService()->getWeekDataFromFile($File);
         $Service = Timetable::useService();
-        $Service->getProductiveResult($result);
+        $DateFrom = new \DateTime($Data['DateFrom']);
+        $Service->getProductiveResult($ImportRead, $DateFrom);
         $WarningList = $Service->getWarningList();
         $ImportList = $Service->getUploadList();
 //        $WarningList = Timetable::useService()->getProductiveResult($result);
 //        $DoList = Timetable::useService()->getProductiveResult($result, false);
-        $ImportInfo = '';
-        $ImportWarning = 'Stundenzuweisungen, die nicht importiert werden können';
-        $ImportReady = 'Importierbare Stundenzuweisungen';
+        $ImportReady = new Success(count($ImportList).' Importierbare Stundenzuweisungen', null, false, 5, 5);
         if($Data['IsImport'] == '1'){
 
-            Timetable::useService()->importTimetable($Data['Name'], $Data['Description'], new \DateTime($Data['DateFrom']), new \DateTime($Data['DateTo']), $ImportList);
-            $ImportInfo = new Success('Import durchgeführt');
-            $ImportWarning = 'Stundenzuweisungen, die nicht importiert werden konnten';
-            $ImportReady = 'Importierte Stundenzuweisungen';
+            Timetable::useService()->importTimetable($Data['Name'], $Data['Description'], new \DateTime($Data['DateFrom']), new \DateTime($Data['DateTo']),
+                $ImportList, $WeekImport);
+            $ImportReady = new Success('Import durchgeführt'.new Container(count($ImportList).' Importierte Stundenzuweisungen'));
         }
 
+        $LayoutColumnList = array();
+        if(!empty($Service->getCountImport())){
 
-        return new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn(
-                new Title(new DangerText($ImportWarning))
-                . (!empty($WarningList)
-                    ? new TableData($WarningList, null, array(
-                        'tag'       => 'Tag',
-                        'stunde'    => 'Stunde',
-                        'fach'      => 'Fach',
-                        'SSWFach'   => 'SSW-Fach',
-                        'klasse'    => 'Klasse',
-                        'SSWKlasse' => 'SSW-Klasse',
-                        'lehrer'    => 'Lehrer',
-                        'SSWLehrer' => 'SSW-Lehrer',
-                        'raum'      => 'Raum',
-                    ), array(
-                        'pageLength' => 10
-                    ))
-                    : new Success('Keine Fehler vorhanden'))
+            $LayoutColumnList[] = new LayoutColumn(new Warning(count($WarningList).' Fehlerhafte Einträge können nicht importiert werden', null, false, 5,5));
+
+            $Count = $Service->getCountImport();
+            if(isset($Count['Division'])){
+                $PanelContent = array();
+                foreach($Count['Division'] as $Division => $FoundList){
+                    $PanelContent[] = $Division.' (x'.count($FoundList).')';
+                }
+                $LayoutColumnList[] = new LayoutColumn(new Panel('Klasse nicht zuweisbar', $PanelContent, Panel::PANEL_TYPE_WARNING), 4);
+            } else {
+                $LayoutColumnList[] = new LayoutColumn(new Panel('Klasse nicht zuweisbar', '', Panel::PANEL_TYPE_WARNING), 4);
+            }
+            if(isset($Count['Subject'])){
+                $PanelContent = array();
+                foreach($Count['Subject'] as $Subject => $FoundList){
+                    $PanelContent[] = $Subject.' (x'.count($FoundList).')';
+                }
+                $LayoutColumnList[] = new LayoutColumn(new Panel('Fach nicht zuweisbar', $PanelContent, Panel::PANEL_TYPE_WARNING), 4);
+            } else {
+                $LayoutColumnList[] = new LayoutColumn(new Panel('Fach nicht zuweisbar', '', Panel::PANEL_TYPE_WARNING), 4);
+            }
+            if(isset($Count['Person'])){
+                $PanelContent = array();
+                foreach($Count['Person'] as $Person => $FoundList){
+                    $PanelContent[] = $Person.' (x'.count($FoundList).')';
+                }
+                $LayoutColumnList[] = new LayoutColumn(new Panel('Lehrer nicht zuweisbar', $PanelContent, Panel::PANEL_TYPE_WARNING), 4);
+            } else {
+                $LayoutColumnList[] = new LayoutColumn(new Panel('Lehrer nicht zuweisbar', '', Panel::PANEL_TYPE_WARNING), 4);
+            }
+        } else {
+            $LayoutColumnList[] = new LayoutColumn(new Success('Keine Fehlerhafte Einträge', null, false, 5,5));
+        }
+
+        return new Layout(new LayoutGroup(array(
+            new LayoutRow(
+                $LayoutColumnList
             ),
-            new LayoutColumn(
-                new Title($ImportReady)
-                .$ImportInfo
-                .(!empty($WarningList)
-                    ?new TableData($ImportList, null, array(
-                        'tag'       => 'Tag',
-                        'stunde'    => 'Stunde',
-                        'fach'      => 'Fach',
-                        'SSWFach'   => 'SSW-Fach',
-                        'klasse'    => 'Klasse',
-                        'SSWKlasse' => 'SSW-Klasse',
-                        'lehrer'    => 'Lehrer',
-                        'SSWLehrer' => 'SSW-Lehrer',
-                        'raum'      => 'Raum',
-                        'success'   => '',
-                    ))
-                    : new Danger('Keine Daten für den Import vorhanden')
-                )
-            ),
-        ))));
+            new LayoutRow(
+                new LayoutColumn($ImportReady)
+            )
+        )));
     }
 
     /**
-     * @param string $TimeTableId
+     * @param string $TimetableId
      * @return Warning|string
      * @throws \Exception
      */
-    public function frontendRemoveTimetable(string $TimeTableId)
+    public function frontendRemoveTimetable(string $TimetableId)
     {
 
-        $tblTimeTable = TimetableClassregister::useService()->getTimetableById($TimeTableId);
-        if($tblTimeTable){
-            TimetableClassregister::useService()->removeTimeTable($tblTimeTable);
-            return new Success('Stundenplan erfolgreich entfernt')
-                .new Redirect('/Transfer/Indiware/Import/Timetable', Redirect::TIMEOUT_SUCCESS);
+        $Stage = new Stage('Stundenplan', 'entfernen');
+
+        $tblTimetable = TimetableClassregister::useService()->getTimetableById($TimetableId);
+        if($tblTimetable){
+            TimetableClassregister::useService()->removeTimetable($tblTimetable);
+            $Stage->setContent(new Success('Stundenplan erfolgreich entfernt')
+                .new Redirect('/Transfer/Indiware/Import/Timetable', Redirect::TIMEOUT_SUCCESS));
+            return $Stage;
         }
-        return new Warning('Stundenplan konnte nicht entfernt werden');
+        $Stage->setContent(new Warning('Stundenplan konnte nicht entfernt werden'));
+        return $Stage;
     }
 }

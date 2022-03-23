@@ -67,6 +67,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTimetable $tblTimetable
+     * @return mixed
+     */
+    public function getTimetableNodeListByTimetable(TblTimetable $tblTimetable)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableNodeListByTimetable($tblTimetable);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @return mixed
+     */
+    public function getTimetableWeekListByTimetable(TblTimetable $tblTimetable)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableWeekListByTimetable($tblTimetable);
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
      * @param \DateTime $DateFrom
@@ -80,28 +100,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $WeekDay
-     * @param int $Lesson
-     * @param string $Room
-     * @param TblSubject $serviceTblSubject
-     * @return TblTimetable|null
-     */ // ToDO
-    public function createTimetableNode(int $WeekDay, int $Lesson, string $Room, TblSubject $serviceTblSubject): ?TblTimetable
-    {
-
-        return (new Data($this->getBinding()))->createTimetableNode($WeekDay, $Lesson, $Room, $serviceTblSubject);
-    }
-
-    /**
      * @param TblTimetable $tblTimetable
      * @param array $ImportList
      * required ArrayKeys
-     * [stunde]
-     * [tag]
-     * [woche]
-     * [raum]
-     * [gruppe]
-     * [stufe]
+     * [Hour]
+     * [Day]
+     * [Week]
+     * [Room]
+     * [SubjectGroup]
+     * [Level]
      * [tblCourse]
      * [tblSubject]
      * [tblPerson]
@@ -114,9 +121,36 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->createTimetableNodeBulk($tblTimetable, $ImportList);
     }
 
-    public function removeTimeTable($tblTimeTable)
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param array $ImportList
+     * required ArrayKeys
+     * [number]
+     * [week]
+     * [date]
+     *
+     * @return bool
+     */
+    public function createTimetableWeekBulk(TblTimetable $tblTimetable, $ImportList)
     {
 
+        return (new Data($this->getBinding()))->createTimetableWeekBulk($tblTimetable, $ImportList);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @return bool
+     */
+    public function removeTimetable(TblTimetable $tblTimetable)
+    {
+
+        if(($tblTimetableNodeList = $this->getTimetableNodeListByTimetable($tblTimetable))){
+            (new Data($this->getBinding()))->removeTimetableNodeList($tblTimetableNodeList);
+        }
+        if(($tblTimetableWeekList = $this->getTimetableWeekListByTimetable($tblTimetable))){
+            (new Data($this->getBinding()))->removeTimetableWeekList($tblTimetableWeekList);
+        }
+        return (new Data($this->getBinding()))->removeTimetable($tblTimetable);
     }
 
     /**

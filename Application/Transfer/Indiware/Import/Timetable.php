@@ -19,6 +19,9 @@ class Timetable implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Timetable/Import', __NAMESPACE__.'\TimetableFrontend::frontendImportTimetable'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Timetable/Remove', __NAMESPACE__.'\TimetableFrontend::frontendRemoveTimetable'
+        ));
     }
 
     /**

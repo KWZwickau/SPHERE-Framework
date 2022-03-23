@@ -28,6 +28,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblTimeTable = $this->setTableTimetable($Schema);
         $this->setTableTimetableNode($Schema, $tblTimeTable);
+        $this->setTableTimetableWeek($Schema, $tblTimeTable);
 
         /**
          * Migration & Protocol
@@ -78,6 +79,24 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+
+        $this->createForeignKey($Table, $tblTimeTable);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableTimetableWeek(Schema &$Schema, Table $tblTimeTable)
+    {
+
+        $Table = $this->createTable($Schema, 'tblClassRegisterTimetableWeek');
+        $this->createColumn($Table, 'Number', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Week', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Date', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($Table, $tblTimeTable);
 

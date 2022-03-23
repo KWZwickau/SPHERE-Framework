@@ -1,9 +1,9 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister\Timetable\Service;
 
-use DateTime as DateTime;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -35,12 +35,12 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
-     * @param DateTime $DateFrom
-     * @param DateTime $DateTo
+     * @param \DateTime $DateFrom
+     * @param \DateTime $DateTo
      * @return null|TblTimetable
      * @throws \Exception
      */
-    public function getTimetableByNameAndTime(string $Name, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
+    public function getTimetableByNameAndTime(string $Name, \DateTime $DateFrom, \DateTime $DateTo): ?TblTimetable
     {
         /* @var TblTimetable $Entity */
         $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetable',
@@ -50,6 +50,36 @@ class Data extends AbstractData
                 TblTimetable::ATTR_DATE_TO => $DateTo
             ));
         return (false === $Entity ? null : $Entity);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @return mixed
+     */
+    public function getTimetableNodeListByTimetable(TblTimetable $tblTimetable)
+    {
+
+        /* @var TblTimetableNode[]|false $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableNode',
+            array(
+                TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId()
+            ));
+        return (false === $EntityList ? null : $EntityList);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @return TblTimetableWeek[]|null
+     */
+    public function getTimetableWeekListByTimetable(TblTimetable $tblTimetable)
+    {
+
+        /* @var TblTimetableWeek[]|false $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableWeek',
+            array(
+                TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId()
+            ));
+        return (false === $EntityList ? null : $EntityList);
     }
 
     /**
@@ -66,11 +96,11 @@ class Data extends AbstractData
     /**
      * @param string $Name
      * @param string $Description
-     * @param DateTime $DateFrom
-     * @param DateTime $DateTo
+     * @param \DateTime $DateFrom
+     * @param \DateTime $DateTo
      * @return TblTimetable|null
      */
-    public function createTimetable($Name, $Description, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
+    public function createTimetable($Name, $Description, \DateTime $DateFrom, \DateTime $DateTo): ?TblTimetable
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -97,12 +127,12 @@ class Data extends AbstractData
      * @param TblTimetable $tblTimetable,
      * @param array $ImportList
      * required ArrayKeys
-     * [stunde]
-     * [tag]
-     * [woche]
-     * [raum]
-     * [gruppe]
-     * [stufe]
+     * [Hour]
+     * [Day]
+     * [Week]
+     * [Room]
+     * [SubjectGroup]
+     * [Level]
      * [tblCourse]
      * [tblSubject]
      * [tblPerson]
@@ -116,12 +146,12 @@ class Data extends AbstractData
         if (!empty($ImportList)) {
             foreach ($ImportList as $Row) {
                 $Entity = new TblTimetableNode();
-                $Entity->setHour($Row['stunde']);
-                $Entity->setDay($Row['tag']);
-                $Entity->setWeek($Row['woche']);
-                $Entity->setRoom($Row['raum']);
-                $Entity->setSubjectGroup($Row['gruppe']);
-                $Entity->setLevel($Row['stufe']);
+                $Entity->setHour($Row['Hour']);
+                $Entity->setDay($Row['Day']);
+                $Entity->setWeek($Row['Week']);
+                $Entity->setRoom($Row['Room']);
+                $Entity->setSubjectGroup($Row['SubjectGroup']);
+                $Entity->setLevel($Row['Level']);
                 $Entity->setServiceTblCourse($Row['tblCourse']);
                 $Entity->setServiceTblSubject($Row['tblSubject']);
                 $Entity->setServiceTblPerson($Row['tblPerson']);
@@ -135,6 +165,92 @@ class Data extends AbstractData
         }
         return false;
 
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param array $ImportList
+     * required ArrayKeys
+     * [number]
+     * [week]
+     * [date]
+     *
+     * @return bool
+     */
+    public function createTimetableWeekBulk(TblTimetable $tblTimetable, $ImportList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($ImportList)) {
+            foreach ($ImportList as $Row) {
+                $Entity = new TblTimetableWeek();
+                $Entity->setNumber($Row['Number']);
+                $Entity->setWeek($Row['Week']);
+                $Entity->setDate(new \DateTime($Row['Date']));
+                $Entity->setTblTimetable($tblTimetable);
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
+     * @param $tblTimetableNodeList
+     * @return bool
+     */
+    public function removeTimetableNodeList($tblTimetableNodeList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($tblTimetableNodeList)) {
+            foreach ($tblTimetableNodeList as $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param $tblTimetableWeekList
+     * @return bool
+     */
+    public function removeTimetableWeekList($tblTimetableWeekList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($tblTimetableWeekList)) {
+            foreach ($tblTimetableWeekList as $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblTimetable $tblTimeTable
+     * @return bool
+     */
+    public function removeTimetable(TblTimetable $tblTimeTable)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = clone $tblTimeTable;
+        $Manager->killEntity($tblTimeTable);
+        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+        return true;
     }
 
     /**
